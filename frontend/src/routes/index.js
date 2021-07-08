@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from "@/pages/Home.vue"
 import Account from "@/pages/Account.vue"
-import AccountSettings from "@/pages/Account/Settings.vue"
-import AccountSecurity from "@/pages/Account/Security.vue"
+import AccountSettings from "@/pages/account/Settings.vue"
+import AccountSecurity from "@/pages/account/Security.vue"
 import Team from "@/pages/Team.vue"
 import store from "@/store"
 
