@@ -35,17 +35,6 @@ module.exports = async function(app) {
                     required: true
                 }
             })
-            // projects = await app.db.models.User.findOne({
-            //     where:{
-            //         email: request.session.User.email
-            //     },
-            //     include: {
-            //         model: app.db.models.Team,
-            //         include: {
-            //             model: app.db.models.ProjectTeam
-            //         }
-            //     }
-            // })
         } catch(err) {
             console.log(err)
         }
