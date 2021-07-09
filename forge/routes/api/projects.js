@@ -29,8 +29,10 @@ module.exports = async function(app) {
                             where: {
                                 UserId: request.session.User.id
                             }
-                        }
-                    }
+                        },
+                        required: true
+                    },
+                    required: true
                 }
             })
             // projects = await app.db.models.User.findOne({
