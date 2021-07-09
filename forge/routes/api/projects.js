@@ -19,28 +19,31 @@ module.exports = async function(app) {
         let projects = []
         try {
             //need to work out how to filter by user, nearly there
-            // prokects = await app.db.models.Project.findAll({
+            projects = await app.db.models.Project.findAll({
+                include: {
+                    model: app.db.models.ProjectTeam,
+                    include: {
+                        model: app.db.models.Team,
+                        include: {
+                            model: app.db.models.TeamMember,
+                            where: {
+                                UserId: request.session.User.id
+                            }
+                        }
+                    }
+                }
+            })
+            // projects = await app.db.models.User.findOne({
+            //     where:{
+            //         email: request.session.User.email
+            //     },
             //     include: {
-            //         model: app.db.models.ProjectTeam,
+            //         model: app.db.models.Team,
             //         include: {
-            //             model: app.db.models.Team,
-            //             include: {
-            //                 model: app.db.models.TeamMember,
-            //                 where: {
-            //                     UserId: request.session.User.id
-            //                 }
-            //             }
+            //             model: app.db.models.ProjectTeam
             //         }
             //     }
             // })
-            projects = await app.db.models.User.findOne({
-                where:{
-                    username: request.session.User.email
-                },
-                include: {
-                    model: app.db.models.Team
-                }
-            })
         } catch(err) {
             console.log(err)
         }
