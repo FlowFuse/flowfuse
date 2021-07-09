@@ -18,6 +18,11 @@
 const fp = require("fastify-plugin");
 const cookie = require('fastify-cookie');
 
+
+// Default to a 12 hour session if the user ticks 'remember me'
+// TODO - turn this into an idle timeout, with a separate 'max session' timeout.
+const SESSION_MAX_AGE = 60*60*12; // 12 hours in seconds
+
 // Options to apply to our session cookie
 const SESSION_COOKIE_OPTIONS = {
     httpOnly: true,
@@ -137,7 +142,8 @@ module.exports = fp(function(app, opts, done) {
                 required: ['username', 'password'],
                 properties: {
                     username: { type: 'string' },
-                    password: { type: 'string' }
+                    password: { type: 'string' },
+                    remember: { type: 'boolean', default: false }
                 }
             }
         }
@@ -146,7 +152,11 @@ module.exports = fp(function(app, opts, done) {
         if (result) {
             const session = await app.db.controllers.Session.createSession(request.body.username);
             if (session) {
-                reply.setCookie('sid',session.sid,SESSION_COOKIE_OPTIONS);
+                const cookieOptions = {...SESSION_COOKIE_OPTIONS};
+                if (request.body.remember) {
+                    cookieOptions.maxAge = SESSION_MAX_AGE;
+                }
+                reply.setCookie('sid',session.sid,cookieOptions);
                 reply.send({status:"okay"})
                 return
             }

@@ -33,7 +33,7 @@ const actions = {
 
     async login(state, credentials) {
         try {
-            await userApi.login(credentials.username,credentials.password)
+            await userApi.login(credentials.username,credentials.password,credentials.remember)
             state.dispatch('checkState',true);
         } catch(err) {
             console.log("LOGIN FAILED")
