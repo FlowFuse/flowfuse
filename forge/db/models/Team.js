@@ -13,6 +13,7 @@ module.exports = {
     associations: function(M) {
         this.belongsToMany(M['User'], { through: M['TeamMember']})
         this.hasMany(M['TeamMember'])
+        this.belongsToMany(M['Instance'], {through: M['InstanceTeam']})
     },
     finders: function(M) {
         const self = this;

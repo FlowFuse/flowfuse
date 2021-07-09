@@ -14,10 +14,10 @@
  	 * @static
  	 * @memberof forge.routes.api.instance
  	 */
- 	app.get('/', async (request, reply) => {
+ 	app.get('/:id', async (request, reply) => {
  		let instance = {
+ 				id: "45ec7fd2-3e80-4ba5-ad19-e756e354c928",
  				name: "instance1",
- 				namespace: "default",
  				url: "https://instance1.example.com"
  		}
  		reply.send(instance)
@@ -32,18 +32,18 @@
  		schema: {
  			body: {
  				type: 'object',
- 				required: ['name','namespace', 'type'],
+ 				required: ['name','options', 'type'],
  				properties: {
  					name: { type: 'string'},
- 					namespace: {type: 'string'},
- 					type: { type: 'string'}
+ 					type: { type: 'string'},
+ 					options: { type: 'object'}
  				}
  			}
  		}
  	}, async (request, reply) => {
  		reply.send({
  			name: request.body.name, 
- 			namespace: request.body.namespace,
+ 			namespace: request.body.options.snamespace,
  			url: "https://" + request.body.name + ".example.com"
  		})
  	})
@@ -53,18 +53,7 @@
  	 * @name /api/v1/instance
  	 * @memberof foreg.routes.api.instance 
  	 */
- 	app.delete('/', {
- 		schema: {
- 			body: {
- 				type: 'object',
- 				required: ['name','namespace'],
- 				properties: {
- 					name: { type: 'string'},
- 					namespace: {type: 'string'}
- 				}
- 			}
- 		}
- 	}, async (request, reply) => {
+ 	app.delete('/:id', async (request, reply) => {
  		reply.send({ status: "okay"})
  	})
  }

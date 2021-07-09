@@ -14,18 +14,26 @@ module.exports = async function(app) {
      * @memberof forge.routes.api.instance
      */
     app.get('/', async (request, reply) => {
-        let instances = [
-            {
-                name: "instance1",
-                namespace: "default",
-                url: "https://instance1.example.com"
-            },
-            {
-                name: "instance2",
-                namespace: "default",
-                url: "https://instance2.example.com"
-            }
-        ]
+        let instances = []
+        try {
+            //need to work out how to filter by user, nearly there
+            instances = await app.db.models.Instance.findAll({
+                include: {
+                    model: app.db.models.InstanceTeam,
+                    include: {
+                        model: app.db.models.Team,
+                        include: {
+                            model: app.db.models.TeamMember,
+                            where: {
+                                UserId: request.session.User.id
+                            }
+                        }
+                    }
+                }
+            })
+        } catch(err) {
+            console.log(err)
+        }
         reply.send(instances)
     })
 }

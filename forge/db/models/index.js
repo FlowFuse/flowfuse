@@ -40,7 +40,7 @@
 const { Model } = require('sequelize');
 
 // The models that should be loaded
-const modelTypes = ['Organization', 'User', 'Team', 'TeamMember','Session'];
+const modelTypes = ['Organization', 'User', 'Team', 'TeamMember','Session', 'Instance', 'InstanceTeam'];
 
 // A local map of the known models.
 const M = {};
