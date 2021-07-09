@@ -1,11 +1,11 @@
 /**
- * A Instance
- * @namespace forge.db.models.Instance
+ * A Project
+ * @namespace forge.db.models.Project
  */
 const { DataTypes } = require('sequelize');
 
 module.exports = {
-	name: 'Instance',
+	name: 'Project',
 	schema: {
 		id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4},
 		name: { type: DataTypes.STRING, allowNull: false},
@@ -13,7 +13,7 @@ module.exports = {
 		url: { type: DataTypes.STRING, allowNull: false}
 	},
 	associations: function(M) {
-		this.belongsToMany(M['Team'], { through: M['InstanceTeam']})
-		this.hasMany(M['InstanceTeam'])
+		this.belongsToMany(M['Team'], { through: M['ProjectTeam']})
+		this.hasMany(M['ProjectTeam'])
 	}
 }

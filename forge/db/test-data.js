@@ -22,11 +22,11 @@ async function inject() {
         await team3.addUser(user1, { through: { role:"owner" } });
         await team3.addUser(user3, { through: { role:"member" } });
 
-        const instance1 = await Models.Instance.create({name: "instance1", type: "basic", url: "http://instance1.example.com"});
-        const instance2 = await Models.Instance.create({name: "instance2", type: "basic", url: "http://instance2.example.com"});
+        const project1 = await Models.Project.create({name: "project1", type: "basic", url: "http://instance1.example.com"});
+        const project2 = await Models.Project.create({name: "project2", type: "basic", url: "http://instance2.example.com"});
 
-        await instance1.addTeam(team1);
-        await instance2.addTeam(team2);
+        await project1.addTeam(team1);
+        await project2.addTeam(team2);
 
     } catch(err) {
         if (err.name === "SequelizeUniqueConstraintError") {

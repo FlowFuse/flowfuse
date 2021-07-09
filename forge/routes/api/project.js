@@ -1,31 +1,31 @@
 /**
  * Instance api routes
  * 
- *   /api/v1/instance
+ *   /api/v1/project
  * 
- * @namespace instance
+ * @namespace project
  * @memberof forge.route.api
  */
  module.exports = async function(app) {
 
  	/**
- 	 * Get the details of a givevn instance
- 	 * @name /api/v1/instance
+ 	 * Get the details of a givevn project
+ 	 * @name /api/v1/project
  	 * @static
- 	 * @memberof forge.routes.api.instance
+ 	 * @memberof forge.routes.api.project
  	 */
  	app.get('/:id', async (request, reply) => {
- 		let instance = {
+ 		let project = {
  				id: "45ec7fd2-3e80-4ba5-ad19-e756e354c928",
  				name: "instance1",
  				url: "https://instance1.example.com"
  		}
- 		reply.send(instance)
+ 		reply.send(project)
  	})
 
  	/**
- 	 * Create an new instance
- 	 * @name /api/v1/instance
+ 	 * Create an new project
+ 	 * @name /api/v1/project
  	 * 
  	 */
  	app.post('/', {
@@ -49,9 +49,9 @@
  	})
 
  	/**
- 	 * Delete an instance
- 	 * @name /api/v1/instance
- 	 * @memberof foreg.routes.api.instance 
+ 	 * Delete an project
+ 	 * @name /api/v1/project
+ 	 * @memberof foreg.routes.api.project 
  	 */
  	app.delete('/:id', async (request, reply) => {
  		reply.send({ status: "okay"})

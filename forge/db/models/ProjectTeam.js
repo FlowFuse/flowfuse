@@ -1,17 +1,17 @@
 /**
  * A Instance
- * @namespace forge.db.models.InstanceTeam
+ * @namespace forge.db.models.ProjectTeam
  */
 const { DataTypes } = require('sequelize');
 
 module.exports = {
-	name: 'InstanceTeam',
+	name: 'ProjectTeam',
 	schema: {},
 	options: {
 		timestamps: false
 	},
 	associations:function(M) {
-        this.belongsTo(M['Instance']);
+        this.belongsTo(M['Project']);
         this.belongsTo(M['Team']);
     }
 }
