@@ -2,39 +2,26 @@
     <div class="mx-auto min-h-screen flex items-center justify-center bg-gray-50 py-12">
         <div class="sm:w-72 w-xs w-screen space-y-2">
             <template v-if="!pending">
-                <div class="max-w-xs mx-auto w-full">
+                <div class="max-w-xs mx-auto w-full mb-4">
                     <Logo/>
                     <h2 class="mt-2 text-center text-3xl font-bold text-gray-900">
                         <span>FLOW</span><span class="font-light">FORGE</span>
                     </h2>
                 </div>
                 <form class="px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
-                    <FormRow :error="errors.username" v-model="input.username">Username</FormRow>
-                    <FormRow type="password" :error="errors.password" v-model="input.password">Password</FormRow>
-                    <div class="flex flex-col justify-between">
-                        <div class="flex items-center">
-                            <input id="remember_me" name="remember_me" v-model="input.remember" type="checkbox" class="h-4 w-4 text-indigo-600  focus:ring-blue-700 border-gray-300 rounded" />
-                            <label for="remember_me" class="ml-2 block text-sm text-gray-900">
-                                Remember me
-                            </label>
+                    <template v-if="authMode === 'select'">
+                        <div class="h-48 pt-12">
+                            <button type="button" @click="selectCredentials" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-900 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-700">
+                                <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                                    <LockClosedIcon class="h-5 w-5 text-indigo-500 group-hover:text-indigo-400" aria-hidden="true" />
+                                </span>
+                                Login with username
+                            </button>
                         </div>
-                    </div>
-
-                    <div>
-                        <button type="button" @click="login" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-900 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-700">
-                            <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-                                <LockClosedIcon class="h-5 w-5 text-indigo-500 group-hover:text-indigo-400" aria-hidden="true" />
-                            </span>
-                            Sign in
-                        </button>
-                    </div>
-<!-- TODO
-                    <div class="text-sm">
-                        <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">
-                            Forgot your password?
-                        </a>
-                    </div>
--->
+                    </template>
+                    <template v-if="authMode === 'credentials'">
+                        <AuthCredentials />
+                    </template>
                 </form>
             </template>
             <template v-else>
@@ -49,52 +36,26 @@
 <script>
 import { mapState } from 'vuex'
 import Logo from "@/components/Logo"
-import FormRow from '@/components/FormRow'
+import AuthCredentials from "@/components/auth/Credentials"
 import { LockClosedIcon } from '@heroicons/vue/outline'
 
 export default {
     name: "Login",
-    computed:mapState('account',['pending', 'loginError']),
     data() {
         return {
-            input: {
-                username: "",
-                password: "",
-                remember: false
-            },
-            errors: {
-                username: null,
-                password: null
-            }
+            authMode: 'select'
         }
     },
     methods: {
-        login() {
-            let valid = true;
-            this.errors.username = "";
-            this.errors.password = "";
-            if (this.input.username === "") {
-                valid = false;
-                this.errors.username = "Required field"
-            }
-            if (this.input.password === "") {
-                valid = false;
-                this.errors.password = "Required field"
-            }
-            if (valid) {
-                this.$store.dispatch('account/login',this.input);
-            }
+        selectCredentials() {
+            this.authMode = 'credentials'
         }
     },
-    watch: {
-        loginError(newError, oldError) {
-            this.errors.username = "Login failed"
-        }
-    },
+    computed:mapState('account',['pending']),
     components: {
         Logo,
         LockClosedIcon,
-        FormRow
+        AuthCredentials
     }
 }
 </script>
