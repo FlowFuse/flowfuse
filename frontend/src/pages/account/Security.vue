@@ -1,5 +1,5 @@
 <template>
-    <form class="px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
+    <form class="space-y-6">
         <FormHeading>Change password</FormHeading>
         <FormRow type="password" :error="errors.old_password" v-model="input.old_password" id="old_password">Old Password</FormRow>
         <FormRow type="password" :error="errors.password" v-model="input.password" id="password">New Password</FormRow>

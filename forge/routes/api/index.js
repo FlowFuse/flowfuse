@@ -7,11 +7,13 @@
  */
 const User = require("./user.js");
 const Users = require("./users.js");
+const Team = require("./team.js");
 
 module.exports = async function(app) {
     app.addHook('preHandler',app.verifySession);
     app.register(User, { prefix: "/user" })
     app.register(Users, { prefix: "/users" })
+    app.register(Team, { prefix: "/team" })
     app.get('*', function (request, reply) {
         reply.code(404).type('text/html').send('Not Found')
     })
