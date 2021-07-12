@@ -44,4 +44,21 @@ module.exports = async function(app) {
             reply.code(400).send({error: "password change failed"})
         }
     });
+
+    /**
+     * Get the teams of the current logged in user
+     * @name /api/v1/user/teams
+     * @static
+     * @memberof forge.routes.api.user
+     */
+    app.get('/teams', async (request, reply) => {
+        const teams = await app.db.models.Team.forUser(request.session.User);
+        const result = await app.db.views.Team.userTeamList(teams);
+        reply.send({
+            count: result.length,
+            teams:result
+        })
+
+
+    })
 }

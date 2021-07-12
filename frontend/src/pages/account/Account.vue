@@ -13,7 +13,7 @@
             </li>
         </template>
     </ul>
-    <div class="text-sm">
+    <div class="text-sm px-4 sm:px-6 lg:px-8 mt-8">
         <router-view></router-view>
     </div>
 </template>
@@ -23,7 +23,8 @@ import { mapState } from 'vuex'
 
 const navigation = [
     { name: "Settings", path: "/account/settings" },
-    { name: "Security", path: "/account/security" }
+    { name: "Security", path: "/account/security" },
+    { name: "Teams", path: "/account/teams" }
 ]
 
 export default {

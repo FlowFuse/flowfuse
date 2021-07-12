@@ -23,30 +23,35 @@ const db = {
 
 const R = async function(f) { console.log(JSON.stringify(await f," ",4)); }
 
-;(async function() {
-        await sequelize.authenticate();
-        await Models.init(db);
-        await Views.init(db);
-        await Controllers.init(db);
+async function setup() {
+    await sequelize.authenticate();
+    await Models.init(db);
+    await Views.init(db);
+    await Controllers.init(db);
 
-        const user1 = await Models.User.create({admin: true, name: "Alice Avery", email: "alice@example.com", password: 'aaPassword'});
-        const user2 = await Models.User.create({name: "Bob Block", email: "bob@example.com", password: 'bbPassword'});
-        const user3 = await Models.User.create({name: "Chris Connors", email: "chris@example.com", password: 'ccPassword'});
+    const user1 = await Models.User.create({admin: true, name: "Alice Avery", email: "alice@example.com", password: 'aaPassword'});
+    const user2 = await Models.User.create({name: "Bob Block", email: "bob@example.com", password: 'bbPassword'});
+    const user3 = await Models.User.create({name: "Chris Connors", email: "chris@example.com", password: 'ccPassword'});
 
-        const team1 = await Models.Team.create({name: "ATeam"});
-        const team2 = await Models.Team.create({name: "BTeam"});
-        const team3 = await Models.Team.create({name: "CTeam"});
+    const team1 = await Models.Team.create({name: "ATeam"});
+    const team2 = await Models.Team.create({name: "BTeam"});
+    const team3 = await Models.Team.create({name: "CTeam"});
 
-        await team1.addUser(user1, { through: { role:"owner" } });
-        await team1.addUser(user2, { through: { role:"member" } });
-        await team1.addUser(user3, { through: { role:"member" } });
+    await team1.addUser(user1, { through: { role:"owner" } });
+    await team1.addUser(user2, { through: { role:"member" } });
+    await team1.addUser(user3, { through: { role:"member" } });
 
-        await team2.addUser(user2, { through: { role:"owner" } });
-        await team2.addUser(user1, { through: { role:"member" } });
+    await team2.addUser(user2, { through: { role:"owner" } });
+    await team2.addUser(user1, { through: { role:"member" } });
 
-        await team3.addUser(user1, { through: { role:"owner" } });
-        await team3.addUser(user3, { through: { role:"member" } });
+    await team3.addUser(user1, { through: { role:"owner" } });
+    await team3.addUser(user3, { through: { role:"member" } });
+}
 
+if (require.main === module) {
+    // Being run directly
+    (async function() {
+        await setup();
         try {
             let user = await Models.User.findOne({
                 where: { email:'alice@example.com'}
@@ -55,8 +60,6 @@ const R = async function(f) { console.log(JSON.stringify(await f," ",4)); }
         }catch(err) {
             console.log(err);
         }
-
-
         // let result = await Models.Session.findAll({
         //     include: Models.User
         // });
@@ -89,10 +92,15 @@ const R = async function(f) { console.log(JSON.stringify(await f," ",4)); }
 
 
         // R(result);
-
-
-})().catch(e => {
-    console.log(e);
-}).finally( () => {
-    try { sequelize.close() } catch(err) {}
-});
+    })().catch(e => {
+        console.log(e);
+    }).finally( () => {
+        try { sequelize.close() } catch(err) {}
+    });
+} else {
+    module.exports = {
+        db,
+        R,
+        setup
+    }
+}

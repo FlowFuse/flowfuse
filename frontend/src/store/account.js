@@ -36,8 +36,9 @@ const mutations = {
 // actions
 const actions = {
     async checkState(state, redirectToUserSettings) {
+        console.log("CHECK STATE");
         userApi.getUser().then(user => {
-            state.commit('login', user.data)
+            state.commit('login', user)
             if (redirectToUserSettings) {
                 // If this is a user-driven login, take them to the profile page
                 router.push("/account/settings")
@@ -46,7 +47,7 @@ const actions = {
             // Not logged in
             state.commit('clearPending')
             router.push("/")
-        })
+        }).finally(_ => { console.log("DONE CHECK STATE")})
     },
 
     async login(state, credentials) {
