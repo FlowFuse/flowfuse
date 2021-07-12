@@ -8,12 +8,16 @@
 const User = require("./user.js");
 const Users = require("./users.js");
 const Team = require("./team.js");
+const Project = require("./project.js");
+const Projects = require("./projects.js");
 
 module.exports = async function(app) {
     app.addHook('preHandler',app.verifySession);
     app.register(User, { prefix: "/user" })
     app.register(Users, { prefix: "/users" })
     app.register(Team, { prefix: "/team" })
+    app.register(Project, { prefix: "/project"})
+    app.register(Projects, { prefix: "/projects"})
     app.get('*', function (request, reply) {
         reply.code(404).type('text/html').send('Not Found')
     })
