@@ -4,7 +4,8 @@ import router from "@/routes"
 // initial state
 const state = () => ({
     pending: true,
-    user: null
+    user: null,
+    loginError: null
 })
 
 // getters
@@ -13,6 +14,23 @@ const getters = {
         return state.user
     }
 
+}
+
+const mutations = {
+    clearPending(state) {
+        state.pending = false;
+    },
+    login(state, user) {
+        state.pending = false;
+        state.user = user;
+    },
+    logout(state) {
+        state.pending = true;
+        state.user = null
+    },
+    loginFailed(state, error) {
+        state.loginError = error;
+    }
 }
 
 // actions
@@ -33,10 +51,10 @@ const actions = {
 
     async login(state, credentials) {
         try {
-            await userApi.login(credentials.username,credentials.password)
+            await userApi.login(credentials.username,credentials.password,credentials.remember)
             state.dispatch('checkState',true);
         } catch(err) {
-            console.log("LOGIN FAILED")
+            state.commit("loginFailed","Login failed")
         }
     },
     async logout(state) {
@@ -46,20 +64,6 @@ const actions = {
             .finally(() => {
                 window.location.reload()
             })
-    }
-}
-
-const mutations = {
-    clearPending(state) {
-        state.pending = false;
-    },
-    login(state, user) {
-        state.pending = false;
-        state.user = user;
-    },
-    logout(state) {
-        state.pending = true;
-        state.user = null
     }
 }
 

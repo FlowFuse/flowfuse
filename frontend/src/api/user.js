@@ -1,9 +1,10 @@
 import client from './client';
 
-const login = (username, password) => {
+const login = (username, password, remember) => {
     return client.post('/account/login',{
         username,
-        password
+        password,
+        remember
     })
 }
 const logout = () => {
