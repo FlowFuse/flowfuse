@@ -15,11 +15,7 @@
      * @memberof forge.routes.api.project
      */
     app.get('/:id', async (request, reply) => {
-        let project = {
-                id: "45ec7fd2-3e80-4ba5-ad19-e756e354c928",
-                name: "instance1",
-                url: "https://instance1.example.com"
-        }
+        project = await app.db.models.Project.byId(request.params.id)
         reply.send(project)
     })
 
@@ -42,8 +38,8 @@
         }
     }, async (request, reply) => {
         reply.send({
-            name: request.body.name, 
-            namespace: request.body.options.snamespace,
+            name: request.body.name,
+            type: request.body.type,
             url: "https://" + request.body.name + ".example.com"
         })
     })

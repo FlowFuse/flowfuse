@@ -15,5 +15,36 @@ module.exports = {
     associations: function(M) {
         this.belongsToMany(M['Team'], { through: M['ProjectTeam']})
         this.hasMany(M['ProjectTeam'])
+    },
+    finders: function(M){
+        return {
+            static: {
+                byUser: async (user) => {
+                    return this.findAll({
+                        include: {
+                            model: M['ProjectTeam'],
+                            include: {
+                                model: M['Team'],
+                                include: {
+                                    model: M['TeamMember'],
+                                    where: {
+                                        UserId: user.id
+                                    }
+                                },
+                                required: true
+                            },
+                            required: true
+                        }
+                    })
+                },
+                byId: async (id) => {
+                    return this.findOne({
+                        where:{
+                            id: id
+                        }
+                    })
+                }
+            }
+        }
     }
 }

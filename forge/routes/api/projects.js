@@ -19,22 +19,7 @@ module.exports = async function(app) {
         let projects = []
         try {
             //need to work out how to filter by user, nearly there
-            projects = await app.db.models.Project.findAll({
-                include: {
-                    model: app.db.models.ProjectTeam,
-                    include: {
-                        model: app.db.models.Team,
-                        include: {
-                            model: app.db.models.TeamMember,
-                            where: {
-                                UserId: request.session.User.id
-                            }
-                        },
-                        required: true
-                    },
-                    required: true
-                }
-            })
+            projects = await app.db.models.Project.byUser(request.session.User)
         } catch(err) {
             console.log(err)
         }
