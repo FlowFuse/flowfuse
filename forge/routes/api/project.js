@@ -10,13 +10,22 @@
 
     /**
      * Get the details of a givevn project
-     * @name /api/v1/project
+     * @name /api/v1/project/:id
      * @static
      * @memberof forge.routes.api.project
      */
     app.get('/:id', async (request, reply) => {
-        project = await app.db.models.Project.byId(request.params.id)
-        reply.send(project)
+        let project = undefined
+        try {
+            project = await app.db.models.Project.byId(request.params.id)
+        } catch (err) {
+
+        }
+        if (project) {
+            reply.send(project)
+        } else {
+            reply.status(404).send({error: "Project not found"});
+        }
     })
 
     /**
@@ -30,26 +39,41 @@
                 type: 'object',
                 required: ['name','options', 'type'],
                 properties: {
-                    name: { type: 'string'},
-                    type: { type: 'string'},
+                    name: { type: 'string' },
+                    type: { type: 'string' },
+                    url: { type: 'string' },
+                    team: { type: 'number'},
                     options: { type: 'object'}
                 }
             }
         }
     }, async (request, reply) => {
-        reply.send({
+        let project = await app.db.models.Project.create({
             name: request.body.name,
             type: request.body.type,
-            url: "https://" + request.body.name + ".example.com"
+            url: request.body.url
         })
+        if (project) {
+            project.addTeam(request.body.team);
+            reply.send(project)
+        } else {
+            reply.status(500).send({error: "Something went wrong"})
+        }
     })
 
     /**
      * Delete an project
-     * @name /api/v1/project
+     * @name /api/v1/project/:id
      * @memberof foreg.routes.api.project 
      */
     app.delete('/:id', async (request, reply) => {
-        reply.send({ status: "okay"})
+        let project = await app.db.models.Project.byId(request.params.id);
+        if (project) {
+            await project.destroy();
+            reply.send({ status: "okay"});
+        } else {
+            reply.status(404).send({error: "Project not found"})
+        }
+        
     })
  }

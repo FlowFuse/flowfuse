@@ -1,7 +1,7 @@
 /**
  * Instances api routes
  * 
- *   /api/v1/project
+ *   /api/v1/projects
  * 
  * @namespace projects
  * @memberof forge.route.api
