@@ -6,7 +6,7 @@ module.exports = {
      * is added to the model, it won't accidentally leak out of the API
      *
      */
-    userProfile: async function(db, user) {
+    userProfile: function(db, user) {
         const result = {};
         [
             'name',
@@ -16,17 +16,5 @@ module.exports = {
             'createdAt'
         ].forEach(p => result[p] = user[p])
         return result
-
-        // const user = await db.models.User.findOne({
-        //     where: {name},
-        //     attributes: [
-        //         'name',
-        //         'email',
-        //         'avatar',
-        //         'admin',
-        //         'createdAt'
-        //     ]
-        // })
-        // return user.toJSON();
     }
 }

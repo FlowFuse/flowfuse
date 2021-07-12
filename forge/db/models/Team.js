@@ -9,6 +9,18 @@ module.exports = {
     name: 'Team',
     schema: {
         name: { type: DataTypes.STRING, allowNull: false },
+        slug: { type: DataTypes.STRING },
+        avatar: {type: DataTypes.STRING }
+    },
+    hooks: {
+        beforeSave: (team, options) => {
+            if (!team.avatar) {
+                const cleanEmail = team.name;
+                const emailHash = require("crypto").createHash('md5').update(cleanEmail).digest("hex")
+                team.avatar = `//www.gravatar.com/avatar/${emailHash}?d=identicon` //retro mp
+            }
+            team.slug = team.name.toLowerCase();
+        }
     },
     associations: function(M) {
         this.belongsToMany(M['User'], { through: M['TeamMember']})
@@ -28,6 +40,27 @@ module.exports = {
                             attributes:['role']
                         }
                     }})
+                },
+                bySlug: async function(slug) {
+                    return self.findOne({where:{slug}, include:{
+                        model:M['User'],
+                        attributes:['name','avatar','id'],
+                        through: {
+                            model:M['TeamMembers'], // .scope('owners'),
+                            attributes:['role']
+                        }
+                    }})
+                },
+                forUser: async function(User) {
+                    return M['TeamMember'].findAll({
+                        where: {
+                            UserId: User.id
+                        },
+                        include: {
+                            model:M['Team'],
+                            attributes:['id','name','avatar']
+                        }
+                    })
                 }
             },
             instance: {

@@ -64,12 +64,18 @@ import router from "@/routes"
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 import { MenuIcon, XIcon } from '@heroicons/vue/outline'
 
-const profile = router.options.routes.filter(r => r.profileLink )
 const navigation = router.options.routes.filter(r => r.navigationLink)
 
 export default {
   name: "Navbar",
-  computed: mapState('account',['user']),
+  computed: {
+      profile: function() {
+          return router.options.routes.filter(r => {
+              return r.profileLink && (!r.adminOnly || this.user.admin)
+          })
+      },
+      ...mapState('account',['user'])
+  },
   components: {
       Disclosure,
       DisclosureButton,
@@ -83,11 +89,9 @@ export default {
   },
   setup() {
       const open = ref(false)
-
       return {
           open,
-          navigation,
-          profile
+          navigation
       }
   }
 };

@@ -22,7 +22,7 @@ module.exports = async function(app) {
         const users = await app.db.models.User.findAll();
         const result = [];
         for (let u of users) {
-            result.push(await app.db.views.User.userProfile(u))
+            result.push(app.db.views.User.userProfile(u))
         }
         reply.send({
             count: result.length,
