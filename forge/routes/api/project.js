@@ -54,7 +54,8 @@
             url: request.body.url
         })
         if (project) {
-            project.addTeam(request.body.team);
+            let team = await app.db.models.Team.findOne({where:{id: request.body.team}})
+            project.setTeam(team);
             reply.send(project)
         } else {
             reply.status(500).send({error: "Something went wrong"})
