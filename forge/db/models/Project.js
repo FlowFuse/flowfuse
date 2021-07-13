@@ -13,8 +13,7 @@ module.exports = {
         url: { type: DataTypes.STRING, allowNull: false}
     },
     associations: function(M) {
-        this.belongsToMany(M['Team'], { through: M['ProjectTeam']})
-        this.hasMany(M['ProjectTeam'])
+        this.belongsTo(M['Team'])
     },
     finders: function(M){
         return {
@@ -22,16 +21,12 @@ module.exports = {
                 byUser: async (user) => {
                     return this.findAll({
                         include: {
-                            model: M['ProjectTeam'],
+                            model: M['Team'],
                             include: {
-                                model: M['Team'],
-                                include: {
-                                    model: M['TeamMember'],
-                                    where: {
-                                        UserId: user.id
-                                    }
-                                },
-                                required: true
+                                model: M['TeamMember'],
+                                where: {
+                                    UserId: user.id
+                                }
                             },
                             required: true
                         }
