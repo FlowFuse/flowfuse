@@ -19,7 +19,7 @@
         try {
             project = await app.db.models.Project.byId(request.params.id)
         } catch (err) {
-
+            //TODO need to do something useful here?
         }
         if (project) {
             reply.send(project)
@@ -56,6 +56,9 @@
         if (project) {
             let team = await app.db.models.Team.findOne({where:{id: request.body.team}})
             project.setTeam(team);
+
+            app.containers.create(request.body.name)
+
             reply.send(project)
         } else {
             reply.status(500).send({error: "Something went wrong"})
@@ -71,6 +74,7 @@
         let project = await app.db.models.Project.byId(request.params.id);
         if (project) {
             await project.destroy();
+            await app.containers.remove(project.name);
             reply.send({ status: "okay"});
         } else {
             reply.status(404).send({error: "Project not found"})
