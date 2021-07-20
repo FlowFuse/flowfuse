@@ -57,7 +57,8 @@
             let team = await app.db.models.Team.findOne({where:{id: request.body.team}})
             project.setTeam(team);
 
-            app.containers.create(request.body.name)
+            //this needs to setup instance DB stuff somewhere
+            let status = await app.containers.create(request.body.name)
 
             reply.send(project)
         } else {

@@ -1,7 +1,8 @@
 const Docker = require('dockerode');
 
 module.exports = {
-    init: async (options) => {
+    init: async (app, options) => {
+        this._app = app
         this._docker = new Docker({
             socketPath: process.env.DOCKER_SOCKET || '/var/run/docker.sock'
         })
@@ -10,7 +11,7 @@ module.exports = {
     create: async (name, options) => {
         console.log("creating ", name)
         var contOptions = {
-            Image: "custom-node-red",
+            Image: "nodered/node-red:latest",
             name: name,
             Env: [
                 "VIRTUAL_HOST=" + name + "." + this._options.domain,
@@ -27,9 +28,13 @@ module.exports = {
                 NetworkMode: "internal"
             }
         };
-        let container = await this._docker.createContainer(contOptions);
-        await container.start();
-        return {status: "started"};
+        try {
+            let container = await this._docker.createContainer(contOptions);
+            await container.start();
+            return {status: "started"};
+        } catch (err) {
+            return {error: err}
+        }
     },
     remove: async (name) => {
         console.log("removing ", name)
