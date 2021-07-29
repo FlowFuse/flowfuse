@@ -25,8 +25,10 @@ async function inject() {
         const project1 = await Models.Project.create({name: "project1", type: "basic", url: "http://instance1.example.com"});
         const project2 = await Models.Project.create({name: "project2", type: "basic", url: "http://instance2.example.com"});
 
-        await project1.setTeam(team1);
-        await project2.setTeam(team2);
+        await team1.addProject(project1);
+        // Can also do
+        // await project1.setTeam(team1);
+        await team2.addProject(project2);
 
     } catch(err) {
         if (err.name === "SequelizeUniqueConstraintError") {

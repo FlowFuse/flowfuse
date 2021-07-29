@@ -38,6 +38,15 @@ module.exports = {
                             id: id
                         }
                     })
+                },
+                byTeam: async (team) => {
+                    return this.findAll({
+                        include: {
+                            model: M['Team'],
+                            where: { slug: team },
+                            attributes:["id","name","slug"]
+                        }
+                    })
                 }
             }
         }

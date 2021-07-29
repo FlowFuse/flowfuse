@@ -16,7 +16,12 @@ const getTeam = (team) => {
     return client.get(`/api/v1/team/${slug}`).then(res => res.data);
 }
 
+const getTeamProjects = (team) => {
+    const slug = slugify(team);
+    return client.get(`/api/v1/team/${slug}/projects`).then(res => res.data);
+}
 export default {
     getTeam,
-    getTeams
+    getTeams,
+    getTeamProjects
 }

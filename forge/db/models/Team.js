@@ -25,6 +25,7 @@ module.exports = {
     associations: function(M) {
         this.belongsToMany(M['User'], { through: M['TeamMember']})
         this.hasMany(M['TeamMember'])
+        this.hasMany(M['Project'])
     },
     finders: function(M) {
         const self = this;
