@@ -18,6 +18,10 @@
         let project = undefined
         try {
             project = await app.db.models.Project.byId(request.params.id)
+            let meta = await app.containers.details(project.name);
+            project = project.toJSON();
+            project.meta = meta;
+            console.log(project);
         } catch (err) {
             //TODO need to do something useful here?
         }
@@ -47,22 +51,37 @@
             }
         }
     }, async (request, reply) => {
-        app.containers.create(request.body.name, request.body.options)
-        .then(container => {
-            return app.db.models.Project.create({
-                name: request.body.name,
-                type: request.body.type,
-                url: container.url
+        //TODO check is current user is member of team?
+        request.session.User.getTeams().then(teams => {
+            let found = false;
+            teams.forEach(t => {
+                if (t.id === request.body.team) {
+                    found = true
+                    app.containers.create(request.body.name, request.body.options)
+                    .then(container => {
+                        return app.db.models.Project.create({
+                            name: request.body.name,
+                            type: request.body.type,
+                            url: container.url
+                        })
+                    })
+                    .then(async (project) => {
+                        let team = await app.db.models.Team.findOne({where:{id: request.body.team}})
+                        project.setTeam(team);
+                        project = project.toJSON()
+                        // project.meta = container
+                        reply.send(project)
+                    })
+                    .catch(err => {
+                        //need some better rollback logic here
+                        console.log(err)
+                        reply.status(500).send({error: "Something went wrong"})
+                    })
+                }
+                if (!found) {
+                    reply.status(401).send({error: "Current user not in team " + request.body.team})
+                }
             })
-        })
-        .then(async (project) => {
-            let team = await app.db.models.Team.findOne({where:{id: request.body.team}})
-            project.setTeam(team);
-            reply.send(project)
-        })
-        .catch(err => {
-            //need some better rollback logic here
-            reply.status(500).send({error: "Something went wrong"})
         })
     })
 
@@ -72,21 +91,20 @@
      * @memberof foreg.routes.api.project 
      */
     app.delete('/:id', async (request, reply) => {
-        app.containers.remove(project.name)
-        .then(async status => {
-            let project = await app.db.models.Project.byId(request.params.id);
-            if (project) {
+        let project = await app.db.models.Project.byId(request.params.id);
+        if (project) {
+            app.containers.remove(project.name)
+            .then( () => {
                 project.destroy();
                 reply.send({ status: "okay"});
-            } else {
-                reply.status(404).send({error: "Project not found"})
-            }
-        })
-        .catch(err => {
-            reply.status(500).send(err)
-        })
- 
-        
+            })
+            .catch(err => {
+                console.log("missing")
+                reply.status(500).send({})
+            })
+        } else {
+            reply.status(404).send({error: "Project not found"})
+        }    
         
     })
  }
