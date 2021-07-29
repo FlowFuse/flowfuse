@@ -9,7 +9,7 @@
         "build": "webpack -c ./config/webpack.config.js",
         "build-watch": "webpack --mode=development -c ./config/webpack.config.js --watch",
         "docs": "jsdoc -c ./config/jsdoc.json",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "mocha ee/test/**/*_spec.js test/**/*_spec.js"
     },
     "repository": {
         "type": "git",
@@ -36,6 +36,7 @@
         "fastify-secrets-env": "^1.0.1",
         "fastify-sensible": "^3.1.0",
         "fastify-static": "^4.2.2",
+        "jsonwebtoken": "^8.5.1",
         "sequelize": "^6.6.4",
         "sqlite3": "^5.0.2",
         "vue": "^3.1.2",
@@ -58,10 +59,13 @@
         "html-webpack-plugin": "^5.3.2",
         "jsdoc": "^3.6.7",
         "mini-css-extract-plugin": "^2.0.0",
+        "mocha": "^9.0.3",
+        "mocha-cli": "^1.0.1",
         "nodemon": "^2.0.9",
         "postcss": "^8.3.5",
         "postcss-loader": "^6.1.1",
         "postcss-preset-env": "^6.7.0",
+        "should": "^13.2.3",
         "style-loader": "^3.0.0",
         "tailwindcss": "^2.2.4",
         "vue-loader": "^16.3.0",
