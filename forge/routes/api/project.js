@@ -51,7 +51,7 @@
             }
         }
     }, async (request, reply) => {
-        //TODO check is current user is member of team?
+        //check is current user is member of supplied team?
         request.session.User.getTeams().then(teams => {
             let found = false;
             teams.forEach(t => {
@@ -59,18 +59,20 @@
                     found = true
                     app.containers.create(request.body.name, request.body.options)
                     .then(container => {
-                        return app.db.models.Project.create({
-                            name: request.body.name,
-                            type: request.body.type,
-                            url: container.url
-                        })
-                    })
-                    .then(async (project) => {
-                        let team = await app.db.models.Team.findOne({where:{id: request.body.team}})
-                        project.setTeam(team);
-                        project = project.toJSON()
-                        // project.meta = container
-                        reply.send(project)
+                        if (container) {
+                            app.db.models.Project.create({
+                                name: request.body.name,
+                                type: request.body.type,
+                                url: container.url
+                            }).then(async project => {
+                                let team = await app.db.models.Team.findOne({where:{id: request.body.team}})
+                                project.setTeam(team);
+                                project = project.toJSON()
+                                
+                                // project.meta = container
+                                reply.send(project)
+                            })
+                        }
                     })
                     .catch(err => {
                         //need some better rollback logic here

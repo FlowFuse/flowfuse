@@ -34,7 +34,7 @@ module.exports = {
             return {
                 name: name, 
                 status: "started", 
-                url: "",
+                url: `https://${name}.${this._options.domain}`,
                 meta: container
             };
         } catch (err) {
