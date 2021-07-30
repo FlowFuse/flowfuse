@@ -5,7 +5,7 @@
     "private": true,
     "scripts": {
         "start": "node forge/app.js",
-        "start-watch": "NODE_ENV=development nodemon -w forge forge/app.js",
+        "start-watch": "NODE_ENV=development nodemon -w forge -w ee/forge forge/app.js",
         "build": "webpack -c ./config/webpack.config.js",
         "build-watch": "webpack --mode=development -c ./config/webpack.config.js --watch",
         "docs": "jsdoc -c ./config/jsdoc.json",
@@ -38,6 +38,7 @@
         "fastify-sensible": "^3.1.0",
         "fastify-static": "^4.2.2",
         "jsonwebtoken": "^8.5.1",
+        "pino-pretty": "^5.1.2",
         "sequelize": "^6.6.4",
         "sqlite3": "^5.0.2",
         "vue": "^3.1.2",
