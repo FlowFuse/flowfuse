@@ -7,6 +7,8 @@
 
 <script>
 import { mapState } from 'vuex'
+import teamApi from '@/api/team'
+
 import FormHeading from '@/components/FormHeading'
 import ItemTable from '@/components/ItemTable'
 
@@ -28,8 +30,10 @@ export default {
         this.fetchData()
     },
     methods: {
-        fetchData () {
-            this.projects = [{name:"not implement yet"}]
+        fetchData: async function(newVal,oldVal) {
+            if (this.team.name) {
+                this.projects = await teamApi.getTeamProjects(this.team.name)
+            }
         }
     },
     props:[ "team" ],
