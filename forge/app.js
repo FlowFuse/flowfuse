@@ -4,6 +4,7 @@ const fastify = require('fastify')
 const db = require("./db")
 const routes = require('./routes')
 const config = require("./config");
+const license = require("../ee/forge/licensing");
 const containers = require('./containers');
 
 /**
@@ -24,6 +25,8 @@ server.addHook('onError', async (request, reply, error) => {
 
 // Config : loads environment configuration
 server.register(config);
+// License
+server.register(license);
 // DB : the database connection/models/views/controllers
 server.register(db);
 // Routes : the HTTP routes
