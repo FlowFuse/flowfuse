@@ -18,7 +18,6 @@ module.exports = async function(app) {
     app.get('/', async (request, reply) => {
         let projects = []
         try {
-            //need to work out how to filter by user, nearly there
             projects = await app.db.models.Project.byUser(request.session.User)
         } catch(err) {
             console.log(err)

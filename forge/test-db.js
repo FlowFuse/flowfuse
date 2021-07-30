@@ -29,9 +29,9 @@ async function setup() {
     await Views.init(db);
     await Controllers.init(db);
 
-    const user1 = await Models.User.create({admin: true, name: "Alice Avery", email: "alice@example.com", password: 'aaPassword'});
-    const user2 = await Models.User.create({name: "Bob Block", email: "bob@example.com", password: 'bbPassword'});
-    const user3 = await Models.User.create({name: "Chris Connors", email: "chris@example.com", password: 'ccPassword'});
+    const user1 = await Models.User.create({admin: true, name: "Alice Skywalker", email: "alice@example.com", password: 'aaPassword'});
+    const user2 = await Models.User.create({name: "Bob Solo", email: "bob@example.com", password: 'bbPassword'});
+    const user3 = await Models.User.create({name: "Chris Kenobi", email: "chris@example.com", password: 'ccPassword'});
 
     const team1 = await Models.Team.create({name: "ATeam"});
     const team2 = await Models.Team.create({name: "BTeam"});
@@ -46,6 +46,12 @@ async function setup() {
 
     await team3.addUser(user1, { through: { role:"owner" } });
     await team3.addUser(user3, { through: { role:"member" } });
+
+    const project1 = await Models.Project.create({name: "project1", type: "basic", url: "http://instance1.example.com"});
+    const project2 = await Models.Project.create({name: "project2", type: "basic", url: "http://instance2.example.com"});
+
+    await team1.addProject(project1);
+    await team2.addProject(project2);
 }
 
 if (require.main === module) {

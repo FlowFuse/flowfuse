@@ -23,6 +23,15 @@ module.exports = async function(app) {
         }
     })
 
+    app.get('/:id/projects', async (request, reply) => {
+        const projects = await app.db.models.Project.byTeam(request.params.id)
+        if (projects) {
+            reply.send(app.db.views.Project.teamProjectList(projects))
+        } else {
+            reply.code(404).type('text/html').send('Not Found')
+        }
+    })
+
     // app.get('/teams', async (request, reply) => {
     //     const teams = await app.db.models.Team.forUser(request.session.User);
     //     const result = await app.db.views.Team.teamList(teams);

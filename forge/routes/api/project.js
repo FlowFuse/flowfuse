@@ -18,8 +18,12 @@
         let project = undefined
         try {
             project = await app.db.models.Project.byId(request.params.id)
+            let meta = await app.containers.details(project.name);
+            project = project.toJSON();
+            project.meta = meta;
+            console.log(project);
         } catch (err) {
-
+            //TODO need to do something useful here?
         }
         if (project) {
             reply.send(project)
@@ -41,25 +45,46 @@
                 properties: {
                     name: { type: 'string' },
                     type: { type: 'string' },
-                    url: { type: 'string' },
                     team: { type: 'number'},
                     options: { type: 'object'}
                 }
             }
         }
     }, async (request, reply) => {
-        let project = await app.db.models.Project.create({
-            name: request.body.name,
-            type: request.body.type,
-            url: request.body.url
+        //check is current user is member of supplied team?
+        request.session.User.getTeams().then(teams => {
+            let found = false;
+            teams.forEach(t => {
+                if (t.id === request.body.team) {
+                    found = true
+                    app.containers.create(request.body.name, request.body.options)
+                    .then(container => {
+                        if (container) {
+                            app.db.models.Project.create({
+                                name: request.body.name,
+                                type: request.body.type,
+                                url: container.url
+                            }).then(async project => {
+                                let team = await app.db.models.Team.findOne({where:{id: request.body.team}})
+                                project.setTeam(team);
+                                project = project.toJSON()
+                                
+                                // project.meta = container
+                                reply.send(project)
+                            })
+                        }
+                    })
+                    .catch(err => {
+                        //need some better rollback logic here
+                        console.log(err)
+                        reply.status(500).send({error: "Something went wrong"})
+                    })
+                }
+                if (!found) {
+                    reply.status(401).send({error: "Current user not in team " + request.body.team})
+                }
+            })
         })
-        if (project) {
-            let team = await app.db.models.Team.findOne({where:{id: request.body.team}})
-            project.setTeam(team);
-            reply.send(project)
-        } else {
-            reply.status(500).send({error: "Something went wrong"})
-        }
     })
 
     /**
@@ -70,11 +95,18 @@
     app.delete('/:id', async (request, reply) => {
         let project = await app.db.models.Project.byId(request.params.id);
         if (project) {
-            await project.destroy();
-            reply.send({ status: "okay"});
+            app.containers.remove(project.name)
+            .then( () => {
+                project.destroy();
+                reply.send({ status: "okay"});
+            })
+            .catch(err => {
+                console.log("missing")
+                reply.status(500).send({})
+            })
         } else {
             reply.status(404).send({error: "Project not found"})
-        }
+        }    
         
     })
  }

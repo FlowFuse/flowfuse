@@ -5,6 +5,7 @@ const db = require("./db")
 const routes = require('./routes')
 const config = require("./config");
 const license = require("../ee/forge/licensing");
+const containers = require('./containers');
 
 /**
   * The main entry point to the FlowForge application.
@@ -30,6 +31,8 @@ server.register(license);
 server.register(db);
 // Routes : the HTTP routes
 server.register(routes)
+// Containers: 
+server.register(containers);
 
 // Wait until everything is loaded so PORT can be set via .env config
 server.ready().then(() => {
