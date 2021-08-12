@@ -16,7 +16,7 @@
         "url": "git+https://github.com/flowforge/flowforge.git"
     },
     "author": "",
-    "license": "",
+    "license": "SEE LICENSE IN ./LICENSE",
     "bugs": {
         "url": "https://github.com/flowforge/flowforge/issues"
     },
