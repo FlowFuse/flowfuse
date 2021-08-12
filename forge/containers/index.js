@@ -7,6 +7,23 @@
  * @memberof forge
  */
 
+/**
+ * @typedef {Object} forge.containers.Project
+ * @property {string} id - UUID that represents the project
+ * @property {string} name - Name of the project
+ * @property {number} team - ID of the owning team
+ */
+
+/**
+ * @typedef {Object} forge.containers.Options
+ * @property {string} domain - The root domain to expose the instance as
+ */
+
+/**
+ * @typedef {Object} forge.Status
+ * @property {string} status
+ */
+
 const fp = require('fastify-plugin')
 
 module.exports = fp(async function(app, _opts, next){

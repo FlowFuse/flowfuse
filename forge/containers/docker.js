@@ -1,5 +1,16 @@
 const Docker = require('dockerode');
 
+/**
+ * Docker Container driver
+ * 
+ * Handles the creation and deletation of containers to back Projects
+ * 
+ * This driver creates Projects backed by Docker 
+ * 
+ * @module docker
+ * @memberof forge.containers.drivers
+ * 
+ */
 module.exports = {
     init: async (app, options) => {
         this._app = app
@@ -66,12 +77,23 @@ module.exports = {
         return containers.map(c => { return c.Names[0].substring(1)})
     },
     start: async (name) => {
+        try {
+            let container = await this._docker.getContainer(name);
+            container.start()
+        } catch (err) {
 
+        }
     },
     stop: async (name) => {
+        try {
+            let container = await this._docker.getContainer(name);
+            container.stop()
+        } catch (err) {
 
+        }
     },
     restart: async (name) => {
-
+        await stop(name);
+        return await start(name);
     }
 }

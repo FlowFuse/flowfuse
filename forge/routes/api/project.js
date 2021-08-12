@@ -1,10 +1,10 @@
 /**
  * Instance api routes
  * 
- *   /api/v1/project
+ * - /api/v1/project
  * 
  * @namespace project
- * @memberof forge.route.api
+ * @memberof forge.routes.api
  */
  module.exports = async function(app) {
 
@@ -35,7 +35,7 @@
     /**
      * Create an new project
      * @name /api/v1/project
-     * 
+     * @memberof forge.routes.api.project
      */
     app.post('/', {
         schema: {
@@ -70,6 +70,9 @@
                                 project = project.toJSON()
                                 
                                 // project.meta = container
+                                delete project.updatedAt;
+                                delete project.createdAt;
+                                project.status = "okay";
                                 reply.send(project)
                             })
                         }
@@ -90,7 +93,7 @@
     /**
      * Delete an project
      * @name /api/v1/project/:id
-     * @memberof foreg.routes.api.project 
+     * @memberof forge.routes.api.project 
      */
     app.delete('/:id', async (request, reply) => {
         let project = await app.db.models.Project.byId(request.params.id);
@@ -108,5 +111,20 @@
             reply.status(404).send({error: "Project not found"})
         }    
         
+    })
+
+    /**
+     * Send commands
+     * @name /api/v1/project/:id
+     * @memberof forge.routes.api.project
+     */
+    app.post('/:id', async (request,reply) => {
+        let project = await app.db.models.Project.byId(request.params.id);
+        if (project) {
+            let meta = await app.containers.details(project.name)
+            reply.send({})
+        } else {
+            reply.status(404).send({error: "Project not found"})
+        }
     })
  }

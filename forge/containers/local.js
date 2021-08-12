@@ -1,22 +1,19 @@
-const k8s = require('@kubernetes/client-node');
-
 /**
- * Kubernates Container driver
+ * Local Container driver
  * 
  * Handles the creation and deletation of containers to back Projects
  * 
- * This driver creates Projects backed by Kubernates 
+ * This driver creates Projects backed by userDirectories on the local file system
  * 
- * @module kubernates
+ * @module localfs
  * @memberof forge.containers.drivers
  * 
  */
-
-module.exports = {
+ 
+ module.exports = {
   init: async (app, options) => {
     this._app = app
-    const kc = new k8s.KubeConfig()
-    kc.loadFromDefault()
+    this._options = options
   },
   create: async (name, options) => {
 
