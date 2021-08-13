@@ -22,45 +22,45 @@ module.exports = {
     },
     /**
      * Create a new Project
-     * @param {string} name - name for the project
+     * @param {string} id - id for the project
      * @param {forge.containers.Options} options - options for the project
      * @return {forge.containers.Project}
      */
-    create: async (name, options) => {
-        console.log("creating ", name);
-        if (!list[name]) {
-            list[name] = {
-                name: name, 
+    create: async (id, options) => {
+        console.log("creating ", id);
+        if (!list[id]) {
+            list[id] = {
+                id: id, 
                 state: "started", 
-                url: `http://${name}.${this._options.domain}`,
+                url: `http://${options.name}.${this._options.domain}`,
                 meta: {foo: "bar"}
             }
-            return Promise.resolve(list[name]);
+            return Promise.resolve(list[id]);
         } else {
             return Promise.reject({error: "Name already exists"});
         }
     },
     /**
      * Removes a Project
-     * @param {string} name - name of project to remove
+     * @param {string} id - id of project to remove
      * @return {Object}
      */
-    remove: async (name) => {
-        console.log("removing ", name);
-        if (list[name]) {
-            delete list[name];
+    remove: async (id) => {
+        console.log("removing ", id);
+        if (list[id]) {
+            delete list[id];
             return Promise.resolve({ status: "removed" });
         } else {
-            return Promise.reject({ error: name + " not found" });
+            return Promise.reject({ error: id + " not found" });
         }
     },
     /**
      * Retrieves details of a project's container
-     * @param {string} name - name of project to query
+     * @param {string} id - id of project to query
      * @return {Object} 
      */
-    details: async (name) => {
-        return Promise.resolve(list[name])
+    details: async (id) => {
+        return Promise.resolve(list[id])
     },
     /**
      * Lists all containers
@@ -72,12 +72,12 @@ module.exports = {
     },
     /**
      * Starts a Project's container
-     * @param {string} name - name of project to start
+     * @param {string} id - id of project to start
      * @return {forge.Status}
      */
-    start: async (name) => {
-        if (list[name]) {
-            list[name].state = "running"
+    start: async (id) => {
+        if (list[id]) {
+            list[id].state = "running"
             return {status: "okay"}
         } else {
             return {error: "container not found"}
@@ -85,12 +85,12 @@ module.exports = {
     },
     /**
      * Stops a Proejct's container
-     * @param {string} name - name of project to stop
+     * @param {string} id - id of project to stop
      * @return {forge.Status}
      */
-    stop: async (name) => {
-        if (list[name]) {
-            list[name].state = "stopped"
+    stop: async (id) => {
+        if (list[id]) {
+            list[id].state = "stopped"
             return {status: "okay"}
         } else {
             return {error: "container not found"}
@@ -98,13 +98,13 @@ module.exports = {
     },
     /**
      * Restarts a Project's container
-     * @param {string} name - name of project to restart
+     * @param {string} id - id of project to restart
      * @return {forge.Status}
      */
-    restart: async (name) => {
-        let rep = await stop(name);
+    restart: async (id) => {
+        let rep = await stop(id);
         if (rep.status && rep.state === 'okay') {
-            return await start(name);
+            return await start(id);
         } else {
             return rep
         }

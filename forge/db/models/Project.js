@@ -1,6 +1,6 @@
 /**
  * A Project
- * @memberof forge.db.modles.Project
+ * @namespace forge.db.models.Project
  */
 const { DataTypes } = require('sequelize');
 

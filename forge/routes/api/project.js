@@ -115,6 +115,9 @@
 
     /**
      * Send commands
+     * 
+     * e.g. start/stop/restart
+     * 
      * @name /api/v1/project/:id
      * @memberof forge.routes.api.project
      */
