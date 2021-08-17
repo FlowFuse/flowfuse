@@ -28,9 +28,9 @@ const podTemplate = {
     containers: [
       {
         name: "node-red",
-        image: "docker-pi.local:5000/bronze-node-red",
+        // image: "docker-pi.local:5000/bronze-node-red",
         env:[
-          {name: "APP_NAME", value: "test"},
+          // {name: "APP_NAME", value: "test"},
           {name: "MONGO_URL", value: "mongodb://mongo.default:27017/nodered"},
           {name: "TZ", value: "Europe/London"}
         ],
@@ -41,6 +41,53 @@ const podTemplate = {
     ]
   },
   enableServiceLinks: false
+}
+
+const deploymentTemplate = {
+  apiVersion: "apps/v1",
+  kind: "Deployment",
+  metadata: {
+    // name: "k8s-client-test-deployment",
+    labels: {
+      // name: "k8s-client-test-deployment",
+      nodered: "true",
+      // app: "k8s-client-test-deployment"
+    }
+  },
+  spec: {
+    replicas: 1,
+    selector: {
+      matchLabels: {
+        // app: "k8s-client-test-deployment"
+      }
+    },
+    template: {
+      metadata: {
+        labels: {
+          // name: "k8s-client-test-deployment",
+          nodered: "true",
+          // app: "k8s-client-test-deployment"
+        }
+      },
+      spec: {
+        containers: [
+          {
+            name: "node-red",
+            // image: "docker-pi.local:5000/bronze-node-red",
+            env: [
+              // {name: "APP_NAME", value: "test"},
+              {name: "MONGO_URL", value: "mongodb://mongo.default:27017/nodered"},
+              {name: "TZ", value: "Europe/London"}
+            ],
+            ports: [
+              {name: "web", containerPort: 1880, protocol: "TCP"}
+            ]
+          }
+        ]
+      },
+      enableServiceLinks: false
+    }
+  }
 }
 
 const serviceTemplate = {
@@ -97,12 +144,12 @@ module.exports = {
    * @param {object} options - A set of configuration options for the driver
    */
   init: async (app, options) => {
-    this._app = app
-    const kc = new k8s.KubeConfig()
-    kc.loadFromDefault()
-    this._k8sApi = kc.makeApiClient(k8s.CoreV1Api)
-    this,_k8sAppApi = kc.makeApiClient(k8s.AppsV1Api)
-    this._k8sNetApi = kc.makeApiClient(k8s.NetworkingV1Api)
+    this._app = app;
+    const kc = new k8s.KubeConfig();
+    kc.loadFromDefault();
+    this._k8sApi = kc.makeApiClient(k8s.CoreV1Api);
+    this,_k8sAppApi = kc.makeApiClient(k8s.AppsV1Api);
+    this._k8sNetApi = kc.makeApiClient(k8s.NetworkingV1Api);
   },
   /**
    * Create a new Project
@@ -112,20 +159,41 @@ module.exports = {
    */
   create: async (id, options) => {
     let localPod = JSON.parse(JSON.stringify(pod))
-    localPod.metadata.name = options.name;
-    localPod.metadata.labels.name = options.name;
+    localPod.metadata.name = id;
+    localPod.metadata.labels.name = id;
     localPod.metadata.labels.app = options.name;
     localPod.spec.containers[0].image = this._options.containers[options.type];
-    k8sApi.createNamespacedPod('flowforge', localPod)
-    .then(() => {
-      return k8sApi.createNamespacedService('flowforge', service)
-    })
-    .then(() => {
-
+    if (options.env) {
+      localPod.spec.containers[0].env.concat(options.env);
     }
-    .catch(err => {
-      //should roll back here
-    })
+
+    let localService = JSON.parse(JSON.stringify(service));
+    localService.metadata.name = id;
+    localService.spec.selector = id;
+
+    let localIngress = JSON.parse(JSON.stringify(ingress));
+    localIngress.metadata.name = id;
+    localIngress.spec.rules[0].host = options.name + "." + this._options.domain
+    localIngress.spec.rules[0].http.paths.backend.service.name = id;
+
+    try {
+      await this._k8sApi.createNamespacedPod('flowforge', localPod)
+      .then(() => {
+        return this._k8sApi.createNamespacedService('flowforge', service)
+      })
+      .then(() => {
+        return this._k8sNetApi.createNamespacedIngress('flowforge', ingress)
+      }
+    } catch (err) {
+      return {error: err}
+    }
+
+    return {
+      id: id,
+      status: "okay",
+      url: `https://${options.name}.${this._options.domain}`,
+      meta: {}
+    }
   },
   /**
    * Removes a Project
@@ -133,6 +201,23 @@ module.exports = {
    * @return {Object}
    */
   remove: async (id) => {
+
+    let promises = []
+
+    promises.push(this._k8sNetApi.deleteNamespacedIngress(id, 'flowforge'))
+    promises.push(this._k8sApi.deleteNamespacedService(id, 'flowforge'))
+    promises.push(this._k8sApi.deleteNamespacedPod(id, 'flowforge'))
+
+    try {
+      let results = await Promise.all(promises)
+      return {
+        status: "okay"
+      }
+    } catch (err) {
+      return {
+        error: err
+      }
+    }
     
   },
   /**
@@ -141,15 +226,24 @@ module.exports = {
    * @return {Object} 
    */
   details: async (id) => {
-
+    try {
+      let details = await this._k8sApi.readNamespacePod(id, 'flowforge')
+      //really need to cull this
+      return details
+    } catch (err) {
+      return {error: err}
+    }
   },
   /**
    * Lists all containers
    * @param {string} filter - rules to filter the containers
    * @return {Object}
    */
-  list: async (filter) {
-
+  list: async (filter) => {
+    this._k8sApi.listNamespacedPod('flowforge',undefined, undefined, undefined, undefined,"nodered=true")
+    .then((pods) => {
+      //Turn this into a standard form
+    })
   },
   /**
    * Starts a Project's container
@@ -157,7 +251,7 @@ module.exports = {
    * @return {forge.Status}
    */
   start: async (id) => {
-
+    //there is no concept of start/stop in Kubernetes
   },
   /**
    * Stops a Proejct's container
@@ -165,7 +259,7 @@ module.exports = {
    * @return {forge.Status}
    */
   stop: async (id) => {
-
+    //there is no concept of start/stop in Kubernetes
   },
   /**
    * Restarts a Project's container
@@ -173,6 +267,7 @@ module.exports = {
    * @return {forge.Status}
    */
   restart: async (id) => {
-    
+    //This needs the container killing
+    this._k8sApi.replaceNamespacedPod(id, 'flowforge')
   }
 }

@@ -31,7 +31,7 @@ module.exports = {
         if (!list[id]) {
             list[id] = {
                 id: id, 
-                state: "started", 
+                state: "okay", 
                 url: `http://${options.name}.${this._options.domain}`,
                 meta: {foo: "bar"}
             }
@@ -49,7 +49,7 @@ module.exports = {
         console.log("removing ", id);
         if (list[id]) {
             delete list[id];
-            return Promise.resolve({ status: "removed" });
+            return Promise.resolve({ status: "okay" });
         } else {
             return Promise.reject({ error: id + " not found" });
         }

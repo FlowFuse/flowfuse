@@ -34,11 +34,12 @@ module.exports = {
         console.log("creating ", id)
         var contOptions = {
             Image: "nodered/node-red:latest",
-            name: options.name,
+            name: id,
             Env: [
                 "VIRTUAL_HOST=" + options.name + "." + this._options.domain,
                 "APP_NAME=" + options.name,
-                "MONGO_URL=mongodb://mongodb/nodered"
+                "MONGO_URL=mongodb://mongodb/nodered",
+                "TZ=Europe/London"
             ],
             Labels: {
                 "traefik.enable": "true"
@@ -50,12 +51,15 @@ module.exports = {
                 NetworkMode: "internal"
             }
         };
+        if (options.env) {
+            contOptions.Env.concat(options.env)
+        }
         try {
             let container = await this._docker.createContainer(contOptions);
             await container.start();
             return {
                 id: id, 
-                status: "started", 
+                status: "okay", 
                 url: `https://${options.name}.${this._options.domain}`,
                 meta: container
             };
@@ -74,7 +78,7 @@ module.exports = {
             let container = await this._docker.getContainer(id);
             await container.stop()
             await container.remove()
-            return {status: "removed"}
+            return {status: "okay"}
         } catch (err) {
             return {error: err}
         }
