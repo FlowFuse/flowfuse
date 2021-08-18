@@ -20,6 +20,13 @@
  */
 
 /**
+ * This needs work
+ * 
+ * @typedef {Object} forge.containers.ProjectArguemnts
+ * 
+ */
+
+/**
  * @typedef {Object} forge.Status
  * @property {string} status
  */
@@ -34,8 +41,11 @@ module.exports = fp(async function(app, _opts, next){
 
     try {
         const driver = require("./"+containerOpts.dialect)
-        await driver.init(app, {
-            domain: process.env.DOMAIN ||"example.com"
+        let configurables = await driver.init(app, {
+            domain: process.env.DOMAIN ||"example.com",
+            containers:{
+                basic: "docker-pi.local:5000/bronze-node-red:latest"
+            }
         });
         app.decorate('containers', driver);
     } catch (err) {

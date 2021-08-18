@@ -16,6 +16,7 @@ module.exports = {
      * Initialises this driver
      * @param {string} app - the Vue application 
      * @param {object} options - A set of configuration options for the driver
+     * @return {forge.containers.ProjectArguments}
      */
     init: async (app, options) => {
         this._app = app
@@ -23,6 +24,8 @@ module.exports = {
             socketPath: process.env.DOCKER_SOCKET || '/var/run/docker.sock'
         })
         this._options = options
+
+        return {}
     },
     /**
      * Create a new Project
@@ -33,7 +36,7 @@ module.exports = {
     create: async (id, options) => {
         console.log("creating ", id)
         var contOptions = {
-            Image: "nodered/node-red:latest",
+            Image: this._options.containers[options.type],
             name: id,
             Env: [
                 "VIRTUAL_HOST=" + options.name + "." + this._options.domain,

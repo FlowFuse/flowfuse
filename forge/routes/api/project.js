@@ -41,10 +41,9 @@
         schema: {
             body: {
                 type: 'object',
-                required: ['name','options', 'type'],
+                required: ['name','options', 'team'],
                 properties: {
                     name: { type: 'string' },
-                    type: { type: 'string' },
                     team: { type: 'number'},
                     options: { type: 'object'}
                 }
@@ -59,10 +58,10 @@
                     found = true
                     app.containers.create(request.body.name, request.body.options)
                     .then(container => {
-                        if (container) {
+                        if (container && !container.error) {
                             app.db.models.Project.create({
                                 name: request.body.name,
-                                type: request.body.type,
+                                type: request.body.options.type,
                                 url: container.url
                             }).then(async project => {
                                 let team = await app.db.models.Team.findOne({where:{id: request.body.team}})

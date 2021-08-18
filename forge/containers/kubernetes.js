@@ -19,7 +19,7 @@ const podTemplate = {
     // name: "k8s-client-test",
     labels: {
       // name: "k8s-client-test",
-      nodered: "true",
+      nodered: "true"
       // app: "k8s-client-test",
       // "pts-node-red": "bronze"
     }   
@@ -50,7 +50,7 @@ const deploymentTemplate = {
     // name: "k8s-client-test-deployment",
     labels: {
       // name: "k8s-client-test-deployment",
-      nodered: "true",
+      nodered: "true"
       // app: "k8s-client-test-deployment"
     }
   },
@@ -65,7 +65,7 @@ const deploymentTemplate = {
       metadata: {
         labels: {
           // name: "k8s-client-test-deployment",
-          nodered: "true",
+          nodered: "true"
           // app: "k8s-client-test-deployment"
         }
       },
@@ -99,7 +99,7 @@ const serviceTemplate = {
   spec: {
     type: "NodePort",
     selector: {
-      name: "k8s-client-test"
+      //name: "k8s-client-test"
     },
     ports: [
       { port: 1880, protocol: "TCP" }
@@ -142,14 +142,35 @@ module.exports = {
    * Initialises this driver
    * @param {string} app - the Vue application 
    * @param {object} options - A set of configuration options for the driver
+   * @return {forge.containers.ProjectArguments}
    */
   init: async (app, options) => {
     this._app = app;
+    this._options = options;
     const kc = new k8s.KubeConfig();
-    kc.loadFromDefault();
+
+    let configFile = process.env.KUBE_CONFIG_FILE || ""
+
+    kc.loadFromFile(configFile);
+
+    // if (this._options.configFile) {
+    //   kc.loadFromFile(this._options.configFile);
+    // else if (this._options.config && typeof ths._options.config === 'string') {
+    //   kc.loadFromString(this._options.config);
+    // else if (this._options.config && typeof ths._options.config === 'Object') {
+    //   kc.loadFromOptions(this._options.config);
+    // } else {
+    //   kc.loadFromDefault();
+    // }
+    
+
+
     this._k8sApi = kc.makeApiClient(k8s.CoreV1Api);
     this,_k8sAppApi = kc.makeApiClient(k8s.AppsV1Api);
     this._k8sNetApi = kc.makeApiClient(k8s.NetworkingV1Api);
+
+    return {}
+
   },
   /**
    * Create a new Project
@@ -158,7 +179,7 @@ module.exports = {
    * @return {forge.containers.Project}
    */
   create: async (id, options) => {
-    let localPod = JSON.parse(JSON.stringify(pod))
+    let localPod = JSON.parse(JSON.stringify(podTemplate))
     localPod.metadata.name = id;
     localPod.metadata.labels.name = id;
     localPod.metadata.labels.app = options.name;
@@ -167,24 +188,25 @@ module.exports = {
       localPod.spec.containers[0].env.concat(options.env);
     }
 
-    let localService = JSON.parse(JSON.stringify(service));
+    let localService = JSON.parse(JSON.stringify(serviceTemplate));
     localService.metadata.name = id;
-    localService.spec.selector = id;
+    localService.spec.selector.name = id;
 
-    let localIngress = JSON.parse(JSON.stringify(ingress));
+    let localIngress = JSON.parse(JSON.stringify(ingressTemplate));
     localIngress.metadata.name = id;
-    localIngress.spec.rules[0].host = options.name + "." + this._options.domain
-    localIngress.spec.rules[0].http.paths.backend.service.name = id;
+    localIngress.spec.rules[0].host = options.name + "." + this._options.domain;
+    localIngress.spec.rules[0].http.paths[0].backend.service.name = id;
 
     try {
-      await this._k8sApi.createNamespacedPod('flowforge', localPod)
-      .then(() => {
-        return this._k8sApi.createNamespacedService('flowforge', service)
-      })
-      .then(() => {
-        return this._k8sNetApi.createNamespacedIngress('flowforge', ingress)
-      }
+        await this._k8sApi.createNamespacedPod('flowforge', localPod)
+        .then(() => {
+          return this._k8sApi.createNamespacedService('flowforge', localService)
+        })
+        .then(() => {
+          return this._k8sNetApi.createNamespacedIngress('flowforge', localIngress)
+        })
     } catch (err) {
+      console.log(err)
       return {error: err}
     }
 

@@ -16,9 +16,13 @@ module.exports = {
      * Initialises this driver
      * @param {string} app - the Vue application 
      * @param {object} options - A set of configuration options for the driver
+     * @return {forge.containers.ProjectArguments}
      */
     init: async (app, options) => {
         this._options = options
+
+        // Should init return an object with details of config options per project?
+        return {};
     },
     /**
      * Create a new Project
