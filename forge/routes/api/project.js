@@ -1,10 +1,10 @@
 /**
  * Instance api routes
- *
- *   /api/v1/project
- *
+ * 
+ * - /api/v1/project
+ * 
  * @namespace project
- * @memberof forge.route.api
+ * @memberof forge.routes.api
  */
  module.exports = async function(app) {
 
@@ -29,16 +29,15 @@
     /**
      * Create an new project
      * @name /api/v1/project
-     *
+     * @memberof forge.routes.api.project
      */
     app.post('/', {
         schema: {
             body: {
                 type: 'object',
-                required: ['name','options', 'type'],
+                required: ['name','options', 'team'],
                 properties: {
                     name: { type: 'string' },
-                    type: { type: 'string' },
                     team: { type: 'number'},
                     options: { type: 'object'}
                 }
@@ -53,10 +52,10 @@
                     found = true
                     app.containers.create(request.body.name, request.body.options)
                     .then(container => {
-                        if (container) {
+                        if (container && !container.error) {
                             app.db.models.Project.create({
                                 name: request.body.name,
-                                type: request.body.type,
+                                type: request.body.options.type,
                                 url: container.url
                             }).then(async project => {
                                 let team = await app.db.models.Team.findOne({where:{id: request.body.team}})
@@ -64,6 +63,9 @@
                                 project = project.toJSON()
 
                                 // project.meta = container
+                                delete project.updatedAt;
+                                delete project.createdAt;
+                                project.status = "okay";
                                 reply.send(project)
                             })
                         }
@@ -84,7 +86,7 @@
     /**
      * Delete an project
      * @name /api/v1/project/:id
-     * @memberof foreg.routes.api.project
+     * @memberof forge.routes.api.project 
      */
     app.delete('/:id', async (request, reply) => {
         let project = await app.db.models.Project.byId(request.params.id);
@@ -103,4 +105,22 @@
         }
 
     })
- }
+
+    /**
+     * Send commands
+     * 
+     * e.g. start/stop/restart
+     * 
+     * @name /api/v1/project/:id
+     * @memberof forge.routes.api.project
+     */
+    app.post('/:id', async (request,reply) => {
+        let project = await app.db.models.Project.byId(request.params.id);
+        if (project) {
+            let meta = await app.containers.details(project.name)
+            reply.send({})
+        } else {
+            reply.status(404).send({error: "Project not found"})
+        }
+    })
+}
