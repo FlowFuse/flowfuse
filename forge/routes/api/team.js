@@ -26,7 +26,12 @@ module.exports = async function(app) {
     app.get('/:id/projects', async (request, reply) => {
         const projects = await app.db.models.Project.byTeam(request.params.id)
         if (projects) {
-            reply.send(app.db.views.Project.teamProjectList(projects))
+            const result = app.db.views.Project.teamProjectList(projects);
+            reply.send({
+                count: result.length,
+                projects:result
+            })
+            reply.send(result)
         } else {
             reply.code(404).type('text/html').send('Not Found')
         }

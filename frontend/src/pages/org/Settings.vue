@@ -6,15 +6,19 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
+import Breadcrumbs from '@/mixins/Breadcrumbs';
 
 export default {
     name: 'OrgSettings',
+    mixins: [Breadcrumbs],
     data() {
         return {
         }
+    },
+    created() {
+        this.replaceLastBreadcrumb({ label:"Settings" })
     },
     components: {
         FormRow,

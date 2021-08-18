@@ -10,7 +10,8 @@ module.exports = {
         id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4},
         name: { type: DataTypes.STRING, allowNull: false},
         type: { type: DataTypes.STRING, allowNull: false},
-        url: { type: DataTypes.STRING, allowNull: false}
+        url: { type: DataTypes.STRING, allowNull: false},
+        slug: { type: DataTypes.VIRTUAL, get() { return this.id }}
     },
     associations: function(M) {
         this.belongsTo(M['Team'])
@@ -34,8 +35,10 @@ module.exports = {
                 },
                 byId: async (id) => {
                     return this.findOne({
-                        where:{
-                            id: id
+                        where: { id: id },
+                        include: {
+                            model: M['Team'],
+                            attributes:["id","name","slug","links"]
                         }
                     })
                 },
@@ -44,7 +47,7 @@ module.exports = {
                         include: {
                             model: M['Team'],
                             where: { slug: team },
-                            attributes:["id","name","slug"]
+                            attributes:["id","name","slug","links"]
                         }
                     })
                 }

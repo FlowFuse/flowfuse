@@ -1,48 +1,29 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from "@/pages/Home.vue"
-import Account from "@/pages/Account/Account.vue"
+import Account from "@/pages/Account/index.vue"
 import AccountSettings from "@/pages/account/Settings.vue"
 import AccountSecurity from "@/pages/account/Security.vue"
 import AccountTeams from "@/pages/account/Teams.vue"
-import Organization from "@/pages/org/Organization.vue"
+import AccountProjects from "@/pages/account/Projects.vue"
+
+import Organization from "@/pages/org/index.vue"
 import OrgSettings from "@/pages/org/Settings.vue"
 import OrgUsers from "@/pages/org/Users.vue"
 import OrgTeams from "@/pages/org/Teams.vue"
 
-import Team from "@/pages/team/Team.vue"
+import Project from "@/pages/project/index.vue"
+import ProjectOverview from "@/pages/project/Overview.vue"
+import ProjectSettings from "@/pages/project/Settings.vue"
+
+
+import Team from "@/pages/team/index.vue"
+import TeamOverview from "@/pages/team/Overview.vue"
 import TeamProjects from "@/pages/team/Projects.vue"
 import TeamUsers from "@/pages/team/Users.vue"
 import TeamSettings from "@/pages/team/Settings.vue"
 
-import store from "@/store"
+import ensureAdmin from "@/utils/ensureAdmin"
 
-
-/**
- * A 'beforeEnter' function that ensures the user is an admin
- */
-const ensureAdmin = (to, from, next) => {
-    let watcher;
-    function proceed () {
-        if (watcher) {
-            watcher();
-        }
-        if (store.state.account.user.admin) {
-            next()
-        } else {
-            next('/')
-        }
-    }
-    // Check if we've loaded the current user yet
-    if (!store.state.account.user) {
-        // Setup a watch
-        watcher = store.watch(
-            (state) => state.account.user,
-            (_) => { proceed() }
-        )
-    } else {
-        proceed()
-    }
-}
 const routes = [
     {
         navigationLink: true,
@@ -54,16 +35,30 @@ const routes = [
     {
         path: '/team/:id',
         redirect: to => {
-            return `/team/${to.params.id}/projects`
+            return `/team/${to.params.id}/overview`
         },
         name: 'Team',
         component: Team,
         children: [
+            { path: 'overview', component: TeamOverview },
             { path: 'projects', component: TeamProjects },
             { path: 'users', component: TeamUsers },
             { path: 'settings', component: TeamSettings }
+        ]
+    },
+    {
+        path: '/projects/:id',
+        redirect: to => {
+            return `/projects/${to.params.id}/overview`
+        },
+        name: 'Project',
+        component: Project,
+        children: [
+            { path: 'overview', component: ProjectOverview },
+            { path: 'settings', component: ProjectSettings }
         ],
     },
+
     {
         profileLink: true,
         path: '/account',
@@ -73,7 +68,8 @@ const routes = [
         children: [
             { path: 'settings', component: AccountSettings },
             { path: 'security', component: AccountSecurity },
-            { path: 'teams', component: AccountTeams }
+            { path: 'teams', component: AccountTeams },
+            { path: 'projects', component: AccountProjects }
         ],
     },
     {

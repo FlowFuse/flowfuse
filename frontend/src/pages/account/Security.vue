@@ -16,9 +16,11 @@ import { mapState } from 'vuex'
 import userApi from '@/api/user'
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
+import Breadcrumbs from '@/mixins/Breadcrumbs';
 
 export default {
     name: 'AccountSecurity',
+    mixins: [Breadcrumbs],
     data() {
         const currentUser = this.$store.getters['account/user'];
         return {
@@ -33,6 +35,9 @@ export default {
                 password_confirm: ""
             }
         }
+    },
+    created() {
+        this.replaceLastBreadcrumb({ label:"Security" })
     },
     methods: {
         login() {

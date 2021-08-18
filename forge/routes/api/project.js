@@ -1,8 +1,8 @@
 /**
  * Instance api routes
- * 
+ *
  *   /api/v1/project
- * 
+ *
  * @namespace project
  * @memberof forge.route.api
  */
@@ -15,18 +15,12 @@
      * @memberof forge.routes.api.project
      */
     app.get('/:id', async (request, reply) => {
-        let project = undefined
-        try {
-            project = await app.db.models.Project.byId(request.params.id)
-            let meta = await app.containers.details(project.name);
-            project = project.toJSON();
-            project.meta = meta;
-            console.log(project);
-        } catch (err) {
-            //TODO need to do something useful here?
-        }
+        const project = await app.db.models.Project.byId(request.params.id)
         if (project) {
-            reply.send(project)
+            const result = await app.db.views.Project.project(project);
+            result.meta = await app.containers.details(project.name);
+            result.team = await app.db.views.Team.team(project.Team);
+            reply.send(result)
         } else {
             reply.status(404).send({error: "Project not found"});
         }
@@ -35,7 +29,7 @@
     /**
      * Create an new project
      * @name /api/v1/project
-     * 
+     *
      */
     app.post('/', {
         schema: {
@@ -68,7 +62,7 @@
                                 let team = await app.db.models.Team.findOne({where:{id: request.body.team}})
                                 project.setTeam(team);
                                 project = project.toJSON()
-                                
+
                                 // project.meta = container
                                 reply.send(project)
                             })
@@ -90,7 +84,7 @@
     /**
      * Delete an project
      * @name /api/v1/project/:id
-     * @memberof foreg.routes.api.project 
+     * @memberof foreg.routes.api.project
      */
     app.delete('/:id', async (request, reply) => {
         let project = await app.db.models.Project.byId(request.params.id);
@@ -106,7 +100,7 @@
             })
         } else {
             reply.status(404).send({error: "Project not found"})
-        }    
-        
+        }
+
     })
  }

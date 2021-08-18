@@ -7,12 +7,13 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
+import Breadcrumbs from '@/mixins/Breadcrumbs';
 
 export default {
     name: 'AccountSettings',
+    mixins: [Breadcrumbs],
     data() {
         const currentUser = this.$store.getters['account/user'];
         return {
@@ -21,6 +22,9 @@ export default {
                 email: currentUser.email
             }
         }
+    },
+    created() {
+        this.replaceLastBreadcrumb({ label:"Settings" })
     },
     components: {
         FormRow,
