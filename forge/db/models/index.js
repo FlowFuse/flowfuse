@@ -37,7 +37,10 @@
  * @namespace models
  * @memberof forge.db
  */
-const { Model } = require('sequelize');
+const { Model, DataTypes } = require('sequelize');
+const Hashids = require('hashids/cjs')
+const hashids = {};
+
 
 // The models that should be loaded
 const modelTypes = ['Organization', 'User', 'Team', 'TeamMember','Session', 'Project'];
@@ -69,6 +72,7 @@ async function init(db) {
         if (m.name !== type) {
             throw new Error(`Model name mismatch: '${m.name}' !== '${type}'`)
         }
+        hashids[type] = new Hashids(type,10);
 
         const opts = {
             sequelize,
@@ -84,6 +88,31 @@ async function init(db) {
         }
         if (!m.model) {
             m.model = class model extends Model {}
+        }
+        if (!m.schema.slug) {
+            m.schema.slug = {
+                type: DataTypes.VIRTUAL,
+                get() {
+                    return hashids[m.name].encode(this.id);
+                }
+            }
+        }
+        m.schema.hashid = {
+            type: DataTypes.VIRTUAL,
+            get() {
+                return hashids[m.name].encode(this.id);
+            },
+            set(_) {
+                throw new Error('hashid is read-only');
+            }
+        }
+        m.schema.links = {
+            type: DataTypes.VIRTUAL,
+            get() {
+                return {
+                    self: process.env.BASE_URL+"/api/v1/"+m.name.toLowerCase()+"/"+this.slug
+                }
+            }
         }
         m.model.init(m.schema, opts);
         module.exports[m.name] = M[m.name] = m.model;

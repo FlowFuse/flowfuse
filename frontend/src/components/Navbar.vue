@@ -1,23 +1,18 @@
 <template>
-    <Disclosure as="nav" class="bg-white shadow" v-slot="{ open }">
-      <div class="max-w-screen mx-auto px-4 sm:px-6 lg:px-8">
+    <Disclosure as="nav" class="bg-white" v-slot="{ open }">
+      <div class="m-w-screen mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
-          <div class="flex items-center">
-            <div class="hidden">
-              <div class="flex items-baseline space-x-4">
-                <template v-for="(item, itemIdx) in navigation" :key="item.name">
-                  <template v-if="(itemIdx === 0)">
-                    <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
-                    <router-link :to="item" class="bg-gray-900 text-white px-3 py-2 rounded-md text-sm font-medium">{{ item.name }}</router-link>
-                  </template>
-                  <router-link :to="item" v-else class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">{{ item.name }}</router-link>
-                </template>
-              </div>
+            <div class="flex flex-grow items-center bg-white p-2  text-gray-500">
+              <router-link to="/"><HomeIcon class="h-5 w-5" aria-hidden="true" /></router-link>
+              <ChevronRightIcon v-if="breadcrumbs.length > 0" class="h-5 w-5 mx-2 text-blue-400" aria-hidden="true" />
+              <template v-for="(item, itemIdx) in breadcrumbs" :key="item.name">
+                  <ChevronRightIcon v-if="itemIdx > 0" class="h-5 w-5 mx-2 text-blue-400" aria-hidden="true" />
+                  <router-link :to="item.to || {}">{{ item.label }}</router-link>
+              </template>
             </div>
-          </div>
-          <div class="hidden md:block">
+          <!-- User Button -->
+          <div class="hidden md:block flex-none">
             <div class="ml-4 flex items-center md:ml-6">
-              <!-- Profile dropdown -->
               <Menu as="div" class="ml-3 relative">
                 <div>
                   <MenuButton class="pl-2 pr-1 py-1 bg-gray-100 text-gray-400 hover:text-gray-600 focus:text-gray-800 rounded-lg flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-600 focus:ring-gray-400">
@@ -44,6 +39,7 @@
               <XIcon v-else class="block h-6 w-6" aria-hidden="true" />
             </DisclosureButton>
           </div>
+
         </div>
       </div>
       <DisclosurePanel class="md:hidden">
@@ -60,12 +56,12 @@
 import { ref } from "vue"
 import { mapState } from 'vuex'
 import router from "@/routes"
+import Logo from "@/components/Logo"
 
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
-import { MenuIcon, XIcon } from '@heroicons/vue/outline'
+import { MenuIcon, XIcon, HomeIcon, ChevronRightIcon } from '@heroicons/vue/outline'
 
 const navigation = router.options.routes.filter(r => r.navigationLink)
-
 export default {
   name: "Navbar",
   computed: {
@@ -74,9 +70,30 @@ export default {
               return r.profileLink && (!r.adminOnly || this.user.admin)
           })
       },
-      ...mapState('account',['user'])
+      ...mapState('account',['user']),
+      ...mapState('breadcrumbs',['breadcrumbs']),
+
   },
+  // watch: {
+  //     breadcrumbs: 'refreshBreadcrumbs'
+  // },
+  // mounted() {
+  //     this.refreshBreadcrumbs();
+  // },
+  // methods: {
+  //     refreshBreadcrumbs() {
+  //         // const parts = this.$router.currentRoute.value.path.split("/").filter( v => !!v).map(v => {
+  //         //     return {
+  //         //         name: v
+  //         //     }
+  //         // })
+  //
+  //         // this.breadcrumbs = parts
+  //         console.log(this.breadcrumbs);
+  //     }
+  // },
   components: {
+      Logo,
       Disclosure,
       DisclosureButton,
       DisclosurePanel,
@@ -85,7 +102,9 @@ export default {
       MenuItem,
       MenuItems,
       MenuIcon,
-      XIcon
+      XIcon,
+      HomeIcon,
+      ChevronRightIcon
   },
   setup() {
       const open = ref(false)

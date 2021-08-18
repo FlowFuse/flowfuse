@@ -1,24 +1,24 @@
 <template>
     <form class="space-y-6">
-        <FormHeading>Team Settings</FormHeading>
-        <FormRow v-model="input.teamName" id="teamName">Name</FormRow>
+        <FormHeading>Project Settings</FormHeading>
+        <FormRow v-model="input.projectName" id="projectName">Name</FormRow>
     </form>
 </template>
 
 <script>
-import { mapState } from 'vuex'
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
+
 import Breadcrumbs from '@/mixins/Breadcrumbs';
 
 export default {
-    name: 'TeamSettings',
+    name: 'ProjectSettings',
     mixins: [Breadcrumbs],
-    props:[ "team" ],
+    props:[ "project" ],
     data() {
         return {
             input: {
-                teamName: ""
+                projectName: ""
             }
         }
     },
@@ -33,7 +33,7 @@ export default {
     },
     methods: {
         fetchData () {
-            this.input.teamName = this.team.name;
+            this.input.projectName = this.project.name;
         }
     },
     components: {

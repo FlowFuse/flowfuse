@@ -3,7 +3,7 @@
  * @namespace forge.db.models.Team
  */
 
-const { DataTypes } = require('sequelize');
+const { DataTypes,literal } = require('sequelize');
 
 module.exports = {
     name: 'Team',
@@ -58,7 +58,20 @@ module.exports = {
                         },
                         include: {
                             model:M['Team'],
-                            attributes:['id','name','avatar']
+                            attributes:['links','id','name','avatar']
+                        },
+                        attributes: {
+                            include: [
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM Projects AS project
+                                        WHERE
+                                        project.TeamId = teamMember.TeamId
+                                    )`),
+                                    'projectCount'
+                                ]
+                            ]
                         }
                     })
                 }
