@@ -1,22 +1,48 @@
 const Docker = require('dockerode');
 
+/**
+ * Docker Container driver
+ * 
+ * Handles the creation and deletation of containers to back Projects
+ * 
+ * This driver creates Projects backed by Docker 
+ * 
+ * @module docker
+ * @memberof forge.containers.drivers
+ * 
+ */
 module.exports = {
+     /**
+     * Initialises this driver
+     * @param {string} app - the Vue application 
+     * @param {object} options - A set of configuration options for the driver
+     * @return {forge.containers.ProjectArguments}
+     */
     init: async (app, options) => {
         this._app = app
         this._docker = new Docker({
             socketPath: process.env.DOCKER_SOCKET || '/var/run/docker.sock'
         })
         this._options = options
+
+        return {}
     },
-    create: async (name, options) => {
-        console.log("creating ", name)
+    /**
+     * Create a new Project
+     * @param {string} id - id for the project
+     * @param {forge.containers.Options} options - options for the project
+     * @return {forge.containers.Project}
+     */
+    create: async (id, options) => {
+        console.log("creating ", id)
         var contOptions = {
-            Image: "nodered/node-red:latest",
-            name: name,
+            Image: this._options.containers[options.type],
+            name: id,
             Env: [
-                "VIRTUAL_HOST=" + name + "." + this._options.domain,
-                "APP_NAME=" + name,
-                "MONGO_URL=mongodb://mongodb/nodered"
+                "VIRTUAL_HOST=" + options.name + "." + this._options.domain,
+                "APP_NAME=" + options.name,
+                "MONGO_URL=mongodb://mongodb/nodered",
+                "TZ=Europe/London"
             ],
             Labels: {
                 "traefik.enable": "true"
@@ -28,50 +54,94 @@ module.exports = {
                 NetworkMode: "internal"
             }
         };
+        if (options.env) {
+            contOptions.Env.concat(options.env)
+        }
         try {
             let container = await this._docker.createContainer(contOptions);
             await container.start();
             return {
-                name: name, 
-                status: "started", 
-                url: `https://${name}.${this._options.domain}`,
+                id: id, 
+                status: "okay", 
+                url: `https://${options.name}.${this._options.domain}`,
                 meta: container
             };
         } catch (err) {
             return {error: err}
         }
     },
-    remove: async (name) => {
-        console.log("removing ", name)
+    /**
+     * Removes a Project
+     * @param {string} id - id of project to remove
+     * @return {Object}
+     */
+    remove: async (id) => {
+        console.log("removing ", id)
         try {
-            let container = await this._docker.getContainer(name);
+            let container = await this._docker.getContainer(id);
             await container.stop()
             await container.remove()
-            return {status: "removed"}
+            return {status: "okay"}
         } catch (err) {
             return {error: err}
         }
     },
-    details: async (name) => {
+    /**
+     * Retrieves details of a project's container
+     * @param {string} id - id of project to query
+     * @return {Object} 
+     */
+    details: async (id) => {
         try {
-            let container = await this._docker.getContainer(name);
+            let container = await this._docker.getContainer(id);
             return container
         } catch (err) {
             return {error: err}
         }
     },
+    /**
+     * Lists all containers
+     * @param {string} filter - rules to filter the containers
+     * @return {Object}
+     */
     list: async (filter) => {
         let containers = await this._docker.listContainers({all: true})
         //console.log(containers)
         return containers.map(c => { return c.Names[0].substring(1)})
     },
-    start: async (name) => {
+    /**
+     * Starts a Project's container
+     * @param {string} id - id of project to start
+     * @return {forge.Status}
+     */
+    start: async (id) => {
+        try {
+            let container = await this._docker.getContainer(id);
+            container.start()
+        } catch (err) {
 
+        }
     },
-    stop: async (name) => {
+    /**
+     * Stops a Proejct's container
+     * @param {string} id - id of project to stop
+     * @return {forge.Status}
+     */
+    stop: async (id) => {
+        try {
+            let container = await this._docker.getContainer(id);
+            container.stop()
+        } catch (err) {
 
+        }
     },
-    restart: async (name) => {
-
+    /**
+     * Restarts a Project's container
+     * @param {string} id - id of project to restart
+     * @return {forge.Status}
+     */
+    restart: async (id) => {
+        await stop(id);
+        return await start(id);
     }
 }
