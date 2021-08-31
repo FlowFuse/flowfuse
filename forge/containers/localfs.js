@@ -31,7 +31,9 @@ module.exports = {
     this._currentPort = initalPortNumber
 
     if (!fs.existsSync(this._options.root)) {
-      fs.mkdirSync(this._options.root)
+      if (this._options.root != undefined) {
+        fs.mkdirSync(this._options.root)
+      }
     }
     
     return {}
@@ -48,10 +50,10 @@ module.exports = {
     if (!fs.existsSync(directory)) {
       fs.mkdirSync(directory)
     }
-    if (options.port && this._userProperty.contains(options.port) {
+    if (options.port && this._userProperty.contains(options.port)) {
       // error port in use
     }
-    let port = options.port || initalPortNumber++;
+    var port = options.port || (initalPortNumber + 1);
     this._usedPorts.push(port);
 
     let proc = childProcess.spawn('node-red',[

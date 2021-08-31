@@ -45,7 +45,8 @@ module.exports = fp(async function(app, _opts, next){
             domain: process.env.DOMAIN ||"example.com",
             containers:{
                 basic: "docker-pi.local:5000/bronze-node-red:latest"
-            }
+            },
+            root: process.env.LOCALFS_ROOT
         });
         app.decorate('containers', driver);
     } catch (err) {

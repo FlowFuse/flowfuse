@@ -199,12 +199,15 @@ module.exports = {
 
     try {
         await this._k8sApi.createNamespacedPod('flowforge', localPod)
-        .then(() => {
-          return this._k8sApi.createNamespacedService('flowforge', localService)
-        })
-        .then(() => {
-          return this._k8sNetApi.createNamespacedIngress('flowforge', localIngress)
-        })
+        // .then(() => {
+          // return 
+          await this._k8sApi.createNamespacedService('flowforge', localService)
+        // })
+        // .then(() => {
+          // return 
+          await this._k8sNetApi.createNamespacedIngress('flowforge', localIngress)
+        // })
+        
     } catch (err) {
       console.log(err)
       return {error: err}
