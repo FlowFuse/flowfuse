@@ -37,6 +37,9 @@ for the core application.
 ├── config               - build config files
 ├── forge
 │   ├── config
+│   ├── containers
+│   │   └── node_modules
+│   │        └── @flowforge
 │   ├── db
 │   │   ├── controllers
 │   │   ├── models
