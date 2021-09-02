@@ -28,7 +28,7 @@
 
 /**
  * @typedef {Object} forge.Status
- * @property {string} status
+ * @property {string} statuskubernetes
  */
 
 const fp = require('fastify-plugin')
@@ -40,13 +40,13 @@ module.exports = fp(async function(app, _opts, next){
     }
 
     try {
-        const driver = require("./"+containerOpts.dialect)
+        const driver = require("@flowforge/"+containerOpts.dialect)
         let configurables = await driver.init(app, {
             domain: process.env.DOMAIN ||"example.com",
+            //this list needs loading from an external source
             containers:{
                 basic: "docker-pi.local:5000/bronze-node-red:latest"
-            },
-            root: process.env.LOCALFS_ROOT
+            }
         });
         app.decorate('containers', driver);
     } catch (err) {

@@ -39,7 +39,6 @@
         "fastify-sensible": "^3.1.0",
         "fastify-static": "^4.2.2",
         "jsonwebtoken": "^8.5.1",
-        "node-red": "^2.0.5",
         "pino-pretty": "^5.1.2",
         "sequelize": "^6.6.4",
         "sqlite3": "^5.0.2",
