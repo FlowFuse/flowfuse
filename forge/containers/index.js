@@ -28,7 +28,7 @@
 
 /**
  * @typedef {Object} forge.Status
- * @property {string} statuskubernetes
+ * @property {string} status
  */
 
 const fp = require('fastify-plugin')
