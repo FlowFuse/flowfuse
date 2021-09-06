@@ -18,7 +18,13 @@ const getTeam = (team) => {
 
 const getTeamProjects = (team) => {
     const slug = slugify(team);
-    return client.get(`/api/v1/team/${slug}/projects`).then(res => res.data);
+    return client.get(`/api/v1/team/${slug}/projects`).then(res => {
+        res.data.projects = res.data.projects.map(r => {
+            r.link = { name: 'Project', params: { id: slugify(r.id) }}
+            return r;
+        })
+        return res.data;
+    });
 }
 export default {
     getTeam,

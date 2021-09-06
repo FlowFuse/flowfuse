@@ -58,7 +58,20 @@ module.exports = async function(app) {
             count: result.length,
             teams:result
         })
+    })
 
-
+    /**
+     * Get the projects of the current logged in user
+     * @name /api/v1/user/projects
+     * @static
+     * @memberof forge.routes.api.user
+     */
+    app.get('/projects', async (request, reply) => {
+        const projects = await app.db.models.Project.byUser(request.session.User);
+        const result = await app.db.views.Project.userProjectList(projects);
+        reply.send({
+            count: result.length,
+            projects:result
+        })
     })
 }

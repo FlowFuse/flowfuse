@@ -1,0 +1,28 @@
+name: 📖 Story
+description: Create a story
+labels: [story]
+body:
+- type: input
+  attributes:
+    label: Epic
+    description: What epic is this story part of?
+    placeholder: '#123'
+- type: textarea
+  attributes:
+    label: Description
+    description: Describe the story
+    value: |
+    **As a:**
+
+    **I want to:**
+
+    **So that:**
+
+- type: textarea
+  attributes:
+    label: Acceptance Criteria
+    value: |
+     - [ ] criteria 1
+     - [ ] criteria 2
+     - [ ] criteria 3
+     - ...

@@ -10,18 +10,26 @@ import { mapState } from 'vuex'
 import teamApi from '@/api/team'
 
 import FormHeading from '@/components/FormHeading'
-import ItemTable from '@/components/ItemTable'
+import ItemTable from '@/components/tables/ItemTable'
+import Breadcrumbs from '@/mixins/Breadcrumbs';
 
 export default {
     name: 'TeamProjects',
+    mixins: [Breadcrumbs],
     data() {
         return {
+            projectCount: 0,
             projects: [],
             columns: [
-                {name: 'Name', property: 'name'}
-                //...
+                {name: 'Name', property: 'name', link: 'link'},
+                {name: 'Updated', property: 'updatedSince'},
+                {name: 'Team', property: 'teamName', link: 'teamLink'},
+                {name: 'Editor', value:"Open Editor...", external: true, link: 'url'}
             ]
         }
+    },
+    created() {
+        this.replaceLastBreadcrumb({ label:"Projects" })
     },
     watch: {
          team: 'fetchData'
@@ -32,7 +40,9 @@ export default {
     methods: {
         fetchData: async function(newVal,oldVal) {
             if (this.team.name) {
-                this.projects = await teamApi.getTeamProjects(this.team.name)
+                const data = await teamApi.getTeamProjects(this.team.name)
+                this.projectCount = data.count;
+                this.projects = data.projects;
             }
         }
     },

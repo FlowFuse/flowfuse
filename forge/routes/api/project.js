@@ -15,18 +15,12 @@
      * @memberof forge.routes.api.project
      */
     app.get('/:id', async (request, reply) => {
-        let project = undefined
-        try {
-            project = await app.db.models.Project.byId(request.params.id)
-            let meta = await app.containers.details(project.name);
-            project = project.toJSON();
-            project.meta = meta;
-            console.log(project);
-        } catch (err) {
-            //TODO need to do something useful here?
-        }
+        const project = await app.db.models.Project.byId(request.params.id)
         if (project) {
-            reply.send(project)
+            const result = await app.db.views.Project.project(project);
+            result.meta = await app.containers.details(project.name);
+            result.team = await app.db.views.Team.team(project.Team);
+            reply.send(result)
         } else {
             reply.status(404).send({error: "Project not found"});
         }
@@ -56,7 +50,6 @@
             teams.forEach(t => {
                 if (t.id === request.body.team) {
                     found = true
-
                     app.db.models.Project.create({
                         name: request.body.name,
                         type: request.body.options.type,
@@ -105,8 +98,8 @@
             })
         } else {
             reply.status(404).send({error: "Project not found"})
-        }    
-        
+        }
+
     })
 
     /**
@@ -126,4 +119,4 @@
             reply.status(404).send({error: "Project not found"})
         }
     })
- }
+}

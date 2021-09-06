@@ -31,13 +31,14 @@ server.register(license);
 server.register(db);
 // Routes : the HTTP routes
 server.register(routes)
-// Containers: 
+// Containers:
 server.register(containers);
 
 // Wait until everything is loaded so PORT can be set via .env config
 server.ready().then(() => {
     // Start the server
     server.listen(process.env.PORT, function (err, address) {
+        process.env.BASE_URL = address;
         if (err) {
             console.error(err)
             process.exit(1)

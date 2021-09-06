@@ -1,5 +1,5 @@
 const should = require("should");
-const licensing = require("../../../forge/licensing/index.js")
+const licensing = require("../../../forge/licensing/loader.js")
 
 describe("Licensing", function() {
     it("should load a valid license", async function() {
@@ -10,7 +10,7 @@ describe("Licensing", function() {
         //     tier: "teams"
         // }
         const TEST_LICENSE = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsImV4cCI6NzI1ODExODQwMCwic3ViIjoiQWNtZSBDdXN0b21lciIsInRpZXIiOiJ0ZWFtcyIsImlhdCI6MTYyNzU4NzkxOX0.5B57eY_fP51mOqwQTf2fB6MmpLUwsZgEeMkiK_kFDqTh_0htFdUsIj6BKuDBOl3Xpm2g93kS7U3DwIrS_qx2yQ";
-        await licensing.verifyLicense(TEST_LICENSE);
+        const licenseDetails = await licensing.verifyLicense(TEST_LICENSE);
         licenseDetails.should.have.property("tier", "teams");
         licenseDetails.should.have.property("organisation", "Acme Customer");
         licenseDetails.expired.should.false();
@@ -24,7 +24,7 @@ describe("Licensing", function() {
         //     tier: "teams"
         // }
         const TEST_LICENSE = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsImV4cCI6NzI1ODExODQwMCwic3ViIjoiQWNtZSBDdXN0b21lciIsInRpZXIiOiJ0ZWFtcyIsImlhdCI6MTYyNzU4NzkxOX0.5B57eY_fP51mOqwQTf2fB6MmpLUwsZgEeMkiK_kFDqTh_0htFdUsIj6BKuDBOl3Xpm2g93kS7U3DwIrS_qx2yQ";
-        await licensing.verifyLicense(TEST_LICENSE);
+        const licenseDetails = await licensing.verifyLicense(TEST_LICENSE);
         (function() { licenseDetails.tier = "solo" }).should.throw();
     })
     it("should reject an expired license", async function() {

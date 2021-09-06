@@ -8,10 +8,15 @@
 <script>
 import { mapState } from 'vuex'
 import FormHeading from '@/components/FormHeading'
-import ItemTable from '@/components/ItemTable'
+import ItemTable from '@/components/tables/ItemTable'
+import Breadcrumbs from '@/mixins/Breadcrumbs';
 
 export default {
     name: 'TeamUsers',
+    mixins: [Breadcrumbs],
+    created() {
+        this.replaceLastBreadcrumb({ label:"Users" })
+    },
     data() {
         return {
             users: [],
