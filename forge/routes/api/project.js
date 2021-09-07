@@ -60,7 +60,8 @@
                         project.setTeam(team)
                         app.containers.create(project.id, request.body.options)
                         .then(container => {
-                            project.update({url: container.url})
+                            project.url = container.url
+                            await project.save()
 
                             project = project.toJSON()
 
