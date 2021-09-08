@@ -50,30 +50,26 @@
             teams.forEach(t => {
                 if (t.id === request.body.team) {
                     found = true
-                    app.containers.create(request.body.name, request.body.options)
-                    .then(container => {
-                        if (container && !container.error) {
-                            app.db.models.Project.create({
-                                name: request.body.name,
-                                type: request.body.options.type,
-                                url: container.url
-                            }).then(async project => {
-                                let team = await app.db.models.Team.findOne({where:{id: request.body.team}})
-                                project.setTeam(team);
-                                project = project.toJSON()
-
-                                // project.meta = container
-                                delete project.updatedAt;
-                                delete project.createdAt;
-                                project.status = "okay";
-                                reply.send(project)
-                            })
-                        }
+                    app.db.models.Project.create({
+                        name: request.body.name,
+                        type: request.body.options.type,
+                        url: "placeholder"
                     })
-                    .catch(err => {
-                        //need some better rollback logic here
-                        console.log(err)
-                        reply.status(500).send({error: "Something went wrong"})
+                    .then( async project => {
+                        let team = await app.db.models.Team.findOne({where:{id: request.body.team}})
+                        project.setTeam(team)
+                        app.containers.create(project.id, request.body.options)
+                        .then(container => {
+                            project.url = container.url
+                            await project.save()
+
+                            project = project.toJSON()
+
+                            delete project.updatedAt;
+                            delete project.createdAt;
+                            project.status = "okay";
+                            reply.send(project)
+                        })
                     })
                 }
                 if (!found) {
@@ -91,13 +87,14 @@
     app.delete('/:id', async (request, reply) => {
         let project = await app.db.models.Project.byId(request.params.id);
         if (project) {
-            app.containers.remove(project.name)
+            app.containers.remove(project.id)
             .then( () => {
                 project.destroy();
                 reply.send({ status: "okay"});
             })
             .catch(err => {
-                console.log("missing")
+                console.log("missing", err)
+                console.log(err)
                 reply.status(500).send({})
             })
         } else {
