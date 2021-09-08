@@ -59,7 +59,7 @@
                         let team = await app.db.models.Team.findOne({where:{id: request.body.team}})
                         project.setTeam(team)
                         app.containers.create(project.id, request.body.options)
-                        .then(container => {
+                        .then(async container => {
                             project.url = container.url
                             await project.save()
 
@@ -72,10 +72,10 @@
                         })
                     })
                 }
-                if (!found) {
-                    reply.status(401).send({error: "Current user not in team " + request.body.team})
-                }
             })
+            if (!found) {
+                reply.status(401).send({error: "Current user not in team " + request.body.team})
+            }
         })
     })
 
