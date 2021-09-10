@@ -4,7 +4,14 @@
             <router-link to="/account/projects">Projects</router-link>
         </FormHeading>
         <div class="text-sm px-4 sm:px-6 lg:px-8 mt-8">
-            <ProjectsTable :projects="projects" :projectCount="projectCount" />
+            <template v-if="projectCount > 0">
+                <ProjectsTable :projects="projects" :projectCount="projectCount" />
+            </template>
+            <template v-else>
+                <div class="max-w-2xl mx-auto flex justify-center border rounded border-gray-300 overflow-hidden mb-4 p-8">
+                    <CreateProjectButton class="w-auto flex-grow-0"/>
+                </div>
+            </template>
         </div>
     </div>
     <div class="forge-block">
@@ -25,6 +32,7 @@ import teamApi from '@/api/team'
 import TeamsTable from '@/components/tables/TeamsTable'
 import ProjectsTable from '@/components/tables/ProjectsTable'
 import FormHeading from '@/components/FormHeading'
+import CreateProjectButton from "@/components/CreateProjectButton"
 
 import Breadcrumbs from '@/mixins/Breadcrumbs';
 
@@ -58,7 +66,8 @@ export default {
     components: {
         ProjectsTable,
         TeamsTable,
-        FormHeading
+        FormHeading,
+        CreateProjectButton
     }
 }
 </script>
