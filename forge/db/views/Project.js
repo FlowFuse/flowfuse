@@ -1,21 +1,24 @@
 module.exports = {
     project: function(db, project) {
-        const result = project.toJSON();
-        return {
-            id: result.id,
-            name: result.name,
-            type: result.type,
-            url: result.url,
-            createdAt: result.createdAt,
-            updatedAt: result.updatedAt,
-            links: result.links,
-            team: {
-                id: result.Team.hashid,
-                name: result.Team.name,
-                slug: result.Team.slug,
-                links: result.Team.links
+        const proj = project.toJSON();
+        const result = {
+            id: proj.id,
+            name: proj.name,
+            type: proj.type,
+            url: proj.url,
+            createdAt: proj.createdAt,
+            updatedAt: proj.updatedAt,
+            links: proj.links,
+        }
+        if (proj.Team) {
+            result.team = {
+                id: proj.Team.hashid,
+                name: proj.Team.name,
+                slug: proj.Team.slug,
+                links: proj.Team.links
             }
-        };
+        }
+        return result;
     },
     teamProjectList: function(db, projectList) {
         return projectList.map((t) => {

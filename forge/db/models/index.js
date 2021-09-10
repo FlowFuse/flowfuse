@@ -114,6 +114,11 @@ async function init(db) {
                 }
             }
         }
+
+        m.model.decodeHashid = function(hashid) {
+            return hashids[m.name].decode(hashid);
+        }
+
         m.model.init(m.schema, opts);
         module.exports[m.name] = M[m.name] = m.model;
         allModels.push(m);

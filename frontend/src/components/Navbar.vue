@@ -3,13 +3,16 @@
       <div class="m-w-screen mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
             <div class="flex flex-grow items-center bg-white p-2  text-gray-500">
-              <router-link to="/"><HomeIcon class="h-5 w-5" aria-hidden="true" /></router-link>
+              <router-link to="/" class="px-2 py-2 bg-gray-100 text-gray-400 hover:text-gray-600 focus:text-gray-800 rounded-lg flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-600 focus:ring-gray-400"><HomeIcon class="h-5 w-5" aria-hidden="true" /></router-link>
               <ChevronRightIcon v-if="breadcrumbs.length > 0" class="h-5 w-5 mx-2 text-blue-400" aria-hidden="true" />
               <template v-for="(item, itemIdx) in breadcrumbs" :key="item.name">
                   <ChevronRightIcon v-if="itemIdx > 0" class="h-5 w-5 mx-2 text-blue-400" aria-hidden="true" />
                   <router-link :to="item.to || {}">{{ item.label }}</router-link>
               </template>
             </div>
+            <a v-if="$route.name != 'CreateProject'" href="/create" class="pl-2 pr-3 py-1 bg-blue-900 hover:bg-indigo-700 text-white hover:text-gray-200 focus:text-gray-300 rounded-lg flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-600 focus:ring-gray-400">
+                <PlusSmIcon class="w-6" /><span>Create Project</span>
+            </a>
           <!-- User Button -->
           <div class="hidden md:block flex-none">
             <div class="ml-4 flex items-center md:ml-6">
@@ -59,7 +62,7 @@ import router from "@/routes"
 import Logo from "@/components/Logo"
 
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
-import { MenuIcon, XIcon, HomeIcon, ChevronRightIcon } from '@heroicons/vue/outline'
+import { MenuIcon, XIcon, HomeIcon, ChevronRightIcon, PlusSmIcon } from '@heroicons/vue/outline'
 
 const navigation = router.options.routes.filter(r => r.navigationLink)
 export default {
@@ -104,7 +107,8 @@ export default {
       MenuIcon,
       XIcon,
       HomeIcon,
-      ChevronRightIcon
+      ChevronRightIcon,
+      PlusSmIcon
   },
   setup() {
       const open = ref(false)

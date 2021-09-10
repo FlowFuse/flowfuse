@@ -1,0 +1,79 @@
+<template>
+    <div class="forge-block">
+        <div class="max-w-2xl m-auto">
+            <form class="space-y-6">
+                <FormHeading>Create a new project</FormHeading>
+                <div class="mb-8 text-sm text-gray-500">Let's get your new Node-RED instance setup in no time.</div>
+
+                <FormRow :options="teams" v-model="input.team" id="team">Team</FormRow>
+
+                <FormRow v-model="input.name" id="name2">
+                    <template v-slot:default>Project Name</template>
+                    <template v-slot:append>
+                        <button type="button" @click="refreshName" class="text-gray-500 hover:text-gray-600 border border-gray-300 hover:border-indigo-500 rounded ml-2 p-1 w-9 h-8" ><RefreshIcon class=" w-full" /></button>
+                    </template>
+                </FormRow>
+
+                <!-- <FormRow v-model="input.description" id="description">Description</FormRow> -->
+
+                <button type="button" @click="createProject" class="py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-900 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-700">
+                    Create project
+                </button>
+            </form>
+        </div>
+    </div>
+</template>
+
+<script>
+import teamApi from '@/api/team'
+import projectApi from '@/api/project'
+
+import FormRow from '@/components/FormRow'
+import FormHeading from '@/components/FormHeading'
+import NameGenerator from '@/utils/name-generator';
+import { RefreshIcon } from '@heroicons/vue/outline'
+
+export default {
+    name: 'CreateProject',
+    data() {
+        return {
+            teams: [],
+            input: {
+                name: NameGenerator(),
+                team: "",
+                // description: "",
+                options: {
+                    type: "basic"
+                }
+            }
+        }
+    },
+    async created() {
+        const data = await teamApi.getTeams()
+        this.teamCount = data.count;
+        this.teams = data.teams.map(function(t) {
+            return { value: t.id, label: t.name }
+        });
+        if (this.teams.length > 0) {
+            this.input.team = this.teams[0].value;
+        }
+    },
+    methods: {
+        createProject() {
+            projectApi.create(this.input).then(result => {
+                this.$router.push( { name: 'Project', params: { id: result.id }});
+            }).catch(err => {
+                console.log(err);
+            });
+        },
+        refreshName() {
+            this.input.name = NameGenerator()
+        }
+    },
+    components: {
+        FormRow,
+        FormHeading,
+        RefreshIcon
+    }
+}
+</script>

@@ -69,6 +69,26 @@ module.exports = {
                         }
                     })
                 }
+            },
+            instance: {
+                // get the team membership for the given team
+                // `teamId` can be either a number (the raw id) or a string (the hashid).
+                // TODO: standardize on using hashids externally
+                getTeamMembership: async function(teamId) {
+                    if (typeof teamId === 'string') {
+                        teamId = M['Team'].decodeHashid(teamId);
+                    }
+                    return await M['TeamMember'].findOne({
+                        where: {
+                            UserId: this.id
+                        },
+                        include: {
+                            model:M['Team'],
+                            attributes:['id'],
+                            where: { id: teamId }
+                        }
+                    });
+                }
             }
         }
     }
