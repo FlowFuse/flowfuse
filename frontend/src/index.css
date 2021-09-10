@@ -13,4 +13,30 @@
         @apply lg:px-8;
         @apply mb-2;
     }
+
+    .forge-button {
+        @apply px-3;
+        @apply py-1;
+        @apply bg-blue-900;
+        @apply hover:bg-indigo-700;
+        @apply text-white;
+        @apply hover:text-gray-200;
+        @apply focus:text-gray-300;
+        @apply rounded-lg;
+        @apply flex;
+        @apply items-center;
+        @apply text-sm;
+        @apply focus:outline-none;
+        @apply focus:ring-2;
+        @apply focus:ring-offset-2;
+        @apply focus:ring-offset-gray-600;
+        @apply focus:ring-gray-400;
+    }
+    .forge-user-button {
+        @apply bg-gray-100;
+        @apply hover:bg-gray-200;
+        @apply text-gray-400;
+        @apply hover:text-gray-600;
+        @apply focus:text-gray-800;
+    }
 }

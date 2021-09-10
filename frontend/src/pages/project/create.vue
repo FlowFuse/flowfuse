@@ -16,7 +16,7 @@
 
                 <!-- <FormRow v-model="input.description" id="description">Description</FormRow> -->
 
-                <button type="button" @click="createProject" class="py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-900 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-700">
+                <button type="button" @click="createProject" class="forge-button">
                     Create project
                 </button>
             </form>

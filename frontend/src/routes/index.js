@@ -14,6 +14,7 @@ import OrgTeams from "@/pages/org/Teams.vue"
 import Project from "@/pages/project/index.vue"
 import ProjectOverview from "@/pages/project/Overview.vue"
 import ProjectSettings from "@/pages/project/Settings.vue"
+import ProjectDebug from "@/pages/project/Debug.vue"
 import CreateProject from "@/pages/project/create.vue"
 
 
@@ -56,7 +57,8 @@ const routes = [
         component: Project,
         children: [
             { path: 'overview', component: ProjectOverview },
-            { path: 'settings', component: ProjectSettings }
+            { path: 'settings', component: ProjectSettings },
+            { path: 'debug', component: ProjectDebug }
         ],
     },
     {

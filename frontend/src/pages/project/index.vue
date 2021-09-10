@@ -1,10 +1,14 @@
 <template>
     <div class="forge-block">
         <div class="flex items-center mb-8">
-            <div class="mr-3"><img :src="project.avatar" class="h-14 v-14 rounded-md"/></div>
-            <div class="flex flex-col">
-                <div class="text-xl font-bold">{{ project.name }}</div>
+            <div class="text-xl font-bold">{{ project.name }}</div>
+            <div class="ml-8 flex-grow flex items-center">
+                <a :href="project.url" target="_blank" class="forge-button">
+                    <ExternalLinkIcon class="w-5 h-5 my-1 mr-1" /><span class="ml-1">Open Editor</span>
+                </a>
+                <button type="button" title="Copy url" class="forge-button forge-user-button px-2 h-8 py-0 ml-1"><span class="sr-only">Copy url</span><ClipboardCopyIcon class="w-4 h-4" /></button>
             </div>
+            <DropdownMenu class="ml-8" alt="Open options menu" :options="options">Options</DropdownMenu>
         </div>
         <ul class="flex border-b border-gray-700 mb-10 text-gray-500">
             <template v-for="(item, itemIdx) in navigation" :key="project.name">
@@ -23,7 +27,9 @@
 <script>
 import projectApi from '@/api/project'
 import FormHeading from '@/components/FormHeading'
-import Breadcrumbs from '@/mixins/Breadcrumbs';
+import Breadcrumbs from '@/mixins/Breadcrumbs'
+import DropdownMenu from '@/components/DropdownMenu'
+import { ExternalLinkIcon, ClipboardCopyIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'Project',
@@ -34,8 +40,20 @@ export default {
             navigation: []
         }
     },
+    computed: {
+        options: function() {
+            return [
+                {name: "Start", action: function() { console.log("start")}},
+                {name: "Restart", action: function() { console.log("start")}},
+                {name: "Stop"}
+            ]
+        }
+    },
     components: {
         FormHeading,
+        ExternalLinkIcon,
+        ClipboardCopyIcon,
+        DropdownMenu
     },
     async created() {
         this.setBreadcrumbs([
@@ -57,6 +75,7 @@ export default {
         this.navigation = [
             { name: "Overview", path: `/projects/${parts[2]}/overview` },
             { name: "Settings", path: `/projects/${parts[2]}/settings` },
+            { name: "Debug", path: `/projects/${parts[2]}/debug` },
         ]
     }
 }
