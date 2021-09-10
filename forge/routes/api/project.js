@@ -1,8 +1,8 @@
 /**
  * Instance api routes
- * 
+ *
  * - /api/v1/project
- * 
+ *
  * @namespace project
  * @memberof forge.routes.api
  */
@@ -38,51 +38,39 @@
                 required: ['name','options', 'team'],
                 properties: {
                     name: { type: 'string' },
-                    team: { type: 'number'},
+                    team: { type: ['string', 'number'] },
                     options: { type: 'object'}
                 }
             }
         }
     }, async (request, reply) => {
-        //check is current user is member of supplied team?
-        request.session.User.getTeams().then(teams => {
-            let found = false;
-            teams.forEach(t => {
-                if (t.id === request.body.team) {
-                    found = true
-                    app.db.models.Project.create({
-                        name: request.body.name,
-                        type: request.body.options.type,
-                        url: "placeholder"
-                    })
-                    .then( async project => {
-                        let team = await app.db.models.Team.findOne({where:{id: request.body.team}})
-                        project.setTeam(team)
-                        app.containers.create(project.id, request.body.options)
-                        .then(async container => {
-                            project.url = container.url
-                            await project.save()
+        const teamMembership = await request.session.User.getTeamMembership(request.body.team);
+        const team = teamMembership.get('Team');
+        const role = teamMembership.get('role');
 
-                            project = project.toJSON()
-
-                            delete project.updatedAt;
-                            delete project.createdAt;
-                            project.status = "okay";
-                            reply.send(project)
-                        })
-                    })
-                }
+        if (role && team) {
+            const project = await app.db.models.Project.create({
+                name: request.body.name,
+                type: request.body.options.type,
+                url: "placeholder"
             })
-            if (!found) {
-                reply.status(401).send({error: "Current user not in team " + request.body.team})
-            }
-        })
-    })
+            await team.addProject(project);
 
+            const container = await app.containers.create(project.id, request.body.options);
+            project.url = container.url
+            await project.save()
+            const result = await app.db.views.Project.project(project);
+            result.meta = await app.containers.details(project.name);
+            result.team = await app.db.views.Team.team(project.Team);
+            reply.send(result);
+        } else {
+            reply.status(401).send({error: "Current user not in team " + request.body.team})
+        }
+    })
     /**
      * Delete an project
      * @name /api/v1/project/:id
-     * @memberof forge.routes.api.project 
+     * @memberof forge.routes.api.project
      */
     app.delete('/:id', async (request, reply) => {
         let project = await app.db.models.Project.byId(request.params.id);
@@ -105,9 +93,9 @@
 
     /**
      * Send commands
-     * 
+     *
      * e.g. start/stop/restart
-     * 
+     *
      * @name /api/v1/project/:id
      * @memberof forge.routes.api.project
      */

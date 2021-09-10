@@ -3,8 +3,8 @@ module.exports = {
         return teamList.map((t) => {
             const d = t.get({plain:true});
             return {
+                id: d.Team.hashid,
                 links: d.Team.links,
-                hashid: d.Team.hashid,
                 name: d.Team.name,
                 role: d.role,
                 avatar: d.Team.avatar,

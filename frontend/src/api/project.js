@@ -3,6 +3,12 @@ import slugify from '@/utils/slugify';
 import daysSince from '@/utils/daysSince';
 
 
+const create = async (options) => {
+    return client.post(`/api/v1/project`, options).then(res => {
+        return res.data;
+    });
+}
+
 const getProject = (project) => {
     const slug = slugify(project);
     return client.get(`/api/v1/project/${slug}`).then(res => {
@@ -26,6 +32,7 @@ const getProjects = () => {
 }
 
 export default {
+    create,
     getProject,
     getProjects
 }

@@ -14,6 +14,7 @@ import OrgTeams from "@/pages/org/Teams.vue"
 import Project from "@/pages/project/index.vue"
 import ProjectOverview from "@/pages/project/Overview.vue"
 import ProjectSettings from "@/pages/project/Settings.vue"
+import CreateProject from "@/pages/project/create.vue"
 
 
 import Team from "@/pages/team/index.vue"
@@ -58,7 +59,11 @@ const routes = [
             { path: 'settings', component: ProjectSettings }
         ],
     },
-
+    {
+        path: '/create',
+        name: 'CreateProject',
+        component: CreateProject
+    },
     {
         profileLink: true,
         path: '/account',

@@ -58,7 +58,7 @@ module.exports = {
                         },
                         include: {
                             model:M['Team'],
-                            attributes:['links','id','name','avatar']
+                            attributes:['hashid','links','id','name','avatar']
                         },
                         attributes: {
                             include: [
