@@ -1,7 +1,6 @@
 const {URL} = require("url");
 const querystring = require("querystring");
 
-const { Provider } = require('oidc-provider');
 const LRU = require("lru-cache"); // https://www.npmjs.com/package/lru-cache
 const crypto = require("crypto");
 

@@ -22,6 +22,10 @@ describe("User model", function() {
 
         const membership1 = await user.getTeamMembership(team1.id);
         should.equal(membership1.role,"member");
+        should.equal(membership1.TeamId,team1.id);
+        should.exist(membership1.Team);
+        should.equal(membership1.Team.id,team1.id);
+        should.equal(membership1.Team.name,"ATeam");
 
         const membership2 = await user.getTeamMembership(team2.id);
         should.equal(membership2.role,"owner");

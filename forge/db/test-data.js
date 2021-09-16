@@ -30,7 +30,8 @@ async function inject(app) {
         await team2.addProject(project2);
 
         const p2AuthClient = await app.db.controllers.AuthClient.createClientForProject(project2);
-        console.log(p2AuthClient);
+        //  For testing, print out the ID/Secret here to copy into the node-red project instance config
+        // console.log(p2AuthClient);
 /*
 {
   clientID: 'ffp_ya2uR3AZD-hmGITngOAuDceIdsAPjpG3ESp-tOY2xOc',
