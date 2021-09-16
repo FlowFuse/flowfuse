@@ -50,8 +50,7 @@ const modelTypes = [
     'TeamMember',
     'Session',
     'Project',
-    'AuthClient',
-    'Token'
+    'AuthClient'
 ];
 
 // A local map of the known models.

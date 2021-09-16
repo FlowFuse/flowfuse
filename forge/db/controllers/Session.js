@@ -1,7 +1,8 @@
 const { generateToken } = require("../utils");
 
 
-const DEFAULT_SESSION_EXPIRY = 1000*60*60*24*7; // One week session
+const DEFAULT_WEB_SESSION_EXPIRY   = 1000*60*60*24; // One day session
+const DEFAULT_TOKEN_SESSION_EXPIRY = 1000*60*30; // 30 mins session - with refresh token support
 
 
 module.exports = {
@@ -15,7 +16,7 @@ module.exports = {
         if (user) {
             return db.models.Session.create({
                 sid: generateToken(32,'ffu'),
-                expiresAt: Date.now() +  DEFAULT_SESSION_EXPIRY,
+                expiresAt: Date.now() +  DEFAULT_WEB_SESSION_EXPIRY,
                 UserId: user.id
             })
         }
@@ -33,7 +34,7 @@ module.exports = {
             const session = {
                 sid: generateToken(32,'ffp'),
                 refreshToken: generateToken(32,'ffp'),
-                expiresAt: Date.now() +  10000, //DEFAULT_SESSION_EXPIRY,
+                expiresAt: Date.now() +  DEFAULT_TOKEN_SESSION_EXPIRY,
                 UserId: user.id
             }
             // Do this in two stages as `refreshToken` is hashed in the db
@@ -49,7 +50,7 @@ module.exports = {
             const newSession = {
                 sid: generateToken(32,'ffp'),
                 refreshToken: generateToken(32,'ffp'),
-                expiresAt: Date.now() + 10000 // DEFAULT_SESSION_EXPIRY,
+                expiresAt: Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY,
             }
             await db.models.Session.update(newSession, { where: { refreshToken: existingSession.refreshToken } });
             return newSession;
