@@ -56,18 +56,20 @@
             })
             const authClient = await app.db.controllers.AuthClient.createClientForProject(project);
 
-            const opts = {
+            const containerOptions = {
+                name: request.body.name,
                 ...request.body.options,
                 ...authClient
             }
-            
+
             await team.addProject(project);
             const container = await app.containers.create(project.id, opts);
+
             project.url = container.url
             await project.save()
             const result = await app.db.views.Project.project(project);
-            result.meta = await app.containers.details(project.name);
-            result.team = await app.db.views.Team.team(project.Team);
+            result.meta = await app.containers.details(project.id);
+            result.team = team.id //await app.db.views.Team.team(project.Team);
             reply.send(result);
         } else {
             reply.status(401).send({error: "Current user not in team " + request.body.team})
