@@ -69,7 +69,7 @@
             await project.save()
             const result = await app.db.views.Project.project(project);
             result.meta = await app.containers.details(project.id);
-            result.team = team.id //await app.db.views.Team.team(project.Team);
+            result.team = team.id;
             reply.send(result);
         } else {
             reply.status(401).send({error: "Current user not in team " + request.body.team})
