@@ -1,5 +1,6 @@
 /node_modules/
 forge/containers/node_modules/@flowforge/*/node_modules
+forge/container/localfs_root
 frontend/dist
-.forge.db
+forge.db
 docs
