@@ -35,7 +35,7 @@ export default {
         Navbar,
         Login
     },
-    created() {
+    mounted() {
         this.$store.dispatch('account/checkState');
     }
 

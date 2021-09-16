@@ -43,7 +43,16 @@ const hashids = {};
 
 
 // The models that should be loaded
-const modelTypes = ['Organization', 'User', 'Team', 'TeamMember','Session', 'Project'];
+const modelTypes = [
+    'Organization',
+    'User',
+    'Team',
+    'TeamMember',
+    'Session',
+    'Project',
+    'AuthClient',
+    'Token'
+];
 
 // A local map of the known models.
 const M = {};

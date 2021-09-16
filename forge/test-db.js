@@ -52,6 +52,7 @@ async function setup() {
 
     await team1.addProject(project1);
     await team2.addProject(project2);
+
 }
 
 if (require.main === module) {
@@ -59,13 +60,22 @@ if (require.main === module) {
     (async function() {
         await setup();
         try {
-            let user = await Models.User.findOne({
-                where: { email:'alice@example.com'}
-            });
-            await Controllers.User.changePassword(user, "aaPassword", "newPassword");
+            // let user = await Models.User.findOne({
+            //     where: { email:'alice@example.com'}
+            // });
+            // await Controllers.User.changePassword(user, "aaPassword", "newPassword");
+
+            let project1 = await Models.Project.findOne({where: {name:'project1'}})
+
+            const authClient = await Controllers.AuthClient.createClientForProject(project1);
+            console.log(authClient);
         }catch(err) {
             console.log(err);
         }
+
+
+
+
         // let result = await Models.Session.findAll({
         //     include: Models.User
         // });

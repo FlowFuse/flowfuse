@@ -7,6 +7,8 @@ const state = () => ({
     pending: true,
     // A login attempt is inflight
     loginInflight: false,
+    // redirect url,
+    redirectUrlAfterLogin: null,
     // The active user
     user: null,
     // An error during login
@@ -17,6 +19,9 @@ const state = () => ({
 const getters = {
     user(state) {
         return state.user
+    },
+    redirectUrlAfterLogin(state) {
+        return state.redirectUrlAfterLogin
     }
 }
 
@@ -29,6 +34,7 @@ const mutations = {
     },
     login(state, user) {
         state.loginInflight = false;
+        state.redirectUrlAfterLogin = null;
         state.user = user;
     },
     logout(state) {
@@ -42,22 +48,27 @@ const mutations = {
     loginFailed(state, error) {
         state.loginInflight = false;
         state.loginError = error;
+    },
+    setRedirectUrl(state, url) {
+        state.redirectUrlAfterLogin = url;
     }
 }
 
 // actions
 const actions = {
-    async checkState(state, redirectToUserSettings) {
+    async checkState(state,redirectToUserSettings) {
         userApi.getUser().then(user => {
             state.commit('login', user)
             state.commit('clearPending')
+
             if (redirectToUserSettings) {
                 // If this is a user-driven login, take them to the profile page
-                router.push("/")
+                router.push(redirectToUserSettings)
             }
         }).catch(_ => {
             // Not logged in
             state.commit('clearPending')
+            state.commit('setRedirectUrl',router.currentRoute.value.fullPath);
             router.push("/")
         })
     },
@@ -66,7 +77,7 @@ const actions = {
         try {
             state.commit('setLoginInflight')
             await userApi.login(credentials.username,credentials.password,credentials.remember)
-            state.dispatch('checkState',true);
+            state.dispatch('checkState', state.getters.redirectUrlAfterLogin)
         } catch(err) {
             state.commit("loginFailed","Login failed")
         }

@@ -1,4 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
+
+import store from '@/store'
+
 import Home from "@/pages/Home.vue"
 import Account from "@/pages/Account/index.vue"
 import AccountSettings from "@/pages/account/Settings.vue"
@@ -24,6 +27,8 @@ import TeamProjects from "@/pages/team/Projects.vue"
 import TeamUsers from "@/pages/team/Users.vue"
 import TeamSettings from "@/pages/team/Settings.vue"
 
+import AccessRequest from "@/pages/AccessRequest.vue"
+
 import ensureAdmin from "@/utils/ensureAdmin"
 
 const routes = [
@@ -47,6 +52,31 @@ const routes = [
             { path: 'users', component: TeamUsers },
             { path: 'settings', component: TeamSettings }
         ]
+    },
+    {
+        path: '/account/request/:id',
+        component: AccessRequest,
+        beforeEnter: (to,_,next) => {
+            let watcher;
+            function proceed () {
+                if (watcher) {
+                    watcher();
+                }
+                if (store.state.account.user) {
+                    window.location.href = `/account/complete/${to.params.id}`;
+                }
+            }
+            // Check if we've loaded the current user yet
+            if (!store.state.account.user) {
+                // Setup a watch
+                watcher = store.watch(
+                    (state) => state.account.user,
+                    (_) => { proceed() }
+                )
+            } else {
+                proceed()
+            }
+        }
     },
     {
         path: '/projects/:id',
@@ -97,7 +127,7 @@ const routes = [
         profileLink: true,
         path: '/account/logout',
         name: 'Sign out',
-        redirect: _ => {
+        redirect: function() {
             store.dispatch('account/logout');
             return { path: '/' }
         },

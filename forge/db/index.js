@@ -49,9 +49,9 @@ module.exports = fp(async function(app, _opts, next) {
     await views.init(db);
     await controllers.init(db);
 
-    await require("./test-data").inject();
-
     app.decorate('db', db)
+
+    await require("./test-data").inject(app);
 
     next();
 });

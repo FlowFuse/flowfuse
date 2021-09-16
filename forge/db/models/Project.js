@@ -15,6 +15,13 @@ module.exports = {
     },
     associations: function(M) {
         this.belongsTo(M['Team'])
+        this.hasOne(M['AuthClient'], {
+            foreignKey: 'ownerId',
+            constraints: false,
+            scope: {
+                ownerType: 'project'
+            }
+        })
     },
     finders: function(M){
         return {
