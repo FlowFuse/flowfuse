@@ -35,16 +35,24 @@ module.exports = fp(async function(app, _opts, next) {
         dbOptions.logging = false;
     }
     const sequelize = new Sequelize(dbOptions)
+    await sequelize.authenticate();
 
     // const R = async function(f) { console.log(JSON.stringify(await f," ",4)); }
 
     const db = {
         init: async function(skipMigrationCheck) {
-            if (!skipMigrationCheck) {
-                const hasPendingMigrations = migrations.hasPendingMigrations();
-                if (hasPendingMigrations) {
-                    throw new Error("Database has pending migrations")
+            await migrations.init(db);
+            const currentVersion = await migrations.getCurrentVersion();
+            if (currentVersion) {
+                if (!skipMigrationCheck) {
+                    const hasPendingMigrations = migrations.hasPendingMigrations();
+                    if (hasPendingMigrations) {
+                        throw new Error("Database has pending migrations")
+                    }
                 }
+            } else {
+                // Empty database - initialise by applying all migrations
+                await migrations.applyPendingMigrations();
             }
             await models.init(db)
             await views.init(db);
@@ -58,12 +66,6 @@ module.exports = fp(async function(app, _opts, next) {
         controllers,
         migrations
     }
-
-    await sequelize.authenticate();
-
-    await migrations.init(db);
-
-
     // const initMigration = require("./migrations/000000-initial.js");
     // await initMigration.up(sequelize.getQueryInterface())
 

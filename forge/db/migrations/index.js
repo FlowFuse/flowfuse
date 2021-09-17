@@ -28,8 +28,13 @@ async function init(_db) {
     await checkPendingMigrations()
 }
 
+async function getCurrentVersion() {
+    return await MetaVersion.findOne({order:[['id','DESC']]});
+}
+
 async function checkPendingMigrations() {
-    const currentVersion = await MetaVersion.findOne({order:[['id','DESC']]});
+    const currentVersion = await getCurrentVersion();
+
     let files = await fs.readdir(MIGRATIONS_DIR);
     files = files.filter(name => /^\d\d.*\.js$/.test(name));
     files.sort();
@@ -65,6 +70,7 @@ async function applyPendingMigrations() {
 
 module.exports = {
     init,
+    getCurrentVersion,
     hasPendingMigrations: _ => pendingMigrations.length > 0,
     applyPendingMigrations
 }
