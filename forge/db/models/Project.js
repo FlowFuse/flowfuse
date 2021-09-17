@@ -15,6 +15,25 @@ module.exports = {
     },
     associations: function(M) {
         this.belongsTo(M['Team'])
+        this.hasOne(M['AuthClient'], {
+            foreignKey: 'ownerId',
+            constraints: false,
+            scope: {
+                ownerType: 'project'
+            }
+        })
+    },
+    hooks: function(M) {
+        return {
+            afterDestroy: async (project, opts) => {
+                await M['AuthClient'].destroy({
+                    where: {
+                        ownerType: "project",
+                        ownerId: project.id
+                    }
+                })
+            }
+        }
     },
     finders: function(M){
         return {

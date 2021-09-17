@@ -1,37 +1,61 @@
-const crypto = require('crypto');
+const { generateToken } = require("../utils");
 
-const DEFAULT_SESSION_EXPIRY = 1000*60*60*24*7; // One week session
 
-/**
- * Generate a Session ID. This is 32 bytes of random hex
- */
-async function generateSessionId() {
-    return new Promise((resolve,reject) => {
-        crypto.randomBytes(32, function(err, buffer) {
-            if (err) {
-                return reject (err)
-            }
-            resolve(buffer.toString('hex'))
-        });
-    })
-}
+const DEFAULT_WEB_SESSION_EXPIRY   = 1000*60*60*24; // One day session
+const DEFAULT_TOKEN_SESSION_EXPIRY = 1000*60*30; // 30 mins session - with refresh token support
+
 
 module.exports = {
     /**
      * Create a new session for the given username
      */
-    createSession: async function(db, username) {
+    createUserSession: async function(db, username) {
         const user = await db.models.User.findOne({
             where: { email: username },
         })
         if (user) {
             return db.models.Session.create({
-                sid: await generateSessionId(),
-                expiresAt: Date.now() +  DEFAULT_SESSION_EXPIRY,
+                sid: generateToken(32,'ffu'),
+                expiresAt: Date.now() +  DEFAULT_WEB_SESSION_EXPIRY,
                 UserId: user.id
             })
         }
         return null
+    },
+
+    /**
+     * Create a new oauth session for the given username
+     */
+    createTokenSession: async function(db, username) {
+        const user = await db.models.User.findOne({
+            where: { email: username },
+        })
+        if (user) {
+            const session = {
+                sid: generateToken(32,'ffp'),
+                refreshToken: generateToken(32,'ffp'),
+                expiresAt: Date.now() +  DEFAULT_TOKEN_SESSION_EXPIRY,
+                UserId: user.id
+            }
+            // Do this in two stages as `refreshToken` is hashed in the db
+            await db.models.Session.create(session);
+            return session;
+        }
+        return null
+    },
+
+    refreshTokenSession: async function(db, refresh_token) {
+        const existingSession = await db.models.Session.byRefreshToken( refresh_token );
+        if (existingSession) {
+            const newSession = {
+                sid: generateToken(32,'ffp'),
+                refreshToken: generateToken(32,'ffp'),
+                expiresAt: Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY,
+            }
+            await db.models.Session.update(newSession, { where: { refreshToken: existingSession.refreshToken } });
+            return newSession;
+        }
+        return null;
     },
 
     /**
@@ -52,7 +76,10 @@ module.exports = {
         });
         if (session) {
             if (session.expiresAt.getTime() < Date.now()) {
-                await session.destroy();
+                if (!session.refreshToken) {
+                    // A web login session that can be removed
+                    await session.destroy();
+                }
                 session = null;
             }
         }

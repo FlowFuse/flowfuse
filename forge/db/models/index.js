@@ -43,7 +43,15 @@ const hashids = {};
 
 
 // The models that should be loaded
-const modelTypes = ['Organization', 'User', 'Team', 'TeamMember','Session', 'Project'];
+const modelTypes = [
+    'Organization',
+    'User',
+    'Team',
+    'TeamMember',
+    'Session',
+    'Project',
+    'AuthClient'
+];
 
 // A local map of the known models.
 const M = {};
@@ -84,7 +92,11 @@ async function init(db) {
             opts.scopes = m.scopes;
         }
         if (m.hooks) {
-            opts.hooks = m.hooks;
+            if (typeof m.hooks === 'function') {
+                opts.hooks = m.hooks.call(null, M)
+            } else {
+                opts.hooks = m.hooks;
+            }
         }
         if (!m.model) {
             m.model = class model extends Model {}

@@ -46,6 +46,17 @@ module.exports = {
                 admins: async () => {
                     return this.scope('admins').findAll();
                 },
+                byEmail: async (email) => {
+                    return this.findOne({where:{email},
+                        include: {
+                            model: M['Team'],
+                            attributes: ['name'],
+                            through: {
+                                attributes:['role']
+                            }
+                        }
+                    })
+                },
                 byName: async (name) => {
                     return this.findOne({where:{name},
                         include: {
@@ -57,18 +68,18 @@ module.exports = {
                         }
                     })
                 },
-                inTeam: async (name) => {
-                    return User.findAll({
-                        include: {
-                            model: M['Team'],
-                            attributes: ['name'],
-                            where: {name},
-                            through: {
-                                attributes:['role']
-                            }
-                        }
-                    })
-                }
+                // inTeam: async (name) => {
+                //     return M['User'].findAll({
+                //         include: {
+                //             model: M['Team'],
+                //             attributes: ['name'],
+                //             where: {name},
+                //             through: {
+                //                 attributes:['role']
+                //             }
+                //         }
+                //     })
+                // }
             },
             instance: {
                 // get the team membership for the given team
@@ -78,16 +89,15 @@ module.exports = {
                     if (typeof teamId === 'string') {
                         teamId = M['Team'].decodeHashid(teamId);
                     }
-                    return await M['TeamMember'].findOne({
+                    const memberships = await this.getTeamMembers({
                         where: {
-                            UserId: this.id
+                            TeamId: teamId
                         },
                         include: {
-                            model:M['Team'],
-                            attributes:['id'],
-                            where: { id: teamId }
+                            model:M['Team']
                         }
                     });
+                    return memberships[0]
                 }
             }
         }

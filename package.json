@@ -38,6 +38,7 @@
         "fastify-static": "^4.2.2",
         "hashids": "^2.2.8",
         "jsonwebtoken": "^8.5.1",
+        "lru-cache": "^6.0.0",
         "pino-pretty": "^5.1.2",
         "sequelize": "^6.6.4",
         "sqlite3": "^5.0.2",

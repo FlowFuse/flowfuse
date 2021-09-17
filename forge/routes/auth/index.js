@@ -31,7 +31,8 @@ const SESSION_COOKIE_OPTIONS = {
     // TODO: secure only when in production
 }
 
-module.exports = fp(function(app, opts, done) {
+module.exports = fp(async function(app, opts, done) {
+    await app.register(require("./oauth"))
 
     app.register(cookie, {
         secret: app.secrets.sessionSecret, // for cookies signature
@@ -106,6 +107,18 @@ module.exports = fp(function(app, opts, done) {
 
     // Extract the session cookie and attach as request.sid
     app.addHook('onRequest', async (request, reply) => {
+        if (request.headers && request.headers.authorization) {
+            const parts = request.headers.authorization.split(" ");
+            if (parts.length === 2) {
+                const scheme = parts[0];
+                const token = parts[1];
+                if (scheme === "Bearer") {
+                    request.sid = token;
+                    return;
+                }
+            }
+            throw new Error("Invalid authorization header");
+        }
         if (request.cookies.sid) {
             const sid = reply.unsignCookie(request.cookies.sid);
             if (sid.valid) {
@@ -114,6 +127,7 @@ module.exports = fp(function(app, opts, done) {
                 reply.clearCookie('sid');
             }
         }
+
     })
 
     // app.post('/account/register', (request, reply) => {
@@ -147,10 +161,10 @@ module.exports = fp(function(app, opts, done) {
                 }
             }
         }
-    },async (request, reply) => {
+    }, async (request, reply) => {
         const result = await app.db.controllers.User.authenticateCredentials(request.body.username,request.body.password);
         if (result) {
-            const session = await app.db.controllers.Session.createSession(request.body.username);
+            const session = await app.db.controllers.Session.createUserSession(request.body.username);
             if (session) {
                 const cookieOptions = {...SESSION_COOKIE_OPTIONS};
                 if (request.body.remember) {

@@ -11,7 +11,7 @@
  * @memberof forge
  */
 module.exports = async function(app) {
-    await app.register(require("./session"), {prefix: '/account'})
+    await app.register(require("./auth"))
     await app.register(require("./api"), {prefix: '/api/v1'})
     await app.register(require("./ui"))
 }

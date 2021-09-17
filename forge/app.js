@@ -29,6 +29,10 @@ server.register(config);
 server.register(license);
 // DB : the database connection/models/views/controllers
 server.register(db);
+
+process.env.PORT = process.env.PORT || 3000;
+process.env.BASE_URL = `http://localhost:${process.env.PORT}`;
+
 // Routes : the HTTP routes
 server.register(routes)
 // Containers:
@@ -38,7 +42,6 @@ server.register(containers);
 server.ready().then(() => {
     // Start the server
     server.listen(process.env.PORT, function (err, address) {
-        process.env.BASE_URL = address;
         if (err) {
             console.error(err)
             process.exit(1)

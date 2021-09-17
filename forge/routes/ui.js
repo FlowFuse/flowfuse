@@ -34,7 +34,7 @@ module.exports = async function(app) {
     // Any requests not handled by this time get served `index.html`.
     // This allows the frontend vue router to change the browser URL and we cope
     // if the user then hits reload
-    app.get('*', function (request, reply) {
+    app.get('*', function (_, reply) {
         reply.sendFile('index.html')
     })
 }
