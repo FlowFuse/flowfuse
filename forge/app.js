@@ -16,37 +16,39 @@ const containers = require('./containers');
   * @namespace forge
   */
 
-const server = fastify()
+(async function() {
 
-server.addHook('onError', async (request, reply, error) => {
-    // Useful for debugging when a route goes wrong
-    console.log(error.stack);
-})
+    const server = fastify()
 
-// Config : loads environment configuration
-server.register(config);
-// License
-server.register(license);
-// DB : the database connection/models/views/controllers
-server.register(db);
-
-process.env.PORT = process.env.PORT || 3000;
-process.env.BASE_URL = `http://localhost:${process.env.PORT}`;
-
-// Routes : the HTTP routes
-server.register(routes)
-// Containers:
-server.register(containers);
-
-// Wait until everything is loaded so PORT can be set via .env config
-server.ready().then(() => {
-    // Start the server
-    server.listen(process.env.PORT, function (err, address) {
-        if (err) {
-            console.error(err)
-            process.exit(1)
-        }
-        console.log(`Server listening on ${address}`)
+    server.addHook('onError', async (request, reply, error) => {
+        // Useful for debugging when a route goes wrong
+        console.log(error.stack);
     })
 
+    // Config : loads environment configuration
+    await server.register(config);
+    // License
+    await server.register(license);
+    // DB : the database connection/models/views/controllers
+    await server.register(db);
+    await server.db.init();
+
+    process.env.PORT = process.env.PORT || 3000;
+    process.env.BASE_URL = `http://localhost:${process.env.PORT}`;
+
+    // Routes : the HTTP routes
+    await server.register(routes)
+    // Containers:
+    await server.register(containers);
+
+    // Wait until everything is loaded so PORT can be set via .env config
+    await server.ready()
+
+        // Start the server
+    const address = await server.listen(process.env.PORT);
+
+    console.log(`Server listening on ${address}`);
+})().catch(err => {
+    console.log(err);
+    process.exitCode = 1;
 })
