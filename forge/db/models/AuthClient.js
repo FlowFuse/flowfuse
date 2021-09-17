@@ -12,7 +12,7 @@ const uppercaseFirst = str => `${str[0].toUpperCase()}${str.substr(1)}`;
 module.exports = {
     name: 'AuthClient',
     schema: {
-        clientID: { type: DataTypes.STRING, primaryKey: true, allowNull: false },
+        clientID: { type: DataTypes.STRING, primaryKey: true },
         clientSecret: {
             type: DataTypes.STRING,
             set(value) {

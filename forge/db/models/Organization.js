@@ -9,7 +9,7 @@ const { DataTypes } = require('sequelize');
 module.exports = {
     name: 'Organization',
     schema: {
-        name: { type: DataTypes.STRING, allowNull: false },
+        name: { type: DataTypes.STRING, allowNull: false }
     },
     scopes: {
         admins: { where: { admin: true }}

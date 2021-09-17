@@ -16,6 +16,7 @@ const { Sequelize } = require('sequelize');
 const models = require("./models")
 const views = require("./views")
 const controllers = require("./controllers")
+const migrations = require("./migrations")
 
 const fp = require("fastify-plugin");
 
@@ -38,20 +39,35 @@ module.exports = fp(async function(app, _opts, next) {
     // const R = async function(f) { console.log(JSON.stringify(await f," ",4)); }
 
     const db = {
+        init: async function(skipMigrationCheck) {
+            if (!skipMigrationCheck) {
+                const hasPendingMigrations = migrations.hasPendingMigrations();
+                if (hasPendingMigrations) {
+                    throw new Error("Database has pending migrations")
+                }
+            }
+            await models.init(db)
+            await views.init(db);
+            await controllers.init(db);
+
+            await require("./test-data").inject(app);
+        },
         sequelize,
         models,
         views,
-        controllers
+        controllers,
+        migrations
     }
 
     await sequelize.authenticate();
-    await models.init(db)
-    await views.init(db);
-    await controllers.init(db);
+
+    await migrations.init(db);
+
+
+    // const initMigration = require("./migrations/000000-initial.js");
+    // await initMigration.up(sequelize.getQueryInterface())
 
     app.decorate('db', db)
-
-    await require("./test-data").inject(app);
 
     next();
 });
