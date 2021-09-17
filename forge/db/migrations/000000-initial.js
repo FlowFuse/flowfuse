@@ -2,7 +2,7 @@ const { DataTypes } = require('sequelize');
 
 module.exports = {
     up: async (context) => {
-        await context.createTable('MetaVersion', {
+        await context.createTable('MetaVersions', {
             id: {
                 type: DataTypes.INTEGER,
                 allowNull: true,
@@ -255,6 +255,6 @@ module.exports = {
         TeamMembers: 'zu72s0leAhMHSfV7F6wTqiqz4ZM5RvNMvQnuduT1XUM=',
         Teams: '+ySn+3xHMXzqSQnldQPnkHn98LT76Ex1oTQ5og4Da+w=',
         Users: 'zbdvpkj1PYSC+n8F5l10IHZleymAlIBWHT4E49lYbso=',
-        MetaVersion: 'YA2/56YYJEIwcuvnh6d4TIoKfaNxDqqreId6KkdvmFM='
+        MetaVersions: 'YA2/56YYJEIwcuvnh6d4TIoKfaNxDqqreId6KkdvmFM='
     }
 }

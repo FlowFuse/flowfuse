@@ -14,5 +14,6 @@ async function connectDatabase() {
 
 (async function() {
     const app = await connectDatabase();
+    await app.db.migrations.init(app.db);
     await app.db.migrations.applyPendingMigrations()
 })()
