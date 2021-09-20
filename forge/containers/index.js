@@ -45,7 +45,7 @@ module.exports = fp(async function(app, _opts, next){
             domain: process.env.DOMAIN ||"example.com",
             //this list needs loading from an external source
             containers:{
-                basic: "nodered/node-red"
+                basic: "flowforge/node-red"
             }
         });
         app.decorate('containers', driver);
