@@ -45,6 +45,7 @@
         }
     }, async (request, reply) => {
         const teamMembership = await request.session.User.getTeamMembership(request.body.team);
+        const team = teamMembership.get('Team');
         // Assume membership is enough to allow project creation.
         // If we have roles that limit creation, that will need to be checked here.
         if (teamMembership) {
