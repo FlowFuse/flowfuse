@@ -9,16 +9,15 @@ const requestCache = new LRU({
 })
 
 function badRequest(reply, error, description) {
-    console.log("BAD",error,description);
     reply.code(400).send({
         error,
         description
     })
 }
 
-function redirectInvalidRequest(reply, redirect_uri, error, description, state) {
+function redirectInvalidRequest(reply, redirect_uri, error, error_description, state) {
     const responseUrl = new URL(redirect_uri);
-    const response = { error, description };
+    const response = { error, error_description };
     if (state) {
         response.state = state;
     }
@@ -146,7 +145,7 @@ module.exports = async function(app) {
                 const project = await app.db.models.Project.byId(authClient.ownerId);
                 const teamMembership = await request.session.User.getTeamMembership(project.TeamId)
                 if (!teamMembership) {
-                    return badRequest(reply, "access_denied", "Access Denied")
+                    return redirectInvalidRequest(reply, requestObject.redirect_uri,  "access_denied", "Access Denied", requestObject.state)
                 }
                 requestObject.username = request.session.User.email;
                 requestObject.code = base64URLEncode(crypto.randomBytes(32))
