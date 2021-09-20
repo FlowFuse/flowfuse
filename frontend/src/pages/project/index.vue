@@ -6,7 +6,7 @@
                 <a :href="project.url" target="_blank" class="forge-button">
                     <ExternalLinkIcon class="w-5 h-5 my-1 mr-1" /><span class="ml-1">Open Editor</span>
                 </a>
-                <button type="button" title="Copy url" class="forge-button forge-user-button px-2 h-8 py-0 ml-1"><span class="sr-only">Copy url</span><ClipboardCopyIcon class="w-4 h-4" /></button>
+                <button type="button" title="Copy url" class="forge-button-secondary px-2 h-8 py-0 ml-1"><span class="sr-only">Copy url</span><ClipboardCopyIcon class="w-4 h-4" /></button>
             </div>
             <DropdownMenu class="ml-8" alt="Open options menu" :options="options">Options</DropdownMenu>
         </div>
@@ -69,8 +69,6 @@ export default {
             ':project': { label: this.project.name },
             ':team': { label: this.project.team.name, to: {path: '/team/'+this.project.team.slug} }
         });
-
-
 
         this.navigation = [
             { name: "Overview", path: `/projects/${parts[2]}/overview` },

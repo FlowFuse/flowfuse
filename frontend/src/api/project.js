@@ -30,9 +30,13 @@ const getProjects = () => {
         return res.data;
     });
 }
+const deleteProject = async (projectId) => {
+    return client.delete(`/api/v1/project/${projectId}`)
+}
 
 export default {
     create,
     getProject,
+    deleteProject,
     getProjects
 }

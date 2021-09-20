@@ -18,11 +18,13 @@
         @apply px-3;
         @apply py-1;
         @apply bg-blue-900;
+        @apply border;
+        @apply border-blue-900;
         @apply hover:bg-indigo-700;
         @apply text-white;
-        @apply hover:text-gray-200;
+        @apply hover:text-gray-100;
         @apply focus:text-gray-300;
-        @apply rounded-lg;
+        @apply rounded-md;
         @apply flex;
         @apply items-center;
         @apply text-sm;
@@ -31,12 +33,32 @@
         @apply focus:ring-offset-2;
         @apply focus:ring-offset-gray-600;
         @apply focus:ring-gray-400;
+
     }
-    .forge-user-button {
+    .forge-button-secondary {
+        @apply forge-button;
         @apply bg-gray-100;
-        @apply hover:bg-gray-200;
-        @apply text-gray-400;
+        @apply border-gray-300;
+        @apply hover:bg-gray-300;
+        @apply hover:border-gray-300;
+        @apply text-gray-500;
         @apply hover:text-gray-600;
-        @apply focus:text-gray-800;
+        @apply focus:text-gray-700;
+    }
+    .forge-button-danger {
+        @apply forge-button;
+        @apply bg-white;
+        @apply border-red-700;
+        @apply hover:bg-red-700;
+        @apply text-red-700;
+        @apply hover:text-white;
+        @apply focus:text-white;
+        @apply focus:bg-red-700;
+
+        @apply disabled:border-gray-200;
+        @apply disabled:text-gray-400;
+        @apply disabled:bg-white;
+        @apply disabled:cursor-not-allowed;
+
     }
 }

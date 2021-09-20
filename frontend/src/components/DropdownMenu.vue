@@ -1,7 +1,7 @@
 <template>
     <Menu as="div" class="relative inline-block text-left">
         <div>
-            <MenuButton class="forge-button" :class="buttonClass">
+            <MenuButton :class="buttonClass ? buttonClass : 'forge-button'">
                 <slot></slot>
                 <span class="sr-only">{{ alt }}</span>
                 <ChevronDownIcon class="w-5 h-5 my-1 ml-2 -mr-1 text-violet-200 hover:text-violet-100" aria-hidden="true" />

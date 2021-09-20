@@ -3,7 +3,7 @@
       <div class="m-w-screen mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
             <div class="hidden md:flex flex-grow items-center bg-white p-2  text-gray-500">
-              <router-link to="/" class="forge-button forge-user-button px-2"><HomeIcon class="h-5 w-5 my-1" aria-hidden="true" /></router-link>
+              <router-link to="/" class="forge-button-secondary px-2"><HomeIcon class="h-5 w-5 my-1" aria-hidden="true" /></router-link>
               <ChevronRightIcon v-if="breadcrumbs.length > 0" class="h-5 w-5 mx-2 text-blue-400" aria-hidden="true" />
               <template v-for="(item, itemIdx) in breadcrumbs" :key="item.name">
                   <ChevronRightIcon v-if="itemIdx > 0" class="h-5 w-5 mx-2 text-blue-400" aria-hidden="true" />
@@ -14,7 +14,7 @@
           <!-- User Button -->
           <div class="hidden md:block flex-none">
             <div class="ml-4 flex items-center md:ml-6">
-            <DropdownMenu class="ml-8" buttonClass="forge-user-button" alt="Open user menu" :options="profile">
+            <DropdownMenu class="ml-8" buttonClass="forge-button-secondary" alt="Open user menu" :options="profile">
                 <div class="mr-3">{{user.name}}</div>
                 <img :src="user.avatar" class="h-6 v-6 rounded-md"/>
             </DropdownMenu>
