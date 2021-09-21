@@ -5,7 +5,7 @@
     "private": true,
     "scripts": {
         "start": "node forge/app.js",
-        "start-watch": "NODE_ENV=development nodemon -w forge -w ee/forge forge/app.js",
+        "start-watch": "NODE_ENV=development nodemon -w forge -w ee/forge -i forge/containers/localfs_root forge/app.js",
         "build": "webpack -c ./config/webpack.config.js",
         "build-watch": "webpack --mode=development -c ./config/webpack.config.js --watch",
         "docs": "jsdoc -c ./config/jsdoc.json",
