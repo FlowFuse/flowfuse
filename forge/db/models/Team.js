@@ -9,7 +9,7 @@ module.exports = {
     name: 'Team',
     schema: {
         name: { type: DataTypes.STRING, allowNull: false },
-        slug: { type: DataTypes.STRING },
+        slug: { type: DataTypes.STRING, unique: true },
         avatar: {type: DataTypes.STRING }
     },
     hooks: {
@@ -19,7 +19,10 @@ module.exports = {
                 const emailHash = require("crypto").createHash('md5').update(cleanEmail).digest("hex")
                 team.avatar = `//www.gravatar.com/avatar/${emailHash}?d=identicon` //retro mp
             }
-            team.slug = team.name.toLowerCase();
+            if (!team.slug) {
+                team.slug = team.name.trim().toLowerCase().replace(/ /g,"-").replace(/[^a-z0-9-_]/ig,"");
+            }
+            team.slug = team.slug.toLowerCase();
         }
     },
     associations: function(M) {
@@ -58,7 +61,7 @@ module.exports = {
                         },
                         include: {
                             model:M['Team'],
-                            attributes:['hashid','links','id','name','avatar']
+                            attributes:['hashid','links','id','name','avatar','slug']
                         },
                         attributes: {
                             include: [

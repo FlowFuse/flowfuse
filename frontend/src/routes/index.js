@@ -26,6 +26,7 @@ import TeamOverview from "@/pages/team/Overview.vue"
 import TeamProjects from "@/pages/team/Projects.vue"
 import TeamUsers from "@/pages/team/Users.vue"
 import TeamSettings from "@/pages/team/Settings.vue"
+import CreateTeam from "@/pages/team/create.vue"
 
 import AccessRequest from "@/pages/AccessRequest.vue"
 
@@ -40,6 +41,11 @@ const routes = [
         icon: 'HomeIcon'
     },
     {
+        path: '/team/create',
+        name: 'CreateTeam',
+        component: CreateTeam
+    },
+    {
         path: '/team/:id',
         redirect: to => {
             return `/team/${to.params.id}/overview`
@@ -52,6 +58,11 @@ const routes = [
             { path: 'users', component: TeamUsers },
             { path: 'settings', component: TeamSettings }
         ]
+    },
+    {
+        path: '/team/:id/projects/create',
+        name: 'CreateTeamProject',
+        component: CreateProject
     },
     {
         path: '/account/request/:id',

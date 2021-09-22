@@ -26,7 +26,16 @@ const getTeamProjects = (team) => {
         return res.data;
     });
 }
+
+const create = async (options) => {
+    return client.post(`/api/v1/team/`, options).then(res => {
+        return res.data;
+    });
+}
+
+
 export default {
+    create,
     getTeam,
     getTeams,
     getTeamProjects

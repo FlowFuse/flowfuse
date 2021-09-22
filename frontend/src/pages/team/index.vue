@@ -49,12 +49,15 @@ export default {
 
         this.replaceBreadcrumb({ ':team': { label: this.team.name, to: { path: "/team/"+this.team.slug } } });
 
+        // const teamUser = this.team.users.filter(u => { console.log(u,this.$store.state.account.user.email); return  u.email === this.$store.state.account.user.email })
         this.navigation = [
             { name: "Overview", path: `/team/${parts[2]}/overview` },
             { name: "Projects", path: `/team/${parts[2]}/projects` },
             { name: "Users", path: `/team/${parts[2]}/users` },
-            { name: "Settings", path: `/team/${parts[2]}/settings` },
-        ]
+        ];
+        // if (teamUser.role === "owner") {
+            this.navigation.push({ name: "Settings", path: `/team/${parts[2]}/settings` });
+        // }
     }
 }
 </script>

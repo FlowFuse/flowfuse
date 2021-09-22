@@ -10,7 +10,7 @@
                   <router-link :to="item.to || {}">{{ item.label }}</router-link>
               </template>
             </div>
-            <CreateProjectButton v-if="$route.name != 'CreateProject'" class="hidden md:flex"/>
+            <CreateProjectButton v-if="$route.name != 'CreateProject'"  :url="createUrl" class="hidden md:flex"/>
           <!-- User Button -->
           <div class="hidden md:block flex-none">
             <div class="ml-4 flex items-center md:ml-6">
@@ -56,6 +56,12 @@ const navigation = router.options.routes.filter(r => r.navigationLink)
 export default {
   name: "Navbar",
   computed: {
+      createUrl() {
+          if (/^\/team\//.test(this.$router.currentRoute.value.fullPath) && this.$router.currentRoute.value.params.id) {
+              return '/team/'+this.$router.currentRoute.value.params.id+'/projects/create'
+          }
+          return '/create'
+      },
       profile: function() {
           return router.options.routes.filter(r => {
               return r.profileLink && (!r.adminOnly || this.user.admin)

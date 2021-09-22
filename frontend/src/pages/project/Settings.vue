@@ -3,11 +3,20 @@
         <FormHeading>Project Settings</FormHeading>
         <FormRow v-model="input.projectName" id="projectName">Name</FormRow>
 
+        <!-- <FormHeading class="text-red-700 pt-10">Transfer Project</FormHeading>
+        <div class="flex">
+            <div class="max-w-sm pr-2">Transfer this project to another team. You must be a member of the destination team</div>
+            <div class="pl-2">
+                <button type="button" class="forge-button-danger">Transfer Project</button>
+                <ConfirmProjectDeleteDialog @deleteProject="deleteProject" ref="confirmProjectDeleteDialog2"/>
+            </div>
+        </div> -->
+
         <FormHeading class="text-red-700 pt-10">Delete Project</FormHeading>
         <div class="flex">
             <div class="max-w-sm pr-2">Once deleted, your project is gone. This cannot be undone.</div>
             <div class="pl-2">
-                <button type="button" class="forge-button-danger" @click="showConfigDeleteDialog" >Delete Project</button>
+                <button type="button" class="forge-button-danger" @click="showConfirmDeleteDialog" >Delete Project</button>
                 <ConfirmProjectDeleteDialog @deleteProject="deleteProject" ref="confirmProjectDeleteDialog"/>
             </div>
         </div>
@@ -38,13 +47,13 @@ export default {
         this.replaceLastBreadcrumb({ label:"Settings" })
     },
     watch: {
-         team: 'fetchData'
+         project: 'fetchData'
     },
     mounted() {
         this.fetchData()
     },
     methods: {
-        showConfigDeleteDialog() {
+        showConfirmDeleteDialog() {
             this.$refs.confirmProjectDeleteDialog.show(this.project);
         },
         fetchData () {

@@ -16,7 +16,7 @@
     </div>
     <div class="forge-block">
         <FormHeading>
-            <router-link to="/account/projects">Teams</router-link>
+            <router-link to="/account/teams">Teams</router-link>
         </FormHeading>
         <div class="text-sm px-4 sm:px-6 lg:px-8 mt-8">
             <TeamsTable :teams="teams" :teamCount="teamCount"  />

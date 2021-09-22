@@ -25,7 +25,7 @@
         @apply hover:text-gray-100;
         @apply focus:text-gray-300;
         @apply rounded-md;
-        @apply flex;
+        @apply inline-flex;
         @apply items-center;
         @apply text-sm;
         @apply focus:outline-none;
@@ -33,6 +33,11 @@
         @apply focus:ring-offset-2;
         @apply focus:ring-offset-gray-600;
         @apply focus:ring-gray-400;
+
+        @apply disabled:opacity-30;
+        @apply disabled:cursor-not-allowed;
+
+
 
     }
     .forge-button-secondary {
@@ -55,10 +60,9 @@
         @apply focus:text-white;
         @apply focus:bg-red-700;
 
-        @apply disabled:border-gray-200;
-        @apply disabled:text-gray-400;
+        @apply disabled:border-gray-500;
+        @apply disabled:text-gray-600;
         @apply disabled:bg-white;
         @apply disabled:cursor-not-allowed;
-
     }
 }

@@ -4,6 +4,7 @@ module.exports = {
             const d = t.get({plain:true});
             return {
                 id: d.Team.hashid,
+                slug: d.Team.slug,
                 links: d.Team.links,
                 name: d.Team.name,
                 role: d.role,

@@ -1,4 +1,5 @@
 <template>
+    <div class="text-right mb-4"><CreateProjectButton /></div>
     <ProjectsTable :projects="projects" :projectCount="projectCount"/>
 </template>
 
@@ -7,6 +8,7 @@
 import projectApi from '@/api/project'
 import ProjectsTable from '@/components/tables/ProjectsTable'
 import Breadcrumbs from '@/mixins/Breadcrumbs';
+import CreateProjectButton from '@/components/CreateProjectButton'
 
 export default {
     name: 'AccountProjects',
@@ -29,6 +31,7 @@ export default {
     },
     components: {
         ProjectsTable,
+        CreateProjectButton
     }
 }
 </script>

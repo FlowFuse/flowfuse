@@ -1,5 +1,6 @@
 <template>
-    <TeamsTable :teams="teams" :teamCount="teamCount"  />
+    <div class="text-right mb-4"><CreateTeamButton /></div>
+    <TeamsTable :teams="teams" :teamCount="teamCount" />
 </template>
 
 <script>
@@ -7,6 +8,7 @@
 import teamApi from '@/api/team'
 import TeamsTable from '@/components/tables/TeamsTable'
 import Breadcrumbs from '@/mixins/Breadcrumbs';
+import CreateTeamButton from '@/components/CreateTeamButton'
 
 export default {
     name: 'AccountTeams',
@@ -25,6 +27,7 @@ export default {
     },
     components: {
         TeamsTable,
+        CreateTeamButton
     }
 }
 </script>

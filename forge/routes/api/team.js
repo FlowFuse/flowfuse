@@ -37,6 +37,43 @@ module.exports = async function(app) {
         }
     })
 
+    app.post('/', {
+        schema: {
+            body: {
+                type: 'object',
+                required: ['name'],
+                properties: {
+                    name: { type: 'string' },
+                    slug: { type: 'string' }
+                }
+            }
+        }
+    }, async (request, reply) => {
+        // TODO check license allows multiple teams
+
+        if (request.body.slug === "create") {
+            reply.code(400).send({error:"slug not available"});
+            return
+        }
+
+        try {
+            const newTeam = await app.db.models.Team.create({
+                name: request.body.name,
+                slug: request.body.slug
+            });
+            await newTeam.addUser(request.session.User, { through: { role:"owner" } });
+            reply.send(app.db.views.Team.team(newTeam))
+        } catch(err) {
+            let responseMessage;
+            if (err.errors) {
+                responseMessage = err.errors.map(err => err.message).join(",");
+            } else {
+                responseMessage = err.toString();
+            }
+            reply.code(400).send({error:responseMessage})
+        }
+    });
+
     // app.get('/teams', async (request, reply) => {
     //     const teams = await app.db.models.Team.forUser(request.session.User);
     //     const result = await app.db.views.Team.teamList(teams);
