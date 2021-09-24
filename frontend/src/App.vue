@@ -25,15 +25,15 @@
 import { mapState } from 'vuex'
 import Footer from "@/components/Footer.vue"
 import Navbar from "@/components/Navbar.vue"
-import Login from "@/components/Login.vue"
+import Login from "@/pages/Login.vue"
 
 export default {
     name: 'App',
-    computed: mapState('account',['user']),
+    computed: mapState('account',['user','team']),
     components: {
         Footer,
         Navbar,
-        Login
+        Login,
     },
     mounted() {
         this.$store.dispatch('account/checkState');

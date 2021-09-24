@@ -50,6 +50,20 @@
         @apply hover:text-gray-600;
         @apply focus:text-gray-700;
     }
+
+    .forge-button-tertiary {
+        @apply forge-button-secondary;
+        @apply bg-white;
+        @apply hover:bg-gray-100;
+    }
+
+    .forge-button-inline {
+        @apply forge-button-secondary;
+        @apply border-transparent;
+        @apply bg-white;
+        @apply hover:bg-gray-100;
+    }
+
     .forge-button-danger {
         @apply forge-button;
         @apply bg-white;
@@ -64,5 +78,16 @@
         @apply disabled:text-gray-600;
         @apply disabled:bg-white;
         @apply disabled:cursor-not-allowed;
+    }
+
+    .forge-button-set > :first-child {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        border-right: none;
+    }
+    .forge-button-set > :last-child button {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        border-left: none;
     }
 }

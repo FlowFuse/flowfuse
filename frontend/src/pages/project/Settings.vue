@@ -25,15 +25,14 @@
 
 <script>
 import projectApi from '@/api/project'
-
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
 import ConfirmProjectDeleteDialog from '@/components/dialogs/ConfirmProjectDeleteDialog'
-import Breadcrumbs from '@/mixins/Breadcrumbs';
+
 
 export default {
     name: 'ProjectSettings',
-    mixins: [Breadcrumbs],
+
     props:[ "project" ],
     data() {
         return {
@@ -42,9 +41,6 @@ export default {
             },
             createDialogOpen: false
         }
-    },
-    created() {
-        this.replaceLastBreadcrumb({ label:"Settings" })
     },
     watch: {
          project: 'fetchData'

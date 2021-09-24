@@ -3,9 +3,9 @@
 
 async function inject(app) {
     try {
-        const userAlice = await app.db.models.User.create({admin: true, name: "Alice Skywalker", email: "alice@example.com", password: 'aaPassword'});
-        const userBob = await app.db.models.User.create({name: "Bob Solo", email: "bob@example.com", password: 'bbPassword'});
-        const userChris = await app.db.models.User.create({name: "Chris Kenobi", email: "chris@example.com", password: 'ccPassword'});
+        const userAlice = await app.db.models.User.create({admin: true, username: "alice", name: "Alice Skywalker", email: "alice@example.com", password: 'aaPassword'});
+        const userBob = await app.db.models.User.create({username: "bob", name: "Bob Solo", email: "bob@example.com", password: 'bbPassword'});
+        const userChris = await app.db.models.User.create({username: "chris", name: "Chris Kenobi", email: "chris@example.com", password: 'ccPassword'});
 
         const team1 = await app.db.models.Team.create({name: "ATeam"});
         const team2 = await app.db.models.Team.create({name: "BTeam"});
@@ -31,7 +31,7 @@ async function inject(app) {
 
         const p2AuthClient = await app.db.controllers.AuthClient.createClientForProject(project2);
         //  For testing, print out the ID/Secret here to copy into the node-red project instance config
-        // console.log(p2AuthClient);
+        console.log(p2AuthClient);
 /*
 {
   clientID: 'ffp_ya2uR3AZD-hmGITngOAuDceIdsAPjpG3ESp-tOY2xOc',
@@ -49,6 +49,24 @@ async function inject(app) {
             throw err
         }
     }
+    // let teamA = await app.db.models.Team.byName("ATeam")
+    // let names = [
+    //     "brainy-wallcreeper-2819",
+    //     "cloudy-lark-sparrow-9355",
+    //     "enchanting-magnolia-warbler-8489",
+    //     "doubtful-reed-warbler-2460",
+    //     "proud-ruddy-shelduck-3990",
+    //     "splendid-rook-9331",
+    //     "cloudy-woodpigeon-1761",
+    //     "joyous-spotted-flycatcher-5829",
+    //     "precious-canada-goose-2743",
+    //     "bewildered-caspian-tern-3464",
+    //     "healthy-peregrine-3779"
+    // ]
+    // for (var i=0;i<names.length;i++) {
+    //     const p = await app.db.models.Project.create({name: names[i], type: "basic", url: "http://instance1.example.com"});
+    //     await teamA.addProject(p);
+    // }
 }
 
 module.exports = {

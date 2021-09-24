@@ -1,26 +1,6 @@
 <template>
-    <div class="forge-block">
-        <FormHeading>
-            <router-link to="/account/projects">Projects</router-link>
-        </FormHeading>
-        <div class="text-sm px-4 sm:px-6 lg:px-8 mt-8">
-            <template v-if="projectCount > 0">
-                <ProjectsTable :projects="projects" :projectCount="projectCount" />
-            </template>
-            <template v-else>
-                <div class="max-w-2xl mx-auto flex justify-center border rounded border-gray-300 overflow-hidden mb-4 p-8">
-                    <CreateProjectButton class="w-auto flex-grow-0"/>
-                </div>
-            </template>
-        </div>
-    </div>
-    <div class="forge-block">
-        <FormHeading>
-            <router-link to="/account/teams">Teams</router-link>
-        </FormHeading>
-        <div class="text-sm px-4 sm:px-6 lg:px-8 mt-8">
-            <TeamsTable :teams="teams" :teamCount="teamCount"  />
-        </div>
+    <div class="mx-auto flex items-center justify-center py-36">
+        <div class="w-92 text-gray-600 opacity-50"><Logo /></div>
     </div>
 </template>
 
@@ -28,46 +8,42 @@
 
 import projectApi from '@/api/project'
 import teamApi from '@/api/team'
-
+import { mapState } from 'vuex'
 import TeamsTable from '@/components/tables/TeamsTable'
-import ProjectsTable from '@/components/tables/ProjectsTable'
 import FormHeading from '@/components/FormHeading'
 import CreateProjectButton from "@/components/CreateProjectButton"
-
-import Breadcrumbs from '@/mixins/Breadcrumbs';
+import ProjectSummaryList from '@/components/ProjectSummaryList'
+import Logo from "@/components/Logo"
 
 export default {
     name: 'Home',
-    mixins: [Breadcrumbs],
+    computed: {
+        ...mapState('account',['user','team','teams']),
+    },
     data() {
         return {
-            teams: [],
-            teamCount: 0,
-            projects: [],
-            projectCount: 0
+            projects: []
         }
     },
-    async created() {
-        this.clearBreadcrumbs();
-        const data = await teamApi.getTeams()
-        this.teamCount = data.count;
-        this.teams = data.teams;
-
-        const projData = await projectApi.getProjects()
-        this.projectCount = projData.count;
-        this.projects = projData.projects;
-        this.projects.forEach(p => {
-            p.teamName = p.team.name;
-            p.teamLink = p.team.link;
-        })
-
-
+    watch: {
+        team: 'redirectOnLoad'
+    },
+    created() {
+        this.redirectOnLoad();
+    },
+    methods: {
+        redirectOnLoad() {
+            if (this.team) {
+                this.$router.push({name:"Team", params:{id:this.team.slug}});
+            }
+        }
     },
     components: {
-        ProjectsTable,
+        ProjectSummaryList,
         TeamsTable,
         FormHeading,
-        CreateProjectButton
+        CreateProjectButton,
+        Logo
     }
 }
 </script>

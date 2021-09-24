@@ -31,9 +31,11 @@ import teamApi from '@/api/team'
 import slugify from '@/utils/slugify'
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
+import Breadcrumbs from '@/mixins/Breadcrumbs'
 
 export default {
     name: 'CreateTeam',
+    mixins: [Breadcrumbs],
     data() {
         return {
             teams: [],
@@ -44,6 +46,9 @@ export default {
                 slugError: ""
             }
         }
+    },
+    created() {
+        this.clearBreadcrumbs();
     },
     watch: {
         'input.name': function() {
@@ -70,7 +75,9 @@ export default {
             }
 
             teamApi.create(this.input).then(result => {
-                this.$router.push( { name: 'Team', params: { id: result.slug }});
+                this.$store.dispatch('account/refreshTeams');
+                this.$store.dispatch('account/setTeam',result);
+                this.$router.push({name:"Team",params:{id: result.slug}})
             }).catch(err => {
                 if (err.response.data) {
                     if (/slug/.test(err.response.data.error)) {

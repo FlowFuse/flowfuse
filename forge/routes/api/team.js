@@ -62,7 +62,9 @@ module.exports = async function(app) {
                 slug: request.body.slug
             });
             await newTeam.addUser(request.session.User, { through: { role:"owner" } });
-            reply.send(app.db.views.Team.team(newTeam))
+
+            const team = await app.db.models.Team.bySlug(newTeam.slug)
+            reply.send(app.db.views.Team.team(team))
         } catch(err) {
             let responseMessage;
             if (err.errors) {

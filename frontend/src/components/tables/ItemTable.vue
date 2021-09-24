@@ -9,7 +9,10 @@
         <div class="flex border-t border-gray-300 items-center hover:bg-blue-100">
             <template v-for="(col, colIdx) in columns" :key="col.name">
                 <div class="p-3 pl-4" :class="[{'flex-grow':colIdx == 0, 'w-40': colIdx > 0},...(col.class||[])]">
-                    <template v-if="col.link && ((typeof col.link === 'boolean' && item.link) || (item[col.link]))">
+                    <template v-if="col.component">
+                        <component :is="col.component.is" v-bind="item"></component>
+                    </template>
+                    <template v-else-if="col.link && ((typeof col.link === 'boolean' && item.link) || (item[col.link]))">
                         <router-link v-if="!col.external" :to="(typeof col.link === 'boolean' && item.link) || item[col.link]">{{ col.value || item[col.property] }}</router-link>
                         <a v-else :href="(typeof col.link === 'boolean' && item.link) || item[col.link]" target="_blank">{{ col.value || item[col.property] }}</a>
                     </template>

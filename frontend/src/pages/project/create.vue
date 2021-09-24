@@ -30,11 +30,13 @@ import projectApi from '@/api/project'
 
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
-import NameGenerator from '@/utils/name-generator';
+import NameGenerator from '@/utils/name-generator'
 import { RefreshIcon } from '@heroicons/vue/outline'
+import Breadcrumbs from '@/mixins/Breadcrumbs'
 
 export default {
     name: 'CreateProject',
+    mixins: [Breadcrumbs],
     data() {
         return {
             currentTeam: null,
@@ -61,6 +63,7 @@ export default {
         if (this.currentTeam == null) {
             this.currentTeam = this.teams[0].value;
         }
+        this.clearBreadcrumbs();
         setTimeout(() => {
             // There must be a better Vue way of doing this, but I can't find it.
             // Without the setTimeout, the select box doesn't update

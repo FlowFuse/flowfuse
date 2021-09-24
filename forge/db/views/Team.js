@@ -22,6 +22,7 @@ module.exports = {
                 name: result.name,
                 slug: result.slug,
                 avatar: result.avatar,
+                projectCount: result.projectCount,
                 createdAt: result.createdAt,
                 updatedAt: result.updatedAt,
                 links: result.links
@@ -30,6 +31,7 @@ module.exports = {
                 filtered.users = result.Users.map(u => {
                     return {
                         hashid: u.hashid,
+                        username: u.username,
                         name: u.name,
                         avatar: u.avatar,
                         role: u.TeamMember.role,

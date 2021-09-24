@@ -1,6 +1,5 @@
 <template>
     <form class="space-y-6">
-        <FormHeading>Team Settings</FormHeading>
         <FormRow v-model="input.teamName" id="teamName">Name</FormRow>
 
         <FormHeading class="text-red-700 pt-10">Delete Team</FormHeading>
@@ -19,11 +18,9 @@ import teamApi from '@/api/team'
 import { mapState } from 'vuex'
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
-import Breadcrumbs from '@/mixins/Breadcrumbs';
 
 export default {
     name: 'TeamSettings',
-    mixins: [Breadcrumbs],
     props:[ "team" ],
     data() {
         return {
@@ -33,9 +30,6 @@ export default {
             deleteDescription: "",
             projectCount: -1
         }
-    },
-    created() {
-        this.replaceLastBreadcrumb({ label:"Settings" })
     },
     computed: {
         deleteActive() {

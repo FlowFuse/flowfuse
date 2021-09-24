@@ -7,5 +7,5 @@ export default createStore({
         account,
         breadcrumbs
     },
-    plugins: [createLogger()]
+    plugins: []//createLogger()]
 })

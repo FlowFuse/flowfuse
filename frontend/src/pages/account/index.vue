@@ -4,6 +4,7 @@
             <div class="mr-3"><img :src="user.avatar" class="h-14 v-14 rounded-md"/></div>
             <div class="flex flex-col">
                 <div class="text-xl font-bold">{{ user.name }}</div>
+                <div class="text-l text-gray-400">{{ user.username }}</div>
             </div>
         </div>
         <ul class="flex border-b border-gray-700 mb-10 text-gray-500">
@@ -24,28 +25,26 @@ import { mapState } from 'vuex'
 import Breadcrumbs from '@/mixins/Breadcrumbs';
 
 const navigation = [
-    { name: "Projects", path: "/account/projects" },
-    { name: "Teams", path: "/account/teams" },
     { name: "Settings", path: "/account/settings" },
+    { name: "Teams", path: "/account/teams" },
     { name: "Security", path: "/account/security" }
 ]
 
 export default {
     name: 'User',
-    mixins: [Breadcrumbs],
+    mixins: [ Breadcrumbs ],
     computed: {
         ...mapState('account',['user'])
+    },
+    created() {
+        this.setBreadcrumbs([
+            {label:"User Settings", to:{name:"User Settings"}}
+        ]);
     },
     setup() {
         return {
             navigation
         }
-    },
-    created() {
-       this.setBreadcrumbs([
-           { label: 'account', to: { path: '/account/'}},
-           { label: '' }
-       ]);
-   }
+    }
 }
 </script>
