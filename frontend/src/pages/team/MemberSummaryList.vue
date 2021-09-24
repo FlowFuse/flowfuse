@@ -1,0 +1,20 @@
+<template>
+    <ul>
+        <li class="mb-2 text-xs" v-for="user in team.users">
+            <UserCell v-bind="user" />
+        </li>
+    </ul>
+</template>
+
+<script>
+
+import UserCell from "@/components/tables/cells/UserCell"
+
+export default {
+    name: 'MemberSummaryList',
+    props:[ "team" ],
+    components: {
+        UserCell
+    }
+}
+</script>

@@ -7,7 +7,7 @@
 
                 <FormRow :options="teams" v-model="input.team" id="team">Team</FormRow>
 
-                <FormRow v-model="input.name" id="name2">
+                <FormRow v-model="input.name">
                     <template v-slot:default>Project Name</template>
                     <template v-slot:append>
                         <button type="button" @click="refreshName" class="text-gray-500 hover:text-gray-600 border border-gray-300 hover:border-indigo-500 rounded ml-2 p-1 w-9 h-8" ><RefreshIcon class=" w-full" /></button>
@@ -30,13 +30,16 @@ import projectApi from '@/api/project'
 
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
-import NameGenerator from '@/utils/name-generator';
+import NameGenerator from '@/utils/name-generator'
 import { RefreshIcon } from '@heroicons/vue/outline'
+import Breadcrumbs from '@/mixins/Breadcrumbs'
 
 export default {
     name: 'CreateProject',
+    mixins: [Breadcrumbs],
     data() {
         return {
+            currentTeam: null,
             teams: [],
             input: {
                 name: NameGenerator(),
@@ -51,12 +54,21 @@ export default {
     async created() {
         const data = await teamApi.getTeams()
         this.teamCount = data.count;
-        this.teams = data.teams.map(function(t) {
+        this.teams = data.teams.map((t) => {
+            if (t.slug === this.$router.currentRoute.value.params.id) {
+                this.currentTeam = t.id;
+            }
             return { value: t.id, label: t.name }
         });
-        if (this.teams.length > 0) {
-            this.input.team = this.teams[0].value;
+        if (this.currentTeam == null) {
+            this.currentTeam = this.teams[0].value;
         }
+        this.clearBreadcrumbs();
+        setTimeout(() => {
+            // There must be a better Vue way of doing this, but I can't find it.
+            // Without the setTimeout, the select box doesn't update
+            this.input.team = this.currentTeam;
+        },100);
     },
     methods: {
         createProject() {

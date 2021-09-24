@@ -9,6 +9,7 @@ module.exports = {
     userProfile: function(db, user) {
         const result = {};
         [
+            'username',
             'name',
             'email',
             'avatar',

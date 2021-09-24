@@ -4,22 +4,24 @@
  */
 
 const { DataTypes,literal } = require('sequelize');
+const { slugify, generateAvatar } = require("../utils");
 
 module.exports = {
     name: 'Team',
     schema: {
         name: { type: DataTypes.STRING, allowNull: false },
-        slug: { type: DataTypes.STRING },
+        slug: { type: DataTypes.STRING, unique: true },
         avatar: {type: DataTypes.STRING }
     },
     hooks: {
         beforeSave: (team, options) => {
             if (!team.avatar) {
-                const cleanEmail = team.name;
-                const emailHash = require("crypto").createHash('md5').update(cleanEmail).digest("hex")
-                team.avatar = `//www.gravatar.com/avatar/${emailHash}?d=identicon` //retro mp
+                team.avatar = generateAvatar(team.name)
             }
-            team.slug = team.name.toLowerCase();
+            if (!team.slug) {
+                team.slug = slugify(team.name)
+            }
+            team.slug = team.slug.toLowerCase();
         }
     },
     associations: function(M) {
@@ -42,14 +44,30 @@ module.exports = {
                     }})
                 },
                 bySlug: async function(slug) {
-                    return self.findOne({where:{slug}, include:{
-                        model:M['User'],
-                        attributes:['name','avatar','id'],
-                        through: {
-                            model:M['TeamMembers'], // .scope('owners'),
-                            attributes:['role']
+                    return self.findOne({
+                        where:{slug},
+                        attributes: {
+                            include: [
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM Projects AS project
+                                        WHERE
+                                        project.TeamId = team.id
+                                    )`),
+                                    'projectCount'
+                                ]
+                            ]
+                        },
+                        include: {
+                            model:M['User'],
+                            attributes:['username','name','avatar','id'],
+                            through: {
+                                model:M['TeamMembers'], // .scope('owners'),
+                                attributes:['role']
+                            }
                         }
-                    }})
+                    })
                 },
                 forUser: async function(User) {
                     return M['TeamMember'].findAll({
@@ -58,7 +76,7 @@ module.exports = {
                         },
                         include: {
                             model:M['Team'],
-                            attributes:['hashid','links','id','name','avatar']
+                            attributes:['hashid','links','id','name','avatar','slug']
                         },
                         attributes: {
                             include: [

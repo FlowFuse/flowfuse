@@ -147,7 +147,7 @@ module.exports = async function(app) {
                 if (!teamMembership) {
                     return redirectInvalidRequest(reply, requestObject.redirect_uri,  "access_denied", "Access Denied", requestObject.state)
                 }
-                requestObject.username = request.session.User.email;
+                requestObject.username = request.session.User.username;
                 requestObject.code = base64URLEncode(crypto.randomBytes(32))
                 requestCache.set(requestObject.code, requestObject);
                 const responseUrl = new URL(requestObject.redirect_uri);

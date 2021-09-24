@@ -3,10 +3,10 @@
         <div class="flex items-center mb-8">
             <div class="text-xl font-bold">{{ project.name }}</div>
             <div class="ml-8 flex-grow flex items-center">
-                <a :href="project.url" target="_blank" class="forge-button">
-                    <ExternalLinkIcon class="w-5 h-5 my-1 mr-1" /><span class="ml-1">Open Editor</span>
+                <a :href="project.url" target="_blank" class="forge-button-tertiary">
+                    <ExternalLinkIcon class="w-4 my-1 mr-1" /><span class="ml-1">Open Editor</span>
                 </a>
-                <button type="button" title="Copy url" class="forge-button-secondary px-2 h-8 py-0 ml-1"><span class="sr-only">Copy url</span><ClipboardCopyIcon class="w-4 h-4" /></button>
+                <button type="button" title="Copy url" class="forge-button-tertiary ml-1"><span class="sr-only">Copy url</span><ClipboardCopyIcon class="w-4 my-1" /></button>
             </div>
             <DropdownMenu class="ml-8" alt="Open options menu" :options="options">Options</DropdownMenu>
         </div>
@@ -27,9 +27,9 @@
 <script>
 import projectApi from '@/api/project'
 import FormHeading from '@/components/FormHeading'
-import Breadcrumbs from '@/mixins/Breadcrumbs'
 import DropdownMenu from '@/components/DropdownMenu'
 import { ExternalLinkIcon, ClipboardCopyIcon } from '@heroicons/vue/outline'
+import Breadcrumbs from '@/mixins/Breadcrumbs';
 
 export default {
     name: 'Project',
@@ -56,25 +56,33 @@ export default {
         DropdownMenu
     },
     async created() {
-        this.setBreadcrumbs([
-            { label: '', value: ':team' },
-            { label: '', value: ':project' },
-            { label: ''  }
-        ]);
         const parts = this.$route.path.split("/")
-        const data = await projectApi.getProject(parts[2])
-        this.project = data;
-
-        this.replaceBreadcrumb({
-            ':project': { label: this.project.name },
-            ':team': { label: this.project.team.name, to: {path: '/team/'+this.project.team.slug} }
-        });
+        try {
+            const data = await projectApi.getProject(parts[2])
+            this.project = data;
+            this.$store.dispatch('account/setTeam',this.project.team.slug);
+        } catch(err) {
+            this.$router.push({
+                name: "PageNotFound",
+                params: { pathMatch: this.$router.currentRoute.value.path.substring(1).split('/') },
+                // preserve existing query and hash if any
+                query: this.$router.currentRoute.value.query,
+                hash: this.$router.currentRoute.value.hash,
+            })
+            return;
+        }
 
         this.navigation = [
-            { name: "Overview", path: `/projects/${parts[2]}/overview` },
-            { name: "Settings", path: `/projects/${parts[2]}/settings` },
-            { name: "Debug", path: `/projects/${parts[2]}/debug` },
+            { name: "Overview", path: `/project/${parts[2]}/overview` },
+            { name: "Settings", path: `/project/${parts[2]}/settings` },
+            { name: "Debug", path: `/project/${parts[2]}/debug` },
         ]
+        this.setBreadcrumbs([
+            { type: 'TeamPicker'},
+            {label: this.project.name, to: { name: "Project", params: {id:this.project.id}}}
+        ])
+
+
     }
 }
 </script>

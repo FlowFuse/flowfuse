@@ -25,7 +25,7 @@
         @apply hover:text-gray-100;
         @apply focus:text-gray-300;
         @apply rounded-md;
-        @apply flex;
+        @apply inline-flex;
         @apply items-center;
         @apply text-sm;
         @apply focus:outline-none;
@@ -33,6 +33,11 @@
         @apply focus:ring-offset-2;
         @apply focus:ring-offset-gray-600;
         @apply focus:ring-gray-400;
+
+        @apply disabled:opacity-30;
+        @apply disabled:cursor-not-allowed;
+
+
 
     }
     .forge-button-secondary {
@@ -45,6 +50,20 @@
         @apply hover:text-gray-600;
         @apply focus:text-gray-700;
     }
+
+    .forge-button-tertiary {
+        @apply forge-button-secondary;
+        @apply bg-white;
+        @apply hover:bg-gray-100;
+    }
+
+    .forge-button-inline {
+        @apply forge-button-secondary;
+        @apply border-transparent;
+        @apply bg-white;
+        @apply hover:bg-gray-100;
+    }
+
     .forge-button-danger {
         @apply forge-button;
         @apply bg-white;
@@ -55,10 +74,20 @@
         @apply focus:text-white;
         @apply focus:bg-red-700;
 
-        @apply disabled:border-gray-200;
-        @apply disabled:text-gray-400;
+        @apply disabled:border-gray-500;
+        @apply disabled:text-gray-600;
         @apply disabled:bg-white;
         @apply disabled:cursor-not-allowed;
+    }
 
+    .forge-button-set > :first-child {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        border-right: none;
+    }
+    .forge-button-set > :last-child button {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        border-left: none;
     }
 }

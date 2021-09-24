@@ -1,4 +1,5 @@
 import userApi from '@/api/user'
+import teamApi from '@/api/team'
 import router from "@/routes"
 
 // initial state
@@ -11,8 +12,12 @@ const state = () => ({
     redirectUrlAfterLogin: null,
     // The active user
     user: null,
+    // The active team
+    team: null,
+    // The user's teams
+    teams: [],
     // An error during login
-    loginError: null
+    loginError: null,
 })
 
 // getters
@@ -20,8 +25,17 @@ const getters = {
     user(state) {
         return state.user
     },
+    teams(state) {
+        return state.teams
+    },
+    team(state) {
+        return state.team
+    },
     redirectUrlAfterLogin(state) {
         return state.redirectUrlAfterLogin
+    },
+    pending(state) {
+        return state.pending
     }
 }
 
@@ -40,7 +54,15 @@ const mutations = {
     logout(state) {
         state.loginInflight = false;
         state.pending = true;
-        state.user = null
+        state.user = null;
+        state.teams = [];
+        state.team = null;
+    },
+    setTeam(state, team) {
+        state.team = team;
+    },
+    setTeams(state, teams) {
+        state.teams = teams;
     },
     sessionExpired(state) {
         state.user = null;
@@ -56,23 +78,72 @@ const mutations = {
 
 // actions
 const actions = {
-    async checkState(state,redirectToUserSettings) {
-        userApi.getUser().then(user => {
+    async checkState(state,redirectUrlAfterLogin) {
+        try {
+            const user = await userApi.getUser();
             state.commit('login', user)
-            state.commit('clearPending')
 
-            if (redirectToUserSettings) {
-                // If this is a user-driven login, take them to the profile page
-                router.push(redirectToUserSettings)
+            const teams = await teamApi.getTeams();
+            state.commit('setTeams', teams.teams)
+
+            // Default to first in list - TODO: let the user pick their default
+            let teamSlug = teams.teams[0].slug;
+            //
+            let teamIdMatch = /^\/team\/([^\/]+)($|\/)/.exec(redirectUrlAfterLogin || router.currentRoute.value.path)
+            if (teamIdMatch) {
+                teamSlug = teamIdMatch[1]
+            // } else {
+            //     let projectIdMatch = /^\/projects\/([^\/]+)($|\/)/.exec(redirectUrlAfterLogin || router.currentRoute.value.path)
+            //     if (projectIdMatch) {
+            //         let projectId = projectIdMatch[1]
+            //
+            //     }
+            //
+            //
             }
-        }).catch(_ => {
-            // Not logged in
-            state.commit('clearPending')
-            state.commit('setRedirectUrl',router.currentRoute.value.fullPath);
-            router.push("/")
-        })
-    },
 
+            try {
+                const team = await teamApi.getTeam(teamSlug)
+                state.commit('setTeam', team);
+                state.commit('clearPending')
+                if (redirectUrlAfterLogin) {
+                    console.log("Finished logging in, redirect to",redirectUrlAfterLogin)
+                    // If this is a user-driven login, take them to the profile page
+                    router.push(redirectUrlAfterLogin)
+                }
+            } catch(teamLoadErr) {
+                state.commit('clearPending')
+                // This means the team doesn't exist, or the user doesn't have access
+                router.push({
+                    name: "PageNotFound",
+                    params: { pathMatch: router.currentRoute.value.path.substring(1).split('/') },
+                    // preserve existing query and hash if any
+                    query: router.currentRoute.value.query,
+                    hash: router.currentRoute.value.hash,
+                })
+            }
+        } catch(err) {
+            console.log(err);
+            console.log("GOING HOME")
+            // Not logged in
+            state.commit('setRedirectUrl',router.currentRoute.value.fullPath);
+            state.commit('clearPending')
+            if (router.currentRoute.value.fullPath != '/') {
+                router.push({name:"Home"})
+            }
+        }
+    },
+    async refreshTeam(state) {
+        const currentTeam = state.getters.team;
+        if (currentTeam) {
+            const team = await teamApi.getTeam(currenTeam.slug);
+            state.commit('setTeam', team)
+        }
+    },
+    async refreshTeams(state) {
+        const teams = await teamApi.getTeams();
+        state.commit('setTeams', teams.teams)
+    },
     async login(state, credentials) {
         try {
             state.commit('setLoginInflight')
@@ -87,8 +158,14 @@ const actions = {
         userApi.logout()
             .catch(_ => {})
             .finally(() => {
-                window.location.reload()
+                window.location = "/"
             })
+    },
+    async setTeam(state, team, redirect) {
+        if (typeof team === 'string') {
+            team = await teamApi.getTeam(team)
+        }
+        state.commit("setTeam", team);
     }
 }
 

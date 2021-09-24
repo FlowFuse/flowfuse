@@ -3,15 +3,12 @@
  * @namespace forge.db.models.User
  */
 const { DataTypes } = require('sequelize');
-const bcrypt = require("bcrypt");
-
-function hash(value) {
-    return bcrypt.hashSync(value, 10);
-}
+const { hash, generateAvatar } = require("../utils");
 
 module.exports = {
     name: 'User',
     schema: {
+        username: { type: DataTypes.STRING, allowNull: false, unique: true },
         name: { type: DataTypes.STRING, allowNull: false },
         email: { type: DataTypes.STRING, allowNull: false, unique: true},
         password: {
@@ -29,9 +26,7 @@ module.exports = {
     hooks: {
         beforeCreate: (user, options) => {
             if (!user.avatar) {
-                const cleanEmail = user.email.trim().toLowerCase();
-                const emailHash = require("crypto").createHash('md5').update(cleanEmail).digest("hex")
-                user.avatar = `//www.gravatar.com/avatar/${emailHash}?d=identicon` //retro mp
+                user.avatar = generateAvatar(user.email);
             }
         }
     },
@@ -45,6 +40,17 @@ module.exports = {
             static: {
                 admins: async () => {
                     return this.scope('admins').findAll();
+                },
+                byUsername: async (email) => {
+                    return this.findOne({where:{email},
+                        include: {
+                            model: M['Team'],
+                            attributes: ['name'],
+                            through: {
+                                attributes:['role']
+                            }
+                        }
+                    })
                 },
                 byEmail: async (email) => {
                     return this.findOne({where:{email},

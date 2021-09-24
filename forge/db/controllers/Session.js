@@ -11,7 +11,7 @@ module.exports = {
      */
     createUserSession: async function(db, username) {
         const user = await db.models.User.findOne({
-            where: { email: username },
+            where: { username: username },
         })
         if (user) {
             return db.models.Session.create({
@@ -28,7 +28,7 @@ module.exports = {
      */
     createTokenSession: async function(db, username) {
         const user = await db.models.User.findOne({
-            where: { email: username },
+            where: { username: username },
         })
         if (user) {
             const session = {

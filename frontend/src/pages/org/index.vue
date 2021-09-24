@@ -20,7 +20,6 @@
 
 <script>
 import { mapState } from 'vuex'
-import Breadcrumbs from '@/mixins/Breadcrumbs';
 
 const navigation = [
     { name: "Settings", path: "/organization/settings" },
@@ -30,7 +29,6 @@ const navigation = [
 
 export default {
     name: 'Organization',
-    mixins: [Breadcrumbs],
     computed: {
         ...mapState('account',['user'])
     },
@@ -38,12 +36,6 @@ export default {
         return {
             navigation
         }
-    },
-    created() {
-       this.setBreadcrumbs([
-           { label: 'organization', to: { path: '/organization/'}},
-           { label: '' }
-       ]);
-   }
+    }
 }
 </script>
