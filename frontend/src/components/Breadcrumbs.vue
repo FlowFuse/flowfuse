@@ -10,12 +10,12 @@
                 </DropdownMenu>
             </template>
             <template v-else-if="item.type === 'CreateProject'">
-                <router-link class="forge-button-inline" :to="team?'/team/'+team.slug+'/projects/create':'/create'">
+                <router-link class="forge-button" :to="team?'/team/'+team.slug+'/projects/create':'/create'">
                     <PlusSmIcon class="w-5 h-5 my-1 -ml-1 mr-1" /><span>Create Project</span>
                 </router-link>
             </template>
             <template v-else>
-                <router-link class="text-sm" :to="item.to || {}">{{ item.label }}</router-link>
+                <router-link class="forge-button-inline py-2" :to="item.to || {}">{{ item.label }}</router-link>
         </template>
         </template>
     </template>

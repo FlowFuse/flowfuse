@@ -26,7 +26,8 @@ export default {
         }
     },
     watch: {
-        team: 'redirectOnLoad'
+        team: 'redirectOnLoad',
+        teams: 'redirectOnLoad'
     },
     created() {
         this.redirectOnLoad();
@@ -35,8 +36,7 @@ export default {
         redirectOnLoad() {
             if (this.team) {
                 this.$router.push({name:"Team", params:{id:this.team.slug}});
-            } else if (this.teams) {
-
+            } else if (this.teams && this.teams.length > 0) {
                 this.$store.dispatch('account/setTeam',this.teams[0].slug);
                 this.$router.push({name:"Team",params:{id:this.teams[0].slug}})
             }

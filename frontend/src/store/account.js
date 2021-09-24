@@ -107,7 +107,6 @@ const actions = {
                 state.commit('setTeam', team);
                 state.commit('clearPending')
                 if (redirectUrlAfterLogin) {
-                    console.log("Finished logging in, redirect to",redirectUrlAfterLogin)
                     // If this is a user-driven login, take them to the profile page
                     router.push(redirectUrlAfterLogin)
                 }
@@ -123,8 +122,6 @@ const actions = {
                 })
             }
         } catch(err) {
-            console.log(err);
-            console.log("GOING HOME")
             // Not logged in
             state.commit('setRedirectUrl',router.currentRoute.value.fullPath);
             state.commit('clearPending')
