@@ -50,7 +50,12 @@ const modelTypes = [
     'TeamMember',
     'Session',
     'Project',
-    'AuthClient'
+    'AuthClient',
+    'StorageFlow',
+    'StorageCredentials',
+    'StorageSettings',
+    'StorageSession',
+    'StorageLibrary'
 ];
 
 // A local map of the known models.
