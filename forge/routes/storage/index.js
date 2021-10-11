@@ -264,11 +264,3 @@ module.exports = async function(app) {
   );
 
 }
-
-function trimPath(start, full) {
-  for (i=0; i<start.length; i++) {
-    if (start[i] == full[i]) {
-
-    }
-  }
-}
