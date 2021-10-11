@@ -21,6 +21,7 @@
                     class="text-sm appearance-none rounded relative font-normal w-full px-2 py-1 border border-gray-300 placeholder-gray-500 text-gray-600 focus:outline-none  focus:ring-blue-700 focus:border-indigo-500 placeholder-gray-400"
                     :value="modelValue"
                     @input="$emit('update:modelValue', $event.target.value)"
+                    @keyup.enter="onEnter"
                 >
             </template>
             <slot name="append"></slot>
@@ -32,7 +33,7 @@
 import {ref} from "vue";
 export default {
     name: "FormRow",
-    props: ['id','type','modelValue','error','options','placeholder'],
+    props: ['id','type','modelValue','error','options','placeholder','onEnter'],
     emits: ['update:modelValue'],
     setup(props, {slots}) {
         const hasDescription = ref(false)

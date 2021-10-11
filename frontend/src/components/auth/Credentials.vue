@@ -1,6 +1,6 @@
 <template>
-        <FormRow :error="errors.username" v-model="input.username">Username</FormRow>
-        <FormRow type="password" :error="errors.password" v-model="input.password">Password</FormRow>
+        <FormRow id="login-username" :error="errors.username" v-model="input.username" :onEnter="focusPassword">Username</FormRow>
+        <FormRow id="login-password" type="password" :error="errors.password" v-model="input.password" :onEnter="login">Password</FormRow>
         <div class="flex flex-col justify-between">
             <div class="flex items-center">
                 <input id="remember_me" name="remember_me" v-model="input.remember" type="checkbox" class="h-4 w-4 text-indigo-600  focus:ring-blue-700 border-gray-300 rounded" />
@@ -64,10 +64,20 @@ export default {
             if (valid) {
                 this.$store.dispatch('account/login',this.input);
             }
+        },
+        focusUsername() {
+            document.getElementById("login-username").focus();
+        },
+        focusPassword() {
+            document.getElementById("login-password").focus();
         }
+    },
+    mounted() {
+        this.focusUsername();
     },
     watch: {
         loginError(newError, oldError) {
+            this.focusUsername();
             this.errors.username = "Login failed"
         }
     },
