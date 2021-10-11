@@ -7,6 +7,7 @@ const { DataTypes } = require('sequelize');
 module.exports = {
 	name: 'StorageLibrary',
   schema: {
+    name: { type: DataTypes.STRING, allowNull: false},
     type: { type: DataTypes.STRING, allowNull: false},
     meta: { type: DataTypes.STRING, allowNull: true },
     body: { type: DataTypes.STRING, allowNull: false, defaultValue: ""}
@@ -29,6 +30,11 @@ module.exports = {
         byType: async(project, type) => {
           return this.findAll({
             where: {ProjectId: project, type: type}
+          })
+        },
+        byName: async(project, type, name) => {
+          return this.findOne({
+            where: {ProjectId: project, type: type, name: name}
           })
         }
       }

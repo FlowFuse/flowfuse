@@ -151,12 +151,124 @@ module.exports = async function(app) {
     }
   });
 
-  app.post('/:id/library/:type', async (request, response) => {
-    let id = request.params.id;
-  });
+  app.post('/:id/library/:type', 
+    {
+      schema:{
+        body: {
+          type: 'object',
+          required: ['name', 'body'],
+          properties: {
+            name: { type: 'string' },
+            meta: { type: 'object'},
+            body: { type: ['string', 'object']}
+          }
+        },
+        params: {
+          // type: { type: 'string', enum: [ 'flows', 'functions', 'templates' ] },
+          id: { type: 'string' }
+        }
+      }
+    },
+    async (request, response) => {
+      let id = request.params.id;
+      let type = request.params.type;
+      let body = request.body.body;
+      let name = request.body.name;
+      let meta = request.body.meta;
 
-  app.get('/:id/library/:id/:type', async (request, response) => {
-    let id = request.params.id;
-  });
+      if (typeof body === 'object') {
+        body = JSON.stringify(body)
+      }
 
+      let direct = await app.db.models.StorageLibrary.byName(id, type, name);
+
+      if (direct) {
+        direct.body = body;
+        direct.meta = JSON.stringify(meta)
+        await direct.save();
+      } else {
+        let name = request.body.name;
+        let lib = await app.db.models.StorageLibrary.create({
+          name: request.body.name,
+          type: type,
+          meta: JSON.stringify(meta),
+          body: body,
+          ProjectId: id
+        });
+      }
+
+      response.status(201).send();
+    }
+  );
+
+  app.get('/:id/library/:type', 
+    {
+      schema: {
+        query: {
+          name: { type: 'string' }
+        },
+        params: {
+          // type: { type: 'string', enum: [ 'flows', 'functions', 'templates' ]},
+          id: { type: 'string' }
+        }
+      }
+    },
+    async (request, response) => {
+      let id = request.params.id;
+      let type = request.params.type;
+      let name = request.query.name
+
+      console.log("query",request.query);
+
+      let reply = []
+
+      let direct = await app.db.models.StorageLibrary.byName(id, type, name);
+
+      if (direct) {
+        console.log(direct.body)
+        if (type == 'flows' ) {
+          reply = JSON.parse(direct.body)
+        } else {
+          reply = direct.body
+        }
+      } else {
+        // console.log("name",name)
+        let path = name.split('/')
+
+
+        let all = await app.db.models.StorageLibrary.byType(id, type);
+        all.forEach(entry => {
+          // console.log("entry.name",entry.name)
+          let entryPath = entry.name.split('/')
+          if (entry.name.startsWith(name)){
+            let short = entry.name.substring(name.length)
+            // console.log("short", short)
+            if (short.charAt(0) == '/') {
+              short = short.substring(1)
+            }
+            // console.log("short", short)
+            // console.log(short.indexOf('/'))
+            if (short.indexOf('/') == -1) {
+              reply.push({fn: short, ...JSON.parse(entry.meta)})
+            } else {
+              reply.push(short.split('/')[0])
+            }
+          }
+        })
+      }
+
+        console.log("reply", reply)
+
+      response.send(reply)
+    }
+  );
+
+}
+
+function trimPath(start, full) {
+  for (i=0; i<start.length; i++) {
+    if (start[i] == full[i]) {
+
+    }
+  }
 }

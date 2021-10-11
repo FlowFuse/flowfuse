@@ -32,6 +32,31 @@ module.exports = {
                         ownerId: project.id
                     }
                 })
+                await M['StorageLibrary'].destroy({
+                    where: {
+                        ProjectId: project.id
+                    }
+                })
+                await M['StorageSettings'].destroy({
+                    where: {
+                        ProjectId: project.id
+                    }
+                })
+                await M['StorageSessions'].destroy({
+                    where: {
+                        ProjectId: project.id
+                    }
+                })
+                await M['StorageCredentials'].destroy({
+                    where: {
+                        ProjectId: project.id
+                    }
+                })
+                await M['StorageFlows'].destroy({
+                    where: {
+                        ProjectId: project.id
+                    }
+                })
             }
         }
     },
