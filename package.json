@@ -9,7 +9,7 @@
         "build": "webpack -c ./config/webpack.config.js",
         "build-watch": "webpack --mode=development -c ./config/webpack.config.js --watch",
         "docs": "jsdoc -c ./config/jsdoc.json",
-        "test": "mocha ee/test/**/*_spec.js test/**/*_spec.js"
+        "test": "mocha test/**/*_spec.js"
     },
     "repository": {
         "type": "git",
