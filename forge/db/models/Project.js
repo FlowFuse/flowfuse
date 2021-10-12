@@ -42,7 +42,7 @@ module.exports = {
                         ProjectId: project.id
                     }
                 })
-                await M['StorageSessions'].destroy({
+                await M['StorageSession'].destroy({
                     where: {
                         ProjectId: project.id
                     }
