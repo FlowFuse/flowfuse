@@ -52,7 +52,7 @@ module.exports = {
                         ProjectId: project.id
                     }
                 })
-                await M['StorageFlows'].destroy({
+                await M['StorageFlow'].destroy({
                     where: {
                         ProjectId: project.id
                     }
