@@ -1,5 +1,4 @@
 const { compareHash } = require("../utils")
-const bcrypt = require('bcrypt');
 
 module.exports = {
     /**

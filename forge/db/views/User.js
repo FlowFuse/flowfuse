@@ -7,7 +7,9 @@ module.exports = {
      *
      */
     userProfile: function(db, user) {
-        const result = {};
+        const result = {
+            id: user.hashid
+        };
         [
             'username',
             'name',
@@ -17,5 +19,18 @@ module.exports = {
             'createdAt'
         ].forEach(p => result[p] = user[p])
         return result
-    }
+    },
+
+    teamMemberList: function(db, users) {
+        const result = users.map(u => {
+            return {
+                id: u.hashid,
+                username: u.username,
+                name: u.name,
+                avatar: u.avatar,
+                role: u.Teams[0].TeamMember.role,
+            }
+        });
+        return result
+    },
 }

@@ -14,9 +14,12 @@
                     <PlusSmIcon class="w-5 h-5 my-1 -ml-1 mr-1" /><span>Create Project</span>
                 </router-link>
             </template>
+            <template v-else-if="item.to">
+                <router-link class="forge-button-inline py-2" :to="item.to">{{ item.label }}</router-link>
+            </template>
             <template v-else>
-                <router-link class="forge-button-inline py-2" :to="item.to || {}">{{ item.label }}</router-link>
-        </template>
+                <span class="forge-button-inline-inactive py-2 font-medium">{{ item.label }}</span>
+            </template>
         </template>
     </template>
 </template>

@@ -33,6 +33,17 @@ module.exports = {
         const self = this;
         return {
             static: {
+                byId: async function(hashid) {
+                    const id = M['Team'].decodeHashid(hashid);
+                    return self.findOne({where:{id}, include:{
+                        model:M['User'],
+                        attributes:['name'],
+                        through: {
+                            model:M['TeamMembers'], // .scope('owners'),
+                            attributes:['role']
+                        }
+                    }})
+                },
                 byName: async function(name) {
                     return self.findOne({where:{name}, include:{
                         model:M['User'],
@@ -56,16 +67,17 @@ module.exports = {
                                         project.TeamId = team.id
                                     )`),
                                     'projectCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM TeamMembers AS members
+                                        WHERE
+                                        members.TeamId = team.id
+                                    )`),
+                                    'memberCount'
                                 ]
                             ]
-                        },
-                        include: {
-                            model:M['User'],
-                            attributes:['username','name','avatar','id'],
-                            through: {
-                                model:M['TeamMembers'], // .scope('owners'),
-                                attributes:['role']
-                            }
                         }
                     })
                 },
@@ -88,6 +100,15 @@ module.exports = {
                                         project.TeamId = teamMember.TeamId
                                     )`),
                                     'projectCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM TeamMembers AS members
+                                        WHERE
+                                        members.TeamId = team.id
+                                    )`),
+                                    'memberCount'
                                 ]
                             ]
                         }

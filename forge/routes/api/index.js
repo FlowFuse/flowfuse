@@ -15,7 +15,7 @@ module.exports = async function(app) {
     app.addHook('preHandler',app.verifySession);
     app.register(User, { prefix: "/user" })
     app.register(Users, { prefix: "/users" })
-    app.register(Team, { prefix: "/team" })
+    app.register(Team, { prefix: "/teams" })
     app.register(Project, { prefix: "/project"})
     app.register(Projects, { prefix: "/projects"})
     app.get('*', function (request, reply) {

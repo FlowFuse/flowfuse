@@ -64,6 +64,11 @@
         @apply hover:bg-gray-100;
     }
 
+    .forge-button-inline-inactive {
+        @apply forge-button-inline;
+        pointer-events: none;
+    }
+
     .forge-button-danger {
         @apply forge-button;
         @apply bg-white;

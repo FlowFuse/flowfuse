@@ -98,6 +98,9 @@ async function init(db) {
                 opts.hooks = m.hooks;
             }
         }
+        if (m.indexes) {
+            opts.index = m.indexes
+        }
         if (!m.model) {
             m.model = class model extends Model {}
         }
@@ -122,7 +125,7 @@ async function init(db) {
             type: DataTypes.VIRTUAL,
             get() {
                 return {
-                    self: process.env.BASE_URL+"/api/v1/"+m.name.toLowerCase()+"/"+this.slug
+                    self: process.env.BASE_URL+"/api/v1/"+m.name.toLowerCase()+"s/"+this.hashid
                 }
             }
         }

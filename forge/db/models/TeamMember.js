@@ -20,9 +20,26 @@ module.exports = {
             where:{ role: "owner" }
         }
     },
+    finders: function(M) {
+        return {
+            static: {
+                getTeamMembership: async (userId, teamId) => {
+                    if (typeof teamId === 'string') {
+                        teamId = M['Team'].decodeHashid(teamId);
+                    }
+                    if (typeof userId === 'string') {
+                        userId = M['User'].decodeHashid(userId);
+                    }
+                    return this.findOne({where:{
+                        TeamId: teamId,
+                        UserId: userId
+                    }});
+                },
+            }
+        }
+    },
     options: {
         timestamps: false,
-
     },
     associations: function(M) {
         this.belongsTo(M['User']);

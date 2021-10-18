@@ -5,7 +5,7 @@
                 <router-link to="./projects">Projects</router-link>
                 <template v-slot:tools>
                     <router-link to="./projects/create" class="forge-button pl-1 pr-2"><PlusSmIcon class="w-4" /><span class="text-xs">Create Project</span></router-link>
-                    <router-link to="./projects" class="forge-button-tertiary ml-2 px-1"><DotsHorizontalIcon class="w-4" /></router-link>
+                    <router-link to="./projects" class="forge-button-tertiary ml-2 px-1"><ChevronRightIcon class="w-4" /></router-link>
                 </template>
             </FormHeading>
             <ProjectSummaryList :projects="projects" :team="team" />
@@ -16,7 +16,7 @@
                 <template v-slot:tools>
                     <router-link to="./members" class="forge-button-tertiary px-2"><UsersIcon class="w-4" /></router-link></template>
             </FormHeading>
-            <MemberSummaryList :team="team" />
+            <MemberSummaryList :users="users" />
         </div>
     </div>
 </template>
@@ -27,15 +27,18 @@ import teamApi from '@/api/team'
 import FormHeading from '@/components/FormHeading'
 import MemberSummaryList from './MemberSummaryList'
 import ProjectSummaryList from '@/components/ProjectSummaryList'
-import { PlusSmIcon, UsersIcon, DotsHorizontalIcon } from '@heroicons/vue/outline'
+import { PlusSmIcon, UsersIcon, ChevronRightIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'TeamOverview',
     props:[ "team" ],
     data: function() {
         return {
+            userCount: 0,
+            users: null,
             projectCount: 0,
             projects: null
+
         }
     },
     watch: {
@@ -47,9 +50,12 @@ export default {
     methods: {
         fetchData: async function(newVal,oldVal) {
             if (this.team.slug) {
-                const data = await teamApi.getTeamProjects(this.team.slug)
+                const data = await teamApi.getTeamProjects(this.team.id)
                 this.projectCount = data.count;
                 this.projects = data.projects;
+                const members = await teamApi.getTeamMembers(this.team.id)
+                this.userCount = members.count;
+                this.users = members.members;
             }
         }
     },
@@ -57,7 +63,7 @@ export default {
         FormHeading,
         MemberSummaryList,
         ProjectSummaryList,
-        DotsHorizontalIcon,
+        ChevronRightIcon,
         UsersIcon,
         PlusSmIcon
     }

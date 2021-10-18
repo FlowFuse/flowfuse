@@ -9,10 +9,11 @@ import AccountSettings from "@/pages/account/Settings.vue"
 import AccountSecurity from "@/pages/account/Security.vue"
 import AccountTeams from "@/pages/account/Teams.vue"
 
-import Organization from "@/pages/org/index.vue"
-import OrgSettings from "@/pages/org/Settings.vue"
-import OrgUsers from "@/pages/org/Users.vue"
-import OrgTeams from "@/pages/org/Teams.vue"
+import Admin from "@/pages/admin/index.vue"
+import AdminSettings from "@/pages/admin/Settings.vue"
+import AdminUsers from "@/pages/admin/Users.vue"
+import AdminTeams from "@/pages/admin/Teams.vue"
+import AdminCreateUser from "@/pages/admin/createUser.vue"
 
 import Project from "@/pages/project/index.vue"
 import ProjectOverview from "@/pages/project/Overview.vue"
@@ -151,18 +152,25 @@ const routes = [
             { path: 'security', component: AccountSecurity }
         ],
     },
+
+    {
+        path: '/admin/users/create',
+        beforeEnter: ensureAdmin,
+        name: 'AdminCreateUser',
+        component: AdminCreateUser
+    },
     {
         profileLink: true,
         adminOnly: true,
         beforeEnter: ensureAdmin,
-        path: '/organization/',
-        redirect: '/organization/settings',
-        name: 'Organization Settings',
-        component: Organization,
+        path: '/admin/',
+        redirect: '/admin/settings',
+        name: 'Admin',
+        component: Admin,
         children: [
-            { path: 'settings', component: OrgSettings },
-            { path: 'users', component: OrgUsers },
-            { path: 'teams', component: OrgTeams }
+            { path: 'settings', component: AdminSettings },
+            { path: 'users', component: AdminUsers },
+            { path: 'teams', component: AdminTeams }
         ],
     },
     {

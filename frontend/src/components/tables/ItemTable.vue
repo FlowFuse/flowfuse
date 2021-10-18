@@ -1,14 +1,14 @@
 <template>
-<div class="text-sm w-full border rounded border-gray-300 overflow-hidden mb-4">
-    <div class="flex font-medium bg-gray-100 items-center">
+<div class="text-sm w-full border rounded border-gray-300 mb-4">
+    <div class="flex font-medium bg-gray-100 items-center rounded-t">
         <template v-for="(col, colIdx) in columns" :key="col.name">
-            <div class="p-3" :class="[{'flex-grow':colIdx == 0, 'w-40': colIdx > 0},...(col.class||[])]">{{ col.name }}</div>
+            <div class="p-3" :class="[{'flex-grow':colIdx == 0},...(col.class||[])]">{{ col.name }}</div>
         </template>
     </div>
     <template v-for="(item, itemIdx) in items">
         <div class="flex border-t border-gray-300 items-center hover:bg-blue-100">
             <template v-for="(col, colIdx) in columns" :key="col.name">
-                <div class="p-3 pl-4" :class="[{'flex-grow':colIdx == 0, 'w-40': colIdx > 0},...(col.class||[])]">
+                <div class="p-3 pl-4" :class="[{'flex-grow':colIdx == 0},...(col.class||[])]">
                     <template v-if="col.component">
                         <component :is="col.component.is" v-bind="item"></component>
                     </template>

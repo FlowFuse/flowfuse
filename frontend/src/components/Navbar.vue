@@ -64,7 +64,7 @@ export default {
           return [...this.teams.map(team => {
               return {
                   name: team.name,
-                  action: () => { this.selectTeam(team.slug) },
+                  action: () => { this.selectTeam(team) },
                   selected: this.team && (this.team.slug === team.slug)
               }
           }),null,{
@@ -74,9 +74,9 @@ export default {
       }
   },
   methods: {
-      async selectTeam(teamSlug) {
-          this.$store.dispatch('account/setTeam',teamSlug);
-          this.$router.push({name:"Team",params:{id:teamSlug}})
+      async selectTeam(team) {
+          this.$store.dispatch('account/setTeam',team);
+          this.$router.push({name:"Team",params:{id:team.slug}})
       }
   },
   components: {

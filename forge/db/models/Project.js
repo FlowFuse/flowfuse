@@ -61,11 +61,12 @@ module.exports = {
                         }
                     })
                 },
-                byTeam: async (team) => {
+                byTeam: async (teamHashId) => {
+                    const teamId = M['Team'].decodeHashid(teamHashId);
                     return this.findAll({
                         include: {
                             model: M['Team'],
-                            where: { slug: team },
+                            where: { id: teamId },
                             attributes:["id","name","slug","links"]
                         }
                     })

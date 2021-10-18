@@ -42,6 +42,7 @@ async function setup() {
     await team1.addUser(user3, { through: { role:"member" } });
 
     await team2.addUser(user2, { through: { role:"owner" } });
+    await team2.addUser(user3, { through: { role:"owner" } });
     await team2.addUser(user1, { through: { role:"member" } });
 
     await team3.addUser(user1, { through: { role:"owner" } });
@@ -68,7 +69,7 @@ if (require.main === module) {
             let project1 = await Models.Project.findOne({where: {name:'project1'}})
 
             const authClient = await Controllers.AuthClient.createClientForProject(project1);
-            console.log(authClient);
+            // console.log(authClient);
         }catch(err) {
             console.log(err);
         }

@@ -1,30 +1,59 @@
+const TeamMembers = require("./teamMembers.js");
 /**
  * Team api routes
  *
- * - /api/v1/team
+ * - /api/v1/teams
  *
- * @namespace user
+ * @namespace team
  * @memberof forge.routes.api
  */
 module.exports = async function(app) {
 
-    /**
-     * Get the details of a team
-     * @name /api/v1/team
-     * @static
-     * @memberof forge.routes.api.team
-     */
-    app.get('/:id', async (request, reply) => {
-        const team = await app.db.models.Team.bySlug(request.params.id)
-        if (team) {
-            reply.send(app.db.views.Team.team(team))
-        } else {
-            reply.code(404).type('text/html').send('Not Found')
+
+    app.addHook('preHandler', async (request, reply) => {
+        if (request.params.teamId) {
+            try {
+                request.team = await app.db.models.Team.byId(request.params.teamId)
+                if (!request.team) {
+                    reply.code(404).type('text/html').send('Not Found')
+                }
+            } catch(err) {
+                reply.code(404).type('text/html').send('Not Found')
+            }
         }
     })
 
-    app.get('/:id/projects', async (request, reply) => {
-        const projects = await app.db.models.Project.byTeam(request.params.id)
+    app.register(TeamMembers, { prefix: "/:teamId/members" })
+
+    /**
+     * Get the details of a team
+     * @name /api/v1/teams
+     * @static
+     * @memberof forge.routes.api.team
+     */
+    app.get('/:teamId', async (request, reply) => {
+        reply.send(app.db.views.Team.team(request.team))
+    })
+
+    /**
+     * Get the details of a team - using ?slug=:slug
+     * @name /api/v1/teams
+     * @static
+     * @memberof forge.routes.api.team
+     */
+    app.get('/', async (request, reply) => {
+        if (request.query.slug) {
+            const team = await app.db.models.Team.bySlug(request.query.slug)
+            if (team) {
+                reply.send(app.db.views.Team.team(team))
+                return;
+            }
+        }
+        reply.code(404).type('text/html').send('Not Found')
+    })
+
+    app.get('/:teamId/projects', async (request, reply) => {
+        const projects = await app.db.models.Project.byTeam(request.params.teamId)
         if (projects) {
             const result = app.db.views.Project.teamProjectList(projects);
             reply.send({
@@ -76,6 +105,7 @@ module.exports = async function(app) {
         }
     });
 
+
     // app.get('/teams', async (request, reply) => {
     //     const teams = await app.db.models.Team.forUser(request.session.User);
     //     const result = await app.db.views.Team.teamList(teams);
@@ -86,4 +116,6 @@ module.exports = async function(app) {
     //
     //
     // })
+
+
 }

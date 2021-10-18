@@ -74,7 +74,7 @@ export default {
                 slug: this.input.slug || this.input.defaultSlug
             }
 
-            teamApi.create(this.input).then(result => {
+            teamApi.create(opts).then(result => {
                 this.$store.dispatch('account/refreshTeams');
                 this.$store.dispatch('account/setTeam',result);
                 this.$router.push({name:"Team",params:{id: result.slug}})

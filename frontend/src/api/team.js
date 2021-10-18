@@ -12,13 +12,17 @@ const getTeams = () => {
 }
 
 const getTeam = (team) => {
-    const slug = slugify(team);
-    return client.get(`/api/v1/team/${slug}`).then(res => res.data);
+    let url;
+    if (typeof team === 'object') {
+        url = `/api/v1/teams/?slug=${team.slug}`
+    } else {
+        url = `/api/v1/teams/${team}`
+    }
+    return client.get(url).then(res => res.data);
 }
 
-const getTeamProjects = (team) => {
-    const slug = slugify(team);
-    return client.get(`/api/v1/team/${slug}/projects`).then(res => {
+const getTeamProjects = (teamId) => {
+    return client.get(`/api/v1/teams/${teamId}/projects`).then(res => {
         res.data.projects = res.data.projects.map(r => {
             r.link = { name: 'Project', params: { id: slugify(r.id) }}
             return r;
@@ -27,16 +31,35 @@ const getTeamProjects = (team) => {
     });
 }
 
-const create = async (options) => {
-    return client.post(`/api/v1/team/`, options).then(res => {
+const getTeamMembers = (teamId) => {
+    return client.get(`/api/v1/teams/${teamId}/members`).then(res => {
         return res.data;
     });
 }
 
+const create = async (options) => {
+    return client.post(`/api/v1/teams/`, options).then(res => {
+        return res.data;
+    });
+}
+
+const changeTeamMemberRole = (teamId, userId, role) => {
+    const opts = {
+        role: role
+    }
+    return client.put(`/api/v1/teams/${teamId}/members/${userId}`,opts)
+}
+
+const removeTeamMember = (teamId, userId) => {
+    return client.delete(`/api/v1/teams/${teamId}/members/${userId}`)
+}
 
 export default {
     create,
     getTeam,
     getTeams,
-    getTeamProjects
+    getTeamProjects,
+    getTeamMembers,
+    changeTeamMemberRole,
+    removeTeamMember
 }
