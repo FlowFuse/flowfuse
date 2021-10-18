@@ -59,7 +59,7 @@ describe("User model", function() {
         const team2 = await app.db.models.Team.findOne({where: {name: "BTeam"}});
         const team3 = await app.db.models.Team.findOne({where: {name: "CTeam"}});
 
-        const membership1 = await user.getTeamMembership(team1.id);
+        const membership1 = await user.getTeamMembership(team1.id, true);
         should.equal(membership1.role,"member");
         should.equal(membership1.TeamId,team1.id);
         should.exist(membership1.Team);
@@ -68,6 +68,7 @@ describe("User model", function() {
 
         const membership2 = await user.getTeamMembership(team2.id);
         should.equal(membership2.role,"owner");
+        should.not.exist(membership2.Team);
 
         const membership3 = await user.getTeamMembership(team3.id);
         should.not.exist(membership3);

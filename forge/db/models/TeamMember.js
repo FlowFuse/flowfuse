@@ -23,17 +23,25 @@ module.exports = {
     finders: function(M) {
         return {
             static: {
-                getTeamMembership: async (userId, teamId) => {
+                getTeamMembership: async (userId, teamId, includeTeam) => {
                     if (typeof teamId === 'string') {
                         teamId = M['Team'].decodeHashid(teamId);
                     }
                     if (typeof userId === 'string') {
                         userId = M['User'].decodeHashid(userId);
                     }
-                    return this.findOne({where:{
-                        TeamId: teamId,
-                        UserId: userId
-                    }});
+                    const opts = {
+                        where: {
+                            TeamId: teamId,
+                            UserId: userId
+                        }
+                    }
+                    if (includeTeam) {
+                        opts.include = {
+                            model: M['Team']
+                        }
+                    }
+                    return this.findOne(opts)
                 },
             }
         }

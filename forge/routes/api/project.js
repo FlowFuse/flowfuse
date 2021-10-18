@@ -44,12 +44,11 @@
             }
         }
     }, async (request, reply) => {
-        const teamMembership = await request.session.User.getTeamMembership(request.body.team);
-        const team = teamMembership.get('Team');
+        const teamMembership = await request.session.User.getTeamMembership(request.body.team, true);
         // Assume membership is enough to allow project creation.
         // If we have roles that limit creation, that will need to be checked here.
         if (teamMembership) {
-
+            const team = teamMembership.get('Team');
             const project = await app.db.models.Project.create({
                 name: request.body.name,
                 type: request.body.options.type,
@@ -62,7 +61,7 @@
                 ...request.body.options,
                 ...authClient
             }
-            
+
             await team.addProject(project);
             const container = await app.containers.create(project.id, containerOptions);
 

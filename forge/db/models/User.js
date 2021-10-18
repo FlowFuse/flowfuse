@@ -110,8 +110,8 @@ module.exports = {
                 // get the team membership for the given team
                 // `teamId` can be either a number (the raw id) or a string (the hashid).
                 // TODO: standardize on using hashids externally
-                getTeamMembership: async function(teamId) {
-                    return M['TeamMember'].getTeamMembership(this.id, teamId);
+                getTeamMembership: async function(teamId, includeTeam) {
+                    return M['TeamMember'].getTeamMembership(this.id, teamId, includeTeam);
                 }
             }
         }
