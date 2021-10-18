@@ -59,6 +59,8 @@
 
             const containerOptions = {
                 name: request.body.name,
+                storageURL: process.env['BASE_URL'] + "/storage",
+                storageToken: "aaaa",
                 ...request.body.options,
                 ...authClient
             }

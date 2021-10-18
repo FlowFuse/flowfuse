@@ -14,4 +14,5 @@ module.exports = async function(app) {
     await app.register(require("./auth"))
     await app.register(require("./api"), {prefix: '/api/v1'})
     await app.register(require("./ui"))
+    await app.register(require("./storage"), {prefix: '/storage'})
 }
