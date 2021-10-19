@@ -4,7 +4,7 @@
  */
 
 const { DataTypes,literal } = require('sequelize');
-const { slugify, generateAvatar } = require("../utils");
+const { slugify, generateTeamAvatar } = require("../utils");
 
 module.exports = {
     name: 'Team',
@@ -16,7 +16,7 @@ module.exports = {
     hooks: {
         beforeSave: (team, options) => {
             if (!team.avatar) {
-                team.avatar = generateAvatar(team.name)
+                team.avatar = generateTeamAvatar(team.name)
             }
             if (!team.slug) {
                 team.slug = slugify(team.name)

@@ -12,7 +12,11 @@ module.exports = {
     compareHash: (plain,hashed) => bcrypt.compareSync(plain, hashed),
     md5,
     sha256,
-    generateAvatar: key => {
+    generateUserAvatar: key => {
+        const keyHash = Buffer.from(key).toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')
+        return `${process.env.BASE_URL}/avatar/${keyHash}`;
+    },
+    generateTeamAvatar: key => {
         const keyHash = md5(key.trim().toLowerCase());
         return `//www.gravatar.com/avatar/${keyHash}?d=identicon` //retro mp
     },

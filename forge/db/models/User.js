@@ -2,8 +2,8 @@
  * A User
  * @namespace forge.db.models.User
  */
-const { DataTypes, Op } = require('sequelize');
-const { hash, generateAvatar } = require("../utils");
+const { DataTypes } = require('sequelize');
+const { hash, generateUserAvatar } = require("../utils");
 
 module.exports = {
     name: 'User',
@@ -29,10 +29,15 @@ module.exports = {
     hooks: {
         beforeCreate: (user, options) => {
             if (!user.avatar) {
-                user.avatar = generateAvatar(user.username);
+                user.avatar = generateUserAvatar(user.name || user.username);
             }
             if (!user.name) {
                 user.name = user.username
+            }
+        },
+        beforeUpdate: (user) => {
+            if (user.avatar.startsWith(`${process.env.BASE_URL}/avatar/`)) {
+                user.avatar = generateUserAvatar(user.name || user.username);
             }
         }
     },
