@@ -48,6 +48,9 @@
                     </option>
                 </select>
                 </template>
+                <template v-else-if="hasCustomInput">
+                    <slot name="input"></slot>
+                </template>
                 <template v-else>
                     <input :id="id"
                            :type="type"
@@ -76,16 +79,22 @@ export default {
     setup(props, {slots}) {
         const hasDescription = ref(false)
         const hasAppend = ref(false)
+        const hasCustomInput = ref(false)
+
         if (slots.description && slots.description().length) {
             hasDescription.value = true
         }
         if (slots.append && slots.append().length) {
             hasAppend.value = true
         }
+        if (slots.input && slots.input().length) {
+            hasCustomInput.value = true
+        }
 
         return {
             hasDescription,
-            hasAppend
+            hasAppend,
+            hasCustomInput
         }
     }
 }

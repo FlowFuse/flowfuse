@@ -16,7 +16,7 @@ const getUser = () => {
 }
 
 const changePassword = (old_password, password) => {
-    return client.post('/api/v1/user/change_password',{
+    return client.put('/api/v1/user/change_password',{
         old_password,
         password
     }).then(res => res.data)

@@ -58,6 +58,9 @@ const mutations = {
         state.teams = [];
         state.team = null;
     },
+    setUser(state,user) {
+        state.user = user
+    },
     setTeam(state, team) {
         state.team = team;
     },
@@ -163,6 +166,9 @@ const actions = {
             team = await teamApi.getTeam({slug:team})
         }
         state.commit("setTeam", team);
+    },
+    async setUser(state, user) {
+        state.commit("setUser",user);
     }
 }
 

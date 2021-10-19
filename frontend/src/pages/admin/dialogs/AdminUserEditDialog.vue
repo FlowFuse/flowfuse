@@ -93,7 +93,7 @@ export default {
     },
     computed: {
         formValid() {
-            return this.input.email &&
+            return (this.input.email && !this.errors.email) &&
                    (this.input.username && !this.errors.username)
         }
     },

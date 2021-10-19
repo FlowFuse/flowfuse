@@ -1,3 +1,5 @@
+const sharedUser = require("./shared/users")
+
 /**
  * User api routes
  *
@@ -25,7 +27,7 @@ module.exports = async function(app) {
      * @static
      * @memberof forge.routes.api.user
      */
-    app.post('/change_password', {
+    app.put('/change_password', {
         schema: {
             body: {
                 type: 'object',
@@ -82,12 +84,11 @@ module.exports = async function(app) {
         schema: {
             body: {
                 type: 'object',
-                required: ['name','username','password','password_confirm'],
+                required: ['name','username','password'],
                 properties: {
                     name: { type: 'string' },
                     username: { type: 'string' },
                     password: { type: 'string' },
-                    password_confirm: { type: 'string' },
                     isAdmin: { type: 'boolean' },
                     createDefaultTeam: { type: 'boolean' }
                 }
@@ -96,10 +97,6 @@ module.exports = async function(app) {
     }, async (request, reply) => {
         if (/^(admin|root)$/.test(request.body.username)) {
             reply.code(400).send({error:"invalid username"});
-            return
-        }
-        if (request.body.password !== request.body.password_confirm) {
-            reply.code(400).send({error:"passwords do not match"});
             return
         }
         try {
@@ -130,4 +127,13 @@ module.exports = async function(app) {
         }
     });
 
+    /**
+     * Update user settings
+     * @name /api/v1/user/
+     * @static
+     * @memberof forge.routes.api.user
+     */
+    app.put('/', async (request, reply) => {
+        sharedUser.updateUser(app, request.session.User, request, reply);
+    })
 }
