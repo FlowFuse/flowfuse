@@ -21,11 +21,14 @@
                     <template v-if="item == null">
                         <hr/>
                     </template>
+                    <template v-else-if="item.disabled">
+                        <div :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm',...(item.class||[]),'opacity-20']">{{ item.name }}</div>
+                    </template>
                     <template v-else-if="item.link || item.path">
-                        <router-link :to="item.link || item" :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm text-gray-700']">{{ item.name }}</router-link>
+                        <router-link :to="item.link || item" :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm text-gray-700',...(item.class||[])]">{{ item.name }}</router-link>
                     </template>
                     <template v-else>
-                        <a @click="item.action" :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm text-gray-700']">{{ item.name }}</a>
+                        <a @click="item.action" :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm text-gray-700',...(item.class||[])]">{{ item.name }}</a>
                     </template>
 
                 </MenuItem>

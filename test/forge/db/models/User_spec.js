@@ -8,6 +8,45 @@ describe("User model", function() {
         app = await setup();
 
     })
+
+    it("User email can be null", async function() {
+        await app.db.models.User.create({username: "nullEmail", password: '12345678'});
+        await app.db.models.User.create({username: "nullEmail2", password: '12345678'});
+    })
+
+    it("User email, if set, must be unique", async function() {
+        await app.db.models.User.create({username: "duplicateEmail", email: "duplicate@email.com", password: '12345678'});
+        try {
+            await app.db.models.User.create({username: "duplicateEmail2", email: "duplicate@email.com", password: '12345678'});
+            throw new Error("Created user with duplicate email");
+        } catch(err) {
+            /SequelizeUniqueConstraintError/.test(err.toString()).should.be.true()
+        }
+    })
+
+    it("User email, if set, must be valid email", async function() {
+        try {
+            await app.db.models.User.create({username: "badEmail", email: "not-n-email", password: '12345678'});
+            throw new Error("Created user with invalid email");
+        } catch(err) {
+            /SequelizeValidationError/.test(err.toString()).should.be.true()
+        }
+    })
+
+    it("User password must be at least 8 chars", async function() {
+        try {
+            await app.db.models.User.create({username: "shortPassword", email: "a@b.com", password: '123'});
+            throw new Error("Created user with short password");
+        } catch(err) {
+            / Password too short/.test(err.toString()).should.be.true()
+        }
+    })
+
+    it("User password is hashed", async function() {
+        const user = await app.db.models.User.create({username: "hashedPassword", email: "a@b.com", password: '12345678'});
+        user.password.should.not.equal("12345678")
+    })
+
     it("User.admins returns all admin users", async function() {
         const admins = await app.db.models.User.admins();
         admins.should.have.length(1);
@@ -20,7 +59,7 @@ describe("User model", function() {
         const team2 = await app.db.models.Team.findOne({where: {name: "BTeam"}});
         const team3 = await app.db.models.Team.findOne({where: {name: "CTeam"}});
 
-        const membership1 = await user.getTeamMembership(team1.id);
+        const membership1 = await user.getTeamMembership(team1.id, true);
         should.equal(membership1.role,"member");
         should.equal(membership1.TeamId,team1.id);
         should.exist(membership1.Team);
@@ -29,6 +68,7 @@ describe("User model", function() {
 
         const membership2 = await user.getTeamMembership(team2.id);
         should.equal(membership2.role,"owner");
+        should.not.exist(membership2.Team);
 
         const membership3 = await user.getTeamMembership(team3.id);
         should.not.exist(membership3);

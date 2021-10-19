@@ -9,11 +9,20 @@
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
 
+import Breadcrumbs from '@/mixins/Breadcrumbs';
+
 export default {
-    name: 'OrgSettings',
+    name: 'AdminSettings',
+    mixins: [ Breadcrumbs ],
     data() {
         return {
         }
+    },
+    created() {
+        this.setBreadcrumbs([
+            {label:"Admin", to:{name:"Admin"}},
+            {label:"Settings"}
+        ]);
     },
     components: {
         FormRow,

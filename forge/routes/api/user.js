@@ -1,3 +1,5 @@
+const sharedUser = require("./shared/users")
+
 /**
  * User api routes
  *
@@ -25,7 +27,7 @@ module.exports = async function(app) {
      * @static
      * @memberof forge.routes.api.user
      */
-    app.post('/change_password', {
+    app.put('/change_password', {
         schema: {
             body: {
                 type: 'object',
@@ -73,5 +75,65 @@ module.exports = async function(app) {
             count: result.length,
             projects:result
         })
+    })
+
+    /**
+     * Create a new user
+     */
+    app.post('/', {
+        schema: {
+            body: {
+                type: 'object',
+                required: ['name','username','password'],
+                properties: {
+                    name: { type: 'string' },
+                    username: { type: 'string' },
+                    password: { type: 'string' },
+                    isAdmin: { type: 'boolean' },
+                    createDefaultTeam: { type: 'boolean' }
+                }
+            }
+        }
+    }, async (request, reply) => {
+        if (/^(admin|root)$/.test(request.body.username)) {
+            reply.code(400).send({error:"invalid username"});
+            return
+        }
+        try {
+            const newUser = await app.db.models.User.create({
+                username: request.body.username,
+                name: request.body.name,
+                email: request.body.email,
+                password: request.body.password,
+                admin: !!request.body.isAdmin,
+            });
+
+            if (request.body.createDefaultTeam) {
+                const newTeam = await app.db.models.Team.create({
+                    name: `Team ${request.body.name}`,
+                    slug: request.body.username
+                });
+                await newTeam.addUser(newUser, { through: { role:"owner" } });
+            }
+            reply.send({status: "okay"})
+        } catch(err) {
+            let responseMessage;
+            if (err.errors) {
+                responseMessage = err.errors.map(err => err.message).join(",");
+            } else {
+                responseMessage = err.toString();
+            }
+            reply.code(400).send({error:responseMessage})
+        }
+    });
+
+    /**
+     * Update user settings
+     * @name /api/v1/user/
+     * @static
+     * @memberof forge.routes.api.user
+     */
+    app.put('/', async (request, reply) => {
+        sharedUser.updateUser(app, request.session.User, request, reply);
     })
 }

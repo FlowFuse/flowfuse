@@ -51,8 +51,8 @@ export default {
     methods: {
         async fetchData () {
             this.input.teamName = this.team.name;
-            if (this.team.name) {
-                const data = await teamApi.getTeamProjects(this.team.name);
+            if (this.team.id) {
+                const data = await teamApi.getTeamProjects(this.team.id);
                 this.projectCount = data.count;
             }
         }

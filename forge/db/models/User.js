@@ -3,17 +3,20 @@
  * @namespace forge.db.models.User
  */
 const { DataTypes } = require('sequelize');
-const { hash, generateAvatar } = require("../utils");
+const { hash, generateUserAvatar } = require("../utils");
 
 module.exports = {
     name: 'User',
     schema: {
         username: { type: DataTypes.STRING, allowNull: false, unique: true },
-        name: { type: DataTypes.STRING, allowNull: false },
-        email: { type: DataTypes.STRING, allowNull: false, unique: true},
+        name: { type: DataTypes.STRING },
+        email: { type: DataTypes.STRING, unique: true, validate: { isEmail: true } },
         password: {
             type: DataTypes.STRING,
             set(value) {
+                if (value.length < 8) {
+                    throw new Error("Password too short")
+                }
                 this.setDataValue('password', hash(value));
             }
         },
@@ -26,7 +29,15 @@ module.exports = {
     hooks: {
         beforeCreate: (user, options) => {
             if (!user.avatar) {
-                user.avatar = generateAvatar(user.email);
+                user.avatar = generateUserAvatar(user.name || user.username);
+            }
+            if (!user.name) {
+                user.name = user.username
+            }
+        },
+        beforeUpdate: (user) => {
+            if (user.avatar.startsWith(`${process.env.BASE_URL}/avatar/`)) {
+                user.avatar = generateUserAvatar(user.name || user.username);
             }
         }
     },
@@ -41,8 +52,20 @@ module.exports = {
                 admins: async () => {
                     return this.scope('admins').findAll();
                 },
-                byUsername: async (email) => {
-                    return this.findOne({where:{email},
+                byId: async (hashid) => {
+                    const id = M['User'].decodeHashid(hashid);
+                    return this.findOne({where:{id},
+                        include: {
+                            model: M['Team'],
+                            attributes: ['name'],
+                            through: {
+                                attributes:['role']
+                            }
+                        }
+                    })
+                },
+                byUsername: async (username) => {
+                    return this.findOne({where:{username},
                         include: {
                             model: M['Team'],
                             attributes: ['name'],
@@ -74,36 +97,26 @@ module.exports = {
                         }
                     })
                 },
-                // inTeam: async (name) => {
-                //     return M['User'].findAll({
-                //         include: {
-                //             model: M['Team'],
-                //             attributes: ['name'],
-                //             where: {name},
-                //             through: {
-                //                 attributes:['role']
-                //             }
-                //         }
-                //     })
-                // }
+                inTeam: async (teamHashId) => {
+                    const teamId = M['Team'].decodeHashid(teamHashId);
+                    return M['User'].findAll({
+                        include: {
+                            model: M['Team'],
+                            attributes: ['name'],
+                            where: {id:teamId},
+                            through: {
+                                attributes:['role']
+                            }
+                        }
+                    })
+                }
             },
             instance: {
                 // get the team membership for the given team
                 // `teamId` can be either a number (the raw id) or a string (the hashid).
                 // TODO: standardize on using hashids externally
-                getTeamMembership: async function(teamId) {
-                    if (typeof teamId === 'string') {
-                        teamId = M['Team'].decodeHashid(teamId);
-                    }
-                    const memberships = await this.getTeamMembers({
-                        where: {
-                            TeamId: teamId
-                        },
-                        include: {
-                            model:M['Team']
-                        }
-                    });
-                    return memberships[0]
+                getTeamMembership: async function(teamId, includeTeam) {
+                    return M['TeamMember'].getTeamMembership(this.id, teamId, includeTeam);
                 }
             }
         }

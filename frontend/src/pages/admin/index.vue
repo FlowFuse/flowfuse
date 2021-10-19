@@ -2,7 +2,7 @@
     <div class="forge-block">
         <div class="flex items-center mb-8">
             <div class="flex flex-col">
-                <div class="text-xl font-bold">Organization</div>
+                <div class="text-xl font-bold">Administration</div>
             </div>
         </div>
         <ul class="flex border-b border-gray-700 mb-10 text-gray-500">
@@ -20,15 +20,17 @@
 
 <script>
 import { mapState } from 'vuex'
+import Breadcrumbs from '@/mixins/Breadcrumbs';
 
 const navigation = [
-    { name: "Settings", path: "/organization/settings" },
-    { name: "Users", path: "/organization/users" },
-    { name: "Teams", path: "/organization/teams" }
+    { name: "Settings", path: "/admin/settings" },
+    { name: "Users", path: "/admin/users" },
+    { name: "Teams", path: "/admin/teams" }
 ]
 
 export default {
-    name: 'Organization',
+    name: 'Admin',
+    mixins: [ Breadcrumbs ],
     computed: {
         ...mapState('account',['user'])
     },
@@ -36,6 +38,11 @@ export default {
         return {
             navigation
         }
+    },
+    created() {
+        this.setBreadcrumbs([
+            {label:"Admin", to:{name:"Admin"}}
+        ]);
     }
 }
 </script>

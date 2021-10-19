@@ -15,15 +15,18 @@
  */
 const path = require('path')
 const fs = require('fs')
+const Avatar = require("./avatar");
 
 module.exports = async function(app) {
 
-    const frontendAssetsDir = path.join(__dirname, "../../frontend/dist/")
+    const frontendAssetsDir = path.join(__dirname, "../../../frontend/dist/")
 
     // Check the frontend has been built
     if (!fs.existsSync(path.join(frontendAssetsDir,"index.html"))) {
         throw new Error("'/frontend/dist/index.html' not found. Have you run `npm run build`?")
     }
+
+    app.register(Avatar, { prefix: "/avatar" })
 
     // Setup static file serving for the UI assets.
     app.register(require('fastify-static'), {

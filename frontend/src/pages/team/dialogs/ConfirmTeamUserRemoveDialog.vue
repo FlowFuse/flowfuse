@@ -7,30 +7,24 @@
           <span class="inline-block h-screen align-middle" aria-hidden="true">
             &#8203;
           </span>
-          <TransitionChild
-            as="template"
-            enter="duration-300 ease-out"
-            enter-from="opacity-0 scale-95"
-            enter-to="opacity-100 scale-100"
-            leave="duration-200 ease-in"
-            leave-from="opacity-100 scale-100"
-            leave-to="opacity-0 scale-95"
-          >
+          <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
             <div class="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-lg rounded">
-              <DialogTitle as="h3" class="text-lg font-medium leading-6 text-red-700">Delete project</DialogTitle>
+              <DialogTitle as="h3" class="text-lg font-medium leading-6 text-red-700">Remove user from team</DialogTitle>
                 <form class="space-y-6">
                   <div class="mt-2 space-y-2">
-                      <p class="text-sm text-gray-500">
-                          Are you sure you want to delete this project? Once deleted, there is no going back.
-                      </p>
-                      <p class="text-sm text-gray-500">
-                          Enter the project name '<code>{{project.name}}</code>' to continue.
-                      </p>
+                      <template v-if="ownerCount < 2 && user.role === 'owner'">
+                          <p class="text-sm text-gray-500">You cannot remove <span class="font-bold">{{user.username}}</span> as
+                              they are the only owner of the team.</p>
+                      </template>
+                      <template v-else>
+                          <p class="text-sm text-gray-500">
+                              Are you sure you want to remove <span class="font-bold">{{user.username}}</span> from the team <span class="font-bold">{{team.name}}</span>?
+                          </p>
+                      </template>
                   </div>
-                  <FormRow v-model="input.projectName" id="projectName">Name</FormRow>
                   <div class="mt-4 flex flex-row justify-end">
-                      <button type="button" :disabled="!formValid" class="forge-button-danger ml-4" @click="confirm">Delete</button>
                       <button type="button" class="forge-button-secondary ml-4" @click="close">Cancel</button>
+                      <button type="button" :disabled="ownerCount < 2 && user.role === 'owner'" class="forge-button-danger ml-4" @click="confirm">Remove</button>
                   </div>
               </form>
           </div>
@@ -52,9 +46,10 @@ import {
 } from '@headlessui/vue'
 
 import FormRow from '@/components/FormRow'
+import teamApi from '@/api/team'
 
 export default {
-    name: 'ConfirmProjectDeleteDialog',
+    name: 'ConfirmTeamUserRemoveDialog',
 
     components: {
         TransitionRoot,
@@ -66,24 +61,19 @@ export default {
     },
     data() {
         return {
-            input: {
-                projectName: ""
-            },
-            formValid: false,
-            project: null
-        }
-    },
-    watch: {
-        input: {
-            handler: function(v) {
-                this.formValid = this.project.name === v.projectName
-            },
-            deep: true
+            ownerCount:0,
+            user: null,
+            team: null
         }
     },
     methods: {
-        confirm() {
-            this.$emit('deleteProject')
+        async confirm() {
+            try {
+                await teamApi.removeTeamMember(this.team.id, this.user.id)
+                this.$emit('userRemoved', this.user)
+            } catch(err) {
+                console.warn(err);
+            }
             this.isOpen = false
         }
     },
@@ -94,8 +84,10 @@ export default {
             close() {
                 isOpen.value = false
             },
-            show(project) {
-                this.project = project;
+            show(team, user, ownerCount) {
+                this.user = user;
+                this.team = team;
+                this.ownerCount = ownerCount
                 isOpen.value = true
             },
         }

@@ -1,3 +1,5 @@
+const sharedUser = require("./shared/users")
+
 /**
  * Users api routes
  *
@@ -28,5 +30,35 @@ module.exports = async function(app) {
             count: result.length,
             users:result
         })
+    })
+
+    /**
+     * Get a user's settings
+     * @name /api/v1/users/:id
+     * @static
+     * @memberof forge.routes.api.users
+     */
+    app.get('/:id', async (request, reply) => {
+        const user = await app.db.models.User.byId(request.params.id)
+        if (user) {
+            reply.send(app.db.views.User.userProfile(user))
+        } else {
+            reply.code(404).type('text/html').send('Not Found')
+        }
+    })
+
+    /**
+     * Update user settings
+     * @name /api/v1/users/:id
+     * @static
+     * @memberof forge.routes.api.users
+     */
+    app.put('/:id', async (request, reply) => {
+        const user = await app.db.models.User.byId(request.params.id)
+        if (user) {
+            sharedUser.updateUser(app, user, request, reply);
+        } else {
+            reply.code(404).type('text/html').send('Not Found')
+        }
     })
 }

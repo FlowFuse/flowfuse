@@ -27,7 +27,7 @@
 import projectApi from '@/api/project'
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
-import ConfirmProjectDeleteDialog from '@/components/dialogs/ConfirmProjectDeleteDialog'
+import ConfirmProjectDeleteDialog from './dialogs/ConfirmProjectDeleteDialog'
 
 
 export default {

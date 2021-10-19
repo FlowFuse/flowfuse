@@ -20,9 +20,34 @@ module.exports = {
             where:{ role: "owner" }
         }
     },
+    finders: function(M) {
+        return {
+            static: {
+                getTeamMembership: async (userId, teamId, includeTeam) => {
+                    if (typeof teamId === 'string') {
+                        teamId = M['Team'].decodeHashid(teamId);
+                    }
+                    if (typeof userId === 'string') {
+                        userId = M['User'].decodeHashid(userId);
+                    }
+                    const opts = {
+                        where: {
+                            TeamId: teamId,
+                            UserId: userId
+                        }
+                    }
+                    if (includeTeam) {
+                        opts.include = {
+                            model: M['Team']
+                        }
+                    }
+                    return this.findOne(opts)
+                },
+            }
+        }
+    },
     options: {
         timestamps: false,
-
     },
     associations: function(M) {
         this.belongsTo(M['User']);

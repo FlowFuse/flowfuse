@@ -58,6 +58,9 @@ const mutations = {
         state.teams = [];
         state.team = null;
     },
+    setUser(state,user) {
+        state.user = user
+    },
     setTeam(state, team) {
         state.team = team;
     },
@@ -103,7 +106,7 @@ const actions = {
             }
 
             try {
-                const team = await teamApi.getTeam(teamSlug)
+                const team = await teamApi.getTeam({slug:teamSlug})
                 state.commit('setTeam', team);
                 state.commit('clearPending')
                 if (redirectUrlAfterLogin) {
@@ -133,7 +136,7 @@ const actions = {
     async refreshTeam(state) {
         const currentTeam = state.getters.team;
         if (currentTeam) {
-            const team = await teamApi.getTeam(currenTeam.slug);
+            const team = await teamApi.getTeam(currenTeam.id);
             state.commit('setTeam', team)
         }
     },
@@ -158,11 +161,14 @@ const actions = {
                 window.location = "/"
             })
     },
-    async setTeam(state, team, redirect) {
+    async setTeam(state, team) {
         if (typeof team === 'string') {
-            team = await teamApi.getTeam(team)
+            team = await teamApi.getTeam({slug:team})
         }
         state.commit("setTeam", team);
+    },
+    async setUser(state, user) {
+        state.commit("setUser",user);
     }
 }
 
