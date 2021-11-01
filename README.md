@@ -23,10 +23,9 @@ npm run build
 npm start
 ```
 
-If you're actively developing, then use `npm run build-watch` to have webpack
-automatically rebuild the frontend if you modify any of its files.
-In a second terminal, use `npm run start-watch` that uses nodemon to do the same
-for the core application.
+If you're actively developing, then use `npm run serve` to run the application
+with automatic rebuilds of the front-end, and restarts of the application when
+it is modified.
 
 
 
