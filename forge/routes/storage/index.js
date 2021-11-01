@@ -27,7 +27,7 @@ module.exports = async function(app) {
       }
       response.send(request.body);
     } else {
-      response.sendStatus(404);
+      response.status(404).send();
     }
   });
 
@@ -42,7 +42,7 @@ module.exports = async function(app) {
         response.send([])
       }
     } else {
-      response.sendStatus(404)
+      response.status(404).send();
     }
   });
 
@@ -64,7 +64,7 @@ module.exports = async function(app) {
       }
       response.send(request.body);
     } else {
-      response.sendStatus(404);
+      response.status(404).send();
     }
   });
 
@@ -99,7 +99,7 @@ module.exports = async function(app) {
       }
       response.send(request.body);
     } else {
-      response.sendStatus(404);
+      response.status(404).send();
     }
   });
 
@@ -134,7 +134,7 @@ module.exports = async function(app) {
       }
       response.send(request.body);
     } else {
-      response.sendStatus(404);
+      response.status(404).send();
     }
   });
 
@@ -147,7 +147,7 @@ module.exports = async function(app) {
         response.send(sessions)
       }
     } else {
-      response.sendStatus(404)
+      response.status(404).send();
     }
   });
 
