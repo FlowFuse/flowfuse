@@ -5,8 +5,9 @@
     "private": true,
     "scripts": {
         "start": "node forge/app.js",
-        "start-watch": "NODE_ENV=development nodemon -w forge -w ee/forge -i forge/containers/localfs_root forge/app.js",
         "build": "webpack -c ./config/webpack.config.js",
+        "serve": "npm-run-all --parallel build-watch start-watch",
+        "start-watch": "NODE_ENV=development nodemon -w forge -w ee/forge -i forge/containers/localfs_root forge/app.js",
         "build-watch": "webpack --mode=development -c ./config/webpack.config.js --watch",
         "docs": "jsdoc -c ./config/jsdoc.json",
         "test": "mocha ee/test/**/*_spec.js test/**/*_spec.js"
@@ -65,6 +66,7 @@
         "mocha": "^9.0.3",
         "mocha-cli": "^1.0.1",
         "nodemon": "^2.0.9",
+        "npm-run-all": "^4.1.5",
         "postcss": "^8.3.5",
         "postcss-loader": "^6.1.1",
         "postcss-preset-env": "^6.7.0",
