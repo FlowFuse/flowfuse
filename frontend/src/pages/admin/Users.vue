@@ -34,7 +34,7 @@ export default {
             userCount: 0,
             users: [],
             columns: [
-                {name: "User", component: { is: markRaw(UserCell) } },
+                {name: "User", class: ['flex-grow'], component: { is: markRaw(UserCell) } },
                 {name: 'Admin',class: ['w-32'], property: 'admin'},
                 {name: '', class: ['w-16'], component: { is: markRaw(AdminUserEditButton)}}
             ]

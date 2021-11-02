@@ -1,4 +1,5 @@
 <template>
+    <p>Unused Component!</p>
     <ItemTable :items="projects" :columns="columns" />
 </template>
 

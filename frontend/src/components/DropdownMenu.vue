@@ -4,7 +4,7 @@
             <MenuButton :class="[buttonClass ? buttonClass : 'forge-button', !hasLabel?'px-1':'']">
                 <slot></slot>
                 <span class="sr-only">{{ alt }}</span>
-                <ChevronDownIcon :class="[hasLabel?'ml-2 -mr-1 ':'','w-5 h-5 my-1 text-violet-200 hover:text-violet-100']" aria-hidden="true" />
+                <ChevronDownIcon :class="[hasLabel?'ml-2 -mr-1 ':'','w-5 h-5 my-1 text-gray-400']" aria-hidden="true" />
             </MenuButton>
         </div>
         <transition
@@ -15,8 +15,8 @@
             leave-from-class="transform scale-100 opacity-100"
             leave-to-class="transform scale-95 opacity-0"
         >
-        <MenuItems :class="[edge === 'left' ? 'left-0 origin-top-left' : 'right-0 origin-top-right','z-50 absolute w-56 mt-1 bg-white divide-y divide-gray-100 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none']">
-            <div class="px-1 py-1">
+        <MenuItems :class="[edge === 'left' ? 'left-0 origin-top-left' : 'right-0 origin-top-right','z-50 absolute w-56 mt-1 bg-white divide-y divide-gray-100 rounded overflow-hidden shadow-lg ring-1 ring-black ring-opacity-10 focus:outline-none']">
+            <div class="apx-1 apy-1">
                 <MenuItem v-for="item in options" v-slot="{ active }">
                     <template v-if="item == null">
                         <hr/>
@@ -25,10 +25,18 @@
                         <div :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm',...(item.class||[]),'opacity-20']">{{ item.name }}</div>
                     </template>
                     <template v-else-if="item.link || item.path">
-                        <router-link :to="item.link || item" :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm text-gray-700',...(item.class||[])]">{{ item.name }}</router-link>
+                        <router-link :to="item.link || item" :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm text-gray-700',...(item.class||[])]">
+                            <component v-if="item.icon" class="w-4 inline" :is="item.icon"></component>
+                            <img v-if="item.imgUrl" :src="item.imgUrl" class="h-4 v-4 inline rounded mr-1"/>
+                            {{ item.name }}
+                        </router-link>
                     </template>
                     <template v-else>
-                        <a @click="item.action" :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm text-gray-700',...(item.class||[])]">{{ item.name }}</a>
+                        <a @click="item.action" :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm text-gray-700',...(item.class||[])]">
+                            <component v-if="item.icon" class="w-4 inline" :is="item.icon"></component>
+                            <img v-if="item.imgUrl" :src="item.imgUrl" class="h-4 v-4 inline rounded mr-1"/>
+                            {{ item.name }}
+                        </a>
                     </template>
 
                 </MenuItem>

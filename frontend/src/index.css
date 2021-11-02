@@ -95,4 +95,45 @@
         border-bottom-left-radius: 0;
         border-left: none;
     }
+
+    .forge-nav-item:not(.forge-nav-item-active) {
+        @apply text-sm;
+        @apply sm:pb-5;
+        @apply pb-3;
+    }
+
+    .forge-nav-item-active {
+        @apply text-sm;
+        @apply sm:pb-4;
+        @apply pb-2;
+        @apply text-blue-700;
+        @apply border-b-4;
+        @apply border-blue-700;
+    }
+    .forge-badge {
+        @apply border;
+        @apply rounded-full;
+        @apply text-xs;
+        @apply px-2;
+        @apply py-1;
+        @apply inline-flex;
+        @apply items-center;
+    }
+    .forge-status-error {
+        @apply bg-red-200;
+        @apply border-red-400;
+    }
+    .forge-status-starting {
+        @apply bg-green-100;
+        @apply border-green-300;
+        @apply border-dashed;
+    }
+    .forge-status-safe {
+        @apply bg-yellow-200;
+        @apply border-yellow-400;
+    }
+    .forge-status-running {
+        @apply bg-green-200;
+        @apply border-green-400;
+    }
 }

@@ -13,7 +13,7 @@ import FormHeading from '@/components/FormHeading'
 import ItemTable from '@/components/tables/ItemTable'
 import Breadcrumbs from '@/mixins/Breadcrumbs'
 import UserCell from '@/components/tables/cells/UserCell'
-import TeamUserEditButton from './TeamUserEditButton'
+import TeamUserEditButton from './components/TeamUserEditButton'
 import { markRaw } from "vue"
 import ChangeTeamRoleDialog from './dialogs/ChangeTeamRoleDialog'
 import ConfirmTeamUserRemoveDialog from './dialogs/ConfirmTeamUserRemoveDialog'
@@ -62,7 +62,7 @@ export default {
             this.isOwner = currentUser && currentUser.role === 'owner';
 
             this.columns = [
-                {name: 'User', component: { is: markRaw(UserCell) }},
+                {name: 'User', class:['flex-grow'], component: { is: markRaw(UserCell) }},
                 {name: 'Role',class: ['w-32'], property: 'role'}
             ]
 

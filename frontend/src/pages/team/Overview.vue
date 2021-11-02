@@ -5,7 +5,6 @@
                 <router-link to="./projects">Projects</router-link>
                 <template v-slot:tools>
                     <router-link to="./projects/create" class="forge-button pl-1 pr-2"><PlusSmIcon class="w-4" /><span class="text-xs">Create Project</span></router-link>
-                    <router-link to="./projects" class="forge-button-tertiary ml-2 px-1"><ChevronRightIcon class="w-4" /></router-link>
                 </template>
             </FormHeading>
             <ProjectSummaryList :projects="projects" :team="team" />
@@ -13,8 +12,7 @@
         <div class="md:w-48 p-2 md:ml-8">
             <FormHeading>
                 Members
-                <template v-slot:tools>
-                    <router-link to="./members" class="forge-button-tertiary px-2"><UsersIcon class="w-4" /></router-link></template>
+                <template v-slot:tools><router-link to="./members" class="forge-button-tertiary px-2"><UsersIcon class="w-4" /></router-link></template>
             </FormHeading>
             <MemberSummaryList :users="users" />
         </div>
@@ -25,8 +23,8 @@
 
 import teamApi from '@/api/team'
 import FormHeading from '@/components/FormHeading'
-import MemberSummaryList from './MemberSummaryList'
-import ProjectSummaryList from '@/components/ProjectSummaryList'
+import MemberSummaryList from './components/MemberSummaryList'
+import ProjectSummaryList from './components/ProjectSummaryList'
 import { PlusSmIcon, UsersIcon, ChevronRightIcon } from '@heroicons/vue/outline'
 
 export default {

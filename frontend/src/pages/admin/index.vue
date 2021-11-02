@@ -1,10 +1,5 @@
 <template>
     <div class="forge-block">
-        <div class="flex items-center mb-8">
-            <div class="flex flex-col">
-                <div class="text-xl font-bold">Administration</div>
-            </div>
-        </div>
         <ul class="flex border-b border-gray-700 mb-10 text-gray-500">
             <template v-for="(item, itemIdx) in navigation" :key="item.name">
                 <li class="mr-8 flex">
