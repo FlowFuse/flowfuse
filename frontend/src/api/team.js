@@ -1,5 +1,6 @@
 import client from './client';
 import slugify from '@/utils/slugify';
+import daysSince from '@/utils/daysSince';
 
 const getTeams = () => {
     return client.get('/api/v1/user/teams').then(res => {
@@ -24,7 +25,10 @@ const getTeam = (team) => {
 const getTeamProjects = (teamId) => {
     return client.get(`/api/v1/teams/${teamId}/projects`).then(res => {
         res.data.projects = res.data.projects.map(r => {
+            r.createdSince = daysSince(r.createdAt)
+            r.updatedSince = daysSince(r.updatedAt)
             r.link = { name: 'Project', params: { id: slugify(r.id) }}
+            r.status = ['running','stopped','safe','error','starting'][Math.floor(Math.random()*5)]
             return r;
         })
         return res.data;

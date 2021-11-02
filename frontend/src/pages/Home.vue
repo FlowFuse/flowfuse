@@ -6,13 +6,7 @@
 
 <script>
 
-import projectApi from '@/api/project'
-import teamApi from '@/api/team'
 import { mapState } from 'vuex'
-import TeamsTable from '@/components/tables/TeamsTable'
-import FormHeading from '@/components/FormHeading'
-import CreateProjectButton from "@/components/CreateProjectButton"
-import ProjectSummaryList from '@/components/ProjectSummaryList'
 import Logo from "@/components/Logo"
 
 export default {
@@ -43,10 +37,6 @@ export default {
         }
     },
     components: {
-        ProjectSummaryList,
-        TeamsTable,
-        FormHeading,
-        CreateProjectButton,
         Logo
     }
 }

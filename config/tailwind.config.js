@@ -7,6 +7,13 @@ module.exports = {
             "frontend/src/**/*.js",
             "frontend/src/**/*.vue"
         ],
+        safelist: [
+            'forge-status-stopped',
+            'forge-status-error',
+            'forge-status-safe',
+            'forge-status-running',
+            'forge-status-starting'
+        ]
     },
     darkMode: false, // or 'media' or 'class'
     theme: {

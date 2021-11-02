@@ -6,8 +6,8 @@
 <script>
 
 import teamApi from '@/api/team'
-import TeamsTable from '@/components/tables/TeamsTable'
-import CreateTeamButton from '@/components/CreateTeamButton'
+import TeamsTable from './components/TeamsTable'
+import CreateTeamButton from './components/CreateTeamButton'
 
 export default {
     name: 'AccountTeams',

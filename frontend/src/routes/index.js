@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+import { CogIcon, AdjustmentsIcon } from '@heroicons/vue/outline'
+
 import store from '@/store'
 import teamApi from '@/api/team'
 
@@ -19,6 +21,8 @@ import Project from "@/pages/project/index.vue"
 import ProjectOverview from "@/pages/project/Overview.vue"
 import ProjectSettings from "@/pages/project/Settings.vue"
 import ProjectDebug from "@/pages/project/Debug.vue"
+import ProjectDeploys from "@/pages/project/Deploys.vue"
+import ProjectAuditLog from "@/pages/project/AuditLog.vue"
 import CreateProject from "@/pages/project/create.vue"
 
 
@@ -132,6 +136,8 @@ const routes = [
         children: [
             { path: 'overview', component: ProjectOverview },
             { path: 'settings', component: ProjectSettings },
+            { path: 'deploys', component: ProjectDeploys},
+            { path: 'audit-log', component: ProjectAuditLog},
             { path: 'debug', component: ProjectDebug }
         ],
     },
@@ -145,6 +151,7 @@ const routes = [
         path: '/account',
         redirect: '/account/settings',
         name: 'User Settings',
+        icon: CogIcon,
         component: Account,
         children: [
             { path: 'settings', component: AccountSettings },
@@ -166,6 +173,7 @@ const routes = [
         path: '/admin/',
         redirect: '/admin/settings',
         name: 'Admin',
+        icon: AdjustmentsIcon,
         component: Admin,
         children: [
             { path: 'settings', component: AdminSettings },

@@ -13,11 +13,20 @@
 </template>
 
 <script>
+import { markRaw } from "vue"
 import { mapState } from 'vuex'
 import teamApi from '@/api/team'
 import FormHeading from '@/components/FormHeading'
 import ItemTable from '@/components/tables/ItemTable'
 import CreateProjectButton from "@/components/CreateProjectButton"
+import { ExternalLinkIcon } from '@heroicons/vue/outline'
+
+import ProjectStatusBadge from "@/pages/project/components/ProjectStatusBadge"
+
+const OpenEditorLink = {
+    template: `<ExternalLinkIcon class="w-4 h-4"/>`,
+    components: { ExternalLinkIcon }
+}
 
 export default {
     name: 'TeamProjects',
@@ -26,10 +35,10 @@ export default {
             projectCount: 0,
             projects: [],
             columns: [
-                {name: 'Name', property: 'name', link: 'link'},
-                {name: 'Updated', property: 'updatedSince'},
-                {name: 'Team', property: 'teamName', link: 'teamLink'},
-                {name: 'Editor', value:"Open Editor...", external: true, link: 'url'}
+                {name: 'Name',   class:['flex-grow'],property: 'name', link: 'link', class:"flex-grow"},
+                {name: 'Status', class:['w-44'], component: {is: markRaw(ProjectStatusBadge)}},
+                {name: 'Updated',class:['w-44','text-xs'],property: 'updatedSince'},
+                {name: '', class: ['w-14'], linkClass:['forge-button-inline', 'px-2', 'py-2'], component: {is: markRaw(OpenEditorLink)}, external: true, link: 'url'}
             ]
         }
     },
@@ -52,7 +61,9 @@ export default {
     components: {
         ItemTable,
         FormHeading,
-        CreateProjectButton
+        CreateProjectButton,
+        ExternalLinkIcon,
+        ProjectStatusBadge
     }
 }
 </script>

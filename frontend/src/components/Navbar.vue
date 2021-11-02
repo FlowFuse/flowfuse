@@ -1,8 +1,8 @@
 <template>
     <Disclosure as="nav" class="bg-white" v-slot="{ open }">
-        <div class="m-w-screen mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="m-w-screen mx-auto px-4 sm:px-6 lg:px-8 bg-white">
             <div class="flex items-center justify-between h-16">
-                <div class="hidden md:flex flex-grow items-center  bg-white text-gray-500">
+                <div class="hidden md:flex flex-grow items-center text-gray-500">
                     <router-link to="/" class="forge-button-inline px-2 flex items-center mr-2">
                         <HomeIcon class="h-5 w-5 my-1" aria-hidden="true" />
                     </router-link>

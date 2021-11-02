@@ -1,11 +1,17 @@
 <template>
-    <div class="grid grid-cols-2 gap-2">
+    <div class="grid md:grid-cols-2 gap-2">
         <template v-if="projects && projects.length > 0">
             <div class="forge-button-tertiary text-xs" v-for="project in projects">
-                <router-link :to="`/project/${project.id}`" class="px-1 py-4 flex w-full">
+                <router-link :to="`/project/${project.id}`" class="px-1 py-1 flex w-full">
                     <div class="flex-grow">
-                        <div class="text-base text-gray-800">{{project.name}}</div>
-                        <div v-if="showTeam" class="pt-3 text-xs text-gray-400">{{project.team.name}}</div>
+                        <div class="flex items-center mt-2">
+                            <TemplateIcon class="w-6 h-6 mr-4" />
+                            <div class="text-base text-gray-800">{{project.name}}</div>
+                        </div>
+                        <div class="flex space-x-2 mt-4">
+                            <ProjectStatusBadge :status="project.status" />
+                            <div class="forge-badge">Updated: {{project.updatedSince}}</div>
+                        </div>
                     </div>
                     <div class="flex">
                         <ChevronRightIcon class="w-3" />
@@ -29,18 +35,21 @@
 </template>
 
 <script>
-
+import ProjectStatusBadge from "@/pages/project/components/ProjectStatusBadge"
 import CreateProjectButton from "@/components/CreateProjectButton"
-import { PlusSmIcon, ChevronRightIcon, ExternalLinkIcon } from '@heroicons/vue/outline'
+import { PlusSmIcon, ChevronRightIcon, ExternalLinkIcon, TemplateIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'MemberProjectSummaryList',
-    props:[ "projects", "team", "showTeam"],
+    props:[ "projects", "team" ],
     components: {
+        ProjectStatusBadge,
+
         ExternalLinkIcon,
         ChevronRightIcon,
         CreateProjectButton,
-        PlusSmIcon
+        PlusSmIcon,
+        TemplateIcon,
     }
 }
 </script>

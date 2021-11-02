@@ -2,19 +2,29 @@
 <div class="text-sm w-full border rounded border-gray-300 mb-4">
     <div class="flex font-medium bg-gray-100 items-center rounded-t">
         <template v-for="(col, colIdx) in columns" :key="col.name">
-            <div class="p-3" :class="[{'flex-grow':colIdx == 0},...(col.class||[])]">{{ col.name }}</div>
+            <div class="p-3" :class="col.class">{{ col.name }}</div>
         </template>
     </div>
     <template v-for="(item, itemIdx) in items">
         <div class="flex border-t border-gray-300 items-center hover:bg-blue-100">
             <template v-for="(col, colIdx) in columns" :key="col.name">
-                <div class="p-3 pl-4" :class="[{'flex-grow':colIdx == 0},...(col.class||[])]">
-                    <template v-if="col.component">
-                        <component :is="col.component.is" v-bind="item"></component>
+                <div class="p-3 pl-4" :class="col.class">
+                    <template v-if="col.link && ((typeof col.link === 'boolean' && item.link) || (item[col.link]))">
+                        <router-link v-if="!col.external" :to="(typeof col.link === 'boolean' && item.link) || item[col.link]" :class="col.linkClass">
+                            <template v-if="col.component">
+                                <component :is="col.component.is" v-bind="item"></component>
+                            </template>
+                            <template v-else>{{ col.value || item[col.property] }}</template>
+                        </router-link>
+                        <a v-else :href="(typeof col.link === 'boolean' && item.link) || item[col.link]" target="_blank" :class="col.linkClass">
+                            <template v-if="col.component">
+                                <component :is="col.component.is" v-bind="item"></component>
+                            </template>
+                            <template v-else>{{ col.value || item[col.property] }}</template>
+                        </a>
                     </template>
-                    <template v-else-if="col.link && ((typeof col.link === 'boolean' && item.link) || (item[col.link]))">
-                        <router-link v-if="!col.external" :to="(typeof col.link === 'boolean' && item.link) || item[col.link]">{{ col.value || item[col.property] }}</router-link>
-                        <a v-else :href="(typeof col.link === 'boolean' && item.link) || item[col.link]" target="_blank">{{ col.value || item[col.property] }}</a>
+                    <template v-else-if="col.component">
+                        <component :is="col.component.is" v-bind="item"></component>
                     </template>
                     <template v-else>{{ item[col.property] }}</template>
                 </div>

@@ -1,13 +1,11 @@
 <template>
-    <div class="min-h-screen flex flex-col bg-gray-500 ">
+    <div class="min-h-screen flex flex-col bg-gray-300 ">
         <div class="flex-grow">
             <template v-if="user">
                 <Navbar />
                 <main>
-                    <div class="max-w-7xl mx-auto">
-                        <div class="mx-2 sm:mx-8 my-2 sm:my-8">
-                            <router-view></router-view>
-                        </div>
+                    <div class="max-w-7xl mx-2 sm:mx-6 my-2 sm:my-8">
+                        <router-view></router-view>
                     </div>
                 </main>
             </template>

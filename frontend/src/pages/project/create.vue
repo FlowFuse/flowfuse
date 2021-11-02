@@ -63,7 +63,13 @@ export default {
         if (this.currentTeam == null) {
             this.currentTeam = this.teams[0].value;
         }
-        this.clearBreadcrumbs();
+
+        if (this.currentTeam) {
+            this.setBreadcrumbs([
+                { type: 'TeamLink'},
+                { label: 'Create project' }
+            ])
+        }
         setTimeout(() => {
             // There must be a better Vue way of doing this, but I can't find it.
             // Without the setTimeout, the select box doesn't update

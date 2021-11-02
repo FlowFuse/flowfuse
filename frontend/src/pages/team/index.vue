@@ -1,22 +1,19 @@
 <template>
     <div class="forge-block" v-if="team">
-        <div>
-            <div class="flex items-center mb-8">
-                <div class="mr-3"><img :src="team.avatar" class="h-14 v-14 rounded-md"/></div>
-                <div class="flex flex-col">
-                    <div class="text-xl font-bold">{{ team.name }}</div>
-                </div>
-            </div>
-            <ul class="flex border-b border-gray-700 -mt-2 mb-10 text-gray-500">
-                <template v-for="(item, itemIdx) in navigation" :key="item.name">
-                    <li class="mr-8 flex">
-                        <router-link :to="item.path" class="text-sm sm:pb-3 pb-1" active-class="text-blue-700 border-b-4 border-blue-700">{{ item.name }}</router-link>
-                    </li>
-                </template>
-            </ul>
-        </div>
-
-        <div class="text-sm px-4 sm:px-6 lg:px-8 mt-8">
+        <ul class="flex flex-wrap items-end border-b border-gray-300 mb-5 text-gray-500">
+            <li class="w-full md:w-auto mb-2 mr-8">
+                <router-link :to="navigation[0]?navigation[0].path:''" class="flex items-center">
+                    <div class="mr-3 rounded"><img :src="team.avatar" class="h-6 v-6 rounded-md"/></div>
+                    <div class="text-gray-800 text-xl font-bold">{{ team.name }}</div>
+                </router-link>
+            </li>
+            <template v-for="(item, itemIdx) in navigation" :key="item.name">
+                <li class="mr-8 flex">
+                    <router-link :to="item.path" class="forge-nav-item" active-class="forge-nav-item-active">{{ item.name }}</router-link>
+                </li>
+            </template>
+        </ul>
+        <div class="text-sm px-0 mt-4">
             <router-view :team="team"></router-view>
         </div>
     </div>
@@ -56,8 +53,8 @@ export default {
                 this.navigation.push({ name: "Settings", path: `/team/${this.team.slug}/settings` });
                 // }
                 this.setBreadcrumbs([
-                    { type: "TeamPicker" },
-                    { type: "CreateProject" }
+                    { type: "TeamPicker" }
+                    // { type: "CreateProject" }
                 ])
             }
         }
