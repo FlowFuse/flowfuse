@@ -4,7 +4,7 @@ const fastify = require('fastify')
 const db = require("./db")
 const routes = require('./routes')
 const config = require("./config");
-const license = require("../ee/forge/licensing");
+const license = require("./licensing");
 const containers = require('./containers');
 
 /**

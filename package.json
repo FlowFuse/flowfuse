@@ -10,7 +10,7 @@
         "start-watch": "NODE_ENV=development nodemon -w forge -w ee/forge -i forge/containers/localfs_root forge/app.js",
         "build-watch": "webpack --mode=development -c ./config/webpack.config.js --watch",
         "docs": "jsdoc -c ./config/jsdoc.json",
-        "test": "mocha ee/test/**/*_spec.js test/**/*_spec.js"
+        "test": "mocha test/**/*_spec.js"
     },
     "repository": {
         "type": "git",
