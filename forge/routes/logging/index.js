@@ -18,9 +18,8 @@ module.exports = async function (app) {
     }
 
     let event = await app.db.models.AuditLog.create({body: JSON.stringify(auditEvent.event)});
-    let project = await app.db.models.Project.byId(id);
 
-    event.setProject(project);
+    event.ProjectId = id;
     if (user) {
       event.setUser(user);
     }
