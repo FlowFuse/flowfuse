@@ -10,6 +10,8 @@ const containers = require('./containers');
 const cookie = require('fastify-cookie');
 const csrf = require('fastify-csrf');
 
+const postoffice = require('./postoffice');
+
 /**
   * The main entry point to the FlowForge application.
   *
@@ -47,6 +49,8 @@ const csrf = require('fastify-csrf');
     await server.register(license);
     // Routes : the HTTP routes
     await server.register(routes)
+    // Post Office : handles email
+    server.register(postoffice);
     // Containers:
     await server.register(containers);
 
