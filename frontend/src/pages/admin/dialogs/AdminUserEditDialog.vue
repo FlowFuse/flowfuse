@@ -31,6 +31,10 @@
                       <button type="button" class="forge-button-secondary ml-4" @click="close">Cancel</button>
                       <button type="button" :disabled="!formValid" class="forge-button ml-4" @click="confirm">Save</button>
                   </div>
+                  <hr />
+                  <FormHeading class="text-red-700">Danger Zone</FormHeading>
+                  <div><button type="button" class="forge-button-danger ml-4" @click="expirePassword">Expire password</button></div>
+                  <!-- <div><button type="button" class="forge-button-danger ml-4" @click="expireSessions">Expire active sessions</button></div> -->
               </form>
           </div>
           </TransitionChild>
@@ -53,6 +57,7 @@ import {
     DialogTitle,
 } from '@headlessui/vue'
 
+import FormHeading from '@/components/FormHeading'
 import FormRow from '@/components/FormRow'
 
 export default {
@@ -65,6 +70,7 @@ export default {
         DialogOverlay,
         DialogTitle,
         FormRow,
+        FormHeading,
         LockClosedIcon
     },
     data() {
@@ -142,6 +148,13 @@ export default {
             } else {
                 this.isOpen = false
             }
+        },
+        expirePassword() {
+            usersApi.updateUser(this.user.id, {password_expired: true}).then((response) => {
+                this.isOpen = false;
+            }).catch(err => {
+                console.log(err.response.data);
+            });
         }
     },
     setup() {

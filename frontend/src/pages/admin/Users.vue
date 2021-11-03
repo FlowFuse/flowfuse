@@ -35,8 +35,9 @@ export default {
             users: [],
             columns: [
                 {name: "User", class: ['flex-grow'], component: { is: markRaw(UserCell) } },
-                {name: 'Admin',class: ['w-32'], property: 'admin'},
-                {name: '', class: ['w-16'], component: { is: markRaw(AdminUserEditButton)}}
+                {name: 'Password Expired',class: ['w-32','text-center'], property: 'password_expired'},
+                {name: 'Admin',class: ['w-32','text-center'], property: 'admin'},
+                {name: '', class: ['w-16','text-center'], component: { is: markRaw(AdminUserEditButton)}}
             ]
         }
     },

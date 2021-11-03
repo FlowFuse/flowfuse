@@ -49,4 +49,27 @@ describe("User controller", function() {
             throw new Error("Password changed with invalid oldPassword")
         })
     });
+
+    describe("expirePassword", function() {
+        it("expires a users password", async function() {
+            const user = await app.db.models.User.byUsername("alice");
+            user.password_expired.should.be.false();
+            await app.db.controllers.User.expirePassword(user);
+            user.password_expired.should.be.true();
+
+            const otherUser = await app.db.models.User.byUsername("bob");
+            otherUser.password_expired.should.be.false();
+        })
+        it("expires all users passwords", async function() {
+            let user = await app.db.models.User.byUsername("alice");
+            user.password_expired.should.be.false();
+            await app.db.controllers.User.expirePassword();
+
+            user = await app.db.models.User.byUsername("alice");
+            user.password_expired.should.be.true();
+
+            const otherUser = await app.db.models.User.byUsername("bob");
+            otherUser.password_expired.should.be.true();
+        })
+    });
 })

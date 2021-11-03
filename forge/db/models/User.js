@@ -20,6 +20,7 @@ module.exports = {
                 this.setDataValue('password', hash(value));
             }
         },
+        password_expired: { type: DataTypes.BOOLEAN, defaultValue: false },
         admin: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
         avatar: {type: DataTypes.STRING }
     },
