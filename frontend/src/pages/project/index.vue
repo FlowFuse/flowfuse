@@ -1,17 +1,12 @@
 <template>
     <div class="forge-block">
-        <ul class="flex flex-wrap items-end border-b border-gray-300 mb-5 text-gray-500">
-            <li class="w-full md:w-auto mb-2 mr-8">
+        <SectionTopMenu :options="navigation">
+            <template v-slot:hero>
                 <router-link :to="navigation[0]?navigation[0].path:''" class="flex items-center">
                     <div class="text-gray-800 text-xl font-bold">{{ project.name }}</div>
                 </router-link>
-            </li>
-            <template v-for="(item, itemIdx) in navigation" :key="item.name">
-                <li class="mr-8 flex">
-                    <router-link :to="item.path" class="forge-nav-item" active-class="forge-nav-item-active">{{ item.name }}</router-link>
-                </li>
             </template>
-        </ul>
+        </SectionTopMenu>
         <div class="text-sm px-0 mt-4">
             <router-view :project="project"></router-view>
         </div>
@@ -21,6 +16,7 @@
 <script>
 import projectApi from '@/api/project'
 import Breadcrumbs from '@/mixins/Breadcrumbs';
+import SectionTopMenu from '@/components/SectionTopMenu';
 
 export default {
     name: 'Project',
@@ -59,8 +55,9 @@ export default {
             { type: 'TeamLink'},
             {label: this.project.name /*, to: { name: "Project", params: {id:this.project.id}} */}
         ])
-
-
+    },
+    components: {
+        SectionTopMenu
     }
 }
 </script>

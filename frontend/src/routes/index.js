@@ -9,6 +9,8 @@ import Home from "@/pages/Home.vue"
 import Account from "@/pages/account/index.vue"
 import AccountSettings from "@/pages/account/Settings.vue"
 import AccountSecurity from "@/pages/account/Security.vue"
+import AccountSecurityChangePassword from "@/pages/account/Security/ChangePassword.vue"
+import AccountSecuritySessions from "@/pages/account/Security/Sessions.vue"
 import AccountTeams from "@/pages/account/Teams.vue"
 
 import Admin from "@/pages/admin/index.vue"
@@ -156,7 +158,10 @@ const routes = [
         children: [
             { path: 'settings', component: AccountSettings },
             { path: 'teams', component: AccountTeams },
-            { path: 'security', component: AccountSecurity }
+            { path: 'security', component: AccountSecurity, redirect: '/account/security/password', children: [
+                { path: 'password', component: AccountSecurityChangePassword },
+                { path: 'sessions', component: AccountSecuritySessions }
+            ]}
         ],
     },
 

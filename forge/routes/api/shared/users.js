@@ -13,9 +13,14 @@ module.exports = {
                 user.username = request.body.username;
             }
             if (request.session.User.admin) {
-                // Only admin users can modify the admin flag
+                // Settings only an admin can modify
+
                 if (request.body.hasOwnProperty('admin')) {
                     user.admin = request.body.admin;
+                }
+
+                if (request.body.password_expired === true) {
+                    user.password_expired = true;
                 }
             }
             await user.save();

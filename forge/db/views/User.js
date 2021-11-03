@@ -18,6 +18,9 @@ module.exports = {
             'admin',
             'createdAt'
         ].forEach(p => result[p] = user[p])
+        if (user.password_expired) {
+            result.password_expired = true;
+        }
         return result
     },
 
