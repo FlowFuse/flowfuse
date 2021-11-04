@@ -14,15 +14,38 @@ module.exports = fp(async function(app, opts, next) {
 
     // TODO: load license from local file or app.config.XYZ
 
-    try {
-        const license = await loader.verifyLicense(devLicense);
-        app.decorate("license", license);
-        console.log("License verified:")
-        console.log(" Org:    ",license.organisation)
-        console.log(" Tier:   ",license.tier)
-        console.log(" Expires:",license.expiresAt.toISOString())
-    } catch(err) {
-        throw new Error("Failed to load license: "+err.toString());
+    let userLicense = await app.settings.get('license');
+
+    // if (!userLicense) {
+    //     console.log("No user-provided license found - using development license")
+    //     userLicense = devLicense;
+    // }
+    let activeLicense = null;
+
+    const licenseApi = {
+        apply: async (license) => {
+            activeLicense = await loader.verifyLicense(license);
+            console.log("License verified:")
+            console.log(" Org:    ",activeLicense.organisation)
+            console.log(" Tier:   ",activeLicense.tier)
+            console.log(" Expires:",activeLicense.expiresAt.toISOString())
+        },
+        active: () => activeLicense !== null,
+        get: (key) => {
+            return activeLicense && activeLicense[key]
+        }
     }
+
+    if (userLicense) {
+        try {
+            licenseApi.apply(userLicense)
+        } catch(err) {
+            throw new Error("Failed to apply license: "+err.toString());
+        }
+    } else {
+        console.log("No license applied");
+    }
+    app.decorate("license", licenseApi);
+
     next();
 });

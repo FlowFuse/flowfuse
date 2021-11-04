@@ -4,8 +4,11 @@ const fastify = require('fastify')
 const db = require("./db")
 const routes = require('./routes')
 const config = require("./config");
+const settings = require("./settings");
 const license = require("./licensing");
 const containers = require('./containers');
+const cookie = require('fastify-cookie');
+const csrf = require('fastify-csrf');
 
 /**
   * The main entry point to the FlowForge application.
@@ -16,32 +19,39 @@ const containers = require('./containers');
   * @namespace forge
   */
 
-const server = fastify()
+(async function() {
+    const server = fastify()
 
-server.addHook('onError', async (request, reply, error) => {
-    // Useful for debugging when a route goes wrong
-    console.log(error.stack);
-})
+    server.addHook('onError', async (request, reply, error) => {
+        // Useful for debugging when a route goes wrong
+        console.log(error.stack);
+    })
 
-// Config : loads environment configuration
-server.register(config);
-// License
-server.register(license);
-// DB : the database connection/models/views/controllers
-server.register(db);
+    // Config : loads environment configuration
+    await server.register(config);
 
-process.env.PORT = process.env.PORT || 3000;
-if (!process.env.BASE_URL) {
-    process.env.BASE_URL = `http://localhost:${process.env.PORT}`;
-}
+    await server.register(cookie, {
+        secret: server.secrets.sessionSecret, // for cookies signature
+    })
+    await server.register(csrf, { cookieOpts: { _signed: true, _httpOnly: true } })
 
-// Routes : the HTTP routes
-server.register(routes)
-// Containers:
-server.register(containers);
+    process.env.PORT = process.env.PORT || 3000;
+    if (!process.env.BASE_URL) {
+        process.env.BASE_URL = `http://localhost:${process.env.PORT}`;
+    }
+    // DB : the database connection/models/views/controllers
+    await server.register(db);
+    // Settings
+    await server.register(settings);
+    // License
+    await server.register(license);
+    // Routes : the HTTP routes
+    await server.register(routes)
+    // Containers:
+    await server.register(containers);
 
-// Wait until everything is loaded so PORT can be set via .env config
-server.ready().then(() => {
+    await server.ready();
+
     // Start the server
     server.listen(process.env.PORT,'0.0.0.0', function (err, address) {
         if (err) {
@@ -51,4 +61,4 @@ server.ready().then(() => {
         console.log(`Server listening on ${address}`)
     })
 
-})
+})()

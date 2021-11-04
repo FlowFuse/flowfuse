@@ -16,7 +16,6 @@
  * @memberof forge.routes
  */
 const fp = require("fastify-plugin");
-const cookie = require('fastify-cookie');
 
 
 // Default to a 12 hour session if the user ticks 'remember me'
@@ -33,10 +32,6 @@ const SESSION_COOKIE_OPTIONS = {
 
 module.exports = fp(async function(app, opts, done) {
     await app.register(require("./oauth"))
-
-    app.register(cookie, {
-        secret: app.secrets.sessionSecret, // for cookies signature
-    })
 
     // WIP:
     app.decorate("verifyToken", function(request, reply, done) {
