@@ -11,7 +11,7 @@
         @apply px-2;
         @apply sm:px-6;
         @apply lg:px-8;
-        @apply mb-2;
+        @apply mb-1;
     }
 
     .forge-button {

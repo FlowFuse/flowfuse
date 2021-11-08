@@ -1,18 +1,22 @@
 <template>
-    <div class="mx-auto flex items-center justify-center py-36">
-        <div class="w-92 text-gray-600 opacity-50"><Logo /></div>
+    <template v-if="pending">
+    <div class="flex-grow flex flex-col items-center justify-center mx-auto text-gray-600 opacity-50">
+        <Logo class="max-w-xs mx-auto w-full"/>
     </div>
+    </template>
+    <NoTeamsUser v-else/>
 </template>
 
 <script>
 
 import { mapState } from 'vuex'
 import Logo from "@/components/Logo"
+import NoTeamsUser from "./NoTeamsUser"
 
 export default {
     name: 'Home',
     computed: {
-        ...mapState('account',['user','team','teams']),
+        ...mapState('account',['pending','user','team','teams']),
     },
     data() {
         return {
@@ -28,6 +32,7 @@ export default {
     },
     methods: {
         redirectOnLoad() {
+            console.log(this.teams)
             if (this.team) {
                 this.$router.push({name:"Team", params:{id:this.team.slug}});
             } else if (this.teams && this.teams.length > 0) {
@@ -37,7 +42,8 @@ export default {
         }
     },
     components: {
-        Logo
+        Logo,
+        NoTeamsUser
     }
 }
 </script>
