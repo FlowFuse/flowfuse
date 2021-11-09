@@ -22,17 +22,27 @@ const getTeam = (team) => {
     return client.get(url).then(res => res.data);
 }
 
-const getTeamProjects = (teamId) => {
-    return client.get(`/api/v1/teams/${teamId}/projects`).then(res => {
-        res.data.projects = res.data.projects.map(r => {
-            r.createdSince = daysSince(r.createdAt)
-            r.updatedSince = daysSince(r.updatedAt)
-            r.link = { name: 'Project', params: { id: slugify(r.id) }}
-            r.status = ['running','stopped','safe','error','starting'][Math.floor(Math.random()*5)]
-            return r;
-        })
-        return res.data;
-    });
+const getTeamProjects = async (teamId) => {
+    let res = await client.get(`/api/v1/teams/${teamId}/projects`);
+    let promises = [];
+    res.data.projects = res.data.projects.map(r => {
+        r.createdSince = daysSince(r.createdAt)
+        r.updatedSince = daysSince(r.updatedAt)
+        r.link = { name: 'Project', params: { id: slugify(r.id) }}
+            
+        //r.status = ['running','stopped','safe','error','starting'][Math.floor(Math.random()*5)]
+        promises.push(client.get(`/api/v1/project/${r.id}`).then(p => {
+            console.log("ben",p.data.meta.state)
+            r.status = p.data.meta.state
+        }).catch( err => {
+            console.log("not found", err)
+            r.status = "stopped"
+        }))
+
+        return r;
+    })
+    await Promise.all(promises);
+    return res.data;
 }
 
 const getTeamMembers = (teamId) => {
