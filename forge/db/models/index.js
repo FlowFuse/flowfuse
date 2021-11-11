@@ -49,6 +49,7 @@ const modelTypes = [
     'User',
     'Team',
     'TeamMember',
+    'Invitation',
     'Session',
     'Project',
     'AuthClient',

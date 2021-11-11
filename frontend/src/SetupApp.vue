@@ -22,11 +22,11 @@ import httpClient from '@/api/client'
 import { markRaw } from "vue"
 import PageFooter from "@/components/PageFooter"
 import Logo from "@/components/Logo"
-import Start from "@/setup/Start"
-import Options from "@/setup/Options"
-import CreateAdminUser from "@/setup/CreateAdminUser"
-import License from "@/setup/License"
-import Final from "@/setup/Final"
+import Start from "@/pages/setup/Start"
+import Options from "@/pages/setup/Options"
+import CreateAdminUser from "@/pages/setup/CreateAdminUser"
+import License from "@/pages/setup/License"
+import Final from "@/pages/setup/Final"
 
 // To add more views in the setup dialogs, add them to this list.
 // Just make sure 'Final' is the last one.
@@ -52,7 +52,6 @@ export default {
     methods: {
         next() {
             this.step++
-
         }
     },
     components: {

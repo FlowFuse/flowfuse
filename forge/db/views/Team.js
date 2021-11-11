@@ -13,7 +13,17 @@ module.exports = {
             }
         });
     },
-
+    teamSummary: function(db, team) {
+        const d = team.get({plain: true});
+        const result = {
+            id: d.hashid,
+            name: d.name,
+            slug: d.slug,
+            avatar: d.avatar,
+            links: d.links
+        }
+        return result;
+    },
     team: function(db, team) {
         if (team) {
             const result =  team.toJSON();

@@ -28,13 +28,16 @@ module.exports = {
         this.belongsToMany(M['User'], { through: M['TeamMember']})
         this.hasMany(M['TeamMember'])
         this.hasMany(M['Project'])
+        this.hasMany(M['Invitation'], { foreignKey: 'teamId' })
     },
     finders: function(M) {
         const self = this;
         return {
             static: {
-                byId: async function(hashid) {
-                    const id = M['Team'].decodeHashid(hashid);
+                byId: async function(id) {
+                    if (typeof id === "string") {
+                        id = M['Team'].decodeHashid(id);
+                    }
                     return self.findOne({where:{id}, include:{
                         model:M['User'],
                         attributes:['name'],

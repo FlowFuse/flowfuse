@@ -1,7 +1,14 @@
-import { createApp } from 'vue'
+import { createApp, filter } from 'vue'
 import router from "@/routes"
 import store from '@/store'
 import App from '@/App.vue'
 import '@/index.css'
 
-createApp(App).use(store).use(router).mount('#app')
+
+const app = createApp(App).use(store).use(router)
+
+app.config.globalProperties.$filters = {
+  pluralize(amount, singular, plural = `${singular}s`) { return amount === 1 ? singular : plural }
+}
+
+app.mount('#app')

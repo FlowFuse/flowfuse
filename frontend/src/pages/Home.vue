@@ -4,7 +4,9 @@
         <Logo class="max-w-xs mx-auto w-full"/>
     </div>
     </template>
-    <NoTeamsUser v-else/>
+    <template v-if="teams.length === 0">
+        <NoTeamsUser/>
+    </template>
 </template>
 
 <script>
@@ -12,9 +14,11 @@
 import { mapState } from 'vuex'
 import Logo from "@/components/Logo"
 import NoTeamsUser from "./NoTeamsUser"
+import Breadcrumbs from '@/mixins/Breadcrumbs';
 
 export default {
     name: 'Home',
+    mixins: [ Breadcrumbs ],
     computed: {
         ...mapState('account',['pending','user','team','teams']),
     },
@@ -28,16 +32,18 @@ export default {
         teams: 'redirectOnLoad'
     },
     created() {
+        this.clearBreadcrumbs();
         this.redirectOnLoad();
     },
     methods: {
         redirectOnLoad() {
-            console.log(this.teams)
             if (this.team) {
                 this.$router.push({name:"Team", params:{id:this.team.slug}});
             } else if (this.teams && this.teams.length > 0) {
                 this.$store.dispatch('account/setTeam',this.teams[0]);
                 this.$router.push({name:"Team",params:{id:this.teams[0].slug}})
+            // } else if (!this.pending && this.teams && this.teams.length === 0) {
+            //     this.$router.push({path:"/team/create"})
             }
         }
     },

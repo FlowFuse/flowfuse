@@ -3,6 +3,9 @@
 
 async function inject(app) {
     try {
+
+        await app.db.models.PlatformSettings.upsert({ key: "setup:initialised",value:true });
+
         const userAlice = await app.db.models.User.create({admin: true, username: "alice", name: "Alice Skywalker", email: "alice@example.com", password: 'aaPassword'});
         const userBob = await app.db.models.User.create({username: "bob", name: "Bob Solo", email: "bob@example.com", password: 'bbPassword'});
         const userChris = await app.db.models.User.create({username: "chris", name: "Chris Kenobi", email: "chris@example.com", password: 'ccPassword'});
@@ -12,8 +15,8 @@ async function inject(app) {
         const team3 = await app.db.models.Team.create({name: "CTeam"});
 
         await team1.addUser(userAlice, { through: { role:"owner" } });
-        await team1.addUser(userBob, { through: { role:"member" } });
-        await team1.addUser(userChris, { through: { role:"member" } });
+        // await team1.addUser(userBob, { through: { role:"member" } });
+        // await team1.addUser(userChris, { through: { role:"member" } });
 
         await team2.addUser(userBob, { through: { role:"owner" } });
         await team2.addUser(userAlice, { through: { role:"member" } });
@@ -32,6 +35,9 @@ async function inject(app) {
         const p2AuthClient = await app.db.controllers.AuthClient.createClientForProject(project2);
         //  For testing, print out the ID/Secret here to copy into the node-red project instance config
         // console.log(p2AuthClient);
+
+
+
 /*
 {
   clientID: 'ffp_ya2uR3AZD-hmGITngOAuDceIdsAPjpG3ESp-tOY2xOc',
@@ -49,6 +55,48 @@ async function inject(app) {
             throw err
         }
     }
+
+
+    // const uu = await app.db.models.User.byUsernameOrEmail('alice')
+    // console.log(uu);
+
+    const userAlice = await app.db.models.User.byUsername('alice');
+    const userBob = await app.db.models.User.byUsername('bob');
+    const userChris = await app.db.models.User.byUsername('chris');
+
+    const teamA = await app.db.models.Team.byName("ATeam");
+    const teamB = await app.db.models.Team.byName("BTeam");
+    const teamC = await app.db.models.Team.byName("CTeam");
+    //
+    // const invite1 = await app.db.models.Invitation.create({
+    //     // Alice invites Bob to ATeam
+    //     external: false,
+    //     invitorId: userAlice.id,
+    //     inviteeId: userBob.id,
+    //     teamId: teamA.id
+    // })
+    // //
+    // const invite2 = await app.db.models.Invitation.create({
+    //     // Alice invites Chris to BTeam
+    //     external: false,
+    //     invitorId: userAlice.id,
+    //     inviteeId: userChris.id,
+    //     teamId: teamB.id
+    // })
+    //
+    // const invite3 = await app.db.models.Invitation.create({
+    //     // Alice invites external user to ATeam
+    //     external: true,
+    //     email: "dave@example.com",
+    //     invitorId: userAlice.id,
+    //     teamId: teamA.id
+    // })
+
+    // const results = await app.db.models.Invitation.forUser(userChris);
+    // console.log(results.map(d => d.toJSON()));
+
+
+
     // let teamA = await app.db.models.Team.byName("ATeam")
     // let names = [
     //     "brainy-wallcreeper-2819",

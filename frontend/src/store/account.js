@@ -91,6 +91,17 @@ const actions = {
 
             if (teams.count === 0) {
                 state.commit('clearPending')
+                if (/^\/team\//.test(router.currentRoute.value.path)) {
+                    router.push({ name: "Home" });
+                    // router.push({
+                    //     name: "PageNotFound",
+                    //     params: { pathMatch: router.currentRoute.value.path.substring(1).split('/') },
+                    //     // preserve existing query and hash if any
+                    //     query: router.currentRoute.value.query,
+                    //     hash: router.currentRoute.value.hash,
+                    // })
+                }
+
                 return;
             }
 
