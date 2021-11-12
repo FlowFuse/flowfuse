@@ -15,8 +15,8 @@ async function inject(app) {
         const team3 = await app.db.models.Team.create({name: "CTeam"});
 
         await team1.addUser(userAlice, { through: { role:"owner" } });
-        // await team1.addUser(userBob, { through: { role:"member" } });
-        // await team1.addUser(userChris, { through: { role:"member" } });
+        await team1.addUser(userBob, { through: { role:"member" } });
+        await team1.addUser(userChris, { through: { role:"member" } });
 
         await team2.addUser(userBob, { through: { role:"owner" } });
         await team2.addUser(userAlice, { through: { role:"member" } });
