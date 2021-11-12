@@ -57,7 +57,8 @@ const modelTypes = [
     'StorageCredentials',
     'StorageSettings',
     'StorageSession',
-    'StorageLibrary'
+    'StorageLibrary',
+    'AuditLog'
 ];
 
 // A local map of the known models.
