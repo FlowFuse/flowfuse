@@ -7,6 +7,8 @@
         @apply bg-white;
         @apply shadow;
         @apply rounded;
+        @apply mx-2;
+        @apply sm:mx-4;
         @apply py-6;
         @apply px-2;
         @apply sm:px-6;

@@ -3,7 +3,7 @@
         <template v-if="user && !user.password_expired">
             <PageHeader />
             <main class="flex-grow flex flex-col">
-                <div class="max-w-7xl mx-2 sm:mx-6 my-2 sm:my-8 flex-grow flex flex-col">
+                <div class="w-full max-w-screen-2xl mx-auto my-2 sm:my-8 flex-grow flex flex-col">
                     <router-view></router-view>
                 </div>
             </main>

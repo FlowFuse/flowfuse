@@ -2,7 +2,7 @@
  * A User
  * @namespace forge.db.models.User
  */
-const { DataTypes } = require('sequelize');
+const { DataTypes, Op } = require('sequelize');
 const { hash, generateUserAvatar } = require("../utils");
 
 module.exports = {
@@ -46,6 +46,8 @@ module.exports = {
         this.belongsToMany(M['Team'], { through: M['TeamMember']})
         this.hasMany(M['TeamMember']);
         this.hasMany(M['Session']);
+        this.hasMany(M['Invitation'], { foreignKey: 'invitorId' });
+        this.hasMany(M['Invitation'], { foreignKey: 'inviteeId' });
     },
     finders: function(M) {
         return {
@@ -89,6 +91,20 @@ module.exports = {
                 },
                 byName: async (name) => {
                     return this.findOne({where:{name},
+                        include: {
+                            model: M['Team'],
+                            attributes: ['name'],
+                            through: {
+                                attributes:['role']
+                            }
+                        }
+                    })
+                },
+                byUsernameOrEmail: async (name) => {
+                    return this.findOne({
+                        where:{
+                            [Op.or]:[ {username:name}, {email:name}]
+                        },
                         include: {
                             model: M['Team'],
                             attributes: ['name'],

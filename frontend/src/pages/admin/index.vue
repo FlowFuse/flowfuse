@@ -1,7 +1,7 @@
 <template>
     <div class="forge-block">
         <SectionTopMenu :options="navigation"></SectionTopMenu>
-        <div class="text-sm px-4 sm:px-6 lg:px-8 mt-8">
+        <div class="text-sm sm:px-6 mt-4 sm:mt-8">
             <router-view></router-view>
         </div>
     </div>

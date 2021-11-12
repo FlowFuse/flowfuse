@@ -60,24 +60,6 @@ export default {
           })
       },
       ...mapState('account',['user','team','teams']),
-      teamOptions: function() {
-          return [...this.teams.map(team => {
-              return {
-                  name: team.name,
-                  action: () => { this.selectTeam(team) },
-                  selected: this.team && (this.team.slug === team.slug)
-              }
-          }),null,{
-              name:"Create a new team...",
-              link: { name: "CreateTeam"}
-          }]
-      }
-  },
-  methods: {
-      async selectTeam(team) {
-          this.$store.dispatch('account/setTeam',team);
-          this.$router.push({name:"Team",params:{id:team.slug}})
-      }
   },
   components: {
       Logo,

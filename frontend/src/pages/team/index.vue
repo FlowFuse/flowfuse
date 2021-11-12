@@ -8,7 +8,7 @@
                 </router-link>
             </template>
         </SectionTopMenu>
-        <div class="text-sm px-0 mt-4">
+        <div class="text-sm sm:px-6 mt-4 sm:mt-8">
             <router-view :team="team"></router-view>
         </div>
     </div>
@@ -18,7 +18,7 @@
 import teamApi from '@/api/team'
 import Breadcrumbs from '@/mixins/Breadcrumbs';
 import SectionTopMenu from '@/components/SectionTopMenu';
-
+import { useRoute } from 'vue-router';
 import { mapState } from 'vuex'
 export default {
     name: 'Team',
@@ -54,11 +54,18 @@ export default {
             }
         }
     },
+    async beforeMount() {
+        await this.$store.dispatch('account/setTeam',useRoute().params.id);
+    },
+    async beforeRouteUpdate (to, from, next) {
+        await this.$store.dispatch('account/setTeam',to.params.id);
+        next()
+    },
     mounted() {
         this.updateTeam()
     },
     watch: {
          team: 'updateTeam'
-    }
+    },
 }
 </script>

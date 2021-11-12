@@ -11,8 +11,7 @@
         </div>
         <div class="md:w-48 p-2 md:ml-8">
             <FormHeading>
-                Members
-                <template v-slot:tools><router-link to="./members" class="forge-button-tertiary px-2"><UsersIcon class="w-4" /></router-link></template>
+                <router-link to="./members">Members</router-link>
             </FormHeading>
             <MemberSummaryList :users="users" />
         </div>

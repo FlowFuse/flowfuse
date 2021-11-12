@@ -1,4 +1,5 @@
 const sharedUser = require("./shared/users")
+const UserInvitations = require("./userInvitations");
 
 /**
  * User api routes
@@ -9,6 +10,9 @@ const sharedUser = require("./shared/users")
  * @memberof forge.routes.api
  */
 module.exports = async function(app) {
+
+    app.register(UserInvitations, { prefix: "/invitations" })
+
 
     /**
      * Get the profile of the current logged in user
