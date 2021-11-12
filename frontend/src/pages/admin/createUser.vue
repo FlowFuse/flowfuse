@@ -23,7 +23,7 @@
 </template>
 
 <script>
-import userApi from '@/api/user'
+import usersApi from '@/api/users'
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
 import Breadcrumbs from '@/mixins/Breadcrumbs'
@@ -92,7 +92,7 @@ export default {
         createUser() {
             let opts = { ...this.input, name: this.input.name || this.input.username }
             delete opts.password_confirm;
-            userApi.create(opts).then(result => {
+            usersApi.create(opts).then(result => {
                 this.$router.push({path:"/admin/users"})
             }).catch(err => {
                 console.log(err.response.data);

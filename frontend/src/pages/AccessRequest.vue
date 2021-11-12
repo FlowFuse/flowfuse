@@ -1,10 +1,6 @@
 <template>
-    <div class="mx-auto flex items-center justify-center bg-gray-50 py-12">
-        <div class="sm:w-72 w-xs w-screen space-y-2">
-            <div class="flex justify-center">
-                <div class="w-1/2"><Logo /></div>
-            </div>
-        </div>
+    <div class="flex-grow flex flex-col items-center justify-center mx-auto h-92 text-gray-600 opacity-50">
+        <Logo class="max-w-xs mx-auto w-full"/>
     </div>
 </template>
 

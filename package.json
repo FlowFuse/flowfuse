@@ -31,6 +31,7 @@
         "fastify-autoload": "^3.3.1",
         "fastify-cli": "^2.13.0",
         "fastify-cookie": "^5.3.1",
+        "fastify-csrf": "^3.1.0",
         "fastify-passport": "^0.4.2",
         "fastify-plugin": "^3.0.0",
         "fastify-secrets-core": "^1.1.0",

@@ -28,8 +28,16 @@ module.exports = async function(app) {
 
     app.register(Avatar, { prefix: "/avatar" })
 
+    app.get('/', (request, reply) => {
+        if (!app.settings.get("setup:initialised")) {
+            reply.redirect("/setup")
+        }
+        reply.sendFile('index.html')
+    })
+
     // Setup static file serving for the UI assets.
     app.register(require('fastify-static'), {
+        index: false,
         wildcard: false, // This option is needed so we can redirect 404s back to index.html
         root: frontendAssetsDir
     })
@@ -37,7 +45,7 @@ module.exports = async function(app) {
     // Any requests not handled by this time get served `index.html`.
     // This allows the frontend vue router to change the browser URL and we cope
     // if the user then hits reload
-    app.get('*', function (_, reply) {
+    app.get('*', (request, reply) => {
         reply.sendFile('index.html')
     })
 }

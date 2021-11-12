@@ -22,12 +22,6 @@ const changePassword = (old_password, password) => {
     }).then(res => res.data)
 }
 
-const create = async (options) => {
-    return client.post(`/api/v1/user/`, options).then(res => {
-        return res.data;
-    });
-}
-
 const updateUser = async(options) => {
     return client.put(`/api/v1/user`, options).then(res => {
         return res.data
@@ -36,7 +30,6 @@ const updateUser = async(options) => {
 
 
 export default {
-    create,
     getUser,
     login,
     logout,

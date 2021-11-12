@@ -44,6 +44,7 @@ const hashids = {};
 
 // The models that should be loaded
 const modelTypes = [
+    'PlatformSettings',
     'Organization',
     'User',
     'Team',

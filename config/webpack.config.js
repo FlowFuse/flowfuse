@@ -14,6 +14,7 @@ function getPath(file) {
 module.exports = {
     entry: {
         main: getPath("frontend/src/main.js"),
+        setup: getPath("frontend/src/setup.js"),
     },
     output: {
         path: getPath("frontend/dist/app"),
@@ -78,7 +79,15 @@ module.exports = {
             title: "FlowForge",
             template: getPath("frontend/src/index.html"),
             favicon: getPath("frontend/public/favicon.ico"),
-            filename: getPath("frontend/dist/index.html")
+            filename: getPath("frontend/dist/index.html"),
+            chunks: ['main']
+        }),
+        new htmlWebpackPlugin({
+            title: "FlowForge",
+            template: getPath("frontend/src/setup.html"),
+            favicon: getPath("frontend/public/favicon.ico"),
+            filename: getPath("frontend/dist-setup/setup.html"),
+            chunks: ['setup']
         }),
         new MiniCssExtractPlugin(),
         new CopyPlugin({
