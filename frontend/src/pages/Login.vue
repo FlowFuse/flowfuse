@@ -1,6 +1,6 @@
 <template>
-    <div class="mx-auto min-h-screen flex items-center justify-center bg-gray-50 py-12">
-        <div class="sm:w-72 w-xs w-screen space-y-2">
+    <div class="mx-auto flex-grow flex items-center justify-center bg-gray-50 py-12">
+        <div class="sm:w-72 w-screen space-y-2">
             <template v-if="!pending">
                 <div class="max-w-xs mx-auto w-full mb-4">
                     <Logo/>

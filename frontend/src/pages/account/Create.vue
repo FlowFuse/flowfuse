@@ -1,6 +1,6 @@
 <template>
     <div class="flex-grow mx-auto flex bg-gray-50 pt-4 pb-12">
-        <div class="sm:max-w-xl w-screen space-y-2">
+        <div class="sm:w-72 w-screen space-y-2">
             <div class="max-w-xs mx-auto w-full mb-4">
                 <Logo/>
                 <h2 class="mt-2 text-center text-3xl font-bold text-gray-900">

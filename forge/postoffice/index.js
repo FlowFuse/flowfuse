@@ -40,31 +40,40 @@ module.exports = fp(async function(app, _opts, next) {
         return templates[templateName];
     }
 
-    const postoffice = {
-        send: async function(user, templateName, context) {
-            const template = templates[templateName] || loadTemplate(templateName);
-            const templateContext = {user, ...context};
+    /**
+     * Send an email to a user
+     *
+     * @param user object - who to send the email to.
+     * @param templateName string - name of template to use - from `./templates/`
+     * @param context object - object of properties to evaluate the template with
+     */
+    async function send(user, templateName, context) {
+        const template = templates[templateName] || loadTemplate(templateName);
+        const templateContext = {user, ...context};
 
-            const mail = {
-                from: '"FlowForge Platform" <donotreply@flowforge.com>',
-                to: user.email,
-                subject: template.subject(templateContext,{allowProtoPropertiesByDefault: true, allowProtoMethodsByDefault:true}),
-                text: template.text(templateContext,{allowProtoPropertiesByDefault: true, allowProtoMethodsByDefault:true}),
-                html: template.html(templateContext,{allowProtoPropertiesByDefault: true, allowProtoMethodsByDefault:true})
-            }
-            if (EMAIL_ENABLED) {
-                await transporter.sendMail(mail)
-            } else {
-                console.log(`
+        const mail = {
+            from: '"FlowForge Platform" <donotreply@flowforge.com>',
+            to: user.email,
+            subject: template.subject(templateContext,{allowProtoPropertiesByDefault: true, allowProtoMethodsByDefault:true}),
+            text: template.text(templateContext,{allowProtoPropertiesByDefault: true, allowProtoMethodsByDefault:true}),
+            html: template.html(templateContext,{allowProtoPropertiesByDefault: true, allowProtoMethodsByDefault:true})
+        }
+        if (EMAIL_ENABLED) {
+            await transporter.sendMail(mail)
+        } else {
+            console.log(`
 -----------------------------------
 to: ${mail.to}
 subject: ${mail.subject}
 ------
 ${mail.text}
 -----------------------------------`)
-            }
         }
     }
-    app.decorate('postoffice', postoffice);
+
+    app.decorate('postoffice', {
+        send
+    });
+
     next();
 });
