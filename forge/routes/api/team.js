@@ -1,4 +1,5 @@
 const TeamMembers = require("./teamMembers.js");
+const TeamInvitations = require("./teamInvitations.js");
 /**
  * Team api routes
  *
@@ -24,6 +25,7 @@ module.exports = async function(app) {
     })
 
     app.register(TeamMembers, { prefix: "/:teamId/members" })
+    app.register(TeamInvitations, { prefix: "/:teamId/invitations" })
 
     /**
      * Get the details of a team

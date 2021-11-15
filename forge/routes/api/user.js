@@ -1,4 +1,5 @@
 const sharedUser = require("./shared/users")
+const UserInvitations = require("./userInvitations");
 
 /**
  * User api routes
@@ -9,6 +10,9 @@ const sharedUser = require("./shared/users")
  * @memberof forge.routes.api
  */
 module.exports = async function(app) {
+
+    app.register(UserInvitations, { prefix: "/invitations" })
+
 
     /**
      * Get the profile of the current logged in user
@@ -76,56 +80,6 @@ module.exports = async function(app) {
             projects:result
         })
     })
-
-    /**
-     * Create a new user
-     */
-    app.post('/', {
-        schema: {
-            body: {
-                type: 'object',
-                required: ['name','username','password'],
-                properties: {
-                    name: { type: 'string' },
-                    username: { type: 'string' },
-                    password: { type: 'string' },
-                    isAdmin: { type: 'boolean' },
-                    createDefaultTeam: { type: 'boolean' }
-                }
-            }
-        }
-    }, async (request, reply) => {
-        if (/^(admin|root)$/.test(request.body.username)) {
-            reply.code(400).send({error:"invalid username"});
-            return
-        }
-        try {
-            const newUser = await app.db.models.User.create({
-                username: request.body.username,
-                name: request.body.name,
-                email: request.body.email,
-                password: request.body.password,
-                admin: !!request.body.isAdmin,
-            });
-
-            if (request.body.createDefaultTeam) {
-                const newTeam = await app.db.models.Team.create({
-                    name: `Team ${request.body.name}`,
-                    slug: request.body.username
-                });
-                await newTeam.addUser(newUser, { through: { role:"owner" } });
-            }
-            reply.send({status: "okay"})
-        } catch(err) {
-            let responseMessage;
-            if (err.errors) {
-                responseMessage = err.errors.map(err => err.message).join(",");
-            } else {
-                responseMessage = err.toString();
-            }
-            reply.code(400).send({error:responseMessage})
-        }
-    });
 
     /**
      * Update user settings

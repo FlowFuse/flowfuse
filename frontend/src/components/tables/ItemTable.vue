@@ -5,6 +5,10 @@
             <div class="p-3" :class="col.class">{{ col.name }}</div>
         </template>
     </div>
+    <template v-if="items.length === 0">
+        <div class="flex border-t border-gray-300 h-14">
+        </div>
+    </template>
     <template v-for="(item, itemIdx) in items">
         <div class="flex border-t border-gray-300 items-center hover:bg-blue-100">
             <template v-for="(col, colIdx) in columns" :key="col.name">
@@ -12,23 +16,26 @@
                     <template v-if="col.link && ((typeof col.link === 'boolean' && item.link) || (item[col.link]))">
                         <router-link v-if="!col.external" :to="(typeof col.link === 'boolean' && item.link) || item[col.link]" :class="col.linkClass">
                             <template v-if="col.component">
-                                <component :is="col.component.is" v-bind="item"></component>
+                                <component :is="col.component.is" v-bind="col.property?item[col.property]:item"></component>
                             </template>
                             <template v-else>{{ col.value || item[col.property] }}</template>
                         </router-link>
                         <a v-else :href="(typeof col.link === 'boolean' && item.link) || item[col.link]" target="_blank" :class="col.linkClass">
                             <template v-if="col.component">
-                                <component :is="col.component.is" v-bind="item"></component>
+                                <component :is="col.component.is" v-bind="col.property?item[col.property]:item"></component>
                             </template>
                             <template v-else>{{ col.value || item[col.property] }}</template>
                         </a>
                     </template>
                     <template v-else-if="col.component">
-                        <component :is="col.component.is" v-bind="item"></component>
+                        <component :is="col.component.is" v-bind="col.property?item[col.property]:item"></component>
                     </template>
                     <template v-else>{{ item[col.property] }}</template>
                 </div>
             </template>
+        </div>
+        <div v-if="debug" class="flex border-t border-gray-300 items-center hover:bg-blue-100">
+            <pre>{{ item }}</pre>
         </div>
     </template>
 </div>
@@ -42,6 +49,6 @@
  */
 export default {
     name: "ItemTable",
-    props: ['items', 'columns'],
+    props: ['items', 'columns', 'debug'],
 }
 </script>

@@ -1,6 +1,7 @@
 import client from './client';
 import slugify from '@/utils/slugify';
 import daysSince from '@/utils/daysSince';
+import elapsedTime from '@/utils/elapsedTime';
 
 const getTeams = () => {
     return client.get('/api/v1/user/teams').then(res => {
@@ -51,6 +52,29 @@ const getTeamMembers = (teamId) => {
     });
 }
 
+const getTeamInvitations = (teamId) => {
+    return client.get(`/api/v1/teams/${teamId}/invitations`).then(res => {
+        res.data.invitations = res.data.invitations.map(r => {
+            r.createdSince = daysSince(r.createdAt)
+            r.expires = elapsedTime((new Date(r.expiresAt)).getTime() - Date.now())
+            return r;
+        });
+        return res.data;
+    });
+}
+const createTeamInvitation = (teamId, userDetails) => {
+    const opts = {
+        user: userDetails
+    }
+    return client.post(`/api/v1/teams/${teamId}/invitations`, opts).then(res => {
+        return res.data;
+    });
+}
+const removeTeamInvitation = (teamId, inviteId) => {
+    return client.delete(`/api/v1/teams/${teamId}/invitations/${inviteId}`);
+}
+
+
 const create = async (options) => {
     return client.post(`/api/v1/teams/`, options).then(res => {
         return res.data;
@@ -75,5 +99,8 @@ export default {
     getTeamProjects,
     getTeamMembers,
     changeTeamMemberRole,
-    removeTeamMember
+    removeTeamMember,
+    getTeamInvitations,
+    createTeamInvitation,
+    removeTeamInvitation
 }

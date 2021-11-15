@@ -7,7 +7,7 @@
                 </router-link>
             </template>
         </SectionTopMenu>
-        <div class="text-sm px-0 mt-4">
+        <div class="text-sm sm:px-6 mt-4 sm:mt-8">
             <router-view :project="project"></router-view>
         </div>
     </div>

@@ -1,3 +1,18 @@
+function publicUserProfile(db, user) {
+    const result = {
+        id: user.hashid
+    };
+    [
+        'username',
+        'name',
+        'email',
+        'avatar',
+        'admin',
+        'createdAt'
+    ].forEach(p => result[p] = user[p])
+    return result
+}
+
 module.exports = {
     /**
      * Render a User object for returning on the API.
@@ -7,22 +22,14 @@ module.exports = {
      *
      */
     userProfile: function(db, user) {
-        const result = {
-            id: user.hashid
-        };
-        [
-            'username',
-            'name',
-            'email',
-            'avatar',
-            'admin',
-            'createdAt'
-        ].forEach(p => result[p] = user[p])
+        const result = publicUserProfile(db, user)
         if (user.password_expired) {
             result.password_expired = true;
         }
         return result
     },
+    
+    publicUserProfile,
 
     teamMemberList: function(db, users) {
         const result = users.map(u => {

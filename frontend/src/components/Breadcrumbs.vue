@@ -62,7 +62,6 @@ export default {
   },
   methods: {
       async selectTeam(teamSlug) {
-          this.$store.dispatch('account/setTeam',teamSlug);
           this.$router.push({name:"Team",params:{id:teamSlug}})
       }
   },
