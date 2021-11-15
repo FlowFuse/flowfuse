@@ -158,7 +158,6 @@ const actions = {
                 })
             }
         } catch(err) {
-            console.log(err)
             // Not logged in
             state.commit('clearPending')
             if (router.currentRoute.value.meta.requiresLogin !== false) {

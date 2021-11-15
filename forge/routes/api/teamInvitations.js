@@ -61,7 +61,7 @@ module.exports = async function(app) {
                             "UnknownUserInvitation",
                             {
                                 invite: invite,
-                                signupLink: `${process.env.BASE_URL}/sign-up?invite=${invite.token}`
+                                signupLink: `${process.env.BASE_URL}/account/create?email=${invite.email}`
                             }
                         )
                     } else {

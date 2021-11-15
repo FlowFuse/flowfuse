@@ -35,6 +35,7 @@ import { mapState } from 'vuex'
 import Logo from "@/components/Logo"
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
+import { useRoute } from 'vue-router';
 
 export default {
     name: "AccountCreate",
@@ -48,15 +49,18 @@ export default {
             teams: [],
             emailSent: false,
             input: {
-                name: "Dave Vader",
-                username: "dave",
-                email: "dave@example.com",
-                password: "12345678",
+                name: "",
+                username: "",
+                email: "",
+                password: "",
             },
             errors: {
                 password: "Password must be at least 8 characters"
             }
         }
+    },
+    mounted() {
+        this.input.email = useRoute().query.email || ""
     },
     computed: {
         formValid() {
@@ -97,7 +101,6 @@ export default {
         registerUser() {
             let opts = { ...this.input, name: this.input.name || this.input.username }
             userApi.registerUser(opts).then(result => {
-                console.log(result);
                 this.emailSent = true;
             }).catch(err => {
                 console.log(err.response.data);
