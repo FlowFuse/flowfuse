@@ -26,9 +26,10 @@ module.exports = {
         if (user.password_expired) {
             result.password_expired = true;
         }
+        result.email_verified = user.email_verified;
         return result
     },
-    
+
     publicUserProfile,
 
     teamMemberList: function(db, users) {

@@ -17,6 +17,11 @@
                 </span>
                 Sign in
             </button>
+
+            <div class="mt-4 text-xs text-center">
+                <router-link class="forge-button-secondary" to="/account/create">Sign up</router-link>
+            </div>
+
         </div>
         <!-- TODO
         <div class="text-sm">

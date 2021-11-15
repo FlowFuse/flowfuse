@@ -22,7 +22,7 @@ const postoffice = require('./postoffice');
   */
 
 (async function() {
-    const server = fastify()
+    const server = fastify({maxParamLength: 500 })
 
     server.addHook('onError', async (request, reply, error) => {
         // Useful for debugging when a route goes wrong

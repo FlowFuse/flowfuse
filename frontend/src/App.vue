@@ -1,6 +1,13 @@
 <template>
     <div class="min-h-screen flex flex-col bg-gray-300 ">
-        <template v-if="user && !user.password_expired">
+        <template v-if="pending">
+            <main class="flex-grow flex flex-col">
+                <div class="w-full max-w-screen-2xl mx-auto my-2 sm:my-8 flex-grow flex flex-col">
+                    <Loading />
+                </div>
+            </main>
+        </template>
+        <template v-else-if="user && !user.password_expired">
             <PageHeader />
             <main class="flex-grow flex flex-col">
                 <div class="w-full max-w-screen-2xl mx-auto my-2 sm:my-8 flex-grow flex flex-col">
@@ -10,6 +17,9 @@
         </template>
         <template v-else-if="user && user.password_expired">
             <PasswordExpired/>
+        </template>
+        <template v-else-if="!loginRequired">
+            <router-view></router-view>
         </template>
         <template v-else>
             <Login/>
@@ -22,23 +32,31 @@
 
 <script>
 import { mapState } from 'vuex'
+import { useRouter } from 'vue-router';
+import router from "@/routes"
 import PageFooter from "@/components/PageFooter.vue"
 import PageHeader from "@/components/PageHeader.vue"
 import Login from "@/pages/Login.vue"
+import Loading from '@/components/Loading';
 import PasswordExpired from "@/pages/PasswordExpired.vue"
 
 export default {
     name: 'App',
-    computed: mapState('account',['user','team']),
+    computed: {
+        ...mapState('account',['pending','user','team']),
+        loginRequired() {
+            return this.$route.meta.requiresLogin !== false
+        }
+    },
     components: {
         PageFooter,
         PageHeader,
         Login,
-        PasswordExpired
+        PasswordExpired,
+        Loading
     },
     mounted() {
         this.$store.dispatch('account/checkState');
     }
-
 }
 </script>

@@ -6,8 +6,8 @@ async function inject(app) {
 
         await app.db.models.PlatformSettings.upsert({ key: "setup:initialised",value:true });
 
-        const userAlice = await app.db.models.User.create({admin: true, username: "alice", name: "Alice Skywalker", email: "alice@example.com", password: 'aaPassword'});
-        const userBob = await app.db.models.User.create({username: "bob", name: "Bob Solo", email: "bob@example.com", password: 'bbPassword'});
+        const userAlice = await app.db.models.User.create({admin: true, username: "alice", name: "Alice Skywalker", email: "alice@example.com", email_verified: true, password: 'aaPassword'});
+        const userBob = await app.db.models.User.create({username: "bob", name: "Bob Solo", email: "bob@example.com", email_verified: true,password: 'bbPassword'});
         const userChris = await app.db.models.User.create({username: "chris", name: "Chris Kenobi", email: "chris@example.com", password: 'ccPassword'});
 
         const team1 = await app.db.models.Team.create({name: "ATeam"});
@@ -16,13 +16,13 @@ async function inject(app) {
 
         await team1.addUser(userAlice, { through: { role:"owner" } });
         await team1.addUser(userBob, { through: { role:"member" } });
-        await team1.addUser(userChris, { through: { role:"member" } });
+        // await team1.addUser(userChris, { through: { role:"member" } });
 
         await team2.addUser(userBob, { through: { role:"owner" } });
         await team2.addUser(userAlice, { through: { role:"member" } });
 
         await team3.addUser(userAlice, { through: { role:"owner" } });
-        await team3.addUser(userChris, { through: { role:"member" } });
+        // await team3.addUser(userChris, { through: { role:"member" } });
 
         const project1 = await app.db.models.Project.create({name: "project1", type: "basic", url: "http://instance1.example.com"});
         await team1.addProject(project1);
