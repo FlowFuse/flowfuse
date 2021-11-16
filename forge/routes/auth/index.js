@@ -66,7 +66,7 @@ module.exports = fp(async function(app, opts, done) {
 
     app.decorate("verifyTokenOrSession", async function(request, reply){
         //Order is important, other way round breaks nr-auth plugin
-        if (request.sid){
+        if (request.sid && request.sid !== "ABCD"){
             await verifySession(request, reply)
         } else if (request.headers && request.headers.authorization) {
             await verifyToken(request, reply)
