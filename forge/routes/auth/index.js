@@ -33,7 +33,7 @@ module.exports = fp(async function(app, opts, done) {
     await app.register(require("./oauth"))
 
     // WIP:
-    app.decorate("verifyToken", function(request, reply, done) {
+    async function verifyToken(request, reply) {
         if (request.headers && request.headers.authorization) {
             const parts = request.headers.authorization.split(" ");
             if (parts.length === 2) {
@@ -41,21 +41,37 @@ module.exports = fp(async function(app, opts, done) {
                 const token = parts[1]
                 console.log(`[${scheme}][${token}]`)
                 if (scheme !== "Bearer") {
-                    return done(new Error("Unsupported authorization scheme"))
+                    // return done(new Error("Unsupported authorization scheme"))
+                    throw new Error("Unsupported authorization scheme")
                 }
                 if (token !== "ABCD") {
                     // reply.code(401).send({ error: 'Unauthorized tokebn' })
-                    return done(new Error("bad token"))
+                    // return done(new Error("bad token"))
+                    throw new Error("bad token")
                 } else {
-                    done();
+                    return;
+                    // done();
                 }
             } else {
-                return done(new Error("Malformed authorization header"))
+                // return done(new Error("Malformed authorization header"))
+                throw new Error("Malformed authorization header")
             }
         } else {
-            done(new Error("Missing authorization header"))
+            // done(new Error("Missing authorization header"))
+            throw new Error("Missing authorization header")
         }
-    });
+    }
+
+    app.decorate("verifyToken", verifyToken);
+
+    app.decorate("verifyTokenOrSession", async function(request, reply){
+        //Order is important, other way round breaks nr-auth plugin
+        if (request.sid){
+            await verifySession(request, reply)
+        } else if (request.headers && request.headers.authorization) {
+            await verifyToken(request, reply)
+        }
+    })
 
     /**
      * preHandler function that ensures the current request comes from an active
@@ -69,7 +85,7 @@ module.exports = fp(async function(app, opts, done) {
      * @static
      * @memberof forge
      */
-    app.decorate("verifySession", async (request, reply) => {
+    async function verifySession(request, reply) {
         if (request.sid) {
             request.session = await app.db.controllers.Session.getOrExpire(request.sid);
             if (request.session) {
@@ -77,8 +93,9 @@ module.exports = fp(async function(app, opts, done) {
             }
         }
         reply.code(401).send({ error: 'unauthorized' })
-        return new Error()
-    });
+        throw new Error()
+    }
+    app.decorate("verifySession", verifySession);
 
     /**
      * preHandler function that ensures the current request comes from

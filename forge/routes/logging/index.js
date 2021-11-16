@@ -7,6 +7,8 @@
  */
 
 module.exports = async function (app) {
+
+  app.addHook('preHandler',app.verifyToken);
 	
 	app.post('/:id/audit', async(request, response) => {
     let id = request.params.id;
