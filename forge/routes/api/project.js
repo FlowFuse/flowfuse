@@ -18,7 +18,7 @@
         const project = await app.db.models.Project.byId(request.params.id)
         if (project) {
             const result = await app.db.views.Project.project(project);
-            result.meta = await app.containers.details(project.id);
+            result.meta = await app.containers.details(project.id) || { state:'unknown'};
             result.team = await app.db.views.Team.team(project.Team);
             reply.send(result)
         } else {

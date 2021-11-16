@@ -4,6 +4,7 @@
 async function inject(app) {
     try {
 
+        return
         await app.db.models.PlatformSettings.upsert({ key: "setup:initialised",value:true });
 
         const userAlice = await app.db.models.User.create({admin: true, username: "alice", name: "Alice Skywalker", email: "alice@example.com", email_verified: true, password: 'aaPassword'});
