@@ -7,7 +7,7 @@
                 <template v-slot:description>Unique, short, no spaces. Cannot be 'admin' or 'root'</template>
             </FormRow>
             <FormRow v-model="input.name" :placeholder="input.username">
-                Name
+                Full Name
             </FormRow>
             <FormRow v-model="input.email" :error="errors.email">Email</FormRow>
             <FormRow type="password" :error="errors.password" v-model="input.password" id="password" :onBlur="checkPassword" >

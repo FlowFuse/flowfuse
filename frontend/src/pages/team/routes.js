@@ -2,6 +2,8 @@ import Team from "@/pages/team/index.vue"
 import TeamOverview from "@/pages/team/Overview.vue"
 import TeamProjects from "@/pages/team/Projects.vue"
 import TeamMembers from "@/pages/team/Members.vue"
+import TeamMembersMembers from "@/pages/team/Members/General.vue"
+import TeamMembersInvitations from "@/pages/team/Members/Invitations.vue"
 import TeamSettings from "@/pages/team/Settings.vue"
 import TeamSettingsGeneral from "@/pages/team/Settings/General.vue"
 import TeamSettingsDanger from "@/pages/team/Settings/Danger.vue"
@@ -26,7 +28,15 @@ export default [
         children: [
             { path: 'overview', component: TeamOverview },
             { path: 'projects', component: TeamProjects },
-            { path: 'members', component: TeamMembers },
+            { path: 'members', component: TeamMembers,
+                redirect: to => {
+                    return `/team/${to.params.id}/members/general`
+                },
+                children: [
+                    { path: 'general', component: TeamMembersMembers },
+                    { path: 'invitations', component: TeamMembersInvitations }
+                ]
+            },
             {
                 path: 'settings', component: TeamSettings,
                 redirect: to => {
