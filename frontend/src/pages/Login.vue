@@ -1,6 +1,6 @@
 <template>
-    <div class="mx-auto min-h-screen flex items-center justify-center bg-gray-50 py-12">
-        <div class="sm:w-72 w-xs w-screen space-y-2">
+    <div class="mx-auto flex-grow flex items-center justify-center bg-gray-50 py-12">
+        <div class="sm:w-72 w-screen space-y-2">
             <template v-if="!pending">
                 <div class="max-w-xs mx-auto w-full mb-4">
                     <Logo/>
@@ -17,6 +17,9 @@
                                 </span>
                                 Login with username
                             </button>
+                            <div class="mt-4 text-xs text-center">
+                                <router-link class="forge-button-secondary" to="/account/create">Sign up</router-link>
+                            </div>
                         </div>
                     </template>
                     <template v-if="authMode === 'credentials'">

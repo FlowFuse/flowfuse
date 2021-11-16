@@ -31,7 +31,10 @@ module.exports = {
                 continue;
             }
             opts.invitorId = invitor.id;
-            await db.models.Invitation.create(opts);
+            const invite = await db.models.Invitation.create(opts);
+            // Re-get the new invite so the User/Team properties are pre-fetched
+            results[userDetail] = await db.models.Invitation.byId(invite.hashid)
+            console.log(results[userDetail].team.name)
         }
         return results;
     }

@@ -5,8 +5,13 @@
             <ChevronRightIcon v-if="itemIdx > 0" class="h-5 w-5 mx-2 text-blue-400" aria-hidden="true"></ChevronRightIcon>
             <template v-if="item.type === 'TeamPicker'">
                 <DropdownMenu buttonClass="forge-button-inline" alt="Open team menu" :options="teamOptions" edge="left">
-                    <img :src="team && team.avatar" class="-my-2 h-6 v-6 rounded-md"/>
-                    <div class="ml-2 truncate" style="max-width: 150px">{{team && team.name}}</div>
+                    <template v-if="pendingTeamChange">
+                        Loading
+                    </template>
+                    <template v-else>
+                        <img :src="team && team.avatar" class="-my-2 h-6 v-6 rounded-md"/>
+                        <div class="ml-2 truncate" style="max-width: 150px">{{team && team.name}}</div>
+                    </template>
                 </DropdownMenu>
             </template>
             <template v-else-if="item.type === 'TeamLink'">
@@ -40,7 +45,7 @@ export default {
   name: "Breadcrumbs",
   computed: {
       ...mapState('breadcrumbs',['breadcrumbs']),
-      ...mapState('account',['team','teams']),
+      ...mapState('account',['team','teams','pendingTeamChange']),
       teamOptions: function() {
           return [
               { icon: CogIcon, name: "Team Settings", link: { path: `/team/${this.team.slug}/settings` }},

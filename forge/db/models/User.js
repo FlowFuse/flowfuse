@@ -11,6 +11,7 @@ module.exports = {
         username: { type: DataTypes.STRING, allowNull: false, unique: true },
         name: { type: DataTypes.STRING },
         email: { type: DataTypes.STRING, unique: true, validate: { isEmail: true } },
+        email_verified: { type: DataTypes.BOOLEAN, defaultValue: false },
         password: {
             type: DataTypes.STRING,
             set(value) {

@@ -12,7 +12,7 @@ const client = axios.create({
 client.interceptors.response.use(function (response) {
     return response;
 }, function (error) {
-    if (error.response.status === 401 && !store.state.account.pending && !store.state.account.loginInflight) {
+    if (error.response && error.response.status === 401 && !store.state.account.pending && !store.state.account.loginInflight) {
         // 401 when !pending && !loginInflight means the session has expired
         store.dispatch("account/logout")
         return Promise.reject(error);

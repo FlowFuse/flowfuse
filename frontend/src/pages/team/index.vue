@@ -1,5 +1,8 @@
 <template>
-    <div class="forge-block" v-if="team">
+    <template v-if="pendingTeamChange">
+        <Loading />
+    </template>
+    <div class="forge-block" v-else-if="team">
         <SectionTopMenu :options="navigation">
             <template v-slot:hero>
                 <router-link :to="navigation[0]?navigation[0].path:''" class="flex items-center">
@@ -18,13 +21,14 @@
 import teamApi from '@/api/team'
 import Breadcrumbs from '@/mixins/Breadcrumbs';
 import SectionTopMenu from '@/components/SectionTopMenu';
+import Loading from '@/components/Loading';
 import { useRoute } from 'vue-router';
 import { mapState } from 'vuex'
 export default {
     name: 'Team',
     mixins: [Breadcrumbs],
     computed: {
-        ...mapState('account',['team']),
+        ...mapState('account',['team','pendingTeamChange']),
     },
     data: function() {
         return {
@@ -32,7 +36,8 @@ export default {
         }
     },
     components: {
-        SectionTopMenu
+        SectionTopMenu,
+        Loading
     },
     methods: {
         updateTeam: function(newVal,oldVal) {

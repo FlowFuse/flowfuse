@@ -5,6 +5,7 @@ import AccountSecurityChangePassword from "@/pages/account/Security/ChangePasswo
 import AccountSecuritySessions from "@/pages/account/Security/Sessions.vue"
 import AccountTeams from "@/pages/account/Teams.vue"
 import AccessRequest from "@/pages/AccessRequest.vue"
+import AccountCreate from "@/pages/account/Create.vue"
 
 import { CogIcon } from '@heroicons/vue/outline'
 import store from '@/store'
@@ -53,7 +54,22 @@ export default [
         ],
     },
 
-
+    {
+        path: '/account/create',
+        name: 'Sign up',
+        meta: {
+            requiresLogin: false,
+        },
+        component: AccountCreate
+    },
+    {
+        path: '/account/verify/:token',
+        name: 'Verify Email',
+        meta: {
+            requiresLogin: false,
+        },
+        component: AccountCreate
+    },
     {
         profileLink: true,
         path: '/account/logout',

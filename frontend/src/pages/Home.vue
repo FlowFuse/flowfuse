@@ -4,7 +4,10 @@
         <Logo class="max-w-xs mx-auto w-full"/>
     </div>
     </template>
-    <template v-if="teams.length === 0">
+    <template v-if="!user.email_verified">
+        <NoVerifiedEmail/>
+    </template>
+    <template v-else-if="teams.length === 0">
         <NoTeamsUser/>
     </template>
 </template>
@@ -13,7 +16,8 @@
 
 import { mapState } from 'vuex'
 import Logo from "@/components/Logo"
-import NoTeamsUser from "./NoTeamsUser"
+import NoTeamsUser from "./account/NoTeamsUser"
+import NoVerifiedEmail from "./account/NoVerifiedEmail"
 import Breadcrumbs from '@/mixins/Breadcrumbs';
 
 export default {
@@ -49,7 +53,8 @@ export default {
     },
     components: {
         Logo,
-        NoTeamsUser
+        NoTeamsUser,
+        NoVerifiedEmail
     }
 }
 </script>

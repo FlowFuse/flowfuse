@@ -43,6 +43,9 @@ export default {
         return {
             navigation
         }
+    },
+    components: {
+        SectionTopMenu
     }
 }
 </script>

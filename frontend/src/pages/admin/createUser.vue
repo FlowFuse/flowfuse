@@ -4,7 +4,7 @@
             <form class="space-y-6">
                 <FormHeading>Create a new user</FormHeading>
                 <FormRow v-model="input.username" :error="errors.username">Username</FormRow>
-                <FormRow v-model="input.name" :placeholder="input.username">Name</FormRow>
+                <FormRow v-model="input.name" :placeholder="input.username">Full Name</FormRow>
                 <FormRow v-model="input.email" :error="errors.email">Email</FormRow>
                 <FormRow type="password" :error="errors.password" v-model="input.password" id="password" :onBlur="checkPassword" >Password</FormRow>
                 <FormRow type="password" :error="errors.password_confirm" v-model="input.password_confirm" id="password_confirm">Confirm Password</FormRow>

@@ -62,8 +62,7 @@ module.exports = async function(app) {
                 properties: {
                     name: { type: 'string' },
                     username: { type: 'string' },
-                    password: { type: 'string' },
-                    createDefaultTeam: { type: 'boolean' }
+                    password: { type: 'string' }
                 }
             }
         }
@@ -81,17 +80,10 @@ module.exports = async function(app) {
                 username: request.body.username,
                 name: request.body.name,
                 email: request.body.email,
+                email_verified: true,
                 password: request.body.password,
                 admin: true
             });
-
-            if (request.body.createDefaultTeam) {
-                const newTeam = await app.db.models.Team.create({
-                    name: `Team ${request.body.name}`,
-                    slug: request.body.username
-                });
-                await newTeam.addUser(newUser, { through: { role:"owner" } });
-            }
             reply.send({status: "okay"})
         } catch(err) {
             let responseMessage;

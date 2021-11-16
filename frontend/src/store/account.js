@@ -18,6 +18,8 @@ const state = () => ({
     teams: [],
     // An error during login
     loginError: null,
+    //
+    pendingTeamChange: false
 })
 
 // getters
@@ -36,6 +38,9 @@ const getters = {
     },
     pending(state) {
         return state.pending
+    },
+    pendingTeamChange(state) {
+        return state.pendingTeamChange
     }
 }
 
@@ -76,6 +81,12 @@ const mutations = {
     },
     setRedirectUrl(state, url) {
         state.redirectUrlAfterLogin = url;
+    },
+    setPendingTeamChange(state) {
+        state.pendingTeamChange = true;
+    },
+    clearPendingTeamChange(state) {
+        state.pendingTeamChange = false;
     }
 }
 
@@ -88,6 +99,12 @@ const actions = {
 
             const teams = await teamApi.getTeams();
             state.commit('setTeams', teams.teams)
+
+            if (router.currentRoute.value.meta.requiresLogin === false) {
+                // This is only for logged-out users
+                window.location = "/"
+                return;
+            }
 
             if (teams.count === 0) {
                 state.commit('clearPending')
@@ -142,9 +159,9 @@ const actions = {
             }
         } catch(err) {
             // Not logged in
-            state.commit('setRedirectUrl',router.currentRoute.value.fullPath);
             state.commit('clearPending')
-            if (router.currentRoute.value.fullPath != '/') {
+            if (router.currentRoute.value.meta.requiresLogin !== false) {
+                state.commit('setRedirectUrl',router.currentRoute.value.fullPath);
                 router.push({name:"Home"})
             }
         }
@@ -152,7 +169,7 @@ const actions = {
     async refreshTeam(state) {
         const currentTeam = state.getters.team;
         if (currentTeam) {
-            const team = await teamApi.getTeam(currenTeam.id);
+            const team = await teamApi.getTeam(currentTeam.id);
             state.commit('setTeam', team)
         }
     },
@@ -178,8 +195,19 @@ const actions = {
             })
     },
     async setTeam(state, team) {
+        const currentTeam = state.getters.team;
         if (typeof team === 'string') {
-            team = await teamApi.getTeam({slug:team})
+            if (!currentTeam || currentTeam.slug !== team) {
+                state.commit("setPendingTeamChange");
+                team = await teamApi.getTeam({slug:team})
+                state.commit("clearPendingTeamChange");
+            } else {
+                return
+            }
+        } else {
+            if (!currentTeam || currentTeam.id === team.id) {
+                return;
+            }
         }
         state.commit("setTeam", team);
     },

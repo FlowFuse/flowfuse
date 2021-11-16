@@ -13,6 +13,10 @@ const logout = () => {
     return client.post('/account/logout').then(res => res.data)
 }
 
+const registerUser = async(options) => {
+    return client.post('/account/register',options).then(res => res.data)
+}
+
 const getUser = () => {
     return client.get('/api/v1/user/').then(res => res.data);
 }
@@ -50,8 +54,13 @@ const rejectTeamInvitation = async (invitationId) => {
         return res.data
     });
 }
-
+const triggerVerification = async() => {
+    return client.post('/account/verify').then(res => {
+        return res.data
+    });
+}
 export default {
+    registerUser,
     getUser,
     login,
     logout,
@@ -59,5 +68,6 @@ export default {
     updateUser,
     getTeamInvitations,
     acceptTeamInvitation,
-    rejectTeamInvitation
+    rejectTeamInvitation,
+    triggerVerification
 }

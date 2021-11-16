@@ -16,6 +16,7 @@ const { Sequelize } = require('sequelize');
 const models = require("./models")
 const views = require("./views")
 const controllers = require("./controllers")
+const utils = require("./utils");
 
 const fp = require("fastify-plugin");
 
@@ -41,7 +42,8 @@ module.exports = fp(async function(app, _opts, next) {
         sequelize,
         models,
         views,
-        controllers
+        controllers,
+        utils
     }
 
     await sequelize.authenticate();
