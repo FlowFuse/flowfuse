@@ -70,6 +70,9 @@ module.exports = fp(async function(app, opts, done) {
             await verifySession(request, reply)
         } else if (request.headers && request.headers.authorization) {
             await verifyToken(request, reply)
+        } else {
+            reply.code(401).send({ error: 'unauthorized' })
+            throw new Error()
         }
     })
 
@@ -89,7 +92,10 @@ module.exports = fp(async function(app, opts, done) {
         if (request.sid) {
             request.session = await app.db.controllers.Session.getOrExpire(request.sid);
             if (request.session) {
+                console.log("session found")
                 return;
+            } else {
+                console.log("sid but no session")
             }
         }
         reply.code(401).send({ error: 'unauthorized' })
