@@ -8,6 +8,8 @@
  */
 module.exports = async function(app) {
 
+  app.addHook('preHandler',app.verifyToken);
+
   app.post('/:id/flows', async (request, response) => {
     let id = request.params.id;
     // Check if the project exists first

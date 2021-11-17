@@ -12,7 +12,7 @@ const Project = require("./project.js");
 const Projects = require("./projects.js");
 
 module.exports = async function(app) {
-    app.addHook('preHandler',app.verifySession);
+    app.addHook('preHandler',app.verifyTokenOrSession);
     app.register(User, { prefix: "/user" })
     app.register(Users, { prefix: "/users" })
     app.register(Team, { prefix: "/teams" })

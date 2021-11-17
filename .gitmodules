@@ -1,0 +1,15 @@
+[submodule "sub_modules/flowforge-driver-localfs"]
+	path = sub_modules/flowforge-driver-localfs
+	url = git@github.com:flowforge/flowforge-driver-localfs.git
+[submodule "sub_modules/flowforge-nr-launcher"]
+	path = sub_modules/flowforge-nr-launcher
+	url = git@github.com:flowforge/flowforge-nr-launcher.git
+[submodule "sub_modules/flowforge-nr-audit-logger"]
+	path = sub_modules/flowforge-nr-audit-logger
+	url = git@github.com:flowforge/flowforge-nr-audit-logger.git
+[submodule "sub_modules/flowforge-nr-storage"]
+	path = sub_modules/flowforge-nr-storage
+	url = git@github.com:flowforge/flowforge-nr-storage.git
+[submodule "sub_modules/flowforge-nr-auth"]
+	path = sub_modules/flowforge-nr-auth
+	url = git@github.com:flowforge/flowforge-nr-auth.git

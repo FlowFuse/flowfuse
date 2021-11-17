@@ -119,4 +119,15 @@
             reply.status(404).send({error: "Project not found"})
         }
     })
+
+    /**
+     * Provide Project specific settings.js
+     * 
+     * @name /api/v1/project/:id/settings
+     * @memberof forge.routes.api.project
+     */
+    app.get('/:id/settings', async(request,reply) => {
+        let settings = await app.containers.settings(request.params.id);
+        reply.send(settings)
+    })
 }
