@@ -25,10 +25,15 @@ module.exports = async function(app) {
      * PATCH [/api/v1/user/invitations]/:invitationId
      */
     app.patch('/:invitationId', async (request, reply) => {
-        const invitation = await app.db.models.Invitation.byId(request.params.invitationId);
+        const invitation = await app.db.models.Invitation.byId(request.params.invitationId, request.session.User);
         if (invitation) {
             await invitation.team.addUser(request.session.User, { through: { role:"member" } })
             await invitation.destroy()
+            await app.db.controllers.AuditLog.teamLog(
+                invitation.team.id,
+                request.session.User.id,
+                "user.invite.accept"
+            )
             reply.send({status:'okay'})
         } else {
             reply.code(404).type('text/html').send('Not Found')
@@ -41,9 +46,14 @@ module.exports = async function(app) {
      * DELETE [/api/v1/user/invitations]/:invitationId
      */
     app.delete('/:invitationId', async (request, reply) => {
-        const invitation = await app.db.models.Invitation.byId(request.params.invitationId);
+        const invitation = await app.db.models.Invitation.byId(request.params.invitationId, request.session.User);
         if (invitation) {
             await invitation.destroy();
+            await app.db.controllers.AuditLog.teamLog(
+                invitation.team.id,
+                request.session.User.id,
+                "user.invite.reject"
+            )
             reply.send({status:'okay'})
         } else {
             reply.code(404).type('text/html').send('Not Found')

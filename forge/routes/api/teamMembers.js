@@ -28,6 +28,12 @@ module.exports = async function(app) {
      * POST [/api/v1/teams/:teamId/members]/
      */
     app.post('/', async (request, reply) => {
+        // await app.db.controllers.AuditLog.teamLog(
+        //     request.team.id,
+        //     request.session.User.id,
+        //     "user.added",
+        //     { user: userToRemove.username }
+        // )
         reply.code(400).send({error:"POST /api/v1/teams/:teamId/members not implemented"})
     })
 
@@ -47,8 +53,18 @@ module.exports = async function(app) {
                 // Don't need to lookup the user/role again
                 userToRemove = request.session.User
                 userRole = sessionUserMembership
+            } else {
+                userToRemove = await db.models.User.byId(userToRemove)
             }
-            app.db.controllers.Team.removeUser(request.team, userToRemove, userRole)
+            const result = await app.db.controllers.Team.removeUser(request.team, userToRemove, userRole)
+            if (result) {
+                await app.db.controllers.AuditLog.teamLog(
+                    request.team.id,
+                    request.session.User.id,
+                    "user.removed",
+                    { user: userToRemove.username }
+                )
+            }
             reply.send({status:"okay"})
         } else {
             reply.code(403).type('text/html').send('Forbidden')
@@ -68,7 +84,15 @@ module.exports = async function(app) {
         if (sessionUserMembership.role === "owner" || request.session.User.admin) {
             if (request.body.role === "owner" || request.body.role === "member") {
                 try {
-                    await app.db.controllers.Team.changeUserRole(request.params.teamId,request.params.userId,request.body.role)
+                    const result = await app.db.controllers.Team.changeUserRole(request.params.teamId,request.params.userId,request.body.role)
+                    if (result.oldRole !== result.role) {
+                        await app.db.controllers.AuditLog.teamLog(
+                            result.team.id,
+                            request.session.User.id,
+                            "user.roleChanged",
+                            { user: result.user.username, role: result.role}
+                        )
+                    }
                     reply.send({status:"okay"})
                 } catch(err) {
                     console.log(err);

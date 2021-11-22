@@ -14,12 +14,12 @@ module.exports = {
         if (!existingRole) {
             throw new Error("User not in team");
         }
-
-        if (existingRole.role === role) {
-            return;
+        const oldRole = existingRole.role;
+        if (oldRole === role) {
+            return {user,team,oldRole,role};
         }
 
-        if (existingRole.role === "owner" && role === "member") {
+        if (oldRole === "owner" && role === "member") {
             const owners = await team.owners();
             if (owners.length === 1) {
                 throw new Error("Cannot remove last owner");
@@ -27,13 +27,18 @@ module.exports = {
         }
         existingRole.role = role;
         await existingRole.save();
+        return {user,team,oldRole,role}
     },
 
-    removeUser: async function(db, team, userOrHashId, userRole) {
-        let user = userOrHashId;
-        if (typeof user === "string") {
-            user = await db.models.User.byId(user)
-        }
+    /**
+     * Remove a user from a team
+     * @params team
+     * @params userOrHashId
+     * @params userRole
+     * @return boolean - if the user was removed.
+     *
+     */
+    removeUser: async function(db, team, user, userRole) {
         if (!userRole) {
             userRole = await user.getTeamMembership(team.id);
         }
@@ -47,7 +52,10 @@ module.exports = {
                 }
             }
             await userRole.destroy();
+            return true;
             console.warn("TODO: forge.db.controllers.Team.removeUser - expire oauth sessions")
         }
+
+        return false
     }
 }

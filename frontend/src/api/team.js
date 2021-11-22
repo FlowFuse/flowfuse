@@ -89,6 +89,14 @@ const removeTeamMember = (teamId, userId) => {
     return client.delete(`/api/v1/teams/${teamId}/members/${userId}`)
 }
 
+const getTeamAuditLog = async (teamId, cursor) => {
+    const query = cursor?`?cursor=${cursor}`:'';
+    return client.get(`/api/v1/teams/${teamId}/audit-log${query}`).then(res => res.data)
+}
+const getTeamUserMembership = (teamId) => {
+    return client.get(`/api/v1/teams/${teamId}/user`).then(res => res.data)
+}
+
 export default {
     create,
     getTeam,
@@ -99,5 +107,7 @@ export default {
     removeTeamMember,
     getTeamInvitations,
     createTeamInvitation,
-    removeTeamInvitation
+    removeTeamInvitation,
+    getTeamAuditLog,
+    getTeamUserMembership
 }

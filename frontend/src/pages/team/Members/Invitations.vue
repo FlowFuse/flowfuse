@@ -17,6 +17,7 @@ import FormHeading from '@/components/FormHeading'
 import ItemTable from '@/components/tables/ItemTable'
 import InviteUserCell from '@/components/tables/cells/InviteUserCell'
 import { TrashIcon } from '@heroicons/vue/outline'
+import { useRoute, useRouter } from 'vue-router';
 
 const MemberInviteRemoveButton = {
     template: `<button type="button" class="forge-button-inline px-2 py-2" @click="removeInvite"><TrashIcon class="w-5" /></button>`,
@@ -33,7 +34,7 @@ const MemberInviteRemoveButton = {
 
 export default {
     name: 'MemberInviteTable',
-    props:[ "team" ],
+    props:[ "team", "teamMembership" ],
     data() {
         return {
             invitations: [],
@@ -45,7 +46,8 @@ export default {
         }
     },
     watch: {
-         team: 'fetchData'
+        teamMembership: 'fetchData',
+        team: 'fetchData'
     },
     mounted() {
         this.fetchData()
@@ -56,13 +58,19 @@ export default {
             await this.fetchData();
         },
         async fetchData () {
-            const invitations = await teamApi.getTeamInvitations(this.team.id)
-            this.invitations = invitations.invitations.map(invite => {
-                invite.onremove = (teamId, inviteId) => { this.removeInvite(teamId,inviteId) }
-                return invite;
-            })
+            if (this.team && this.teamMembership) {
+                if (this.teamMembership.role !== "owner") {
+                    useRouter().push({ path: `/team/${useRoute().params.id}/members/general` })
+                    return
+                }
+                const invitations = await teamApi.getTeamInvitations(this.team.id)
+                this.invitations = invitations.invitations.map(invite => {
+                    invite.onremove = (teamId, inviteId) => { this.removeInvite(teamId,inviteId) }
+                    return invite;
+                })
 
-            this.invitationCount = invitations.count;
+                this.invitationCount = invitations.count;
+            }
         }
     },
     components: {

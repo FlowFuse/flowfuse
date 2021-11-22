@@ -9,19 +9,21 @@
 </template>
 
 <script>
+import projectApi from '@/api/project'
 import DropdownMenu from '@/components/DropdownMenu'
 import { ExternalLinkIcon, ClipboardCopyIcon } from '@heroicons/vue/outline'
 import FormHeading from '@/components/FormHeading'
 import FormRow from '@/components/FormRow'
+
 export default {
     name: 'ProjectOverview',
     props:[ "project" ],
     computed: {
         options: function() {
             return [
-                {name: "Start", action: function() { console.log("start")}},
-                {name: "Restart", action: function() { console.log("start")}},
-                {name: "Stop"}
+                {name: "Start", action: async() => { await projectApi.startProject(this.project.id) } },
+                {name: "Restart", action: async() => { await projectApi.restartProject(this.project.id) } },
+                {name: "Stop", action: async() => { await projectApi.stopProject(this.project.id) } }
             ]
         }
     },

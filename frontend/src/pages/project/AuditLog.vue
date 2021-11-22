@@ -1,13 +1,21 @@
 <template>
-    <p class="mb-4 italic text-red-800">This is a history of all audit events on the project. This covers all audit
-    event log entries from the Node-RED instance as well as any audit-events from
-    the forge platform (start/stop/etc).</p>
+    <AuditLog :entity="project" :loadItems="loadItems" />
 </template>
 
 <script>
+import projectApi from '@/api/project'
+import AuditLog from '@/components/AuditLog'
 
 export default {
     name: 'ProjectAuditLog',
-    props:[ "project" ]
+    props:[ "project" ],
+    methods: {
+        loadItems: async function(projectId,cursor) {
+            return await projectApi.getProjectAuditLog(projectId,cursor);
+        }
+    },
+    components: {
+        AuditLog
+    }
 }
 </script>

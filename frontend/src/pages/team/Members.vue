@@ -2,7 +2,7 @@
     <div class="flex flex-col sm:flex-row">
         <SectionSideMenu :options="sideNavigation" />
         <div class="flex-grow">
-            <router-view :team="team"></router-view>
+            <router-view :team="team" :teamMembership="teamMembership"></router-view>
         </div>
     </div>
 </template>
@@ -10,19 +10,35 @@
 <script>
 import SectionSideMenu from '@/components/SectionSideMenu'
 
-const sideNavigation = [
-    { name: "Members", path: "./general" },
-    { name: "Invitations", path: "./invitations" }
-]
+// const sideNavigation = [
+//     { name: "Members", path: "./general" },
+//     { name: "Invitations", path: "./invitations" }
+// ]
 export default {
     name: 'TeamUsers',
-    props:[ "team" ],
+    props:[ "team", "teamMembership" ],
     components: {
         SectionSideMenu
     },
-    setup() {
+    data: function() {
         return {
-            sideNavigation
+            sideNavigation: []
+        }
+    },
+    watch: {
+         teamMembership: 'checkAccess'
+    },
+    mounted() {
+        this.checkAccess()
+    },
+    methods: {
+        checkAccess: async function() {
+            this.sideNavigation = [
+                { name: "Members", path: "./general" }
+            ]
+            if (this.teamMembership && this.teamMembership.role === "owner") {
+                this.sideNavigation.push({ name: "Invitations", path: "./invitations" })
+            }
         }
     }
 }

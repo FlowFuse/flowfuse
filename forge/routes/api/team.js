@@ -95,6 +95,19 @@ module.exports = async function(app) {
             await newTeam.addUser(request.session.User, { through: { role:"owner" } });
 
             const team = await app.db.models.Team.bySlug(newTeam.slug)
+
+            await app.db.controllers.AuditLog.teamLog(
+                newTeam.id,
+                request.session.User.id,
+                "team.created"
+            )
+            await app.db.controllers.AuditLog.teamLog(
+                newTeam.id,
+                request.session.User.id,
+                "user.added",
+                {role: "owner"}
+            )
+
             reply.send(app.db.views.Team.team(team))
         } catch(err) {
             let responseMessage;
@@ -119,5 +132,34 @@ module.exports = async function(app) {
     //
     // })
 
+
+    /**
+     * Get the session users team membership
+     * @name /api/v1/team/:teamId/user
+     * @static
+     * @memberof forge.routes.api.team
+     */
+    app.get('/:teamId/user', async (request, reply) => {
+        const sessionUserMembership = await request.session.User.getTeamMembership(request.team.id);
+        if (sessionUserMembership) {
+            reply.send({
+                role: sessionUserMembership.role
+            })
+        }
+        reply.code(404).type('text/html').send('Not Found')
+    })
+
+    /**
+     *
+     * @name /api/v1/team/:teamId/audit-log
+     * @memberof forge.routes.api.project
+     */
+    app.get('/:teamId/audit-log', async(request,reply) => {
+        const paginationOptions = app.getPaginationOptions(request)
+        const logEntries = await app.db.models.AuditLog.forTeam(request.team.id, paginationOptions)
+        const result = app.db.views.AuditLog.auditLog(logEntries);
+// console.log(logEntries);
+        reply.send(result)
+    })
 
 }

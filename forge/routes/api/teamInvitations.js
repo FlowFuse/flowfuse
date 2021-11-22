@@ -48,6 +48,7 @@ module.exports = async function(app) {
             message: {}
         };
         let errorCount = 0;
+        const successfulInvites = [];
 
         for (const [user, invite] of Object.entries(invites)) {
             if (typeof invite === "string") {
@@ -64,6 +65,7 @@ module.exports = async function(app) {
                                 signupLink: `${process.env.BASE_URL}/account/create?email=${invite.email}`
                             }
                         )
+                        successfulInvites.push(invite.email);
                     } else {
                         await app.postoffice.send(
                             invite.invitee,
@@ -73,6 +75,7 @@ module.exports = async function(app) {
                                 signupLink: `${process.env.BASE_URL}`
                             }
                         )
+                        successfulInvites.push(invite.invitee.username);
                     }
                 } catch(err) {
                     console.log(err);
@@ -81,6 +84,14 @@ module.exports = async function(app) {
                 }
 
             }
+        }
+        if (successfulInvites.length > 0) {
+            await app.db.controllers.AuditLog.teamLog(
+                request.team.id,
+                request.session.User.id,
+                "user.invited",
+                { users: successfulInvites }
+            )
         }
         if (errorCount > 0) {
             result.status = "error"
@@ -99,6 +110,12 @@ module.exports = async function(app) {
         const invitation = await app.db.models.Invitation.byId(request.params.invitationId);
         if (invitation) {
             await invitation.destroy();
+            await app.db.controllers.AuditLog.teamLog(
+                request.team.id,
+                request.session.User.id,
+                "user.uninvited",
+                { users: [invitation.external?invitation.email:invitation.invitee.username] }
+            )
             reply.send({status:'okay'})
         } else {
             reply.code(404).type('text/html').send('Not Found')
