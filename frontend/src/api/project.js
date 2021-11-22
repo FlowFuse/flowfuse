@@ -34,9 +34,29 @@ const deleteProject = async (projectId) => {
     return client.delete(`/api/v1/project/${projectId}`)
 }
 
+const getProjectAuditLog = async (projectId, cursor) => {
+    const query = cursor?`?cursor=${cursor}`:'';
+    return client.get(`/api/v1/project/${projectId}/audit-log${query}`).then(res => res.data)
+}
+
+const startProject = async (projectId) => {
+    return client.post(`/api/v1/project/${projectId}/actions/start`).then(res => res.data)
+}
+const stopProject = async (projectId) => {
+    return client.post(`/api/v1/project/${projectId}/actions/stop`).then(res => res.data)
+}
+const restartProject = async (projectId) => {
+    return client.post(`/api/v1/project/${projectId}/actions/restart`).then(res => res.data)
+}
+
+
 export default {
     create,
     getProject,
     deleteProject,
-    getProjects
+    getProjects,
+    getProjectAuditLog,
+    startProject,
+    stopProject,
+    restartProject
 }

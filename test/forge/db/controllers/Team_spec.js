@@ -53,7 +53,7 @@ describe("Team controller", function() {
             const startingRole = await user.getTeamMembership(team.id);
             startingRole.role.should.equal("member");
 
-            await app.db.controllers.Team.removeUser(team, user.hashid);
+            await app.db.controllers.Team.removeUser(team, user);
 
             const endingRole = await user.getTeamMembership(team.id);
             should.not.exist(endingRole);
@@ -64,7 +64,7 @@ describe("Team controller", function() {
             const startingRole = await user.getTeamMembership(team.id);
             startingRole.role.should.equal("owner");
 
-            await app.db.controllers.Team.removeUser(team, user.hashid);
+            await app.db.controllers.Team.removeUser(team, user);
 
             const endingRole = await user.getTeamMembership(team.id);
             should.not.exist(endingRole);

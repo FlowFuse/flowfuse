@@ -20,5 +20,6 @@ module.exports = {
         const keyHash = md5(key.trim().toLowerCase());
         return `//www.gravatar.com/avatar/${keyHash}?d=identicon` //retro mp
     },
-    slugify: str => str.trim().toLowerCase().replace(/ /g,"-").replace(/[^a-z0-9-_]/ig,"")
+    slugify: str => str.trim().toLowerCase().replace(/ /g,"-").replace(/[^a-z0-9-_]/ig,""),
+    uppercaseFirst: str => `${str[0].toUpperCase()}${str.substr(1)}`
 }

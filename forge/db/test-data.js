@@ -25,15 +25,15 @@ async function inject(app) {
         await team3.addUser(userAlice, { through: { role:"owner" } });
         // await team3.addUser(userChris, { through: { role:"member" } });
 
-        const project1 = await app.db.models.Project.create({name: "project1", type: "basic", url: "http://instance1.example.com"});
-        await team1.addProject(project1);
+        // const project1 = await app.db.models.Project.create({name: "project1", type: "basic", url: "http://instance1.example.com"});
+        // await team1.addProject(project1);
+        //
+        // const project2 = await app.db.models.Project.create({name: "project2", type: "basic", url: "http://instance2.example.com"});
+        // // Can also do
+        // // await project1.setTeam(team1);
+        // await team2.addProject(project2);
 
-        const project2 = await app.db.models.Project.create({name: "project2", type: "basic", url: "http://instance2.example.com"});
-        // Can also do
-        // await project1.setTeam(team1);
-        await team2.addProject(project2);
-
-        const p2AuthClient = await app.db.controllers.AuthClient.createClientForProject(project2);
+        // const p2AuthClient = await app.db.controllers.AuthClient.createClientForProject(project2);
         //  For testing, print out the ID/Secret here to copy into the node-red project instance config
         // console.log(p2AuthClient);
 

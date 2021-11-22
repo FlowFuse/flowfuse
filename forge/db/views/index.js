@@ -10,7 +10,7 @@
  * @memberof forge.db
  */
 
- const modelTypes = ['User', 'Team','Project','Invitation'];
+ const modelTypes = ['User', 'Team','Project','Invitation', 'AuditLog'];
 
 async function init(db) {
     modelTypes.forEach(type => {

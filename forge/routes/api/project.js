@@ -1,3 +1,5 @@
+const ProjectActions = require("./projectActions.js");
+
 /**
  * Instance api routes
  *
@@ -8,22 +10,32 @@
  */
  module.exports = async function(app) {
 
+     app.addHook('preHandler', async (request, reply) => {
+         if (request.params.projectId) {
+             try {
+                 request.project = await app.db.models.Project.byId(request.params.projectId)
+                 if (!request.project) {
+                     reply.code(404).type('text/html').send('Not Found')
+                 }
+             } catch(err) {
+                 reply.code(404).type('text/html').send('Not Found')
+             }
+         }
+     })
+
+     app.register(ProjectActions, { prefix: "/:projectId/actions" })
+
     /**
-     * Get the details of a givevn project
-     * @name /api/v1/project/:id
+     * Get the details of a given project
+     * @name /api/v1/project/:projectId
      * @static
      * @memberof forge.routes.api.project
      */
-    app.get('/:id', async (request, reply) => {
-        const project = await app.db.models.Project.byId(request.params.id)
-        if (project) {
-            const result = await app.db.views.Project.project(project);
-            result.meta = await app.containers.details(project.id) || { state:'unknown'};
-            result.team = await app.db.views.Team.team(project.Team);
-            reply.send(result)
-        } else {
-            reply.status(404).send({error: "Project not found"});
-        }
+    app.get('/:projectId', async (request, reply) => {
+        const result = await app.db.views.Project.project(request.project);
+        result.meta = await app.containers.details(request.project.id)  || { state:'unknown'}
+        result.team = await app.db.views.Team.team(request.project.Team);
+        reply.send(result)
     })
 
     /**
@@ -70,6 +82,18 @@
             project.url = container.url
             await project.save()
 
+            await app.db.controllers.AuditLog.projectLog(
+                project.id,
+                request.session.User.id,
+                "project.created"
+            )
+            await app.db.controllers.AuditLog.teamLog(
+                team.id,
+                request.session.User.id,
+                "project.created",
+                { id: project.id, name: project.name }
+            )
+
             const result = await app.db.views.Project.project(project);
             result.meta = await app.containers.details(project.id);
             result.team = team.id;
@@ -83,24 +107,30 @@
      * @name /api/v1/project/:id
      * @memberof forge.routes.api.project
      */
-    app.delete('/:id', async (request, reply) => {
-        let project = await app.db.models.Project.byId(request.params.id);
-        if (project) {
-            app.containers.remove(project.id)
-            .then( () => {
-                project.destroy();
-                reply.send({ status: "okay"});
-            })
-            .catch(err => {
-                console.log("missing", err)
-                console.log(err)
-                reply.status(500).send({})
-            })
-        } else {
-            reply.status(404).send({error: "Project not found"})
+    app.delete('/:projectId', async (request, reply) => {
+        try {
+            await app.containers.remove(request.project.id)
+            request.project.destroy();
+            await app.db.controllers.AuditLog.projectLog(
+                request.project.id,
+                request.session.User.id,
+                "project.deleted"
+            )
+            await app.db.controllers.AuditLog.teamLog(
+                request.project.Team.id,
+                request.session.User.id,
+                "project.deleted"
+            )
+            reply.send({ status: "okay"});
+        } catch(err) {
+            console.log("missing", err)
+            console.log(err)
+            reply.status(500).send({})
         }
 
     })
+
+
 
     /**
      * Send commands
@@ -110,24 +140,33 @@
      * @name /api/v1/project/:id
      * @memberof forge.routes.api.project
      */
-    app.post('/:id', async (request,reply) => {
-        let project = await app.db.models.Project.byId(request.params.id);
-        if (project) {
-            let meta = await app.containers.details(project.name)
-            reply.send({})
-        } else {
-            reply.status(404).send({error: "Project not found"})
-        }
+    app.post('/:projectId', async (request,reply) => {
+        let meta = await app.containers.details(request.project.name)
+        reply.send({})
     })
 
     /**
      * Provide Project specific settings.js
-     * 
+     *
      * @name /api/v1/project/:id/settings
      * @memberof forge.routes.api.project
      */
-    app.get('/:id/settings', async(request,reply) => {
-        let settings = await app.containers.settings(request.params.id);
+    app.get('/:projectId/settings', async(request,reply) => {
+        let settings = await app.containers.settings(request.project.id);
         reply.send(settings)
     })
+
+    /**
+     *
+     * @name /api/v1/project/:id/audit-log
+     * @memberof forge.routes.api.project
+     */
+    app.get('/:projectId/audit-log', async(request,reply) => {
+        const paginationOptions = app.getPaginationOptions(request)
+        const logEntries = await app.db.models.AuditLog.forProject(request.project.id, paginationOptions)
+        const result = app.db.views.AuditLog.auditLog(logEntries);
+// console.log(logEntries);
+        reply.send(result)
+    })
+
 }

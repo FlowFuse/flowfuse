@@ -14,6 +14,8 @@ const state = () => ({
     user: null,
     // The active team
     team: null,
+    // The active user's membership details of the active team
+    teamMembership: null,
     // The user's teams
     teams: [],
     // An error during login
@@ -32,6 +34,9 @@ const getters = {
     },
     team(state) {
         return state.team
+    },
+    teamMembership(state) {
+        return state.teamMembership
     },
     redirectUrlAfterLogin(state) {
         return state.redirectUrlAfterLogin
@@ -68,6 +73,9 @@ const mutations = {
     },
     setTeam(state, team) {
         state.team = team;
+    },
+    setTeamMembership(state, membership) {
+        state.teamMembership = membership
     },
     setTeams(state, teams) {
         state.teams = teams;
@@ -140,7 +148,10 @@ const actions = {
 
             try {
                 const team = await teamApi.getTeam({slug:teamSlug})
+                const teamMembership = await teamApi.getTeamUserMembership(team.id)
                 state.commit('setTeam', team);
+                state.commit('setTeamMembership', teamMembership);
+
                 state.commit('clearPending')
                 if (redirectUrlAfterLogin) {
                     // If this is a user-driven login, take them to the profile page
@@ -170,11 +181,15 @@ const actions = {
         const currentTeam = state.getters.team;
         if (currentTeam) {
             const team = await teamApi.getTeam(currentTeam.id);
+            const teamMembership = await teamApi.getTeamUserMembership(team.id)
             state.commit('setTeam', team)
+            state.commit("setTeamMembership", teamMembership)
+
         }
     },
     async refreshTeams(state) {
         const teams = await teamApi.getTeams();
+        console.log("UPDATED TEAEM",teams.teams)
         state.commit('setTeams', teams.teams)
     },
     async login(state, credentials) {
@@ -196,20 +211,27 @@ const actions = {
     },
     async setTeam(state, team) {
         const currentTeam = state.getters.team;
+        state.commit("setPendingTeamChange");
+        let teamMembership;
         if (typeof team === 'string') {
             if (!currentTeam || currentTeam.slug !== team) {
-                state.commit("setPendingTeamChange");
                 team = await teamApi.getTeam({slug:team})
-                state.commit("clearPendingTeamChange");
             } else {
+                state.commit("clearPendingTeamChange");
                 return
             }
         } else {
             if (!currentTeam || currentTeam.id === team.id) {
+                state.commit("clearPendingTeamChange");
                 return;
             }
         }
+        if (team.id) {
+            teamMembership = await teamApi.getTeamUserMembership(team.id)
+        }
         state.commit("setTeam", team);
+        state.commit("setTeamMembership", teamMembership)
+        state.commit("clearPendingTeamChange");
     },
     async setUser(state, user) {
         state.commit("setUser",user);

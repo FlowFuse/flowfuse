@@ -94,7 +94,7 @@ export default {
             }
         }
     },
-    props:[ "team" ],
+    props:[ "team", "teamMembership" ],
     components: {
         ItemTable,
         FormHeading,

@@ -66,7 +66,7 @@ module.exports = {
                     if (decodedToken) {
                         requestingUser.email_verified = true;
                         await requestingUser.save()
-                        return;
+                        return requestingUser
                     }
                 } catch(err) {
                     if (err.name === "TokenExpiredError") {

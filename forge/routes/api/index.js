@@ -13,6 +13,18 @@ const Projects = require("./projects.js");
 
 module.exports = async function(app) {
     app.addHook('preHandler',app.verifyTokenOrSession);
+    app.decorate('getPaginationOptions', (request, defaults) => {
+        const result = {...defaults};
+        if (request.query.limit !== undefined) {
+            result.limit = request.query.limit;
+        }
+        if (request.query.cursor !== undefined) {
+            result.cursor = request.query.cursor;
+        }
+        return result;
+    })
+
+
     app.register(User, { prefix: "/user" })
     app.register(Users, { prefix: "/users" })
     app.register(Team, { prefix: "/teams" })

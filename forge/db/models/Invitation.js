@@ -100,17 +100,19 @@ module.exports = {
                         ]
                     });
                 },
-                // forEmail: async (email) => {
-                //     return this.findAll({
-                //         where: {
-                //             email: email
-                //         },
-                //         include:[
-                //             {model: M['User'], as: "invitor"},
-                //             {model: M['User'], as: "invitee"}
-                //         ]
-                //     });
-                // }
+                forExternalEmail: async (email) => {
+                    return this.findAll({
+                        where: {
+                            external: true,
+                            email: email
+                        },
+                        include:[
+                            {model: M['Team'], as: "team"},
+                            {model: M['User'], as: "invitor"},
+                            {model: M['User'], as: "invitee"}
+                        ]
+                    });
+                }
             }
         }
     }

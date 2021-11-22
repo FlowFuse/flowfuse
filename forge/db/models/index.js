@@ -112,7 +112,7 @@ async function init(db) {
         if (!m.model) {
             m.model = class model extends Model {}
         }
-        if (!m.schema.slug) {
+        if (!m.schema.slug && (!m.meta || m.meta.slug !== false)) {
             m.schema.slug = {
                 type: DataTypes.VIRTUAL,
                 get() {
@@ -120,26 +120,33 @@ async function init(db) {
                 }
             }
         }
-        m.schema.hashid = {
-            type: DataTypes.VIRTUAL,
-            get() {
-                return hashids[m.name].encode(this.id);
-            },
-            set(_) {
-                throw new Error('hashid is read-only');
-            }
-        }
-        m.schema.links = {
-            type: DataTypes.VIRTUAL,
-            get() {
-                return {
-                    self: process.env.BASE_URL+"/api/v1/"+m.name.toLowerCase()+"s/"+this.hashid
+        if (!m.meta || m.meta.hashid !== false) {
+            m.schema.hashid = {
+                type: DataTypes.VIRTUAL,
+                get() {
+                    return hashids[m.name].encode(this.id);
+                },
+                set(_) {
+                    throw new Error('hashid is read-only');
                 }
+            }
+            m.model.encodeHashid = function(id) {
+                return hashids[m.name].encode(id);
+            }
+            m.model.decodeHashid = function(hashid) {
+                return hashids[m.name].decode(hashid);
             }
         }
 
-        m.model.decodeHashid = function(hashid) {
-            return hashids[m.name].decode(hashid);
+        if (!m.meta || m.meta.links !== false) {
+            m.schema.links = {
+                type: DataTypes.VIRTUAL,
+                get() {
+                    return {
+                        self: process.env.BASE_URL+"/api/v1/"+m.name.toLowerCase()+"s/"+this.hashid
+                    }
+                }
+            }
         }
 
         m.model.init(m.schema, opts);

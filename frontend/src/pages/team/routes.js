@@ -4,6 +4,7 @@ import TeamProjects from "@/pages/team/Projects.vue"
 import TeamMembers from "@/pages/team/Members.vue"
 import TeamMembersMembers from "@/pages/team/Members/General.vue"
 import TeamMembersInvitations from "@/pages/team/Members/Invitations.vue"
+import TeamAuditLog from "@/pages/team/AuditLog.vue"
 import TeamSettings from "@/pages/team/Settings.vue"
 import TeamSettingsGeneral from "@/pages/team/Settings/General.vue"
 import TeamSettingsDanger from "@/pages/team/Settings/Danger.vue"
@@ -37,6 +38,7 @@ export default [
                     { path: 'invitations', component: TeamMembersInvitations }
                 ]
             },
+            { path: 'audit-log', component: TeamAuditLog},
             {
                 path: 'settings', component: TeamSettings,
                 redirect: to => {

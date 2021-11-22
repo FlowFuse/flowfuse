@@ -93,7 +93,7 @@ module.exports = fp(async function(app, opts, done) {
             request.session = await app.db.controllers.Session.getOrExpire(request.sid);
             if (request.session) {
                 return;
-            } 
+            }
         }
         reply.code(401).send({ error: 'unauthorized' })
         throw new Error()
@@ -265,9 +265,17 @@ module.exports = fp(async function(app, opts, done) {
                 request.session = await app.db.controllers.Session.getOrExpire(request.sid);
                 sessionUser = request.session.User;
             }
-            await app.db.controllers.User.verifyEmailToken(sessionUser, request.params.token);
+            const verifiedUser = await app.db.controllers.User.verifyEmailToken(sessionUser, request.params.token);
+            const pendingInvitations = await app.db.models.Invitation.forExternalEmail(verifiedUser.email)
+            for (let i=0;i<pendingInvitations.length;i++) {
+                const invite = pendingInvitations[i];
+                invite.external = false;
+                invite.inviteeId = verifiedUser.id;
+                await invite.save()
+            }
             reply.redirect("/");
         } catch(err) {
+            console.log(err.toString())
             reply.code(400).send({status:"error", message:err.toString()})
         }
     });

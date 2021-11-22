@@ -1,32 +1,33 @@
 /** Node-RED Audit Logging backend
  *
  * - /audit
- * 
+ *
  * @namespace audit
- * @memberof forge.loggin
+ * @memberof forge.logging
  */
 
 module.exports = async function (app) {
 
-  app.addHook('preHandler',app.verifyToken);
-	
-	app.post('/:id/audit', async(request, response) => {
-    let id = request.params.id;
-    let auditEvent = request.body;
+    app.addHook('preHandler',app.verifyToken);
 
-    let user;
-    if (auditEvent.user) {
-      user = await app.db.models.User.byUsername(auditEvent.user.username);
-    }
+    app.post('/:projectId/audit', async(request, response) => {
+        let projectId = request.params.projectId;
+        let auditEvent = request.body;
 
-    let event = await app.db.models.AuditLog.create({body: JSON.stringify(auditEvent.event)});
+        const event = auditEvent.event;
+        const userId = auditEvent.user?app.db.models.User.decodeHashid(auditEvent.user):undefined
 
-    event.ProjectId = id;
-    if (user) {
-      event.setUser(user);
-    }
-    await event.save();
+        delete auditEvent.event;
+        delete auditEvent.user;
+        delete auditEvent.path;
+        delete auditEvent.timestamp;
 
-    response.status(200).send();
-	})
+        await app.db.controllers.AuditLog.projectLog(
+            projectId,
+            userId,
+            event,
+            auditEvent
+        )
+        response.status(200).send();
+    })
 }

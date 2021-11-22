@@ -3,11 +3,9 @@
  * @namespace forge.db.models.AuthClient
  */
 
- const { DataTypes } = require('sequelize');
- const bcrypt = require("bcrypt");
-
-const hash = value => bcrypt.hashSync(value, 10);
-const uppercaseFirst = str => `${str[0].toUpperCase()}${str.substr(1)}`;
+const { DataTypes } = require('sequelize');
+const bcrypt = require("bcrypt");
+const { hash, uppercaseFirst } = require("../utils")
 
 module.exports = {
     name: 'AuthClient',

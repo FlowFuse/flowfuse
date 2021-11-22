@@ -12,7 +12,7 @@
             </template>
         </SectionTopMenu>
         <div class="text-sm sm:px-6 mt-4 sm:mt-8">
-            <router-view :team="team"></router-view>
+            <router-view :team="team" :teamMembership="teamMembership"></router-view>
         </div>
     </div>
 </template>
@@ -28,7 +28,7 @@ export default {
     name: 'Team',
     mixins: [Breadcrumbs],
     computed: {
-        ...mapState('account',['team','pendingTeamChange']),
+        ...mapState('account',['user','team','teamMembership','pendingTeamChange']),
     },
     data: function() {
         return {
@@ -41,16 +41,18 @@ export default {
     },
     methods: {
         updateTeam: function(newVal,oldVal) {
-            if (this.team) {
+            if (this.team && this.teamMembership) {
                 this.navigation = [
                     { name: "Overview", path: `/team/${this.team.slug}/overview` },
                     { name: "Projects", path: `/team/${this.team.slug}/projects` },
                     { name: "Members", path: `/team/${this.team.slug}/members` },
                 ];
                 // const teamUser = this.team.users.filter(u => { console.log(u,this.$store.state.account.user.email); return  u.email === this.$store.state.account.user.email })
-
                 // if (teamUser.role === "owner") {
-                this.navigation.push({ name: "Settings", path: `/team/${this.team.slug}/settings` });
+                if (this.teamMembership.role === "owner") {
+                    this.navigation.push({ name: "Audit Log", path: `/team/${this.team.slug}/audit-log` });
+                    this.navigation.push({ name: "Settings", path: `/team/${this.team.slug}/settings` });
+                }
                 // }
                 this.setBreadcrumbs([
                     { type: "TeamPicker" }
@@ -70,7 +72,8 @@ export default {
         this.updateTeam()
     },
     watch: {
-         team: 'updateTeam'
+         team: 'updateTeam',
+         teamMembership: 'updateTeam'
     },
 }
 </script>
