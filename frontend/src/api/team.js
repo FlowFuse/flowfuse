@@ -30,10 +30,7 @@ const getTeamProjects = async (teamId) => {
         r.createdSince = daysSince(r.createdAt)
         r.updatedSince = daysSince(r.updatedAt)
         r.link = { name: 'Project', params: { id: slugify(r.id) }}
-            
-        //r.status = ['running','stopped','safe','error','starting'][Math.floor(Math.random()*5)]
         promises.push(client.get(`/api/v1/project/${r.id}`).then(p => {
-            console.log("ben",p.data.meta.state)
             r.status = p.data.meta.state
         }).catch( err => {
             console.log("not found", err)

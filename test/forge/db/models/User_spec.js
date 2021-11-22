@@ -6,7 +6,6 @@ describe("User model", function() {
     let app;
     beforeEach(async function() {
         app = await setup();
-
     })
 
     it("User email can be null", async function() {
