@@ -1,19 +1,40 @@
 <template>
-    <div class="flex align-center space-x-2">
-        <a :href="project.url" target="_blank" class="forge-button-tertiary py-2">
-            <ExternalLinkIcon class="w-4 mr-1" /><span class="ml-1">Open Editor</span>
-        </a>
-        <DropdownMenu buttonClass="forge-button-tertiary" alt="Open actions menu" :options="options">Actions</DropdownMenu>
+    <div v-if="project.meta" class="space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="border rounded p-4">
+                <FormHeading><TemplateIcon class="w-6 h-6 mr-2 inline text-gray-400" />Overview</FormHeading>
+
+                <table class="table-fixed w-full">
+                    <tr class="border-b">
+                        <td class="w-1/4">Editor</td>
+                        <td><a :href="project.url" target="_blank" class="forge-button-inline py-2 -mx-3"><span class="ml-r">{{project.url}}</span><ExternalLinkIcon class="w-4 ml-3" /></a></td>
+                    </tr>
+                    <tr class="border-b">
+                        <td class="">Status</td>
+                        <td><div class="py-2"><ProjectStatusBadge :status="project.meta.state" /></div></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="border rounded p-4">
+                <FormHeading><TrendingUpIcon class="w-6 h-6 mr-2 inline text-gray-400" />Recent Activity</FormHeading>
+                <AuditLog :entity="project" :loadItems="loadItems" :showLoadMore="false" />
+                <div class="py-4">
+                    <router-link to="./activity" class="forge-button-inline">More...</router-link>
+                </div>
+            </div>
+        </div>
     </div>
-    <pre class="overflow-x-scroll">{{ project }}</pre>
+
 </template>
 
 <script>
 import projectApi from '@/api/project'
 import DropdownMenu from '@/components/DropdownMenu'
-import { ExternalLinkIcon, ClipboardCopyIcon } from '@heroicons/vue/outline'
+import { ExternalLinkIcon, ClipboardCopyIcon, TrendingUpIcon, TemplateIcon, HeartIcon, CogIcon} from '@heroicons/vue/outline'
 import FormHeading from '@/components/FormHeading'
 import FormRow from '@/components/FormRow'
+import ProjectStatusBadge from './components/ProjectStatusBadge'
+import AuditLog from '@/components/AuditLog'
 
 export default {
     name: 'ProjectOverview',
@@ -27,11 +48,22 @@ export default {
             ]
         }
     },
+    methods: {
+        loadItems: async function(projectId,cursor) {
+            return await projectApi.getProjectAuditLog(projectId,cursor,4);
+        }
+    },
     components: {
+        ProjectStatusBadge,
         FormHeading,
+        AuditLog,
         ExternalLinkIcon,
         ClipboardCopyIcon,
-        DropdownMenu
+        TemplateIcon,
+        DropdownMenu,
+        HeartIcon,
+        CogIcon,
+        TrendingUpIcon
     },
 }
 </script>

@@ -89,9 +89,15 @@ const removeTeamMember = (teamId, userId) => {
     return client.delete(`/api/v1/teams/${teamId}/members/${userId}`)
 }
 
-const getTeamAuditLog = async (teamId, cursor) => {
-    const query = cursor?`?cursor=${cursor}`:'';
-    return client.get(`/api/v1/teams/${teamId}/audit-log${query}`).then(res => res.data)
+const getTeamAuditLog = async (teamId, cursor, limit) => {
+    const queryString = new URLSearchParams();
+    if (cursor) {
+        queryString.append("cursor",cursor)
+    }
+    if (limit) {
+        queryString.append("limit",limit)
+    }
+    return client.get(`/api/v1/teams/${teamId}/audit-log?${queryString.toString()}`).then(res => res.data)
 }
 const getTeamUserMembership = (teamId) => {
     return client.get(`/api/v1/teams/${teamId}/user`).then(res => res.data)

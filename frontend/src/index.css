@@ -16,6 +16,10 @@
         @apply mb-1;
     }
 
+    .forge-inner-block {
+        @apply py-6;
+    }
+
     .forge-button {
         @apply px-3;
         @apply py-1;
@@ -103,6 +107,13 @@
         @apply sm:pb-5;
         @apply pb-3;
     }
+    .forge-nav-item:not(.forge-nav-item-active):hover {
+        @apply sm:pb-4;
+        @apply pb-2;
+        @apply text-blue-700;
+        @apply border-b-4;
+        @apply border-gray-400;
+    }
 
     .forge-nav-item-active {
         @apply text-sm;
@@ -124,6 +135,11 @@
     .forge-status-error {
         @apply bg-red-200;
         @apply border-red-400;
+    }
+    .forge-status-stopped {
+        @apply bg-gray-100;
+        @apply border-gray-300;
+        @apply border-dashed;
     }
     .forge-status-starting {
         @apply bg-green-100;

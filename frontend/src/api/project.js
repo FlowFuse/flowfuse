@@ -34,9 +34,15 @@ const deleteProject = async (projectId) => {
     return client.delete(`/api/v1/project/${projectId}`)
 }
 
-const getProjectAuditLog = async (projectId, cursor) => {
-    const query = cursor?`?cursor=${cursor}`:'';
-    return client.get(`/api/v1/project/${projectId}/audit-log${query}`).then(res => res.data)
+const getProjectAuditLog = async (projectId, cursor, limit) => {
+    const queryString = new URLSearchParams();
+    if (cursor) {
+        queryString.append("cursor",cursor)
+    }
+    if (limit) {
+        queryString.append("limit",limit)
+    }
+    return client.get(`/api/v1/project/${projectId}/audit-log?${queryString.toString()}`).then(res => res.data)
 }
 
 const startProject = async (projectId) => {
