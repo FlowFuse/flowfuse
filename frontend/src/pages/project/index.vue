@@ -16,7 +16,7 @@
         </div>
         <SectionTopMenu :options="navigation" />
         <div class="text-sm sm:px-6 mt-4 sm:mt-8">
-            <router-view :project="project"></router-view>
+            <router-view :project="project" @projectUpdated="updateProject"></router-view>
         </div>
     </div>
 </template>
@@ -41,25 +41,7 @@ export default {
         }
     },
     async created() {
-        const parts = this.$route.path.split("/")
-        try {
-            const data = await projectApi.getProject(parts[2])
-            this.project = data;
-            this.$store.dispatch('account/setTeam',this.project.team.slug);
-        } catch(err) {
-            this.$router.push({
-                name: "PageNotFound",
-                params: { pathMatch: this.$router.currentRoute.value.path.substring(1).split('/') },
-                // preserve existing query and hash if any
-                query: this.$router.currentRoute.value.query,
-                hash: this.$router.currentRoute.value.hash,
-            })
-            return;
-        }
-        this.setBreadcrumbs([
-            { type: 'TeamLink'},
-            {label: this.project.name /*, to: { name: "Project", params: {id:this.project.id}} */}
-        ])
+        await this.updateProject();
     },
     computed: {
         ...mapState('account',['teamMembership']),
@@ -67,7 +49,11 @@ export default {
             return [
                 {name: "Start", action: async() => { await projectApi.startProject(this.project.id) } },
                 {name: "Restart", action: async() => { await projectApi.restartProject(this.project.id) } },
-                {name: "Stop", action: async() => { await projectApi.stopProject(this.project.id) } }
+                {name: "Stop", action: async() => { await projectApi.stopProject(this.project.id) } },
+                null,
+                {name: "Delete",class:['text-red-700'], action: () => {
+                    this.$router.push({ path: `/project/${this.project.id}/settings/danger` })
+                }}
             ]
         }
     },
@@ -79,7 +65,28 @@ export default {
         this.checkAccess()
     },
     methods: {
-        checkAccess: function() {
+        async updateProject() {
+            const parts = this.$route.path.split("/")
+            try {
+                const data = await projectApi.getProject(parts[2])
+                this.project = data;
+                this.$store.dispatch('account/setTeam',this.project.team.slug);
+            } catch(err) {
+                this.$router.push({
+                    name: "PageNotFound",
+                    params: { pathMatch: this.$router.currentRoute.value.path.substring(1).split('/') },
+                    // preserve existing query and hash if any
+                    query: this.$router.currentRoute.value.query,
+                    hash: this.$router.currentRoute.value.hash,
+                })
+                return;
+            }
+            this.setBreadcrumbs([
+                { type: 'TeamLink'},
+                {label: this.project.name /*, to: { name: "Project", params: {id:this.project.id}} */}
+            ])
+        },
+        checkAccess() {
             this.navigation = [
                 { name: "Overview", path: `/project/${this.project.id}/overview` },
                 { name: "Deploys", path: `/project/${this.project.id}/deploys` },

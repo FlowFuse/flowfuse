@@ -1,13 +1,13 @@
 <template>
     <form class="space-y-6">
 
-        <FormHeading class="text-red-700">Transfer Project</FormHeading>
+        <!-- <FormHeading class="text-red-700">Transfer Project</FormHeading>
         <div class="flex">
             <div class="max-w-sm pr-2">Transfer this project to another team. You must be a member of the destination team</div>
             <div class="pl-2">
                 <button type="button" class="forge-button-danger">Transfer Project</button>
             </div>
-        </div>
+        </div> -->
 
         <FormHeading class="text-red-700">Delete Project</FormHeading>
         <div class="flex">
@@ -24,7 +24,7 @@
 import projectApi from '@/api/project'
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
-import ConfirmProjectDeleteDialog from '../dialogs/ConfirmProjectDeleteDialog'
+import ConfirmProjectDeleteDialog from './dialogs/ConfirmProjectDeleteDialog'
 
 
 export default {

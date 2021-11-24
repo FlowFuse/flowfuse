@@ -2,7 +2,7 @@
     <div class="flex flex-col sm:flex-row">
         <SectionSideMenu :options="sideNavigation" />
         <div class="flex-grow">
-            <router-view :project="project"></router-view>
+            <router-view :project="project" @projectUpdated="this.$emit('projectUpdated')"></router-view>
         </div>
     </div>
 </template>
@@ -14,6 +14,7 @@ import { mapState } from 'vuex'
 
 const sideNavigation = [
     { name: "General", path: "./general" },
+    // { name: "Environment", path: "./environment" },
     { name: "Danger", path: "./danger" }
 ]
 

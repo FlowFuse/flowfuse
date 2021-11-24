@@ -54,7 +54,11 @@ const stopProject = async (projectId) => {
 const restartProject = async (projectId) => {
     return client.post(`/api/v1/project/${projectId}/actions/restart`).then(res => res.data)
 }
-
+const updateProject = async(projectId, options) => {
+    return client.put(`/api/v1/project/${projectId}`, options).then(res => {
+        return res.data
+    })
+}
 
 export default {
     create,
@@ -64,5 +68,6 @@ export default {
     getProjectAuditLog,
     startProject,
     stopProject,
-    restartProject
+    restartProject,
+    updateProject
 }
