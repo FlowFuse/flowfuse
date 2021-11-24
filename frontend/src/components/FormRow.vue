@@ -4,8 +4,7 @@
             <div class="flex items-center">
                 <input :id="id"
                        type="checkbox"
-                    class="text-sm appearance-none rounded relative font-normal mr-3 px-2 py-1 border border-gray-300 placeholder-gray-500 text-gray-600 focus:outline-none  focus:ring-blue-700 focus:border-indigo-500"
-                    :class="[{'opacity-30':disabled}]"
+                       :class="inputClass"
                     v-model="modelValue"
                     :disabled="disabled"
                     @change="$emit('update:modelValue', $event.target.checked)"
@@ -13,14 +12,13 @@
                 <label :for="id" class="text-sm font-medium text-gray-700"><slot></slot></label>
                 <div v-if="hasAppend" class="inline ml-2"><slot name="append"></slot></div>
             </div>
-            <div v-if="hasDescription" class="mt-1 text-xs text-gray-400 mb-2 ml-8"><slot name="description"></slot></div>
+            <div v-if="hasDescription" class="mt-1 text-xs text-gray-400 mb-2 ml-9"><slot name="description"></slot></div>
         </template>
         <template v-else-if="type==='radio'">
             <div class="flex items-center">
                 <input :id="id"
                        type="radio"
-                    class="text-sm appearance-none rounded relative font-normal mr-3 px-2 py-1 border border-gray-300 placeholder-gray-500 text-gray-600 focus:outline-none  focus:ring-blue-700 focus:border-indigo-500"
-                    :class="[{'opacity-30':disabled}]"
+                       :class="inputClass"
                     v-model="modelValue"
                     :name="name"
                     :value="value"
@@ -29,16 +27,16 @@
                 >
                 <label :for="id" class="text-sm font-medium text-gray-700"><slot></slot></label>
             </div>
-            <div v-if="hasDescription" class="mt-1 text-xs text-gray-400 mb-2 ml-8"><slot name="description"></slot></div>
+            <div v-if="hasDescription" class="mt-1 text-xs text-gray-400 mb-2 ml-9"><slot name="description"></slot></div>
         </template>
         <template v-else>
             <label :for="id" class="block text-sm font-medium text-gray-700 mb-1"><slot></slot></label>
             <div v-if="hasDescription" class="text-xs text-gray-400 mb-2"><slot name="description"></slot></div>
-            <div class="flex">
+            <div class="flex flex-col sm:flex-row relative">
                 <template v-if="options">
                     <select :id="id"
-                        class="text-sm appearance-none rounded relative font-normal w-full px-2 py-1 border border-gray-300 placeholder-gray-500 text-gray-600 focus:outline-none  focus:ring-blue-700 focus:border-indigo-500"
-                        :class="[{'opacity-30':disabled}]"
+                        class="w-full"
+                        :class="inputClass"
                         :value="modelValue"
                         :disabled="disabled"
                         @input="$emit('update:modelValue', $event.target.value)"
@@ -51,30 +49,35 @@
                 <template v-else-if="hasCustomInput">
                     <slot name="input"></slot>
                 </template>
+                <template v-if="type==='uneditable'">
+                    <div class="w-full uneditable" :class="inputClass">{{modelValue}}</div>
+                </template>
                 <template v-else>
                     <input :id="id"
-                           :type="type"
-                           :placeholder="placeholder"
-                           :disabled="disabled"
-                        class="text-sm appearance-none rounded relative font-normal w-full px-2 py-1 border border-gray-300 placeholder-gray-500 text-gray-600 focus:outline-none  focus:ring-blue-700 focus:border-indigo-500 placeholder-gray-400"
-                        :class="[{'opacity-30':disabled}]"
+                        class="w-full"
+                        :class="inputClass"
+                        :type="type?type:'text'"
+                        :placeholder="placeholder"
+                        :disabled="disabled"
                         :value="modelValue"
                         @input="$emit('update:modelValue', $event.target.value)"
                         @keyup.enter="onEnter"
                         @blur="onBlur"
                     >
                 </template>
-                <slot name="append"></slot>
+                <template v-if="hasAppend">
+                    <div class="block sm:inline sm:absolute sm:left-full sm:ml-4 mt-2 sm:mt-0"><slot name="append"></slot></div>
+                </template>
             </div>
         </template>
-        <div v-if="error" class="float-right ml-4 text-red-400  inline text-xs">{{error}}</div>
+        <div v-if="error" class="float-right ml-4 text-red-400 inline text-xs">{{error}}</div>
     </div>
 </template>
 <script>
 import {ref} from "vue";
 export default {
     name: "FormRow",
-    props: ['id','type','name','value','disabled','modelValue','error','options','placeholder','onEnter','onBlur'],
+    props: ['id','type','name','value','disabled','modelValue','error','options','placeholder','onEnter','onBlur','inputClass'],
     emits: ['update:modelValue'],
     setup(props, {slots}) {
         const hasDescription = ref(false)

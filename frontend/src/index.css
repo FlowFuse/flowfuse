@@ -16,6 +16,10 @@
         @apply mb-1;
     }
 
+    .forge-inner-block {
+        @apply py-6;
+    }
+
     .forge-button {
         @apply px-3;
         @apply py-1;
@@ -38,10 +42,8 @@
 
         @apply disabled:opacity-30;
         @apply disabled:cursor-not-allowed;
-
-
-
     }
+
     .forge-button-secondary {
         @apply forge-button;
         @apply bg-gray-100;
@@ -87,6 +89,13 @@
         @apply disabled:cursor-not-allowed;
     }
 
+    .forge-button-small {
+        @apply px-2;
+        @apply py-1;
+        @apply text-xs;
+    }
+
+
     .forge-button-set > :first-child {
         border-top-right-radius: 0;
         border-bottom-right-radius: 0;
@@ -102,6 +111,13 @@
         @apply text-sm;
         @apply sm:pb-5;
         @apply pb-3;
+    }
+    .forge-nav-item:not(.forge-nav-item-active):hover {
+        @apply sm:pb-4;
+        @apply pb-2;
+        @apply text-blue-700;
+        @apply border-b-4;
+        @apply border-gray-400;
     }
 
     .forge-nav-item-active {
@@ -125,6 +141,11 @@
         @apply bg-red-200;
         @apply border-red-400;
     }
+    .forge-status-stopped {
+        @apply bg-gray-100;
+        @apply border-gray-300;
+        @apply border-dashed;
+    }
     .forge-status-starting {
         @apply bg-green-100;
         @apply border-green-300;
@@ -137,5 +158,52 @@
     .forge-status-running {
         @apply bg-green-200;
         @apply border-green-400;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="radio"],
+    input[type="checkbox"],
+    select,
+    textarea,
+    .uneditable {
+        @apply text-sm;
+        @apply appearance-none;
+        @apply rounded;
+        @apply relative;
+        @apply font-normal;
+        @apply px-2;
+        @apply py-1;
+        @apply border;
+        @apply border-gray-300;
+        @apply placeholder-gray-500;
+        @apply text-gray-600;
+    }
+    input[type="radio"],
+    input[type="checkbox"] {
+        @apply mr-2;
+        @apply p-2;
+    }
+    .uneditable {
+        @apply border-opacity-0;
+    }
+
+    input[type="text"]:focus,
+    input[type="password"]:focus,
+    input[type="radio"]:focus,
+    input[type="checkbox"]:focus,
+    select:focus,
+    textarea:focus {
+        @apply outline-none;
+        @apply ring-0;
+        @apply border-indigo-500;
+    }
+    input[type="text"]:disabled,
+    input[type="password"]:disabled,
+    input[type="radio"]:disabled,
+    input[type="checkbox"]:disabled,
+    select:disabled,
+    textarea:disabled {
+        @apply opacity-60;
     }
 }

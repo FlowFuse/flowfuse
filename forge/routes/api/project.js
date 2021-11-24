@@ -17,6 +17,10 @@ const ProjectActions = require("./projectActions.js");
                  if (!request.project) {
                      reply.code(404).type('text/html').send('Not Found')
                  }
+
+                 // TODO: verify user's access to the project
+
+
              } catch(err) {
                  reply.code(404).type('text/html').send('Not Found')
              }
@@ -130,7 +134,18 @@ const ProjectActions = require("./projectActions.js");
 
     })
 
+    app.put('/:projectId', async (request, reply) => {
+        if (request.body.name) {
+            request.project.name = request.body.name;
+        }
+        await request.project.save()
+        
+        const result = await app.db.views.Project.project(request.project);
+        result.meta = await app.containers.details(request.project.id)  || { state:'unknown'}
+        result.team = await app.db.views.Team.team(request.project.Team);
+        reply.send(result)
 
+    });
 
     /**
      * Send commands

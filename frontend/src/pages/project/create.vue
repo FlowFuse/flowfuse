@@ -10,7 +10,7 @@
                 <FormRow v-model="input.name">
                     <template v-slot:default>Project Name</template>
                     <template v-slot:append>
-                        <button type="button" @click="refreshName" class="text-gray-500 hover:text-gray-600 border border-gray-300 hover:border-indigo-500 rounded ml-2 p-1 w-9 h-8" ><RefreshIcon class=" w-full" /></button>
+                        <button type="button" @click="refreshName" class="forge-button-tertiary px-1" ><RefreshIcon class="w-5" /></button>
                     </template>
                 </FormRow>
 

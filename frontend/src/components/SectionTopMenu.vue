@@ -10,6 +10,11 @@
                 <router-link :to="item.path" class="forge-nav-item" active-class="forge-nav-item-active">{{ item.name }}</router-link>
             </li>
         </template>
+        <template v-if="hasTools">
+            <li class="w-full md:w-auto flex-grow mb-2 text-right">
+                <slot name="tools"></slot>
+            </li>
+        </template>
     </ul>
 </template>
 <script>
@@ -20,11 +25,16 @@ export default {
     props: ['options'],
     setup(props, {slots}) {
         const hasHero = ref(false)
+        const hasTools = ref(false)
         if (slots.hero && slots.hero().length) {
             hasHero.value = true
         }
+        if (slots.tools && slots.tools().length) {
+            hasTools.value = true
+        }
         return {
-            hasHero
+            hasHero,
+            hasTools
         }
     }
 };

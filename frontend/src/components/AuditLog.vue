@@ -2,7 +2,7 @@
     <template v-if="logEntries.length > 0">
         <ul class="mx-auto max-w-4xl">
             <li v-for="(item, itemIdx) in logEntries" :key="item.id">
-                <div v-if="item.date" class="text-lg font-medium mt-2 mb-1">{{item.date}}</div>
+                <div v-if="item.date" class="font-medium mt-2 mb-1">{{item.date}}</div>
                 <div class="ml-8 flex py-3 border-b text-base">
                     <div class="w-20 text-gray-500">{{item.time}}</div>
                     <div class="w-12">
@@ -20,7 +20,7 @@
                     </div>
                 </div>
             </li>
-            <li v-if="nextCursor" class="px-8 py-4">
+            <li v-if="showLoadMore !== false && nextCursor" class="px-8 py-4">
                 <a v-if="!loading" @click.stop="loadMore" class="forge-button-inline">Load more...</a>
                 <div class="text-gray-500" v-else>Loading...</div>
             </li>
@@ -60,7 +60,7 @@ const eventIcons = {
 
 export default {
     name: 'AuditLog',
-    props:[ "entity", "loadItems" ],
+    props:[ "entity", "loadItems", "showLoadMore" ],
     watch: {
         entity: 'fetchData',
     },
