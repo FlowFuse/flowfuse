@@ -1,26 +1,23 @@
 <template>
-    <form class="space-y-2">
+    <form class="space-y-6">
         <FormRow v-model="input.projectId" type="uneditable" id="projectId" inputClass="font-mono">
             Project ID
-            <!-- <template v-slot:append>
-                <button type="button" class="forge-button-inline px-1" @click="copyProjectId"><ClipboardCopyIcon class="w-5" /></button>
-            </template> -->
         </FormRow>
 
-        <FormRow v-model="input.projectName" :type="editing.name?'text':'uneditable'" id="projectName">
+        <FormRow v-model="input.projectName" :type="editing.projectName?'text':'uneditable'" id="projectName">
             Name
-            <template v-slot:append>
-                <div class="space-x-2 whitespace-nowrap">
-                    <template v-if="!editing.name">
-                        <button type="button" class="forge-button forge-button-small" @click="editName">edit</button>
-                    </template>
-                    <template v-else>
-                        <button type="button" class="forge-button-tertiary forge-button-small" @click="cancelEditName">cancel</button>
-                        <button type="button" class="forge-button forge-button-small" @click="saveEditName">save</button>
-                    </template>
-                </div>
-            </template>
         </FormRow>
+
+        <div class="space-x-4 whitespace-nowrap">
+            <template v-if="!editing.projectName">
+                <button type="button" class="forge-button forge-button-small" @click="editName">Edit project settings</button>
+            </template>
+            <template v-else>
+                <button type="button" class="forge-button-tertiary forge-button-small" @click="cancelEditName">Cancel</button>
+                <button type="button" class="forge-button forge-button-small" @click="saveEditName">Save project settings</button>
+            </template>
+        </div>
+
     </form>
 </template>
 
@@ -38,7 +35,7 @@ export default {
     data() {
         return {
             editing: {
-                name: false
+                projectName: false
             },
             input: {
                 projectId: "",
@@ -57,7 +54,7 @@ export default {
     },
     // beforeRouteLeave(to, from, next) {
     //     console.log(to,from);
-    //     if (this.editing.name) {
+    //     if (this.editing.projectName) {
     //         next(false);
     //     } else {
     //         next();
@@ -69,18 +66,18 @@ export default {
         },
         editName() {
             this.original.projectName = this.input.projectName;
-            this.editing.name = true
+            this.editing.projectName = true
             setTimeout(() => {
                 document.getElementById("projectName").focus()
             },0)
         },
         async saveEditName() {
-            this.editing.name = false
+            this.editing.projectName = false
             await projectApi.updateProject(this.project.id, {name: this.input.projectName});
             this.$emit('projectUpdated')
         },
         cancelEditName() {
-            this.editing.name = false
+            this.editing.projectName = false
             this.input.projectName = this.original.projectName;
         },
         fetchData () {

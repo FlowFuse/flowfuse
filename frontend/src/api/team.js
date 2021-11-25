@@ -102,10 +102,15 @@ const getTeamAuditLog = async (teamId, cursor, limit) => {
 const getTeamUserMembership = (teamId) => {
     return client.get(`/api/v1/teams/${teamId}/user`).then(res => res.data)
 }
-
+const updateTeam = async(teamId, options) => {
+    return client.put(`/api/v1/teams/${teamId}`, options).then(res => {
+        return res.data
+    })
+}
 export default {
     create,
     getTeam,
+    updateTeam,
     getTeams,
     getTeamProjects,
     getTeamMembers,
