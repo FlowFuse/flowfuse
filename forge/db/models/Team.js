@@ -10,7 +10,7 @@ module.exports = {
     name: 'Team',
     schema: {
         name: { type: DataTypes.STRING, allowNull: false },
-        slug: { type: DataTypes.STRING, unique: true },
+        slug: { type: DataTypes.STRING, unique: true, validate: { is: /^[a-z0-9-_]+$/i }},
         avatar: {type: DataTypes.STRING }
     },
     hooks: {

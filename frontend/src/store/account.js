@@ -180,16 +180,19 @@ const actions = {
     async refreshTeam(state) {
         const currentTeam = state.getters.team;
         if (currentTeam) {
+            const currentSlug = currentTeam.slug;
             const team = await teamApi.getTeam(currentTeam.id);
             const teamMembership = await teamApi.getTeamUserMembership(team.id)
             state.commit('setTeam', team)
             state.commit("setTeamMembership", teamMembership)
+            if (currentSlug !== team.slug) {
+                router.replace({name:router.currentRoute.value.name,params:{id:team.slug}});
+            }
 
         }
     },
     async refreshTeams(state) {
         const teams = await teamApi.getTeams();
-        console.log("UPDATED TEAEM",teams.teams)
         state.commit('setTeams', teams.teams)
     },
     async login(state, credentials) {

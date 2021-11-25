@@ -133,6 +133,28 @@ module.exports = async function(app) {
     // })
 
 
+    app.put('/:teamId', async (request, reply) => {
+        try {
+            if (request.body.name) {
+                request.team.name = request.body.name;
+            }
+            if (request.body.slug) {
+                request.team.slug = request.body.slug;
+            }
+            await request.team.save()
+            reply.send(app.db.views.Team.team(request.team))
+        }catch(err) {
+            let responseMessage;
+            if (err.errors) {
+                responseMessage = err.errors.map(err => err.message).join(",");
+            } else {
+                responseMessage = err.toString();
+            }
+            reply.code(400).send({error:responseMessage})
+        }
+
+    });
+
     /**
      * Get the session users team membership
      * @name /api/v1/team/:teamId/user
