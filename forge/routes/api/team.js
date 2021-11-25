@@ -5,15 +5,24 @@ const TeamInvitations = require("./teamInvitations.js");
  *
  * - /api/v1/teams
  *
+ * - Any route that has a :teamId parameter will:
+ *    - Ensure the session user is either admin or has a role on the team
+ *    - request.team prepopulated with the team object
+ *    - request.teamMembership prepopulated with the user role ({role: "member"})
+ *      (unless they are admin)
+ * 
  * @namespace team
  * @memberof forge.routes.api
  */
 module.exports = async function(app) {
 
-
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.teamId) {
             try {
+                request.teamMembership = await request.session.User.getTeamMembership(request.params.teamId);
+                if (!request.teamMembership && !request.session.User.admin) {
+                    reply.code(404).type('text/html').send('Not Found')
+                }
                 request.team = await app.db.models.Team.byId(request.params.teamId)
                 if (!request.team) {
                     reply.code(404).type('text/html').send('Not Found')
@@ -47,6 +56,10 @@ module.exports = async function(app) {
         if (request.query.slug) {
             const team = await app.db.models.Team.bySlug(request.query.slug)
             if (team) {
+                const teamMembership = await request.session.User.getTeamMembership(team.teamId);
+                if (!teamMembership && !request.session.User.admin) {
+                    reply.code(404).type('text/html').send('Not Found')
+                }
                 reply.send(app.db.views.Team.team(team))
                 return;
             }
@@ -139,6 +152,10 @@ module.exports = async function(app) {
                 request.team.name = request.body.name;
             }
             if (request.body.slug) {
+                if (request.body.slug === "create") {
+                    reply.code(400).send({error:"slug not available"});
+                    return
+                }
                 request.team.slug = request.body.slug;
             }
             await request.team.save()
@@ -162,10 +179,9 @@ module.exports = async function(app) {
      * @memberof forge.routes.api.team
      */
     app.get('/:teamId/user', async (request, reply) => {
-        const sessionUserMembership = await request.session.User.getTeamMembership(request.team.id);
-        if (sessionUserMembership) {
+        if (request.teamMembership) {
             reply.send({
-                role: sessionUserMembership.role
+                role: request.teamMembership.role
             })
         }
         reply.code(404).type('text/html').send('Not Found')

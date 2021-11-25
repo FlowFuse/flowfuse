@@ -5,6 +5,12 @@ const ProjectActions = require("./projectActions.js");
  *
  * - /api/v1/project
  *
+ * - Any route that has a :projectId parameter will:
+ *    - Ensure the session user is either admin or has a role on the corresponding team
+ *    - request.project prepopulated with the team object
+ *    - request.teamMembership prepopulated with the user role ({role: "member"})
+ *      (unless they are admin)
+ *
  * @namespace project
  * @memberof forge.routes.api
  */
@@ -17,10 +23,10 @@ const ProjectActions = require("./projectActions.js");
                  if (!request.project) {
                      reply.code(404).type('text/html').send('Not Found')
                  }
-
-                 // TODO: verify user's access to the project
-
-
+                 request.teamMembership = await request.session.User.getTeamMembership(request.project.Team.id);
+                 if (!request.teamMembership && !request.session.User.admin) {
+                     reply.code(404).type('text/html').send('Not Found')
+                 }
              } catch(err) {
                  reply.code(404).type('text/html').send('Not Found')
              }
@@ -139,7 +145,7 @@ const ProjectActions = require("./projectActions.js");
             request.project.name = request.body.name;
         }
         await request.project.save()
-        
+
         const result = await app.db.views.Project.project(request.project);
         result.meta = await app.containers.details(request.project.id)  || { state:'unknown'}
         result.team = await app.db.views.Team.team(request.project.Team);

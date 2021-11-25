@@ -104,10 +104,6 @@ module.exports = async function(app) {
         } else {
             reply.code(403).type('text/html').send('Forbidden')
         }
-
-        // const team = await app.db.models.Team.byId(request.params.teamId);
-        // const userMembership = await request.session.User.getTeamMembership(team.id);
-        // console.log()
     })
 
 }
