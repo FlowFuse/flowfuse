@@ -13,6 +13,7 @@ import Breadcrumbs from '@/mixins/Breadcrumbs';
 import SectionTopMenu from '@/components/SectionTopMenu';
 
 const navigation = [
+    { name: "Overview", path: "/admin/overview" },
     { name: "Settings", path: "/admin/settings" },
     { name: "Users", path: "/admin/users" },
     { name: "Teams", path: "/admin/teams" }

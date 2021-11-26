@@ -10,7 +10,7 @@ const TeamInvitations = require("./teamInvitations.js");
  *    - request.team prepopulated with the team object
  *    - request.teamMembership prepopulated with the user role ({role: "member"})
  *      (unless they are admin)
- * 
+ *
  * @namespace team
  * @memberof forge.routes.api
  */
@@ -56,7 +56,7 @@ module.exports = async function(app) {
         if (request.query.slug) {
             const team = await app.db.models.Team.bySlug(request.query.slug)
             if (team) {
-                const teamMembership = await request.session.User.getTeamMembership(team.teamId);
+                const teamMembership = await request.session.User.getTeamMembership(team.id);
                 if (!teamMembership && !request.session.User.admin) {
                     reply.code(404).type('text/html').send('Not Found')
                 }

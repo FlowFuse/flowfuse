@@ -7,7 +7,6 @@
             </template>
         </FormHeading>
         <ItemTable :items="users" :columns="columns" />
-
         <AdminUserEditDialog @userUpdated="userUpdated" ref="adminUserEditDialog"/>
 
     </form>
@@ -21,14 +20,12 @@ import FormHeading from '@/components/FormHeading'
 import { PlusSmIcon, UserAddIcon } from '@heroicons/vue/outline'
 import UserCell from '@/components/tables/cells/UserCell'
 import { markRaw } from "vue"
-import Breadcrumbs from '@/mixins/Breadcrumbs';
 
-import AdminUserEditButton from './AdminUserEditButton'
-import AdminUserEditDialog from './dialogs/AdminUserEditDialog'
+import AdminUserEditButton from '../AdminUserEditButton'
+import AdminUserEditDialog from '../dialogs/AdminUserEditDialog'
 
 export default {
     name: 'AdminUsers',
-    mixins: [ Breadcrumbs ],
     data() {
         return {
             userCount: 0,
@@ -44,11 +41,6 @@ export default {
         }
     },
     async created() {
-        this.setBreadcrumbs([
-            {label:"Admin", to:{name:"Admin"}},
-            {label:"Users"}
-        ]);
-
         const data = await usersApi.getUsers()
         this.userCount = data.count;
         this.users = data.users;
