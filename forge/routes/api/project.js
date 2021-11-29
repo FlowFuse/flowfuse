@@ -71,7 +71,8 @@ const ProjectActions = require("./projectActions.js");
             const containerOptions = {
                 name: request.body.name,
                 storageURL: process.env['BASE_URL'] + "/storage",
-                storageToken: "aaaa",
+                projectToken: "ABCD",
+                auditURL: process.env['BASE_URL'] + "/logging",
                 ...request.body.options,
                 ...authClient
             }
