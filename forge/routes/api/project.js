@@ -63,7 +63,7 @@ const ProjectActions = require("./projectActions.js");
             const team = teamMembership.get('Team');
             const project = await app.db.models.Project.create({
                 name: request.body.name,
-                type: request.body.options.type,
+                type: request.body.options.type || "basic",
                 url: "placeholder"
             })
             const authClient = await app.db.controllers.AuthClient.createClientForProject(project);
