@@ -13,3 +13,6 @@
 [submodule "sub_modules/flowforge-nr-auth"]
 	path = sub_modules/flowforge-nr-auth
 	url = git@github.com:flowforge/flowforge-nr-auth.git
+[submodule "sub_modules/flowforge-driver-docker"]
+	path = sub_modules/flowforge-driver-docker
+	url = git@github.com:flowforge/flowforge-driver-docker.git
