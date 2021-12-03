@@ -9,7 +9,7 @@ module.exports = {
      *       returned by this function
      *
      */
-    createClientForProject: async function(db, project) {
+    createClientForProject: async function(app, project) {
 
         // TODO: what if the project already has one
         const client = {
@@ -20,8 +20,8 @@ module.exports = {
         return client;
     },
 
-    getAuthClient: async function(db, clientID, clientSecret) {
-        const client = await db.models.AuthClient.findOne({
+    getAuthClient: async function(app, clientID, clientSecret) {
+        const client = await app.db.models.AuthClient.findOne({
             where: { clientID: clientID }
         })
         if (client) {

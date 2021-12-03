@@ -11,7 +11,15 @@ module.exports = {
         name: { type: DataTypes.STRING, allowNull: false},
         type: { type: DataTypes.STRING, allowNull: false},
         url: { type: DataTypes.STRING, allowNull: false},
-        slug: { type: DataTypes.VIRTUAL, get() { return this.id }}
+        slug: { type: DataTypes.VIRTUAL, get() { return this.id }},
+        links: {
+            type: DataTypes.VIRTUAL,
+            get() {
+                return {
+                    self: process.env.BASE_URL+"/api/v1/project/"+this.id
+                }
+            }
+        }
     },
     associations: function(M) {
         this.belongsTo(M['Team'])

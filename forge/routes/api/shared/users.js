@@ -1,4 +1,9 @@
 module.exports = {
+    // This is common code shared by:
+    //   PUT /api/v1/user/ (user.js)
+    //   PUT /api/v1/users/:id (users.js)
+    // Access control is handled by those individual routes. For a request to reach
+    // this function, the request has passed all auth checks.
     updateUser: async (app, user, request, reply) => {
         try {
             if (request.body.name && user.name !== request.body.name) {

@@ -9,9 +9,9 @@ function encodeBody(body) {
 }
 
 module.exports = {
-    projectLog: async function(db, ProjectId, UserId, event, body) {
+    projectLog: async function(app, ProjectId, UserId, event, body) {
 
-        await db.models.AuditLog.create({
+        await app.db.models.AuditLog.create({
             entityType: "project",
             entityId: ProjectId,
             UserId,
@@ -19,8 +19,8 @@ module.exports = {
             body: encodeBody(body)
         })
     },
-    teamLog: async function(db, TeamId, UserId, event, body) {
-        await db.models.AuditLog.create({
+    teamLog: async function(app, TeamId, UserId, event, body) {
+        await app.db.models.AuditLog.create({
             entityType: "team",
             entityId: TeamId,
             UserId,

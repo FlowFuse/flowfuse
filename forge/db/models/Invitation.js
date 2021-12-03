@@ -64,6 +64,15 @@ module.exports = {
     finders: function(M) {
         return {
             static: {
+                get: async(pagination={}) => {
+                    return this.findAll({
+                        include:[
+                            {model: M['Team'], as: "team"},
+                            {model: M['User'], as: "invitor"},
+                            {model: M['User'], as: "invitee"}
+                        ]
+                    })
+                },
                 byId: async(hashid) => {
                     const id = M['Invitation'].decodeHashid(hashid);
                     return this.findOne({where:{id},

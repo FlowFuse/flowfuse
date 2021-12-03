@@ -1,9 +1,11 @@
+import settingsApi from '@/api/settings'
 import userApi from '@/api/user'
 import teamApi from '@/api/team'
 import router from "@/routes"
 
 // initial state
 const state = () => ({
+    settings: null,
     // We do not know if there is a valid session yet
     pending: true,
     // A login attempt is inflight
@@ -26,6 +28,9 @@ const state = () => ({
 
 // getters
 const getters = {
+    settings(state) {
+        return state.settings
+    },
     user(state) {
         return state.user
     },
@@ -50,6 +55,9 @@ const getters = {
 }
 
 const mutations = {
+    setSettings(state, settings) {
+        state.settings = settings;
+    },
     clearPending(state) {
         state.pending = false;
     },
@@ -102,6 +110,9 @@ const mutations = {
 const actions = {
     async checkState(state,redirectUrlAfterLogin) {
         try {
+            const settings = await settingsApi.getSettings();
+            state.commit('setSettings', settings);
+
             const user = await userApi.getUser();
             state.commit('login', user)
 
@@ -134,7 +145,7 @@ const actions = {
             let teamSlug = teams.teams[0].slug;
             //
             let teamIdMatch = /^\/team\/([^\/]+)($|\/)/.exec(redirectUrlAfterLogin || router.currentRoute.value.path)
-            if (teamIdMatch) {
+            if (teamIdMatch && teamIdMatch[1] !== 'create') {
                 teamSlug = teamIdMatch[1]
             // } else {
             //     let projectIdMatch = /^\/projects\/([^\/]+)($|\/)/.exec(redirectUrlAfterLogin || router.currentRoute.value.path)
@@ -238,6 +249,10 @@ const actions = {
     },
     async setUser(state, user) {
         state.commit("setUser",user);
+    },
+    async refreshSettings(state) {
+        const settings = await settingsApi.getSettings();
+        state.commit('setSettings', settings);
     }
 }
 

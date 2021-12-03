@@ -27,6 +27,7 @@ import usersApi from '@/api/users'
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
 import Breadcrumbs from '@/mixins/Breadcrumbs'
+import { mapState } from 'vuex'
 
 export default {
     name: 'AdminCreateUser',
@@ -45,6 +46,9 @@ export default {
             },
             errors: {}
         }
+    },
+    computed: {
+        ...mapState('account',['settings'])
     },
     created() {
         this.setBreadcrumbs([

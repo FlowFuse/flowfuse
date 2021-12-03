@@ -1,8 +1,9 @@
+const { Roles, RoleNames } = require("../../lib/roles");
 
 module.exports = {
-    changeUserRole: async function(db, teamHashId, userHashId, role) {
-        const user = await db.models.User.byId(userHashId);
-        const team = await db.models.Team.byId(teamHashId);
+    changeUserRole: async function(app, teamHashId, userHashId, role) {
+        const user = await app.db.models.User.byId(userHashId);
+        const team = await app.db.models.Team.byId(teamHashId);
 
         if (!user) {
             throw new Error("User not found");
@@ -10,6 +11,10 @@ module.exports = {
         if (!team) {
             throw new Error("Team not found");
         }
+        if (!RoleNames[role] || role === Roles.Admin || role === Roles.None) {
+            throw new Error("Invalid role");
+        }
+
         const existingRole = await user.getTeamMembership(team.id);
         if (!existingRole) {
             throw new Error("User not in team");
@@ -19,7 +24,7 @@ module.exports = {
             return {user,team,oldRole,role};
         }
 
-        if (oldRole === "owner" && role === "member") {
+        if (oldRole === Roles.Owner && role === Roles.Member) {
             const owners = await team.owners();
             if (owners.length === 1) {
                 throw new Error("Cannot remove last owner");
@@ -38,14 +43,10 @@ module.exports = {
      * @return boolean - if the user was removed.
      *
      */
-    removeUser: async function(db, team, user, userRole) {
-        if (!userRole) {
-            userRole = await user.getTeamMembership(team.id);
-        }
-
+    removeUser: async function(app, team, user, userRole) {
         // If no userRole, then user already not in team - success
         if (userRole) {
-            if (userRole.role === "owner") {
+            if (userRole.role === Roles.Owner) {
                 const owners = await team.owners();
                 if (owners.length === 1) {
                     throw new Error("Cannot remove last owner");

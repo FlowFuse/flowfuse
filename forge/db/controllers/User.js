@@ -5,8 +5,8 @@ module.exports = {
     /**
      * Validate the username/password
      */
-    authenticateCredentials: async function(db, username, password) {
-        const user = await db.models.User.findOne({
+    authenticateCredentials: async function(app, username, password) {
+        const user = await app.db.models.User.findOne({
             where: { username: username },
             attributes: ['password']
         })
@@ -18,7 +18,7 @@ module.exports = {
         return false
     },
 
-    changePassword: async function(db, user, oldPassword, newPassword) {
+    changePassword: async function(app, user, oldPassword, newPassword) {
         if (compareHash(oldPassword,user.password)) {
             user.password = newPassword;
             user.password_expired = false;
@@ -28,30 +28,30 @@ module.exports = {
         }
     },
 
-    expirePassword: async function(db, user) {
+    expirePassword: async function(app, user) {
         if (user) {
             user.password_expired = true;
             return user.save();
         } else {
-            await db.models.User.update({
+            await app.db.models.User.update({
                 password_expired: true
             }, { where: { } })
         }
     },
 
-    generateEmailVerificationToken: async function(db, user) {
+    generateEmailVerificationToken: async function(app, user) {
         const TOKEN_EXPIRY = 1000*60*60*24*2; // 48 Hours
         const expiresAt = Math.floor((Date.now()+TOKEN_EXPIRY)/1000); // 48 hours
         const signingHash = sha256(user.password);
         return jwt.sign({ sub: user.email, exp: expiresAt}, signingHash);
     },
 
-    verifyEmailToken: async function(db, user, token) {
+    verifyEmailToken: async function(app, user, token) {
         // Get the email from the token (.sub)
         const peekToken = jwt.decode(token);
         if (peekToken && peekToken.sub) {
             // Get the corresponding user
-            const requestingUser = await db.models.User.byEmail(peekToken.sub);
+            const requestingUser = await app.db.models.User.byEmail(peekToken.sub);
             if (user && user.id !== requestingUser.id) {
                 throw new Error("Invalid link");
             }
@@ -60,7 +60,7 @@ module.exports = {
             }
             if (requestingUser) {
                 // Verify the token
-                const signingHash = db.utils.sha256(requestingUser.password)
+                const signingHash = app.db.utils.sha256(requestingUser.password)
                 try {
                     const decodedToken = jwt.verify(token, signingHash);
                     if (decodedToken) {

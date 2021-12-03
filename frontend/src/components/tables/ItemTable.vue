@@ -1,18 +1,22 @@
 <template>
-<div class="text-sm w-full border rounded border-gray-300 mb-4">
-    <div class="flex font-medium bg-gray-100 items-center rounded-t">
+<table class="text-sm w-full rounded ring-1 ring-gray-200 border-gray-200 mb-4">
+    <thead>
+    <tr class="font-medium bg-gray-100">
         <template v-for="(col, colIdx) in columns" :key="col.name">
-            <div class="p-3" :class="col.class">{{ col.name }}</div>
+            <th class="px-3 py-1 border-b first:rounded-tl last:rounded-tr" :class="col.class">{{ col.name }}</th>
         </template>
-    </div>
+    </tr>
+    </thead>
+    <tbody>
     <template v-if="items.length === 0">
-        <div class="flex border-t border-gray-300 h-14">
-        </div>
+        <tr class="">
+            <td v-for="(col, colIdx) in columns" class="px-4 py-3 first:rounded-bl last:rounded-br" :class="col.class||[]">&nbsp;</td>
+        </tr>
     </template>
     <template v-for="(item, itemIdx) in items">
-        <div class="flex border-t border-gray-300 items-center hover:bg-blue-100">
+        <tr class="even:bg-gray-50">
             <template v-for="(col, colIdx) in columns" :key="col.name">
-                <div class="p-3 pl-4" :class="col.class">
+                <td class="px-4 py-3" :class="[...(col.class||[]),itemIdx===items.length-1?'first:rounded-bl last:rounded-br':'']">
                     <template v-if="col.link && ((typeof col.link === 'boolean' && item.link) || (item[col.link]))">
                         <router-link v-if="!col.external" :to="(typeof col.link === 'boolean' && item.link) || item[col.link]" :class="col.linkClass">
                             <template v-if="col.component">
@@ -31,14 +35,15 @@
                         <component :is="col.component.is" v-bind="col.property?item[col.property]:item"></component>
                     </template>
                     <template v-else>{{ item[col.property] }}</template>
-                </div>
+                </td>
             </template>
-        </div>
-        <div v-if="debug" class="flex border-t border-gray-300 items-center hover:bg-blue-100">
+        </tr>
+        <!-- <div v-if="debug" class="flex border-t border-gray-300 items-center hover:bg-blue-100">
             <pre>{{ item }}</pre>
-        </div>
+        </div> -->
     </template>
-</div>
+    </tbody>
+</table>
 </template>
 <script>
 

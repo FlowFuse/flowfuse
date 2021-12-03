@@ -18,6 +18,7 @@ import ItemTable from '@/components/tables/ItemTable'
 import InviteUserCell from '@/components/tables/cells/InviteUserCell'
 import { TrashIcon } from '@heroicons/vue/outline'
 import { useRoute, useRouter } from 'vue-router';
+import { Roles } from '@/utils/roles'
 
 const MemberInviteRemoveButton = {
     template: `<button type="button" class="forge-button-inline px-2 py-2" @click="removeInvite"><TrashIcon class="w-5" /></button>`,
@@ -59,7 +60,7 @@ export default {
         },
         async fetchData () {
             if (this.team && this.teamMembership) {
-                if (this.teamMembership.role !== "owner") {
+                if (this.teamMembership.role !== Roles.Owner) {
                     useRouter().push({ path: `/team/${useRoute().params.id}/members/general` })
                     return
                 }

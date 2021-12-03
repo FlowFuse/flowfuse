@@ -3,7 +3,9 @@ import AccountSettings from "@/pages/account/Settings.vue"
 import AccountSecurity from "@/pages/account/Security.vue"
 import AccountSecurityChangePassword from "@/pages/account/Security/ChangePassword.vue"
 import AccountSecuritySessions from "@/pages/account/Security/Sessions.vue"
-import AccountTeams from "@/pages/account/Teams.vue"
+import AccountTeams from "@/pages/account/Teams/index.vue"
+import AccountTeamTeams from "@/pages/account/Teams/Teams.vue"
+import AccountTeamInvitations from "@/pages/account/Teams/Invitations.vue"
 import AccessRequest from "@/pages/AccessRequest.vue"
 import AccountCreate from "@/pages/account/Create.vue"
 
@@ -46,7 +48,11 @@ export default [
         component: Account,
         children: [
             { path: 'settings', component: AccountSettings },
-            { path: 'teams', component: AccountTeams },
+            { path: 'teams', component: AccountTeams, children: [
+                { path: '', component: AccountTeamTeams },
+                { path: 'invitations', component: AccountTeamInvitations },
+
+            ]},
             { path: 'security', component: AccountSecurity, redirect: '/account/security/password', children: [
                 { path: 'password', component: AccountSecurityChangePassword },
                 { path: 'sessions', component: AccountSecuritySessions }

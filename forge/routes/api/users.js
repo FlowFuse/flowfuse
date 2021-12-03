@@ -1,4 +1,5 @@
 const sharedUser = require("./shared/users")
+const { Roles, RoleNames } = require("../../lib/roles.js")
 
 /**
  * Users api routes
@@ -20,16 +21,10 @@ module.exports = async function(app) {
      * @memberof forge.routes.api.users
      */
     app.get('/', async (request, reply) => {
-        // TODO: pagniation support
-        const users = await app.db.models.User.findAll();
-        const result = [];
-        for (let u of users) {
-            result.push(app.db.views.User.userProfile(u))
-        }
-        reply.send({
-            count: result.length,
-            users:result
-        })
+        const paginationOptions = app.getPaginationOptions(request)
+        const users = await app.db.models.User.getAll(paginationOptions);
+        users.users = users.users.map(u => app.db.views.User.userProfile(u))
+        reply.send(users);
     })
 
     /**
@@ -98,7 +93,7 @@ module.exports = async function(app) {
                     name: `Team ${request.body.name}`,
                     slug: request.body.username
                 });
-                await newTeam.addUser(newUser, { through: { role:"owner" } });
+                await newTeam.addUser(newUser, { through: { role:Roles.Owner } });
             }
             reply.send({status: "okay"})
         } catch(err) {

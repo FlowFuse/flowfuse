@@ -1,4 +1,5 @@
 import client from './client';
+import paginateUrl from '@/utils/paginateUrl';
 
 const create = async (options) => {
     return client.post(`/api/v1/users`, options).then(res => {
@@ -6,8 +7,9 @@ const create = async (options) => {
     });
 }
 
-const getUsers = () => {
-    return client.get('/api/v1/users').then(res => res.data);
+const getUsers = (cursor, limit) => {
+    const url = paginateUrl('/api/v1/users',cursor,limit);
+    return client.get(url).then(res => res.data);
 }
 
 const updateUser = async(userId, options) => {

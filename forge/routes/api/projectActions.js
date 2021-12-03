@@ -8,7 +8,9 @@
  * @namespace project
  * @memberof forge.routes.api
  */
- module.exports = async function(app) {
+module.exports = async function(app) {
+
+    app.addHook('preHandler',app.needsPermission("project:change-status"));
 
     app.post('/start', async (request, reply) => {
         const result = await app.containers.start(request.project.id);

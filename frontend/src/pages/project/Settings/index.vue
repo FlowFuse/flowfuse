@@ -11,6 +11,7 @@
 import SectionSideMenu from '@/components/SectionSideMenu'
 import { useRoute, useRouter } from 'vue-router';
 import { mapState } from 'vuex'
+import { Roles } from '@/utils/roles'
 
 const sideNavigation = [
     { name: "General", path: "./general" },
@@ -40,7 +41,7 @@ export default {
     },
     methods: {
         checkAccess: async function() {
-            if (this.teamMembership && this.teamMembership.role !== "owner") {
+            if (this.teamMembership && this.teamMembership.role !== Roles.Owner) {
                 useRouter().push({ path: `/project/${useRoute().params.id}/overview` })
             }
         }

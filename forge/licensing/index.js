@@ -32,7 +32,7 @@ module.exports = fp(async function(app, opts, next) {
         },
         active: () => activeLicense !== null,
         get: (key) => {
-            return activeLicense && activeLicense[key]
+            return key?activeLicense && activeLicense[key]:activeLicense
         }
     }
 

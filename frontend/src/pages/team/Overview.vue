@@ -7,7 +7,14 @@
                     <router-link to="./projects/create" class="forge-button pl-1 pr-2"><PlusSmIcon class="w-4" /><span class="text-xs">Create Project</span></router-link>
                 </template>
             </FormHeading>
-            <ProjectSummaryList :projects="projects" :team="team" />
+            <template v-if="projectCount > 0">
+                <ProjectSummaryList :projects="projects" :team="team" />
+            </template>
+            <template v-else>
+                <div class="flex text-gray-500 justify-center italic mb-4 p-8">
+                    You don't have any projects yet
+                </div>
+            </template>
         </div>
         <div class="md:w-48 p-2 md:ml-8">
             <FormHeading>
@@ -25,6 +32,7 @@ import FormHeading from '@/components/FormHeading'
 import MemberSummaryList from './components/MemberSummaryList'
 import ProjectSummaryList from './components/ProjectSummaryList'
 import { PlusSmIcon, UsersIcon, ChevronRightIcon } from '@heroicons/vue/outline'
+import CreateProjectButton from "@/components/CreateProjectButton"
 
 export default {
     name: 'TeamOverview',
@@ -62,7 +70,8 @@ export default {
         ProjectSummaryList,
         ChevronRightIcon,
         UsersIcon,
-        PlusSmIcon
+        PlusSmIcon,
+        CreateProjectButton
     }
 }
 </script>

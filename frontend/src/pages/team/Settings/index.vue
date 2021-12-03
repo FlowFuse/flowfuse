@@ -9,20 +9,25 @@
 
 <script>
 import SectionSideMenu from '@/components/SectionSideMenu'
+import { useRoute, useRouter } from 'vue-router';
+import { Roles } from '@/utils/roles'
 
-// const sideNavigation = [
-//     { name: "Members", path: "./general" },
-//     { name: "Invitations", path: "./invitations" }
-// ]
+const sideNavigation = [
+    { name: "General", path: "./general" },
+    { name: "Permissions", path: "./permissions" },
+    { name: "Danger", path: "./danger" }
+]
+
+
 export default {
-    name: 'TeamUsers',
+    name: 'TeamSettings',
     props:[ "team", "teamMembership" ],
     components: {
         SectionSideMenu
     },
-    data: function() {
+    setup() {
         return {
-            sideNavigation: []
+            sideNavigation
         }
     },
     watch: {
@@ -33,11 +38,8 @@ export default {
     },
     methods: {
         checkAccess: async function() {
-            this.sideNavigation = [
-                { name: "Members", path: "./general" }
-            ]
-            if (this.teamMembership && this.teamMembership.role === "owner") {
-                this.sideNavigation.push({ name: "Invitations", path: "./invitations" })
+            if (this.teamMembership && this.teamMembership.role !== Roles.Owner) {
+                useRouter().push({ path: `/team/${useRoute().params.id}/overview` })
             }
         }
     }

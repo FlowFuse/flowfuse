@@ -17,6 +17,11 @@ module.exports = fp(async function(app, _opts, next) {
             return settings[key]
         },
         set: async (key, value) => {
+            if (!settings.hasOwnProperty(key)) {
+                // This may be too strict, but for now, only allow settings
+                // that are known to be changed.
+                throw new Error(`Unknown setting ${key}`)
+            }
             settings[key] = value;
             await app.db.models.PlatformSettings.upsert({ key, value });
         }

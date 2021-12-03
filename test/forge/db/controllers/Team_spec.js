@@ -1,5 +1,6 @@
 const should = require("should");
 const setup = require("../setup");
+const { Roles } = require('../../../../forge/lib/roles')
 
 describe("Team controller", function() {
     // Use standard test data.
@@ -13,29 +14,29 @@ describe("Team controller", function() {
             const team = await app.db.models.Team.byName("ATeam");
             const user = await app.db.models.User.byUsername("bob");
             const startingRole = await user.getTeamMembership(team.id);
-            startingRole.role.should.equal("member");
-            await app.db.controllers.Team.changeUserRole(team.hashid, user.hashid, "owner")
+            startingRole.role.should.equal(Roles.Member);
+            await app.db.controllers.Team.changeUserRole(team.hashid, user.hashid, Roles.Owner)
             const endingRole = await user.getTeamMembership(team.id);
-            endingRole.role.should.equal("owner");
+            endingRole.role.should.equal(Roles.Owner);
         })
         it("changes a users role from owner to member", async function() {
             // only if there are >1 owner
             const team = await app.db.models.Team.byName("BTeam");
             const user = await app.db.models.User.byUsername("bob");
             const startingRole = await user.getTeamMembership(team.id);
-            startingRole.role.should.equal("owner");
-            await app.db.controllers.Team.changeUserRole(team.hashid, user.hashid, "member")
+            startingRole.role.should.equal(Roles.Owner);
+            await app.db.controllers.Team.changeUserRole(team.hashid, user.hashid, Roles.Member)
             const endingRole = await user.getTeamMembership(team.id);
-            endingRole.role.should.equal("member");
+            endingRole.role.should.equal(Roles.Member);
         })
 
         it("does not allow a team to be left without an owner", async function() {
             const team = await app.db.models.Team.byName("ATeam");
             const user = await app.db.models.User.byUsername("alice");
             const startingRole = await user.getTeamMembership(team.id);
-            startingRole.role.should.equal("owner");
+            startingRole.role.should.equal(Roles.Owner);
             try {
-                app.db.controllers.Team.changeUserRole(team.hashid, user.hashid, "member")
+                app.db.controllers.Team.changeUserRole(team.hashid, user.hashid, Roles.Member)
             } catch(err) {
                 // TODO: check the error code
                 return;
@@ -51,9 +52,9 @@ describe("Team controller", function() {
             const team = await app.db.models.Team.byName("ATeam");
             const user = await app.db.models.User.byUsername("bob");
             const startingRole = await user.getTeamMembership(team.id);
-            startingRole.role.should.equal("member");
+            startingRole.role.should.equal(Roles.Member);
 
-            await app.db.controllers.Team.removeUser(team, user);
+            await app.db.controllers.Team.removeUser(team, user, startingRole);
 
             const endingRole = await user.getTeamMembership(team.id);
             should.not.exist(endingRole);
@@ -62,9 +63,9 @@ describe("Team controller", function() {
             const team = await app.db.models.Team.byName("BTeam");
             const user = await app.db.models.User.byUsername("bob");
             const startingRole = await user.getTeamMembership(team.id);
-            startingRole.role.should.equal("owner");
+            startingRole.role.should.equal(Roles.Owner);
 
-            await app.db.controllers.Team.removeUser(team, user);
+            await app.db.controllers.Team.removeUser(team, user, startingRole);
 
             const endingRole = await user.getTeamMembership(team.id);
             should.not.exist(endingRole);
@@ -76,7 +77,7 @@ describe("Team controller", function() {
             const team = await app.db.models.Team.byName("ATeam");
             const user = await app.db.models.User.byUsername("bob");
             const startingRole = await user.getTeamMembership(team.id);
-            startingRole.role.should.equal("member");
+            startingRole.role.should.equal(Roles.Member);
             await app.db.controllers.Team.removeUser(team, user, startingRole);
             const endingRole = await user.getTeamMembership(team.id);
             should.not.exist(endingRole);

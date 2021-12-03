@@ -1,6 +1,6 @@
 import Project from "@/pages/project/index.vue"
 import ProjectOverview from "@/pages/project/Overview.vue"
-import ProjectSettings from "@/pages/project/Settings.vue"
+import ProjectSettings from "@/pages/project/Settings/index.vue"
 import ProjectSettingsGeneral from "@/pages/project/Settings/General.vue"
 import ProjectSettingsDanger from "@/pages/project/Settings/Danger.vue"
 import ProjectSettingsEnvVar from "@/pages/project/Settings/Environment.vue"

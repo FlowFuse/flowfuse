@@ -138,7 +138,7 @@ async function init(db) {
             }
         }
 
-        if (!m.meta || m.meta.links !== false) {
+        if (!m.schema.links && (!m.meta || m.meta.links !== false)) {
             m.schema.links = {
                 type: DataTypes.VIRTUAL,
                 get() {

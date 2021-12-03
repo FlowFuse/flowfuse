@@ -1,23 +1,30 @@
 module.exports = {
-    createInvitations: async (db, invitor, team, userList) => {
+    createInvitations: async (app, invitor, team, userList) => {
         const results = {};
         for (let i=0; i<userList.length; i++) {
             const userDetail = userList[i];
-            const existingUser = await db.models.User.byUsernameOrEmail(userDetail);
+            const existingUser = await app.db.models.User.byUsernameOrEmail(userDetail);
             const opts = {
                 teamId: team.id
             }
             if (!existingUser) {
                 if (!/@/.test(userDetail)) {
                     // not an email - abort
-                    results[userDetail] = "Not an existing user, or valid email address";
+                    results[userDetail] = "Not an existing user";
+                    if (app.postoffice.enabled()) {
+                        results[userDetail] += ", or valid email address"
+                    }
+                    continue;
+                } else if (!app.postoffice.enabled()) {
+                    // email not configured
+                    results[userDetail] = "Email not configured, cannot invite external user"
                     continue;
                 } else {
                     opts.external = true;
                     opts.email = userDetail
                 }
             } else {
-                const existingMemberRole = await db.models.TeamMember.getTeamMembership(existingUser.id, team.id, false);
+                const existingMemberRole = await app.db.models.TeamMember.getTeamMembership(existingUser.id, team.id, false);
                 if (existingMemberRole) {
                     results[userDetail] = "Already a member of the team";
                     continue;
@@ -25,15 +32,15 @@ module.exports = {
                 opts.external = false;
                 opts.inviteeId = existingUser.id;
             }
-            const existingInvite = await db.models.Invitation.findOne({where:opts})
+            const existingInvite = await app.db.models.Invitation.findOne({where:opts})
             if (existingInvite) {
                 results[userDetail] = "Already invited to the team";
                 continue;
             }
             opts.invitorId = invitor.id;
-            const invite = await db.models.Invitation.create(opts);
+            const invite = await app.db.models.Invitation.create(opts);
             // Re-get the new invite so the User/Team properties are pre-fetched
-            results[userDetail] = await db.models.Invitation.byId(invite.hashid)
+            results[userDetail] = await app.db.models.Invitation.byId(invite.hashid)
         }
         return results;
     }

@@ -33,6 +33,7 @@ import FormHeading from '@/components/FormHeading'
 import NameGenerator from '@/utils/name-generator'
 import { RefreshIcon } from '@heroicons/vue/outline'
 import Breadcrumbs from '@/mixins/Breadcrumbs'
+import { Roles } from '@/utils/roles'
 
 export default {
     name: 'CreateProject',
@@ -54,15 +55,22 @@ export default {
     async created() {
         const data = await teamApi.getTeams()
         this.teamCount = data.count;
-        this.teams = data.teams.map((t) => {
+        const filteredTeams = [];
+
+        data.teams.forEach((t) => {
+            if (t.role !== Roles.Owner) {
+                return
+            }
             if (t.slug === this.$router.currentRoute.value.params.id) {
                 this.currentTeam = t.id;
             }
-            return { value: t.id, label: t.name }
+            filteredTeams.push({ value: t.id, label: t.name })
         });
+
         if (this.currentTeam == null) {
-            this.currentTeam = this.teams[0].value;
+            this.currentTeam = filteredTeams[0].value;
         }
+        this.teams = filteredTeams;
 
         if (this.currentTeam) {
             this.setBreadcrumbs([

@@ -1,7 +1,7 @@
 import client from './client';
 import slugify from '@/utils/slugify';
 import daysSince from '@/utils/daysSince';
-
+import paginateUrl from '@/utils/paginateUrl';
 
 const create = async (options) => {
     return client.post(`/api/v1/project`, options).then(res => {
@@ -35,14 +35,8 @@ const deleteProject = async (projectId) => {
 }
 
 const getProjectAuditLog = async (projectId, cursor, limit) => {
-    const queryString = new URLSearchParams();
-    if (cursor) {
-        queryString.append("cursor",cursor)
-    }
-    if (limit) {
-        queryString.append("limit",limit)
-    }
-    return client.get(`/api/v1/project/${projectId}/audit-log?${queryString.toString()}`).then(res => res.data)
+    const url = paginateUrl(`/api/v1/project/${projectId}/audit-log`,cursor,limit);
+    return client.get(url).then(res => res.data)
 }
 
 const startProject = async (projectId) => {

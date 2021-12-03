@@ -8,12 +8,20 @@ module.exports = fp(async function(app, _opts, next) {
 
     // transporter = nodemailer.createTransport(require("./localDelivery"));
 
-    let EMAIL_ENABLED = !!process.env.SMTP_TRANSPORT_HOST;
+    let EMAIL_ENABLED = process.env.SMTP_DEBUG || !!process.env.SMTP_TRANSPORT_HOST;
     let transporter = nodemailer.createTransport({
         host: process.env.SMTP_TRANSPORT_HOST,
         port: process.env.SMTP_TRANSPORT_PORT,
         secure: process.env.SMTP_TRANSPORT_PORT === "true",
     });
+
+
+    const exportableSettings = {
+        host: process.env.SMTP_TRANSPORT_HOST,
+        port: process.env.SMTP_TRANSPORT_PORT,
+        secure: process.env.SMTP_TRANSPORT_PORT === "true",
+    }
+
 // console.log({
 //     host: process.env.SMTP_TRANSPORT_HOST,
 //     port: process.env.SMTP_TRANSPORT_PORT,
@@ -58,7 +66,7 @@ module.exports = fp(async function(app, _opts, next) {
             text: template.text(templateContext,{allowProtoPropertiesByDefault: true, allowProtoMethodsByDefault:true}),
             html: template.html(templateContext,{allowProtoPropertiesByDefault: true, allowProtoMethodsByDefault:true})
         }
-        if (EMAIL_ENABLED) {
+        if (EMAIL_ENABLED && !process.env.SMTP_DEBUG) {
             await transporter.sendMail(mail)
         } else {
             console.log(`
@@ -71,8 +79,22 @@ ${mail.text}
         }
     }
 
+    function exportSettings(isAdmin) {
+        if (!EMAIL_ENABLED) {
+            return false
+        } else {
+            return isAdmin?exportableSettings:true
+        }
+    }
+
+    function enabled() {
+        return EMAIL_ENABLED
+    }
+
     app.decorate('postoffice', {
-        send
+        enabled,
+        send,
+        exportSettings
     });
 
     next();
