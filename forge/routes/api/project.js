@@ -67,7 +67,7 @@ const ProjectActions = require("./projectActions.js");
             const team = teamMembership.get('Team');
             const project = await app.db.models.Project.create({
                 name: request.body.name,
-                type: request.body.options.type,
+                type: request.body.options.type || "basic",
                 url: "placeholder"
             })
             const authClient = await app.db.controllers.AuthClient.createClientForProject(project);
@@ -75,7 +75,8 @@ const ProjectActions = require("./projectActions.js");
             const containerOptions = {
                 name: request.body.name,
                 storageURL: process.env['BASE_URL'] + "/storage",
-                storageToken: "aaaa",
+                projectToken: "ABCD",
+                auditURL: process.env['BASE_URL'] + "/logging",
                 ...request.body.options,
                 ...authClient
             }
