@@ -1,3 +1,5 @@
+const { Roles } = require("../../lib/roles.js")
+
 /**
  * Team Membership api routes
  *
@@ -10,6 +12,29 @@
  * @memberof forge.routes.api
  */
 module.exports = async function(app) {
+
+    app.addHook('preHandler', async (request, reply) => {
+        if (request.params.userId) {
+            try {
+                if (request.session.User.id === request.params.userId) {
+                    // Don't need to lookup the user/role again
+                    request.user = request.session.User
+                    request.userRole = request.teamMembership
+                } else {
+                    request.user = await app.db.models.User.byId(request.params.userId)
+                    if (!request.user) {
+                        reply.code(404).type('text/html').send('Not Found')
+                        return;
+                    }
+                    request.userRole = await request.user.getTeamMembership(request.params.teamId);
+                }
+            } catch(err) {
+                console.log(err);
+                reply.code(404).type('text/html').send('Not Found')
+            }
+        }
+    })
+
 
     app.get('/', async (request, reply) => {
         const members = await app.db.models.User.inTeam(request.params.teamId)
@@ -27,7 +52,7 @@ module.exports = async function(app) {
      *  - team owners can do this for now - but will need to enable invite-only workflow
      * POST [/api/v1/teams/:teamId/members]/
      */
-    app.post('/', async (request, reply) => {
+    app.post('/', { preHandler: app.needsPermission("team:user:add") }, async (request, reply) => {
         // await app.db.controllers.AuditLog.teamLog(
         //     request.team.id,
         //     request.session.User.id,
@@ -42,21 +67,13 @@ module.exports = async function(app) {
      *  - admin/owner/self
      * DELETE [/api/v1/teams/:teamId/members]/:userId
      */
-    app.delete('/:userId', async (request, reply) => {
-        const sessionUserMembership = await request.session.User.getTeamMembership(request.team.id);
-        // admin || self || team-owner
-        if (sessionUserMembership.role === "owner" || request.session.User.id === request.params.userId || request.session.User.admin) {
-            // The requesting user is allowed to do this
-            let userToRemove = request.params.userId;
-            let userRole;
-            if (request.session.User.id === request.params.userId) {
-                // Don't need to lookup the user/role again
-                userToRemove = request.session.User
-                userRole = sessionUserMembership
-            } else {
-                userToRemove = await db.models.User.byId(userToRemove)
-            }
-            const result = await app.db.controllers.Team.removeUser(request.team, userToRemove, userRole)
+    app.delete('/:userId', { preHandler: app.needsPermission("team:user:remove") }, async (request, reply) => {
+        // request.user and request.userRole will already be set via the preHandler
+        // added at the top of this file
+        // the needsPermission handler will have ensured the requesting user is allowed
+        // to make this request. All we have to do
+        try {
+            const result = await app.db.controllers.Team.removeUser(request.team, request.user, request.userRole)
             if (result) {
                 await app.db.controllers.AuditLog.teamLog(
                     request.team.id,
@@ -66,8 +83,9 @@ module.exports = async function(app) {
                 )
             }
             reply.send({status:"okay"})
-        } else {
-            reply.code(403).type('text/html').send('Forbidden')
+        } catch(err) {
+            console.log(err);
+            reply.code(400).send({error:"cannot remove only owner"});
         }
     })
 
@@ -79,30 +97,26 @@ module.exports = async function(app) {
      *  - only admins or owner should be able to do this
      * POST [/api/v1/teams/:teamId/members]/:userId
      */
-    app.put('/:userId', async (request, reply) => {
-        const sessionUserMembership = await request.session.User.getTeamMembership(request.team.id);
-        if (sessionUserMembership.role === "owner" || request.session.User.admin) {
-            if (request.body.role === "owner" || request.body.role === "member") {
-                try {
-                    const result = await app.db.controllers.Team.changeUserRole(request.params.teamId,request.params.userId,request.body.role)
-                    if (result.oldRole !== result.role) {
-                        await app.db.controllers.AuditLog.teamLog(
-                            result.team.id,
-                            request.session.User.id,
-                            "user.roleChanged",
-                            { user: result.user.username, role: result.role}
-                        )
-                    }
-                    reply.send({status:"okay"})
-                } catch(err) {
-                    console.log(err);
-                    reply.code(403).type('text/html').send('Forbidden')
+    app.put('/:userId', { preHandler: app.needsPermission("team:user:change-role") }, async (request, reply) => {
+        const newRole = parseInt(request.body.role);
+        if (newRole === Roles.Owner || newRole === Roles.Member) {
+            try {
+                const result = await app.db.controllers.Team.changeUserRole(request.params.teamId,request.params.userId,newRole)
+                if (result.oldRole !== result.role) {
+                    await app.db.controllers.AuditLog.teamLog(
+                        result.team.id,
+                        request.session.User.id,
+                        "user.roleChanged",
+                        { user: result.user.username, role: result.role}
+                    )
                 }
-            } else {
-                reply.code(400).send({error:"invalid role"});
+                reply.send({status:"okay"})
+            } catch(err) {
+                console.log(err);
+                reply.code(403).type('text/html').send('Forbidden')
             }
         } else {
-            reply.code(403).type('text/html').send('Forbidden')
+            reply.code(400).send({error:"invalid role"});
         }
     })
 

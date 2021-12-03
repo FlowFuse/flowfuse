@@ -22,6 +22,7 @@ import FormHeading from '@/components/FormHeading'
 import ItemTable from '@/components/tables/ItemTable'
 import Breadcrumbs from '@/mixins/Breadcrumbs'
 import UserCell from '@/components/tables/cells/UserCell'
+import UserRoleCell from '@/components/tables/cells/UserRoleCell'
 import TeamUserEditButton from '../components/TeamUserEditButton'
 import ChangeTeamRoleDialog from '../dialogs/ChangeTeamRoleDialog'
 import ConfirmTeamUserRemoveDialog from '../dialogs/ConfirmTeamUserRemoveDialog'
@@ -29,6 +30,7 @@ import InviteMemberDialog from '../dialogs/InviteMemberDialog'
 
 import teamApi from '@/api/team'
 import { PlusSmIcon, UsersIcon, ChevronRightIcon } from '@heroicons/vue/outline'
+import { Roles, RoleNames } from '@/utils/roles'
 
 export default {
     name: 'TeamUsersGeneral',
@@ -38,7 +40,7 @@ export default {
             userCount: 0,
             userColumns: [],
             ownerCount: 0,
-            isOwner: false,
+            isOwner: false
         }
     },
     watch: {
@@ -74,17 +76,17 @@ export default {
             this.ownerCount = 0;
 
             const currentUser = this.users.find(user => user.username === this.$store.state.account.user.username )
-            this.isOwner = currentUser && currentUser.role === 'owner';
+            this.isOwner = currentUser && currentUser.role === Roles.Owner;
 
             this.userColumns = [
                 {name: 'User', class:['flex-grow'], component: { is: markRaw(UserCell) }},
-                {name: 'Role',class: ['w-40'], property: 'role'}
+                {name: 'Role',class: ['w-40'], component: { is: markRaw(UserRoleCell) }}
             ]
 
             if (this.isOwner) {
                 if (this.users) {
                     this.users.forEach(u => {
-                        if (u.role === 'owner') {
+                        if (u.role === Roles.Owner) {
                             this.ownerCount++;
                         }
                         u.onselect = (action) => { this.handleUserAction(u,action)}

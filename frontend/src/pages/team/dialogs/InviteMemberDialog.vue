@@ -12,14 +12,23 @@
               <DialogTitle as="h3" class="text-lg font-medium leading-6">Add team members</DialogTitle>
                 <form class="space-y-6" @submit.enter.prevent="">
                   <div class="mt-2 space-y-2">
+                    <template v-if="!errors">
                       <p class="text-sm text-gray-500">
-                          Invite a user to join the team.
+                        Invite a user to join the team.
                       </p>
                       <FormRow id="userInfo" v-model="input.userInfo" placeholder="username or email"></FormRow>
+                    </template>
+                    <template v-else>
+                        <ul>
+                            <li class="text-sm" v-for="(value, name) in errors">
+                                <span class="font-medium">{{name}}</span>: <span>{{value}}</span>
+                            </li>
+                        </ul>
+                    </template>
                   </div>
                   <div class="mt-4 flex flex-row justify-end">
                       <button type="button" class="forge-button-secondary ml-4" @click="close">Cancel</button>
-                      <button type="button" :disabled="!input.userInfo.trim()" class="forge-button ml-4" @click="confirm">Invite</button>
+                      <button type="button" :disabled="errors || !input.userInfo.trim()" class="forge-button ml-4" @click="confirm">Invite</button>
                   </div>
               </form>
           </div>
@@ -59,18 +68,24 @@ export default {
         return {
             input: {
                 userInfo: ""
-            }
+            },
+            errors: null
         }
     },
     methods: {
         async confirm() {
             try {
                 const result = await teamApi.createTeamInvitation(this.team.id, this.input.userInfo);
-                this.$emit('invitationSent');
+                if (result.status === 'error') {
+                    this.errors = result.message
+                } else {
+                    this.$emit('invitationSent');
+                    this.isOpen = false;
+                }
             } catch(err) {
                 console.warn(err);
+                this.isOpen = false;
             }
-            this.isOpen = false;
         }
     },
     setup() {
@@ -81,6 +96,8 @@ export default {
                 isOpen.value = false
             },
             show() {
+                this.errors = null
+                this.input.userInfo = ""
                 isOpen.value = true
             },
         }

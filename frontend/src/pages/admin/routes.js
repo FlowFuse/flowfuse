@@ -2,11 +2,14 @@ import Admin from "@/pages/admin/index.vue"
 import AdminOverview from "@/pages/admin/Overview.vue"
 import AdminSettings from "@/pages/admin/Settings/index.vue"
 import AdminSettingsGeneral from "@/pages/admin/Settings/General.vue"
+import AdminSettingsLicense from "@/pages/admin/Settings/License.vue"
+import AdminSettingsEmail from "@/pages/admin/Settings/Email.vue"
+import AdminSettingsPermissions from "@/pages/admin/Settings/Permissions.vue"
 import AdminUsers from "@/pages/admin/Users/index.vue"
 import AdminUsersGeneral from "@/pages/admin/Users/General.vue"
 import AdminUsersInvitations from "@/pages/admin/Users/Invitations.vue"
 import AdminTeams from "@/pages/admin/Teams.vue"
-import AdminCreateUser from "@/pages/admin/createUser.vue"
+import AdminCreateUser from "@/pages/admin/Users/createUser.vue"
 import { AdjustmentsIcon } from '@heroicons/vue/outline'
 
 import ensureAdmin from "@/utils/ensureAdmin"
@@ -33,6 +36,9 @@ export default [
                 path: 'settings', component: AdminSettings, redirect: `/admin/settings/general`,
                 children: [
                     { path: 'general', component: AdminSettingsGeneral },
+                    { path: 'permissions', component: AdminSettingsPermissions },
+                    { path: 'license', component: AdminSettingsLicense },
+                    { path: 'email', component: AdminSettingsEmail },
                 ]
             },
             {

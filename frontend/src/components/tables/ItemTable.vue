@@ -1,22 +1,22 @@
 <template>
-<table class="text-sm w-full rounded ring-1 ring-gray-200 overflow-hidden border-gray-200 mb-4">
+<table class="text-sm w-full rounded ring-1 ring-gray-200 border-gray-200 mb-4">
     <thead>
     <tr class="font-medium bg-gray-100">
         <template v-for="(col, colIdx) in columns" :key="col.name">
-            <td class="px-3 py-1 border-b" :class="col.class">{{ col.name }}</td>
+            <th class="px-3 py-1 border-b first:rounded-tl last:rounded-tr" :class="col.class">{{ col.name }}</th>
         </template>
     </tr>
     </thead>
     <tbody>
     <template v-if="items.length === 0">
         <tr class="">
-            <td :colspan="columns.length" class="border p-2">&nbsp;</td>
+            <td v-for="(col, colIdx) in columns" class="px-4 py-3 first:rounded-bl last:rounded-br" :class="col.class||[]">&nbsp;</td>
         </tr>
     </template>
     <template v-for="(item, itemIdx) in items">
         <tr class="even:bg-gray-50">
             <template v-for="(col, colIdx) in columns" :key="col.name">
-                <td class="px-4 py-3" :class="col.class">
+                <td class="px-4 py-3" :class="[...(col.class||[]),itemIdx===items.length-1?'first:rounded-bl last:rounded-br':'']">
                     <template v-if="col.link && ((typeof col.link === 'boolean' && item.link) || (item[col.link]))">
                         <router-link v-if="!col.external" :to="(typeof col.link === 'boolean' && item.link) || item[col.link]" :class="col.linkClass">
                             <template v-if="col.component">

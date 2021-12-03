@@ -6,6 +6,9 @@ const UserInvitations = require("./userInvitations");
  *
  * - /api/v1/user
  *
+ * These routes all operate in the context of the logged-in user
+ * req.session.User
+ *
  * @namespace user
  * @memberof forge.routes.api
  */

@@ -2,6 +2,7 @@ import client from './client';
 import slugify from '@/utils/slugify';
 import daysSince from '@/utils/daysSince';
 import elapsedTime from '@/utils/elapsedTime';
+import paginateUrl from '@/utils/paginateUrl';
 
 const getTeams = () => {
     return client.get('/api/v1/user/teams').then(res => {
@@ -90,14 +91,8 @@ const removeTeamMember = (teamId, userId) => {
 }
 
 const getTeamAuditLog = async (teamId, cursor, limit) => {
-    const queryString = new URLSearchParams();
-    if (cursor) {
-        queryString.append("cursor",cursor)
-    }
-    if (limit) {
-        queryString.append("limit",limit)
-    }
-    return client.get(`/api/v1/teams/${teamId}/audit-log?${queryString.toString()}`).then(res => res.data)
+    const url = paginateUrl(`/api/v1/teams/${teamId}/audit-log`,cursor,limit);
+    return client.get(url).then(res => res.data)
 }
 const getTeamUserMembership = (teamId) => {
     return client.get(`/api/v1/teams/${teamId}/user`).then(res => res.data)

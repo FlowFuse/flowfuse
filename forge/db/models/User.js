@@ -127,6 +127,24 @@ module.exports = {
                             }
                         }
                     })
+                },
+                getAll: async(pagination={}) => {
+                    const limit = parseInt(pagination.limit) || 30;
+                    const where = {};
+                    if (pagination.cursor) {
+                        where.id = { [Op.gt]: M['User'].decodeHashid(pagination.cursor) }
+                    }
+                    const entries = await this.findAll({
+                        where,
+                        order: [['id', 'ASC']],
+                        limit
+                    });
+                    return {
+                        meta: {
+                            next_cursor: entries.length === limit?entries[entries.length-1].hashid:undefined
+                        },
+                        users: entries
+                    }
                 }
             },
             instance: {

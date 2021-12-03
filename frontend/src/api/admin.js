@@ -8,6 +8,15 @@ const getStats = async (options) => {
     });
 }
 
+const getLicenseDetails = async (options) => {
+    return client.get(`/api/v1/admin/license`, options).then(res => {
+        if (res.data.expiresAt) {
+            res.data.expires = elapsedTime((new Date(res.data.expiresAt)).getTime() - Date.now())
+            return res.data;
+        }
+        return null;
+    });
+}
 
 const getInvitations= async (options) => {
     return client.get(`/api/v1/admin/invitations`, options).then(res => {
@@ -21,5 +30,6 @@ const getInvitations= async (options) => {
 }
 export default {
     getStats,
+    getLicenseDetails,
     getInvitations
 }

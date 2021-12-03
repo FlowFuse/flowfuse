@@ -4,20 +4,29 @@
  * This is the association model between User and Team
  * @namespace forge.db.models.TeamMember
  */
-
+const { Roles, TeamRoles } = require("../../lib/roles");
 const { DataTypes } = require('sequelize');
 
 module.exports = {
     name: 'TeamMember',
     schema: {
-        role: { type: DataTypes.STRING, allowNull: false }
+        role: {
+            type: DataTypes.INTEGER, allowNull: false,
+            validate: {
+                isValid(role) {
+                    if (!TeamRoles.includes(role)) {
+                        throw new Error("Invalid team role")
+                    }
+                }
+            }
+        }
     },
     scopes: {
         members: {
-            where:{ role: "member" }
+            where:{ role: Roles.Member }
         },
         owners:{
-            where:{ role: "owner" }
+            where:{ role: Roles.Owner }
         }
     },
     finders: function(M) {

@@ -28,14 +28,12 @@
 
 import userApi from '@/api/user'
 import Logo from "@/components/Logo"
-import UserInviteTable from '@/pages/account/components/UserInviteTable'
 import { InboxInIcon, UserGroupIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'NoTeamsUser',
     components: {
         Logo,
-        UserInviteTable,
         UserGroupIcon,
         InboxInIcon
     },

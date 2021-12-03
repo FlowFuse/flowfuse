@@ -20,6 +20,10 @@ module.exports = async function(app) {
         reply.send(result);
     })
 
+    app.get('/license', async (request, reply) => {
+        reply.send(app.license.get() || {});
+    });
+
     app.get('/invitations', async (request, reply) => {
         // TODO: Pagination
         const invitations = await app.db.models.Invitation.get()

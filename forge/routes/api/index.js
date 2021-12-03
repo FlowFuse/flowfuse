@@ -11,6 +11,7 @@ const Team = require("./team.js");
 const Project = require("./project.js");
 const Projects = require("./projects.js");
 const Admin = require("./admin.js");
+const Settings = require("./settings.js");
 
 module.exports = async function(app) {
     app.addHook('preHandler',app.verifyTokenOrSession);
@@ -25,6 +26,7 @@ module.exports = async function(app) {
         return result;
     })
 
+    app.register(Settings, { prefix: "/settings" })
     app.register(Admin, { prefix: "/admin" })
     app.register(User, { prefix: "/user" })
     app.register(Users, { prefix: "/users" })

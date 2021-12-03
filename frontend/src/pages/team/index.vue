@@ -24,6 +24,8 @@ import SectionTopMenu from '@/components/SectionTopMenu';
 import Loading from '@/components/Loading';
 import { useRoute } from 'vue-router';
 import { mapState } from 'vuex'
+import { Roles } from '@/utils/roles'
+
 export default {
     name: 'Team',
     mixins: [Breadcrumbs],
@@ -48,8 +50,8 @@ export default {
                     { name: "Members", path: `/team/${this.team.slug}/members` },
                 ];
                 // const teamUser = this.team.users.filter(u => { console.log(u,this.$store.state.account.user.email); return  u.email === this.$store.state.account.user.email })
-                // if (teamUser.role === "owner") {
-                if (this.teamMembership.role === "owner") {
+                // if (teamUser.role === Roles.Owner) {
+                if (this.teamMembership.role === Roles.Owner) {
                     this.navigation.push({ name: "Audit Log", path: `/team/${this.team.slug}/audit-log` });
                     this.navigation.push({ name: "Settings", path: `/team/${this.team.slug}/settings` });
                 }

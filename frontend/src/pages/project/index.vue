@@ -28,6 +28,7 @@ import SectionTopMenu from '@/components/SectionTopMenu';
 import DropdownMenu from '@/components/DropdownMenu'
 import ProjectStatusBadge from './components/ProjectStatusBadge'
 import { mapState } from 'vuex'
+import { Roles } from '@/utils/roles'
 
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
 
@@ -92,7 +93,7 @@ export default {
                 { name: "Deploys", path: `/project/${this.project.id}/deploys` },
                 { name: "Activity", path: `/project/${this.project.id}/activity` },
             ]
-            if (this.teamMembership && this.teamMembership.role === "owner") {
+            if (this.teamMembership && this.teamMembership.role === Roles.Owner) {
                 this.navigation.push({ name: "Settings", path: `/project/${this.project.id}/settings` })
                 this.navigation.push({ name: "Debug", path: `/project/${this.project.id}/debug` })
 

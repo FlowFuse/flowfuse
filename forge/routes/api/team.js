@@ -1,5 +1,7 @@
 const TeamMembers = require("./teamMembers.js");
 const TeamInvitations = require("./teamInvitations.js");
+const { Roles, RoleNames } = require("../../lib/roles.js")
+
 /**
  * Team api routes
  *
@@ -82,6 +84,7 @@ module.exports = async function(app) {
     })
 
     app.post('/', {
+        preHandler: app.needsPermission("team:create"),
         schema: {
             body: {
                 type: 'object',
@@ -105,7 +108,7 @@ module.exports = async function(app) {
                 name: request.body.name,
                 slug: request.body.slug
             });
-            await newTeam.addUser(request.session.User, { through: { role:"owner" } });
+            await newTeam.addUser(request.session.User, { through: { role: Roles.Owner } });
 
             const team = await app.db.models.Team.bySlug(newTeam.slug)
 
@@ -118,7 +121,7 @@ module.exports = async function(app) {
                 newTeam.id,
                 request.session.User.id,
                 "user.added",
-                {role: "owner"}
+                {role: RoleNames[Roles.Owner]}
             )
 
             reply.send(app.db.views.Team.team(team))
@@ -146,7 +149,7 @@ module.exports = async function(app) {
     // })
 
 
-    app.put('/:teamId', async (request, reply) => {
+    app.put('/:teamId', { preHandler: app.needsPermission("team:edit") }, async (request, reply) => {
         try {
             if (request.body.name) {
                 request.team.name = request.body.name;
@@ -192,7 +195,7 @@ module.exports = async function(app) {
      * @name /api/v1/team/:teamId/audit-log
      * @memberof forge.routes.api.project
      */
-    app.get('/:teamId/audit-log', async(request,reply) => {
+    app.get('/:teamId/audit-log',{ preHandler: app.needsPermission("team:audit-log") }, async(request,reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const logEntries = await app.db.models.AuditLog.forTeam(request.team.id, paginationOptions)
         const result = app.db.views.AuditLog.auditLog(logEntries);

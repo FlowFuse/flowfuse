@@ -45,24 +45,31 @@ export default {
   name: "Breadcrumbs",
   computed: {
       ...mapState('breadcrumbs',['breadcrumbs']),
-      ...mapState('account',['team','teams','pendingTeamChange']),
+      ...mapState('account',['team','teams','pendingTeamChange','settings','user']),
       teamOptions: function() {
-          return [
+          const result = [
               { icon: CogIcon, name: "Team Settings", link: { path: `/team/${this.team.slug}/settings` }},
               null,
 
               ...this.teams.map(team => {
-              return {
-                  name: team.name,
-                  imgUrl: team.avatar,
-                  action: () => { this.selectTeam(team.slug) },
-                  selected: this.team && (this.team.slug === team.slug)
-              }
-          }),null,{
-              name:"Create a new team...",
-              icon: PlusSmIcon,
-              link: { name: "CreateTeam"}
-          }]
+                  return {
+                      name: team.name,
+                      imgUrl: team.avatar,
+                      action: () => { this.selectTeam(team.slug) },
+                      selected: this.team && (this.team.slug === team.slug)
+                  }
+              })
+          ]
+
+          if (this.user.admin || this.settings['team:create']) {
+              result.push(null);
+              result.push({
+                  name:"Create a new team...",
+                  icon: PlusSmIcon,
+                  link: { name: "CreateTeam"}
+              })
+          }
+          return result;
       }
   },
   methods: {

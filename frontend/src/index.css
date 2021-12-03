@@ -160,6 +160,11 @@
         @apply border-green-400;
     }
 
+    th {
+        @apply text-left;
+        @apply font-medium;
+    }
+
     input[type="text"],
     input[type="password"],
     input[type="radio"],
@@ -204,6 +209,7 @@
     input[type="checkbox"]:disabled,
     select:disabled,
     textarea:disabled {
+        @apply cursor-not-allowed;
         @apply opacity-60;
     }
 }

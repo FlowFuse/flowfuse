@@ -12,7 +12,7 @@
               <DialogTitle as="h3" class="text-lg font-medium leading-6">Change role</DialogTitle>
                 <form class="space-y-6">
                   <div class="mt-2 space-y-2">
-                      <template v-if="ownerCount < 2 && user.role === 'owner'">
+                      <template v-if="ownerCount < 2 && isOwner">
                           <p class="text-sm text-gray-500">You cannot change the role for <span class="font-bold">{{user.username}}</span> as
                               they are the only owner of the team.</p>
                       </template>
@@ -20,17 +20,17 @@
                           <p class="text-sm text-gray-500">
                               Select a role for <span class="font-bold">{{user.username}}</span>:
                           </p>
-                          <FormRow id="role-owner" value="owner" v-model="input.role" type="radio">Owner
+                          <FormRow id="role-owner" :value="Roles.Owner" v-model="input.role" type="radio">Owner
                               <template v-slot:description>Owners can add and remove members to the team and create projects</template>
                           </FormRow>
-                          <FormRow id="role-member" value="member" v-model="input.role" type="radio">Member
+                          <FormRow id="role-member" :value="Roles.Member" v-model="input.role" type="radio">Member
                               <template v-slot:description>Members can access the team projects</template>
                           </FormRow>
                       </template>
                   </div>
                   <div class="mt-4 flex flex-row justify-end">
                       <button type="button" class="forge-button-secondary ml-4" @click="close">Cancel</button>
-                      <button type="button" :disabled="ownerCount < 2 && user.role === 'owner'" class="forge-button ml-4" @click="confirm">Change</button>
+                      <button type="button" :disabled="ownerCount < 2 && isOwner" class="forge-button ml-4" @click="confirm">Change</button>
                   </div>
               </form>
           </div>
@@ -53,6 +53,7 @@ import {
 
 import FormRow from '@/components/FormRow'
 import teamApi from '@/api/team'
+import { Roles, RoleNames } from '@/utils/roles'
 
 export default {
     name: 'ChangeTeamRoleDialog',
@@ -72,7 +73,9 @@ export default {
             user: null,
             input: {
                 role: ""
-            }
+            },
+            Roles: Roles,
+            RoleNames: RoleNames
         }
     },
     methods: {
@@ -85,6 +88,11 @@ export default {
                 console.warn(err);
             }
             this.isOpen = false;
+        }
+    },
+    computed: {
+        isOwner: function() {
+            return this.user.role === Roles.Owner
         }
     },
     setup() {

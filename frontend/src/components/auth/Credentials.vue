@@ -18,7 +18,7 @@
                 Sign in
             </button>
 
-            <div class="mt-4 text-xs text-center">
+            <div v-if="settings['user:signup']" class="mt-4 text-xs text-center">
                 <router-link class="forge-button-secondary" to="/account/create">Sign up</router-link>
             </div>
 
@@ -39,7 +39,7 @@ import { LockClosedIcon } from '@heroicons/vue/outline'
 
 export default {
     name: "AuthCredentials",
-    computed:mapState('account',['loginError']),
+    computed:mapState('account',['settings', 'loginError']),
     data() {
         return {
             input: {

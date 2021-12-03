@@ -49,7 +49,7 @@ module.exports = fp(async function(app, _opts, next) {
     await sequelize.authenticate();
     await models.init(db)
     await views.init(db);
-    await controllers.init(db);
+    await controllers.init(app);
 
     app.decorate('db', db)
 

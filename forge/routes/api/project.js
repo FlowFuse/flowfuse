@@ -8,7 +8,7 @@ const ProjectActions = require("./projectActions.js");
  * - Any route that has a :projectId parameter will:
  *    - Ensure the session user is either admin or has a role on the corresponding team
  *    - request.project prepopulated with the team object
- *    - request.teamMembership prepopulated with the user role ({role: "member"})
+ *    - request.teamMembership prepopulated with the user role ({role: XYZ})
  *      (unless they are admin)
  *
  * @namespace project
@@ -54,6 +54,7 @@ const ProjectActions = require("./projectActions.js");
      * @memberof forge.routes.api.project
      */
     app.post('/', {
+        preHandler: app.needsPermission("project:create"),
         schema: {
             body: {
                 type: 'object',
@@ -117,7 +118,7 @@ const ProjectActions = require("./projectActions.js");
      * @name /api/v1/project/:id
      * @memberof forge.routes.api.project
      */
-    app.delete('/:projectId', async (request, reply) => {
+    app.delete('/:projectId', { preHandler: app.needsPermission("project:delete") }, async (request, reply) => {
         try {
             await app.containers.remove(request.project.id)
             request.project.destroy();
@@ -140,7 +141,7 @@ const ProjectActions = require("./projectActions.js");
 
     })
 
-    app.put('/:projectId', async (request, reply) => {
+    app.put('/:projectId', { preHandler: app.needsPermission("project:edit") }, async (request, reply) => {
         if (request.body.name) {
             request.project.name = request.body.name;
         }
@@ -161,7 +162,7 @@ const ProjectActions = require("./projectActions.js");
      * @name /api/v1/project/:id
      * @memberof forge.routes.api.project
      */
-    app.post('/:projectId', async (request,reply) => {
+    app.post('/:projectId', { preHandler: app.needsPermission("project:change-status") }, async (request,reply) => {
         let meta = await app.containers.details(request.project.name)
         reply.send({})
     })
@@ -182,7 +183,7 @@ const ProjectActions = require("./projectActions.js");
      * @name /api/v1/project/:id/audit-log
      * @memberof forge.routes.api.project
      */
-    app.get('/:projectId/audit-log', async(request,reply) => {
+    app.get('/:projectId/audit-log',  { preHandler: app.needsPermission("project:audit-log") }, async(request,reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const logEntries = await app.db.models.AuditLog.forProject(request.project.id, paginationOptions)
         const result = app.db.views.AuditLog.auditLog(logEntries);

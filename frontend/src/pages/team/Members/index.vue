@@ -9,6 +9,7 @@
 
 <script>
 import SectionSideMenu from '@/components/SectionSideMenu'
+import { Roles } from '@/utils/roles'
 
 // const sideNavigation = [
 //     { name: "Members", path: "./general" },
@@ -36,7 +37,7 @@ export default {
             this.sideNavigation = [
                 { name: "Members", path: "./general" }
             ]
-            if (this.teamMembership && this.teamMembership.role === "owner") {
+            if (this.teamMembership && this.teamMembership.role === Roles.Owner) {
                 this.sideNavigation.push({ name: "Invitations", path: "./invitations" })
             }
         }

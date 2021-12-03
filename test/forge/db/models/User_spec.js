@@ -1,5 +1,6 @@
 const should = require("should");
 const setup = require("../setup");
+const { Roles } = require('../../../../forge/lib/roles')
 
 describe("User model", function() {
     // Use standard test data.
@@ -59,14 +60,14 @@ describe("User model", function() {
         const team3 = await app.db.models.Team.findOne({where: {name: "CTeam"}});
 
         const membership1 = await user.getTeamMembership(team1.id, true);
-        should.equal(membership1.role,"member");
+        should.equal(membership1.role,Roles.Member);
         should.equal(membership1.TeamId,team1.id);
         should.exist(membership1.Team);
         should.equal(membership1.Team.id,team1.id);
         should.equal(membership1.Team.name,"ATeam");
 
         const membership2 = await user.getTeamMembership(team2.id);
-        should.equal(membership2.role,"owner");
+        should.equal(membership2.role,Roles.Owner);
         should.not.exist(membership2.Team);
 
         const membership3 = await user.getTeamMembership(team3.id);

@@ -13,7 +13,9 @@ import SectionSideMenu from '@/components/SectionSideMenu'
 
 const sideNavigation = [
     { name: "General", path: "./general" },
-    // { name: "Environment", path: "./environment" },
+    { name: "Permissions", path: "./permissions" },
+    { name: "License", path: "./license" },
+    { name: "Email", path: "./email" },
 ]
 
 export default {

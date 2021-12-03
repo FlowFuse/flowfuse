@@ -12,11 +12,14 @@ import TeamSettingsPermissions from "@/pages/team/Settings/Permissions.vue"
 import CreateTeam from "@/pages/team/create.vue"
 import CreateProject from "@/pages/project/create.vue"
 
+import ensurePermission from "@/utils/ensurePermission"
+
 
 export default [
     {
         path: '/team/create',
         name: 'CreateTeam',
+        beforeEnter: ensurePermission('team:create'),
         component: CreateTeam
     },
     {

@@ -1,10 +1,12 @@
 // Injects some test data into the database
 
+const { Roles } = require('../lib/roles')
 
 async function inject(app) {
     try {
-
-        return
+        if (!process.env.TEST_DATA) {
+            return
+        }
         await app.db.models.PlatformSettings.upsert({ key: "setup:initialised",value:true });
 
         const userAlice = await app.db.models.User.create({admin: true, username: "alice", name: "Alice Skywalker", email: "alice@example.com", email_verified: true, password: 'aaPassword'});
@@ -15,15 +17,15 @@ async function inject(app) {
         const team2 = await app.db.models.Team.create({name: "BTeam"});
         const team3 = await app.db.models.Team.create({name: "CTeam"});
 
-        await team1.addUser(userAlice, { through: { role:"owner" } });
-        await team1.addUser(userBob, { through: { role:"member" } });
-        // await team1.addUser(userChris, { through: { role:"member" } });
+        await team1.addUser(userAlice, { through: { role:Roles.Owner } });
+        await team1.addUser(userBob, { through: { role:Roles.Member } });
+        // await team1.addUser(userChris, { through: { role:Roles.Member } });
 
-        await team2.addUser(userBob, { through: { role:"owner" } });
-        await team2.addUser(userAlice, { through: { role:"member" } });
+        await team2.addUser(userBob, { through: { role:Roles.Owner } });
+        await team2.addUser(userAlice, { through: { role:Roles.Member } });
 
-        await team3.addUser(userAlice, { through: { role:"owner" } });
-        // await team3.addUser(userChris, { through: { role:"member" } });
+        await team3.addUser(userAlice, { through: { role:Roles.Owner } });
+        // await team3.addUser(userChris, { through: { role:Roles.Member } });
 
         // const project1 = await app.db.models.Project.create({name: "project1", type: "basic", url: "http://instance1.example.com"});
         // await team1.addProject(project1);

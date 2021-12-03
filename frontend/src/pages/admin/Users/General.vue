@@ -3,10 +3,13 @@
     <form class="space-y-6">
         <FormHeading>Users
             <template v-slot:tools>
-                <router-link to="./users/create" class="forge-button pl-1 pr-2"><UserAddIcon class="w-4 mx-1" /><span class="text-xs">New User</span></router-link>
+                <router-link to="./create" class="forge-button pl-1 pr-2"><UserAddIcon class="w-4 mx-1" /><span class="text-xs">New User</span></router-link>
             </template>
         </FormHeading>
         <ItemTable :items="users" :columns="columns" />
+        <div v-if="nextCursor">
+            <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
+        </div>
         <AdminUserEditDialog @userUpdated="userUpdated" ref="adminUserEditDialog"/>
 
     </form>
@@ -28,8 +31,9 @@ export default {
     name: 'AdminUsers',
     data() {
         return {
-            userCount: 0,
             users: [],
+            loading: false,
+            nextCursor: null,
             columns: [
                 {name: "User", class: ['flex-grow'], component: { is: markRaw(UserCell) } },
                 {name: 'Password Expired',class: ['w-32','text-center'], property: 'password_expired'},
@@ -41,12 +45,7 @@ export default {
         }
     },
     async created() {
-        const data = await usersApi.getUsers()
-        this.userCount = data.count;
-        this.users = data.users;
-        this.users.forEach(v => {
-            v.onedit = (data) => { this.showEditUserDialog(v); }
-        })
+        await this.loadItems()
     },
     methods: {
         showEditUserDialog(user) {
@@ -60,7 +59,17 @@ export default {
                     break
                 }
             }
-        }
+        },
+        loadItems: async function() {
+            this.loading = true;
+            const result = await usersApi.getUsers(this.nextCursor,30)
+            this.nextCursor = result.meta.next_cursor;
+            result.users.forEach(v => {
+                v.onedit = (data) => { this.showEditUserDialog(v); }
+                this.users.push(v);
+            })
+            this.loading = false;
+        },
     },
     components: {
         ItemTable,

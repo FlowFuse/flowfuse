@@ -12,17 +12,7 @@
 module.exports = async function(app) {
 
     // All routes require user to be owner of team
-    app.addHook('preHandler',async (request, reply) => {
-        if (request.session.User.admin) {
-            return;
-        }
-        const sessionUserMembership = await request.session.User.getTeamMembership(request.team.id);
-        if (sessionUserMembership.role === "owner" ) {
-            return;
-        }
-        reply.code(401).send({ error: 'unauthorized' })
-        return new Error()
-    });
+    app.addHook('preHandler',app.needsPermission("team:user:invite"));
 
     app.get('/', async (request, reply) => {
         const invitations = await app.db.models.Invitation.forTeam(request.team)
@@ -67,14 +57,16 @@ module.exports = async function(app) {
                         )
                         successfulInvites.push(invite.email);
                     } else {
-                        await app.postoffice.send(
-                            invite.invitee,
-                            "TeamInvitation",
-                            {
-                                invite: invite,
-                                signupLink: `${process.env.BASE_URL}`
-                            }
-                        )
+                        if (app.postoffice.enabled()) {
+                            await app.postoffice.send(
+                                invite.invitee,
+                                "TeamInvitation",
+                                {
+                                    invite: invite,
+                                    signupLink: `${process.env.BASE_URL}`
+                                }
+                            )
+                        }
                         successfulInvites.push(invite.invitee.username);
                     }
                 } catch(err) {

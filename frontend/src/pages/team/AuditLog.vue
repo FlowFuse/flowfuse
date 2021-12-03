@@ -6,6 +6,7 @@
 import teamApi from '@/api/team'
 import AuditLog from '@/components/AuditLog'
 import { useRoute, useRouter } from 'vue-router';
+import { Roles } from '@/utils/roles'
 
 export default {
     name: 'TeamAuditLog',
@@ -27,9 +28,9 @@ export default {
             return await teamApi.getTeamAuditLog(projectId,cursor);
         },
         fetchData: async function(newVal) {
-            if (this.team.id && this.teamMembership && this.teamMembership.role === "owner") {
+            if (this.team.id && this.teamMembership && this.teamMembership.role === Roles.Owner) {
                 this.verifiedTeam = this.team;
-            } else if (this.teamMembership && this.teamMembership.role !== "owner") {
+            } else if (this.teamMembership && this.teamMembership.role !== Roles.Owner) {
                 useRouter().push({ path: `/team/${useRoute().params.id}/overview` })
             }
         }

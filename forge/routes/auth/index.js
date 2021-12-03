@@ -17,6 +17,8 @@
  */
 const fp = require("fastify-plugin");
 
+const { Roles } = require("../../lib/roles")
+
 // Default to a 12 hour session if the user ticks 'remember me'
 // TODO - turn this into an idle timeout, with a separate 'max session' timeout.
 const SESSION_MAX_AGE = 60*60*12; // 12 hours in seconds
@@ -31,6 +33,7 @@ const SESSION_COOKIE_OPTIONS = {
 
 module.exports = fp(async function(app, opts, done) {
     await app.register(require("./oauth"))
+    await app.register(require("./permissions"))
 
     // WIP:
     async function verifyToken(request, reply) {
@@ -70,6 +73,8 @@ module.exports = fp(async function(app, opts, done) {
             await verifySession(request, reply)
         } else if (request.headers && request.headers.authorization) {
             await verifyToken(request, reply)
+        } else if (request.context.config.allowAnonymous) {
+            return;
         } else {
             reply.code(401).send({ error: 'unauthorized' })
             throw new Error()
@@ -94,6 +99,9 @@ module.exports = fp(async function(app, opts, done) {
             if (request.session) {
                 return;
             }
+        }
+        if (request.context.config.allowAnonymous) {
+            return;
         }
         reply.code(401).send({ error: 'unauthorized' })
         throw new Error()
@@ -223,6 +231,14 @@ module.exports = fp(async function(app, opts, done) {
             }
         }
     }, async (request, reply) => {
+        if (!app.settings.get("user:signup")) {
+            reply.code(400).send({error:"user registration not enabled"});
+            return
+        }
+        if (!app.postoffice.enabled()) {
+            reply.code(400).send({error:"user registration not enabled - email not configured"});
+            return
+        }
 
         if (/^(admin|root)$/.test(request.body.username)) {
             reply.code(400).send({error:"invalid username"});
@@ -266,6 +282,17 @@ module.exports = fp(async function(app, opts, done) {
                 sessionUser = request.session.User;
             }
             const verifiedUser = await app.db.controllers.User.verifyEmailToken(sessionUser, request.params.token);
+
+            if (app.settings.get("user:team:auto-create")) {
+                // Create a team
+                const newTeam = await app.db.models.Team.create({
+                    name: `Team ${verifiedUser.name}`,
+                    slug: verifiedUser.username
+                });
+                await newTeam.addUser(verifiedUser, { through: { role:Roles.Owner } });
+            }
+
+
             const pendingInvitations = await app.db.models.Invitation.forExternalEmail(verifiedUser.email)
             for (let i=0;i<pendingInvitations.length;i++) {
                 const invite = pendingInvitations[i];
@@ -273,6 +300,9 @@ module.exports = fp(async function(app, opts, done) {
                 invite.inviteeId = verifiedUser.id;
                 await invite.save()
             }
+
+
+
             reply.redirect("/");
         } catch(err) {
             console.log(err.toString())
@@ -281,6 +311,10 @@ module.exports = fp(async function(app, opts, done) {
     });
 
     app.post('/account/verify',{ preHandler: app.verifySession }, async(request,reply) => {
+        if (!app.postoffice.enabled()) {
+            reply.code(400).send({error:"email not configured"});
+            return
+        }
         if (!request.session.User.email_verified) {
             const verifyToken = await app.db.controllers.User.generateEmailVerificationToken(request.session.User);
             await app.postoffice.send(
