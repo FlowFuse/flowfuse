@@ -50,6 +50,7 @@ module.exports = fp(async function(app, _opts, next){
         });
         app.decorate('containers', driver);
     } catch (err) {
+        console.log("Problem loading the Container Driver, should really exit here as nothing will work")
         console.log(err)
     }
 
