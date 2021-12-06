@@ -23,8 +23,12 @@ const ProjectActions = require("./projectActions.js");
                  if (!request.project) {
                      reply.code(404).type('text/html').send('Not Found')
                  }
-                 request.teamMembership = await request.session.User.getTeamMembership(request.project.Team.id);
-                 if (!request.teamMembership && !request.session.User.admin) {
+                 if (request.session.User) {
+                     request.teamMembership = await request.session.User.getTeamMembership(request.project.Team.id);
+                     if (!request.teamMembership && !request.session.User.admin) {
+                         reply.code(404).type('text/html').send('Not Found')
+                     }
+                 } else if (request.session.ownerId !== request.params.projectId) {
                      reply.code(404).type('text/html').send('Not Found')
                  }
              } catch(err) {
@@ -78,11 +82,11 @@ const ProjectActions = require("./projectActions.js");
                 url: "placeholder"
             })
             const authClient = await app.db.controllers.AuthClient.createClientForProject(project);
-
+            const projectToken = await app.db.controllers.AccessToken.createTokenForProject(project, null, ["project:flows:view","project:flows:edit"])
             const containerOptions = {
                 name: request.body.name,
                 storageURL: process.env['BASE_URL'] + "/storage",
-                projectToken: "ABCD",
+                projectToken: projectToken.token,
                 auditURL: process.env['BASE_URL'] + "/logging",
                 ...request.body.options,
                 ...authClient
