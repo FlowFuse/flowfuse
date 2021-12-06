@@ -42,19 +42,24 @@ module.exports = fp(async function(app, opts, done) {
             if (parts.length === 2) {
                 const scheme = parts[0]
                 const token = parts[1]
-                console.log(`[${scheme}][${token}]`)
                 if (scheme !== "Bearer") {
-                    // return done(new Error("Unsupported authorization scheme"))
                     throw new Error("Unsupported authorization scheme")
                 }
-                if (token !== "ABCD") {
-                    // reply.code(401).send({ error: 'Unauthorized tokebn' })
-                    // return done(new Error("bad token"))
-                    throw new Error("bad token")
-                } else {
+                if (/^fft/.test(token)) {
+                    const accessToken = await app.db.controllers.AccessToken.getOrExpire(token);
+                    if (accessToken) {
+                        request.session = {
+                            ownerId: accessToken.ownerId,
+                            ownerType: accessToken.ownerType,
+                            scope: accessToken.scope
+                        }
+                        return;
+                    }
+                } else if (/^ffp/.test(token)) {
+                    request.session = await app.db.controllers.Session.getOrExpire(token);
                     return;
-                    // done();
                 }
+                throw new Error(`bad token ${token}`)
             } else {
                 // return done(new Error("Malformed authorization header"))
                 throw new Error("Malformed authorization header")
@@ -69,7 +74,7 @@ module.exports = fp(async function(app, opts, done) {
 
     app.decorate("verifyTokenOrSession", async function(request, reply){
         //Order is important, other way round breaks nr-auth plugin
-        if (request.sid && request.sid !== "ABCD"){
+        if (request.sid){
             await verifySession(request, reply)
         } else if (request.headers && request.headers.authorization) {
             await verifyToken(request, reply)
@@ -129,18 +134,6 @@ module.exports = fp(async function(app, opts, done) {
 
     // Extract the session cookie and attach as request.sid
     app.addHook('onRequest', async (request, reply) => {
-        if (request.headers && request.headers.authorization) {
-            const parts = request.headers.authorization.split(" ");
-            if (parts.length === 2) {
-                const scheme = parts[0];
-                const token = parts[1];
-                if (scheme === "Bearer") {
-                    request.sid = token;
-                    return;
-                }
-            }
-            throw new Error("Invalid authorization header");
-        }
         if (request.cookies.sid) {
             const sid = reply.unsignCookie(request.cookies.sid);
             if (sid.valid) {
