@@ -9,7 +9,6 @@ const User = require("./user.js");
 const Users = require("./users.js");
 const Team = require("./team.js");
 const Project = require("./project.js");
-const Projects = require("./projects.js");
 const Admin = require("./admin.js");
 const Settings = require("./settings.js");
 
@@ -31,8 +30,7 @@ module.exports = async function(app) {
     app.register(User, { prefix: "/user" })
     app.register(Users, { prefix: "/users" })
     app.register(Team, { prefix: "/teams" })
-    app.register(Project, { prefix: "/project"})
-    app.register(Projects, { prefix: "/projects"})
+    app.register(Project, { prefix: "/projects"})
     app.get('*', function (request, reply) {
         reply.code(404).type('text/html').send('Not Found')
     })
