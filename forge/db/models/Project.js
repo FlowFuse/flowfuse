@@ -16,7 +16,7 @@ module.exports = {
             type: DataTypes.VIRTUAL,
             get() {
                 return {
-                    self: process.env.BASE_URL+"/api/v1/project/"+this.id
+                    self: process.env.BASE_URL+"/api/v1/projects/"+this.id
                 }
             }
         }

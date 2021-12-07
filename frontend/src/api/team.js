@@ -31,7 +31,7 @@ const getTeamProjects = async (teamId) => {
         r.createdSince = daysSince(r.createdAt)
         r.updatedSince = daysSince(r.updatedAt)
         r.link = { name: 'Project', params: { id: slugify(r.id) }}
-        promises.push(client.get(`/api/v1/project/${r.id}`).then(p => {
+        promises.push(client.get(`/api/v1/projects/${r.id}`).then(p => {
             r.status = p.data.meta.state
         }).catch( err => {
             console.log("not found", err)

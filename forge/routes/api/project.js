@@ -160,19 +160,6 @@ const ProjectActions = require("./projectActions.js");
     });
 
     /**
-     * Send commands
-     *
-     * e.g. start/stop/restart
-     *
-     * @name /api/v1/project/:id
-     * @memberof forge.routes.api.project
-     */
-    app.post('/:projectId', { preHandler: app.needsPermission("project:change-status") }, async (request,reply) => {
-        let meta = await app.containers.details(request.project.name)
-        reply.send({})
-    })
-
-    /**
      * Provide Project specific settings.js
      *
      * @name /api/v1/project/:id/settings
