@@ -92,6 +92,7 @@ export default {
                 { name: "Overview", path: `/project/${this.project.id}/overview` },
                 { name: "Deploys", path: `/project/${this.project.id}/deploys` },
                 { name: "Activity", path: `/project/${this.project.id}/activity` },
+                { name: "Logs", path: `/project/${this.project.id}/logs` },
             ]
             if (this.teamMembership && this.teamMembership.role === Roles.Owner) {
                 this.navigation.push({ name: "Settings", path: `/project/${this.project.id}/settings` })

@@ -6,7 +6,7 @@
 <script>
 
 export default {
-    name: 'ProjectAuditLog',
+    name: 'ProjectDeploys',
     props:[ "project" ]
 }
 </script>

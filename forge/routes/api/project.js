@@ -170,6 +170,59 @@ const ProjectActions = require("./projectActions.js");
         reply.send(settings)
     })
 
+
+    /**
+     * Get project logs
+     *  - returns most recent 30 entries
+     *  - ?cursor= can be used to set the 'most recent log entry' to query from
+     *  - ?limit= can be used to modify how many entries to return
+     * @name /api/v1/project/:id/log
+     * @memberof forge.routes.api.project
+     */
+    app.get('/:projectId/logs', async(request,reply) => {
+        const paginationOptions = app.getPaginationOptions(request, {limit: 30})
+
+        let logs = await app.containers.logs(request.project.id);
+        let firstLogCursor = logs[0].ts;
+        let fullLogLength = logs.length;
+        if (!paginationOptions.cursor) {
+            logs = logs.slice(-paginationOptions.limit);
+        } else {
+            let cursor = paginationOptions.cursor
+            let cursorDirection = true; // 'next'
+            if (cursor[0] === "-") {
+                cursorDirection = false
+                cursor = cursor.substring(1)
+            }
+            let i=0;
+            for (;i<fullLogLength;i++) {
+                if (logs[i].ts === cursor) {
+                    break
+                }
+            }
+            if (i === fullLogLength) {
+                // cursor not found
+                logs = []
+            } else if (cursorDirection) {
+                // logs *after* cursor
+                logs = logs.slice(i+1,i+1+paginationOptions.limit)
+            } else {
+                // logs *before* cursor
+                logs = logs.slice(Math.max(0,i-1-paginationOptions.limit),i)
+            }
+        }
+        const result = {
+            meta: {
+                // next_cursor - are there more recent logs to get?
+                next_cursor: logs.length > 0 ? logs[logs.length-1].ts:undefined,
+                previous_cursor: logs.length > 0 && logs[0].ts != firstLogCursor ? ("-"+logs[0].ts):undefined
+            },
+            log: logs.map(l => l.msg)
+        }
+        reply.send(result)
+    })
+
+
     /**
      *
      * @name /api/v1/project/:id/audit-log
