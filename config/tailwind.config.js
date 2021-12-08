@@ -16,6 +16,7 @@ module.exports = {
             'forge-log-entry-level-info',
             'forge-log-entry-level-warn',
             'forge-log-entry-level-error',
+            'forge-log-entry-level-system'
         ]
     },
     darkMode: false, // or 'media' or 'class'

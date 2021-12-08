@@ -214,6 +214,9 @@
     }
 
     /* Make sure forge-log-entry-level-* all appear in tailwind.config.js safelist */
+    .forge-log-entry-level-system {
+        @apply text-blue-400;
+    }
     .forge-log-entry-level-info {
         @apply text-gray-100;
     }
