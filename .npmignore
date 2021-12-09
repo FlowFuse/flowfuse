@@ -1,0 +1,12 @@
+docs/
+config/
+.github
+forge.db
+sub_modules/
+.gitmodules
+localfs_root/
+frontend/src/
+.browserslistrc
+frontend/public/
+forge/containers/localfs_root/
+forge/licensing/dev-private-key_enc.pem

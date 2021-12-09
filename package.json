@@ -1,5 +1,5 @@
 {
-    "name": "flowforge",
+    "name": "@flowforge/flowforge",
     "version": "1.0.0",
     "description": "An open source low-code development platform",
     "private": true,
@@ -11,6 +11,9 @@
         "build-watch": "webpack --mode=development -c ./config/webpack.config.js --watch",
         "docs": "jsdoc -c ./config/jsdoc.json",
         "test": "mocha test/**/*_spec.js"
+    },
+    "bin": {
+        "flowforge": "./forge/app.js"
     },
     "repository": {
         "type": "git",
