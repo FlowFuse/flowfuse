@@ -25,7 +25,12 @@ module.exports = fp(async function(app, _opts, next) {
 
     const env = process.env.NODE_ENV || "development";
 
-    let envFilePath = path.resolve(__dirname, `../../.env.${env}`)
+    let envFilePath = `.env.${env}`
+    if (!fs.existsSync(envFilePath)) {
+      envFilePath = path.resolve(__dirname, `../../.env.${env}`)
+    }
+
+    // let envFilePath = path.resolve(__dirname, `../../.env.${env}`)
     if (!fs.existsSync(envFilePath)) {
         console.warn("WARNING: env file ${envFilePath} not found. Falling back to .env.development")
         envFilePath = path.resolve(__dirname,`../../.env.development`);
