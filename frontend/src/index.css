@@ -212,4 +212,18 @@
         @apply cursor-not-allowed;
         @apply opacity-60;
     }
+
+    /* Make sure forge-log-entry-level-* all appear in tailwind.config.js safelist */
+    .forge-log-entry-level-system {
+        @apply text-blue-400;
+    }
+    .forge-log-entry-level-info {
+        @apply text-gray-100;
+    }
+    .forge-log-entry-level-warn {
+        @apply text-yellow-300;
+    }
+    .forge-log-entry-level-error {
+        @apply text-red-400;
+    }
 }

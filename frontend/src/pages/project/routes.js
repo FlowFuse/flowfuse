@@ -6,6 +6,7 @@ import ProjectSettingsDanger from "@/pages/project/Settings/Danger.vue"
 import ProjectSettingsEnvVar from "@/pages/project/Settings/Environment.vue"
 import ProjectDebug from "@/pages/project/Debug.vue"
 import ProjectDeploys from "@/pages/project/Deploys.vue"
+import ProjectLogs from "@/pages/project/Logs.vue"
 import ProjectActivity from "@/pages/project/Activity.vue"
 
 
@@ -32,6 +33,7 @@ export default [
                     { path: 'danger', component: ProjectSettingsDanger }
                 ]
             },
+            { path: 'logs', component: ProjectLogs},
             { path: 'deploys', component: ProjectDeploys},
             { path: 'activity', component: ProjectActivity},
             { path: 'debug', component: ProjectDebug }

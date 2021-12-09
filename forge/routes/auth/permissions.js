@@ -18,6 +18,7 @@ const defaultPermissions = {
     "project:transfer":      { description: "Transfer Project",      role: Roles.Owner },
     "project:change-status": { description: "Start/Stop Project",    role: Roles.Owner },
     "project:edit":          { description: "Edit Project Settings", role: Roles.Owner },
+    "project:log":           { description: "Access Project Log",    role: Roles.Member },
     "project:audit-log":     { description: "Access Project Audit Log", role: Roles.Member },
     // Project Editor
     "project:flows:view":    { description: "View Project Flows",    role: Roles.Member },

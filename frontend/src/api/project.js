@@ -39,6 +39,10 @@ const getProjectAuditLog = async (projectId, cursor, limit) => {
     return client.get(url).then(res => res.data)
 }
 
+const getProjectLogs = async (projectId, cursor, limit) => {
+    const url = paginateUrl(`/api/v1/projects/${projectId}/logs`,cursor,limit);
+    return client.get(url).then(res => res.data)
+}
 const startProject = async (projectId) => {
     return client.post(`/api/v1/projects/${projectId}/actions/start`).then(res => res.data)
 }
@@ -59,6 +63,7 @@ export default {
     getProject,
     deleteProject,
     getProjects,
+    getProjectLogs,
     getProjectAuditLog,
     startProject,
     stopProject,
