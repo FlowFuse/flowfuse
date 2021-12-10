@@ -218,7 +218,7 @@ const ProjectActions = require("./projectActions.js");
                 next_cursor: logs.length > 0 ? logs[logs.length-1].ts:undefined,
                 previous_cursor: logs.length > 0 && logs[0].ts != firstLogCursor ? ("-"+logs[0].ts):undefined
             },
-            log: logs.map(l => l.msg)
+            log: logs
         }
         reply.send(result)
     })

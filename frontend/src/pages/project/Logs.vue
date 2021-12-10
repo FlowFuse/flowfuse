@@ -4,9 +4,9 @@
             <a @click="loadPrevious" class=" text-center w-full hover:text-blue-400 cursor-pointer pb-1">Load earlier...</a>
         </div>
         <div v-for="(item, itemIdx) in logEntries" class="flex" :class="'forge-log-entry-level-'+item.level">
-            <div class="w-32 flex-shrink-0">{{item.date}}</div>
+            <div class="w-40 flex-shrink-0">{{item.date}}</div>
             <div class="w-20 flex-shrink-0 align-right">[{{item.level}}]</div>
-            <div class="flex-grow break-all whitespace-pre-wrap">{{item.message}}</div>
+            <div class="flex-grow break-all whitespace-pre-wrap">{{item.msg}}</div>
         </div>
     </div>
 </template>
@@ -60,19 +60,13 @@ export default {
             const toPrepend = [];
             if (entries.log.length > 0) {
                 entries.log.forEach(l => {
-                    const parts = /^(.*?) - \[(.*?)\] \n*(.*?)\n?$/s.exec(l);
-                    const line = {
-                        message: l
-                    }
-                    if (parts) {
-                        line.date = parts[1]
-                        line.level = parts[2]
-                        line.message = parts[3]
-                    }
+                    const d = new Date(parseInt(l.ts.substring(0,l.ts.length-4)))
+                    l.date = `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
+                    l.msg = l.msg.replace(/^[\n]*/,"")
                     if (!cursor || cursor[0] !== "-") {
-                        this.logEntries.push(line);
+                        this.logEntries.push(l);
                     } else {
-                        toPrepend.push(line);
+                        toPrepend.push(l);
                     }
                 })
                 if (toPrepend.length > 0) {
