@@ -1,6 +1,6 @@
 {
     "name": "@flowforge/flowforge",
-    "version": "1.0.0",
+    "version": "0.0.1",
     "description": "An open source low-code development platform",
     "private": true,
     "scripts": {
@@ -19,7 +19,9 @@
         "type": "git",
         "url": "git+https://github.com/flowforge/flowforge.git"
     },
-    "author": "",
+    "author": {
+        "name": "FlowFlow Inc."
+    },
     "license": "SEE LICENSE IN ./LICENSE",
     "bugs": {
         "url": "https://github.com/flowforge/flowforge/issues"
