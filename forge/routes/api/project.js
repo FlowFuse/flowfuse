@@ -167,6 +167,7 @@ const ProjectActions = require("./projectActions.js");
      */
     app.get('/:projectId/settings', async(request,reply) => {
         let settings = await app.containers.settings(request.project.id);
+        settings.state = request.project.state
         reply.send(settings)
     })
 
@@ -183,7 +184,7 @@ const ProjectActions = require("./projectActions.js");
         const paginationOptions = app.getPaginationOptions(request, {limit: 30})
 
         let logs = await app.containers.logs(request.project.id);
-        let firstLogCursor = logs[0].ts;
+        let firstLogCursor = logs.length > 0?logs[0].ts:null;
         let fullLogLength = logs.length;
         if (!paginationOptions.cursor) {
             logs = logs.slice(-paginationOptions.limit);
