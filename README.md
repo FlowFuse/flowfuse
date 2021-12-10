@@ -8,7 +8,7 @@ An open source low-code development platform
 
 ```
 # Clone the repo
-git clone https://github.com/flowforge/flowforge.git
+git clone https://github.com/flowforge/flowforge.git --recurse-submodules
 
 cd flowforge
 
@@ -43,16 +43,30 @@ it is modified.
 │   │   ├── controllers
 │   │   ├── models
 │   │   └── views
+│   ├── licensing
+│   ├── postoffice
 │   └── routes
-│       └── api
+│   │   ├── api
+│   │   ├── auth
+│   │   ├── logging
+│   │   ├── setup
+│   │   ├── storage
+│   │   └── ui
+│   ├── settings
 └── frontend             - the forge frontend
-    ├── dist             - build output - created by `npm run build`
-    ├── public           - static assets
-    └── src              - vue src
-        ├── api
-        ├── components
-        ├── pages
-        │   └── account
-        ├── routes
-        └── store
+|   ├── dist             - build output - created by `npm run build`
+|   ├── public           - static assets
+|   └── src              - vue src
+|       ├── api
+|       ├── components
+|       ├── pages
+|       │   └── account
+|       ├── routes
+|       └── store
+└── submodules
+    ├── flowforge-driver-localfs
+    ├── flowforge-nr-launcher
+    ├── flowforge-nr-storage
+    ├── flowforge-nr-auth
+    └── flowforge-nr-audit-logger
 ```
