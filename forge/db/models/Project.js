@@ -12,6 +12,7 @@ module.exports = {
         type: { type: DataTypes.STRING, allowNull: false},
         url: { type: DataTypes.STRING, allowNull: false},
         slug: { type: DataTypes.VIRTUAL, get() { return this.id }},
+        state: { type: DataTypes.STRING, allowNull: false, defaultValue: "running"},
         links: {
             type: DataTypes.VIRTUAL,
             get() {

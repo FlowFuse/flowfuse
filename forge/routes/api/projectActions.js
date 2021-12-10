@@ -13,6 +13,8 @@ module.exports = async function(app) {
     app.addHook('preHandler',app.needsPermission("project:change-status"));
 
     app.post('/start', async (request, reply) => {
+        request.project.state = "running"
+        await request.project.save()
         const result = await app.containers.start(request.project.id);
         await app.db.controllers.AuditLog.projectLog(
             request.project.id,
@@ -23,6 +25,8 @@ module.exports = async function(app) {
     });
 
     app.post('/stop', async (request, reply) => {
+        request.project.state = "stopped"
+        await request.project.save()
         const result = await app.containers.stop(request.project.id);
         await app.db.controllers.AuditLog.projectLog(
             request.project.id,
@@ -33,6 +37,8 @@ module.exports = async function(app) {
     });
 
     app.post('/restart', async (request, reply) => {
+        request.project.state = "running"
+        await request.project.save()
         const result = await app.containers.restart(request.project.id);
         await app.db.controllers.AuditLog.projectLog(
             request.project.id,
