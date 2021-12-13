@@ -47,7 +47,7 @@ const ProjectActions = require("./projectActions.js");
      */
     app.get('/:projectId', async (request, reply) => {
         const result = await app.db.views.Project.project(request.project);
-        result.meta = await app.containers.details(request.project.id)  || { state:'unknown'}
+        result.meta = await app.containers.details(request.project)  || { state:'unknown'}
         result.team = await app.db.views.Team.team(request.project.Team);
         reply.send(result)
     })
@@ -79,24 +79,20 @@ const ProjectActions = require("./projectActions.js");
             const project = await app.db.models.Project.create({
                 name: request.body.name,
                 type: request.body.options.type || "basic",
-                url: "placeholder"
+                url: ""
             })
-            const authClient = await app.db.controllers.AuthClient.createClientForProject(project);
-            const projectToken = await app.db.controllers.AccessToken.createTokenForProject(project, null, ["project:flows:view","project:flows:edit"])
-            const containerOptions = {
-                name: request.body.name,
-                storageURL: process.env['BASE_URL'] + "/storage",
-                projectToken: projectToken.token,
-                auditURL: process.env['BASE_URL'] + "/logging",
-                ...request.body.options,
-                ...authClient
-            }
+
+            // const authClient = await app.db.controllers.AuthClient.createClientForProject(project);
+            // const projectToken = await app.db.controllers.AccessToken.createTokenForProject(project, null, ["project:flows:view","project:flows:edit"])
+            // const containerOptions = {
+            //     name: request.body.name,
+            //     projectToken: projectToken.token,
+            //     ...request.body.options,
+            //     ...authClient
+            // }
 
             await team.addProject(project);
-            const container = await app.containers.create(project.id, containerOptions);
-
-            project.url = container.url
-            await project.save()
+            const container = await app.containers.create(project, {});
 
             await app.db.controllers.AuditLog.projectLog(
                 project.id,
@@ -111,7 +107,7 @@ const ProjectActions = require("./projectActions.js");
             )
 
             const result = await app.db.views.Project.project(project);
-            result.meta = await app.containers.details(project.id);
+            // result.meta = await app.containers.details(project);
             result.team = team.id;
             reply.send(result);
         } else {
@@ -125,7 +121,7 @@ const ProjectActions = require("./projectActions.js");
      */
     app.delete('/:projectId', { preHandler: app.needsPermission("project:delete") }, async (request, reply) => {
         try {
-            await app.containers.remove(request.project.id)
+            await app.containers.remove(request.project)
             request.project.destroy();
             await app.db.controllers.AuditLog.projectLog(
                 request.project.id,
@@ -153,7 +149,7 @@ const ProjectActions = require("./projectActions.js");
         await request.project.save()
 
         const result = await app.db.views.Project.project(request.project);
-        result.meta = await app.containers.details(request.project.id)  || { state:'unknown'}
+        result.meta = await app.containers.details(request.project)  || { state:'unknown'}
         result.team = await app.db.views.Team.team(request.project.Team);
         reply.send(result)
 
@@ -166,7 +162,9 @@ const ProjectActions = require("./projectActions.js");
      * @memberof forge.routes.api.project
      */
     app.get('/:projectId/settings', async(request,reply) => {
-        let settings = await app.containers.settings(request.project.id);
+        let settings = await app.containers.settings(request.project);
+        settings.storageURL = request.project.storageURL
+        settings.auditURL = request.project.auditURL
         settings.state = request.project.state
         reply.send(settings)
     })
@@ -183,7 +181,7 @@ const ProjectActions = require("./projectActions.js");
     app.get('/:projectId/logs', async(request,reply) => {
         const paginationOptions = app.getPaginationOptions(request, {limit: 30})
 
-        let logs = await app.containers.logs(request.project.id);
+        let logs = await app.containers.logs(request.project);
         let firstLogCursor = logs.length > 0?logs[0].ts:null;
         let fullLogLength = logs.length;
         if (!paginationOptions.cursor) {

@@ -1,9 +1,7 @@
 /**
- * Forge Platform settings
- *
- * @namespace forge.db.models.PlatformSettings
+ * A Project
+ * @namespace forge.db.models.ProjectSettings
  */
-
 const { DataTypes } = require('sequelize');
 
 const SettingTypes = {
@@ -12,9 +10,10 @@ const SettingTypes = {
 }
 
 module.exports = {
-    name: 'PlatformSettings',
+    name: 'ProjectSettings',
     schema: {
-        key: { primaryKey: true, type: DataTypes.STRING, allowNull: false },
+        ProjectId: { type: DataTypes.UUID, unique: 'pk_settings'},
+        key: { type: DataTypes.STRING, allowNull: false, unique: 'pk_settings'},
         value: {
             type: DataTypes.STRING,
             get() {
@@ -36,5 +35,13 @@ module.exports = {
             }
         },
         valueType: { type: DataTypes.INTEGER, allowNull: false}
+    },
+    associations: function(M) {
+        this.belongsTo(M['Project'])
+    },
+    meta: {
+        slug: false,
+        hashid: false,
+        links: false
     }
 }

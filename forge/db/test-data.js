@@ -63,13 +63,60 @@ async function inject(app) {
     // const uu = await app.db.models.User.byUsernameOrEmail('alice')
     // console.log(uu);
 
-    const userAlice = await app.db.models.User.byUsername('alice');
-    const userBob = await app.db.models.User.byUsername('bob');
-    const userChris = await app.db.models.User.byUsername('chris');
+    // const userAlice = await app.db.models.User.byUsername('alice');
+    // const userBob = await app.db.models.User.byUsername('bob');
+    // const userChris = await app.db.models.User.byUsername('chris');
+    //
+    // const teamA = await app.db.models.Team.byName("ATeam");
+    // const teamB = await app.db.models.Team.byName("BTeam");
+    // const teamC = await app.db.models.Team.byName("CTeam");
+    //
+    // console.log("go")
+    //
+    // const project1 = await app.db.models.Project.create({name: "project1", type: "basic", url: "http://instance1.example.com"});
+    // console.log(project1.id);
+    // // const project1 = await app.db.models.Project.byId('98e5b8ca-1a39-4a7b-91a6-8fc16327eca4')
+    // // console.log(project1)
+    // const ps1 = await app.db.models.ProjectSettings.create({key:"one", value:"test"})
+    // project1.addProjectSettings(ps1)
+    //
+    //
+    // let settings = await project1.getAllSettings()
+    // console.log(settings);
+    //
+    // console.log("---")
+    // console.log(await project1.getSetting("one"))
+    // console.log(await project1.getSetting("two"))
+    // console.log(await project1.getSetting("three"))
+    //
+    // await project1.updateSetting("one",123);
+    // await project1.updateSetting("two",{a:1})
+    //
+    // settings = await project1.getAllSettings()
+    // console.log(settings);
+    //
+    // console.log("---")
+    // console.log(await project1.getSetting("one"))
+    // console.log(await project1.getSetting("two"))
+    // console.log(await project1.getSetting("three"))
+    //
+    //
+    // await project1.updateSettings({
+    //     "one":456,
+    //     "two":false,
+    //     "three":"potato"
+    // })
+    //
+    // console.log("---")
+    // console.log(await project1.getSetting("one"))
+    // console.log(await project1.getSetting("two"))
+    // console.log(await project1.getSetting("three"))
+    // settings = await project1.getAllSettings()
+    // console.log(settings);
+    //
+    //
+    // await project1.destroy();
 
-    const teamA = await app.db.models.Team.byName("ATeam");
-    const teamB = await app.db.models.Team.byName("BTeam");
-    const teamC = await app.db.models.Team.byName("CTeam");
     //
     // const invite1 = await app.db.models.Invitation.create({
     //     // Alice invites Bob to ATeam

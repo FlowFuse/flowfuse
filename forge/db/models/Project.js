@@ -4,6 +4,8 @@
  */
 const { DataTypes } = require('sequelize');
 
+const Controllers = require('../controllers');
+
 module.exports = {
     name: 'Project',
     schema: {
@@ -20,7 +22,9 @@ module.exports = {
                     self: process.env.BASE_URL+"/api/v1/projects/"+this.id
                 }
             }
-        }
+        },
+        storageURL: { type: DataTypes.VIRTUAL, get() { return process.env['BASE_URL'] + "/storage" }},
+        auditURL: { type: DataTypes.VIRTUAL, get() { return process.env['BASE_URL'] + "/logging" }},
     },
     associations: function(M) {
         this.belongsTo(M['Team'])
@@ -31,14 +35,33 @@ module.exports = {
                 ownerType: 'project'
             }
         })
+        this.hasOne(M['AccessToken'], {
+            foreignKey: 'ownerId',
+            constraints: false,
+            scope: {
+                ownerType: 'project'
+            }
+        })
+        this.hasMany(M['ProjectSettings'])
     },
     hooks: function(M) {
         return {
             afterDestroy: async (project, opts) => {
+                await M['AccessToken'].destroy({
+                    where: {
+                        ownerType: "project",
+                        ownerId: project.id
+                    }
+                })
                 await M['AuthClient'].destroy({
                     where: {
                         ownerType: "project",
                         ownerId: project.id
+                    }
+                })
+                await M['ProjectSettings'].destroy({
+                    where: {
+                        ProjectId: project.id
                     }
                 })
                 await M['StorageLibrary'].destroy({
@@ -71,6 +94,41 @@ module.exports = {
     },
     finders: function(M){
         return {
+            instance: {
+                async refreshAuthTokens() {
+                    const authClient = await Controllers.AuthClient.createClientForProject(this);
+                    const projectToken = await Controllers.AccessToken.createTokenForProject(this, null, ["project:flows:view","project:flows:edit"])
+                    return {
+                        token: projectToken.token,
+                        ...authClient
+                    }
+                },
+                async getAllSettings() {
+                    const result = {};
+                    const settings = await this.getProjectSettings();
+                    settings.forEach(setting => {
+                        result[setting.key] = setting.value;
+                    })
+                    return result
+                },
+                async updateSettings(obj) {
+                    const updates = []
+                    for ([key,value] of Object.entries(obj)) {
+                        updates.push({ProjectId: this.id,key,value})
+                    }
+                    await M['ProjectSettings'].bulkCreate(updates,{ updateOnDuplicate: ['value'] })
+                },
+                async updateSetting(key, value) {
+                    return await M['ProjectSettings'].upsert({ ProjectId: this.id, key, value });
+                },
+                async getSetting(key) {
+                    const result = await M['ProjectSettings'].findOne({ where:{ ProjectId: this.id, key }});
+                    if (result) {
+                        return result.value;
+                    }
+                    return undefined
+                },
+            },
             static: {
                 byUser: async (user) => {
                     return this.findAll({

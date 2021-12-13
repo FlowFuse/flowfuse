@@ -45,6 +45,7 @@ module.exports = fp(async function(app, opts, done) {
                 if (scheme !== "Bearer") {
                     throw new Error("Unsupported authorization scheme")
                 }
+                console.log(`[${token}]`)
                 if (/^fft/.test(token)) {
                     const accessToken = await app.db.controllers.AccessToken.getOrExpire(token);
                     if (accessToken) {

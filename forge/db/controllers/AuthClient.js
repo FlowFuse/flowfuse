@@ -11,7 +11,12 @@ module.exports = {
      */
     createClientForProject: async function(app, project) {
 
-        // TODO: what if the project already has one
+        const existingAuthClient = await project.getAuthClient();
+        if (existingAuthClient) {
+            // TODO: are there sessions to expire as well?
+            await existingAuthClient.destroy()
+        }
+
         const client = {
             clientID: generateToken(32,'ffp'),
             clientSecret: generateToken(48)

@@ -15,7 +15,7 @@ module.exports = async function(app) {
     app.post('/start', async (request, reply) => {
         request.project.state = "running"
         await request.project.save()
-        const result = await app.containers.start(request.project.id);
+        const result = await app.containers.start(request.project);
         await app.db.controllers.AuditLog.projectLog(
             request.project.id,
             request.session.User.id,
@@ -27,7 +27,7 @@ module.exports = async function(app) {
     app.post('/stop', async (request, reply) => {
         request.project.state = "stopped"
         await request.project.save()
-        const result = await app.containers.stop(request.project.id);
+        const result = await app.containers.stop(request.project);
         await app.db.controllers.AuditLog.projectLog(
             request.project.id,
             request.session.User.id,
@@ -39,7 +39,7 @@ module.exports = async function(app) {
     app.post('/restart', async (request, reply) => {
         request.project.state = "running"
         await request.project.save()
-        const result = await app.containers.restart(request.project.id);
+        const result = await app.containers.restart(request.project);
         await app.db.controllers.AuditLog.projectLog(
             request.project.id,
             request.session.User.id,
