@@ -1,11 +1,16 @@
 const { DataTypes } = require('sequelize');
-const { uppercaseFirst } = require("../utils")
+const { uppercaseFirst, sha256 } = require("../utils")
 
 
 module.exports = {
     name: 'AccessToken',
     schema: {
-        token: { type: DataTypes.STRING, primaryKey: true, allowNull: false },
+        token: {
+            type: DataTypes.STRING, primaryKey: true, allowNull: false,
+            set(value) {
+                this.setDataValue('token', sha256(value));
+            }
+        },
         expiresAt: { type: DataTypes.DATE },
         scope: {
             type: DataTypes.STRING,

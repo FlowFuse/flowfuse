@@ -1,22 +1,26 @@
-const { generateToken, compareHash } = require("../utils");
+const { generateToken, sha256 } = require("../utils");
 
 
 module.exports = {
     /**
      * Create a new auth client for the given project.
-     * Note: the clientSecret is hashed before being stored in the database.
-     *       The *only* opportunity to access the unhashed version is when it is
-     *       returned by this function
-     *
+     * The token is hashed in the database. The only time the
+     * true value is available is when it is returned from this function.
      */
     createTokenForProject: async function(app, project, expiresAt, scope) {
-        return await app.db.models.AccessToken.create({
-            token: generateToken(32,'fft'),
+        const existingProjectToken = await project.getAccessToken()
+        if (existingProjectToken) {
+            await existingProjectToken.destroy();
+        }
+        const token = generateToken(32,'fft');
+        await app.db.models.AccessToken.create({
+            token,
             expiresAt,
             scope,
             ownerId: project.id,
             ownerType: "project",
         })
+        return { token }
     },
     /**
      * Get a token by its id. If the session has expired, it is deleted
@@ -24,7 +28,7 @@ module.exports = {
      */
     getOrExpire: async function(app, token) {
         let accessToken = await app.db.models.AccessToken.findOne({
-            where:{token}
+            where:{token: sha256(token)}
         });
         if (accessToken) {
             if (accessToken.expiresAt && accessToken.expiresAt.getTime() < Date.now()) {
