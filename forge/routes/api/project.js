@@ -17,21 +17,25 @@ const ProjectActions = require("./projectActions.js");
  module.exports = async function(app) {
 
      app.addHook('preHandler', async (request, reply) => {
-         if (request.params.projectId) {
-             try {
-                 request.project = await app.db.models.Project.byId(request.params.projectId)
-                 if (!request.project) {
-                     reply.code(404).type('text/html').send('Not Found')
-                 }
-                 if (request.session.User) {
-                     request.teamMembership = await request.session.User.getTeamMembership(request.project.Team.id);
-                     if (!request.teamMembership && !request.session.User.admin) {
+         if (request.params.hasOwnProperty('projectId')) {
+             if (request.params.projectId) {
+                 try {
+                     request.project = await app.db.models.Project.byId(request.params.projectId)
+                     if (!request.project) {
                          reply.code(404).type('text/html').send('Not Found')
                      }
-                 } else if (request.session.ownerId !== request.params.projectId) {
+                     if (request.session.User) {
+                         request.teamMembership = await request.session.User.getTeamMembership(request.project.Team.id);
+                         if (!request.teamMembership && !request.session.User.admin) {
+                             reply.code(404).type('text/html').send('Not Found')
+                         }
+                     } else if (request.session.ownerId !== request.params.projectId) {
+                         reply.code(404).type('text/html').send('Not Found')
+                     }
+                 } catch(err) {
                      reply.code(404).type('text/html').send('Not Found')
                  }
-             } catch(err) {
+             } else {
                  reply.code(404).type('text/html').send('Not Found')
              }
          }

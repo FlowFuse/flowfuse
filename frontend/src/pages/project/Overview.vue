@@ -11,7 +11,7 @@
                     </tr>
                     <tr class="border-b">
                         <td class="">Status</td>
-                        <td><div class="py-2"><ProjectStatusBadge :status="project.meta.state" /></div></td>
+                        <td><div class="py-2"><ProjectStatusBadge :status="project.meta.state" :pendingStateChange="project.pendingStateChange" /></div></td>
                     </tr>
                 </table>
             </div>
