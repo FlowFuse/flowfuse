@@ -19,17 +19,21 @@ const { Roles, RoleNames } = require("../../lib/roles.js")
 module.exports = async function(app) {
 
     app.addHook('preHandler', async (request, reply) => {
-        if (request.params.teamId) {
-            try {
-                request.teamMembership = await request.session.User.getTeamMembership(request.params.teamId);
-                if (!request.teamMembership && !request.session.User.admin) {
+        if (request.params.hasOwnProperty('teamId')) {
+            if (request.params.teamId) {
+                try {
+                    request.teamMembership = await request.session.User.getTeamMembership(request.params.teamId);
+                    if (!request.teamMembership && !request.session.User.admin) {
+                        reply.code(404).type('text/html').send('Not Found')
+                    }
+                    request.team = await app.db.models.Team.byId(request.params.teamId)
+                    if (!request.team) {
+                        reply.code(404).type('text/html').send('Not Found')
+                    }
+                } catch(err) {
                     reply.code(404).type('text/html').send('Not Found')
                 }
-                request.team = await app.db.models.Team.byId(request.params.teamId)
-                if (!request.team) {
-                    reply.code(404).type('text/html').send('Not Found')
-                }
-            } catch(err) {
+            } else {
                 reply.code(404).type('text/html').send('Not Found')
             }
         }

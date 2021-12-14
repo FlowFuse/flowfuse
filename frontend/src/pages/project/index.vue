@@ -5,7 +5,7 @@
                 <router-link :to="navigation[0]?navigation[0].path:''" class="inline-flex items-center">
                     <div class="text-gray-800 text-xl font-bold">{{ project.name }}</div>
                 </router-link>
-                <ProjectStatusBadge :status="project.meta.state" v-if="project.meta" />
+                <ProjectStatusBadge :status="project.meta.state" :pendingStateChange="project.pendingStateChange" v-if="project.meta" />
             </div>
             <div class="text-right space-x-4">
                 <a :href="project.url" target="_blank" class="forge-button-secondary">
@@ -38,7 +38,8 @@ export default {
     data: function() {
         return {
             project: {},
-            navigation: []
+            navigation: [],
+            checkInterval: null
         }
     },
     async created() {
@@ -48,9 +49,9 @@ export default {
         ...mapState('account',['teamMembership']),
         options: function() {
             return [
-                {name: "Start", action: async() => { await projectApi.startProject(this.project.id) } },
-                {name: "Restart", action: async() => { await projectApi.restartProject(this.project.id) } },
-                {name: "Stop", action: async() => { await projectApi.stopProject(this.project.id) } },
+                {name: "Start", action: async() => { this.project.pendingStateChange = true; await projectApi.startProject(this.project.id) } },
+                {name: "Restart", action: async() => { this.project.pendingStateChange = true;  await projectApi.restartProject(this.project.id) } },
+                {name: "Stop", action: async() => { this.project.pendingStateChange = true; await projectApi.stopProject(this.project.id) } },
                 null,
                 {name: "Delete",class:['text-red-700'], action: () => {
                     this.$router.push({ path: `/project/${this.project.id}/settings/danger` })
@@ -60,10 +61,14 @@ export default {
     },
     watch: {
         project: 'checkAccess',
-        teamMembership: 'checkAccess'
+        teamMembership: 'checkAccess',
+        'project.pendingStateChange': 'refreshProject'
     },
     mounted() {
-        this.checkAccess()
+        this.checkAccess();
+    },
+    beforeUnmount () {
+        clearTimeout(this.checkInterval);
     },
     methods: {
         async updateProject() {
@@ -86,6 +91,17 @@ export default {
                 { type: 'TeamLink'},
                 {label: this.project.name /*, to: { name: "Project", params: {id:this.project.id}} */}
             ])
+        },
+        async refreshProject() {
+            if (this.project.pendingStateChange) {
+                clearTimeout(this.checkInterval);
+                this.checkInterval = setTimeout(async () => {
+                    if (this.project.id) {
+                        const data = await projectApi.getProject(this.project.id)
+                        this.project = data;
+                    }
+                },5000)
+            }
         },
         checkAccess() {
             this.navigation = [
