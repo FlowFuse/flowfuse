@@ -65,18 +65,18 @@ module.exports = {
                                 [
                                     literal(`(
                                         SELECT COUNT(*)
-                                        FROM Projects AS project
+                                        FROM "Projects" AS "project"
                                         WHERE
-                                        project.TeamId = team.id
+                                        "project"."TeamId" = "Team"."id"
                                     )`),
                                     'projectCount'
                                 ],
                                 [
                                     literal(`(
                                         SELECT COUNT(*)
-                                        FROM TeamMembers AS members
+                                        FROM "TeamMembers" AS "members"
                                         WHERE
-                                        members.TeamId = team.id
+                                        "members"."TeamId" = "Team"."id"
                                     )`),
                                     'memberCount'
                                 ]
@@ -98,18 +98,18 @@ module.exports = {
                                 [
                                     literal(`(
                                         SELECT COUNT(*)
-                                        FROM Projects AS project
+                                        FROM "Projects" AS "project"
                                         WHERE
-                                        project.TeamId = teamMember.TeamId
+                                        "project"."TeamId" = "TeamMember"."TeamId"
                                     )`),
                                     'projectCount'
                                 ],
                                 [
                                     literal(`(
                                         SELECT COUNT(*)
-                                        FROM TeamMembers AS members
+                                        FROM "TeamMembers" AS "members"
                                         WHERE
-                                        members.TeamId = team.id
+                                        "members"."TeamId" = "Team"."id"
                                     )`),
                                     'memberCount'
                                 ]
