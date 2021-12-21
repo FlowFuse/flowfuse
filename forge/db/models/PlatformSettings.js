@@ -16,7 +16,7 @@ module.exports = {
     schema: {
         key: { primaryKey: true, type: DataTypes.STRING, allowNull: false },
         value: {
-            type: DataTypes.STRING,
+            type: DataTypes.TEXT,
             get() {
                 const rawValue = this.getDataValue('value');
                 const valueType = this.getDataValue('valueType');

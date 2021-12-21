@@ -7,7 +7,7 @@ const { DataTypes } = require('sequelize');
 module.exports = {
   name: 'StorageCredentials',
   schema: {
-    credentials: { type: DataTypes.STRING, allowNull: false, defaultValue: "{}"}
+    credentials: { type: DataTypes.TEXT, allowNull: false, defaultValue: "{}"}
   },
   associations: function(M) {
     this.belongsTo(M['Project']);
