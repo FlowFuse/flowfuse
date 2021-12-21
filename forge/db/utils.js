@@ -14,7 +14,7 @@ module.exports = {
     sha256,
     generateUserAvatar: key => {
         const keyHash = Buffer.from(key).toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')
-        return `${process.env.BASE_URL}/avatar/${keyHash}`;
+        return `/avatar/${keyHash}`;
     },
     generateTeamAvatar: key => {
         const keyHash = md5(key.trim().toLowerCase());

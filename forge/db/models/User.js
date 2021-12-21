@@ -23,7 +23,17 @@ module.exports = {
         },
         password_expired: { type: DataTypes.BOOLEAN, defaultValue: false },
         admin: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
-        avatar: {type: DataTypes.STRING }
+        avatar: {
+            type: DataTypes.STRING, 
+            get() {
+                const avatar = this.getDataValue('avatar')
+                if (avatar) {
+                    return `${process.env.BASE_URL}${avatar}`
+                } else {
+                    return avatar
+                }
+            } 
+        }
     },
     scopes: {
         admins: { where: { admin: true }}
