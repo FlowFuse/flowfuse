@@ -29,11 +29,40 @@ module.exports = fp(async function(app, _opts, next) {
         if (process.env.DB_SQLITE_STORAGE) {
             dbOptions.storage =  process.env.DB_SQLITE_STORAGE
         }
+    } else if (dbOptions.dialect === 'mariadb') {
+        if (process.env.DB_MARIADB_HOST) {
+            dbOptions.host = process.env.DB_MARIADB_HOST || "mariadb"
+        }
+         if (process.env.DB_MARIADB_PORT) {
+            dbOptions.host = process.env.DB_MARIADB_PORT || 3306
+        }
+        if (process.env.DB_MARIADB_USER) {
+            dbOptions.username = process.env.DB_MARIADB_USER
+        }
+        if (process.env.DB_MARIADB_PASSWORD) {
+            dbOptions.password = process.env.DB_MARIADB_PASSWORD
+        }
+        dbOptions.database = "flowforge"
+    } else if (dbOptions.dialect === 'postgres') {
+        if (process.env.DB_POSTGRES_HOST) {
+            dbOptions.host = process.env.DB_POSTGRES_HOST || "postgres"
+        }
+         if (process.env.DB_POSTGRES_PORT) {
+            dbOptions.host = process.env.DB_POSTGRES_PORT || 5432
+        }
+        if (process.env.DB_POSTGRES_USER) {
+            dbOptions.username = process.env.DB_POSTGRES_USER
+        }
+        if (process.env.DB_POSTGRES_PASSWORD) {
+            dbOptions.password = process.env.DB_POSTGRES_PASSWORD
+        }
+        dbOptions.database = "flowforge"
     }
 
     if (process.env.DB_LOGGING !== 'true') {
         dbOptions.logging = false;
     }
+
     const sequelize = new Sequelize(dbOptions)
 
     // const R = async function(f) { console.log(JSON.stringify(await f," ",4)); }
