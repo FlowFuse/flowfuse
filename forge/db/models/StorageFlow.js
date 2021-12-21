@@ -21,7 +21,7 @@ module.exports = {
       static: {
         byProject: async(project) => {
           return this.findOne({
-            where: {ProjectID: project},
+            where: {ProjectId: project},
             attributes: ['id','flow']
           })
         }
