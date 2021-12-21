@@ -7,10 +7,10 @@ const { DataTypes } = require('sequelize');
 module.exports = {
 	name: 'StorageLibrary',
   schema: {
-    name: { type: DataTypes.STRING, allowNull: false},
-    type: { type: DataTypes.STRING, allowNull: false},
-    meta: { type: DataTypes.STRING, allowNull: true },
-    body: { type: DataTypes.STRING, allowNull: false, defaultValue: ""}
+    name: { type: DataTypes.TEXT, allowNull: false},
+    type: { type: DataTypes.TEXT, allowNull: false},
+    meta: { type: DataTypes.TEXT, allowNull: true },
+    body: { type: DataTypes.TEXT, allowNull: false, defaultValue: ""}
   },
   associations: function(M) {
     this.belongsTo(M['Project']);

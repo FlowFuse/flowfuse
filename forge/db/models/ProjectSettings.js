@@ -15,7 +15,7 @@ module.exports = {
         ProjectId: { type: DataTypes.UUID, unique: 'pk_settings'},
         key: { type: DataTypes.STRING, allowNull: false, unique: 'pk_settings'},
         value: {
-            type: DataTypes.STRING,
+            type: DataTypes.TEXT,
             get() {
                 const rawValue = this.getDataValue('value');
                 const valueType = this.getDataValue('valueType');

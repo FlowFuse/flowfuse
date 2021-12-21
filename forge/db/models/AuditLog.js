@@ -9,7 +9,7 @@ module.exports = {
     name: "AuditLog",
     schema: {
         event: { type: DataTypes.STRING },
-        body: { type: DataTypes.STRING},
+        body: { type: DataTypes.TEXT},
         entityId: { type: DataTypes.STRING },
         entityType: { type: DataTypes.STRING }
     },
