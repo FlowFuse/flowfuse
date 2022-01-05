@@ -1,12 +1,13 @@
 {
     "plugins": ["plugins/markdown"],
     "source": {
-        "include": ["./forge/", "README.md"]
+        "include": ["./forge/", "README.md"],
+        "exclude": ["./forge/containers/node_modules"]
     },
     "opts": {
         "recurse": true,
         "template": "./node_modules/clean-jsdoc-theme",
-        "destination": "./docs/",
+        "destination": "./docs/jsdoc",
         "theme_opts": {
             "title": "Development Docs",
             "include_css": ["config/jsdoc/index.css"]

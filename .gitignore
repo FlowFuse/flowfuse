@@ -4,4 +4,4 @@ forge/containers/localfs_root
 frontend/dist
 frontend/dist-setup
 forge.db
-docs
+docs/jsdoc
