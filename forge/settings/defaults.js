@@ -1,4 +1,7 @@
 module.exports = {
+    // Platform license:
+    "license": null,
+    
     // Whether the intial setup has been run
     "setup:initialised": false,
 

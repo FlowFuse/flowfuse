@@ -29,16 +29,21 @@ const fs = require('fs')
 const jwt = require('jsonwebtoken');
 
 // const expiry = Math.floor((Date.now()/1000)+(60*60*24));
+const validFrom = Math.floor(Date.now()/1000);
 const expiry = Math.floor(new Date("2200-01-01").getTime()/1000)
 const key = fs.readFileSync("dev-private-key_enc.pem");
 const passphrase = "password";
 
 const licenseDetails = {
     iss: "FlowForge Inc.", // DO NOT CHANGE
-    sub: "Acme Corp",      // Name of the license holder
+    sub: "FlowForge Inc. Development",      // Name of the license holder
+    nbf: validFrom,
     exp: expiry,           // Expiry of the license in epoch seconds
-    note: "",               // Freeform text to associate with license
-    tier: "solo",          // Must be 'solo' or 'teams'
+    note: "For development only",               // Freeform text to associate with license
+    tier: "teams",          // Must be 'solo' or 'teams',
+    users: '100',
+    teams: '100',
+    projects: '100'
 }
 
 const licenseText = jwt.sign(
