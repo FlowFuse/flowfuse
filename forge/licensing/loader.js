@@ -13,7 +13,7 @@ class LicenseDetails {
         this.validFrom = new Date(claims.nbf*1000);
         this.expiresAt = new Date(claims.exp*1000);
         this.teams = claims.teams;
-        this.project = claims.teams;
+        this.projects = claims.projects;
         this.users = claims.users;
         Object.freeze(this);
     }

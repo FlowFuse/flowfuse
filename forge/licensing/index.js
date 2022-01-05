@@ -60,6 +60,6 @@ module.exports = fp(async function(app, opts, next) {
         console.log(" Org:    ",activeLicense.organisation)
         console.log(" Tier:   ",activeLicense.tier)
         console.log(" Expires:",activeLicense.expiresAt.toISOString())
-        console.log(" Valid From:",activeLicense.expiresAt.toISOString())
+        console.log(" Valid From:",activeLicense.validFrom.toISOString())
     }
 });
