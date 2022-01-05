@@ -23,8 +23,8 @@ module.exports = {
                 }
             }
         },
-        storageURL: { type: DataTypes.VIRTUAL, get() { return process.env['BASE_URL'] + "/storage" }},
-        auditURL: { type: DataTypes.VIRTUAL, get() { return process.env['BASE_URL'] + "/logging" }},
+        storageURL: { type: DataTypes.VIRTUAL, get() { return process.env['API_URL'] + "/storage" }},
+        auditURL: { type: DataTypes.VIRTUAL, get() { return process.env['API_URL'] + "/logging" }},
     },
     associations: function(M) {
         this.belongsTo(M['Team'])

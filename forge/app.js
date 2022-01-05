@@ -42,6 +42,11 @@ const postoffice = require('./postoffice');
     if (!process.env.BASE_URL) {
         process.env.BASE_URL = `http://localhost:${process.env.PORT}`;
     }
+
+    if (!process.env.API_URL) {
+        process.env.API_URL = process.env.BASE_URL
+    }
+
     // DB : the database connection/models/views/controllers
     await server.register(db);
     // Settings
