@@ -18,12 +18,15 @@ For Linux systems the install script will prompt you to install a suitable versi
 
 The install scripts have been tested on the following platforms:
 
- - Raspbian/Raspberry Pi OS versions Buster/Bullseye
+ - Raspbian/Raspberry Pi OS versions Buster/Bullseye ~
+ - Debian Buster/Bullseye
  - Fedora 35
  - Ubuntu 20.04
  - CentOS 8/RHEL 8/Amzon Linux 2
  - OSx Catalina
  - Windows 10
+
+~ Not supporting Arm6 based machines (e.g. Raspberry Pi Z) as NodeJS installer no longer supports this platform. 
 
 FlowForge also makes use of the SQLite3 library for storing state, if the installer finds a suitable version on the system it will make use of this, otherwise it try and download a prebuilt version to use and as a final step will build and statically link against version built from source. This is one of the reasons that the native build tools are required.
 
