@@ -24,6 +24,36 @@ module.exports = async function(app) {
         reply.send(app.license.get() || {});
     });
 
+    app.put('/license', {
+        schema: {
+            body: {
+                type: 'object',
+                required: ['license','action'],
+                properties: {
+                    license: { type: 'string' },
+                    action: { type: 'string' }
+                }
+            }
+        }
+    }, async (request, reply) => {
+        try {
+            if (request.body.action === "apply") {
+                await app.license.apply(request.body.license);
+                reply.send(app.license.get() || {});
+            } else if (request.body.action === "inspect") {
+                reply.send(await app.license.inspect(request.body.license))
+            } else {
+                reply.code(400).send({error:"Invalid action"})
+            }
+        } catch(err) {
+            let responseMessage = err.toString();
+            if (/malformed/.test(responseMessage)) {
+                responseMessage = "Failed to parse license";
+            }
+            reply.code(400).send({error:responseMessage})
+        }
+    });
+
     app.get('/invitations', async (request, reply) => {
         // TODO: Pagination
         const invitations = await app.db.models.Invitation.get()

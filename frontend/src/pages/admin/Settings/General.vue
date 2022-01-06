@@ -20,7 +20,7 @@
             Allow users to create teams
             <template #description>
                 <p>If a user creates a team, they become its Owner. Otherwise they
-                must be invited to an existing team by an Aministrator or Team Owner.</p>
+                must be invited to an existing team by an Administrator or Team Owner.</p>
                 <p>Administrators can always create teams.</p>
             </template>
         </FormRow>

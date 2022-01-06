@@ -18,6 +18,16 @@ const getLicenseDetails = async (options) => {
     });
 }
 
+const updateLicense = async (options) => {
+    return client.put(`/api/v1/admin/license`, options).then(res => {
+        if (res.data.expiresAt) {
+            res.data.expires = elapsedTime((new Date(res.data.expiresAt)).getTime() - Date.now())
+            return res.data;
+        }
+        return null;
+    });
+}
+
 const getInvitations= async (options) => {
     return client.get(`/api/v1/admin/invitations`, options).then(res => {
         res.data.invitations = res.data.invitations.map(r => {
@@ -31,5 +41,6 @@ const getInvitations= async (options) => {
 export default {
     getStats,
     getLicenseDetails,
+    updateLicense,
     getInvitations
 }

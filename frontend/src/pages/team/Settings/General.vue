@@ -55,16 +55,16 @@ export default {
         }
     },
     watch: {
-         team: 'fetchData',
-         'input.slug': function(v) {
-             if (!v) {
-                 this.errors.slug = "Must not be blank"
-             } else if (!/^[a-z0-9-_]+$/i.test(v)) {
-                 this.errors.slug = "Must only contain a-z 0-9 - _"
-             } else {
-                 this.errors.slug = ""
-             }
-         }
+        team: 'fetchData',
+        'input.slug': function(v) {
+            if (!v) {
+                this.errors.slug = "Must not be blank"
+            } else if (!/^[a-z0-9-_]+$/i.test(v)) {
+                this.errors.slug = "Must only contain a-z 0-9 - _"
+            } else {
+                this.errors.slug = ""
+            }
+        }
     },
     computed: {
         formValid() {
