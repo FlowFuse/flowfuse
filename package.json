@@ -28,7 +28,6 @@
     },
     "homepage": "https://github.com/flowforge/flowforge#readme",
     "dependencies": {
-        "@flowforge/docker": "file:sub_modules/flowforge-driver-docker",
         "@flowforge/localfs": "file:sub_modules/flowforge-driver-localfs",
         "@headlessui/vue": "^1.3.0",
         "@heroicons/vue": "^1.0.1",
