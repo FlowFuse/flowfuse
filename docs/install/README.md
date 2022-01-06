@@ -46,6 +46,11 @@ Most configuration is done via the web interface. The following values can be ch
 - `LOCALFS_ROOT` Where to store the userDir directories for the Node-RED instances. default `localfs_root` in the FlowForge home directory
 - `LOCALFS_START_PORT` The port number to start from for Node-RED instances. default `7880`
 - `LOCALFS_NODE_PATH` The path to the node binary to use for starting Node-RED instances. Sometimes needed when using nvm. default not set
+- `SMTP_TRANSPORT_HOST` The hostname for a SMTP server to be used to send email. default not set (email disabled)
+- `SMTP_TRANSPORT_PORT` The port for the SMTP server to be used to send email. default not set
+- `SMTP_TRANSPORT_TLS` To use TLS when connecting to SMTP server. default `false`
+- `SMTP_TRANSPORT_AUTH_USER` A username to authenticate with the SMTP server
+- `SMTP_TRANSPORT_AUTH_PASS` A passsword to authenticate with the SMTP server
 
 ### First Run
 
