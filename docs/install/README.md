@@ -47,6 +47,9 @@ Most configuration is done via the web interface. The following values can be ch
 - `LOCALFS_START_PORT` The port number to start from for Node-RED instances. default `7880`
 - `LOCALFS_NODE_PATH` The path to the node binary to use for starting Node-RED instances. Sometimes needed when using nvm. default not set
 
+### First Run
+
+Link to seperate doc that can be shared (maybe) across all driver versions
 
 ### Issues
 
