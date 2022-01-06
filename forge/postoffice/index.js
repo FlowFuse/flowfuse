@@ -12,20 +12,20 @@ module.exports = fp(async function(app, _opts, next) {
     let transporter = nodemailer.createTransport({
         host: process.env.SMTP_TRANSPORT_HOST,
         port: process.env.SMTP_TRANSPORT_PORT,
-        secure: process.env.SMTP_TRANSPORT_PORT === "true",
+        secure: process.env.SMTP_TRANSPORT_TLS === "true",
     });
 
 
     const exportableSettings = {
         host: process.env.SMTP_TRANSPORT_HOST,
         port: process.env.SMTP_TRANSPORT_PORT,
-        secure: process.env.SMTP_TRANSPORT_PORT === "true",
+        secure: process.env.SMTP_TRANSPORT_TLS === "true",
     }
 
 // console.log({
 //     host: process.env.SMTP_TRANSPORT_HOST,
 //     port: process.env.SMTP_TRANSPORT_PORT,
-//     secure: process.env.SMTP_TRANSPORT_PORT === "true",
+//     secure: process.env.SMTP_TRANSPORT_TLS === "true",
 // })
     // await transporter.verify();
 
