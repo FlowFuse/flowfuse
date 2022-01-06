@@ -33,7 +33,8 @@ module.exports = async function(app) {
         }
         const status = {
             adminUser: (await app.db.models.User.count()) !== 0,
-            license: app.license.active()
+            license: app.license.active(),
+            email: !!app.postoffice.exportSettings(true)
         }
         reply.type('application/json').send(status);
 
