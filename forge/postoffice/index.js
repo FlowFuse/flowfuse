@@ -6,37 +6,52 @@ const templates = {};
 
 module.exports = fp(async function(app, _opts, next) {
 
-    // transporter = nodemailer.createTransport(require("./localDelivery"));
+    let mailTransport;
+    let exportableSettings = {}
+
+    // mailTransport = nodemailer.createTransport(require("./localDelivery"));
 
     let EMAIL_ENABLED = process.env.SMTP_DEBUG || !!process.env.SMTP_TRANSPORT_HOST;
-    let transporter = nodemailer.createTransport({
-        host: process.env.SMTP_TRANSPORT_HOST,
-        port: process.env.SMTP_TRANSPORT_PORT,
-        secure: process.env.SMTP_TRANSPORT_TLS === "true",
-    });
 
+    if (process.env.SMTP_TRANSPORT_HOST) {
+        const smtpConfig = {
+            host: process.env.SMTP_TRANSPORT_HOST,
+            port: process.env.SMTP_TRANSPORT_PORT,
+            secure: process.env.SMTP_TRANSPORT_TLS === "true",
+            // logger:true,
+            // debug: true
+        }
+        if (process.env.SMTP_TRANSPORT_AUTH_USER) {
+            smtpConfig.auth = smtpConfig.auth || {}
+            smtpConfig.auth.user = process.env.SMTP_TRANSPORT_AUTH_USER
+        }
+        if (process.env.SMTP_TRANSPORT_AUTH_PASS) {
+            smtpConfig.auth = smtpConfig.auth || {}
+            smtpConfig.auth.pass = process.env.SMTP_TRANSPORT_AUTH_PASS
+        }
 
-    const exportableSettings = {
-        host: process.env.SMTP_TRANSPORT_HOST,
-        port: process.env.SMTP_TRANSPORT_PORT,
-        secure: process.env.SMTP_TRANSPORT_TLS === "true",
+        const mailDefaults = { from: '"FlowForge Platform" <donotreply@flowforge.com>' }
+
+        mailTransport = nodemailer.createTransport(smtpConfig, mailDefaults);
+
+        exportableSettings = {
+            host: process.env.SMTP_TRANSPORT_HOST,
+            port: process.env.SMTP_TRANSPORT_PORT,
+            secure: process.env.SMTP_TRANSPORT_TLS === "true",
+        }
+        // app.log.info(smtpConfig);
+
+        mailTransport.verify(err => {
+            if (err) {
+                app.log.error("Failed to verify email connection: %s", err.toString())
+                EMAIL_ENABLED = false
+            }
+        })
+    } else if (!process.env.SMTP_DEBUG) {
+        app.log.info("Email not configured")
+    } else {
+        app.log.info("Email debug output enabled")
     }
-
-// console.log({
-//     host: process.env.SMTP_TRANSPORT_HOST,
-//     port: process.env.SMTP_TRANSPORT_PORT,
-//     secure: process.env.SMTP_TRANSPORT_TLS === "true",
-// })
-    // await transporter.verify();
-
-    // let info = await transporter.sendMail({
-    //     from: '"Fred Foo" <foo@example.com>', // sender address
-    //     to: "bar@example.com, baz@example.com", // list of receivers
-    //     subject: "Hello ✔", // Subject line
-    //     text: "Hello world?", // plain text body
-    //     html: "<b>Hello world?</b>", // html body
-    // });
-    // console.log("Message sent: %s", info.messageId);
 
     function loadTemplate(templateName) {
         const template = require(`./templates/${templateName}`);
@@ -60,16 +75,19 @@ module.exports = fp(async function(app, _opts, next) {
         const templateContext = {user, ...context};
 
         const mail = {
-            from: '"FlowForge Platform" <donotreply@flowforge.com>',
             to: user.email,
             subject: template.subject(templateContext,{allowProtoPropertiesByDefault: true, allowProtoMethodsByDefault:true}),
             text: template.text(templateContext,{allowProtoPropertiesByDefault: true, allowProtoMethodsByDefault:true}),
             html: template.html(templateContext,{allowProtoPropertiesByDefault: true, allowProtoMethodsByDefault:true})
         }
         if (EMAIL_ENABLED && !process.env.SMTP_DEBUG) {
-            await transporter.sendMail(mail)
+            mailTransport.sendMail(mail, err => {
+                if (err) {
+                    app.log.warn("Failed to send email:",err.toString())
+                }
+            })
         } else {
-            console.log(`
+            app.log.info(`
 -----------------------------------
 to: ${mail.to}
 subject: ${mail.subject}
