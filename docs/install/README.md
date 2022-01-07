@@ -37,7 +37,11 @@ FlowForge also makes use of the SQLite3 library for storing state, if the instal
  - Unzip the file into the FlowForge home directory
  - From within the FlowForge home directory run either `./install.sh` or `install.bat`
  - If prompted say yes to installing NodeJS
- - Once the install completes you can start the FlowForge platform with `./flowforge.sh` or `flowforge.bat`
+ - On Linux you will be asked if you want to run FlowForge as a service, if you answer yes:
+   - Decide if you want to run the sevice as the current user or as a new `flowforge` user
+   - Once complete you can start the service with `service flowforge start`
+ - If you answer no to the service or are running on OSx or Windows then:
+   - Once the install completes you can start the FlowForge platform with `./flowforge.sh` or `flowforge.bat`
 
 
 ### Configuration
