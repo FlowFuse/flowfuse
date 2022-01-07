@@ -23,7 +23,16 @@ const postoffice = require('./postoffice');
   */
 
 (async function() {
-    const server = fastify({maxParamLength: 500 })
+    const server = fastify({
+        maxParamLength: 500,
+        logger: {
+            level: 'info',
+            prettyPrint: {
+                translateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss.l'Z'",
+                ignore: 'pid,hostname'
+            }
+        }
+    })
 
     server.addHook('onError', async (request, reply, error) => {
         // Useful for debugging when a route goes wrong
@@ -54,7 +63,7 @@ const postoffice = require('./postoffice');
     // License
     await server.register(license);
     // Routes : the HTTP routes
-    await server.register(routes)
+    await server.register(routes, { logLevel: 'warn' })
     // Post Office : handles email
     server.register(postoffice);
     // Containers:
@@ -68,7 +77,6 @@ const postoffice = require('./postoffice');
             console.error(err)
             process.exit(1)
         }
-        console.log(`Server listening on ${address}`)
     })
 
 })()
