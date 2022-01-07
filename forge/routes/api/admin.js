@@ -62,6 +62,5 @@ module.exports = async function(app) {
             count: result.length,
             invitations:result
         })
-        reply.send(result)
     })
 }

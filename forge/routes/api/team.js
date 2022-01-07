@@ -81,7 +81,6 @@ module.exports = async function(app) {
                 count: result.length,
                 projects:result
             })
-            reply.send(result)
         } else {
             reply.code(404).type('text/html').send('Not Found')
         }
@@ -190,6 +189,7 @@ module.exports = async function(app) {
             reply.send({
                 role: request.teamMembership.role
             })
+            return
         }
         reply.code(404).type('text/html').send('Not Found')
     })
