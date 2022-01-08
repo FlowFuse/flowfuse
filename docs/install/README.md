@@ -32,7 +32,7 @@ FlowForge also makes use of the SQLite3 library for storing state, if the instal
 
 ### Install
 
- - Create a directory to be the home of your FlowForge install
+ - Create a directory to be the home of your FlowForge install e.g. `/opt/flowforge`
  - Download the Installer zip file (link)
  - Unzip the file into the FlowForge home directory
  - From within the FlowForge home directory run either `./install.sh` or `install.bat`
@@ -61,7 +61,9 @@ Most configuration is done via the web interface. The following values can be ch
 
 ### First Run
 
-Link to seperate doc that can be shared (maybe) across all driver versions
+You can access the FlowForge platform on [http://localhost:3000](http://localhost:3000) 
+
+Instructions on how to configure FlowForge on the first run can be found [here](../admin/README.md)
 
 ### Issues
 
