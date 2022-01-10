@@ -140,6 +140,19 @@ module.exports = async function(app) {
     });
 
 
+    app.delete('/:teamId', { preHandler: app.needsPermission("team:delete") }, async (request, reply) => {
+        // At this point we know the requesting user has permission to do this.
+        // But we also need to ensure the team has no projects
+        // That is handled by the beforeDestroy hook on the Team model and the
+        // call to destroy the team will throw an error
+        try {
+            await request.team.destroy();
+            reply.send({ status: "okay"});
+        } catch(err) {
+            reply.code(400).send({error:err.toString()})
+        }
+    })
+
     // app.get('/teams', async (request, reply) => {
     //     const teams = await app.db.models.Team.forUser(request.session.User);
     //     const result = await app.db.views.Team.teamList(teams);

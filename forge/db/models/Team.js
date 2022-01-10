@@ -22,6 +22,15 @@ module.exports = {
                 team.slug = slugify(team.name)
             }
             team.slug = team.slug.toLowerCase();
+        },
+        beforeDestroy: async(team, opts) => {
+            const projectCount = await team.projectCount();
+            if (projectCount > 0) {
+                throw new Error("Cannot delete team that owns projects");
+            }
+        },
+        afterDestroy: async (team, opts) => {
+            // TODO: what needs tidying up after a team is deleted?
         }
     },
     associations: function(M) {
@@ -125,6 +134,9 @@ module.exports = {
                 owners: async function() {
                     // All Team owners
                     return M['TeamMember'].scope('owners').findAll()
+                },
+                projectCount: async function() {
+                    return await M['Project'].count({TeamId: this.id})
                 }
             }
         }
