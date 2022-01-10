@@ -43,7 +43,6 @@ module.exports = async function(app) {
             count: result.length,
             members:result
         })
-        reply.send(result)
     })
 
     /**
