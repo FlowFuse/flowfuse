@@ -45,6 +45,8 @@ module.exports = async function(app) {
                 result.message[user] = invite
             } else {
                 try {
+                    // controllers.Invitation.createInvitations will have already
+                    // rejected external requests if team:user:invite:external set to false
                     if (invite.external) {
                         await app.postoffice.send(
                             invite,
@@ -69,7 +71,6 @@ module.exports = async function(app) {
                         successfulInvites.push(invite.invitee.username);
                     }
                 } catch(err) {
-                    console.log(err);
                     errorCount++;
                     result.message[user] = 'Error sending invitation email'
                 }

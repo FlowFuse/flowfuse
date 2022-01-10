@@ -1,5 +1,6 @@
 module.exports = {
     createInvitations: async (app, invitor, team, userList) => {
+        const externalInvitesPermitted = app.postoffice.enabled() && !!app.settings.get("team:user:invite:external")
         const results = {};
         for (let i=0; i<userList.length; i++) {
             const userDetail = userList[i];
@@ -11,12 +12,16 @@ module.exports = {
                 if (!/@/.test(userDetail)) {
                     // not an email - abort
                     results[userDetail] = "Not an existing user";
-                    if (app.postoffice.enabled()) {
+                    if (externalInvitesPermitted) {
                         results[userDetail] += ", or valid email address"
                     }
                     continue;
+                } else if (!app.settings.get("team:user:invite:external")) {
+                    // Email - but external invites not permitted
+                    results[userDetail] = "External invites not permitted"
+                    continue;
                 } else if (!app.postoffice.enabled()) {
-                    // email not configured
+                    // Email - but email not configured
                     results[userDetail] = "Email not configured, cannot invite external user"
                     continue;
                 } else {
