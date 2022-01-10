@@ -26,7 +26,7 @@ The install scripts have been tested on the following platforms:
  - OSx Catalina
  - Windows 10
 
-~ Not supporting Arm6 based machines (e.g. Raspberry Pi Z) as NodeJS installer no longer supports this platform. 
+~ Not supporting Arm6 based machines (e.g. Original Raspberry Pi Zero and Zero W) as NodeJS installer no longer supports this platform. 
 
 FlowForge also makes use of the SQLite3 library for storing state, if the installer finds a suitable version on the system it will make use of this, otherwise it try and download a prebuilt version to use and as a final step will build and statically link against version built from source. This is one of the reasons that the native build tools are required.
 
