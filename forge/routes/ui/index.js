@@ -31,6 +31,7 @@ module.exports = async function(app) {
     app.get('/', (request, reply) => {
         if (!app.settings.get("setup:initialised")) {
             reply.redirect("/setup")
+            return
         }
         reply.sendFile('index.html')
     })
