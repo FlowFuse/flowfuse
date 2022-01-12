@@ -24,6 +24,10 @@ const getTeam = (team) => {
     return client.get(url).then(res => res.data);
 }
 
+const deleteTeam = async (teamId) => {
+    return await client.delete(`/api/v1/teams/${teamId}`)
+}
+
 const getTeamProjects = async (teamId) => {
     let res = await client.get(`/api/v1/teams/${teamId}/projects`);
     let promises = [];
@@ -105,6 +109,7 @@ const updateTeam = async(teamId, options) => {
 export default {
     create,
     getTeam,
+    deleteTeam,
     updateTeam,
     getTeams,
     getTeamProjects,

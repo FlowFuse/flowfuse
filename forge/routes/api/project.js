@@ -115,11 +115,11 @@ const ProjectActions = require("./projectActions.js");
             result.team = team.id;
             reply.send(result);
         } else {
-            reply.status(401).send({error: "Current user not in team " + request.body.team})
+            reply.code(401).send({error: "Current user not in team " + request.body.team})
         }
     })
     /**
-     * Delete an project
+     * Delete a project
      * @name /api/v1/project/:id
      * @memberof forge.routes.api.project
      */
@@ -141,7 +141,7 @@ const ProjectActions = require("./projectActions.js");
         } catch(err) {
             console.log("missing", err)
             console.log(err)
-            reply.status(500).send({})
+            reply.code(500).send({})
         }
 
     })
