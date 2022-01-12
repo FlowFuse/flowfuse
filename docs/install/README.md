@@ -6,7 +6,7 @@ This version of the FlowForge platform is intended for running on a single machi
 
 ### Prerequistes
 
-The FlowForge platform requires the NodeJS runtime at v16 or newer. On Windows or OSx you will need to manually install this before proceeding. Information about how to do this can be found on the NodeJS website here:
+The FlowForge platform requires the NodeJS runtime at v16 or newer. On Windows or MacOS you will need to manually install this before proceeding. Information about how to do this can be found on the NodeJS website here:
 
 [https://nodejs.org/en/download](https://nodejs.org/en/download)
 
@@ -23,7 +23,7 @@ The install scripts have been tested on the following platforms:
  - Fedora 35
  - Ubuntu 20.04
  - CentOS 8/RHEL 8/Amzon Linux 2
- - OSx Catalina
+ - MacOS Big Sur
  - Windows 10
 
 ~ Not supporting Arm6 based machines (e.g. Original Raspberry Pi Zero and Zero W) as NodeJS installer no longer supports this platform. 
@@ -40,7 +40,7 @@ FlowForge also makes use of the SQLite3 library for storing state, if the instal
  - On Linux you will be asked if you want to run FlowForge as a service, if you answer yes:
    - Decide if you want to run the sevice as the current user or as a new `flowforge` user
    - Once complete you can start the service with `service flowforge start`
- - If you answer no to the service or are running on OSx or Windows then:
+ - If you answer no to the service or are running on MacOS or Windows then:
    - Once the install completes you can start the FlowForge platform with `./flowforge.sh` or `flowforge.bat`
 
 
