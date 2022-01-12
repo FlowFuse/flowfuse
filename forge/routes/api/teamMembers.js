@@ -40,6 +40,7 @@ module.exports = async function(app) {
         const members = await app.db.models.User.inTeam(request.params.teamId)
         const result = app.db.views.User.teamMemberList(members);
         reply.send({
+            meta: {}, // For future pagination
             count: result.length,
             members:result
         })

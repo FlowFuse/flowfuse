@@ -24,7 +24,7 @@ module.exports = {
         password_expired: { type: DataTypes.BOOLEAN, defaultValue: false },
         admin: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
         avatar: {
-            type: DataTypes.STRING, 
+            type: DataTypes.STRING,
             get() {
                 const avatar = this.getDataValue('avatar')
                 if (avatar) {
@@ -32,7 +32,7 @@ module.exports = {
                 } else {
                     return avatar
                 }
-            } 
+            }
         }
     },
     scopes: {
@@ -144,16 +144,17 @@ module.exports = {
                     if (pagination.cursor) {
                         where.id = { [Op.gt]: M['User'].decodeHashid(pagination.cursor) }
                     }
-                    const entries = await this.findAll({
+                    const {count, rows} = await this.findAndCountAll({
                         where,
                         order: [['id', 'ASC']],
                         limit
                     });
                     return {
                         meta: {
-                            next_cursor: entries.length === limit?entries[entries.length-1].hashid:undefined
+                            next_cursor: rows.length === limit?rows[rows.length-1].hashid:undefined
                         },
-                        users: entries
+                        count,
+                        users: rows
                     }
                 }
             },

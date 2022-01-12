@@ -61,7 +61,6 @@ export default {
                 invite.onremove = (teamId, inviteId) => { this.removeInvite(teamId,inviteId) }
                 return invite;
             })
-            this.invitationCount = invitations.count;
         }
     },
     components: {

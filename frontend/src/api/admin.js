@@ -28,7 +28,7 @@ const updateLicense = async (options) => {
     });
 }
 
-const getInvitations= async (options) => {
+const getInvitations = async (options) => {
     return client.get(`/api/v1/admin/invitations`, options).then(res => {
         res.data.invitations = res.data.invitations.map(r => {
             r.createdSince = daysSince(r.createdAt)
