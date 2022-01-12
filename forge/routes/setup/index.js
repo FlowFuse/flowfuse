@@ -8,6 +8,7 @@
  */
 const path = require('path')
 const fs = require('fs').promises
+const { v4: uuidv4 } = require('uuid');
 
 const setupApp = path.join(__dirname, "../../../frontend/dist-setup/setup.html")
 
@@ -48,6 +49,7 @@ module.exports = async function(app) {
             return
         }
         await app.settings.set("setup:initialised",true);
+        await app.settings.set("instanceId", uuidv4());
         reply.send({status: "okay"})
     });
 

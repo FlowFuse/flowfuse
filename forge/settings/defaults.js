@@ -1,6 +1,9 @@
 module.exports = {
     // Platform license:
     "license": null,
+
+    // Instance ID:
+    "instanceId": null,  
     
     // Whether the intial setup has been run
     "setup:initialised": false,
