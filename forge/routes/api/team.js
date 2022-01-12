@@ -53,12 +53,16 @@ module.exports = async function(app) {
     })
 
     /**
-     * Get the details of a team - using ?slug=:slug
+     * Return all teams (admin-only) or details of a specific team if 'slug' query
+     * parameter is set
+     *
      * @name /api/v1/teams
      * @static
      * @memberof forge.routes.api.team
      */
     app.get('/', async (request, reply) => {
+        // This isn't the most pleasant overloading of an api end-point.
+        // We can probably do better.
         if (request.query.slug) {
             const team = await app.db.models.Team.bySlug(request.query.slug)
             if (team) {
@@ -67,10 +71,18 @@ module.exports = async function(app) {
                     reply.code(404).type('text/html').send('Not Found')
                 }
                 reply.send(app.db.views.Team.team(team))
-                return;
+            } else {
+                reply.code(404).type('text/html').send('Not Found')
             }
+        } else if (!request.session.User.admin) {
+            reply.code(401).send({ error: 'unauthorized' })
+        } else {
+            // Admin request for all teams
+            const paginationOptions = app.getPaginationOptions(request)
+            const teams = await app.db.models.Team.getAll(paginationOptions);
+            teams.teams = teams.teams.map(t => app.db.views.Team.team(t))
+            reply.send(teams);
         }
-        reply.code(404).type('text/html').send('Not Found')
     })
 
     app.get('/:teamId/projects', async (request, reply) => {

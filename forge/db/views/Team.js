@@ -9,7 +9,8 @@ module.exports = {
                 name: d.Team.name,
                 role: d.role,
                 avatar: d.Team.avatar,
-                projects: d.projectCount
+                projectCount: d.projectCount,
+                memberCount: d.memberCount
             }
         });
     },
