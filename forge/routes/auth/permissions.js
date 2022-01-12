@@ -51,7 +51,6 @@ module.exports = fp(async function(app, opts, done) {
                 throw new Error();
             } else if (app.settings.get(scope) === false) {
                 // Permission disabled via admin settings
-                console.log("REJECTED COS OF SETTINGS")
                 reply.code(403).send({ error: 'unauthorized' });
                 throw new Error();
             } else if (permission.role) {
