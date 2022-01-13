@@ -8,6 +8,7 @@
 const User = require("./user.js");
 const Users = require("./users.js");
 const Team = require("./team.js");
+const Teams = require("./teams.js");
 const Project = require("./project.js");
 const Admin = require("./admin.js");
 const Settings = require("./settings.js");

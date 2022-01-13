@@ -125,6 +125,47 @@ module.exports = {
                             ]
                         }
                     })
+                },
+                getAll: async(pagination={}) => {
+                    const limit = parseInt(pagination.limit) || 30;
+                    const where = {};
+                    if (pagination.cursor) {
+                        where.id = { [Op.gt]: M['Team'].decodeHashid(pagination.cursor) }
+                    }
+                    const {count, rows} = await this.findAndCountAll({
+                        where,
+                        order: [['id', 'ASC']],
+                        limit,
+                        attributes: {
+                            include: [
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "Projects" AS "project"
+                                        WHERE
+                                        "project"."TeamId" = "Team"."id"
+                                    )`),
+                                    'projectCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "TeamMembers" AS "members"
+                                        WHERE
+                                        "members"."TeamId" = "Team"."id"
+                                    )`),
+                                    'memberCount'
+                                ]
+                            ]
+                        }
+                    });
+                    return {
+                        meta: {
+                            next_cursor: rows.length === limit?rows[rows.length-1].hashid:undefined
+                        },
+                        count: count,
+                        teams: rows
+                    }
                 }
             },
             instance: {

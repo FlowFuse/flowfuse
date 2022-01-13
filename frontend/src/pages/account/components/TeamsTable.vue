@@ -15,8 +15,9 @@ export default {
         return {
             columns: [
                 {name: 'Name',  class:['flex-grow'], component: { is: markRaw(TeamCell) }, link:true},
-                {name: 'Projects', class:['w-32','text-center'],property: 'projects'},
-                {name: 'Role',     class:['w-40'],property: 'role'}
+                {name: 'Projects', class:['w-32','text-center'],property: 'projectCount'},
+                {name: 'Members', class:['w-32','text-center'],property: 'memberCount'},
+                {name: 'Role',     class:['w-40'],property: 'roleName'}
             ]
         }
     },
