@@ -59,6 +59,7 @@ module.exports = async function(app) {
         const invitations = await app.db.models.Invitation.get()
         const result = app.db.views.Invitation.invitationList(invitations);
         reply.send({
+            meta: {}, // For future pagination
             count: result.length,
             invitations:result
         })

@@ -153,7 +153,7 @@ module.exports = async function(app) {
     }
   });
 
-  app.post('/:id/library/:type', 
+  app.post('/:id/library/:type',
     {
       schema:{
         body: {
@@ -203,7 +203,7 @@ module.exports = async function(app) {
     }
   );
 
-  app.get('/:id/library/:type', 
+  app.get('/:id/library/:type',
     {
       schema: {
         query: {
@@ -220,14 +220,11 @@ module.exports = async function(app) {
       let type = request.params.type;
       let name = request.query.name
 
-      console.log("query",request.query);
-
       let reply = []
 
       let direct = await app.db.models.StorageLibrary.byName(id, type, name);
 
       if (direct) {
-        console.log(direct.body)
         if (type == 'flows' ) {
           reply = JSON.parse(direct.body)
         } else {

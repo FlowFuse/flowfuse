@@ -134,8 +134,8 @@ The response object for paginated end-points should have the format:
     "meta": {
         "next_cursor": "16416724188790000",
     },
-    "<object-type>": [
-    ]
+    "<object-type>": [ ]
+    "count": 123
 }
 ```
 
@@ -148,6 +148,11 @@ The `meta` property contains information to help the client navigate the collect
 
 The `<object-type>` property should be called the appropriate plural form of what is being returned,
 such as `projects`.
+
+The `count` property is optional and indicates the total number of objects in the collection.
+End-points *should* include it if the number is known and is of material use. It is *not*
+returned by end-points used to query logs etc as the total count is a constantly changing
+value.
 
 ### Cursor design
 

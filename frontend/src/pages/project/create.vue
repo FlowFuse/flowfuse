@@ -54,7 +54,6 @@ export default {
     },
     async created() {
         const data = await teamApi.getTeams()
-        this.teamCount = data.count;
         const filteredTeams = [];
 
         data.teams.forEach((t) => {

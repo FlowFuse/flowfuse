@@ -64,6 +64,7 @@ module.exports = async function(app) {
         const teams = await app.db.models.Team.forUser(request.session.User);
         const result = await app.db.views.Team.userTeamList(teams);
         reply.send({
+            meta: {}, // For future pagination
             count: result.length,
             teams:result
         })
@@ -79,6 +80,7 @@ module.exports = async function(app) {
         const projects = await app.db.models.Project.byUser(request.session.User);
         const result = await app.db.views.Project.userProjectList(projects);
         reply.send({
+            meta: {}, // For future pagination
             count: result.length,
             projects:result
         })
