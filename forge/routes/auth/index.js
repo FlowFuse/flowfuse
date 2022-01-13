@@ -232,6 +232,7 @@ module.exports = fp(async function(app, opts, done) {
         if (app.settings.get("team:user:invite:external")) {
             var invite = await app.db.models.Invitation.forExternalEmail(request.body.email)
             if (!invite && invite[0]) {
+                //reusuing error message so as not to leak invited users
                 reply.code(400).send({error:"user register not enabled"})
                 return
             } else {
