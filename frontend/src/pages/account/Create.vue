@@ -114,7 +114,7 @@ export default {
                     if (err.response.data.error === "email must be unique") {
                         this.errors.email = "Email already registered"
                     }
-                    if (err.response.data.error === "user register not enabled") {
+                    if (err.response.data.error === "user registration not enabled") {
                         //TODO Where to show this error?
                     }
                 }
