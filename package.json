@@ -22,7 +22,7 @@
     "author": {
         "name": "FlowFlow Inc."
     },
-    "license": "SEE LICENSE IN ./LICENSE",
+    "license": "Apache-2.0",
     "bugs": {
         "url": "https://github.com/flowforge/flowforge/issues"
     },
