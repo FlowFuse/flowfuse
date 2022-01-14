@@ -5,6 +5,7 @@ import router from "@/routes"
 
 // initial state
 const state = () => ({
+    // Runtime settings
     settings: null,
     // We do not know if there is a valid session yet
     pending: true,
@@ -23,7 +24,10 @@ const state = () => ({
     // An error during login
     loginError: null,
     //
-    pendingTeamChange: false
+    pendingTeamChange: false,
+    // As an SPA, if we get a network error we should present
+    // a suitable 'offline' message.
+    offline: null,
 })
 
 // getters
@@ -51,6 +55,9 @@ const getters = {
     },
     pendingTeamChange(state) {
         return state.pendingTeamChange
+    },
+    offline(state) {
+        return state.offline
     }
 }
 
@@ -103,6 +110,9 @@ const mutations = {
     },
     clearPendingTeamChange(state) {
         state.pendingTeamChange = false;
+    },
+    setOffline(state,value) {
+        state.offline = value
     }
 }
 
@@ -112,6 +122,8 @@ const actions = {
         try {
             const settings = await settingsApi.getSettings();
             state.commit('setSettings', settings);
+
+            state.commit('setOffline', false);
 
             const user = await userApi.getUser();
             state.commit('login', user)
@@ -258,6 +270,9 @@ const actions = {
     async refreshSettings(state) {
         const settings = await settingsApi.getSettings();
         state.commit('setSettings', settings);
+    },
+    setOffline(state,value) {
+        state.commit('setOffline',value)
     }
 }
 
