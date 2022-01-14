@@ -84,6 +84,7 @@ module.exports = async function(app) {
                 username: request.body.username,
                 name: request.body.name,
                 email: request.body.email,
+                email_verified: true,
                 password: request.body.password,
                 admin: !!request.body.isAdmin,
             });
@@ -94,6 +95,20 @@ module.exports = async function(app) {
                     slug: request.body.username
                 });
                 await newTeam.addUser(newUser, { through: { role:Roles.Owner } });
+                // DRY: /api/v1/teams - create team route does this as well
+                await app.db.controllers.AuditLog.teamLog(
+                    newTeam.id,
+                    request.session.User.id,
+                    "team.created"
+                )
+                await app.db.controllers.AuditLog.teamLog(
+                    newTeam.id,
+                    newUser.id,
+                    "user.added",
+                    {role: RoleNames[Roles.Owner]}
+                )
+
+
             }
             reply.send({status: "okay"})
         } catch(err) {
