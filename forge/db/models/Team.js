@@ -177,7 +177,7 @@ module.exports = {
                     return M['TeamMember'].scope('owners').findAll()
                 },
                 projectCount: async function() {
-                    return await M['Project'].count({TeamId: this.id})
+                    return await M['Project'].count({where: {TeamId: this.id}})
                 }
             }
         }
