@@ -215,18 +215,29 @@ module.exports = fp(async function(app, opts, done) {
         schema: {
             body: {
                 type: 'object',
-                required: ['username', 'password'],
+                required: ['username', 'password', 'name', 'email'],
                 properties: {
                     username: { type: 'string' },
                     password: { type: 'string' },
-                    name: { type: 'string' }
+                    name: { type: 'string' },
+                    email: { type: 'string' }
                 }
             }
         }
     }, async (request, reply) => {
-        if (!app.settings.get("user:signup")) {
+        if (!app.settings.get("user:signup") && !app.settings.get("team:user:invite:external")) {
             reply.code(400).send({error:"user registration not enabled"});
             return
+        }
+        if (!app.settings.get("user:signup") && app.settings.get("team:user:invite:external")) {
+            var invite = await app.db.models.Invitation.forExternalEmail(request.body.email)
+            if (!invite && invite[0]) {
+                //reusing error message so as not to leak invited users
+                reply.code(400).send({error:"user registration not enabled"})
+                return
+            } else {
+                app.log.info(`Invited user found ${request.body.email}`)
+            }
         }
         if (!app.postoffice.enabled()) {
             reply.code(400).send({error:"user registration not enabled - email not configured"});
