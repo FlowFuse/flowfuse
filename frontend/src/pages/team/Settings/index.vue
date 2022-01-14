@@ -14,7 +14,7 @@ import { Roles } from '@/utils/roles'
 
 const sideNavigation = [
     { name: "General", path: "./general" },
-    { name: "Permissions", path: "./permissions" },
+    // { name: "Permissions", path: "./permissions" },
     { name: "Danger", path: "./danger" }
 ]
 

@@ -49,7 +49,7 @@ export default [
                 },
                 children: [
                     { path: 'general', component: TeamSettingsGeneral },
-                    { path: 'permissions', component: TeamSettingsPermissions},
+                    // { path: 'permissions', component: TeamSettingsPermissions},
                     { path: 'danger', component: TeamSettingsDanger }
                 ]
             }
