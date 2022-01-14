@@ -41,7 +41,9 @@ export default {
     },
     methods: {
         redirectOnLoad() {
-            if (this.team) {
+            if (this.user.email_verified === false) {
+                return
+            } else if (this.team) {
                 this.$router.push({name:"Team", params:{id:this.team.slug}});
             } else if (this.teams && this.teams.length > 0) {
                 this.$store.dispatch('account/setTeam',this.teams[0]);
