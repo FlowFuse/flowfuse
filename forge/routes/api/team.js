@@ -112,6 +112,15 @@ module.exports = async function(app) {
             }
         }
     }, async (request, reply) => {
+        if (!request.session.User.admin && !app.settings.get('team:create')) {
+            // Ideally this would be handled by `needsPermission`
+            // preHandler. To do so will require the perms model to know
+            // to also check enabled features (and know that admin is allowed to
+            // override in this instance)
+            reply.code(403).send({ error: 'unauthorized' });
+        }
+
+
         // TODO check license allows multiple teams
 
         if (request.body.slug === "create") {
