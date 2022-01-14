@@ -124,6 +124,11 @@ const actions = {
                 window.location = "/"
                 return;
             }
+            if (user.email_verified === false) {
+                state.commit('clearPending')
+                router.push({ name: "Home" })
+                return
+            }
 
             if (teams.count === 0) {
                 state.commit('clearPending')

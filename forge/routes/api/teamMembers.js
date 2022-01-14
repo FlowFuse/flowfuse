@@ -79,7 +79,7 @@ module.exports = async function(app) {
                     request.team.id,
                     request.session.User.id,
                     "user.removed",
-                    { user: userToRemove.username }
+                    { user: request.user.username }
                 )
             }
             reply.send({status:"okay"})
