@@ -1,5 +1,5 @@
 <template>
-    <div class="text-right mb-4" v-if="user.email"><CreateTeamButton /></div>
+    <div class="text-right mb-4" v-if="settings['team:create']"><CreateTeamButton /></div>
     <TeamsTable :teams="teams" :teamCount="teamCount" />
 </template>
 
@@ -14,7 +14,7 @@ import CreateTeamButton from '../components/CreateTeamButton'
 export default {
     name: 'AccountTeams',
     computed: {
-        ...mapState('account',['user','teams']),
+        ...mapState('account',['teams','settings']),
         teamCount() {
             return this.teams?this.teams.length:0
         }
