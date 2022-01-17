@@ -48,6 +48,10 @@ module.exports = fp(async function(app, _opts, next) {
         config.port = process.env.PORT || config.port || 3000;
         config.base_url = config.base_url || `http://localhost:${config.port}`;
         config.api_url = config.api_url || config.base_url;
+
+        process.env.FLOWFORGE_BASE_URL = config.base_url;
+        process.env.FLOWFORGE_API_URL = config.api_url;
+
         if (!config.email) {
             config.email = { enabled: false }
         }
