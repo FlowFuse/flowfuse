@@ -1,9 +1,8 @@
+var/
 forge/containers/node_modules/
 /node_modules/
-forge/containers/localfs_root
 frontend/dist
 frontend/dist-setup
-forge.db
 docs/jsdoc
 
 # Users should have a system based .gitignore that works globally, however, this
