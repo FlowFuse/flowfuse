@@ -37,7 +37,11 @@ module.exports = fp(async function(app, _opts, next) {
 
     app.log.info(`FlowForge Data Directory: ${process.env.FLOWFORGE_HOME}`)
 
-    const configFile = path.join(process.env.FLOWFORGE_HOME,'/etc/flowforge.yml')
+    let configFile = path.join(process.env.FLOWFORGE_HOME,'/etc/flowforge.yml')
+    if (fs.existsSync(path.join(process.env.FLOWFORGE_HOME,'/etc/flowforge.local.yml'))) {
+        configFile = path.join(process.env.FLOWFORGE_HOME,'/etc/flowforge.local.yml')
+    }
+    app.log.info(`Config File: ${configFile}`)
     try {
         let configFileContent = fs.readFileSync(configFile,'utf-8');
         let config = YAML.parse(configFileContent);
