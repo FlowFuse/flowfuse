@@ -12,12 +12,12 @@
 
  const modelTypes = ['User', 'Team','Project','Invitation', 'AuditLog'];
 
-async function init(db) {
+async function init(app) {
     modelTypes.forEach(type => {
         const m = require(`./${type}`);
         module.exports[type] = {};
         for (let key in m) {
-            module.exports[type][key] = m[key].bind(m,db)
+            module.exports[type][key] = m[key].bind(m,app)
         }
     });
 }

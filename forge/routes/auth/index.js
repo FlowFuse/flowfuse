@@ -262,7 +262,7 @@ module.exports = fp(async function(app, opts, done) {
                 newUser,
                 "VerifyEmail",
                 {
-                    confirmEmailLink: `${process.env.BASE_URL}/account/verify/${verifyToken}`
+                    confirmEmailLink: `${app.config.base_url}/account/verify/${verifyToken}`
                 }
             )
             reply.send({status:"okay"})
@@ -325,7 +325,7 @@ module.exports = fp(async function(app, opts, done) {
                 request.session.User,
                 "VerifyEmail",
                 {
-                    confirmEmailLink: `${process.env.BASE_URL}/account/verify/${verifyToken}`
+                    confirmEmailLink: `${app.config.base_url}/account/verify/${verifyToken}`
                 }
             )
             reply.send({status:"okay"})

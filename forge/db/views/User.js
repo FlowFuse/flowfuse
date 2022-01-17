@@ -1,4 +1,4 @@
-function publicUserProfile(db, user) {
+function publicUserProfile(app, user) {
     const result = {
         id: user.hashid
     };
@@ -21,8 +21,8 @@ module.exports = {
      * is added to the model, it won't accidentally leak out of the API
      *
      */
-    userProfile: function(db, user) {
-        const result = publicUserProfile(db, user)
+    userProfile: function(app, user) {
+        const result = publicUserProfile(app, user)
         if (user.password_expired) {
             result.password_expired = true;
         }
@@ -32,7 +32,7 @@ module.exports = {
 
     publicUserProfile,
 
-    teamMemberList: function(db, users) {
+    teamMemberList: function(app, users) {
         const result = users.map(u => {
             return {
                 id: u.hashid,

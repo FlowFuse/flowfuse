@@ -11,46 +11,35 @@ module.exports = fp(async function(app, _opts, next) {
 
     // mailTransport = nodemailer.createTransport(require("./localDelivery"));
 
-    let EMAIL_ENABLED = process.env.SMTP_DEBUG || !!process.env.SMTP_TRANSPORT_HOST;
+    // Use a local var as we may decide to disable email if the transport
+    // fails to verify
+    let EMAIL_ENABLED = app.config.email.enabled;
 
-    if (process.env.SMTP_TRANSPORT_HOST) {
-        const smtpConfig = {
-            host: process.env.SMTP_TRANSPORT_HOST,
-            port: process.env.SMTP_TRANSPORT_PORT,
-            secure: process.env.SMTP_TRANSPORT_TLS === "true",
-            // logger:true,
-            // debug: true
-        }
-        if (process.env.SMTP_TRANSPORT_AUTH_USER) {
-            smtpConfig.auth = smtpConfig.auth || {}
-            smtpConfig.auth.user = process.env.SMTP_TRANSPORT_AUTH_USER
-        }
-        if (process.env.SMTP_TRANSPORT_AUTH_PASS) {
-            smtpConfig.auth = smtpConfig.auth || {}
-            smtpConfig.auth.pass = process.env.SMTP_TRANSPORT_AUTH_PASS
-        }
+    if (EMAIL_ENABLED) {
+        if (app.config.email.smtp) {
+            const smtpConfig = app.config.email.smtp
 
-        const mailDefaults = { from: '"FlowForge Platform" <donotreply@flowforge.com>' }
+            const mailDefaults = { from: '"FlowForge Platform" <donotreply@flowforge.com>' }
 
-        mailTransport = nodemailer.createTransport(smtpConfig, mailDefaults);
+            mailTransport = nodemailer.createTransport(smtpConfig, mailDefaults);
 
-        exportableSettings = {
-            host: process.env.SMTP_TRANSPORT_HOST,
-            port: process.env.SMTP_TRANSPORT_PORT,
-            secure: process.env.SMTP_TRANSPORT_TLS === "true",
-        }
-        // app.log.info(smtpConfig);
-
-        mailTransport.verify(err => {
-            if (err) {
-                app.log.error("Failed to verify email connection: %s", err.toString())
-                EMAIL_ENABLED = false
+            exportableSettings = {
+                host: smtpConfig.host,
+                port: smtpConfig.port,
             }
-        })
-    } else if (!process.env.SMTP_DEBUG) {
-        app.log.info("Email not configured")
+            // app.log.info(smtpConfig);
+
+            mailTransport.verify(err => {
+                if (err) {
+                    app.log.error("Failed to verify email connection: %s", err.toString())
+                    EMAIL_ENABLED = false
+                }
+            })
+        } else {
+            app.log.info("Email not configured - no external email will be sent")
+        }
     } else {
-        app.log.info("Email debug output enabled")
+        app.log.info("Email not configured")
     }
 
     function loadTemplate(templateName) {
@@ -80,20 +69,21 @@ module.exports = fp(async function(app, _opts, next) {
             text: template.text(templateContext,{allowProtoPropertiesByDefault: true, allowProtoMethodsByDefault:true}),
             html: template.html(templateContext,{allowProtoPropertiesByDefault: true, allowProtoMethodsByDefault:true})
         }
-        if (EMAIL_ENABLED && !process.env.SMTP_DEBUG) {
+        if (EMAIL_ENABLED) {
             mailTransport.sendMail(mail, err => {
                 if (err) {
                     app.log.warn("Failed to send email:",err.toString())
                 }
             })
-        } else {
-            app.log.info(`
------------------------------------
-to: ${mail.to}
-subject: ${mail.subject}
-------
-${mail.text}
------------------------------------`)
+            if (app.config.email.debug) {
+                app.log.info(`
+    -----------------------------------
+    to: ${mail.to}
+    subject: ${mail.subject}
+    ------
+    ${mail.text}
+    -----------------------------------`)
+            }
         }
     }
 

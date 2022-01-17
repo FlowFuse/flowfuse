@@ -43,11 +43,12 @@ const postoffice = require('./postoffice');
     await server.register(config);
 
     await server.register(cookie, {
-        secret: server.secrets.sessionSecret, // for cookies signature
+        // TODO: this needs to be generated per-instance
+        secret: "flowforge-secret"
     })
     await server.register(csrf, { cookieOpts: { _signed: true, _httpOnly: true } })
 
-    process.env.PORT = process.env.PORT || 3000;
+    process.env.PORT = process.env.PORT || server.config.port || 3000;
     if (!process.env.BASE_URL) {
         process.env.BASE_URL = `http://localhost:${process.env.PORT}`;
     }

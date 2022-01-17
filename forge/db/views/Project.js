@@ -1,5 +1,5 @@
 module.exports = {
-    project: function(db, project) {
+    project: function(app, project) {
         const proj = project.toJSON();
         const result = {
             id: proj.id,
@@ -20,12 +20,12 @@ module.exports = {
         }
         return result;
     },
-    teamProjectList: function(db, projectList) {
+    teamProjectList: function(app, projectList) {
         return projectList.map((t) => {
-            return db.views.Project.project(t);
+            return app.db.views.Project.project(t);
         });
     },
-    userProjectList: function(db, projectList) {
+    userProjectList: function(app, projectList) {
         return projectList.map((t) => {
             return {
                 id: t.id,
@@ -35,7 +35,7 @@ module.exports = {
                 createdAt: t.createdAt,
                 updatedAt: t.updatedAt,
                 links: t.links,
-                team: db.views.Team.team(t.Team)
+                team: app.db.views.Team.team(t.Team)
             }
         });
     }

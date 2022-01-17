@@ -47,7 +47,7 @@ module.exports = fp(async function(app, opts, next) {
             throw new Error("Failed to apply license: "+err.toString());
         }
     } else {
-        console.log("No license applied");
+        app.log.info("No license applied");
     }
     app.decorate("license", licenseApi);
 
@@ -56,10 +56,10 @@ module.exports = fp(async function(app, opts, next) {
 
     async function applyLicense(license) {
         activeLicense = await loader.verifyLicense(license);
-        console.log("License verified:")
-        console.log(" Org:    ",activeLicense.organisation)
-        console.log(" Tier:   ",activeLicense.tier)
-        console.log(" Expires:",activeLicense.expiresAt.toISOString())
-        console.log(" Valid From:",activeLicense.validFrom.toISOString())
+        app.log.info("License verified:")
+        app.log.info(" Org:    ",activeLicense.organisation)
+        app.log.info(" Tier:   ",activeLicense.tier)
+        app.log.info(" Expires:",activeLicense.expiresAt.toISOString())
+        app.log.info(" Valid From:",activeLicense.validFrom.toISOString())
     }
 });
