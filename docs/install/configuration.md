@@ -16,7 +16,7 @@ Option | Description
 `base_url` | The url to access the platform. This defaults to `localhost` which means a number of internally generated URLs will only work when browsing on the same device as is running the platform. To be able to access the platform remotely, replace `localhost` with the ip address of the device running FlowForge.
 
 
-## Database configuration
+## Database configuration
 
 FlowForge supports `sqlite` and `postgres` databases.
 
