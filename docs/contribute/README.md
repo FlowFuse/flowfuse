@@ -11,7 +11,7 @@ This guide assumes you have a working development environment including:
 
  - Node.js 16
  - Platform build tools
-   - Linux: `apt-get install built-essential`
+   - Linux: `apt-get install build-essential`
    - MacOS: `xcode-select --install`
    - Windows: installed as part of the official node.js installer
  - Git
