@@ -10,7 +10,6 @@ db:
   logging: false
   ## The database type: sqlite|postgres
   type: sqlite
-
   ### SQLite options
 
   ## The database filename. Relative to $FLOWFORGE_HOME/var/
@@ -32,23 +31,28 @@ driver:
   ##  Can be: localfs/docker/stub/k8s
   type: localfs
 
-  ### LocalFS options
+  options:
+    ## Options to be passed to the driver
 
-  ## The first port number to assign to projects
-  # start_port: 7880
+    ### LocalFS options
 
-  ## Path to find node executable if not on the default path
-  # node_path: /usr/bin/node
+    ## The first port number to assign to projects
+    # start_port: 7880
 
-  ### Docker options
+    ## Path to find node executable if not on the default path
+    # node_path: /usr/bin/node
 
-  ## Docker socket path
-  # socket: /var/run/docker.sock
+    ### Docker options
 
-  ### K8S options
+    ## Docker socket path
+    # socket: /var/run/docker.sock
+    # registry: hub.flowforge.com
 
-  ## Kubectl conf file to contact the cluster
-  # config_file: /opt/share/projects/flowforge/test/config
+    ### K8S options
+
+    ## Kubectl conf file to contact the cluster
+    # config_file: /opt/share/projects/flowforge/test/config
+    # regsitry: hub.flowforge.com
 
 #################################################
 # Email Configuration                           #
