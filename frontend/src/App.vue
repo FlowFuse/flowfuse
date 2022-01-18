@@ -1,6 +1,13 @@
 <template>
     <div class="min-h-screen flex flex-col bg-gray-300 ">
-        <template v-if="pending">
+        <template v-if="offline">
+            <main class="flex-grow flex flex-col">
+                <div class="w-full max-w-screen-2xl mx-auto my-2 sm:my-8 flex-grow flex flex-col">
+                    <Offline />
+                </div>
+            </main>
+        </template>
+        <template v-else-if="pending">
             <main class="flex-grow flex flex-col">
                 <div class="w-full max-w-screen-2xl mx-auto my-2 sm:my-8 flex-grow flex flex-col">
                     <Loading />
@@ -38,12 +45,13 @@ import PageFooter from "@/components/PageFooter.vue"
 import PageHeader from "@/components/PageHeader.vue"
 import Login from "@/pages/Login.vue"
 import Loading from '@/components/Loading';
+import Offline from '@/components/Offline';
 import PasswordExpired from "@/pages/PasswordExpired.vue"
 
 export default {
     name: 'App',
     computed: {
-        ...mapState('account',['pending','user','team']),
+        ...mapState('account',['pending','user','team','offline']),
         loginRequired() {
             return this.$route.meta.requiresLogin !== false
         }
@@ -53,7 +61,8 @@ export default {
         PageHeader,
         Login,
         PasswordExpired,
-        Loading
+        Loading,
+        Offline
     },
     mounted() {
         this.$store.dispatch('account/checkState');
