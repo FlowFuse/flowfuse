@@ -1,5 +1,5 @@
 module.exports = {
-    userTeamList: function(db, teamList) {
+    userTeamList: function(app, teamList) {
         return teamList.map((t) => {
             const d = t.get({plain:true});
             return {
@@ -14,7 +14,7 @@ module.exports = {
             }
         });
     },
-    teamSummary: function(db, team) {
+    teamSummary: function(app, team) {
         const d = team.get({plain: true});
         const result = {
             id: d.hashid,
@@ -25,7 +25,7 @@ module.exports = {
         }
         return result;
     },
-    team: function(db, team) {
+    team: function(app, team) {
         if (team) {
             const result =  team.toJSON();
             const filtered = {

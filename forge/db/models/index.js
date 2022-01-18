@@ -82,8 +82,8 @@ const M = {};
  * Finally it synchronizes with the database to create the tables as needed.
  * @private
  */
-async function init(db) {
-    const sequelize = db.sequelize;
+async function init(app) {
+    const sequelize = app.db.sequelize;
     const allModels = [];
     modelTypes.forEach(type => {
         const m = require(`./${type}`);
@@ -145,7 +145,7 @@ async function init(db) {
                 type: DataTypes.VIRTUAL,
                 get() {
                     return {
-                        self: process.env.BASE_URL+"/api/v1/"+m.name.toLowerCase()+"s/"+this.hashid
+                        self: app.config.base_url+"/api/v1/"+m.name.toLowerCase()+"s/"+this.hashid
                     }
                 }
             }

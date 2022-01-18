@@ -28,7 +28,7 @@ module.exports = {
             get() {
                 const avatar = this.getDataValue('avatar')
                 if (avatar) {
-                    return `${process.env.BASE_URL}${avatar}`
+                    return `${process.env.FLOWFORGE_BASE_URL}${avatar}`
                 } else {
                     return avatar
                 }
@@ -48,7 +48,7 @@ module.exports = {
             }
         },
         beforeUpdate: (user) => {
-            if (user.avatar.startsWith(`${process.env.BASE_URL}/avatar/`)) {
+            if (user.avatar.startsWith(`${process.env.FLOWFORGE_BASE_URL}/avatar/`)) {
                 user.avatar = generateUserAvatar(user.name || user.username);
             }
         }

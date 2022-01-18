@@ -1,5 +1,5 @@
 module.exports = {
-    auditLog: function(db, logEntries) {
+    auditLog: function(app, logEntries) {
         logEntries.log = logEntries.log.map(e => {
             return {
                 id: e.hashid,

@@ -119,11 +119,11 @@ module.exports = async function(app) {
             request.session = await app.db.controllers.Session.getOrExpire(request.sid);
             if (request.session) {
                 // Logged in with valid session - bounce to complete page
-                reply.redirect(`${process.env.BASE_URL}/account/complete/${requestId}`)
+                reply.redirect(`${app.config.base_url}/account/complete/${requestId}`)
             }
         }
         // Redirect to login page with requestId in url - to bounce to an approve page
-        reply.redirect(`${process.env.BASE_URL}/account/request/${requestId}`)
+        reply.redirect(`${app.config.base_url}/account/request/${requestId}`)
     })
 
     app.get("/account/complete/:code", async function(request, reply) {

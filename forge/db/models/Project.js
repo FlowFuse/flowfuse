@@ -19,12 +19,12 @@ module.exports = {
             type: DataTypes.VIRTUAL,
             get() {
                 return {
-                    self: process.env.BASE_URL+"/api/v1/projects/"+this.id
+                    self: process.env.FLOWFORGE_BASE_URL+"/api/v1/projects/"+this.id
                 }
             }
         },
-        storageURL: { type: DataTypes.VIRTUAL, get() { return process.env['API_URL'] + "/storage" }},
-        auditURL: { type: DataTypes.VIRTUAL, get() { return process.env['API_URL'] + "/logging" }},
+        storageURL: { type: DataTypes.VIRTUAL, get() { return process.env.FLOWFORGE_API_URL + "/storage" }},
+        auditURL: { type: DataTypes.VIRTUAL, get() { return process.env.FLOWFORGE_API_URL + "/logging" }},
     },
     associations: function(M) {
         this.belongsTo(M['Team'])

@@ -1,5 +1,5 @@
 module.exports = {
-    invitationList: function(db, invitations) {
+    invitationList: function(app, invitations) {
         return invitations.map((t) => {
             const d = t.get({plain:true});
             const result = {
@@ -7,8 +7,8 @@ module.exports = {
                 createdAt: d.createdAt,
                 expiresAt: d.expiresAt,
                 sentAt: d.sentAt,
-                team: db.views.Team.teamSummary(t.team),
-                invitor: db.views.User.publicUserProfile(d.invitor)
+                team: app.db.views.Team.teamSummary(t.team),
+                invitor: app.db.views.User.publicUserProfile(d.invitor)
             };
             if (d.external) {
                 result.invitee = {
@@ -16,7 +16,7 @@ module.exports = {
                     email: d.email
                 }
             } else {
-                result.invitee = db.views.User.publicUserProfile(d.invitee)
+                result.invitee = app.db.views.User.publicUserProfile(d.invitee)
             }
             return result;
         });

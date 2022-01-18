@@ -17,51 +17,38 @@ const models = require("./models")
 const views = require("./views")
 const controllers = require("./controllers")
 const utils = require("./utils");
-
+const path = require("path");
 const fp = require("fastify-plugin");
 
 module.exports = fp(async function(app, _opts, next) {
 
     const dbOptions = {
-        dialect: process.env.DB_TYPE || 'sqlite',
+        dialect: app.config.db.type || 'sqlite',
     }
+    app.log.info(`Database driver: ${dbOptions.dialect}`)
     if (dbOptions.dialect === 'sqlite') {
-        if (process.env.DB_SQLITE_STORAGE) {
-            dbOptions.storage =  process.env.DB_SQLITE_STORAGE
+        let filename = app.config.db.storage || "forge.db";
+        if (filename !== ":memory:") {
+            if (!path.isAbsolute(filename)) {
+                filename = path.join(app.config.home,"var",filename);
+            }
         }
+        dbOptions.storage = filename;
+        app.log.info(`Database file: ${filename}`)
     } else if (dbOptions.dialect === 'mariadb') {
-        if (process.env.DB_MARIADB_HOST) {
-            dbOptions.host = process.env.DB_MARIADB_HOST || "mariadb"
-        }
-         if (process.env.DB_MARIADB_PORT) {
-            dbOptions.host = process.env.DB_MARIADB_PORT || 3306
-        }
-        if (process.env.DB_MARIADB_USER) {
-            dbOptions.username = process.env.DB_MARIADB_USER
-        }
-        if (process.env.DB_MARIADB_PASSWORD) {
-            dbOptions.password = process.env.DB_MARIADB_PASSWORD
-        }
-        dbOptions.database = "flowforge"
+        dbOptions.host = app.config.db.host || "mariadb"
+        dbOptions.port = app.config.db.port || 3306
+        dbOptions.username = app.config.db.username;
+        dbOptions.password = /*app.secrets.dbPassword ||*/ app.config.db.password;
     } else if (dbOptions.dialect === 'postgres') {
-        if (process.env.DB_POSTGRES_HOST) {
-            dbOptions.host = process.env.DB_POSTGRES_HOST || "postgres"
-        }
-         if (process.env.DB_POSTGRES_PORT) {
-            dbOptions.host = process.env.DB_POSTGRES_PORT || 5432
-        }
-        if (process.env.DB_POSTGRES_USER) {
-            dbOptions.username = process.env.DB_POSTGRES_USER
-        }
-        if (process.env.DB_POSTGRES_PASSWORD) {
-            dbOptions.password = process.env.DB_POSTGRES_PASSWORD
-        }
+        dbOptions.host = app.config.db.host || "postgres"
+        dbOptions.port = app.config.db.port || 5432;
+        dbOptions.username = app.config.db.username;
+        dbOptions.password = /*app.secrets.dbPassword ||*/ app.config.db.password;
         dbOptions.database = "flowforge"
     }
 
-    if (process.env.DB_LOGGING !== 'true') {
-        dbOptions.logging = false;
-    }
+    dbOptions.logging = !!app.config.db.logging;
 
     const sequelize = new Sequelize(dbOptions)
 
@@ -74,13 +61,13 @@ module.exports = fp(async function(app, _opts, next) {
         controllers,
         utils
     }
+    app.decorate('db', db)
 
     await sequelize.authenticate();
-    await models.init(db)
-    await views.init(db);
+    await models.init(app);
+    await views.init(app);
     await controllers.init(app);
 
-    app.decorate('db', db)
 
     await require("./test-data").inject(app);
 

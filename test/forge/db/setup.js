@@ -7,9 +7,17 @@ const { Roles } = require('../../../forge/lib/roles')
 module.exports = async function() {
     const app = fastify()
 
-    process.env.SMTP_TRANSPORT_HOST = ""
-    process.env.DB_TYPE = "sqlite";
-    process.env.DP_SQLITE_STORAGE = ":memory:"
+    // Quick fix - need a better strategry for per-test settings
+    app.decorate("settings",{ get: () => true })
+    app.decorate("config",{
+        email: {
+            enabled: true
+        },
+        db: {
+            type: "sqlite",
+            storage: ":memory:"
+        }
+    })
     await app.register(db);
     await app.register(postoffice);
 
