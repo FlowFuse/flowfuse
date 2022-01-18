@@ -58,9 +58,9 @@ xcode-select --install
    For Linux/MacOS:
 
     ```
-sudo mkdir /opt/flowforge
-sudo chown $USER /opt/flowforge
-```
+    sudo mkdir /opt/flowforge
+    sudo chown $USER /opt/flowforge
+    ```
 
 2. Download the Installer zip file from https://github.com/flowforge/installer/releases
 
@@ -68,17 +68,17 @@ sudo chown $USER /opt/flowforge
    the FlowForge directory
 
    ```
-cd /tmp/
-unzip flowforge-installer-x.y.z.zip
-cp -R flowforge-installer-x.y.z/* /opt/flowforge
-```
+    cd /tmp/
+    unzip flowforge-installer-x.y.z.zip
+    cp -R flowforge-installer-x.y.z/* /opt/flowforge
+    ```
 
 4. Run the installer and follow the prompts
 
     ```
-cd /opt/flowforge
-sh ./install.sh
-```
+    cd /opt/flowforge
+    sh ./install.sh
+    ```
 
 #### Installing as a service
 
@@ -100,6 +100,7 @@ For more details on the options available, see the [configuration guide](../conf
 ### Running FlowForge
 
 If you have installed FlowForge as a service, it can be started by running:
+
 ```
 service flowforge start
 ```
@@ -108,8 +109,9 @@ To run it manually, you can use:
 
  - Linux/MacOS:
     ```
-/opt/flowforge/bin/flowforge.sh
-```
+    /opt/flowforge/bin/flowforge.sh
+    ```
+
  - Windows:
 
    Use the file `bin/flowforge.bat` in the FlowForge directory
