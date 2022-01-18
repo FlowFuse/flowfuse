@@ -38,12 +38,12 @@ module.exports = fp(async function(app, _opts, next) {
     } else if (dbOptions.dialect === 'mariadb') {
         dbOptions.host = app.config.db.host || "mariadb"
         dbOptions.port = app.config.db.port || 3306
-        dbOptions.username = app.config.db.username;
+        dbOptions.username = app.config.db.user;
         dbOptions.password = /*app.secrets.dbPassword ||*/ app.config.db.password;
     } else if (dbOptions.dialect === 'postgres') {
         dbOptions.host = app.config.db.host || "postgres"
         dbOptions.port = app.config.db.port || 5432;
-        dbOptions.username = app.config.db.username;
+        dbOptions.username = app.config.db.user;
         dbOptions.password = /*app.secrets.dbPassword ||*/ app.config.db.password;
         dbOptions.database = "flowforge"
     }
