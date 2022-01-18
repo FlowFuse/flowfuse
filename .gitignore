@@ -1,5 +1,4 @@
 var/
-forge/containers/node_modules/
 /node_modules/
 frontend/dist
 frontend/dist-setup
