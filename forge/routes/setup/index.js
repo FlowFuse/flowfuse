@@ -127,4 +127,30 @@ module.exports = async function(app) {
         }
     });
 
+    app.post('/setup/settings', {
+        preValidation: app.csrfProtection,
+        schema: {
+            body: {
+                type: 'object',
+                required: ['telemetry'],
+                properties: {
+                    telemetry: { type: 'boolean' },
+                }
+            }
+        }
+    }, async (request, reply) => {
+        if (app.settings.get("setup:initialised")) {
+            reply.code(404);
+            return
+        }
+        try {
+            await app.settings.set("telemetry:enabled",request.body.telemetry)
+            reply.send({status: "okay"})
+        } catch(err) {
+            console.log(err);
+            let responseMessage = err.toString();
+            reply.code(400).send({error:responseMessage})
+        }
+    });
+
 }

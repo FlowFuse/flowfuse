@@ -20,6 +20,7 @@ module.exports = async function(app) {
             }
 
             if (request.session.User.admin) {
+                response['telemetry:enabled'] = app.settings.get("telemetry:enabled")
                 response['user:signup'] = app.settings.get("user:signup")
                 response['user:team:auto-create'] = app.settings.get('user:team:auto-create')
                 response.email = app.postoffice.exportSettings(true)

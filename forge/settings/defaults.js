@@ -8,6 +8,9 @@ module.exports = {
     // Whether the intial setup has been run
     "setup:initialised": false,
 
+    // Is telemetry enabled?
+    "telemetry:enabled": true,
+
     // Can user's signup via the login page
     "user:signup": false,
 

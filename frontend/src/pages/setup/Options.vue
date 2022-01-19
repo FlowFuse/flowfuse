@@ -43,12 +43,11 @@ export default {
         },
         applyOptions() {
             let opts = { _csrf: SETUP_CSRF_TOKEN, ...this.input }
-            this.$emit('next')
-            // return httpClient.post(`/setup/add-license`, opts).then(res => {
-            //     this.$emit('next')
-            // }).catch(err => {
-            //     this.errors.license = err.response.data.error
-            // });
+            return httpClient.post(`/setup/settings`, opts).then(res => {
+                this.$emit('next')
+            }).catch(err => {
+                console.error(err);
+            });
         }
     },
     components: {
