@@ -41,6 +41,7 @@ export default [
     },
     {
         profileLink: true,
+        profileMenuIndex: 0,
         path: '/account',
         redirect: '/account/settings',
         name: 'User Settings',
@@ -78,6 +79,7 @@ export default [
     },
     {
         profileLink: true,
+        profileMenuIndex: 999,
         path: '/account/logout',
         name: 'Sign out',
         redirect: function() {

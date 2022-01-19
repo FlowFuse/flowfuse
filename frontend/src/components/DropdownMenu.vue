@@ -24,6 +24,13 @@
                     <template v-else-if="item.disabled">
                         <div :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm',...(item.class||[]),'opacity-20']">{{ item.name }}</div>
                     </template>
+                    <template v-else-if="item.external">
+                        <a :href="item.link" target="_blank" :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm text-gray-700',...(item.class||[])]">
+                            <component v-if="item.icon" class="w-4 inline" :is="item.icon"></component>
+                            <img v-if="item.imgUrl" :src="item.imgUrl" class="h-4 v-4 inline rounded mr-1"/>
+                            {{ item.name }}
+                        </a>
+                    </template>
                     <template v-else-if="item.link || item.path">
                         <router-link :to="item.link || item" :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm text-gray-700',...(item.class||[])]">
                             <component v-if="item.icon" class="w-4 inline" :is="item.icon"></component>

@@ -24,10 +24,11 @@ export default [
     {
         path: '/admin/',
         profileLink: true,
+        profileMenuIndex: 50,
         adminOnly: true,
         beforeEnter: ensureAdmin,
         redirect: '/admin/overview',
-        name: 'Admin',
+        name: 'Admin Settings',
         icon: AdjustmentsIcon,
         component: Admin,
         children: [

@@ -34,7 +34,22 @@
             <div class="mt-3 px-2 space-y-1">
                 <router-link v-for="item in navigation" :to="item"  :key="item.name" class="block px-3 py-2 rounded-md text-base font-medium text-gray-400 hover:text-white hover:bg-gray-700">{{ item.name }}</router-link>
                 <hr>
-                <router-link v-for="item in profile" :to="item"  :key="item.name" class="block px-3 py-2 rounded-md text-base font-medium text-gray-400 hover:text-white hover:bg-gray-700">{{ item.name }}</router-link>
+                <template v-for="item in profile" :key="item.name">
+                    <template v-if="item.external">
+                        <a :href="item.link" target="_blank" :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm text-gray-700',...(item.class||[])]">
+                            <component v-if="item.icon" class="w-4 inline" :is="item.icon"></component>
+                            <img v-if="item.imgUrl" :src="item.imgUrl" class="h-4 v-4 inline rounded mr-1"/>
+                            {{ item.name }}
+                        </a>
+                    </template>
+                    <template v-else-if="item.link || item.path">
+                        <router-link :to="item.link || item" :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm text-gray-700',...(item.class||[])]">
+                            <component v-if="item.icon" class="w-4 inline" :is="item.icon"></component>
+                            <img v-if="item.imgUrl" :src="item.imgUrl" class="h-4 v-4 inline rounded mr-1"/>
+                            {{ item.name }}
+                        </router-link>
+                    </template>
+                </template>
             </div>
         </DisclosurePanel>
     </Disclosure>
@@ -55,9 +70,13 @@ export default {
   name: "Navbar",
   computed: {
       profile: function() {
-          return router.options.routes.filter(r => {
+          let profileLinks = router.options.routes.filter(r => {
               return r.profileLink && (!r.adminOnly || this.user.admin)
           })
+          profileLinks.sort((A,B) => {
+              return (A.profileMenuIndex||0)-(B.profileMenuIndex||0)
+          })
+          return profileLinks
       },
       ...mapState('account',['user','team','teams']),
   },
