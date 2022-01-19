@@ -3,8 +3,8 @@ module.exports = {
     "license": null,
 
     // Instance ID:
-    "instanceId": null,  
-    
+    "instanceId": null,
+
     // Whether the intial setup has been run
     "setup:initialised": false,
 
@@ -12,7 +12,7 @@ module.exports = {
     "user:signup": false,
 
     // Can user's create their own teams
-    "team:create": true,
+    "team:create": false,
 
     // Should we auto-create a team for a user when they register
     "user:team:auto-create": false,
