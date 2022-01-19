@@ -122,3 +122,5 @@ Once FlowForge is started, you can access the platform in your browser at [http:
 
 The first time you access it, the platform will take you through creating an
 administrator for the platform and other configuration options.
+
+For more information, follow [this guide](../first-run.md).
