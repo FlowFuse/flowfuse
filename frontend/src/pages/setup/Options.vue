@@ -4,11 +4,13 @@
 
         <FormRow v-model="input.telemetry" type="checkbox">Enable collection of anonymous statistics
             <template v-slot:description>
-                We collect anonymous statistics about how FlowForge is used.
-                This allows us to improve how it works and make a better product.
-                For more information about the data we collect and how it is used,
-                please see our <a class="underline" href="">Usage Data Collection Policy</a>.
-
+                <p><b>This release does not collect any information</b></p>
+                <p>A future release will collect anonymous statistics about how
+                FlowForge is used. This allows us to improve how it works and
+                make a better platform.</p>
+                <p>We will clearly communicate when this feature is implemented
+                and exactly what information is being gathered.</p>
+                <p>You can opt in or out of this feature at any time.</p>
             </template>
         </FormRow>
         <div class="space-x-2">
@@ -41,12 +43,11 @@ export default {
         },
         applyOptions() {
             let opts = { _csrf: SETUP_CSRF_TOKEN, ...this.input }
-            this.$emit('next')
-            // return httpClient.post(`/setup/add-license`, opts).then(res => {
-            //     this.$emit('next')
-            // }).catch(err => {
-            //     this.errors.license = err.response.data.error
-            // });
+            return httpClient.post(`/setup/settings`, opts).then(res => {
+                this.$emit('next')
+            }).catch(err => {
+                console.error(err);
+            });
         }
     },
     components: {

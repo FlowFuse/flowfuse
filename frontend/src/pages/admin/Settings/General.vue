@@ -32,7 +32,18 @@
                 sent to that email address.</p>
             </template>
         </FormRow>
-
+        <FormHeading>Platform</FormHeading>
+        <FormRow v-model="input['telemetry:enabled']" type="checkbox">
+            Enable collection of anonymous statistics
+            <template #description>
+                <p><b>This release does not collect any information</b></p>
+                <p>A future release will collect anonymous statistics about how
+                FlowForge is used. This allows us to improve how it works and
+                make a better platform.</p>
+                <p>We will clearly communicate when this feature is implemented
+                and exactly what information is being gathered.</p>
+            </template>
+        </FormRow>
         <div>
             <button type="button" :disabled="!saveEnabled" class="forge-button forge-button-small" @click="saveChanges">Save settings</button>
         </div>
@@ -51,7 +62,8 @@ const validSettings = [
     'user:signup',
     'user:team:auto-create',
     'team:create',
-    'team:user:invite:external'
+    'team:user:invite:external',
+    'telemetry:enabled'
 ]
 
 export default {
