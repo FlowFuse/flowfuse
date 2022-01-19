@@ -11,7 +11,7 @@
 import SectionSideMenu from '@/components/SectionSideMenu'
 const sideNavigation = [
     { name: "Password", path: "/account/security/password" },
-    { name: "Sessions", path: "/account/security/sessions" }
+    // { name: "Sessions", path: "/account/security/sessions" }
 ]
 
 
