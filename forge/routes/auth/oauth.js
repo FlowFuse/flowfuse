@@ -120,6 +120,7 @@ module.exports = async function(app) {
             if (request.session) {
                 // Logged in with valid session - bounce to complete page
                 reply.redirect(`${app.config.base_url}/account/complete/${requestId}`)
+                return
             }
         }
         // Redirect to login page with requestId in url - to bounce to an approve page

@@ -34,9 +34,9 @@ export default [
                 ]
             },
             { path: 'logs', component: ProjectLogs},
-            { path: 'deploys', component: ProjectDeploys},
+            // { path: 'deploys', component: ProjectDeploys},
             { path: 'activity', component: ProjectActivity},
-            { path: 'debug', component: ProjectDebug }
+            // { path: 'debug', component: ProjectDebug }
         ],
     },
     {

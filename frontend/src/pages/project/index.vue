@@ -106,13 +106,13 @@ export default {
         checkAccess() {
             this.navigation = [
                 { name: "Overview", path: `/project/${this.project.id}/overview` },
-                { name: "Deploys", path: `/project/${this.project.id}/deploys` },
+                // { name: "Deploys", path: `/project/${this.project.id}/deploys` },
                 { name: "Activity", path: `/project/${this.project.id}/activity` },
                 { name: "Logs", path: `/project/${this.project.id}/logs` },
             ]
             if (this.teamMembership && this.teamMembership.role === Roles.Owner) {
                 this.navigation.push({ name: "Settings", path: `/project/${this.project.id}/settings` })
-                this.navigation.push({ name: "Debug", path: `/project/${this.project.id}/debug` })
+                // this.navigation.push({ name: "Debug", path: `/project/${this.project.id}/debug` })
 
             }
         }
