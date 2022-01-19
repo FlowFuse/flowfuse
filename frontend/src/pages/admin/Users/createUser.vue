@@ -52,7 +52,7 @@ export default {
     },
     created() {
         this.setBreadcrumbs([
-            {label:"Admin", to:{name:"Admin"}},
+            {label:"Admin", to:{name:"Admin Settings"}},
             {label:"Users", to:{path:"/admin/users"}},
             {label:"Create a new user" }
         ]);
