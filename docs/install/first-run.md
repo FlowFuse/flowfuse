@@ -20,13 +20,9 @@ provide tools to manage passwords outside of the platform in a future release.
 
 ## 2. Upload a license
 
-The core of the platform is Open Source and can be used freely without a license.
+FlowForge Community Edition is Open Source and can be used freely without a license.
 
-In the future, optional features will be available that are not part of the Open
-Source code base. Those features may require a license in order to enable and
-use in production.
-
-For now, you can skip this stage
+If you have a FlowForge Enterprise Edition license you can upload it here.
 
 <img src="images/setup-03-license.png" width=300 />
 
