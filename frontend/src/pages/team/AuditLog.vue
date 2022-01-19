@@ -6,7 +6,7 @@
 import teamApi from '@/api/team'
 import AuditLog from '@/components/AuditLog'
 import { useRoute, useRouter } from 'vue-router';
-import { Roles } from '@/utils/roles'
+import { Roles } from '@core/lib/roles'
 
 export default {
     name: 'TeamAuditLog',

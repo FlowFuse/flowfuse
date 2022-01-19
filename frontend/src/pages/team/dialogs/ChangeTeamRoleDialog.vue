@@ -53,7 +53,7 @@ import {
 
 import FormRow from '@/components/FormRow'
 import teamApi from '@/api/team'
-import { Roles, RoleNames } from '@/utils/roles'
+import { Roles, RoleNames } from '@core/lib/roles'
 
 export default {
     name: 'ChangeTeamRoleDialog',

@@ -9,7 +9,7 @@
 
 <script>
 import SectionSideMenu from '@/components/SectionSideMenu'
-import { Roles } from '@/utils/roles'
+import { Roles } from '@core/lib/roles'
 
 // const sideNavigation = [
 //     { name: "Members", path: "./general" },

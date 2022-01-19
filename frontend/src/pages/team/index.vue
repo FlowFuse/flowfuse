@@ -24,7 +24,7 @@ import SectionTopMenu from '@/components/SectionTopMenu';
 import Loading from '@/components/Loading';
 import { useRoute } from 'vue-router';
 import { mapState } from 'vuex'
-import { Roles } from '@/utils/roles'
+import { Roles } from '@core/lib/roles'
 
 export default {
     name: 'Team',

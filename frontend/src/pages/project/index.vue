@@ -28,7 +28,7 @@ import SectionTopMenu from '@/components/SectionTopMenu';
 import DropdownMenu from '@/components/DropdownMenu'
 import ProjectStatusBadge from './components/ProjectStatusBadge'
 import { mapState } from 'vuex'
-import { Roles } from '@/utils/roles'
+import { Roles } from '@core/lib/roles'
 
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
 

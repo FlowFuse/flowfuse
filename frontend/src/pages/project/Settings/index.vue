@@ -11,7 +11,7 @@
 import SectionSideMenu from '@/components/SectionSideMenu'
 import { useRoute, useRouter } from 'vue-router';
 import { mapState } from 'vuex'
-import { Roles } from '@/utils/roles'
+import { Roles } from '@core/lib/roles'
 
 const sideNavigation = [
     { name: "General", path: "./general" },

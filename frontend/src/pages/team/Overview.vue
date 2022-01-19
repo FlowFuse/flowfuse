@@ -3,7 +3,7 @@
         <div class="flex-grow p-2">
             <FormHeading>
                 <router-link to="./projects">Projects</router-link>
-                <template v-slot:tools>
+                <template v-if="createProjectEnabled" v-slot:tools>
                     <router-link to="./projects/create" class="forge-button pl-1 pr-2"><PlusSmIcon class="w-4" /><span class="text-xs">Create Project</span></router-link>
                 </template>
             </FormHeading>
@@ -27,6 +27,7 @@
 
 <script>
 
+import { Roles } from '@core/lib/roles'
 import teamApi from '@/api/team'
 import FormHeading from '@/components/FormHeading'
 import MemberSummaryList from './components/MemberSummaryList'
@@ -36,7 +37,7 @@ import CreateProjectButton from "@/components/CreateProjectButton"
 
 export default {
     name: 'TeamOverview',
-    props:[ "team" ],
+    props:[ "team", "teamMembership" ],
     data: function() {
         return {
             userCount: 0,
@@ -44,6 +45,11 @@ export default {
             projectCount: 0,
             projects: null
 
+        }
+    },
+    computed: {
+        createProjectEnabled: function() {
+            return this.teamMembership.role === Roles.Owner
         }
     },
     watch: {

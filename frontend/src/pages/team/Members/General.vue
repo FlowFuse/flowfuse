@@ -30,7 +30,7 @@ import InviteMemberDialog from '../dialogs/InviteMemberDialog'
 
 import teamApi from '@/api/team'
 import { PlusSmIcon, UsersIcon, ChevronRightIcon } from '@heroicons/vue/outline'
-import { Roles, RoleNames } from '@/utils/roles'
+import { Roles, RoleNames } from '@core/lib/roles'
 
 export default {
     name: 'TeamUsersGeneral',

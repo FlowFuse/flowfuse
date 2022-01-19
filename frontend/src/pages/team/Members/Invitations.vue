@@ -18,7 +18,7 @@ import ItemTable from '@/components/tables/ItemTable'
 import InviteUserCell from '@/components/tables/cells/InviteUserCell'
 import { TrashIcon } from '@heroicons/vue/outline'
 import { useRoute, useRouter } from 'vue-router';
-import { Roles } from '@/utils/roles'
+import { Roles } from '@core/lib/roles'
 
 const MemberInviteRemoveButton = {
     template: `<button type="button" class="forge-button-inline px-2 py-2" @click="removeInvite"><TrashIcon class="w-5" /></button>`,

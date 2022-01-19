@@ -2,7 +2,7 @@
     <div>{{ formatRole(role) }}</div>
 </template>
 <script>
-import { RoleNames } from '@/utils/roles'
+import { RoleNames } from '@core/lib/roles'
 
 export default {
     name: "UserRoleCell",

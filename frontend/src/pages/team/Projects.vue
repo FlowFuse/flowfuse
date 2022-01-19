@@ -3,18 +3,23 @@
         <template v-if="projectCount > 0">
             <ItemTable :items="projects" :columns="columns" />
         </template>
-        <template v-else>
+        <template v-else-if="createProjectEnabled">
             <div class="flex justify-center mb-4 p-8">
                 <CreateProjectButton :url="'/team/'+team.slug+'/projects/create'" class="w-auto flex-grow-0"/>
             </div>
         </template>
-
+        <template v-else>
+            <div class="flex text-gray-500 justify-center italic mb-4 p-8">
+                You don't have any projects yet
+            </div>
+        </template>
     </form>
 </template>
 
 <script>
 import { markRaw } from "vue"
 import { mapState } from 'vuex'
+import { Roles } from '@core/lib/roles'
 import teamApi from '@/api/team'
 import FormHeading from '@/components/FormHeading'
 import ItemTable from '@/components/tables/ItemTable'
@@ -57,7 +62,12 @@ export default {
             }
         }
     },
-    props:[ "team" ],
+    computed: {
+        createProjectEnabled: function() {
+            return this.teamMembership.role === Roles.Owner
+        }
+    },
+    props:[ "team", "teamMembership"],
     components: {
         ItemTable,
         FormHeading,
