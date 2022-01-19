@@ -36,7 +36,7 @@ export default [
                 path: 'settings', component: AdminSettings, redirect: `/admin/settings/general`,
                 children: [
                     { path: 'general', component: AdminSettingsGeneral },
-                    { path: 'permissions', component: AdminSettingsPermissions },
+                    // { path: 'permissions', component: AdminSettingsPermissions },
                     { path: 'license', component: AdminSettingsLicense },
                     { path: 'email', component: AdminSettingsEmail },
                 ]

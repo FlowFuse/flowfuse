@@ -4,6 +4,7 @@
             <FormHeading>License</FormHeading>
             <template v-if="license">
                 <table>
+                    <tr><td class="font-medium p-2 pr-4 align-top">Type</td><td class="p-2">FlowForge Enterprise Edition</td></tr>
                     <tr><td class="font-medium p-2 pr-4 align-top">Organisation</td><td class="p-2">{{license.organisation}}</td></tr>
                     <tr><td class="font-medium p-2 pr-4 align-top">Tier</td><td class="p-2">{{license.tier}}</td></tr>
                     <tr><td class="font-medium p-2 pr-4 align-top">Expires</td><td class="p-2">{{license.expires}}<br><span class="text-xs">{{license.expiresAt}}</span></td></tr>
@@ -11,7 +12,9 @@
                 <details><pre class="break-words">{{license}}</pre></details>
             </template>
             <template v-else>
-                No license applied
+                <table>
+                    <tr><td class="font-medium p-2 pr-4 align-top">Type</td><td class="p-2">FlowForge Community Edition</td></tr>
+                </table>
             </template>
             <div class="space-x-4 whitespace-nowrap">
                 <button type="button" class="forge-button forge-button-small" @click="editLicense">Update license</button>
