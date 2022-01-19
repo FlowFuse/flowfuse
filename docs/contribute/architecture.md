@@ -9,11 +9,11 @@ These can be deployed in one of 2 ways
 
  - On a single machine
 
-   ![LocalFS Architecture](./ff-localfs.png)
+   ![LocalFS Architecture](./images/ff-localfs.png)
 
  - Using a Container Orchestation platform (Kubernetes/Docker Compose)
 
-   ![Container Architecture](./ff-containers.png)
+   ![Container Architecture](./images/ff-containers.png)
 
 
 ## FlowForge Management Application
@@ -22,16 +22,16 @@ This provides the interface for managing Users and Projects. It also provides a 
 
 ### Container Drivers
 
-Projects are started byt the FlowForge Management Application via one of the following Container Drivers
+Projects are started by the FlowForge Management Application via one of the following Container Drivers
 
 #### Localfs
 
-This driver runs Projects as seperarte processes on the same machine as the FlowForge Management Application. Each Project get's it's own userDir and a dedicated TCP/IP port to listen to.
+This driver runs Projects as separate processes on the same machine as the FlowForge Management Application. Each Project gets its own `userDir` and a dedicated TCP/IP port to listen to.
 
 
 #### Kubernetes
 
-This driver runs Projects in seperate containers and each instance is accesses by a dedicated hostname.
+This driver runs Projects in separate containers and each instance is accesses by a dedicated hostname.
 
 #### Docker-Compose
 
@@ -42,19 +42,19 @@ A FlowForge Project is made up of 2 parts
 - The FlowForge Launcher
 - A Node-RED instance
 
-![Project Architecture](./ff-project-arch.png)
+![Project Architecture](./images/ff-project-arch.png)
 
 ### FlowForge Launcher
 
 This is a small application that handles downloading the Project specific settings, building a `settings.js` from those settings and then starting the Node-RED instance.
 
-The launcher presents a HTTP API (it defaults to the Node-RED port + 1000) that allows the FlowForge Management Application to start/stop/restart the Node-RED instance as well as query it's current state and retreive the console logs.
+The launcher presents a HTTP API (it defaults to the Node-RED port + 1000) that allows the FlowForge Management Application to start/stop/restart the Node-RED instance as well as query it's current state and retrieve the console logs.
 
 ### Node-RED Instance
- 
+
 This is the standard Node-RED package with the following plugins
 
- - nr-stroage
+ - nr-storage
  - nr-auth
  - nr-audit-logger
 
@@ -64,7 +64,7 @@ This plugin is used to save flows, settings, sessions and library entries back t
 
 #### nr-auth
 
-This plugin is used to authenticate users trying to access the Node-RED Editor, it reffers back to the FlowForge Management Application to ensure only members of the team that owns the project can log in.
+This plugin is used to authenticate users trying to access the Node-RED Editor, it refers back to the FlowForge Management Application to ensure only members of the team that owns the project can log in.
 
 #### nr-audit-logger
 
