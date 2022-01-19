@@ -3,9 +3,9 @@
 
 ## Getting started
 
- - [Understanding the FlowForge Architecture](../contribute/architecure.md)
+ - [Understanding the FlowForge Architecture](../contribute/architecture.md)
  - [Install](../install) - requirements, deployment models, installation methods
- - [`flowforge.yml` configuration](../install/configuration,md) - base platform configuration, done before you run.
+ - [`flowforge.yml` configuration](../install/configuration.md) - base platform configuration, done before you run.
  - [First Run Setup](../install/first-run.md) - create your admin user
  - [FlowForge Concepts](../user/concepts.md)
 
@@ -72,7 +72,7 @@ It can be used to:
 It also provides a list of all pending user invitations, showing who invited who
 to what team.
 
-### Managing Teams
+### Managing Teams
 
 With the 0.1.0 release, the Teams page just lists the teams on the platform.
 
