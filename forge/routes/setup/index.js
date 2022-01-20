@@ -19,6 +19,7 @@ module.exports = async function(app) {
     app.get('/setup', async (_,reply) => {
         if (app.settings.get("setup:initialised")) {
             reply.redirect("/")
+            return
         }
         const csrfToken = await reply.generateCsrf();
         if (!cachedSetupFile) {
