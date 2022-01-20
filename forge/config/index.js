@@ -18,7 +18,7 @@ const fs = require("fs");
 const path = require("path");
 const fp = require("fastify-plugin");
 const YAML = require("yaml");
-const FastifySecrets = require('fastify-secrets-env')
+// const FastifySecrets = require('fastify-secrets-env')
 
 module.exports = fp(async function(app, _opts, next) {
 
