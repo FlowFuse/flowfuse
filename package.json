@@ -1,8 +1,7 @@
 {
     "name": "@flowforge/flowforge",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "description": "An open source low-code development platform",
-    "private": true,
     "scripts": {
         "start": "node forge/app.js",
         "build": "webpack -c ./config/webpack.config.js",
@@ -28,7 +27,7 @@
     },
     "homepage": "https://github.com/flowforge/flowforge#readme",
     "dependencies": {
-        "@flowforge/localfs": "file:sub_modules/flowforge-driver-localfs",
+        "@flowforge/localfs": "^0.1.0",
         "@headlessui/vue": "1.4.3",
         "@heroicons/vue": "1.0.5",
         "bcrypt": "^5.0.1",
