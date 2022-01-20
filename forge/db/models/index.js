@@ -85,12 +85,21 @@ const M = {};
 async function init(app) {
     const sequelize = app.db.sequelize;
     const allModels = [];
+
+    function getHashId(type) {
+        if (!hashids[type]) {
+            // This defers trying to access app.settings until after the
+            // database has been initialised
+            hashids[type] = new Hashids((app.settings.get("instanceId")||"")+type,10);
+        }
+        return hashids[type]
+    }
+
     modelTypes.forEach(type => {
         const m = require(`./${type}`);
         if (m.name !== type) {
             throw new Error(`Model name mismatch: '${m.name}' !== '${type}'`)
         }
-        hashids[type] = new Hashids(type,10);
 
         const opts = {
             sequelize,
@@ -118,7 +127,7 @@ async function init(app) {
             m.schema.slug = {
                 type: DataTypes.VIRTUAL,
                 get() {
-                    return hashids[m.name].encode(this.id);
+                    return getHashId(m.name).encode(this.id);
                 }
             }
         }
@@ -126,17 +135,17 @@ async function init(app) {
             m.schema.hashid = {
                 type: DataTypes.VIRTUAL,
                 get() {
-                    return hashids[m.name].encode(this.id);
+                    return getHashId(m.name).encode(this.id);
                 },
                 set(_) {
                     throw new Error('hashid is read-only');
                 }
             }
             m.model.encodeHashid = function(id) {
-                return hashids[m.name].encode(id);
+                return getHashId(m.name).encode(id);
             }
             m.model.decodeHashid = function(hashid) {
-                return hashids[m.name].decode(hashid);
+                return getHashId(m.name).decode(hashid);
             }
         }
 
