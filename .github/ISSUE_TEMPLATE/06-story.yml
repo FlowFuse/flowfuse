@@ -1,0 +1,35 @@
+name: 📖 Story
+description: Create a story
+labels: [story]
+body:
+- type: markdown
+  attributes:
+    value: |
+      A Story is a user-oriented description of a feature. It should describe what
+      a user should be able to do and identify the value that brings to the user.
+- type: input
+  attributes:
+    label: Epic
+    description: What epic is this story part of?
+    placeholder: '#123'
+- type: textarea
+  attributes:
+    label: Description
+    description: Describe the story
+    value: |
+      **As a:**
+
+      **I want to:**
+
+      **So that:**
+
+- type: textarea
+  attributes:
+    label: Acceptance Criteria
+    description: |
+      Any key points that should be used to assess if the story has been completed.
+    value: |
+      - [ ] criteria 1
+      - [ ] criteria 2
+      - [ ] criteria 3
+      - ...

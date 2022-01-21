@@ -1,0 +1,8 @@
+name: 💡 Feature Request
+description: Propose a new feature for the platform
+labels: [needs-triage, feature-request]
+body:
+- type: textarea
+  attributes:
+    label: Description
+    description: Describe the feature

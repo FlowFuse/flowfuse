@@ -1,0 +1,8 @@
+name: 📝 Documentation Issue
+description: Something related to the documentation
+labels: [needs-triage, docs]
+body:
+- type: textarea
+  attributes:
+    label: Description
+    description: Describe the issue with the documentation
