@@ -70,14 +70,14 @@ xcode-select --install
    ```
     cd /tmp/
     unzip flowforge-installer-x.y.z.zip
-    cp -R flowforge-installer-x.y.z/* /opt/flowforge
+    cp -R flowforge-install-x.y.z/* /opt/flowforge
     ```
 
 4. Run the installer and follow the prompts
 
     ```
     cd /opt/flowforge
-    sh ./install.sh
+    ./install.sh
     ```
 
 #### Installing as a service
