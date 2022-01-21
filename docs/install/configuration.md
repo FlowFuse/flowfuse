@@ -51,3 +51,5 @@ Option        | Description
 `email.smtp.auth.user` | Username to authenticate the connection with. Default: `unset`
 `email.smtp.auth.pass` | Password to authenticate the connection with. Default: `unset`
 `email.debug`   | If set to true, it will log the full content of emails it tries to send. Default: `false`
+
+See (here)[./email_providers.md] For example config for common email providers
