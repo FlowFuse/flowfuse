@@ -82,5 +82,8 @@
         "webpack": "^5.66.0",
         "webpack-cli": "^4.9.1",
         "webpack-dev-server": "^3.11.3"
+    },
+    "engines": {
+        "node": ">=16.x"
     }
 }

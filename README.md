@@ -33,7 +33,10 @@ it is modified.
 
 ```
 .
+
 ├── config               - build config files
+├── docs
+├── etc
 ├── forge
 │   ├── config
 │   ├── containers
@@ -45,28 +48,23 @@ it is modified.
 │   │   └── views
 │   ├── licensing
 │   ├── postoffice
-│   └── routes
+│   ├── routes
 │   │   ├── api
 │   │   ├── auth
 │   │   ├── logging
 │   │   ├── setup
 │   │   ├── storage
 │   │   └── ui
-│   ├── settings
+│   └── settings
 └── frontend             - the forge frontend
-|   ├── dist             - build output - created by `npm run build`
-|   ├── public           - static assets
-|   └── src              - vue src
-|       ├── api
-|       ├── components
-|       ├── pages
-|       │   └── account
-|       ├── routes
-|       └── store
-└── submodules
-    ├── flowforge-driver-localfs
-    ├── flowforge-nr-launcher
-    ├── flowforge-nr-storage
-    ├── flowforge-nr-auth
-    └── flowforge-nr-audit-logger
+    ├── dist             - build output - created by `npm run build`
+    ├── public           - static assets
+    └── src              - vue src
+        ├── api
+        ├── components
+        ├── pages
+        │   └── account
+        ├── routes
+        └── store
+
 ```
