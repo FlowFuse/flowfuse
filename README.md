@@ -3,12 +3,15 @@ An open source low-code development platform
 
 > Give your users the power to create their own workflows in a secure, scalable, collaborative environment built around the open source Node-RED project.
 
+## Prerequisites
+
+ - NodeJS v16
 
 ## Development
 
 ```
 # Clone the repo
-git clone https://github.com/flowforge/flowforge.git --recurse-submodules
+git clone https://github.com/flowforge/flowforge.git 
 
 cd flowforge
 
@@ -33,7 +36,10 @@ it is modified.
 
 ```
 .
+├── bin
 ├── config               - build config files
+├── docs
+├── etc                  - FlowForge platofrom configuration files
 ├── forge
 │   ├── config
 │   ├── containers
@@ -45,28 +51,24 @@ it is modified.
 │   │   └── views
 │   ├── licensing
 │   ├── postoffice
-│   └── routes
+│   ├── routes
 │   │   ├── api
 │   │   ├── auth
 │   │   ├── logging
 │   │   ├── setup
 │   │   ├── storage
 │   │   └── ui
-│   ├── settings
-└── frontend             - the forge frontend
-|   ├── dist             - build output - created by `npm run build`
-|   ├── public           - static assets
-|   └── src              - vue src
-|       ├── api
-|       ├── components
-|       ├── pages
-|       │   └── account
-|       ├── routes
-|       └── store
-└── submodules
-    ├── flowforge-driver-localfs
-    ├── flowforge-nr-launcher
-    ├── flowforge-nr-storage
-    ├── flowforge-nr-auth
-    └── flowforge-nr-audit-logger
+│   └── settings
+├── frontend             - the forge frontend
+│   ├── dist             - build output - created by `npm run build`
+│   ├── public           - static assets
+│   └── src              - vue src
+│       ├── api
+│       ├── components
+│       ├── pages
+│       │   └── account
+│       ├── routes
+│       └── store
+├── test                 - tests for FlowForge
+└── var                  - where the database and localfs project directories are created
 ```
