@@ -36,10 +36,6 @@ module.exports = fp(async function(app, _opts, next) {
         }
     }
 
-    if (!semver.satisfies(process.version,">=16.0.0")) {
-        app.log.warn(`FlowForge requires at least NodeJS v16, ${process.version} found`)
-    }
-
     if (process.env.npm_package_version) {
         //npm start
         app.log.info(`FlowForge v${process.env.npm_package_version}`)
@@ -47,6 +43,12 @@ module.exports = fp(async function(app, _opts, next) {
         //everything else
         let {version} = require(path.join(module.parent.path, "..", "package.json"))
         app.log.info(`FlowForge v${version}`)
+    }
+
+    if (!semver.satisfies(process.version,">=16.0.0")) {
+        app.log.warn(`FlowForge requires at least NodeJS v16, ${process.version} found`)
+    } else {
+        app.log.info(`FlowForge running with NodeJS ${process.version}`)
     }
 
     app.log.info(`FlowForge Data Directory: ${process.env.FLOWFORGE_HOME}`)
