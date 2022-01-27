@@ -1,4 +1,4 @@
-import { createStore, createLogger } from 'vuex'
+import { createStore } from 'vuex'
 import account from './account'
 import breadcrumbs from './breadcrumbs'
 
@@ -7,5 +7,5 @@ export default createStore({
         account,
         breadcrumbs
     },
-    plugins: []//createLogger()]
+    plugins: []
 })

@@ -1,19 +1,18 @@
-import Team from "@/pages/team/index.vue"
-import TeamOverview from "@/pages/team/Overview.vue"
-import TeamProjects from "@/pages/team/Projects.vue"
-import TeamMembers from "@/pages/team/Members/index.vue"
-import TeamMembersMembers from "@/pages/team/Members/General.vue"
-import TeamMembersInvitations from "@/pages/team/Members/Invitations.vue"
-import TeamAuditLog from "@/pages/team/AuditLog.vue"
-import TeamSettings from "@/pages/team/Settings/index.vue"
-import TeamSettingsGeneral from "@/pages/team/Settings/General.vue"
-import TeamSettingsDanger from "@/pages/team/Settings/Danger.vue"
-import TeamSettingsPermissions from "@/pages/team/Settings/Permissions.vue"
-import CreateTeam from "@/pages/team/create.vue"
-import CreateProject from "@/pages/project/create.vue"
+import Team from '@/pages/team/index.vue'
+import TeamOverview from '@/pages/team/Overview.vue'
+import TeamProjects from '@/pages/team/Projects.vue'
+import TeamMembers from '@/pages/team/Members/index.vue'
+import TeamMembersMembers from '@/pages/team/Members/General.vue'
+import TeamMembersInvitations from '@/pages/team/Members/Invitations.vue'
+import TeamAuditLog from '@/pages/team/AuditLog.vue'
+import TeamSettings from '@/pages/team/Settings/index.vue'
+import TeamSettingsGeneral from '@/pages/team/Settings/General.vue'
+import TeamSettingsDanger from '@/pages/team/Settings/Danger.vue'
+// import TeamSettingsPermissions from '@/pages/team/Settings/Permissions.vue'
+import CreateTeam from '@/pages/team/create.vue'
+import CreateProject from '@/pages/project/create.vue'
 
-import ensurePermission from "@/utils/ensurePermission"
-
+import ensurePermission from '@/utils/ensurePermission'
 
 export default [
     {
@@ -32,7 +31,9 @@ export default [
         children: [
             { path: 'overview', component: TeamOverview },
             { path: 'projects', component: TeamProjects },
-            { path: 'members', component: TeamMembers,
+            {
+                path: 'members',
+                component: TeamMembers,
                 redirect: to => {
                     return `/team/${to.params.id}/members/general`
                 },
@@ -41,9 +42,10 @@ export default [
                     { path: 'invitations', component: TeamMembersInvitations }
                 ]
             },
-            { path: 'audit-log', component: TeamAuditLog},
+            { path: 'audit-log', component: TeamAuditLog },
             {
-                path: 'settings', component: TeamSettings,
+                path: 'settings',
+                component: TeamSettings,
                 redirect: to => {
                     return `/team/${to.params.id}/settings/general`
                 },

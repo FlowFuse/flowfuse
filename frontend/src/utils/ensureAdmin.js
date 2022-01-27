@@ -1,13 +1,13 @@
-import store from "@/store"
+import store from '@/store'
 
 /**
  * A 'beforeEnter' router function that ensures the user is an admin
  */
-export default function(to, from, next) {
-    let watcher;
+export default function (to, from, next) {
+    let watcher
     function proceed () {
         if (watcher) {
-            watcher();
+            watcher()
         }
         if (store.state.account.user.admin) {
             next()

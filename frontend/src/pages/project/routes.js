@@ -1,16 +1,15 @@
-import Project from "@/pages/project/index.vue"
-import ProjectOverview from "@/pages/project/Overview.vue"
-import ProjectSettings from "@/pages/project/Settings/index.vue"
-import ProjectSettingsGeneral from "@/pages/project/Settings/General.vue"
-import ProjectSettingsDanger from "@/pages/project/Settings/Danger.vue"
-import ProjectSettingsEnvVar from "@/pages/project/Settings/Environment.vue"
-import ProjectDebug from "@/pages/project/Debug.vue"
-import ProjectDeploys from "@/pages/project/Deploys.vue"
-import ProjectLogs from "@/pages/project/Logs.vue"
-import ProjectActivity from "@/pages/project/Activity.vue"
+import Project from '@/pages/project/index.vue'
+import ProjectOverview from '@/pages/project/Overview.vue'
+import ProjectSettings from '@/pages/project/Settings/index.vue'
+import ProjectSettingsGeneral from '@/pages/project/Settings/General.vue'
+import ProjectSettingsDanger from '@/pages/project/Settings/Danger.vue'
+import ProjectSettingsEnvVar from '@/pages/project/Settings/Environment.vue'
+// import ProjectDebug from '@/pages/project/Debug.vue'
+// import ProjectDeploys from '@/pages/project/Deploys.vue'
+import ProjectLogs from '@/pages/project/Logs.vue'
+import ProjectActivity from '@/pages/project/Activity.vue'
 
-
-import CreateProject from "@/pages/project/create.vue"
+import CreateProject from '@/pages/project/create.vue'
 
 export default [
     {
@@ -23,7 +22,8 @@ export default [
         children: [
             { path: 'overview', component: ProjectOverview },
             {
-                path: 'settings', component: ProjectSettings,
+                path: 'settings',
+                component: ProjectSettings,
                 redirect: to => {
                     return `/project/${to.params.id}/settings/general`
                 },
@@ -33,11 +33,11 @@ export default [
                     { path: 'danger', component: ProjectSettingsDanger }
                 ]
             },
-            { path: 'logs', component: ProjectLogs},
+            { path: 'logs', component: ProjectLogs },
             // { path: 'deploys', component: ProjectDeploys},
-            { path: 'activity', component: ProjectActivity},
+            { path: 'activity', component: ProjectActivity }
             // { path: 'debug', component: ProjectDebug }
-        ],
+        ]
     },
     {
         path: '/create',
