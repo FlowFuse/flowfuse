@@ -10,6 +10,7 @@ const license = require("./licensing");
 const containers = require('./containers');
 const cookie = require('fastify-cookie');
 const csrf = require('fastify-csrf');
+const semver = require('semver')
 
 const postoffice = require('./postoffice');
 
@@ -23,6 +24,12 @@ const postoffice = require('./postoffice');
   */
 
 (async function() {
+
+    if (!semver.satisfies(process.version,">=16.0.0")) {
+        console.error(`FlowForge requires at least NodeJS v16, ${process.version} found`)
+        process.exit(1)
+    } 
+
     const server = fastify({
         maxParamLength: 500,
         logger: {

@@ -18,6 +18,7 @@ const fs = require("fs");
 const path = require("path");
 const fp = require("fastify-plugin");
 const YAML = require("yaml");
+
 // const FastifySecrets = require('fastify-secrets-env')
 
 module.exports = fp(async function(app, _opts, next) {
@@ -34,6 +35,17 @@ module.exports = fp(async function(app, _opts, next) {
             }
         }
     }
+
+    if (process.env.npm_package_version) {
+        //npm start
+        app.log.info(`FlowForge v${process.env.npm_package_version}`)
+    } else {
+        //everything else
+        let {version} = require(path.join(module.parent.path, "..", "package.json"))
+        app.log.info(`FlowForge v${version}`)
+    }
+
+    app.log.info(`FlowForge running with NodeJS ${process.version}`)
 
     app.log.info(`FlowForge Data Directory: ${process.env.FLOWFORGE_HOME}`)
 
