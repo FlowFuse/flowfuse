@@ -47,6 +47,7 @@ module.exports = fp(async function(app, _opts, next) {
 
     if (!semver.satisfies(process.version,">=16.0.0")) {
         app.log.warn(`FlowForge requires at least NodeJS v16, ${process.version} found`)
+        process.exit(1)
     } else {
         app.log.info(`FlowForge running with NodeJS ${process.version}`)
     }
