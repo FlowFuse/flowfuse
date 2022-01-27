@@ -9,7 +9,9 @@
         "start-watch": "NODE_ENV=development nodemon -w forge -w ee/forge -i forge/containers/localfs_root forge/app.js",
         "build-watch": "webpack --mode=development -c ./config/webpack.config.js --watch",
         "docs": "jsdoc -c ./config/jsdoc.json",
-        "test": "mocha test/**/*_spec.js"
+        "lint": "eslint -c .eslintrc forge/**/*.js frontend/**/*.js test/**/*.js --ignore-pattern 'frontend/dist/**'",
+        "lint:fix": "eslint -c .eslintrc forge/**/*.js frontend/**/*.js test/**/*.js --ignore-pattern 'frontend/dist/**' --fix",
+        "test": "npm run lint && mocha test/**/*_spec.js"
     },
     "bin": {
         "flowforge": "./forge/app.js"
