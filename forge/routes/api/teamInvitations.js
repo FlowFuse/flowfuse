@@ -9,18 +9,17 @@
  * @namespace teamInvitations
  * @memberof forge.routes.api
  */
-module.exports = async function(app) {
-
+module.exports = async function (app) {
     // All routes require user to be owner of team
-    app.addHook('preHandler',app.needsPermission("team:user:invite"));
+    app.addHook('preHandler', app.needsPermission('team:user:invite'))
 
     app.get('/', async (request, reply) => {
         const invitations = await app.db.models.Invitation.forTeam(request.team)
-        const result = app.db.views.Invitation.invitationList(invitations);
+        const result = app.db.views.Invitation.invitationList(invitations)
         reply.send({
             meta: {}, // For future pagination
             count: result.length,
-            invitations:result
+            invitations: result
         })
     })
 
@@ -29,20 +28,19 @@ module.exports = async function(app) {
      * POST [/api/v1/teams/:teamId/invitations]/
      */
     app.post('/', async (request, reply) => {
-        const userDetails = request.body.user.split(",").map(u => u.trim()).filter(Boolean)
-        const invites = await app.db.controllers.Invitation.createInvitations(request.session.User, request.team, userDetails);
+        const userDetails = request.body.user.split(',').map(u => u.trim()).filter(Boolean)
+        const invites = await app.db.controllers.Invitation.createInvitations(request.session.User, request.team, userDetails)
 
-        const users = Object.keys(invites);
         const result = {
-            status: "okay",
+            status: 'okay',
             message: {}
-        };
-        let errorCount = 0;
-        const successfulInvites = [];
+        }
+        let errorCount = 0
+        const successfulInvites = []
 
         for (const [user, invite] of Object.entries(invites)) {
-            if (typeof invite === "string") {
-                errorCount++;
+            if (typeof invite === 'string') {
+                errorCount++
                 result.message[user] = invite
             } else {
                 try {
@@ -51,45 +49,44 @@ module.exports = async function(app) {
                     if (invite.external) {
                         await app.postoffice.send(
                             invite,
-                            "UnknownUserInvitation",
+                            'UnknownUserInvitation',
                             {
                                 invite: invite,
                                 signupLink: `${app.config.base_url}/account/create?email=${invite.email}`
                             }
                         )
-                        successfulInvites.push(invite.email);
+                        successfulInvites.push(invite.email)
                     } else {
                         if (app.postoffice.enabled()) {
                             await app.postoffice.send(
                                 invite.invitee,
-                                "TeamInvitation",
+                                'TeamInvitation',
                                 {
                                     invite: invite,
                                     signupLink: `${app.config.base_url}`
                                 }
                             )
                         }
-                        successfulInvites.push(invite.invitee.username);
+                        successfulInvites.push(invite.invitee.username)
                     }
-                } catch(err) {
-                    errorCount++;
+                } catch (err) {
+                    errorCount++
                     result.message[user] = 'Error sending invitation email'
                 }
-
             }
         }
         if (successfulInvites.length > 0) {
             await app.db.controllers.AuditLog.teamLog(
                 request.team.id,
                 request.session.User.id,
-                "user.invited",
+                'user.invited',
                 { users: successfulInvites }
             )
         }
         if (errorCount > 0) {
-            result.status = "error"
+            result.status = 'error'
         } else {
-            delete result.message;
+            delete result.message
         }
         // TODO: set proper status code if error
         reply.send(result)
@@ -100,20 +97,18 @@ module.exports = async function(app) {
      * DELETE [/api/v1/teams/:teamId/invitations]/:invitationId
      */
     app.delete('/:invitationId', async (request, reply) => {
-        const invitation = await app.db.models.Invitation.byId(request.params.invitationId);
+        const invitation = await app.db.models.Invitation.byId(request.params.invitationId)
         if (invitation) {
-            await invitation.destroy();
+            await invitation.destroy()
             await app.db.controllers.AuditLog.teamLog(
                 request.team.id,
                 request.session.User.id,
-                "user.uninvited",
-                { users: [invitation.external?invitation.email:invitation.invitee.username] }
+                'user.uninvited',
+                { users: [invitation.external ? invitation.email : invitation.invitee.username] }
             )
-            reply.send({status:'okay'})
+            reply.send({ status: 'okay' })
         } else {
             reply.code(404).type('text/html').send('Not Found')
         }
     })
-
-
 }

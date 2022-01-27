@@ -1,4 +1,4 @@
-const { generateToken } = require("../utils");
+const { generateToken } = require('../utils')
 
 /**
  * An invite to join a team.
@@ -10,8 +10,8 @@ const { generateToken } = require("../utils");
  * @namespace forge.db.models.Invitation
  */
 
-const { DataTypes } = require('sequelize');
-const DEFAULT_INVITATION_EXPIRY   = 7000*60*60*24; // Seven days
+const { DataTypes } = require('sequelize')
+const DEFAULT_INVITATION_EXPIRY = 7000 * 60 * 60 * 24 // Seven days
 
 module.exports = {
     name: 'Invitation',
@@ -20,40 +20,39 @@ module.exports = {
         external: { type: DataTypes.BOOLEAN, allowNull: false },
         expiresAt: { type: DataTypes.DATE },
         email: { type: DataTypes.STRING, allowNull: true },
-        sentAt: { type: DataTypes.DATE, allowNull: true },
+        sentAt: { type: DataTypes.DATE, allowNull: true }
         // invitorId
         // inviteeId
     },
     hooks: {
         beforeCreate: (invitation) => {
-            invitation.token = generateToken(32,'ffi');
+            invitation.token = generateToken(32, 'ffi')
             if (!invitation.expiresAt) {
                 invitation.expiresAt = Date.now() + DEFAULT_INVITATION_EXPIRY
             }
-
         }
     },
-    associations: function(M) {
-        this.belongsTo(M['User'], { as: 'invitor' });
-        this.belongsTo(M['User'], { as: 'invitee' });
-        this.belongsTo(M['Team'], { as: 'team' });
+    associations: function (M) {
+        this.belongsTo(M.User, { as: 'invitor' })
+        this.belongsTo(M.User, { as: 'invitee' })
+        this.belongsTo(M.Team, { as: 'team' })
     },
     scopes: {
-        team(team) {
+        team (team) {
             return {
                 where: {
                     teamId: team.id
                 }
             }
         },
-        invitor(user) {
+        invitor (user) {
             return {
                 where: {
                     invitorId: user.id
                 }
             }
         },
-        invitee(user) {
+        invitee (user) {
             return {
                 where: {
                     inviteeId: user.id
@@ -61,36 +60,37 @@ module.exports = {
             }
         }
     },
-    finders: function(M) {
+    finders: function (M) {
         return {
             static: {
-                get: async(pagination={}) => {
+                get: async (pagination = {}) => {
                     return this.findAll({
-                        include:[
-                            {model: M['Team'], as: "team"},
-                            {model: M['User'], as: "invitor"},
-                            {model: M['User'], as: "invitee"}
+                        include: [
+                            { model: M.Team, as: 'team' },
+                            { model: M.User, as: 'invitor' },
+                            { model: M.User, as: 'invitee' }
                         ]
                     })
                 },
-                byId: async(hashid) => {
-                    const id = M['Invitation'].decodeHashid(hashid);
-                    return this.findOne({where:{id},
-                        include:[
-                            {model: M['Team'], as: "team"},
-                            {model: M['User'], as: "invitor"},
-                            {model: M['User'], as: "invitee"}
+                byId: async (hashid) => {
+                    const id = M.Invitation.decodeHashid(hashid)
+                    return this.findOne({
+                        where: { id },
+                        include: [
+                            { model: M.Team, as: 'team' },
+                            { model: M.User, as: 'invitor' },
+                            { model: M.User, as: 'invitee' }
                         ]
                     })
                 },
                 forTeam: async (team) => {
-                    return this.scope({method:['team',team]}).findAll({
-                        include:[
-                            {model: M['Team'], as: "team"},
-                            {model: M['User'], as: "invitor"},
-                            {model: M['User'], as: "invitee"}
+                    return this.scope({ method: ['team', team] }).findAll({
+                        include: [
+                            { model: M.Team, as: 'team' },
+                            { model: M.User, as: 'invitor' },
+                            { model: M.User, as: 'invitee' }
                         ]
-                    });
+                    })
                 },
                 // fromUser: async (user) => {
                 //     return this.scope({method:['invitor',user]}).findAll({
@@ -101,13 +101,13 @@ module.exports = {
                 //     });
                 // },
                 forUser: async (user) => {
-                    return this.scope({method:['invitee',user]}).findAll({
-                        include:[
-                            {model: M['Team'], as: "team"},
-                            {model: M['User'], as: "invitor"},
-                            {model: M['User'], as: "invitee"}
+                    return this.scope({ method: ['invitee', user] }).findAll({
+                        include: [
+                            { model: M.Team, as: 'team' },
+                            { model: M.User, as: 'invitor' },
+                            { model: M.User, as: 'invitee' }
                         ]
-                    });
+                    })
                 },
                 forExternalEmail: async (email) => {
                     return this.findAll({
@@ -115,12 +115,12 @@ module.exports = {
                             external: true,
                             email: email
                         },
-                        include:[
-                            {model: M['Team'], as: "team"},
-                            {model: M['User'], as: "invitor"},
-                            {model: M['User'], as: "invitee"}
+                        include: [
+                            { model: M.Team, as: 'team' },
+                            { model: M.User, as: 'invitor' },
+                            { model: M.User, as: 'invitee' }
                         ]
-                    });
+                    })
                 }
             }
         }

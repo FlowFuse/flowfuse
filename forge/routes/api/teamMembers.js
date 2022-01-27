@@ -1,4 +1,4 @@
-const { Roles } = require("../../lib/roles.js")
+const { Roles } = require('../../lib/roles.js')
 
 /**
  * Team Membership api routes
@@ -11,8 +11,7 @@ const { Roles } = require("../../lib/roles.js")
  * @namespace teamMembers
  * @memberof forge.routes.api
  */
-module.exports = async function(app) {
-
+module.exports = async function (app) {
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.userId) {
             try {
@@ -24,25 +23,24 @@ module.exports = async function(app) {
                     request.user = await app.db.models.User.byId(request.params.userId)
                     if (!request.user) {
                         reply.code(404).type('text/html').send('Not Found')
-                        return;
+                        return
                     }
-                    request.userRole = await request.user.getTeamMembership(request.params.teamId);
+                    request.userRole = await request.user.getTeamMembership(request.params.teamId)
                 }
-            } catch(err) {
-                console.log(err);
+            } catch (err) {
+                console.log(err)
                 reply.code(404).type('text/html').send('Not Found')
             }
         }
     })
 
-
     app.get('/', async (request, reply) => {
         const members = await app.db.models.User.inTeam(request.params.teamId)
-        const result = app.db.views.User.teamMemberList(members);
+        const result = app.db.views.User.teamMemberList(members)
         reply.send({
             meta: {}, // For future pagination
             count: result.length,
-            members:result
+            members: result
         })
     })
 
@@ -52,14 +50,14 @@ module.exports = async function(app) {
      *  - team owners can do this for now - but will need to enable invite-only workflow
      * POST [/api/v1/teams/:teamId/members]/
      */
-    app.post('/', { preHandler: app.needsPermission("team:user:add") }, async (request, reply) => {
+    app.post('/', { preHandler: app.needsPermission('team:user:add') }, async (request, reply) => {
         // await app.db.controllers.AuditLog.teamLog(
         //     request.team.id,
         //     request.session.User.id,
         //     "user.added",
         //     { user: userToRemove.username }
         // )
-        reply.code(400).send({error:"POST /api/v1/teams/:teamId/members not implemented"})
+        reply.code(400).send({ error: 'POST /api/v1/teams/:teamId/members not implemented' })
     })
 
     /**
@@ -67,7 +65,7 @@ module.exports = async function(app) {
      *  - admin/owner/self
      * DELETE [/api/v1/teams/:teamId/members]/:userId
      */
-    app.delete('/:userId', { preHandler: app.needsPermission("team:user:remove") }, async (request, reply) => {
+    app.delete('/:userId', { preHandler: app.needsPermission('team:user:remove') }, async (request, reply) => {
         // request.user and request.userRole will already be set via the preHandler
         // added at the top of this file
         // the needsPermission handler will have ensured the requesting user is allowed
@@ -78,46 +76,42 @@ module.exports = async function(app) {
                 await app.db.controllers.AuditLog.teamLog(
                     request.team.id,
                     request.session.User.id,
-                    "user.removed",
+                    'user.removed',
                     { user: request.user.username }
                 )
             }
-            reply.send({status:"okay"})
-        } catch(err) {
-            console.log(err);
-            reply.code(400).send({error:"cannot remove only owner"});
+            reply.send({ status: 'okay' })
+        } catch (err) {
+            console.log(err)
+            reply.code(400).send({ error: 'cannot remove only owner' })
         }
     })
-
-
-
 
     /**
      * Change member role
      *  - only admins or owner should be able to do this
      * POST [/api/v1/teams/:teamId/members]/:userId
      */
-    app.put('/:userId', { preHandler: app.needsPermission("team:user:change-role") }, async (request, reply) => {
-        const newRole = parseInt(request.body.role);
+    app.put('/:userId', { preHandler: app.needsPermission('team:user:change-role') }, async (request, reply) => {
+        const newRole = parseInt(request.body.role)
         if (newRole === Roles.Owner || newRole === Roles.Member) {
             try {
-                const result = await app.db.controllers.Team.changeUserRole(request.params.teamId,request.params.userId,newRole)
+                const result = await app.db.controllers.Team.changeUserRole(request.params.teamId, request.params.userId, newRole)
                 if (result.oldRole !== result.role) {
                     await app.db.controllers.AuditLog.teamLog(
                         result.team.id,
                         request.session.User.id,
-                        "user.roleChanged",
-                        { user: result.user.username, role: result.role}
+                        'user.roleChanged',
+                        { user: result.user.username, role: result.role }
                     )
                 }
-                reply.send({status:"okay"})
-            } catch(err) {
-                console.log(err);
+                reply.send({ status: 'okay' })
+            } catch (err) {
+                console.log(err)
                 reply.code(403).type('text/html').send('Forbidden')
             }
         } else {
-            reply.code(400).send({error:"invalid role"});
+            reply.code(400).send({ error: 'invalid role' })
         }
     })
-
 }

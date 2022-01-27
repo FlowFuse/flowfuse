@@ -1,4 +1,4 @@
-function publicUserProfile(app, user) {
+function publicUserProfile (app, user) {
     const result = {
         id: user.hashid
     };
@@ -9,7 +9,7 @@ function publicUserProfile(app, user) {
         'avatar',
         'admin',
         'createdAt'
-    ].forEach(p => result[p] = user[p])
+    ].forEach(p => { result[p] = user[p] })
     return result
 }
 
@@ -21,27 +21,27 @@ module.exports = {
      * is added to the model, it won't accidentally leak out of the API
      *
      */
-    userProfile: function(app, user) {
+    userProfile: function (app, user) {
         const result = publicUserProfile(app, user)
         if (user.password_expired) {
-            result.password_expired = true;
+            result.password_expired = true
         }
-        result.email_verified = user.email_verified;
+        result.email_verified = user.email_verified
         return result
     },
 
     publicUserProfile,
 
-    teamMemberList: function(app, users) {
+    teamMemberList: function (app, users) {
         const result = users.map(u => {
             return {
                 id: u.hashid,
                 username: u.username,
                 name: u.name,
                 avatar: u.avatar,
-                role: u.Teams[0].TeamMember.role,
+                role: u.Teams[0].TeamMember.role
             }
-        });
+        })
         return result
-    },
+    }
 }

@@ -1,11 +1,10 @@
-const { sha256 } = require("../utils");
+const { sha256 } = require('../utils')
 /**
  * An active login session
  * @namespace forge.db.models.Session
  */
 
-const { DataTypes } = require('sequelize');
-
+const { DataTypes } = require('sequelize')
 
 module.exports = {
     name: 'Session',
@@ -14,20 +13,20 @@ module.exports = {
         expiresAt: { type: DataTypes.DATE, allowNull: false },
         refreshToken: {
             type: DataTypes.STRING,
-            set(value) {
-                this.setDataValue('refreshToken', sha256(value));
+            set (value) {
+                this.setDataValue('refreshToken', sha256(value))
             }
-        },
+        }
     },
-    associations: function(M) {
-        this.belongsTo(M['User']);
+    associations: function (M) {
+        this.belongsTo(M.User)
     },
-    finders: function(M) {
+    finders: function (M) {
         return {
             static: {
                 byRefreshToken: async (refreshToken) => {
-                    const hashedToken = sha256(refreshToken);
-                    return await this.findOne({where: { refreshToken: hashedToken } });
+                    const hashedToken = sha256(refreshToken)
+                    return await this.findOne({ where: { refreshToken: hashedToken } })
                 }
             }
         }

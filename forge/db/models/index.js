@@ -37,10 +37,9 @@
  * @namespace models
  * @memberof forge.db
  */
-const { Model, DataTypes } = require('sequelize');
+const { Model, DataTypes } = require('sequelize')
 const Hashids = require('hashids/cjs')
-const hashids = {};
-
+const hashids = {}
 
 // The models that should be loaded
 const modelTypes = [
@@ -61,10 +60,10 @@ const modelTypes = [
     'StorageSession',
     'StorageLibrary',
     'AuditLog'
-];
+]
 
 // A local map of the known models.
-const M = {};
+const M = {}
 
 /**
  * Initialises all of the models listed in `modelTypes`.
@@ -82,21 +81,21 @@ const M = {};
  * Finally it synchronizes with the database to create the tables as needed.
  * @private
  */
-async function init(app) {
-    const sequelize = app.db.sequelize;
-    const allModels = [];
+async function init (app) {
+    const sequelize = app.db.sequelize
+    const allModels = []
 
-    function getHashId(type) {
+    function getHashId (type) {
         if (!hashids[type]) {
             // This defers trying to access app.settings until after the
             // database has been initialised
-            hashids[type] = new Hashids((app.settings.get("instanceId")||"")+type,10);
+            hashids[type] = new Hashids((app.settings.get('instanceId') || '') + type, 10)
         }
         return hashids[type]
     }
 
     modelTypes.forEach(type => {
-        const m = require(`./${type}`);
+        const m = require(`./${type}`)
         if (m.name !== type) {
             throw new Error(`Model name mismatch: '${m.name}' !== '${type}'`)
         }
@@ -108,13 +107,13 @@ async function init(app) {
         }
 
         if (m.scopes) {
-            opts.scopes = m.scopes;
+            opts.scopes = m.scopes
         }
         if (m.hooks) {
             if (typeof m.hooks === 'function') {
                 opts.hooks = m.hooks.call(null, M)
             } else {
-                opts.hooks = m.hooks;
+                opts.hooks = m.hooks
             }
         }
         if (m.indexes) {
@@ -126,43 +125,43 @@ async function init(app) {
         if (!m.schema.slug && (!m.meta || m.meta.slug !== false)) {
             m.schema.slug = {
                 type: DataTypes.VIRTUAL,
-                get() {
-                    return getHashId(m.name).encode(this.id);
+                get () {
+                    return getHashId(m.name).encode(this.id)
                 }
             }
         }
         if (!m.meta || m.meta.hashid !== false) {
             m.schema.hashid = {
                 type: DataTypes.VIRTUAL,
-                get() {
-                    return getHashId(m.name).encode(this.id);
+                get () {
+                    return getHashId(m.name).encode(this.id)
                 },
-                set(_) {
-                    throw new Error('hashid is read-only');
+                set (_) {
+                    throw new Error('hashid is read-only')
                 }
             }
-            m.model.encodeHashid = function(id) {
-                return getHashId(m.name).encode(id);
+            m.model.encodeHashid = function (id) {
+                return getHashId(m.name).encode(id)
             }
-            m.model.decodeHashid = function(hashid) {
-                return getHashId(m.name).decode(hashid);
+            m.model.decodeHashid = function (hashid) {
+                return getHashId(m.name).decode(hashid)
             }
         }
 
         if (!m.schema.links && (!m.meta || m.meta.links !== false)) {
             m.schema.links = {
                 type: DataTypes.VIRTUAL,
-                get() {
+                get () {
                     return {
-                        self: app.config.base_url+"/api/v1/"+m.name.toLowerCase()+"s/"+this.hashid
+                        self: app.config.base_url + '/api/v1/' + m.name.toLowerCase() + 's/' + this.hashid
                     }
                 }
             }
         }
 
-        m.model.init(m.schema, opts);
-        module.exports[m.name] = M[m.name] = m.model;
-        allModels.push(m);
+        m.model.init(m.schema, opts)
+        module.exports[m.name] = M[m.name] = m.model
+        allModels.push(m)
     })
     // Do a second pass to setup associations/finders now all Models exist
     allModels.forEach(m => {
@@ -170,17 +169,17 @@ async function init(app) {
             m.associations.call(m.model, M)
         }
         if (m.finders) {
-            const finders = m.finders.call(m.model, M);
+            const finders = m.finders.call(m.model, M)
             if (finders.static) {
-                Object.assign(m.model,finders.static);
+                Object.assign(m.model, finders.static)
             }
             if (finders.instance) {
                 Object.assign(m.model.prototype, finders.instance)
             }
         }
-    });
+    })
 
-    await sequelize.sync();
+    await sequelize.sync()
 }
 
-module.exports.init = init;
+module.exports.init = init

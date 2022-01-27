@@ -12,7 +12,6 @@
 // At some point we will generate the proper keys, storing the private
 // key in a secure location completely outside of this repository.
 
-
 // ref: https://www.scottbrady91.com/OpenSSL/Creating-Elliptical-Curve-Keys-using-OpenSSL
 
 // 1. generate an ES256 key pair
@@ -26,21 +25,21 @@
 // file directly.
 
 const fs = require('fs')
-const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken')
 
 // const expiry = Math.floor((Date.now()/1000)+(60*60*24));
-const validFrom = Math.floor(Date.now()/1000);
-const expiry = Math.floor(new Date("2200-01-01").getTime()/1000)
-const key = fs.readFileSync("dev-private-key_enc.pem");
-const passphrase = "password";
+const validFrom = Math.floor(Date.now() / 1000)
+const expiry = Math.floor(new Date('2200-01-01').getTime() / 1000)
+const key = fs.readFileSync('dev-private-key_enc.pem')
+const passphrase = 'password'
 
 const licenseDetails = {
-    iss: "FlowForge Inc.", // DO NOT CHANGE
-    sub: "FlowForge Inc. Development",      // Name of the license holder
+    iss: 'FlowForge Inc.', // DO NOT CHANGE
+    sub: 'FlowForge Inc. Development', // Name of the license holder
     nbf: validFrom,
-    exp: expiry,           // Expiry of the license in epoch seconds
-    note: "For development only",               // Freeform text to associate with license
-    tier: "teams",          // Must be 'solo' or 'teams',
+    exp: expiry, // Expiry of the license in epoch seconds
+    note: 'For development only', // Freeform text to associate with license
+    tier: 'teams', // Must be 'solo' or 'teams',
     users: '100',
     teams: '100',
     projects: '100'
@@ -49,6 +48,6 @@ const licenseDetails = {
 const licenseText = jwt.sign(
     licenseDetails,
     { key, passphrase },
-    { algorithm: "ES256" }
-);
-console.log(licenseText);
+    { algorithm: 'ES256' }
+)
+console.log(licenseText)

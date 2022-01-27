@@ -1,0 +1,21 @@
+{
+    env: {
+        browser: true,
+        commonjs: true,
+        es2021: true
+    },
+    "extends": "standard",
+    parserOptions: {
+        ecmaVersion: 12
+    },
+    // plugins: [
+    //     'vue'
+    // // ],
+    rules: {
+        // semi: "off",
+        // quotes: "off",
+        indent: ["error", 4],
+        // "comma-dangle": ["error", "never"],
+        // "no-param-reassign": ["error", { props: false }]
+    }
+}

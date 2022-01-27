@@ -1,25 +1,25 @@
 module.exports = {
     // Platform license:
-    "license": null,
+    license: null,
 
     // Instance ID:
-    "instanceId": null,
+    instanceId: null,
 
     // Whether the intial setup has been run
-    "setup:initialised": false,
+    'setup:initialised': false,
 
     // Is telemetry enabled?
-    "telemetry:enabled": true,
+    'telemetry:enabled': true,
 
     // Can user's signup via the login page
-    "user:signup": false,
+    'user:signup': false,
 
     // Can user's create their own teams
-    "team:create": false,
+    'team:create': false,
 
     // Should we auto-create a team for a user when they register
-    "user:team:auto-create": false,
+    'user:team:auto-create': false,
 
     // Can external users be invited to join teams
-    "team:user:invite:external": false,
+    'team:user:invite:external': false
 }

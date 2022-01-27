@@ -1,5 +1,4 @@
-module.exports = async function(app) {
-
+module.exports = async function (app) {
     app.get('/', { config: { allowAnonymous: true } }, async (request, reply) => {
         // This isn't as clean as I'd like, but it works for now.
         //
@@ -14,33 +13,33 @@ module.exports = async function(app) {
 
         if (request.session && request.session.User) {
             const response = {
-                'team:user:invite:external': app.settings.get("team:user:invite:external") && app.postoffice.enabled(),
+                'team:user:invite:external': app.settings.get('team:user:invite:external') && app.postoffice.enabled(),
                 'team:create': app.settings.get('team:create'),
                 email: app.postoffice.enabled()
             }
 
             if (request.session.User.admin) {
-                response['telemetry:enabled'] = app.settings.get("telemetry:enabled")
-                response['user:signup'] = app.settings.get("user:signup")
+                response['telemetry:enabled'] = app.settings.get('telemetry:enabled')
+                response['user:signup'] = app.settings.get('user:signup')
                 response['user:team:auto-create'] = app.settings.get('user:team:auto-create')
                 response.email = app.postoffice.exportSettings(true)
             }
             reply.send(response)
         } else {
             reply.send({
-                "user:signup": app.settings.get("user:signup") && app.postoffice.enabled()
+                'user:signup': app.settings.get('user:signup') && app.postoffice.enabled()
             })
         }
     })
 
-    app.put('/', { preHandler: app.verifyAdmin }, async(request,reply) => {
+    app.put('/', { preHandler: app.verifyAdmin }, async (request, reply) => {
         if (request.body) {
-            for (const[key,value] of Object.entries(request.body)) {
-                await app.settings.set(key, value);
+            for (const [key, value] of Object.entries(request.body)) {
+                await app.settings.set(key, value)
             }
-            reply.send({status:"okay"})
+            reply.send({ status: 'okay' })
         } else {
-            reply.code(400).send("invalid request");
+            reply.code(400).send('invalid request')
         }
     })
 }

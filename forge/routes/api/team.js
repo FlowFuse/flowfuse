@@ -1,6 +1,6 @@
-const TeamMembers = require("./teamMembers.js");
-const TeamInvitations = require("./teamInvitations.js");
-const { Roles, RoleNames } = require("../../lib/roles.js")
+const TeamMembers = require('./teamMembers.js')
+const TeamInvitations = require('./teamInvitations.js')
+const { Roles, RoleNames } = require('../../lib/roles.js')
 
 /**
  * Team api routes
@@ -16,13 +16,12 @@ const { Roles, RoleNames } = require("../../lib/roles.js")
  * @namespace team
  * @memberof forge.routes.api
  */
-module.exports = async function(app) {
-
+module.exports = async function (app) {
     app.addHook('preHandler', async (request, reply) => {
-        if (request.params.hasOwnProperty('teamId')) {
+        if (request.params.teamId !== undefined) {
             if (request.params.teamId) {
                 try {
-                    request.teamMembership = await request.session.User.getTeamMembership(request.params.teamId);
+                    request.teamMembership = await request.session.User.getTeamMembership(request.params.teamId)
                     if (!request.teamMembership && !request.session.User.admin) {
                         reply.code(404).type('text/html').send('Not Found')
                         return
@@ -31,7 +30,7 @@ module.exports = async function(app) {
                     if (!request.team) {
                         reply.code(404).type('text/html').send('Not Found')
                     }
-                } catch(err) {
+                } catch (err) {
                     reply.code(404).type('text/html').send('Not Found')
                 }
             } else {
@@ -40,8 +39,8 @@ module.exports = async function(app) {
         }
     })
 
-    app.register(TeamMembers, { prefix: "/:teamId/members" })
-    app.register(TeamInvitations, { prefix: "/:teamId/invitations" })
+    app.register(TeamMembers, { prefix: '/:teamId/members' })
+    app.register(TeamInvitations, { prefix: '/:teamId/invitations' })
 
     /**
      * Get the details of a team
@@ -67,7 +66,7 @@ module.exports = async function(app) {
         if (request.query.slug) {
             const team = await app.db.models.Team.bySlug(request.query.slug)
             if (team) {
-                const teamMembership = await request.session.User.getTeamMembership(team.id);
+                const teamMembership = await request.session.User.getTeamMembership(team.id)
                 if (!teamMembership && !request.session.User.admin) {
                     reply.code(404).type('text/html').send('Not Found')
                 }
@@ -80,19 +79,19 @@ module.exports = async function(app) {
         } else {
             // Admin request for all teams
             const paginationOptions = app.getPaginationOptions(request)
-            const teams = await app.db.models.Team.getAll(paginationOptions);
+            const teams = await app.db.models.Team.getAll(paginationOptions)
             teams.teams = teams.teams.map(t => app.db.views.Team.team(t))
-            reply.send(teams);
+            reply.send(teams)
         }
     })
 
     app.get('/:teamId/projects', async (request, reply) => {
         const projects = await app.db.models.Project.byTeam(request.params.teamId)
         if (projects) {
-            const result = app.db.views.Project.teamProjectList(projects);
+            const result = app.db.views.Project.teamProjectList(projects)
             reply.send({
                 count: result.length,
-                projects:result
+                projects: result
             })
         } else {
             reply.code(404).type('text/html').send('Not Found')
@@ -100,7 +99,7 @@ module.exports = async function(app) {
     })
 
     app.post('/', {
-        preHandler: app.needsPermission("team:create"),
+        preHandler: app.needsPermission('team:create'),
         schema: {
             body: {
                 type: 'object',
@@ -117,14 +116,13 @@ module.exports = async function(app) {
             // preHandler. To do so will require the perms model to know
             // to also check enabled features (and know that admin is allowed to
             // override in this instance)
-            reply.code(403).send({ error: 'unauthorized' });
+            reply.code(403).send({ error: 'unauthorized' })
         }
-
 
         // TODO check license allows multiple teams
 
-        if (request.body.slug === "create") {
-            reply.code(400).send({error:"slug not available"});
+        if (request.body.slug === 'create') {
+            reply.code(400).send({ error: 'slug not available' })
             return
         }
 
@@ -132,46 +130,45 @@ module.exports = async function(app) {
             const newTeam = await app.db.models.Team.create({
                 name: request.body.name,
                 slug: request.body.slug
-            });
-            await newTeam.addUser(request.session.User, { through: { role: Roles.Owner } });
+            })
+            await newTeam.addUser(request.session.User, { through: { role: Roles.Owner } })
 
             const team = await app.db.models.Team.bySlug(newTeam.slug)
 
             await app.db.controllers.AuditLog.teamLog(
                 newTeam.id,
                 request.session.User.id,
-                "team.created"
+                'team.created'
             )
             await app.db.controllers.AuditLog.teamLog(
                 newTeam.id,
                 request.session.User.id,
-                "user.added",
-                {role: RoleNames[Roles.Owner]}
+                'user.added',
+                { role: RoleNames[Roles.Owner] }
             )
 
             reply.send(app.db.views.Team.team(team))
-        } catch(err) {
-            let responseMessage;
+        } catch (err) {
+            let responseMessage
             if (err.errors) {
-                responseMessage = err.errors.map(err => err.message).join(",");
+                responseMessage = err.errors.map(err => err.message).join(',')
             } else {
-                responseMessage = err.toString();
+                responseMessage = err.toString()
             }
-            reply.code(400).send({error:responseMessage})
+            reply.code(400).send({ error: responseMessage })
         }
-    });
+    })
 
-
-    app.delete('/:teamId', { preHandler: app.needsPermission("team:delete") }, async (request, reply) => {
+    app.delete('/:teamId', { preHandler: app.needsPermission('team:delete') }, async (request, reply) => {
         // At this point we know the requesting user has permission to do this.
         // But we also need to ensure the team has no projects
         // That is handled by the beforeDestroy hook on the Team model and the
         // call to destroy the team will throw an error
         try {
-            await request.team.destroy();
-            reply.send({ status: "okay"});
-        } catch(err) {
-            reply.code(400).send({error:err.toString()})
+            await request.team.destroy()
+            reply.send({ status: 'okay' })
+        } catch (err) {
+            reply.code(400).send({ error: err.toString() })
         }
     })
 
@@ -186,32 +183,30 @@ module.exports = async function(app) {
     //
     // })
 
-
-    app.put('/:teamId', { preHandler: app.needsPermission("team:edit") }, async (request, reply) => {
+    app.put('/:teamId', { preHandler: app.needsPermission('team:edit') }, async (request, reply) => {
         try {
             if (request.body.name) {
-                request.team.name = request.body.name;
+                request.team.name = request.body.name
             }
             if (request.body.slug) {
-                if (request.body.slug === "create") {
-                    reply.code(400).send({error:"slug not available"});
+                if (request.body.slug === 'create') {
+                    reply.code(400).send({ error: 'slug not available' })
                     return
                 }
-                request.team.slug = request.body.slug;
+                request.team.slug = request.body.slug
             }
             await request.team.save()
             reply.send(app.db.views.Team.team(request.team))
-        }catch(err) {
-            let responseMessage;
+        } catch (err) {
+            let responseMessage
             if (err.errors) {
-                responseMessage = err.errors.map(err => err.message).join(",");
+                responseMessage = err.errors.map(err => err.message).join(',')
             } else {
-                responseMessage = err.toString();
+                responseMessage = err.toString()
             }
-            reply.code(400).send({error:responseMessage})
+            reply.code(400).send({ error: responseMessage })
         }
-
-    });
+    })
 
     /**
      * Get the session users team membership
@@ -234,12 +229,11 @@ module.exports = async function(app) {
      * @name /api/v1/team/:teamId/audit-log
      * @memberof forge.routes.api.project
      */
-    app.get('/:teamId/audit-log',{ preHandler: app.needsPermission("team:audit-log") }, async(request,reply) => {
+    app.get('/:teamId/audit-log', { preHandler: app.needsPermission('team:audit-log') }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const logEntries = await app.db.models.AuditLog.forTeam(request.team.id, paginationOptions)
-        const result = app.db.views.AuditLog.auditLog(logEntries);
-// console.log(logEntries);
+        const result = app.db.views.AuditLog.auditLog(logEntries)
+        // console.log(logEntries);
         reply.send(result)
     })
-
 }

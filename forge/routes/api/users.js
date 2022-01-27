@@ -1,5 +1,5 @@
-const sharedUser = require("./shared/users")
-const { Roles, RoleNames } = require("../../lib/roles.js")
+const sharedUser = require('./shared/users')
+const { Roles, RoleNames } = require('../../lib/roles.js')
 
 /**
  * Users api routes
@@ -9,10 +9,9 @@ const { Roles, RoleNames } = require("../../lib/roles.js")
  * @namespace users
  * @memberof forge.routes.api
  */
-module.exports = async function(app) {
-
+module.exports = async function (app) {
     // Lets assume all apis that access bulk users are admin only.
-    app.addHook('preHandler',app.verifyAdmin);
+    app.addHook('preHandler', app.verifyAdmin)
 
     /**
      * Get a list of all known users
@@ -22,9 +21,9 @@ module.exports = async function(app) {
      */
     app.get('/', async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
-        const users = await app.db.models.User.getAll(paginationOptions);
+        const users = await app.db.models.User.getAll(paginationOptions)
         users.users = users.users.map(u => app.db.views.User.userProfile(u))
-        reply.send(users);
+        reply.send(users)
     })
 
     /**
@@ -51,7 +50,7 @@ module.exports = async function(app) {
     app.put('/:id', async (request, reply) => {
         const user = await app.db.models.User.byId(request.params.id)
         if (user) {
-            sharedUser.updateUser(app, user, request, reply);
+            sharedUser.updateUser(app, user, request, reply)
         } else {
             reply.code(404).type('text/html').send('Not Found')
         }
@@ -64,7 +63,7 @@ module.exports = async function(app) {
         schema: {
             body: {
                 type: 'object',
-                required: ['name','username','password'],
+                required: ['name', 'username', 'password'],
                 properties: {
                     name: { type: 'string' },
                     username: { type: 'string' },
@@ -76,7 +75,7 @@ module.exports = async function(app) {
         }
     }, async (request, reply) => {
         if (/^(admin|root)$/.test(request.body.username)) {
-            reply.code(400).send({error:"invalid username"});
+            reply.code(400).send({ error: 'invalid username' })
             return
         }
         try {
@@ -86,39 +85,37 @@ module.exports = async function(app) {
                 email: request.body.email,
                 email_verified: true,
                 password: request.body.password,
-                admin: !!request.body.isAdmin,
-            });
+                admin: !!request.body.isAdmin
+            })
 
             if (request.body.createDefaultTeam) {
                 const newTeam = await app.db.models.Team.create({
                     name: `Team ${request.body.name}`,
                     slug: request.body.username
-                });
-                await newTeam.addUser(newUser, { through: { role:Roles.Owner } });
+                })
+                await newTeam.addUser(newUser, { through: { role: Roles.Owner } })
                 // DRY: /api/v1/teams - create team route does this as well
                 await app.db.controllers.AuditLog.teamLog(
                     newTeam.id,
                     request.session.User.id,
-                    "team.created"
+                    'team.created'
                 )
                 await app.db.controllers.AuditLog.teamLog(
                     newTeam.id,
                     newUser.id,
-                    "user.added",
-                    {role: RoleNames[Roles.Owner]}
+                    'user.added',
+                    { role: RoleNames[Roles.Owner] }
                 )
-
-
             }
-            reply.send({status: "okay"})
-        } catch(err) {
-            let responseMessage;
+            reply.send({ status: 'okay' })
+        } catch (err) {
+            let responseMessage
             if (err.errors) {
-                responseMessage = err.errors.map(err => err.message).join(",");
+                responseMessage = err.errors.map(err => err.message).join(',')
             } else {
-                responseMessage = err.toString();
+                responseMessage = err.toString()
             }
-            reply.code(400).send({error:responseMessage})
+            reply.code(400).send({ error: responseMessage })
         }
-    });
+    })
 }

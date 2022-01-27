@@ -12,43 +12,42 @@
  * @memberof forge
  */
 
-const { Sequelize } = require('sequelize');
-const models = require("./models")
-const views = require("./views")
-const controllers = require("./controllers")
-const utils = require("./utils");
-const path = require("path");
-const fp = require("fastify-plugin");
+const { Sequelize } = require('sequelize')
+const models = require('./models')
+const views = require('./views')
+const controllers = require('./controllers')
+const utils = require('./utils')
+const path = require('path')
+const fp = require('fastify-plugin')
 
-module.exports = fp(async function(app, _opts, next) {
-
+module.exports = fp(async function (app, _opts, next) {
     const dbOptions = {
-        dialect: app.config.db.type || 'sqlite',
+        dialect: app.config.db.type || 'sqlite'
     }
     app.log.info(`Database driver: ${dbOptions.dialect}`)
     if (dbOptions.dialect === 'sqlite') {
-        let filename = app.config.db.storage || "forge.db";
-        if (filename !== ":memory:") {
+        let filename = app.config.db.storage || 'forge.db'
+        if (filename !== ':memory:') {
             if (!path.isAbsolute(filename)) {
-                filename = path.join(app.config.home,"var",filename);
+                filename = path.join(app.config.home, 'var', filename)
             }
         }
-        dbOptions.storage = filename;
+        dbOptions.storage = filename
         app.log.info(`Database file: ${filename}`)
     } else if (dbOptions.dialect === 'mariadb') {
-        dbOptions.host = app.config.db.host || "mariadb"
+        dbOptions.host = app.config.db.host || 'mariadb'
         dbOptions.port = app.config.db.port || 3306
-        dbOptions.username = app.config.db.user;
-        dbOptions.password = /*app.secrets.dbPassword ||*/ app.config.db.password;
+        dbOptions.username = app.config.db.user
+        dbOptions.password = /* app.secrets.dbPassword || */ app.config.db.password
     } else if (dbOptions.dialect === 'postgres') {
-        dbOptions.host = app.config.db.host || "postgres"
-        dbOptions.port = app.config.db.port || 5432;
-        dbOptions.username = app.config.db.user;
-        dbOptions.password = /*app.secrets.dbPassword ||*/ app.config.db.password;
-        dbOptions.database = "flowforge"
+        dbOptions.host = app.config.db.host || 'postgres'
+        dbOptions.port = app.config.db.port || 5432
+        dbOptions.username = app.config.db.user
+        dbOptions.password = /* app.secrets.dbPassword || */ app.config.db.password
+        dbOptions.database = 'flowforge'
     }
 
-    dbOptions.logging = !!app.config.db.logging;
+    dbOptions.logging = !!app.config.db.logging
 
     const sequelize = new Sequelize(dbOptions)
 
@@ -63,13 +62,12 @@ module.exports = fp(async function(app, _opts, next) {
     }
     app.decorate('db', db)
 
-    await sequelize.authenticate();
-    await models.init(app);
-    await views.init(app);
-    await controllers.init(app);
+    await sequelize.authenticate()
+    await models.init(app)
+    await views.init(app)
+    await controllers.init(app)
 
+    await require('./test-data').inject(app)
 
-    await require("./test-data").inject(app);
-
-    next();
-});
+    next()
+})

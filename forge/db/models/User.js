@@ -2,8 +2,8 @@
  * A User
  * @namespace forge.db.models.User
  */
-const { DataTypes, Op } = require('sequelize');
-const { hash, generateUserAvatar } = require("../utils");
+const { DataTypes, Op } = require('sequelize')
+const { hash, generateUserAvatar } = require('../utils')
 
 module.exports = {
     name: 'User',
@@ -14,18 +14,18 @@ module.exports = {
         email_verified: { type: DataTypes.BOOLEAN, defaultValue: false },
         password: {
             type: DataTypes.STRING,
-            set(value) {
+            set (value) {
                 if (value.length < 8) {
-                    throw new Error("Password too short")
+                    throw new Error('Password too short')
                 }
-                this.setDataValue('password', hash(value));
+                this.setDataValue('password', hash(value))
             }
         },
         password_expired: { type: DataTypes.BOOLEAN, defaultValue: false },
         admin: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
         avatar: {
             type: DataTypes.STRING,
-            get() {
+            get () {
                 const avatar = this.getDataValue('avatar')
                 if (avatar) {
                     return `${process.env.FLOWFORGE_BASE_URL}${avatar}`
@@ -36,12 +36,12 @@ module.exports = {
         }
     },
     scopes: {
-        admins: { where: { admin: true }}
+        admins: { where: { admin: true } }
     },
     hooks: {
         beforeCreate: (user, options) => {
             if (!user.avatar) {
-                user.avatar = generateUserAvatar(user.name || user.username);
+                user.avatar = generateUserAvatar(user.name || user.username)
             }
             if (!user.name) {
                 user.name = user.username
@@ -49,109 +49,113 @@ module.exports = {
         },
         beforeUpdate: (user) => {
             if (user.avatar.startsWith(`${process.env.FLOWFORGE_BASE_URL}/avatar/`)) {
-                user.avatar = generateUserAvatar(user.name || user.username);
+                user.avatar = generateUserAvatar(user.name || user.username)
             }
         }
     },
-    associations: function(M) {
-        this.belongsToMany(M['Team'], { through: M['TeamMember']})
-        this.hasMany(M['TeamMember']);
-        this.hasMany(M['Session']);
-        this.hasMany(M['Invitation'], { foreignKey: 'invitorId' });
-        this.hasMany(M['Invitation'], { foreignKey: 'inviteeId' });
+    associations: function (M) {
+        this.belongsToMany(M.Team, { through: M.TeamMember })
+        this.hasMany(M.TeamMember)
+        this.hasMany(M.Session)
+        this.hasMany(M.Invitation, { foreignKey: 'invitorId' })
+        this.hasMany(M.Invitation, { foreignKey: 'inviteeId' })
     },
-    finders: function(M) {
+    finders: function (M) {
         return {
             static: {
                 admins: async () => {
-                    return this.scope('admins').findAll();
+                    return this.scope('admins').findAll()
                 },
                 byId: async (hashid) => {
-                    const id = M['User'].decodeHashid(hashid);
-                    return this.findOne({where:{id},
+                    const id = M.User.decodeHashid(hashid)
+                    return this.findOne({
+                        where: { id },
                         include: {
-                            model: M['Team'],
+                            model: M.Team,
                             attributes: ['name'],
                             through: {
-                                attributes:['role']
+                                attributes: ['role']
                             }
                         }
                     })
                 },
                 byUsername: async (username) => {
-                    return this.findOne({where:{username},
+                    return this.findOne({
+                        where: { username },
                         include: {
-                            model: M['Team'],
+                            model: M.Team,
                             attributes: ['name'],
                             through: {
-                                attributes:['role']
+                                attributes: ['role']
                             }
                         }
                     })
                 },
                 byEmail: async (email) => {
-                    return this.findOne({where:{email},
+                    return this.findOne({
+                        where: { email },
                         include: {
-                            model: M['Team'],
+                            model: M.Team,
                             attributes: ['name'],
                             through: {
-                                attributes:['role']
+                                attributes: ['role']
                             }
                         }
                     })
                 },
                 byName: async (name) => {
-                    return this.findOne({where:{name},
+                    return this.findOne({
+                        where: { name },
                         include: {
-                            model: M['Team'],
+                            model: M.Team,
                             attributes: ['name'],
                             through: {
-                                attributes:['role']
+                                attributes: ['role']
                             }
                         }
                     })
                 },
                 byUsernameOrEmail: async (name) => {
                     return this.findOne({
-                        where:{
-                            [Op.or]:[ {username:name}, {email:name}]
+                        where: {
+                            [Op.or]: [{ username: name }, { email: name }]
                         },
                         include: {
-                            model: M['Team'],
+                            model: M.Team,
                             attributes: ['name'],
                             through: {
-                                attributes:['role']
+                                attributes: ['role']
                             }
                         }
                     })
                 },
                 inTeam: async (teamHashId) => {
-                    const teamId = M['Team'].decodeHashid(teamHashId);
-                    return M['User'].findAll({
+                    const teamId = M.Team.decodeHashid(teamHashId)
+                    return M.User.findAll({
                         include: {
-                            model: M['Team'],
+                            model: M.Team,
                             attributes: ['name'],
-                            where: {id:teamId},
+                            where: { id: teamId },
                             through: {
-                                attributes:['role']
+                                attributes: ['role']
                             }
                         }
                     })
                 },
-                getAll: async(pagination={}) => {
-                    const limit = parseInt(pagination.limit) || 30;
-                    const where = {};
+                getAll: async (pagination = {}) => {
+                    const limit = parseInt(pagination.limit) || 30
+                    const where = {}
                     if (pagination.cursor) {
-                        where.id = { [Op.gt]: M['User'].decodeHashid(pagination.cursor) }
+                        where.id = { [Op.gt]: M.User.decodeHashid(pagination.cursor) }
                     }
-                    const {count, rows} = await this.findAndCountAll({
+                    const { count, rows } = await this.findAndCountAll({
                         where,
                         order: [['id', 'ASC']],
                         limit
-                    });
+                    })
                     return {
                         meta: {
-                            next_cursor: rows.length === limit?rows[rows.length-1].hashid:undefined
+                            next_cursor: rows.length === limit ? rows[rows.length - 1].hashid : undefined
                         },
                         count,
                         users: rows
@@ -162,8 +166,8 @@ module.exports = {
                 // get the team membership for the given team
                 // `teamId` can be either a number (the raw id) or a string (the hashid).
                 // TODO: standardize on using hashids externally
-                getTeamMembership: async function(teamId, includeTeam) {
-                    return M['TeamMember'].getTeamMembership(this.id, teamId, includeTeam);
+                getTeamMembership: async function (teamId, includeTeam) {
+                    return M.TeamMember.getTeamMembership(this.id, teamId, includeTeam)
                 }
             }
         }

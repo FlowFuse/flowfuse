@@ -1,52 +1,52 @@
 module.exports = {
     createInvitations: async (app, invitor, team, userList) => {
-        const externalInvitesPermitted = app.postoffice.enabled() && !!app.settings.get("team:user:invite:external")
-        const results = {};
-        for (let i=0; i<userList.length; i++) {
-            const userDetail = userList[i];
-            const existingUser = await app.db.models.User.byUsernameOrEmail(userDetail);
+        const externalInvitesPermitted = app.postoffice.enabled() && !!app.settings.get('team:user:invite:external')
+        const results = {}
+        for (let i = 0; i < userList.length; i++) {
+            const userDetail = userList[i]
+            const existingUser = await app.db.models.User.byUsernameOrEmail(userDetail)
             const opts = {
                 teamId: team.id
             }
             if (!existingUser) {
                 if (!/@/.test(userDetail)) {
                     // not an email - abort
-                    results[userDetail] = "Not an existing user";
+                    results[userDetail] = 'Not an existing user'
                     if (externalInvitesPermitted) {
-                        results[userDetail] += ", or valid email address"
+                        results[userDetail] += ', or valid email address'
                     }
-                    continue;
-                } else if (!app.settings.get("team:user:invite:external")) {
+                    continue
+                } else if (!app.settings.get('team:user:invite:external')) {
                     // Email - but external invites not permitted
-                    results[userDetail] = "External invites not permitted"
-                    continue;
+                    results[userDetail] = 'External invites not permitted'
+                    continue
                 } else if (!app.postoffice.enabled()) {
                     // Email - but email not configured
-                    results[userDetail] = "Email not configured, cannot invite external user"
-                    continue;
+                    results[userDetail] = 'Email not configured, cannot invite external user'
+                    continue
                 } else {
-                    opts.external = true;
+                    opts.external = true
                     opts.email = userDetail
                 }
             } else {
-                const existingMemberRole = await app.db.models.TeamMember.getTeamMembership(existingUser.id, team.id, false);
+                const existingMemberRole = await app.db.models.TeamMember.getTeamMembership(existingUser.id, team.id, false)
                 if (existingMemberRole) {
-                    results[userDetail] = "Already a member of the team";
-                    continue;
+                    results[userDetail] = 'Already a member of the team'
+                    continue
                 }
-                opts.external = false;
-                opts.inviteeId = existingUser.id;
+                opts.external = false
+                opts.inviteeId = existingUser.id
             }
-            const existingInvite = await app.db.models.Invitation.findOne({where:opts})
+            const existingInvite = await app.db.models.Invitation.findOne({ where: opts })
             if (existingInvite) {
-                results[userDetail] = "Already invited to the team";
-                continue;
+                results[userDetail] = 'Already invited to the team'
+                continue
             }
-            opts.invitorId = invitor.id;
-            const invite = await app.db.models.Invitation.create(opts);
+            opts.invitorId = invitor.id
+            const invite = await app.db.models.Invitation.create(opts)
             // Re-get the new invite so the User/Team properties are pre-fetched
             results[userDetail] = await app.db.models.Invitation.byId(invite.hashid)
         }
-        return results;
+        return results
     }
 }

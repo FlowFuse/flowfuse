@@ -2,14 +2,14 @@
 'use strict'
 
 const fastify = require('fastify')
-const db = require("./db")
+const db = require('./db')
 const routes = require('./routes')
-const config = require("./config");
-const settings = require("./settings");
-const license = require("./licensing");
-const containers = require('./containers');
-const cookie = require('fastify-cookie');
-const csrf = require('fastify-csrf');
+const config = require('./config')
+const settings = require('./settings')
+const license = require('./licensing')
+const containers = require('./containers')
+const cookie = require('fastify-cookie')
+const csrf = require('fastify-csrf')
 const semver = require('semver')
 
 const postoffice = require('./postoffice');
@@ -23,12 +23,11 @@ const postoffice = require('./postoffice');
   * @namespace forge
   */
 
-(async function() {
-
-    if (!semver.satisfies(process.version,">=16.0.0")) {
+(async function () {
+    if (!semver.satisfies(process.version, '>=16.0.0')) {
         console.error(`FlowForge requires at least NodeJS v16, ${process.version} found`)
         process.exit(1)
-    } 
+    }
 
     const server = fastify({
         maxParamLength: 500,
@@ -43,21 +42,21 @@ const postoffice = require('./postoffice');
 
     server.addHook('onError', async (request, reply, error) => {
         // Useful for debugging when a route goes wrong
-        console.log(error.stack);
+        console.log(error.stack)
     })
 
     // Config : loads environment configuration
-    await server.register(config);
+    await server.register(config)
 
     await server.register(cookie, {
         // TODO: this needs to be generated per-instance
-        secret: "flowforge-secret"
+        secret: 'flowforge-secret'
     })
     await server.register(csrf, { cookieOpts: { _signed: true, _httpOnly: true } })
 
-    process.env.PORT = process.env.PORT || server.config.port || 3000;
+    process.env.PORT = process.env.PORT || server.config.port || 3000
     if (!process.env.BASE_URL) {
-        process.env.BASE_URL = `http://localhost:${process.env.PORT}`;
+        process.env.BASE_URL = `http://localhost:${process.env.PORT}`
     }
 
     if (!process.env.API_URL) {
@@ -65,26 +64,25 @@ const postoffice = require('./postoffice');
     }
 
     // DB : the database connection/models/views/controllers
-    await server.register(db);
+    await server.register(db)
     // Settings
-    await server.register(settings);
+    await server.register(settings)
     // License
-    await server.register(license);
+    await server.register(license)
     // Routes : the HTTP routes
     await server.register(routes, { logLevel: 'warn' })
     // Post Office : handles email
-    server.register(postoffice);
+    server.register(postoffice)
     // Containers:
-    await server.register(containers);
+    await server.register(containers)
 
-    await server.ready();
+    await server.ready()
 
     // Start the server
-    server.listen(process.env.PORT,'0.0.0.0', function (err, address) {
+    server.listen(process.env.PORT, '0.0.0.0', function (err, address) {
         if (err) {
             console.error(err)
             process.exit(1)
         }
     })
-
 })()

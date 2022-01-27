@@ -1,9 +1,8 @@
-module.exports = async function(app) {
-    app.addHook('preHandler',app.verifyAdmin);
-
+module.exports = async function (app) {
+    app.addHook('preHandler', app.verifyAdmin)
 
     app.get('/stats', async (request, reply) => {
-        const userCount = await app.db.models.User.count({attributes:['admin'],group:'admin'});
+        const userCount = await app.db.models.User.count({ attributes: ['admin'], group: 'admin' })
         const result = {
             userCount: 0,
             inviteCount: await app.db.models.Invitation.count(),
@@ -17,18 +16,18 @@ module.exports = async function(app) {
                 result.adminCount = u.count
             }
         })
-        reply.send(result);
+        reply.send(result)
     })
 
     app.get('/license', async (request, reply) => {
-        reply.send(app.license.get() || {});
-    });
+        reply.send(app.license.get() || {})
+    })
 
     app.put('/license', {
         schema: {
             body: {
                 type: 'object',
-                required: ['license','action'],
+                required: ['license', 'action'],
                 properties: {
                     license: { type: 'string' },
                     action: { type: 'string' }
@@ -37,31 +36,31 @@ module.exports = async function(app) {
         }
     }, async (request, reply) => {
         try {
-            if (request.body.action === "apply") {
-                await app.license.apply(request.body.license);
-                reply.send(app.license.get() || {});
-            } else if (request.body.action === "inspect") {
+            if (request.body.action === 'apply') {
+                await app.license.apply(request.body.license)
+                reply.send(app.license.get() || {})
+            } else if (request.body.action === 'inspect') {
                 reply.send(await app.license.inspect(request.body.license))
             } else {
-                reply.code(400).send({error:"Invalid action"})
+                reply.code(400).send({ error: 'Invalid action' })
             }
-        } catch(err) {
-            let responseMessage = err.toString();
+        } catch (err) {
+            let responseMessage = err.toString()
             if (/malformed/.test(responseMessage)) {
-                responseMessage = "Failed to parse license";
+                responseMessage = 'Failed to parse license'
             }
-            reply.code(400).send({error:responseMessage})
+            reply.code(400).send({ error: responseMessage })
         }
-    });
+    })
 
     app.get('/invitations', async (request, reply) => {
         // TODO: Pagination
         const invitations = await app.db.models.Invitation.get()
-        const result = app.db.views.Invitation.invitationList(invitations);
+        const result = app.db.views.Invitation.invitationList(invitations)
         reply.send({
             meta: {}, // For future pagination
             count: result.length,
-            invitations:result
+            invitations: result
         })
     })
 }
