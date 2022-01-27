@@ -5,6 +5,7 @@
 
 const { DataTypes, literal, Op } = require('sequelize')
 const { slugify, generateTeamAvatar } = require('../utils')
+const { Roles } = require('../../lib/roles')
 
 module.exports = {
     name: 'Team',
@@ -180,7 +181,7 @@ module.exports = {
                 },
                 owners: async function () {
                     // All Team owners
-                    return M.TeamMember.scope('owners').findAll()
+                    return this.members(Roles.Owner)
                 },
                 projectCount: async function () {
                     return await M.Project.count({ where: { TeamId: this.id } })

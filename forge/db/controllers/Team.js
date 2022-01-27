@@ -4,7 +4,6 @@ module.exports = {
     changeUserRole: async function (app, teamHashId, userHashId, role) {
         const user = await app.db.models.User.byId(userHashId)
         const team = await app.db.models.Team.byId(teamHashId)
-
         if (!user) {
             throw new Error('User not found')
         }
@@ -23,7 +22,6 @@ module.exports = {
         if (oldRole === role) {
             return { user, team, oldRole, role }
         }
-
         if (oldRole === Roles.Owner && role === Roles.Member) {
             const owners = await team.owners()
             if (owners.length === 1) {
@@ -44,7 +42,9 @@ module.exports = {
      *
      */
     removeUser: async function (app, team, user, userRole) {
-        // If no userRole, then user already not in team - success
+        if (!userRole) {
+            userRole = await user.getTeamMembership(team.id)
+        }
         if (userRole) {
             if (userRole.role === Roles.Owner) {
                 const owners = await team.owners()
