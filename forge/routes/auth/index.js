@@ -15,13 +15,13 @@
  * @namespace session
  * @memberof forge.routes
  */
-const fp = require("fastify-plugin");
+const fp = require('fastify-plugin')
 
-const { Roles } = require("../../lib/roles")
+const { Roles } = require('../../lib/roles')
 
 // Default to a 12 hour session if the user ticks 'remember me'
 // TODO - turn this into an idle timeout, with a separate 'max session' timeout.
-const SESSION_MAX_AGE = 60*60*12; // 12 hours in seconds
+const SESSION_MAX_AGE = 60 * 60 * 12 // 12 hours in seconds
 
 // Options to apply to our session cookie
 const SESSION_COOKIE_OPTIONS = {
@@ -31,56 +31,54 @@ const SESSION_COOKIE_OPTIONS = {
     // TODO: secure only when in production
 }
 
-module.exports = fp(async function(app, opts, done) {
-    await app.register(require("./oauth"))
-    await app.register(require("./permissions"))
+module.exports = fp(async function (app, opts, done) {
+    await app.register(require('./oauth'))
+    await app.register(require('./permissions'))
 
     // WIP:
-    async function verifyToken(request, reply) {
+    async function verifyToken (request, reply) {
         if (request.headers && request.headers.authorization) {
-            const parts = request.headers.authorization.split(" ");
+            const parts = request.headers.authorization.split(' ')
             if (parts.length === 2) {
                 const scheme = parts[0]
                 const token = parts[1]
-                if (scheme !== "Bearer") {
-                    throw new Error("Unsupported authorization scheme")
+                if (scheme !== 'Bearer') {
+                    throw new Error('Unsupported authorization scheme')
                 }
                 if (/^fft/.test(token)) {
-                    const accessToken = await app.db.controllers.AccessToken.getOrExpire(token);
+                    const accessToken = await app.db.controllers.AccessToken.getOrExpire(token)
                     if (accessToken) {
                         request.session = {
                             ownerId: accessToken.ownerId,
                             ownerType: accessToken.ownerType,
                             scope: accessToken.scope
                         }
-                        return;
+                        return
                     }
                 } else if (/^ffp/.test(token)) {
-                    request.session = await app.db.controllers.Session.getOrExpire(token);
-                    return;
+                    request.session = await app.db.controllers.Session.getOrExpire(token)
+                    return
                 }
                 throw new Error(`bad token ${token}`)
             } else {
                 // return done(new Error("Malformed authorization header"))
-                throw new Error("Malformed authorization header")
+                throw new Error('Malformed authorization header')
             }
         } else {
             // done(new Error("Missing authorization header"))
-            throw new Error("Missing authorization header")
+            throw new Error('Missing authorization header')
         }
     }
 
-    app.decorate("verifyToken", verifyToken);
+    app.decorate('verifyToken', verifyToken)
 
-    app.decorate("verifyTokenOrSession", async function(request, reply){
-        //Order is important, other way round breaks nr-auth plugin
-        if (request.sid){
+    app.decorate('verifyTokenOrSession', async function (request, reply) {
+        // Order is important, other way round breaks nr-auth plugin
+        if (request.sid) {
             await verifySession(request, reply)
         } else if (request.headers && request.headers.authorization) {
             await verifyToken(request, reply)
-        } else if (request.context.config.allowAnonymous) {
-            return;
-        } else {
+        } else if (!request.context.config.allowAnonymous) {
             reply.code(401).send({ error: 'unauthorized' })
             throw new Error()
         }
@@ -98,20 +96,20 @@ module.exports = fp(async function(app, opts, done) {
      * @static
      * @memberof forge
      */
-    async function verifySession(request, reply) {
+    async function verifySession (request, reply) {
         if (request.sid) {
-            request.session = await app.db.controllers.Session.getOrExpire(request.sid);
+            request.session = await app.db.controllers.Session.getOrExpire(request.sid)
             if (request.session) {
-                return;
+                return
             }
         }
         if (request.context.config.allowAnonymous) {
-            return;
+            return
         }
         reply.code(401).send({ error: 'unauthorized' })
         throw new Error()
     }
-    app.decorate("verifySession", verifySession);
+    app.decorate('verifySession', verifySession)
 
     /**
      * preHandler function that ensures the current request comes from
@@ -121,13 +119,13 @@ module.exports = fp(async function(app, opts, done) {
      * @static
      * @memberof forge
      */
-    app.decorate("verifyAdmin", async (request, reply) => {
+    app.decorate('verifyAdmin', async (request, reply) => {
         if (request.session && request.session.User.admin) {
-            return;
+            return
         }
         reply.code(401).send({ error: 'unauthorized' })
         return new Error()
-    });
+    })
 
     app.decorateRequest('session', null)
     app.decorateRequest('sid', null)
@@ -135,14 +133,13 @@ module.exports = fp(async function(app, opts, done) {
     // Extract the session cookie and attach as request.sid
     app.addHook('onRequest', async (request, reply) => {
         if (request.cookies.sid) {
-            const sid = reply.unsignCookie(request.cookies.sid);
+            const sid = reply.unsignCookie(request.cookies.sid)
             if (sid.valid) {
-                request.sid = sid.value;
+                request.sid = sid.value
             } else {
-                reply.clearCookie('sid');
+                reply.clearCookie('sid')
             }
         }
-
     })
 
     // app.post('/account/register', (request, reply) => {
@@ -177,16 +174,16 @@ module.exports = fp(async function(app, opts, done) {
             }
         }
     }, async (request, reply) => {
-        const result = await app.db.controllers.User.authenticateCredentials(request.body.username,request.body.password);
+        const result = await app.db.controllers.User.authenticateCredentials(request.body.username, request.body.password)
         if (result) {
-            const session = await app.db.controllers.Session.createUserSession(request.body.username);
+            const session = await app.db.controllers.Session.createUserSession(request.body.username)
             if (session) {
-                const cookieOptions = {...SESSION_COOKIE_OPTIONS};
+                const cookieOptions = { ...SESSION_COOKIE_OPTIONS }
                 if (request.body.remember) {
-                    cookieOptions.maxAge = SESSION_MAX_AGE;
+                    cookieOptions.maxAge = SESSION_MAX_AGE
                 }
-                reply.setCookie('sid',session.sid,cookieOptions);
-                reply.send({status:"okay"})
+                reply.setCookie('sid', session.sid, cookieOptions)
+                reply.send({ status: 'okay' })
                 return
             }
         }
@@ -200,10 +197,10 @@ module.exports = fp(async function(app, opts, done) {
      */
     app.post('/account/logout', async (request, reply) => {
         if (request.sid) {
-            await app.db.controllers.Session.deleteSession(request.sid);
+            await app.db.controllers.Session.deleteSession(request.sid)
         }
-        reply.clearCookie('sid');
-        reply.send({status:"okay"})
+        reply.clearCookie('sid')
+        reply.send({ status: 'okay' })
     })
 
     /**
@@ -225,27 +222,27 @@ module.exports = fp(async function(app, opts, done) {
             }
         }
     }, async (request, reply) => {
-        if (!app.settings.get("user:signup") && !app.settings.get("team:user:invite:external")) {
-            reply.code(400).send({error:"user registration not enabled"});
+        if (!app.settings.get('user:signup') && !app.settings.get('team:user:invite:external')) {
+            reply.code(400).send({ error: 'user registration not enabled' })
             return
         }
-        if (!app.settings.get("user:signup") && app.settings.get("team:user:invite:external")) {
-            var invite = await app.db.models.Invitation.forExternalEmail(request.body.email)
+        if (!app.settings.get('user:signup') && app.settings.get('team:user:invite:external')) {
+            const invite = await app.db.models.Invitation.forExternalEmail(request.body.email)
             if (!invite && invite[0]) {
-                //reusing error message so as not to leak invited users
-                reply.code(400).send({error:"user registration not enabled"})
+                // reusing error message so as not to leak invited users
+                reply.code(400).send({ error: 'user registration not enabled' })
                 return
             } else {
                 app.log.info(`Invited user found ${request.body.email}`)
             }
         }
         if (!app.postoffice.enabled()) {
-            reply.code(400).send({error:"user registration not enabled - email not configured"});
+            reply.code(400).send({ error: 'user registration not enabled - email not configured' })
             return
         }
 
         if (/^(admin|root)$/.test(request.body.username)) {
-            reply.code(400).send({error:"invalid username"});
+            reply.code(400).send({ error: 'invalid username' })
             return
         }
         try {
@@ -256,81 +253,77 @@ module.exports = fp(async function(app, opts, done) {
                 email_verified: false,
                 password: request.body.password,
                 admin: false
-            });
-            const verifyToken = await app.db.controllers.User.generateEmailVerificationToken(newUser);
+            })
+            const verifyToken = await app.db.controllers.User.generateEmailVerificationToken(newUser)
             await app.postoffice.send(
                 newUser,
-                "VerifyEmail",
+                'VerifyEmail',
                 {
                     confirmEmailLink: `${app.config.base_url}/account/verify/${verifyToken}`
                 }
             )
-            reply.send({status:"okay"})
-        } catch(err) {
-            let responseMessage;
+            reply.send({ status: 'okay' })
+        } catch (err) {
+            let responseMessage
             if (err.errors) {
-                responseMessage = err.errors.map(err => err.message).join(",");
+                responseMessage = err.errors.map(err => err.message).join(',')
             } else {
-                responseMessage = err.toString();
+                responseMessage = err.toString()
             }
-            reply.code(400).send({error:responseMessage})
-            return;
+            reply.code(400).send({ error: responseMessage })
         }
     })
 
-    app.get('/account/verify/:token', async (request,reply) => {
+    app.get('/account/verify/:token', async (request, reply) => {
         try {
-            let sessionUser;
+            let sessionUser
             if (request.sid) {
-                request.session = await app.db.controllers.Session.getOrExpire(request.sid);
-                sessionUser = request.session.User;
+                request.session = await app.db.controllers.Session.getOrExpire(request.sid)
+                sessionUser = request.session.User
             }
-            const verifiedUser = await app.db.controllers.User.verifyEmailToken(sessionUser, request.params.token);
+            const verifiedUser = await app.db.controllers.User.verifyEmailToken(sessionUser, request.params.token)
 
-            if (app.settings.get("user:team:auto-create")) {
+            if (app.settings.get('user:team:auto-create')) {
                 // Create a team
                 const newTeam = await app.db.models.Team.create({
                     name: `Team ${verifiedUser.name}`,
                     slug: verifiedUser.username
-                });
-                await newTeam.addUser(verifiedUser, { through: { role:Roles.Owner } });
+                })
+                await newTeam.addUser(verifiedUser, { through: { role: Roles.Owner } })
             }
 
-
             const pendingInvitations = await app.db.models.Invitation.forExternalEmail(verifiedUser.email)
-            for (let i=0;i<pendingInvitations.length;i++) {
-                const invite = pendingInvitations[i];
-                invite.external = false;
-                invite.inviteeId = verifiedUser.id;
+            for (let i = 0; i < pendingInvitations.length; i++) {
+                const invite = pendingInvitations[i]
+                invite.external = false
+                invite.inviteeId = verifiedUser.id
                 await invite.save()
             }
 
-
-
-            reply.redirect("/");
-        } catch(err) {
+            reply.redirect('/')
+        } catch (err) {
             console.log(err.toString())
-            reply.code(400).send({status:"error", message:err.toString()})
+            reply.code(400).send({ status: 'error', message: err.toString() })
         }
-    });
+    })
 
-    app.post('/account/verify',{ preHandler: app.verifySession }, async(request,reply) => {
+    app.post('/account/verify', { preHandler: app.verifySession }, async (request, reply) => {
         if (!app.postoffice.enabled()) {
-            reply.code(400).send({error:"email not configured"});
+            reply.code(400).send({ error: 'email not configured' })
             return
         }
         if (!request.session.User.email_verified) {
-            const verifyToken = await app.db.controllers.User.generateEmailVerificationToken(request.session.User);
+            const verifyToken = await app.db.controllers.User.generateEmailVerificationToken(request.session.User)
             await app.postoffice.send(
                 request.session.User,
-                "VerifyEmail",
+                'VerifyEmail',
                 {
                     confirmEmailLink: `${app.config.base_url}/account/verify/${verifyToken}`
                 }
             )
-            reply.send({status:"okay"})
+            reply.send({ status: 'okay' })
         } else {
-            reply.code(400).send({status:"error", message:"Email already verified" })
+            reply.code(400).send({ status: 'error', message: 'Email already verified' })
         }
     })
 

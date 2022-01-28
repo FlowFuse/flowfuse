@@ -9,15 +9,15 @@
  * @memberof forge.db
  */
 
-const modelTypes = ['User','Session','AuthClient','AccessToken','Team','Invitation','AuditLog'];
+const modelTypes = ['User', 'Session', 'AuthClient', 'AccessToken', 'Team', 'Invitation', 'AuditLog']
 
-async function init(app) {
+async function init (app) {
     modelTypes.forEach(type => {
-        const m = require(`./${type}`);
-        module.exports[type] = {};
-        for (let key in m) {
-            module.exports[type][key] = m[key].bind(m,app)
+        const m = require(`./${type}`)
+        module.exports[type] = {}
+        for (const key in m) {
+            module.exports[type][key] = m[key].bind(m, app)
         }
-    });
+    })
 }
-module.exports.init = init;
+module.exports.init = init

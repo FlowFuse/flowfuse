@@ -1,7 +1,7 @@
 module.exports = {
-    userTeamList: function(app, teamList) {
+    userTeamList: function (app, teamList) {
         return teamList.map((t) => {
-            const d = t.get({plain:true});
+            const d = t.get({ plain: true })
             return {
                 id: d.Team.hashid,
                 slug: d.Team.slug,
@@ -12,10 +12,10 @@ module.exports = {
                 projectCount: d.projectCount,
                 memberCount: d.memberCount
             }
-        });
+        })
     },
-    teamSummary: function(app, team) {
-        const d = team.get({plain: true});
+    teamSummary: function (app, team) {
+        const d = team.get({ plain: true })
         const result = {
             id: d.hashid,
             name: d.name,
@@ -23,11 +23,11 @@ module.exports = {
             avatar: d.avatar,
             links: d.links
         }
-        return result;
+        return result
     },
-    team: function(app, team) {
+    team: function (app, team) {
         if (team) {
-            const result =  team.toJSON();
+            const result = team.toJSON()
             const filtered = {
                 id: result.hashid,
                 name: result.name,
@@ -39,7 +39,7 @@ module.exports = {
                 updatedAt: result.updatedAt,
                 links: result.links
             }
-            return filtered;
+            return filtered
         } else {
             return null
         }

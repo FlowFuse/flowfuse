@@ -4,22 +4,22 @@
  * @namespace forge.db.models.Organization
  */
 
-const { DataTypes } = require('sequelize');
+const { DataTypes } = require('sequelize')
 
 module.exports = {
     name: 'Organization',
     schema: {
-        name: { type: DataTypes.STRING, allowNull: false },
+        name: { type: DataTypes.STRING, allowNull: false }
     },
     scopes: {
-        admins: { where: { admin: true }}
+        admins: { where: { admin: true } }
     },
-    finders: function() {
-        const self = this;
+    finders: function () {
+        const self = this
         return {
             static: {
-                byName: async function(name) {
-                    return self.findOne({where:{name}});
+                byName: async function (name) {
+                    return self.findOne({ where: { name } })
                 }
             }
         }

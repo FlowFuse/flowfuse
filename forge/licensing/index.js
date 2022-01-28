@@ -1,7 +1,7 @@
-const loader = require("./loader");
-const fp = require("fastify-plugin");
+const loader = require('./loader')
+const fp = require('fastify-plugin')
 
-module.exports = fp(async function(app, opts, next) {
+module.exports = fp(async function (app, opts, next) {
     // Dev License:
     // {
     //     iss: "FlowForge Inc.",
@@ -14,52 +14,51 @@ module.exports = fp(async function(app, opts, next) {
     //     teams: '100',
     //     projects: '100'
     // }
-    const devLicense = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjM5NzUxMTc1LCJleHAiOjcyNTgxMTg0MDAsIm5vdGUiOiJGb3IgZGV2ZWxvcG1lbnQgb25seSIsInRpZXIiOiJ0ZWFtcyIsInVzZXJzIjoiMTAwIiwidGVhbXMiOiIxMDAiLCJwcm9qZWN0cyI6IjEwMCIsImlhdCI6MTYzOTc1MTE3NX0.CZwIbUV9-vC1dPHaJqVJx1YchK_4JgRMBCd5UEQfNYblXNJKiaR9BFY7T-Qvzg1HsR3rbDhmraiiVMfGuR75gw";
+    // const devLicense = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjM5NzUxMTc1LCJleHAiOjcyNTgxMTg0MDAsIm5vdGUiOiJGb3IgZGV2ZWxvcG1lbnQgb25seSIsInRpZXIiOiJ0ZWFtcyIsInVzZXJzIjoiMTAwIiwidGVhbXMiOiIxMDAiLCJwcm9qZWN0cyI6IjEwMCIsImlhdCI6MTYzOTc1MTE3NX0.CZwIbUV9-vC1dPHaJqVJx1YchK_4JgRMBCd5UEQfNYblXNJKiaR9BFY7T-Qvzg1HsR3rbDhmraiiVMfGuR75gw'
 
     // TODO: load license from local file or app.config.XYZ
 
-    let userLicense = await app.settings.get('license');
+    const userLicense = await app.settings.get('license')
 
     // if (!userLicense) {
     //     console.log("No user-provided license found - using development license")
     //     userLicense = devLicense;
     // }
-    let activeLicense = null;
+    let activeLicense = null
 
     const licenseApi = {
         apply: async (license) => {
-            await applyLicense(license);
-            await app.settings.set('license',license);
+            await applyLicense(license)
+            await app.settings.set('license', license)
         },
         inspect: async (license) => {
-            return await loader.verifyLicense(license);
+            return await loader.verifyLicense(license)
         },
         active: () => activeLicense !== null,
         get: (key) => {
-            return key?activeLicense && activeLicense[key]:activeLicense
+            return key ? activeLicense && activeLicense[key] : activeLicense
         }
     }
 
     if (userLicense) {
         try {
             await applyLicense(userLicense)
-        } catch(err) {
-            throw new Error("Failed to apply license: "+err.toString());
+        } catch (err) {
+            throw new Error('Failed to apply license: ' + err.toString())
         }
     } else {
-        app.log.info("No license applied");
+        app.log.info('No license applied')
     }
-    app.decorate("license", licenseApi);
+    app.decorate('license', licenseApi)
 
-    next();
+    next()
 
-
-    async function applyLicense(license) {
-        activeLicense = await loader.verifyLicense(license);
-        app.log.info("License verified:")
-        app.log.info(" Org:    ",activeLicense.organisation)
-        app.log.info(" Tier:   ",activeLicense.tier)
-        app.log.info(" Expires:",activeLicense.expiresAt.toISOString())
-        app.log.info(" Valid From:",activeLicense.validFrom.toISOString())
+    async function applyLicense (license) {
+        activeLicense = await loader.verifyLicense(license)
+        app.log.info('License verified:')
+        app.log.info(' Org:    ', activeLicense.organisation)
+        app.log.info(' Tier:   ', activeLicense.tier)
+        app.log.info(' Expires:', activeLicense.expiresAt.toISOString())
+        app.log.info(' Valid From:', activeLicense.validFrom.toISOString())
     }
-});
+})

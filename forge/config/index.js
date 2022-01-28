@@ -14,18 +14,17 @@
  * @memberof forge
  **/
 
-const fs = require("fs");
-const path = require("path");
-const fp = require("fastify-plugin");
-const YAML = require("yaml");
+const fs = require('fs')
+const path = require('path')
+const fp = require('fastify-plugin')
+const YAML = require('yaml')
 
 // const FastifySecrets = require('fastify-secrets-env')
 
-module.exports = fp(async function(app, _opts, next) {
-
+module.exports = fp(async function (app, _opts, next) {
     if (!process.env.FLOWFORGE_HOME) {
-        if (process.env.NODE_ENV === "development") {
-            app.log.info("Development mode")
+        if (process.env.NODE_ENV === 'development') {
+            app.log.info('Development mode')
             process.env.FLOWFORGE_HOME = path.resolve(__dirname, '../..')
         } else {
             if (fs.existsSync('/opt/flowforge')) {
@@ -37,11 +36,11 @@ module.exports = fp(async function(app, _opts, next) {
     }
 
     if (process.env.npm_package_version) {
-        //npm start
+        // npm start
         app.log.info(`FlowForge v${process.env.npm_package_version}`)
     } else {
-        //everything else
-        let {version} = require(path.join(module.parent.path, "..", "package.json"))
+        // everything else
+        const { version } = require(path.join(module.parent.path, '..', 'package.json'))
         app.log.info(`FlowForge v${version}`)
     }
 
@@ -49,24 +48,24 @@ module.exports = fp(async function(app, _opts, next) {
 
     app.log.info(`FlowForge Data Directory: ${process.env.FLOWFORGE_HOME}`)
 
-    let configFile = path.join(process.env.FLOWFORGE_HOME,'/etc/flowforge.yml')
-    if (fs.existsSync(path.join(process.env.FLOWFORGE_HOME,'/etc/flowforge.local.yml'))) {
-        configFile = path.join(process.env.FLOWFORGE_HOME,'/etc/flowforge.local.yml')
+    let configFile = path.join(process.env.FLOWFORGE_HOME, '/etc/flowforge.yml')
+    if (fs.existsSync(path.join(process.env.FLOWFORGE_HOME, '/etc/flowforge.local.yml'))) {
+        configFile = path.join(process.env.FLOWFORGE_HOME, '/etc/flowforge.local.yml')
     }
     app.log.info(`Config File: ${configFile}`)
     try {
-        let configFileContent = fs.readFileSync(configFile,'utf-8');
-        let config = YAML.parse(configFileContent);
+        const configFileContent = fs.readFileSync(configFile, 'utf-8')
+        const config = YAML.parse(configFileContent)
 
         // Ensure sensible defaults
 
-        config.home = process.env.FLOWFORGE_HOME;
-        config.port = process.env.PORT || config.port || 3000;
-        config.base_url = config.base_url || `http://localhost:${config.port}`;
-        config.api_url = config.api_url || config.base_url;
+        config.home = process.env.FLOWFORGE_HOME
+        config.port = process.env.PORT || config.port || 3000
+        config.base_url = config.base_url || `http://localhost:${config.port}`
+        config.api_url = config.api_url || config.base_url
 
-        process.env.FLOWFORGE_BASE_URL = config.base_url;
-        process.env.FLOWFORGE_API_URL = config.api_url;
+        process.env.FLOWFORGE_BASE_URL = config.base_url
+        process.env.FLOWFORGE_API_URL = config.api_url
 
         if (!config.email) {
             config.email = { enabled: false }
@@ -76,9 +75,9 @@ module.exports = fp(async function(app, _opts, next) {
             config.driver = { type: 'localfs' }
         }
 
-        Object.freeze(config);
-        app.decorate("config",config);
-    } catch(err) {
+        Object.freeze(config)
+        app.decorate('config', config)
+    } catch (err) {
         app.log.error(`Failed to read config file ${configFile}: ${err}`)
     }
 
@@ -91,5 +90,5 @@ module.exports = fp(async function(app, _opts, next) {
     //     dbPassword:'FLOWFORGE_DB_PASSWORD'
     //   }
     // })
-    next();
-});
+    next()
+})

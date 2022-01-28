@@ -15,22 +15,21 @@
  */
 const path = require('path')
 const fs = require('fs')
-const Avatar = require("./avatar");
+const Avatar = require('./avatar')
 
-module.exports = async function(app) {
-
-    const frontendAssetsDir = path.join(__dirname, "../../../frontend/dist/")
+module.exports = async function (app) {
+    const frontendAssetsDir = path.join(__dirname, '../../../frontend/dist/')
 
     // Check the frontend has been built
-    if (!fs.existsSync(path.join(frontendAssetsDir,"index.html"))) {
+    if (!fs.existsSync(path.join(frontendAssetsDir, 'index.html'))) {
         throw new Error("'/frontend/dist/index.html' not found. Have you run `npm run build`?")
     }
 
-    app.register(Avatar, { prefix: "/avatar" })
+    app.register(Avatar, { prefix: '/avatar' })
 
     app.get('/', (request, reply) => {
-        if (!app.settings.get("setup:initialised")) {
-            reply.redirect("/setup")
+        if (!app.settings.get('setup:initialised')) {
+            reply.redirect('/setup')
             return
         }
         reply.sendFile('index.html')

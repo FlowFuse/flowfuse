@@ -1,19 +1,17 @@
-import store from "@/store"
+import store from '@/store'
 
 /**
  * A 'beforeEnter' router function that ensures the user has a particular permission
  * or they are an admin
  */
-export default function(scope) {
+export default function (scope) {
+    return function (to, from, next) {
+        let settingsWatcher
+        let userWatcher
 
-
-    return function(to, from, next) {
-        let settingsWatcher;
-        let userWatcher;
-
-        function proceed() {
+        function proceed () {
             if (settingsWatcher) {
-                settingsWatcher();
+                settingsWatcher()
             }
             if (store.state.account.user.admin || store.state.account.settings[scope]) {
                 next()
@@ -22,7 +20,7 @@ export default function(scope) {
             }
         }
 
-        function waitForUser() {
+        function waitForUser () {
             if (!store.state.account.user) {
                 // Setup a watch
                 userWatcher = store.watch(
@@ -33,9 +31,9 @@ export default function(scope) {
                 waitForSettings()
             }
         }
-        function waitForSettings() {
+        function waitForSettings () {
             if (userWatcher) {
-                userWatcher();
+                userWatcher()
             }
             if (!store.state.account.settings) {
                 settingsWatcher = store.watch(

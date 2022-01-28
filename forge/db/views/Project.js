@@ -1,6 +1,6 @@
 module.exports = {
-    project: function(app, project) {
-        const proj = project.toJSON();
+    project: function (app, project) {
+        const proj = project.toJSON()
         const result = {
             id: proj.id,
             name: proj.name,
@@ -8,7 +8,7 @@ module.exports = {
             url: proj.url,
             createdAt: proj.createdAt,
             updatedAt: proj.updatedAt,
-            links: proj.links,
+            links: proj.links
         }
         if (proj.Team) {
             result.team = {
@@ -18,14 +18,14 @@ module.exports = {
                 links: proj.Team.links
             }
         }
-        return result;
+        return result
     },
-    teamProjectList: function(app, projectList) {
+    teamProjectList: function (app, projectList) {
         return projectList.map((t) => {
-            return app.db.views.Project.project(t);
-        });
+            return app.db.views.Project.project(t)
+        })
     },
-    userProjectList: function(app, projectList) {
+    userProjectList: function (app, projectList) {
         return projectList.map((t) => {
             return {
                 id: t.id,
@@ -37,6 +37,6 @@ module.exports = {
                 links: t.links,
                 team: app.db.views.Team.team(t.Team)
             }
-        });
+        })
     }
 }

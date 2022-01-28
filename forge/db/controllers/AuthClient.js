@@ -1,5 +1,4 @@
-const { generateToken, compareHash } = require("../utils");
-
+const { generateToken, compareHash } = require('../utils')
 
 module.exports = {
     /**
@@ -9,23 +8,22 @@ module.exports = {
      *       returned by this function
      *
      */
-    createClientForProject: async function(app, project) {
-
-        const existingAuthClient = await project.getAuthClient();
+    createClientForProject: async function (app, project) {
+        const existingAuthClient = await project.getAuthClient()
         if (existingAuthClient) {
             // TODO: are there sessions to expire as well?
             await existingAuthClient.destroy()
         }
 
         const client = {
-            clientID: generateToken(32,'ffp'),
+            clientID: generateToken(32, 'ffp'),
             clientSecret: generateToken(48)
         }
-        const authClient = await project.createAuthClient(client);
-        return client;
+        await project.createAuthClient(client)
+        return client
     },
 
-    getAuthClient: async function(app, clientID, clientSecret) {
+    getAuthClient: async function (app, clientID, clientSecret) {
         const client = await app.db.models.AuthClient.findOne({
             where: { clientID: clientID }
         })
@@ -33,9 +31,9 @@ module.exports = {
             if (!clientSecret || compareHash(clientSecret, client.clientSecret)) {
                 return client
             }
-            return null;
+            return null
         }
-        return null;
-    },
+        return null
+    }
 
 }

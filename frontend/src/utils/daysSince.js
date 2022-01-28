@@ -1,15 +1,15 @@
-import elapsedTime from '@/utils/elapsedTime';
+import elapsedTime from '@/utils/elapsedTime'
 
-export default function(dateString) {
+export default function (dateString) {
     if (!dateString) {
-        return "";
+        return ''
     }
     if (!dateString) {
-        return "";
+        return ''
     }
-    var now = Date.now();
-    var d = new Date(dateString);
-    var delta = now - d.getTime();
+    const now = Date.now()
+    const d = new Date(dateString)
+    const delta = now - d.getTime()
 
-    return elapsedTime(delta)+" ago"
+    return elapsedTime(delta) + ' ago'
 }

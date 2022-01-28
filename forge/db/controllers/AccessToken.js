@@ -1,5 +1,4 @@
-const { generateToken, sha256 } = require("../utils");
-
+const { generateToken, sha256 } = require('../utils')
 
 module.exports = {
     /**
@@ -7,18 +6,18 @@ module.exports = {
      * The token is hashed in the database. The only time the
      * true value is available is when it is returned from this function.
      */
-    createTokenForProject: async function(app, project, expiresAt, scope) {
+    createTokenForProject: async function (app, project, expiresAt, scope) {
         const existingProjectToken = await project.getAccessToken()
         if (existingProjectToken) {
-            await existingProjectToken.destroy();
+            await existingProjectToken.destroy()
         }
-        const token = generateToken(32,'fft');
+        const token = generateToken(32, 'fft')
         await app.db.models.AccessToken.create({
             token,
             expiresAt,
             scope,
             ownerId: project.id,
-            ownerType: "project",
+            ownerType: 'project'
         })
         return { token }
     },
@@ -26,14 +25,14 @@ module.exports = {
      * Get a token by its id. If the session has expired, it is deleted
      * and nothing returned.
      */
-    getOrExpire: async function(app, token) {
+    getOrExpire: async function (app, token) {
         let accessToken = await app.db.models.AccessToken.findOne({
-            where:{token: sha256(token)}
-        });
+            where: { token: sha256(token) }
+        })
         if (accessToken) {
             if (accessToken.expiresAt && accessToken.expiresAt.getTime() < Date.now()) {
-                await accessToken.destroy();
-                accessToken = null;
+                await accessToken.destroy()
+                accessToken = null
             }
         }
         return accessToken

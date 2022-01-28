@@ -1,5 +1,5 @@
-const sharedUser = require("./shared/users")
-const UserInvitations = require("./userInvitations");
+const sharedUser = require('./shared/users')
+const UserInvitations = require('./userInvitations')
 
 /**
  * User api routes
@@ -12,10 +12,8 @@ const UserInvitations = require("./userInvitations");
  * @namespace user
  * @memberof forge.routes.api
  */
-module.exports = async function(app) {
-
-    app.register(UserInvitations, { prefix: "/invitations" })
-
+module.exports = async function (app) {
+    app.register(UserInvitations, { prefix: '/invitations' })
 
     /**
      * Get the profile of the current logged in user
@@ -24,7 +22,7 @@ module.exports = async function(app) {
      * @memberof forge.routes.api.user
      */
     app.get('/', async (request, reply) => {
-        const users = await app.db.views.User.userProfile(request.session.User);
+        const users = await app.db.views.User.userProfile(request.session.User)
         reply.send(users)
     })
 
@@ -45,14 +43,14 @@ module.exports = async function(app) {
                 }
             }
         }
-    }, async(request, reply) => {
+    }, async (request, reply) => {
         try {
-            await app.db.controllers.User.changePassword(request.session.User, request.body.old_password, request.body.password);
-            reply.send({status:"okay"})
-        } catch(err) {
-            reply.code(400).send({error: "password change failed"})
+            await app.db.controllers.User.changePassword(request.session.User, request.body.old_password, request.body.password)
+            reply.send({ status: 'okay' })
+        } catch (err) {
+            reply.code(400).send({ error: 'password change failed' })
         }
-    });
+    })
 
     /**
      * Get the teams of the current logged in user
@@ -61,12 +59,12 @@ module.exports = async function(app) {
      * @memberof forge.routes.api.user
      */
     app.get('/teams', async (request, reply) => {
-        const teams = await app.db.models.Team.forUser(request.session.User);
-        const result = await app.db.views.Team.userTeamList(teams);
+        const teams = await app.db.models.Team.forUser(request.session.User)
+        const result = await app.db.views.Team.userTeamList(teams)
         reply.send({
             meta: {}, // For future pagination
             count: result.length,
-            teams:result
+            teams: result
         })
     })
 
@@ -77,12 +75,12 @@ module.exports = async function(app) {
      * @memberof forge.routes.api.user
      */
     app.get('/projects', async (request, reply) => {
-        const projects = await app.db.models.Project.byUser(request.session.User);
-        const result = await app.db.views.Project.userProjectList(projects);
+        const projects = await app.db.models.Project.byUser(request.session.User)
+        const result = await app.db.views.Project.userProjectList(projects)
         reply.send({
             meta: {}, // For future pagination
             count: result.length,
-            projects:result
+            projects: result
         })
     })
 
@@ -93,6 +91,6 @@ module.exports = async function(app) {
      * @memberof forge.routes.api.user
      */
     app.put('/', async (request, reply) => {
-        sharedUser.updateUser(app, request.session.User, request, reply);
+        sharedUser.updateUser(app, request.session.User, request, reply)
     })
 }

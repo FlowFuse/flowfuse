@@ -2,29 +2,29 @@
 
 const { Roles } = require('../lib/roles')
 
-async function inject(app) {
+async function inject (app) {
     try {
         if (!process.env.TEST_DATA) {
             return
         }
-        await app.db.models.PlatformSettings.upsert({ key: "setup:initialised",value:true });
+        await app.db.models.PlatformSettings.upsert({ key: 'setup:initialised', value: true })
 
-        const userAlice = await app.db.models.User.create({admin: true, username: "alice", name: "Alice Skywalker", email: "alice@example.com", email_verified: true, password: 'aaPassword'});
-        const userBob = await app.db.models.User.create({username: "bob", name: "Bob Solo", email: "bob@example.com", email_verified: true,password: 'bbPassword'});
-        const userChris = await app.db.models.User.create({username: "chris", name: "Chris Kenobi", email: "chris@example.com", password: 'ccPassword'});
+        const userAlice = await app.db.models.User.create({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
+        const userBob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
+        // const userChris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', password: 'ccPassword' })
 
-        const team1 = await app.db.models.Team.create({name: "ATeam"});
-        const team2 = await app.db.models.Team.create({name: "BTeam"});
-        const team3 = await app.db.models.Team.create({name: "CTeam"});
+        const team1 = await app.db.models.Team.create({ name: 'ATeam' })
+        const team2 = await app.db.models.Team.create({ name: 'BTeam' })
+        const team3 = await app.db.models.Team.create({ name: 'CTeam' })
 
-        await team1.addUser(userAlice, { through: { role:Roles.Owner } });
-        await team1.addUser(userBob, { through: { role:Roles.Member } });
+        await team1.addUser(userAlice, { through: { role: Roles.Owner } })
+        await team1.addUser(userBob, { through: { role: Roles.Member } })
         // await team1.addUser(userChris, { through: { role:Roles.Member } });
 
-        await team2.addUser(userBob, { through: { role:Roles.Owner } });
-        await team2.addUser(userAlice, { through: { role:Roles.Member } });
+        await team2.addUser(userBob, { through: { role: Roles.Owner } })
+        await team2.addUser(userAlice, { through: { role: Roles.Member } })
 
-        await team3.addUser(userAlice, { through: { role:Roles.Owner } });
+        await team3.addUser(userAlice, { through: { role: Roles.Owner } })
         // await team3.addUser(userChris, { through: { role:Roles.Member } });
 
         // const project1 = await app.db.models.Project.create({name: "project1", type: "basic", url: "http://instance1.example.com"});
@@ -39,9 +39,7 @@ async function inject(app) {
         //  For testing, print out the ID/Secret here to copy into the node-red project instance config
         // console.log(p2AuthClient);
 
-
-
-/*
+        /*
 {
   clientID: 'ffp_ya2uR3AZD-hmGITngOAuDceIdsAPjpG3ESp-tOY2xOc',
   clientSecret: 'cPphxptcX49iYnBIavEHY8CLjDFymJ-TPNy2s1XMMEVNHKGzeKRiqVeGWDbwLCN8',
@@ -49,16 +47,13 @@ async function inject(app) {
   ownerId: '4f0100a0-4abf-4b3c-adf0-688282bd4b24'
 }
 */
-
-
-    } catch(err) {
-        if (err.name === "SequelizeUniqueConstraintError") {
+    } catch (err) {
+        if (err.name === 'SequelizeUniqueConstraintError') {
             // looks like the test data is already there
         } else {
             throw err
         }
     }
-
 
     // const uu = await app.db.models.User.byUsernameOrEmail('alice')
     // console.log(uu);
@@ -144,8 +139,6 @@ async function inject(app) {
 
     // const results = await app.db.models.Invitation.forUser(userChris);
     // console.log(results.map(d => d.toJSON()));
-
-
 
     // let teamA = await app.db.models.Team.byName("ATeam")
     // let names = [
