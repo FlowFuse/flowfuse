@@ -55,8 +55,11 @@ const postoffice = require('./postoffice');
     await server.register(license)
 
     // HTTP Server configuration
+    if (!server.settings.get('cookieSecret')) {
+        await server.settings.set('cookieSecret', server.db.utils.generateToken(12))
+    }
     await server.register(cookie, {
-        secret: server.db.utils.sha256(server.settings.get('instanceId'))
+        secret: server.settings.get('cookieSecret')
     })
     await server.register(csrf, { cookieOpts: { _signed: true, _httpOnly: true } })
 
