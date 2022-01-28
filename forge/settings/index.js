@@ -1,3 +1,4 @@
+const { v4: uuidv4 } = require('uuid')
 const fp = require('fastify-plugin')
 
 const defaultSettings = require('./defaults')
@@ -24,6 +25,10 @@ module.exports = fp(async function (app, _opts, next) {
             settings[key] = value
             await app.db.models.PlatformSettings.upsert({ key, value })
         }
+    }
+
+    if (!settingsApi.get('instanceId')) {
+        await settingsApi.set('instanceId', uuidv4())
     }
 
     app.decorate('settings', settingsApi)
