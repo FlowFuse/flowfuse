@@ -95,5 +95,9 @@
     },
     "engines": {
         "node": ">=16.x"
+    },
+    "optionalDependencies": {
+        "@aws-sdk/client-ses": "^3.49.0",
+        "@aws-sdk/credential-provider-node": "^3.49.0"
     }
 }
