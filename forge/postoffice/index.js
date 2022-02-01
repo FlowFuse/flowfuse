@@ -35,8 +35,8 @@ module.exports = fp(async function (app, _opts, next) {
                 }
             })
         } else if (app.config.email.ses) {
-            const aws = require("@aws-sdk/client-ses")
-            const { defaultProvider } = require("@aws-sdk/credential-provider-node")
+            const aws = require('@aws-sdk/client-ses')
+            const { defaultProvider } = require('@aws-sdk/credential-provider-node')
 
             const sesConfig = app.config.email.ses
 
@@ -60,7 +60,6 @@ module.exports = fp(async function (app, _opts, next) {
                     EMAIL_ENABLED = false
                 }
             })
-
         } else {
             app.log.info('Email not configured - no external email will be sent')
         }
