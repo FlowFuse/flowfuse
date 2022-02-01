@@ -1,6 +1,7 @@
 const should = require('should') // eslint-disable-line
 const setup = require('../setup')
-const { Roles } = require('../../../../forge/lib/roles')
+const FF_UTIL = require('flowforge-test-utils')
+const { Roles } = FF_UTIL.require('forge/lib/roles')
 
 describe('Team controller', function () {
     // Use standard test data.

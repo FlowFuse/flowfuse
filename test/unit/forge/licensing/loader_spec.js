@@ -1,5 +1,6 @@
 const should = require('should') // eslint-disable-line
-const licensing = require('../../../forge/licensing/loader.js')
+const FF_UTIL = require('flowforge-test-utils')
+const licensing = FF_UTIL.require('forge/licensing/loader.js')
 
 describe('Licensing', function () {
     it('should load a valid license', async function () {
