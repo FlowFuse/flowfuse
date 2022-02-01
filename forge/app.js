@@ -47,10 +47,19 @@ const postoffice = require('./postoffice');
 
     // Config : loads environment configuration
     await server.register(config)
+    // DB : the database connection/models/views/controllers
+    await server.register(db)
+    // Settings
+    await server.register(settings)
+    // License
+    await server.register(license)
 
+    // HTTP Server configuration
+    if (!server.settings.get('cookieSecret')) {
+        await server.settings.set('cookieSecret', server.db.utils.generateToken(12))
+    }
     await server.register(cookie, {
-        // TODO: this needs to be generated per-instance
-        secret: 'flowforge-secret'
+        secret: server.settings.get('cookieSecret')
     })
     await server.register(csrf, { cookieOpts: { _signed: true, _httpOnly: true } })
 
@@ -58,21 +67,14 @@ const postoffice = require('./postoffice');
     if (!process.env.BASE_URL) {
         process.env.BASE_URL = `http://localhost:${process.env.PORT}`
     }
-
     if (!process.env.API_URL) {
         process.env.API_URL = process.env.BASE_URL
     }
 
-    // DB : the database connection/models/views/controllers
-    await server.register(db)
-    // Settings
-    await server.register(settings)
-    // License
-    await server.register(license)
     // Routes : the HTTP routes
     await server.register(routes, { logLevel: 'warn' })
     // Post Office : handles email
-    server.register(postoffice)
+    await server.register(postoffice)
     // Containers:
     await server.register(containers)
 

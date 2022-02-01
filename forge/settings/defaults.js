@@ -5,6 +5,9 @@ module.exports = {
     // Instance ID:
     instanceId: null,
 
+    // Secret used to sign cookies:
+    cookieSecret: null,
+
     // Whether the intial setup has been run
     'setup:initialised': false,
 
