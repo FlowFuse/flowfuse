@@ -1,0 +1,57 @@
+const fastify = require('fastify')
+const db = require('./db')
+const routes = require('./routes')
+const config = require('./config')
+const settings = require('./settings')
+const license = require('./licensing')
+const containers = require('./containers')
+const cookie = require('fastify-cookie')
+const csrf = require('fastify-csrf')
+const postoffice = require('./postoffice')
+
+module.exports = async (options) => {
+    const server = fastify({
+        maxParamLength: 500,
+        logger: {
+            level: 'info',
+            prettyPrint: {
+                translateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss.l'Z'",
+                ignore: 'pid,hostname'
+            }
+        }
+    })
+
+    server.addHook('onError', async (request, reply, error) => {
+        // Useful for debugging when a route goes wrong
+        // console.log(error.stack)
+    })
+
+    // Config : loads environment configuration
+    await server.register(config, options)
+    // DB : the database connection/models/views/controllers
+    await server.register(db)
+    // Settings
+    await server.register(settings)
+    // License
+    await server.register(license)
+
+    // HTTP Server configuration
+    if (!server.settings.get('cookieSecret')) {
+        await server.settings.set('cookieSecret', server.db.utils.generateToken(12))
+    }
+    await server.register(cookie, {
+        secret: server.settings.get('cookieSecret')
+    })
+    await server.register(csrf, { cookieOpts: { _signed: true, _httpOnly: true } })
+
+    // Routes : the HTTP routes
+    await server.register(routes, { logLevel: 'warn' })
+    // Post Office : handles email
+    await server.register(postoffice)
+    // Containers:
+    await server.register(containers)
+
+    await server.ready()
+
+    return server
+}
