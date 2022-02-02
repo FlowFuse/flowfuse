@@ -14,11 +14,11 @@ module.exports = fp(async function (app, _opts, next) {
     // fails to verify
     let EMAIL_ENABLED = app.config.email.enabled
 
+    const mailDefaults = { from: app.config.email.from ? app.config.email.from : '"FlowForge Platform" <donotreply@flowforge.com>' }
+
     if (EMAIL_ENABLED) {
         if (app.config.email.smtp) {
             const smtpConfig = app.config.email.smtp
-
-            const mailDefaults = { from: '"FlowForge Platform" <donotreply@flowforge.com>' }
 
             mailTransport = nodemailer.createTransport(smtpConfig, mailDefaults)
 
@@ -48,10 +48,10 @@ module.exports = fp(async function (app, _opts, next) {
 
             mailTransport = nodemailer.createTransport({
                 SES: { ses, aws }
-            })
+            }, mailDefaults)
 
             exportableSettings = {
-                region: app.config.email.ses.region
+                region: sesConfig.region
             }
 
             mailTransport.verify(err => {
@@ -97,7 +97,7 @@ module.exports = fp(async function (app, _opts, next) {
         if (EMAIL_ENABLED) {
             mailTransport.sendMail(mail, err => {
                 if (err) {
-                    app.log.warn('Failed to send email:', err.toString())
+                    app.log.warn(`Failed to send email: ${err.toString}`)
                 }
             })
             if (app.config.email.debug) {
