@@ -38,6 +38,32 @@ module.exports = fp(async function (app, _opts, next) {
             mailTransport = nodemailer.createTransport(app.config.email.transport, mailDefaults)
             exportableSettings = { }
             app.log.info('Email using config provided transport')
+        } else if (app.config.email.ses) {
+            const aws = require('@aws-sdk/client-ses')
+            const { defaultProvider } = require('@aws-sdk/credential-provider-node')
+
+            const sesConfig = app.config.email.ses
+
+            const ses = new aws.SES({
+                apiVersion: '2010-12-01',
+                region: sesConfig.region,
+                defaultProvider
+            })
+
+            mailTransport = nodemailer.createTransport({
+                SES: { ses, aws }
+            })
+
+            exportableSettings = {
+                region: app.config.email.ses.region
+            }
+
+            mailTransport.verify(err => {
+                if (err) {
+                    app.log.error('Failed to verify email connection: %s', err.toString())
+                    EMAIL_ENABLED = false
+                }
+            })
         } else {
             app.log.info('Email not configured - no external email will be sent')
         }

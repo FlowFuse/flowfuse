@@ -30,6 +30,8 @@
     },
     "homepage": "https://github.com/flowforge/flowforge#readme",
     "dependencies": {
+        "@aws-sdk/client-ses": "^3.49.0",
+        "@aws-sdk/credential-provider-node": "^3.49.0",
         "@flowforge/localfs": "^0.1.0",
         "@headlessui/vue": "1.4.3",
         "@heroicons/vue": "1.0.5",
