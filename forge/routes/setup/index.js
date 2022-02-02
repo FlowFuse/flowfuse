@@ -43,7 +43,7 @@ module.exports = async function (app) {
         preValidation: app.csrfProtection
     }, async (request, reply) => {
         if (app.settings.get('setup:initialised')) {
-            reply.code(404)
+            reply.code(404).send()
             return
         }
         await app.settings.set('setup:initialised', true)
@@ -68,7 +68,7 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         if (app.settings.get('setup:initialised')) {
-            reply.code(404)
+            reply.code(404).send()
             return
         }
         if (/^(admin|root)$/.test(request.body.username)) {
@@ -108,14 +108,13 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         if (app.settings.get('setup:initialised')) {
-            reply.code(404)
+            reply.code(404).send()
             return
         }
         try {
             await app.license.apply(request.body.license)
             reply.send({ status: 'okay' })
         } catch (err) {
-            console.log(err)
             let responseMessage = err.toString()
             if (/malformed/.test(responseMessage)) {
                 responseMessage = 'Failed to parse license'
@@ -137,7 +136,7 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         if (app.settings.get('setup:initialised')) {
-            reply.code(404)
+            reply.code(404).send()
             return
         }
         try {

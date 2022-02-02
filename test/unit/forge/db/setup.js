@@ -1,23 +1,30 @@
-
 const fastify = require('fastify')
-const db = require('../../../forge/db')
-const postoffice = require('../../../forge/postoffice')
-const { Roles } = require('../../../forge/lib/roles')
+const FF_UTIL = require('flowforge-test-utils')
+const db = FF_UTIL.require('forge/db')
+const postoffice = FF_UTIL.require('forge/postoffice')
+const { Roles } = FF_UTIL.require('forge/lib/roles')
 
-module.exports = async function () {
+module.exports = async function (settings = {}, config = {}) {
     const app = fastify()
 
-    // Quick fix - need a better strategry for per-test settings
-    app.decorate('settings', { get: () => true })
-    app.decorate('config', {
-        email: {
-            enabled: true
-        },
+    config = {
+        ...config,
         db: {
             type: 'sqlite',
             storage: ':memory:'
+        },
+        email: {
+            enabled: true
         }
-    })
+    }
+
+    // Quick fix - need a better strategry for per-test settings
+    app.decorate('settings', { get: (key) => settings[key] })
+    app.decorate('config', config)
+
+    // {
+    //     //
+    // })
     await app.register(db)
     await app.register(postoffice)
 

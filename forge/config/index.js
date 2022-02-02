@@ -21,8 +21,14 @@ const YAML = require('yaml')
 
 // const FastifySecrets = require('fastify-secrets-env')
 
-module.exports = fp(async function (app, _opts, next) {
-    if (!process.env.FLOWFORGE_HOME) {
+module.exports = fp(async function (app, opts, next) {
+    if (opts.config) {
+        // A custom config has been passed in. This means we're running
+        // programmatically rather than manually. At this stage, that
+        // means its our test framework.
+        process.env.NODE_ENV = 'development'
+        process.env.FLOWFORGE_HOME = process.cwd()
+    } else if (!process.env.FLOWFORGE_HOME) {
         if (process.env.NODE_ENV === 'development') {
             app.log.info('Development mode')
             process.env.FLOWFORGE_HOME = path.resolve(__dirname, '../..')
@@ -55,7 +61,9 @@ module.exports = fp(async function (app, _opts, next) {
     app.log.info(`Config File: ${configFile}`)
     try {
         const configFileContent = fs.readFileSync(configFile, 'utf-8')
-        const config = YAML.parse(configFileContent)
+        const config = opts.config === undefined
+            ? YAML.parse(configFileContent)
+            : { ...opts.config }
 
         // Ensure sensible defaults
 

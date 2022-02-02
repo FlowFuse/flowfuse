@@ -34,6 +34,10 @@ module.exports = fp(async function (app, _opts, next) {
                     EMAIL_ENABLED = false
                 }
             })
+        } else if (app.config.email.transport) {
+            mailTransport = nodemailer.createTransport(app.config.email.transport, mailDefaults)
+            exportableSettings = { }
+            app.log.info('Email using config provided transport')
         } else if (app.config.email.ses) {
             const aws = require('@aws-sdk/client-ses')
             const { defaultProvider } = require('@aws-sdk/credential-provider-node')
