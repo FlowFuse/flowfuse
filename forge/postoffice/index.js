@@ -14,11 +14,11 @@ module.exports = fp(async function (app, _opts, next) {
     // fails to verify
     let EMAIL_ENABLED = app.config.email.enabled
 
+    const mailDefaults = { from: '"FlowForge Platform" <donotreply@flowforge.com>' }
+
     if (EMAIL_ENABLED) {
         if (app.config.email.smtp) {
             const smtpConfig = app.config.email.smtp
-
-            const mailDefaults = { from: '"FlowForge Platform" <donotreply@flowforge.com>' }
 
             mailTransport = nodemailer.createTransport(smtpConfig, mailDefaults)
 
@@ -34,6 +34,10 @@ module.exports = fp(async function (app, _opts, next) {
                     EMAIL_ENABLED = false
                 }
             })
+        } else if (app.config.email.transport) {
+            mailTransport = nodemailer.createTransport(app.config.email.transport, mailDefaults)
+            exportableSettings = { }
+            app.log.info('Email using config provided transport')
         } else {
             app.log.info('Email not configured - no external email will be sent')
         }
