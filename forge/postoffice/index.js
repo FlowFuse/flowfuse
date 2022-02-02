@@ -14,7 +14,7 @@ module.exports = fp(async function (app, _opts, next) {
     // fails to verify
     let EMAIL_ENABLED = app.config.email.enabled
 
-    const mailDefaults = { from: app.config.email.from ? app.config.email.from :'"FlowForge Platform" <donotreply@flowforge.com>' }
+    const mailDefaults = { from: app.config.email.from ? app.config.email.from : '"FlowForge Platform" <donotreply@flowforge.com>' }
 
     if (EMAIL_ENABLED) {
         if (app.config.email.smtp) {
@@ -48,7 +48,7 @@ module.exports = fp(async function (app, _opts, next) {
 
             mailTransport = nodemailer.createTransport({
                 SES: { ses, aws }
-            },mailDefaults)
+            }, mailDefaults)
 
             exportableSettings = {
                 region: sesConfig.region
