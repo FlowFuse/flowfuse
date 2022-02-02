@@ -141,6 +141,8 @@ describe('First run setup', function () {
             body.adminUser.should.be.true()
             body.license.should.be.false()
             body.email.should.be.true()
+
+            forge.settings.get('setup:initialised').should.be.false()
         })
     })
     describe('Upload license', function () {
@@ -198,8 +200,9 @@ describe('First run setup', function () {
             body.should.have.property('status', 'okay')
 
             forge.license.active().should.be.true()
-
             forge.license.get('organisation', 'FlowForge Inc. Development')
+
+            forge.settings.get('setup:initialised').should.be.false()
         })
         it('status should report license added', async function () {
             const response = await forge.inject({
@@ -255,6 +258,7 @@ describe('First run setup', function () {
             const body = response.json()
             body.should.have.property('status', 'okay')
             forge.settings.get('telemetry:enabled').should.be.false()
+            forge.settings.get('setup:initialised').should.be.false()
         })
     })
     describe('Finalise setup', function () {

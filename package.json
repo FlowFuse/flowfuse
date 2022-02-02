@@ -11,8 +11,9 @@
         "docs": "jsdoc -c ./config/jsdoc.json",
         "lint": "eslint -c .eslintrc forge/**/*.js frontend/**/*.js test/**/*.js --ignore-pattern 'frontend/dist/**'",
         "lint:fix": "eslint -c .eslintrc forge/**/*.js frontend/**/*.js test/**/*.js --ignore-pattern 'frontend/dist/**' --fix",
-        "test": "npm run lint && npm run test:unit",
-        "test:unit": "mocha test/unit/**/*_spec.js"
+        "test": "npm run lint && npm run test:unit && npm run test:system",
+        "test:unit": "mocha test/unit/**/*_spec.js",
+        "test:system": "mocha test/system/**/*_spec.js"
     },
     "bin": {
         "flowforge": "./forge/app.js"
