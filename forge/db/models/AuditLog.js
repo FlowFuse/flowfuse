@@ -33,7 +33,7 @@ module.exports = {
                 forEntity: async (entityType, projectId, pagination = {}) => {
                     const limit = parseInt(pagination.limit) || 30
                     const where = {
-                        entityId: projectId,
+                        entityId: projectId.toString(),
                         entityType: entityType
                     }
                     if (pagination.cursor) {
