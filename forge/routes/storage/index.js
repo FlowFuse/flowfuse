@@ -253,7 +253,7 @@ module.exports = async function (app) {
                 })
             }
 
-            console.log('reply', reply)
+            // console.log('reply', reply)
 
             response.send(reply)
         }
