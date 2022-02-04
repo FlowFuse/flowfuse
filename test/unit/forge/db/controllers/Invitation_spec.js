@@ -17,6 +17,7 @@ describe('Invitation controller', function () {
     let app
     beforeEach(async function () {
         app = await setup()
+        app.settings.set('team:user:invite:external', true)
     })
 
     function checkInvite (invite, invitorId, inviteeId, teamId) {
@@ -103,9 +104,7 @@ describe('Invitation controller', function () {
             result.dave.should.match(/Not an existing user/)
         })
 
-        it.skip('creates invitations for external users', async function () {
-            // TODO: skipping as the default postoffice config means external
-            //       invites are refused
+        it('creates invitations for external users', async function () {
             const invitor = await app.db.models.User.byUsername('alice')
             const team = await app.db.models.Team.byName('CTeam')
             const userList = ['dave@example.com']
