@@ -1,3 +1,15 @@
+// This unit test is ignored. It was written to verify each migration could be
+// applied in turn to a database and that the result looked correct.
+// However, limitations of the Sequelize ORM breaks some of the inital assumptions
+// about how we could test the result of each migration from a purely analytical
+// look at the schema of the resulting tables.
+//
+// There is a lot of potentially useful logic in this test that I'm loathe to
+// throw away. We may think better of it in the future and this file will then
+// at least have existed in the git history.
+//
+// ---
+//
 // This checks the models defined in forge/db/models generates
 // tables that match what the migrations generate
 //
