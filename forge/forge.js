@@ -9,7 +9,7 @@ const cookie = require('fastify-cookie')
 const csrf = require('fastify-csrf')
 const postoffice = require('./postoffice')
 
-module.exports = async (options) => {
+module.exports = async (options = {}) => {
     // TODO: Defer logger configuration until after `config` module is registered
     //       so that we can pull it from user-provided config
     let loggerLevel = 'info'
