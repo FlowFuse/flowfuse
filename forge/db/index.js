@@ -13,6 +13,7 @@
  */
 
 const { Sequelize } = require('sequelize')
+const migrations = require('./migrations')
 const models = require('./models')
 const views = require('./views')
 const controllers = require('./controllers')
@@ -63,11 +64,20 @@ module.exports = fp(async function (app, _opts, next) {
     app.decorate('db', db)
 
     await sequelize.authenticate()
+
+    await migrations.init(app)
+
+    if (migrations.hasPendingMigrations()) {
+        app.log.info('Database has pending migrations')
+        if (!app.config.db.migrations || app.config.db.migrations.auto !== false) {
+            await migrations.applyPendingMigrations()
+        } else if (!app.config.db.migrations || !app.config.db.migrations.skipCheck) {
+            throw new Error('Unapplied migrations')
+        }
+    }
     await models.init(app)
     await views.init(app)
     await controllers.init(app)
-
-    await require('./test-data').inject(app)
 
     next()
 })

@@ -19,13 +19,17 @@ const forge = require('./forge')
         process.exit(1)
     }
 
-    const server = await forge()
+    try {
+        const server = await forge()
 
-    // Start the server
-    server.listen(server.config.port, '0.0.0.0', function (err, address) {
-        if (err) {
-            console.error(err)
-            process.exit(1)
-        }
-    })
+        // Start the server
+        server.listen(server.config.port, '0.0.0.0', function (err, address) {
+            if (err) {
+                console.error(err)
+                process.exit(1)
+            }
+        })
+    } catch (err) {
+        process.exitCode = 1
+    }
 })()

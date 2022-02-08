@@ -58,7 +58,9 @@ module.exports = fp(async function (app, opts, next) {
     if (fs.existsSync(path.join(process.env.FLOWFORGE_HOME, '/etc/flowforge.local.yml'))) {
         configFile = path.join(process.env.FLOWFORGE_HOME, '/etc/flowforge.local.yml')
     }
-    app.log.info(`Config File: ${configFile}`)
+    if (!opts.config) {
+        app.log.info(`Config File: ${configFile}`)
+    }
     try {
         const configFileContent = fs.readFileSync(configFile, 'utf-8')
         const config = opts.config === undefined
