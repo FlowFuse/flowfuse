@@ -8,6 +8,7 @@ const containers = require('./containers')
 const cookie = require('fastify-cookie')
 const csrf = require('fastify-csrf')
 const postoffice = require('./postoffice')
+const monitor = require('./monitor')
 
 module.exports = async (options = {}) => {
     // TODO: Defer logger configuration until after `config` module is registered
@@ -39,6 +40,8 @@ module.exports = async (options = {}) => {
         await server.register(db)
         // Settings
         await server.register(settings)
+        // Monitor
+        await server.register(monitor)
         // License
         await server.register(license)
 
@@ -59,6 +62,10 @@ module.exports = async (options = {}) => {
         await server.register(containers)
 
         await server.ready()
+
+        setTimeout(async function() {
+            await server.monitor.ping()
+        }, 2000)
 
         return server
     } catch (err) {
