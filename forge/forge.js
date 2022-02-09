@@ -63,10 +63,6 @@ module.exports = async (options = {}) => {
 
         await server.ready()
 
-        setTimeout(async function() {
-            await server.monitor.ping()
-        }, 2000)
-
         return server
     } catch (err) {
         server.log.error(`Failed to start: ${err.toString()}`)
