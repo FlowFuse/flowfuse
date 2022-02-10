@@ -13,6 +13,7 @@ describe('First run setup', function () {
         // Create the FF application with a suitable test configuration
         forge = await Forge({
             config: {
+                telemetry: { enabled: false },
                 driver: {
                     type: 'stub'
                 },

@@ -90,6 +90,10 @@ module.exports = fp(async function (app, opts, next) {
             config.driver = { type: 'localfs' }
         }
 
+        if (!config.telemetry) {
+            config.telemetry = { enabled: true }
+        }
+
         Object.freeze(config)
         app.decorate('config', config)
     } catch (err) {
