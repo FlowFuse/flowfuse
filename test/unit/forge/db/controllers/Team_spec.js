@@ -9,9 +9,6 @@ describe('Team controller', function () {
     beforeEach(async function () {
         app = await setup()
     })
-    afterEach(function () {
-        return app.close()
-    })
 
     afterEach(async function () {
         await app.close()

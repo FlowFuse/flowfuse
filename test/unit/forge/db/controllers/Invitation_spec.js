@@ -19,9 +19,6 @@ describe('Invitation controller', function () {
         app = await setup()
         app.settings.set('team:user:invite:external', true)
     })
-    afterEach(function () {
-        return app.close()
-    })
 
     afterEach(async function () {
         await app.close()
