@@ -50,8 +50,8 @@ module.exports = fp(async function (app, _opts, next) {
         })
         app.decorate('containers', driver)
         app.log.info(`Container driver: ${containerDialect}`)
-        app.addHook('onClose', async(_) => {
-            app.log.info("Driver shutdown")
+        app.addHook('onClose', async (_) => {
+            app.log.info('Driver shutdown')
             if (driver.shutdown) {
                 await driver.shutdown()
             }
