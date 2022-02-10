@@ -22,6 +22,20 @@ const forge = require('./forge')
     try {
         const server = await forge()
 
+        // Setup shutdown event handling
+        async function exitWhenStopped () {
+            server.log.info('Stopping FlowForge platform')
+            await server.close()
+        }
+        process.on('SIGINT', exitWhenStopped)
+        process.on('SIGTERM', exitWhenStopped)
+        process.on('SIGHUP', exitWhenStopped)
+        process.on('SIGUSR2', exitWhenStopped) // for nodemon restart
+        process.on('SIGBREAK', exitWhenStopped)
+        process.on('message', function (m) { // for PM2 under window with --shutdown-with-message
+            if (m === 'shutdown') { exitWhenStopped() }
+        })
+
         // Start the server
         server.listen(server.config.port, '0.0.0.0', function (err, address) {
             if (err) {
