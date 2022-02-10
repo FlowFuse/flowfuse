@@ -24,7 +24,7 @@ The FlowForge Application will be hosted on `http://forge.example.com`
 
 ## Installing FlowForge
 
-### Building Contianers
+### Building Containers
 
 To build the 2 required containers simply run `./build-containers.sh`.
 
