@@ -19,6 +19,9 @@ describe('Invitation controller', function () {
         app = await setup()
         app.settings.set('team:user:invite:external', true)
     })
+    afterEach(function () {
+        return app.close()
+    })
 
     function checkInvite (invite, invitorId, inviteeId, teamId) {
         const values = invite.get({ plain: true })

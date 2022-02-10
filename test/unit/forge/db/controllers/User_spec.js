@@ -8,6 +8,9 @@ describe('User controller', function () {
     beforeEach(async function () {
         app = await setup()
     })
+    afterEach(function () {
+        return app.close()
+    })
 
     describe('authenticateCredentials', function () {
         it('returns true for a valid username/password', async function () {

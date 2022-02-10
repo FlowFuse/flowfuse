@@ -30,8 +30,6 @@ describe('First run setup', function () {
     })
 
     after(function () {
-        // This is not strictly needed as we never start the application listening
-        // TODO: we will want a shutdown lifecycle for the application
         return forge.close()
     })
 
