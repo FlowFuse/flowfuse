@@ -41,12 +41,16 @@ module.exports = fp(async function (app, opts, next) {
         }
     }
 
+    let ffVersion
+
     if (process.env.npm_package_version) {
+        ffVersion = process.env.npm_package_version
         // npm start
         app.log.info(`FlowForge v${process.env.npm_package_version}`)
     } else {
         // everything else
         const { version } = require(path.join(module.parent.path, '..', 'package.json'))
+        ffVersion = version
         app.log.info(`FlowForge v${version}`)
     }
 
@@ -69,6 +73,7 @@ module.exports = fp(async function (app, opts, next) {
 
         // Ensure sensible defaults
 
+        config.version = ffVersion
         config.home = process.env.FLOWFORGE_HOME
         config.port = process.env.PORT || config.port || 3000
         config.base_url = config.base_url || `http://localhost:${config.port}`
@@ -83,6 +88,10 @@ module.exports = fp(async function (app, opts, next) {
 
         if (!config.driver) {
             config.driver = { type: 'localfs' }
+        }
+
+        if (!config.telemetry) {
+            config.telemetry = { enabled: true }
         }
 
         Object.freeze(config)

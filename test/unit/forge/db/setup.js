@@ -6,6 +6,7 @@ const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localT
 module.exports = async function (settings = {}, config = {}) {
     config = {
         ...config,
+        telemetry: { enabled: false },
         logging: {
             level: 'warn'
         },
