@@ -26,7 +26,7 @@ The FlowForge Application will be hosted on `http://forge.example.com`
 
 ### Building Containers
 
-To build the 2 required containers simply run `./build-containers.sh`.
+To build the 2 required containers run `./build-containers.sh`.
 
 This will build and tag both `flowforge/forge-docker` and `flowforge/node-red`
 
