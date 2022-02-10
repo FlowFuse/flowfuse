@@ -86,7 +86,6 @@ export default [
     'inexpensive',
     'innocent',
     'inquisitive',
-    'itchy',
     'jolly',
     'joyous',
     'kind',
