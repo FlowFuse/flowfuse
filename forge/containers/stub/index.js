@@ -178,5 +178,11 @@ module.exports = {
      */
     logs: async (project) => {
         return []
+    },
+    /**
+     * Shutdown Driver
+     */
+    shutdown: async () => {
+
     }
 }

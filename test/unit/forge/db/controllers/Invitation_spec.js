@@ -23,6 +23,10 @@ describe('Invitation controller', function () {
         return app.close()
     })
 
+    afterEach(async function () {
+        await app.close()
+    })
+
     function checkInvite (invite, invitorId, inviteeId, teamId) {
         const values = invite.get({ plain: true })
         values.external.should.be.false()

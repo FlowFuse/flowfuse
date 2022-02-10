@@ -13,6 +13,10 @@ describe('Team controller', function () {
         return app.close()
     })
 
+    afterEach(async function () {
+        await app.close()
+    })
+
     describe('change member role', function () {
         it('changes a users role from member to owner', async function () {
             const team = await app.db.models.Team.byName('ATeam')

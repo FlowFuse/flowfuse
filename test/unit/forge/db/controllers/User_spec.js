@@ -12,6 +12,10 @@ describe('User controller', function () {
         return app.close()
     })
 
+    afterEach(async function () {
+        await app.close()
+    })
+
     describe('authenticateCredentials', function () {
         it('returns true for a valid username/password', async function () {
             const result = await app.db.controllers.User.authenticateCredentials('alice', 'aaPassword')
