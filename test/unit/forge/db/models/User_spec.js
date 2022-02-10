@@ -9,6 +9,9 @@ describe('User model', function () {
     beforeEach(async function () {
         app = await setup()
     })
+    afterEach(function () {
+        return app.close()
+    })
 
     it('User email can be null', async function () {
         await app.db.models.User.create({ username: 'nullEmail', password: '12345678' })

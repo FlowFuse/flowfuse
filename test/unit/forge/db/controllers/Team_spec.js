@@ -9,6 +9,9 @@ describe('Team controller', function () {
     beforeEach(async function () {
         app = await setup()
     })
+    afterEach(function () {
+        return app.close()
+    })
 
     describe('change member role', function () {
         it('changes a users role from member to owner', async function () {
