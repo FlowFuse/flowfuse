@@ -50,6 +50,12 @@ module.exports = fp(async function (app, _opts, next) {
         })
         app.decorate('containers', driver)
         app.log.info(`Container driver: ${containerDialect}`)
+        app.addHook('onClose', async(_) => {
+            app.log.info("Driver shutdown")
+            if (driver.shutdown) {
+                await driver.shutdown()
+            }
+        })
     } catch (err) {
         app.log.error('Failed to load the container driver')
         throw err
