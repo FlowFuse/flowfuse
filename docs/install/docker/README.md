@@ -24,6 +24,19 @@ The FlowForge Application will be hosted on `http://forge.example.com`
 
 ## Installing FlowForge
 
+### Download
+
+Download the latest release tar.gz from the docker-compose project:
+
+[https://github.com/flowforge/docker-compose/releases/latest] (https://github.com/flowforge/docker-compose/releases/latest)
+
+Unpack this and cd into the created directory.	
+
+```
+tar zxf v0.x.0.tar.gz
+cd docker-compose-0.x.0
+```
+
 ### Building Containers
 
 To build the 2 required containers run `./build-containers.sh`.
