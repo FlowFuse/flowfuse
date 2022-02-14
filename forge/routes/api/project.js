@@ -61,7 +61,14 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.project
      */
     app.post('/', {
-        preHandler: app.needsPermission('project:create'),
+        preHandler: [
+            async (request, reply) => {
+                if (request.body && request.body.team) {
+                    request.teamMembership = await request.session.User.getTeamMembership(request.body.team)
+                }
+            },
+            app.needsPermission('project:create')
+        ],
         schema: {
             body: {
                 type: 'object',
