@@ -1,5 +1,4 @@
 import client from './client'
-import slugify from '@/utils/slugify'
 import paginateUrl from '@/utils/paginateUrl'
 
 const getTeams = async (cursor, limit) => {
