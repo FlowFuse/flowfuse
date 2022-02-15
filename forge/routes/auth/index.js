@@ -17,8 +17,6 @@
  */
 const fp = require('fastify-plugin')
 
-const { Roles } = require('../../lib/roles')
-
 // Default to a 12 hour session if the user ticks 'remember me'
 // TODO - turn this into an idle timeout, with a separate 'max session' timeout.
 const SESSION_MAX_AGE = 60 * 60 * 12 // 12 hours in seconds
@@ -284,20 +282,24 @@ module.exports = fp(async function (app, opts, done) {
             const verifiedUser = await app.db.controllers.User.verifyEmailToken(sessionUser, request.params.token)
 
             if (app.settings.get('user:team:auto-create')) {
-                // Create a team
-                const newTeam = await app.db.models.Team.create({
+                await app.db.controllers.Team.createTeamForUser({
                     name: `Team ${verifiedUser.name}`,
                     slug: verifiedUser.username
-                })
-                await newTeam.addUser(verifiedUser, { through: { role: Roles.Owner } })
+                }, verifiedUser)
             }
 
             const pendingInvitations = await app.db.models.Invitation.forExternalEmail(verifiedUser.email)
             for (let i = 0; i < pendingInvitations.length; i++) {
                 const invite = pendingInvitations[i]
-                invite.external = false
-                invite.inviteeId = verifiedUser.id
-                await invite.save()
+                // For now we'll auto-accept any invites for this user
+                // See https://github.com/flowforge/flowforge/issues/275#issuecomment-1040113991
+                await app.db.controllers.Invitation.acceptInvitation(invite, verifiedUser)
+                // // If we go back to having the user be able to accept invites
+                // // as a secondary step, the following code will convert the external
+                // // invite into an internal one.
+                // invite.external = false
+                // invite.inviteeId = verifiedUser.id
+                // await invite.save()
             }
 
             reply.redirect('/')

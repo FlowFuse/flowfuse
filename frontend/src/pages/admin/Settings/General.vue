@@ -8,7 +8,7 @@
                 and provide their login details manually
             </template>
         </FormRow>
-        <FormRow v-model="input['user:team:auto-create']" type="checkbox" :disabled="!input['user:signup']">
+        <FormRow v-model="input['user:team:auto-create']" type="checkbox">
             Create a personal team for users when they register
             <template #description>
                 If a team is not automatically created, they will either have to manually create one, or be invited

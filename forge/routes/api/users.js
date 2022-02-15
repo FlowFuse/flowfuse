@@ -1,5 +1,4 @@
 const sharedUser = require('./shared/users')
-const { Roles, RoleNames } = require('../../lib/roles.js')
 
 /**
  * Users api routes
@@ -89,23 +88,10 @@ module.exports = async function (app) {
             })
 
             if (request.body.createDefaultTeam) {
-                const newTeam = await app.db.models.Team.create({
+                await app.db.controllers.Team.createTeamForUser({
                     name: `Team ${request.body.name}`,
                     slug: request.body.username
-                })
-                await newTeam.addUser(newUser, { through: { role: Roles.Owner } })
-                // DRY: /api/v1/teams - create team route does this as well
-                await app.db.controllers.AuditLog.teamLog(
-                    newTeam.id,
-                    request.session.User.id,
-                    'team.created'
-                )
-                await app.db.controllers.AuditLog.teamLog(
-                    newTeam.id,
-                    newUser.id,
-                    'user.added',
-                    { role: RoleNames[Roles.Owner] }
-                )
+                }, newUser)
             }
             reply.send({ status: 'okay' })
         } catch (err) {

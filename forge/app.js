@@ -23,9 +23,15 @@ const forge = require('./forge')
         const server = await forge()
 
         // Setup shutdown event handling
+        let stopping = false
         async function exitWhenStopped () {
-            server.log.info('Stopping FlowForge platform')
-            await server.close()
+            if (!stopping) {
+                stopping = true
+                server.log.info('Stopping FlowForge platform')
+                await server.close()
+                server.log.info('FlowForge platform stopped')
+                process.exit(0)
+            }
         }
         process.on('SIGINT', exitWhenStopped)
         process.on('SIGTERM', exitWhenStopped)

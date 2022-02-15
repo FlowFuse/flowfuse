@@ -1,6 +1,5 @@
 const TeamMembers = require('./teamMembers.js')
 const TeamInvitations = require('./teamInvitations.js')
-const { Roles, RoleNames } = require('../../lib/roles.js')
 
 /**
  * Team api routes
@@ -127,26 +126,10 @@ module.exports = async function (app) {
         }
 
         try {
-            const newTeam = await app.db.models.Team.create({
+            const team = await app.db.controllers.Team.createTeamForUser({
                 name: request.body.name,
                 slug: request.body.slug
-            })
-            await newTeam.addUser(request.session.User, { through: { role: Roles.Owner } })
-
-            const team = await app.db.models.Team.bySlug(newTeam.slug)
-
-            await app.db.controllers.AuditLog.teamLog(
-                newTeam.id,
-                request.session.User.id,
-                'team.created'
-            )
-            await app.db.controllers.AuditLog.teamLog(
-                newTeam.id,
-                request.session.User.id,
-                'user.added',
-                { role: RoleNames[Roles.Owner] }
-            )
-
+            }, request.session.User)
             reply.send(app.db.views.Team.team(team))
         } catch (err) {
             let responseMessage

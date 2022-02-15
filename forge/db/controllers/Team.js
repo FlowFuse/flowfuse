@@ -1,6 +1,28 @@
 const { Roles, RoleNames } = require('../../lib/roles')
 
 module.exports = {
+
+    createTeamForUser: async function (app, teamDetails, user) {
+        const newTeam = await app.db.models.Team.create(teamDetails)
+        await newTeam.addUser(user, { through: { role: Roles.Owner } })
+
+        // Reinflate the object now the user has been added
+        const team = await app.db.models.Team.bySlug(newTeam.slug)
+
+        await app.db.controllers.AuditLog.teamLog(
+            newTeam.id,
+            user.id,
+            'team.created'
+        )
+        await app.db.controllers.AuditLog.teamLog(
+            newTeam.id,
+            user.id,
+            'user.added',
+            { role: RoleNames[Roles.Owner] }
+        )
+        return team
+    },
+
     changeUserRole: async function (app, teamHashId, userHashId, role) {
         const user = await app.db.models.User.byId(userHashId)
         const team = await app.db.models.Team.byId(teamHashId)
