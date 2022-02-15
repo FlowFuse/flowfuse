@@ -1,5 +1,4 @@
 const sharedUser = require('./shared/users')
-const { Roles, RoleNames } = require('../../lib/roles.js')
 
 /**
  * Users api routes

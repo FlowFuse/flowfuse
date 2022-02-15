@@ -17,8 +17,6 @@
  */
 const fp = require('fastify-plugin')
 
-const { Roles, RoleNames } = require('../../lib/roles')
-
 // Default to a 12 hour session if the user ticks 'remember me'
 // TODO - turn this into an idle timeout, with a separate 'max session' timeout.
 const SESSION_MAX_AGE = 60 * 60 * 12 // 12 hours in seconds

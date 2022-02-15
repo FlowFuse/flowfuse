@@ -1,6 +1,5 @@
 const TeamMembers = require('./teamMembers.js')
 const TeamInvitations = require('./teamInvitations.js')
-const { Roles, RoleNames } = require('../../lib/roles.js')
 
 /**
  * Team api routes
