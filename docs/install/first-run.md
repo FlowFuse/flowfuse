@@ -34,13 +34,8 @@ There are some runtime configuration options that can be configured at this stag
 
 ### Anonymous usage statistics
 
-To help us understand how the project is being used, we plan to gather high level
+To help us understand how the project is being used, we gather high level
 anonymous usage information from running instances.
-
-**This has not been implemented in the current release (0.1.0) - no data is gathered**
-
-We will clearly communicate in future releases when this feature is implemented
-and exactly what information is being gathered.
 
 The Administrator can opt-out of this feature.
 
