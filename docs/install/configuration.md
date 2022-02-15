@@ -53,3 +53,14 @@ Option        | Description
 `email.debug`   | If set to true, it will log the full content of emails it tries to send. Default: `false`
 
 See [here](./email_providers.md) for example configuration with common email providers.
+
+## Telemetry configuration
+
+By default, the platform will send anonymous usage information back to us at FlowForge Inc.
+This can be disabled via the Admin Settings in the UI, or turned off in the configuration file.
+
+For more information about this feature, see [here](../admin/telemetry.md)
+
+Option        | Description
+--------------|------------
+`telemetry.enabled` | Enables the anonymous usage telemetry of the platform. Default: `true`

@@ -68,3 +68,9 @@ email:
     #auth:
     #    user: username
     #    pass: password
+
+#################################################
+# Telemetry Configuration                       #
+#################################################
+telemetry:
+  enabled: true
