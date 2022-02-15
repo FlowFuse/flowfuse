@@ -1,5 +1,3 @@
-const { Roles } = require('../../lib/roles.js')
-
 /**
  * User Invitations api routes
  *
@@ -28,13 +26,7 @@ module.exports = async function (app) {
     app.patch('/:invitationId', async (request, reply) => {
         const invitation = await app.db.models.Invitation.byId(request.params.invitationId, request.session.User)
         if (invitation) {
-            await invitation.team.addUser(request.session.User, { through: { role: Roles.Member } })
-            await invitation.destroy()
-            await app.db.controllers.AuditLog.teamLog(
-                invitation.team.id,
-                request.session.User.id,
-                'user.invite.accept'
-            )
+            await app.db.controllers.Invitation.acceptInvitation(invitation, request.session.User)
             reply.send({ status: 'okay' })
         } else {
             reply.code(404).type('text/html').send('Not Found')
@@ -48,12 +40,7 @@ module.exports = async function (app) {
     app.delete('/:invitationId', async (request, reply) => {
         const invitation = await app.db.models.Invitation.byId(request.params.invitationId, request.session.User)
         if (invitation) {
-            await invitation.destroy()
-            await app.db.controllers.AuditLog.teamLog(
-                invitation.team.id,
-                request.session.User.id,
-                'user.invite.reject'
-            )
+            await app.db.controllers.Invitation.rejectInvitation(invitation, request.session.User)
             reply.send({ status: 'okay' })
         } else {
             reply.code(404).type('text/html').send('Not Found')

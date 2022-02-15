@@ -1,3 +1,4 @@
+const { Roles } = require('../../lib/roles.js')
 module.exports = {
     createInvitations: async (app, invitor, team, userList) => {
         const externalInvitesPermitted = app.postoffice.enabled() && !!app.settings.get('team:user:invite:external')
@@ -48,5 +49,24 @@ module.exports = {
             results[userDetail] = await app.db.models.Invitation.byId(invite.hashid)
         }
         return results
+    },
+
+    acceptInvitation: async (app, invitation, user) => {
+        await invitation.team.addUser(user, { through: { role: Roles.Member } })
+        await invitation.destroy()
+        await app.db.controllers.AuditLog.teamLog(
+            invitation.team.id,
+            user.id,
+            'user.invite.accept'
+        )
+    },
+
+    rejectInvitation: async (app, invitation, user) => {
+        await invitation.destroy()
+        await app.db.controllers.AuditLog.teamLog(
+            invitation.team.id,
+            user.id,
+            'user.invite.reject'
+        )
     }
 }
