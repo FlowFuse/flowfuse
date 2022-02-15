@@ -203,6 +203,11 @@ module.exports = async function (app) {
                 role: request.teamMembership.role
             })
             return
+        } else if (request.session.User.admin) {
+            reply.send({
+                role: Roles.Admin
+            })
+            return
         }
         reply.code(404).type('text/html').send('Not Found')
     })
