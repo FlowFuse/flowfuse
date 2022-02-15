@@ -36,12 +36,14 @@
         <FormRow v-model="input['telemetry:enabled']" type="checkbox">
             Enable collection of anonymous statistics
             <template #description>
-                <p><b>This release does not collect any information</b></p>
-                <p>A future release will collect anonymous statistics about how
-                FlowForge is used. This allows us to improve how it works and
-                make a better platform.</p>
-                <p>We will clearly communicate when this feature is implemented
-                and exactly what information is being gathered.</p>
+                <p>
+                    We collect anonymous statistics about how FlowForge is used.
+                    This allows us to improve how it works and make a better product. 
+                </p>
+                <p>
+                    For more information about the data we collect and how it is used,
+                    please see our <a class="forge-link" href="https://github.com/flowforge/flowforge/tree/main/docs/admin/telemetry.md" target="_blank">Usage Data Collection Policy</a>
+                </p>
             </template>
         </FormRow>
         <div>
