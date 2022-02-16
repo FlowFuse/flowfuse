@@ -1,6 +1,7 @@
-v0.2.0
+#### 0.2.0: Release
 
  - Email Docs (#205)
+ - Add host to config (#311) @knolleary
  - Update telemetry option wording & add std forge-link class (#304) @joepavitt
  - Update docs for telemetry feature (#303) @knolleary
  - Restore import following merge (#302) @knolleary
