@@ -20,6 +20,12 @@
         @apply py-6;
     }
 
+    .forge-link {
+        @apply underline;
+        @apply hover:cursor-pointer;
+        @apply hover:text-blue-600;
+    }
+
     .forge-button {
         @apply px-3;
         @apply py-1;
