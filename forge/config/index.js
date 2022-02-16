@@ -76,7 +76,8 @@ module.exports = fp(async function (app, opts, next) {
         config.version = ffVersion
         config.home = process.env.FLOWFORGE_HOME
         config.port = process.env.PORT || config.port || 3000
-        config.base_url = config.base_url || `http://localhost:${config.port}`
+        config.host = config.host || 'localhost'
+        config.base_url = config.base_url || `http://${config.host}:${config.port}`
         config.api_url = config.api_url || config.base_url
 
         process.env.FLOWFORGE_BASE_URL = config.base_url

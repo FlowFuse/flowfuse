@@ -43,7 +43,7 @@ const forge = require('./forge')
         })
 
         // Start the server
-        server.listen(server.config.port, '0.0.0.0', function (err, address) {
+        server.listen(server.config.port, server.config.host, function (err, address) {
             if (err) {
                 console.error(err)
                 process.exit(1)
