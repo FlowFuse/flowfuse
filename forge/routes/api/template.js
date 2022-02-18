@@ -7,7 +7,6 @@
  * @memberof forge.routes.api
  */
 module.exports = async function (app) {
-
     /**
      * Get a list of all templates
      * @name /api/v1/templates/:id
