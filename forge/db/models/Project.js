@@ -43,6 +43,8 @@ module.exports = {
             }
         })
         this.hasMany(M.ProjectSettings)
+        this.belongsTo(M.ProjectStack)
+        this.belongsTo(M.ProjectTemplate)
     },
     hooks: function (M) {
         return {

@@ -52,6 +52,8 @@ const modelTypes = [
     'Session',
     'Project',
     'ProjectSettings',
+    'ProjectStack',
+    'ProjectTemplate',
     'AccessToken',
     'AuthClient',
     'StorageFlow',
