@@ -146,6 +146,8 @@ module.exports = async function (app) {
             const sessions = await app.db.models.StorageSession.byProject(id)
             if (sessions) {
                 response.send(sessions)
+            } else {
+                response.send({})
             }
         } else {
             response.status(404).send()

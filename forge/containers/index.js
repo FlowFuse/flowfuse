@@ -32,6 +32,7 @@
  */
 
 const fp = require('fastify-plugin')
+const wrapper = require('./wrapper.js')
 
 module.exports = fp(async function (app, _opts, next) {
     const containerDialect = app.config.driver.type
@@ -41,20 +42,19 @@ module.exports = fp(async function (app, _opts, next) {
 
     try {
         const driver = require(containerModule)
-        await driver.init(app, {
+        await wrapper.init(app, driver, {
+        // await driver.init(app, {
             domain: app.config.domain || 'example.com',
             // this list needs loading from an external source
             containers: {
                 basic: 'flowforge/node-red'
             }
         })
-        app.decorate('containers', driver)
+        app.decorate('containers', wrapper)
         app.log.info(`Container driver: ${containerDialect}`)
         app.addHook('onClose', async (_) => {
             app.log.info('Driver shutdown')
-            if (driver.shutdown) {
-                await driver.shutdown()
-            }
+            await wrapper.shutdown()
         })
     } catch (err) {
         app.log.error('Failed to load the container driver')
