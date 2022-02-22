@@ -45,7 +45,7 @@ module.exports = {
             value = await this._driver.start(project)
         }
         return value
-     },
+    },
     stop: async (project) => {
         let value = {}
         if (this._driver.stop) {
