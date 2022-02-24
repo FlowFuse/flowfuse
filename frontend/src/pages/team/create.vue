@@ -36,57 +36,58 @@ import Breadcrumbs from '@/mixins/Breadcrumbs'
 export default {
     name: 'CreateTeam',
     mixins: [Breadcrumbs],
-    data() {
+    data () {
         return {
             teams: [],
             input: {
-                name: "",
-                slug: "",
-                defaultSlug: "",
-                slugError: ""
+                name: '',
+                slug: '',
+                defaultSlug: '',
+                slugError: ''
             }
         }
     },
-    created() {
-        this.clearBreadcrumbs();
+    created () {
+        this.clearBreadcrumbs()
     },
     watch: {
-        'input.name': function() {
-            this.input.defaultSlug = slugify(this.input.name);
+        'input.name': function () {
+            this.input.defaultSlug = slugify(this.input.name)
         },
-        'input.slug': function(v) {
+        'input.slug': function (v) {
             if (v && !/^[a-z0-9-_]+$/i.test(v)) {
-                this.input.slugError = "Must only contain a-z 0-9 - _"
+                this.input.slugError = 'Must only contain a-z 0-9 - _'
             } else {
-                this.input.slugError = ""
+                this.input.slugError = ''
             }
         }
     },
     computed: {
-        formValid() {
+        formValid () {
             return this.input.name && !this.input.slugError
         }
     },
     methods: {
-        createTeam() {
+        createTeam () {
             const opts = {
                 name: this.input.name,
                 slug: this.input.slug || this.input.defaultSlug
             }
 
             teamApi.create(opts).then(async result => {
-                await this.$store.dispatch('account/refreshTeams');
-                await this.$store.dispatch('account/setTeam',result);
-                this.$router.push({name:"Team",params:{id: result.slug}})
+                await this.$store.dispatch('account/refreshTeams')
+                await this.$store.dispatch('account/setTeam', result)
+                // TODO: Re-route this to a holding billing page that will redirect to Stripe
+                this.$router.push({ name: 'Team', params: { id: result.slug } })
             }).catch(err => {
                 if (err.response.data) {
                     if (/slug/.test(err.response.data.error)) {
-                        this.input.slugError = "Slug already in use"
+                        this.input.slugError = 'Slug already in use'
                     }
                 }
-            });
+            })
         },
-        refreshName() {
+        refreshName () {
             this.input.name = NameGenerator()
         }
     },

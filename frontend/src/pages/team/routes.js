@@ -12,6 +12,9 @@ import TeamSettingsDanger from '@/pages/team/Settings/Danger.vue'
 import CreateTeam from '@/pages/team/create.vue'
 import CreateProject from '@/pages/project/create.vue'
 
+// EE Only
+import TeamSettingsBilling from '@/pages/team/Settings/Billing.vue'
+
 import ensurePermission from '@/utils/ensurePermission'
 
 export default [
@@ -51,6 +54,7 @@ export default [
                 },
                 children: [
                     { path: 'general', component: TeamSettingsGeneral },
+                    { path: 'billing', component: TeamSettingsBilling },
                     // { path: 'permissions', component: TeamSettingsPermissions},
                     { path: 'danger', component: TeamSettingsDanger }
                 ]
