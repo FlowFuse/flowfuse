@@ -1,0 +1,60 @@
+{
+    "name": "@flowforge/flowforge-ui-components",
+    "version": "0.0.1",
+    "description": "",
+    "author": {
+        "name": "FlowFlow Inc."
+    },
+    "license": "Apache-2.0",
+    "homepage": "https://github.com/flowforge/flowforge-ui-components#readme",
+    "main": "dist/flowforge-ui-components.js",
+    "module": "dist/flowforge-ui-components.mjs",
+    "files": [
+        "dist/*"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/flowforge/flowforge-ui-components.git"
+    },
+    "bugs": {
+        "url": "https://github.com/flowforge/flowforge-ui-components/issues"
+    },
+    "engines": {
+        "node": ">=16.x"
+    },
+    "peerDependencies": {
+        "vue": "^3.2.21"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.12.16",
+        "@babel/eslint-parser": "^7.12.16",
+        "@heroicons/vue": "^1.0.5",
+        "@vue/cli-plugin-babel": "~5.0.0",
+        "@vue/cli-plugin-eslint": "~5.0.0",
+        "@vue/cli-service": "~5.0.0",
+        "autoprefixer": "^10.4.2",
+        "dotenv-webpack": "^7.1.0",
+        "eslint": "^7.32.0",
+        "eslint-config-standard": "^16.0.1",
+        "eslint-plugin-vue": "^8.0.3",
+        "marked": "^4.0.12",
+        "node-sass": "^7.0.1",
+        "postcss": "^8.4.7",
+        "postcss-import": "^14.0.2",
+        "postcss-loader": "^6.2.1",
+        "postcss-preset-env": "^6.7.0",
+        "rollup": "^2.68.0",
+        "rollup-plugin-peer-deps-external": "^2.2.4",
+        "rollup-plugin-postcss": "^4.0.2",
+        "rollup-plugin-vue": "^6.0.0",
+        "sass-loader": "^12.6.0",
+        "tailwindcss": "^3.0.23"
+    },
+    "scripts": {
+        "serve": "vue-cli-service serve ./docs/main.js",
+        "build": "rollup -c"
+    },
+    "dependencies": {
+        "underscore": "^1.13.2"
+    }
+}

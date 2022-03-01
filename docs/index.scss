@@ -1,0 +1,70 @@
+@import "../src";
+
+body, #app {
+    position: absolute;
+    background-color: $ff-grey-50;
+    height: 100%;
+    width: 100%;
+}
+
+#app {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+}
+
+main, nav {
+    height: 100%;
+    padding: $ff-unit-lg;
+}
+
+nav {
+    background-color: $ff-red-700;
+    color: $ff-white;
+}
+
+main {
+    color: $ff-grey-800;
+    max-width: 968px;
+}
+
+h1 {
+    border-bottom-width: 1px;
+}
+
+#grouplist {
+    ul {
+        padding-left: $ff-unit-lg;
+    }
+}
+
+.section {
+    .examples {
+        margin-top: $ff-unit-lg;
+        margin-bottom: $ff-unit-lg;
+        padding-left: $ff-funit-lg;
+        .example {
+            code {
+                display: block;
+                margin-top: $ff-unit-md;
+                margin-bottom: $ff-unit-lg;
+                white-space: pre-wrap;
+            }
+        }
+    }
+}
+
+table {
+    margin-top: $ff-unit-md;
+    margin-bottom: $ff-unit-md;
+    margin-left: $ff-unit-lg;
+    width: calc(100% - #{$ff-unit-lg});
+}
+
+table.props-table {
+    td, th {
+        text-align: left;
+        padding: $ff-unit-md;
+        border: 1px solid $ff-grey-300;
+        vertical-align: text-top;
+    }
+}

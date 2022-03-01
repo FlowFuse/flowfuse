@@ -1,0 +1,7 @@
+// use tailwind to reset all CSS - saves us a lot of work
+@tailwind base;
+
+@import "./stylesheets/ff-colors.scss";
+@import "./stylesheets/ff-utility.scss";
+@import "./stylesheets/ff-core.scss";
+@import "./stylesheets/ff-components.scss";

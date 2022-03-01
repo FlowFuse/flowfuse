@@ -1,0 +1,84 @@
+/*
+  ff-core contains styling on the custom, ff components
+*/
+
+.ff-btn {
+  padding: $ff-unit-sm $ff-unit-lg;
+  border-radius: $ff-unit-sm;
+  display: flex;
+  align-items: center;
+
+  &.ff-btn-icon {
+    padding: $ff-unit-sm $ff-unit-md;
+  }
+
+  &.ff-btn-small {
+    padding: $ff-unit-xs $ff-unit-sm;
+    font-size: $ff-funit-sm;
+  }
+
+  &:hover {
+    cursor: pointer;
+  }
+
+  &--primary {
+    background-color: $ff-color--action;
+    color: $ff-grey-50;
+    &:hover {
+      background-color: $ff-color--highlight;
+    }
+  }
+  &--secondary {
+    background-color: $ff-white;
+    color: $ff-color--action;
+    border: 1px solid $ff-color--action;
+    &:hover {
+      background-color: $ff-color--highlight;
+      border-color: $ff-color--highlight;
+      color: $ff-white;
+    }
+  }
+  &--tertiary {
+    color: $ff-color--action;
+    &:hover {
+      background-color: $ff-color--highlight;
+      color: $ff-white;
+    }
+  }
+  &--danger {
+    color: $ff-color--danger;
+    border: 1px solid $ff-color--danger;
+    &:hover {
+      background-color: $ff-color--danger;
+      color: $ff-white;
+    }
+  }
+  // nested element
+  .ff-btn--icon,
+  .ff-btn--icon svg {
+    width: 20px;
+    height: 20px;
+  }
+  .ff-btn--icon-left {
+    margin-left: -$ff-unit-xs;
+    margin-right: $ff-unit-sm;
+  }
+  .ff-btn--icon-right {
+    margin-left: $ff-unit-sm;
+    margin-right: -$ff-unit-xs;
+  }
+
+  &.ff-btn-small {
+    .ff-btn--icon,
+    .ff-btn--icon svg {
+      width: 16px;
+      height: 16px;
+    }
+    .ff-btn--icon-left {
+      margin-right: $ff-unit-xs;
+    }
+    .ff-btn--icon-right {
+      margin-left: $ff-unit-xs;
+    }
+  }
+}
