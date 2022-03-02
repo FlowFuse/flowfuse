@@ -52,7 +52,8 @@
     },
     "scripts": {
         "serve": "vue-cli-service serve ./docs/main.js",
-        "build": "rollup -c"
+        "build": "rollup -c",
+        "build-docs": "vue-cli-service build"
     },
     "dependencies": {
         "underscore": "^1.13.2"

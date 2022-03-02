@@ -21,7 +21,7 @@ export default [
             peerDepsExternal(),
             postcss({
                 minimize: false,
-                modules: true,
+                modules: false,
                 use: {
                     sass: true
                 },

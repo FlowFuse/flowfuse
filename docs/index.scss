@@ -31,9 +31,19 @@ h1 {
     border-bottom-width: 1px;
 }
 
-#grouplist {
+ul#grouplist {
+    li {
+        padding-bottom: $ff-unit-md;
+    }
     ul {
         padding-left: $ff-unit-lg;
+        li {
+            padding-bottom: 0;
+            &:hover {
+                cursor: pointer;
+                font-style: italic;
+            }
+        }
     }
 }
 
@@ -43,10 +53,16 @@ h1 {
         margin-bottom: $ff-unit-lg;
         padding-left: $ff-funit-lg;
         .example {
+            border-top: 1px solid $ff-grey-500;
+            border-bottom: 1px solid $ff-grey-500;
+            padding-top: $ff-unit-lg;
+            padding-bottom: $ff-unit-lg;
+            &:not(:first-child) {
+                border-top-width: 0;
+            }
             code {
                 display: block;
                 margin-top: $ff-unit-md;
-                margin-bottom: $ff-unit-lg;
                 white-space: pre-wrap;
             }
         }

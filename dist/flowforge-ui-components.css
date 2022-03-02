@@ -430,22 +430,28 @@ Ensure the default browser behavior of the `hidden` attribute.
 /*
   ff-core contains styling on the fundamental HTML elements
 */
+* {
+  box-sizing: border-box; }
 html {
   font-family: ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
-  font-size: 14px; }
+  font-size: 14px;
+  line-height: 1.25rem; }
 body {
   margin: 0;
   color: #1F2937; }
 h1 {
   font-weight: bold;
   font-size: 2rem;
+  line-height: 2.9rem;
   margin-bottom: 18px; }
 h2 {
   font-weight: bold;
   font-size: 1.5rem;
+  line-height: 2.175rem;
   margin-bottom: 6px; }
 h3 {
   font-size: 1rem;
+  line-height: 1.45rem;
   margin-bottom: 6px;
   font-weight: bold; }
 code {
@@ -456,40 +462,83 @@ code {
 /*
   ff-core contains styling on the custom, ff components
 */
-.index_ff-btn__nP27u {
+.ff-btn {
   padding: 6px 18px;
   border-radius: 6px;
   display: flex;
-  align-items: center; }
-.index_ff-btn__nP27u.index_ff-btn-icon__yTkFA {
+  align-items: center;
+  font-size: 0.85rem;
+  line-height: 20px;
+  height: 32px;
+  position: relative; }
+.ff-btn.ff-btn-icon {
     padding: 6px 9px; }
-.index_ff-btn__nP27u:hover {
+.ff-btn.ff-btn-small {
+    padding: 3px 6px;
+    font-size: 0.75rem;
+    line-height: 16px;
+    height: 24px; }
+.ff-btn.ff-btn-fwidth {
+    justify-content: center; }
+.ff-btn:hover {
     cursor: pointer; }
-.index_ff-btn--primary__fgwPK {
+.ff-btn--primary {
     background-color: #1E3A8A;
     color: #F9FAFB; }
-.index_ff-btn--primary__fgwPK:hover {
+.ff-btn--primary:hover {
       background-color: #4338CA; }
-.index_ff-btn--secondary__BdDaG {
+.ff-btn--secondary {
     background-color: white;
     color: #1E3A8A;
     border: 1px solid #1E3A8A; }
-.index_ff-btn--secondary__BdDaG:hover {
+.ff-btn--secondary:hover {
       background-color: #4338CA;
       border-color: #4338CA;
       color: white; }
-.index_ff-btn--tertiary__OinNa {
+.ff-btn--tertiary {
     color: #1E3A8A; }
-.index_ff-btn--tertiary__OinNa:hover {
+.ff-btn--tertiary:hover {
       background-color: #4338CA;
       color: white; }
-.index_ff-btn__nP27u .index_ff-btn--icon__iY6TW,
-  .index_ff-btn__nP27u .index_ff-btn--icon__iY6TW svg {
+.ff-btn--danger {
+    color: #D12B2B;
+    border: 1px solid #D12B2B; }
+.ff-btn--danger:hover {
+      background-color: #D12B2B;
+      color: white; }
+.ff-btn .ff-btn--icon,
+  .ff-btn .ff-btn--icon svg {
     width: 20px;
     height: 20px; }
-.index_ff-btn__nP27u .index_ff-btn--icon-left__bmp12 {
+.ff-btn .ff-btn--icon-left {
     margin-left: -3px;
     margin-right: 6px; }
-.index_ff-btn__nP27u .index_ff-btn--icon-right__yz9HX {
+.ff-btn .ff-btn--icon-right {
     margin-left: 6px;
     margin-right: -3px; }
+.ff-btn.ff-btn-small .ff-btn--icon,
+  .ff-btn.ff-btn-small .ff-btn--icon svg {
+    width: 16px;
+    height: 16px; }
+.ff-btn.ff-btn-small .ff-btn--icon-left {
+    margin-right: 3px; }
+.ff-btn.ff-btn-small .ff-btn--icon-right {
+    margin-left: 3px; }
+.ff-btn.ff-btn-fwidth .ff-btn--icon {
+    position: absolute; }
+.ff-btn.ff-btn-fwidth .ff-btn--icon-left {
+    left: 0;
+    padding-left: 18px;
+    right: 0;
+    padding-right: 18px; }
+.ff-btn:disabled {
+    cursor: not-allowed;
+    background-color: #F9FAFB;
+    border-color: #D1D5DB;
+    color: #D1D5DB; }
+.ff-input.ff-text-input {
+  border: 1px solid #D1D5DB;
+  border-radius: 3px;
+  padding: 6px 9px;
+  height: 32px;
+  width: 100%; }
