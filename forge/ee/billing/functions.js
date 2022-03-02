@@ -23,85 +23,84 @@ module.exports.init = function(app) {
             console.log("createSubscription", session)
             return session
         },
-        addProject: async (teamId, projectId) => {
+        addProject: async (team, project) => {
+            const subscription = await app.db.models.Subscription.byTeam(team.id)
 
-            const subscription = await app.db.models.Subscription.byTeam(teamId)
-
-            const sub = await stripe.subscriptionItems.list({
-                subscription: subscription.subscription
-            })
+            const existingSub = await stripe.subscriptions.retrieve(subscription.subscription)
+            const subItems = existingSub.items
 
             let projectItem = false
-            sub.data.forEach(item => {
-                if (item.plan.product === app.config.billing.stripe.projectItem) {
+            subItems.data.forEach(item => {
+                if (item.plan.product === app.config.billing.stripe.project_product) {
                     projectItem = item
                 }
             })
 
             if (projectItem) {
-                let update = [
-                    projectItem.id, {
-                        quantity: projectItem.quantity + 1,
-                        proration_behavior: 'always_invoice'
-                    }
-                ]
+                const metadata = projectItem.metadata ? projectItem.metadata : {}
+                metadata[project.id] = 'true'
+                const update = {
+                    quantity: projectItem.quantity + 1,
+                    proration_behavior: 'always_invoice',
+                    metadata: metadata
+                }
                 //TODO update meta data?
-                stripe.subscriptionItems.update(update)
+                stripe.subscriptionItems.update(projectItem.id, update)
             } else {
-                metadata = {}
-                metadata[projectId] = true
-                let update = [
-                    subscription.subscription, {
-                        items: [{
-                            price: app.config.billing.stripe.project_price,
-                            quantity: 1
-                        }],
-                        metadata: metadata
-                    }
-                ]
-                stripe.subscription.update(update)
+                const metadata = {}
+                metadata[project.id] = 'true'
+                //metadata[team] = team.hashid
+                const update = {
+                    items: [{
+                        price: app.config.billing.stripe.project_price,
+                        quantity: 1
+                    }],
+                    metadata: metadata
+                }
+                stripe.subscriptions.update(subscription.subscription, update)
             }
         },
-        removeProject: async (teamId, projectId) => {
-            const subscription = await app.db.models.Subscription.byTeam(teamId)
+        removeProject: async (team, project) => {
+            const subscription = await app.db.models.Subscription.byTeam(team.id)
 
-            const sub = await stripe.subscriptionItems.list({
-                subscription: subscription.subscription
-            })
+            const existingSub = await stripe.subscriptions.retrieve(subscription.subscription)
+            const subItems = existingSub.items
 
             let projectItem = false
-            sub.data.forEach(item => {
-                if (item.plan.product === app.config.billing.stripe.projectItem) {
+            subItems.data.forEach(item => {
+                if (item.plan.product === app.config.billing.stripe.project_product) {
                     projectItem = item
                 }
             })
 
             if (projectItem) {
-                if (projectItem.quantity === 1) {
-                    update = [
-                        subscription.subscription, {
-                            items: [{
-                                price: app.config.billing.stripe.project_price,
-                                quantity: 0,
-                                proration_behavior: 'always_invoice'
-                            }]
-                        }
-                    ]
-                } else {
-                    update = [
-                        subscription.subscription, {
-                            items: [{
-                                price: app.config.billing.stripe.project_price,
-                                quantity: projectItem.quantity - 1
-                            }]
-                        }
-                    ]
-                    stripe.subscription.update(update)
+                const metadata = {}
+                metadata[project.id] = ''
+                const update = {
+                    quantity: projectItem.quantity - 1,
+                    metadata: metadata
                 }
+                if (projectItem.quantity === 1) {
+                    update.proration_behavior = 'always_invoice'
+                }
+
+                try{
+                    stripe.subscriptionItems.update(projectItem.id, update)
+                } catch (err) {
+                    console.log(err)
+                }
+
             } else {
                 //not found?
+                console.log("Something wrong here")
             }
         },
-        closeSubscription: async (teamID) => {}
+        closeSubscription: async (subscription) => {
+            await stripe.subscriptions.del(subscription.subscription, {
+                invoice_now: true,
+                prorate: true
+            })
+            await subscription.destroy()
+        }
     }
 }

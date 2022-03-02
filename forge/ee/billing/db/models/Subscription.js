@@ -39,7 +39,7 @@ module.exports = {
                             TeamId: team
                         },
                         include: {
-                            module: M.Team,
+                            model: M.Team,
                             attributes: ['id', 'name', 'slug', 'links']
                         }
                     })

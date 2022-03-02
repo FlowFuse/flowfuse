@@ -1,6 +1,8 @@
 /**
  *
  */
+const { Readable } = require('stream') 
+
 module.exports = async function (app) {
 
     const stripe = require('stripe')(app.config.billing.stripe.key)
@@ -19,6 +21,17 @@ module.exports = async function (app) {
      */
     app.post('/callback', 
         {
+            preParsing: function(request, reply, payload, done) {
+                const chunks = []
+                payload.on('data', chunk => {
+                    chunks.push(chunk)
+                })
+                payload.on('end', () => {
+                    const raw = Buffer.concat(chunks)
+                    request.rawBody = raw
+                    done(null, Readable.from(raw)) 
+                })
+            },
             schema: {
                 body: {
                     type: 'object',
@@ -35,7 +48,7 @@ module.exports = async function (app) {
             let event = request.body
             if (app.config.billing?.stripe?.wh_secret) {
                 try {
-                    event = stripe.webhooks.constructEvent(event, sig, app.config.billing.stripe.wh_secret)
+                    event = stripe.webhooks.constructEvent(request.rawBody, sig, app.config.billing.stripe.wh_secret)
                 } catch (err) {
                     console.log(err)
                     response.code(400).type("text/hml").send("Failed Signature")
@@ -58,7 +71,7 @@ module.exports = async function (app) {
                     app.db.controllers.Subscription.createSubscription(team, subscription, customer)
                     break;
                 case 'checkout.session.expired':
-
+                    //should remove the team here
                     break;
                 case 'customer.subscription.created':
                     
