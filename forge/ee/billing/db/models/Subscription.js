@@ -12,12 +12,12 @@ module.exports = {
         subscription: {
             type: DataTypes.STRING,
             allowNull: false
-        },
+        }
     },
-    associations: function(M) {
+    associations: function (M) {
         this.belongsTo(M.Team)
     },
-    hooks: function(M) {
+    hooks: function (M) {
         // M.Team.addHook('afterCreate', (Team, options) => {
         //     console.log("Subscription hook on Team")
         // })
@@ -26,11 +26,11 @@ module.exports = {
         // })
         return {}
     },
-    finders: function(M) {
+    finders: function (M) {
         const self = this
         return {
             static: {
-                byTeam: async function(team) {
+                byTeam: async function (team) {
                     if (typeof team === 'string') {
                         team = M.Team.decodeHashid(team)
                     }

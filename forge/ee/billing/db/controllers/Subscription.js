@@ -1,16 +1,16 @@
 
 module.exports = {
-    createSubscription: async function(app, team, subscription, customer) {
+    createSubscription: async function (app, team, subscription, customer) {
         const newSubscription = await app.db.models.Subscription.create({
             customer: customer,
-            subscription: subscription,
+            subscription: subscription
         })
         console.log(team)
         newSubscription.setTeam(team)
 
         return newSubscription
     },
-    deleteSubscription: async function(app, team) {
+    deleteSubscription: async function (app, team) {
         const subscription = app.db.models.Subscription.byTeam(team)
         if (subscription) {
             subscription.destroy()

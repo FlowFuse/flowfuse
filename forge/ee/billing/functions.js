@@ -1,9 +1,8 @@
-module.exports.init = function(app) {
+module.exports.init = function (app) {
     const stripe = require('stripe')(app.config.billing.stripe.key)
 
     return {
         createSubscriptionSession: async (team) => {
-
             const session = await stripe.checkout.sessions.create({
                 mode: 'subscription',
                 line_items: [{
@@ -12,7 +11,7 @@ module.exports.init = function(app) {
                 }],
                 subscription_data: {
                     metadata: {
-                        'team': team.hashid
+                        team: team.hashid
                     }
                 },
                 client_reference_id: team.hashid,
@@ -20,7 +19,7 @@ module.exports.init = function(app) {
                 success_url: `${app.config.base_url}/team/${team.slug}/overview/?billing_session={CHECKOUT_SESSION_ID}`,
                 cancel_url: `${app.config.base_url}/team/${team.slug}/billing/cancel`
             })
-            console.log("createSubscription", session)
+            console.log('createSubscription', session)
             return session
         },
         addProject: async (team, project) => {
@@ -44,12 +43,12 @@ module.exports.init = function(app) {
                     proration_behavior: 'always_invoice',
                     metadata: metadata
                 }
-                //TODO update meta data?
+                // TODO update meta data?
                 stripe.subscriptionItems.update(projectItem.id, update)
             } else {
                 const metadata = {}
                 metadata[project.id] = 'true'
-                //metadata[team] = team.hashid
+                // metadata[team] = team.hashid
                 const update = {
                     items: [{
                         price: app.config.billing.stripe.project_price,
@@ -84,15 +83,14 @@ module.exports.init = function(app) {
                     update.proration_behavior = 'always_invoice'
                 }
 
-                try{
+                try {
                     stripe.subscriptionItems.update(projectItem.id, update)
                 } catch (err) {
                     console.log(err)
                 }
-
             } else {
-                //not found?
-                console.log("Something wrong here")
+                // not found?
+                console.log('Something wrong here')
             }
         },
         closeSubscription: async (subscription) => {

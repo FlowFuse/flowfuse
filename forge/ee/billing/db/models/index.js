@@ -1,10 +1,10 @@
 const { Model, DataTypes } = require('sequelize')
+const Hashids = require('hashids/cjs')
+const hashids = {}
 
 const modelTypes = [
     'Subscription'
 ]
-
-
 
 async function init (app) {
     const sequelize = app.db.sequelize
@@ -54,7 +54,7 @@ async function init (app) {
                 get () {
                     return getHashId(m.name).encode(this.id)
                 }
-            }   
+            }
         }
 
         if (!m.meta || m.meta.hashid !== false) {
