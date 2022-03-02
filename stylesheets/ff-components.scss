@@ -7,6 +7,10 @@
   border-radius: $ff-unit-sm;
   display: flex;
   align-items: center;
+  font-size: $ff-funit-sm;
+  line-height: 20px;
+  height: 32px;
+  position: relative;
 
   &.ff-btn-icon {
     padding: $ff-unit-sm $ff-unit-md;
@@ -14,7 +18,13 @@
 
   &.ff-btn-small {
     padding: $ff-unit-xs $ff-unit-sm;
-    font-size: $ff-funit-sm;
+    font-size: $ff-funit-xs;
+    line-height: 16px;
+    height: 24px;
+  }
+  
+  &.ff-btn-fwidth {
+    justify-content: center;
   }
 
   &:hover {
@@ -23,6 +33,7 @@
 
   &--primary {
     background-color: $ff-color--action;
+    border: 1px solid $ff-color--action;
     color: $ff-grey-50;
     &:hover {
       background-color: $ff-color--highlight;
@@ -80,5 +91,35 @@
     .ff-btn--icon-right {
       margin-left: $ff-unit-xs;
     }
+  }
+
+  &.ff-btn-fwidth {
+    .ff-btn--icon {
+      position: absolute;
+    }
+    .ff-btn--icon-left {
+      left: 0;
+      padding-left: $ff-unit-lg;
+    }.ff-btn--icon-left {
+      right: 0;
+      padding-right: $ff-unit-lg;
+    }
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    background-color: $ff-white;
+    border-color: $ff-grey-300;
+    color: $ff-grey-300;
+  }
+}
+
+.ff-input {
+  &.ff-text-input {
+    border: 1px solid $ff-grey-300;
+    border-radius: $ff-unit-xs;
+    padding: $ff-unit-sm $ff-unit-md;
+    height: 32px;
+    width: 100%;
   }
 }
