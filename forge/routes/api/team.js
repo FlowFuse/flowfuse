@@ -131,7 +131,16 @@ module.exports = async function (app) {
                 name: request.body.name,
                 slug: request.body.slug
             }, request.session.User)
-            reply.send(app.db.views.Team.team(team))
+
+            const teamView = app.db.views.Team.team(team)
+
+            if (app.license.get('billing')) {
+                const session = await app.billing.createSubscriptionSession(team)
+                console.log("team billing session",session)
+                teamView.billingURL = session.url
+            }
+
+            reply.send(teamView)
         } catch (err) {
             let responseMessage
             if (err.errors) {

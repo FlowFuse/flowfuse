@@ -9,6 +9,7 @@ const cookie = require('fastify-cookie')
 const csrf = require('fastify-csrf')
 const postoffice = require('./postoffice')
 const monitor = require('./monitor')
+const ee = require('./ee')
 
 module.exports = async (options = {}) => {
     // TODO: Defer logger configuration until after `config` module is registered
@@ -61,11 +62,14 @@ module.exports = async (options = {}) => {
         // Containers:
         await server.register(containers)
 
+        await server.register(ee)
+
         await server.ready()
 
         return server
     } catch (err) {
         server.log.error(`Failed to start: ${err.toString()}`)
+        console.log(err)
         throw err
     }
 }
