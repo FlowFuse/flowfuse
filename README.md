@@ -1,6 +1,6 @@
 # FlowForge UI Components
 
-acakaging option: https://blog.logrocket.com/building-vue-3-component-library/
+Project structure inspired by: https://blog.logrocket.com/building-vue-3-component-library/
 
 ## How to use
 
@@ -22,7 +22,7 @@ createApp()
 
 ### Build
 
-In order to build, ready for publushing, run the `npm run build` command. This will output three files: in `/dist`:
+In order to build the project, ready for publishing and use, run the `npm run build` command. This will output three files: into `/dist`:
 
 ```
 /dist/flowforge-ui-components.css
