@@ -11,7 +11,7 @@ module.exports = {
                 primaryKey: true,
                 autoIncrement: true
             },
-            name: { type: DataTypes.STRING },
+            name: { type: DataTypes.STRING, unique: true },
             settings: { type: DataTypes.TEXT },
             createdAt: { type: DataTypes.DATE },
             updatedAt: { type: DataTypes.DATE },

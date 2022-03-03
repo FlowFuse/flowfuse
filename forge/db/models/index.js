@@ -53,7 +53,7 @@ const modelTypes = [
     'Project',
     'ProjectSettings',
     'ProjectStack',
-    'ProjectTemplate',
+    // 'ProjectTemplate',
     'AccessToken',
     'AuthClient',
     'StorageFlow',
@@ -151,11 +151,12 @@ async function init (app) {
         }
 
         if (!m.schema.links && (!m.meta || m.meta.links !== false)) {
+            const pathComponent = (m.meta && typeof m.meta.links === 'string') ? m.meta.links : (m.name.toLowerCase() + 's')
             m.schema.links = {
                 type: DataTypes.VIRTUAL,
                 get () {
                     return {
-                        self: app.config.base_url + '/api/v1/' + m.name.toLowerCase() + 's/' + this.hashid
+                        self: `${app.config.base_url}/api/v1/${pathComponent}/${this.hashid}`
                     }
                 }
             }

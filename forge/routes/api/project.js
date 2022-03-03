@@ -22,14 +22,17 @@ module.exports = async function (app) {
                     request.project = await app.db.models.Project.byId(request.params.projectId)
                     if (!request.project) {
                         reply.code(404).type('text/html').send('Not Found')
+                        return
                     }
                     if (request.session.User) {
                         request.teamMembership = await request.session.User.getTeamMembership(request.project.Team.id)
                         if (!request.teamMembership && !request.session.User.admin) {
                             reply.code(404).type('text/html').send('Not Found')
+                            return
                         }
                     } else if (request.session.ownerId !== request.params.projectId) {
                         reply.code(404).type('text/html').send('Not Found')
+                        return
                     }
                 } catch (err) {
                     reply.code(404).type('text/html').send('Not Found')
@@ -72,10 +75,11 @@ module.exports = async function (app) {
         schema: {
             body: {
                 type: 'object',
-                required: ['name', 'options', 'team'],
+                required: ['name', 'options', 'team', 'stack'],
                 properties: {
                     name: { type: 'string' },
                     team: { type: ['string', 'number'] },
+                    stack: { type: 'string' },
                     options: { type: 'object' }
                 }
             }
@@ -84,45 +88,55 @@ module.exports = async function (app) {
         const teamMembership = await request.session.User.getTeamMembership(request.body.team, true)
         // Assume membership is enough to allow project creation.
         // If we have roles that limit creation, that will need to be checked here.
-        if (teamMembership) {
-            const team = teamMembership.get('Team')
-            const project = await app.db.models.Project.create({
-                name: request.body.name,
-                type: request.body.options.type || 'basic',
-                url: ''
-            })
-
-            // const authClient = await app.db.controllers.AuthClient.createClientForProject(project);
-            // const projectToken = await app.db.controllers.AccessToken.createTokenForProject(project, null, ["project:flows:view","project:flows:edit"])
-            // const containerOptions = {
-            //     name: request.body.name,
-            //     projectToken: projectToken.token,
-            //     ...request.body.options,
-            //     ...authClient
-            // }
-
-            await team.addProject(project)
-            await app.containers.create(project, {})
-
-            await app.db.controllers.AuditLog.projectLog(
-                project.id,
-                request.session.User.id,
-                'project.created'
-            )
-            await app.db.controllers.AuditLog.teamLog(
-                team.id,
-                request.session.User.id,
-                'project.created',
-                { id: project.id, name: project.name }
-            )
-
-            const result = await app.db.views.Project.project(project)
-            // result.meta = await app.containers.details(project);
-            result.team = team.id
-            reply.send(result)
-        } else {
+        if (!teamMembership) {
             reply.code(401).send({ error: 'Current user not in team ' + request.body.team })
+            return
         }
+
+        const team = teamMembership.get('Team')
+
+        const stack = await app.db.models.ProjectStack.byId(request.body.stack)
+
+        if (!stack) {
+            reply.code(400).send({ error: 'Invalid stack' })
+            return
+        }
+
+        const project = await app.db.models.Project.create({
+            name: request.body.name,
+            url: ''
+        })
+
+        // const authClient = await app.db.controllers.AuthClient.createClientForProject(project);
+        // const projectToken = await app.db.controllers.AccessToken.createTokenForProject(project, null, ["project:flows:view","project:flows:edit"])
+        // const containerOptions = {
+        //     name: request.body.name,
+        //     projectToken: projectToken.token,
+        //     ...request.body.options,
+        //     ...authClient
+        // }
+
+        await team.addProject(project)
+        await project.setProjectStack(stack)
+
+        await app.containers.create(project, {})
+
+        await app.db.controllers.AuditLog.projectLog(
+            project.id,
+            request.session.User.id,
+            'project.created'
+        )
+        await app.db.controllers.AuditLog.teamLog(
+            team.id,
+            request.session.User.id,
+            'project.created',
+            { id: project.id, name: project.name }
+        )
+
+        const result = await app.db.views.Project.project(project)
+        // result.meta = await app.containers.details(project);
+        result.team = team.id
+        reply.send(result)
     })
     /**
      * Delete a project
@@ -174,6 +188,7 @@ module.exports = async function (app) {
         settings.storageURL = request.project.storageURL
         settings.auditURL = request.project.auditURL
         settings.state = request.project.state
+        settings.stack = request.project.ProjectStack.properties
         reply.send(settings)
     })
 

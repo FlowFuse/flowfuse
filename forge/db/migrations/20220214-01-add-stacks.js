@@ -12,21 +12,18 @@ module.exports = {
                 autoIncrement: true
             },
             active: { type: DataTypes.BOOLEAN, defaultValue: true },
-            name: { type: DataTypes.STRING, allowNull: false },
-            nodejs: { type: DataTypes.STRING, allowNull: false },
-            nodered: { type: DataTypes.STRING, allowNull: false },
-            memory: { type: DataTypes.STRING, allowNull: false },
-            cpu: { type: DataTypes.STRING, allowNull: false },
-            driverProperties: { type: DataTypes.TEXT },
+            name: { type: DataTypes.STRING, allowNull: false, unique: true },
+            properties: { type: DataTypes.TEXT },
             createdAt: { type: DataTypes.DATE },
             updatedAt: { type: DataTypes.DATE }
         })
-        await context.addColumn('Projects', 'ProjectStackId', {
+        await context.addColumn('Projects', 'stackId', {
             type: DataTypes.INTEGER,
             references: { model: 'ProjectStacks', key: 'id' },
             onDelete: 'set null',
             onUpdate: 'cascade'
         })
+        await context.removeColumn('Projects', 'type')
     },
     down: async (context) => {
     }

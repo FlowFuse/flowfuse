@@ -9,6 +9,7 @@ import AdminUsers from '@/pages/admin/Users/index.vue'
 import AdminUsersGeneral from '@/pages/admin/Users/General.vue'
 import AdminUsersInvitations from '@/pages/admin/Users/Invitations.vue'
 import AdminTeams from '@/pages/admin/Teams.vue'
+import AdminStacks from '@/pages/admin/Stacks.vue'
 import AdminCreateUser from '@/pages/admin/Users/createUser.vue'
 import { AdjustmentsIcon } from '@heroicons/vue/outline'
 
@@ -53,7 +54,8 @@ export default [
                     { path: 'invitations', component: AdminUsersInvitations }
                 ]
             },
-            { path: 'teams', component: AdminTeams }
+            { path: 'teams', component: AdminTeams },
+            { path: 'stacks', component: AdminStacks }
         ]
     }
 ]

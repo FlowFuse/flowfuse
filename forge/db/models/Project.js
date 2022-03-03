@@ -11,7 +11,6 @@ module.exports = {
     schema: {
         id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
         name: { type: DataTypes.STRING, allowNull: false },
-        type: { type: DataTypes.STRING, allowNull: false },
         url: { type: DataTypes.STRING, allowNull: false },
         slug: { type: DataTypes.VIRTUAL, get () { return this.id } },
         state: { type: DataTypes.STRING, allowNull: false, defaultValue: 'running' },
@@ -44,7 +43,7 @@ module.exports = {
         })
         this.hasMany(M.ProjectSettings)
         this.belongsTo(M.ProjectStack)
-        this.belongsTo(M.ProjectTemplate)
+        // this.belongsTo(M.ProjectTemplate)
     },
     hooks: function (M) {
         return {
@@ -136,12 +135,17 @@ module.exports = {
                     return this.findAll({
                         include: {
                             model: M.Team,
-                            include: {
-                                model: M.TeamMember,
-                                where: {
-                                    UserId: user.id
+                            include: [
+                                {
+                                    model: M.TeamMember,
+                                    where: {
+                                        UserId: user.id
+                                    }
+                                },
+                                {
+                                    model: M.ProjectStack
                                 }
-                            },
+                            ],
                             required: true
                         }
                     })
@@ -149,20 +153,30 @@ module.exports = {
                 byId: async (id) => {
                     return this.findOne({
                         where: { id: id },
-                        include: {
-                            model: M.Team,
-                            attributes: ['id', 'name', 'slug', 'links']
-                        }
+                        include: [
+                            {
+                                model: M.Team,
+                                attributes: ['id', 'name', 'slug', 'links']
+                            },
+                            {
+                                model: M.ProjectStack
+                            }
+                        ]
                     })
                 },
                 byTeam: async (teamHashId) => {
                     const teamId = M.Team.decodeHashid(teamHashId)
                     return this.findAll({
-                        include: {
-                            model: M.Team,
-                            where: { id: teamId },
-                            attributes: ['id', 'name', 'slug', 'links']
-                        }
+                        include: [
+                            {
+                                model: M.Team,
+                                where: { id: teamId },
+                                attributes: ['id', 'name', 'slug', 'links']
+                            },
+                            {
+                                model: M.ProjectStack
+                            }
+                        ]
                     })
                 }
             }

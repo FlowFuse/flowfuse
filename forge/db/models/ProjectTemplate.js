@@ -7,7 +7,7 @@ const { DataTypes } = require('sequelize')
 module.exports = {
     name: 'ProjectTemplate',
     schema: {
-        name: { type: DataTypes.STRING, allowNull: false },
+        name: { type: DataTypes.STRING, allowNull: false, unique: true },
         settings: {
             type: DataTypes.TEXT,
             set (value) {

@@ -29,6 +29,7 @@
 
 <script>
 import projectApi from '@/api/project'
+import stacksApi from '@/api/stacks'
 import DropdownMenu from '@/components/DropdownMenu'
 import { ExternalLinkIcon, ClipboardCopyIcon, TrendingUpIcon, TemplateIcon, HeartIcon, CogIcon} from '@heroicons/vue/outline'
 import FormHeading from '@/components/FormHeading'

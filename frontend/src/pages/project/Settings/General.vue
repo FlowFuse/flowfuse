@@ -8,6 +8,10 @@
             Name
         </FormRow>
 
+        <FormRow v-model="input.stackDescription" type="uneditable">
+            Stack
+        </FormRow>
+
         <div class="space-x-4 whitespace-nowrap">
             <template v-if="!editing.projectName">
                 <button type="button" class="forge-button forge-button-small" @click="editName">Edit project settings</button>
@@ -39,7 +43,8 @@ export default {
             },
             input: {
                 projectId: "",
-                projectName: ""
+                projectName: "",
+                stackDescription: ""
             },
             original: {
                 projectName: ""
@@ -82,6 +87,9 @@ export default {
         },
         fetchData () {
             this.input.projectId = this.project.id;
+            if (this.project.stack) {
+                this.input.stackDescription = this.project.stack.name;
+            }
             this.input.projectName = this.project.name;
         }
     },
