@@ -31,7 +31,7 @@ export default {
             if (this.team.id && this.teamMembership && this.teamMembership.role === Roles.Owner) {
                 this.verifiedTeam = this.team;
             } else if (this.teamMembership && this.teamMembership.role !== Roles.Owner) {
-                useRouter().push({ path: `/team/${useRoute().params.id}/overview` })
+                useRouter().push({ path: `/team/${this.team.slug}/overview` })
             }
         }
     },

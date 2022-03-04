@@ -40,7 +40,7 @@ export default {
     methods: {
         checkAccess: async function () {
             if (this.teamMembership && this.teamMembership.role !== Roles.Owner) {
-                useRouter().push({ path: `/team/${useRoute().params.id}/overview` })
+                useRouter().push({ path: `/team/${this.team.slug}/overview` })
             }
         }
     }

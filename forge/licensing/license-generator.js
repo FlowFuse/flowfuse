@@ -42,7 +42,8 @@ const licenseDetails = {
     tier: 'teams', // Must be 'solo' or 'teams',
     users: '100',
     teams: '100',
-    projects: '100'
+    projects: '100',
+    billing: true
 }
 
 const licenseText = jwt.sign(

@@ -131,7 +131,15 @@ module.exports = async function (app) {
                 name: request.body.name,
                 slug: request.body.slug
             }, request.session.User)
-            reply.send(app.db.views.Team.team(team))
+
+            const teamView = app.db.views.Team.team(team)
+
+            if (app.license.get('billing')) {
+                const session = await app.billing.createSubscriptionSession(team)
+                teamView.billingURL = session.url
+            }
+
+            reply.send(teamView)
         } catch (err) {
             let responseMessage
             if (err.errors) {
@@ -149,6 +157,12 @@ module.exports = async function (app) {
         // That is handled by the beforeDestroy hook on the Team model and the
         // call to destroy the team will throw an error
         try {
+            if (app.license.get('billing')) {
+                const subscription = await app.db.models.Subscription.byTeam(request.team.id)
+                if (subscription) {
+                    await app.billing.closeSubscription(subscription)
+                }
+            }
             await request.team.destroy()
             reply.send({ status: 'okay' })
         } catch (err) {

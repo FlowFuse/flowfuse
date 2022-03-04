@@ -16,6 +16,7 @@ class LicenseDetails {
         this.teams = claims.teams
         this.projects = claims.projects
         this.users = claims.users
+        this.billing = claims.billing
         Object.freeze(this)
     }
 

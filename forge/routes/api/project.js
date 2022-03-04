@@ -102,6 +102,7 @@ module.exports = async function (app) {
             // }
 
             await team.addProject(project)
+            project.Team = team
             await app.containers.create(project, {})
 
             await app.db.controllers.AuditLog.projectLog(
