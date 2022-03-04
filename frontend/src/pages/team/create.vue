@@ -24,11 +24,11 @@
             </form>
             <form v-else>
                 <h3 class="font-bold">New Team: {{ team ? team.name : '' }}</h3>
-                <p class="text-sm mt-3">Please navigate to Stripe in order to complete the relevant billing details.</p>
-                <p class="text-sm mt-2">Charges are calculated based on a project-by-project basis. Each project is charged at a standard <b>$XX/month.</b></p>
+                <p class="text-sm mt-3">You are about to proceed to Stripe, our payment provider, in order to setup the relevant billing details.</p>
+                <p class="text-sm mt-2">You will only be charged for each project when you create it.</p>
                 <div class="mt-3">
                     <button type="button" class="forge-button" @click="customerPortal()">
-                        <span>Stripe Billing Portal</span>
+                        <span>Proceed to Stripe</span>
                     </button>
                 </div>
             </form>

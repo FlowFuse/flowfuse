@@ -28,17 +28,20 @@
 <script>
 
 import { Roles } from '@core/lib/roles'
+
 import teamApi from '@/api/team'
+import billingApi from '@/api/billing'
+
 import FormHeading from '@/components/FormHeading'
 import MemberSummaryList from './components/MemberSummaryList'
 import ProjectSummaryList from './components/ProjectSummaryList'
 import { PlusSmIcon, UsersIcon, ChevronRightIcon } from '@heroicons/vue/outline'
-import CreateProjectButton from "@/components/CreateProjectButton"
+import CreateProjectButton from '@/components/CreateProjectButton'
 
 export default {
     name: 'TeamOverview',
-    props:[ "team", "teamMembership" ],
-    data: function() {
+    props: ['team', 'teamMembership'],
+    data: function () {
         return {
             userCount: 0,
             users: null,
@@ -48,25 +51,35 @@ export default {
         }
     },
     computed: {
-        createProjectEnabled: function() {
+        createProjectEnabled: function () {
             return this.teamMembership.role === Roles.Owner
         }
     },
     watch: {
-         team: 'fetchData'
+        team: 'fetchData'
     },
-    mounted() {
+    mounted () {
         this.fetchData()
     },
     methods: {
-        fetchData: async function(newVal,oldVal) {
+        fetchData: async function (newVal, oldVal) {
             if (this.team.slug) {
+                // Team Data
                 const data = await teamApi.getTeamProjects(this.team.id)
-                this.projectCount = data.count;
-                this.projects = data.projects;
+                this.projectCount = data.count
+                this.projects = data.projects
+                // Team Members
                 const members = await teamApi.getTeamMembers(this.team.id)
-                this.userCount = members.count;
-                this.users = members.members;
+                this.userCount = members.count
+                this.users = members.members
+                // Team Billing
+                try {
+                    const subscription = await billingApi.getSubscriptionInfo(this.team.id)
+                    console.log(subscription)
+                } catch {
+                    // if 404 - no billing setup, but are we running in EE?
+                    console.log('NO BILLING CONFIGURED')
+                }
             }
         }
     },
@@ -74,10 +87,7 @@ export default {
         FormHeading,
         MemberSummaryList,
         ProjectSummaryList,
-        ChevronRightIcon,
-        UsersIcon,
-        PlusSmIcon,
-        CreateProjectButton
+        PlusSmIcon
     }
 }
 </script>
