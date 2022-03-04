@@ -2,7 +2,7 @@ import client from './client'
 
 // Custom Portal - Redirect
 const toCustomerPortal = async (teamId) => {
-    window.open('/ee/billing/customer-portal/' + teamId, '_blank')
+    window.open('/ee/billing/teams/' + teamId + '/customer-portal', '_blank')
 }
 
 // Get information on billing/subscription for a given team
