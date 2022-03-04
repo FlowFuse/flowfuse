@@ -89,6 +89,8 @@ export default {
             this.input.projectId = this.project.id;
             if (this.project.stack) {
                 this.input.stackDescription = this.project.stack.name;
+            } else {
+                this.input.stackDescription = "none"
             }
             this.input.projectName = this.project.name;
         }
