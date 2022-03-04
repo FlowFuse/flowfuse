@@ -1,23 +1,23 @@
 {
-    "name": "@flowforge/flowforge-ui-components",
+    "name": "@flowforge/forge-ui-components",
     "version": "0.1.0",
     "description": "",
     "author": {
         "name": "FlowFlow Inc."
     },
     "license": "Apache-2.0",
-    "homepage": "https://github.com/flowforge/flowforge-ui-components#readme",
-    "main": "dist/flowforge-ui-components.js",
-    "module": "dist/flowforge-ui-components.mjs",
+    "homepage": "https://github.com/flowforge/forge-ui-components#readme",
+    "main": "dist/forge-ui-components.js",
+    "module": "dist/forge-ui-components.mjs",
     "files": [
         "dist/*"
     ],
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/flowforge/flowforge-ui-components.git"
+        "url": "git+https://github.com/flowforge/forge-ui-components.git"
     },
     "bugs": {
-        "url": "https://github.com/flowforge/flowforge-ui-components/issues"
+        "url": "https://github.com/flowforge/forge-ui-components/issues"
     },
     "engines": {
         "node": ">=16.x"
