@@ -38,67 +38,67 @@ import { Roles } from '@core/lib/roles'
 export default {
     name: 'CreateProject',
     mixins: [Breadcrumbs],
-    data() {
+    data () {
         return {
             init: false,
             currentTeam: null,
             teams: [],
             input: {
                 name: NameGenerator(),
-                team: "",
+                team: '',
                 // description: "",
                 options: {
-                    type: "basic"
+                    type: 'basic'
                 }
             }
         }
     },
     computed: {
-        createEnabled: function() {
+        createEnabled: function () {
             return this.input.team && this.input.name
         }
     },
-    async created() {
+    async created () {
         const data = await teamApi.getTeams()
-        const filteredTeams = [];
+        const filteredTeams = []
 
         data.teams.forEach((t) => {
             if (t.role !== Roles.Owner) {
                 return
             }
-            if (t.slug === this.$router.currentRoute.value.params.id) {
-                this.currentTeam = t.id;
+            if (t.slug === this.$route.params.team_slug) {
+                this.currentTeam = t.id
             }
             filteredTeams.push({ value: t.id, label: t.name })
-        });
+        })
 
         if (this.currentTeam == null && filteredTeams.length > 0) {
-            this.currentTeam = filteredTeams[0].value;
+            this.currentTeam = filteredTeams[0].value
         }
-        this.teams = filteredTeams;
+        this.teams = filteredTeams
 
         if (this.currentTeam) {
             this.setBreadcrumbs([
-                { type: 'TeamLink'},
+                { type: 'TeamLink' },
                 { label: 'Create project' }
             ])
         }
-        this.init = true;
+        this.init = true
         setTimeout(() => {
             // There must be a better Vue way of doing this, but I can't find it.
             // Without the setTimeout, the select box doesn't update
-            this.input.team = this.currentTeam;
-        },100);
+            this.input.team = this.currentTeam
+        }, 100)
     },
     methods: {
-        createProject() {
+        createProject () {
             projectApi.create(this.input).then(result => {
-                this.$router.push( { name: 'Project', params: { id: result.id }});
+                this.$router.push({ name: 'Project', params: { id: result.id } })
             }).catch(err => {
-                console.log(err);
-            });
+                console.log(err)
+            })
         },
-        refreshName() {
+        refreshName () {
             this.input.name = NameGenerator()
         }
     },
