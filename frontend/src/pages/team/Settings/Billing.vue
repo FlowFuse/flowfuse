@@ -2,12 +2,10 @@
     <form class="space-y-6">
         <FormHeading>View/Update Payment Details</FormHeading>
         <div>
-            <a>
-                <button type="button" class="forge-button forge-button-small" @click="customerPortal()">
-                    <span>Stripe Customer Portal</span>
-                    <ExternalLinkIcon class="ml-3 w-4" />
-                </button>
-            </a>
+            <button type="button" class="forge-button forge-button-small" @click="customerPortal()">
+                <span>Stripe Customer Portal</span>
+                <ExternalLinkIcon class="ml-3 w-4" />
+            </button>
         </div>
     </form>
 </template>

@@ -1,7 +1,7 @@
 <template>
     <div class="forge-block">
         <div class="max-w-2xl m-auto">
-            <form class="space-y-6">
+            <form class="space-y-6" v-if="!needsBilling">
                 <FormHeading>Create a new team</FormHeading>
                 <div class="mb-8 text-sm text-gray-500">Teams are how you organize who collaborates on your projects.</div>
 
@@ -21,6 +21,16 @@
                 <button type="button" :disabled="!formValid" @click="createTeam" class="forge-button">
                     Create team
                 </button>
+            </form>
+            <form v-else>
+                <h3 class="font-bold">New Team: {{ team ? team.name : '' }}</h3>
+                <p class="text-sm mt-3">Please navigate to Stripe in order to complete the relevant billing details.</p>
+                <p class="text-sm mt-2">Charges are calculated based on a project-by-project basis. Each project is charged at a standard <b>$XX/month.</b></p>
+                <div class="mt-3">
+                    <button type="button" class="forge-button" @click="customerPortal()">
+                        <span>Stripe Billing Portal</span>
+                    </button>
+                </div>
             </form>
         </div>
     </div>
@@ -44,7 +54,9 @@ export default {
                 slug: '',
                 defaultSlug: '',
                 slugError: ''
-            }
+            },
+            needsBilling: false,
+            team: null
         }
     },
     created () {
@@ -77,8 +89,14 @@ export default {
             teamApi.create(opts).then(async result => {
                 await this.$store.dispatch('account/refreshTeams')
                 await this.$store.dispatch('account/setTeam', result)
-                // TODO: Re-route this to a holding billing page that will redirect to Stripe
-                this.$router.push({ name: 'Team', params: { team_slug: result.slug } })
+                // are we in EE?
+                if (result.billingURL) {
+                    this.team = result
+                    this.needsBilling = true
+                } else {
+                    // TODO: Re-route this to a holding billing page that will redirect to Stripe
+                    this.goToNewTeam(result.slug)
+                }
             }).catch(err => {
                 if (err.response.data) {
                     if (/slug/.test(err.response.data.error)) {
@@ -87,8 +105,11 @@ export default {
                 }
             })
         },
-        refreshName () {
-            this.input.name = NameGenerator()
+        goToNewTeam (slug) {
+            this.$router.push({ name: 'Team', params: { team_slug: slug } })
+        },
+        customerPortal () {
+            window.open(this.team.billingURL, '_self')
         }
     },
     components: {
