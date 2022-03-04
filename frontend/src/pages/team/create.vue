@@ -78,7 +78,7 @@ export default {
                 await this.$store.dispatch('account/refreshTeams')
                 await this.$store.dispatch('account/setTeam', result)
                 // TODO: Re-route this to a holding billing page that will redirect to Stripe
-                this.$router.push({ name: 'Team', params: { id: result.slug } })
+                this.$router.push({ name: 'Team', params: { team_slug: result.slug } })
             }).catch(err => {
                 if (err.response.data) {
                     if (/slug/.test(err.response.data.error)) {

@@ -62,7 +62,7 @@ export default [
         ]
     },
     {
-        path: '/team/:team-slug/projects/create',
+        path: '/team/:team_slug/projects/create',
         name: 'CreateTeamProject',
         component: CreateProject
     }
