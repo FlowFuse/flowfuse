@@ -1,9 +1,5 @@
 <template>
     <form class="space-y-6">
-        <FormHeading>Details</FormHeading>
-        <div>
-            Active Billing Period &amp; Amount to be charged HERE
-        </div>
         <FormHeading>View/Update Payment Details</FormHeading>
         <div>
             <a>

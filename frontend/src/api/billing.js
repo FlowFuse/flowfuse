@@ -1,10 +1,8 @@
 import client from './client'
 
 // Custom Portal - Redirect
-const customerPortal = async (teamId) => {
-    return client.get('/ee/billing/customer-portal' + teamId).then(res => {
-        return res.data
-    })
+const toCustomerPortal = async (teamId) => {
+    window.open('/ee/billing/customer-portal/' + teamId, '_blank')
 }
 
 // Add new Subscription (Team)
@@ -43,7 +41,7 @@ const removeFromSubscription = async (teamId, projectId) => {
 }
 
 export default {
-    customerPortal,
+    toCustomerPortal,
     createSubscription,
     getSubscriptionInfo,
     closeSubscription,
