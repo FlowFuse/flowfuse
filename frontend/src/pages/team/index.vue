@@ -19,10 +19,10 @@
 
 <script>
 import teamApi from '@/api/team'
-import Breadcrumbs from '@/mixins/Breadcrumbs';
-import SectionTopMenu from '@/components/SectionTopMenu';
-import Loading from '@/components/Loading';
-import { useRoute } from 'vue-router';
+import Breadcrumbs from '@/mixins/Breadcrumbs'
+import SectionTopMenu from '@/components/SectionTopMenu'
+import Loading from '@/components/Loading'
+import { useRoute } from 'vue-router'
 import { mapState } from 'vuex'
 import { Roles } from '@core/lib/roles'
 
@@ -30,9 +30,9 @@ export default {
     name: 'Team',
     mixins: [Breadcrumbs],
     computed: {
-        ...mapState('account',['user','team','teamMembership','pendingTeamChange']),
+        ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange'])
     },
-    data: function() {
+    data: function () {
         return {
             navigation: []
         }
@@ -42,40 +42,40 @@ export default {
         Loading
     },
     methods: {
-        updateTeam: function(newVal,oldVal) {
+        updateTeam: function (newVal, oldVal) {
             if (this.team && this.teamMembership) {
                 this.navigation = [
-                    { name: "Overview", path: `/team/${this.team.slug}/overview` },
-                    { name: "Projects", path: `/team/${this.team.slug}/projects` },
-                    { name: "Members", path: `/team/${this.team.slug}/members` },
-                ];
+                    { name: 'Overview', path: `/team/${this.team.slug}/overview` },
+                    { name: 'Projects', path: `/team/${this.team.slug}/projects` },
+                    { name: 'Members', path: `/team/${this.team.slug}/members` }
+                ]
                 // const teamUser = this.team.users.filter(u => { console.log(u,this.$store.state.account.user.email); return  u.email === this.$store.state.account.user.email })
                 // if (teamUser.role === Roles.Owner) {
                 if (this.teamMembership.role === Roles.Owner) {
-                    this.navigation.push({ name: "Audit Log", path: `/team/${this.team.slug}/audit-log` });
-                    this.navigation.push({ name: "Settings", path: `/team/${this.team.slug}/settings` });
+                    this.navigation.push({ name: 'Audit Log', path: `/team/${this.team.slug}/audit-log` })
+                    this.navigation.push({ name: 'Settings', path: `/team/${this.team.slug}/settings` })
                 }
                 // }
                 this.setBreadcrumbs([
-                    { type: "TeamPicker" }
+                    { type: 'TeamPicker' }
                     // { type: "CreateProject" }
                 ])
             }
         }
     },
-    async beforeMount() {
-        await this.$store.dispatch('account/setTeam',useRoute().params.id);
+    async beforeMount () {
+        await this.$store.dispatch('account/setTeam', useRoute().params.team_slug)
     },
     async beforeRouteUpdate (to, from, next) {
-        await this.$store.dispatch('account/setTeam',to.params.id);
+        await this.$store.dispatch('account/setTeam', to.params.team_slug)
         next()
     },
-    mounted() {
+    mounted () {
         this.updateTeam()
     },
     watch: {
-         team: 'updateTeam',
-         teamMembership: 'updateTeam'
-    },
+        team: 'updateTeam',
+        teamMembership: 'updateTeam'
+    }
 }
 </script>

@@ -4,20 +4,24 @@
         <div>
             Active Billing Period &amp; Amount to be charged HERE
         </div>
-        <FormHeading>Invoices</FormHeading>
+        <FormHeading>View/Update Payment Details</FormHeading>
         <div>
-            Link to Stripe Invoices HERE
-        </div>
-        <FormHeading>Update Payment Details</FormHeading>
-        <div>
-            Link to Stripe UI HERE
+            <a>
+                <button type="button" class="forge-button forge-button-small" @click="customerPortal()">
+                    <span>Stripe Customer Portal</span>
+                    <ExternalLinkIcon class="ml-3 w-4" />
+                </button>
+            </a>
         </div>
     </form>
 </template>
 
 <script>
 
+import API from '@/api/billing.js'
 import FormHeading from '@/components/FormHeading'
+
+import { ExternalLinkIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'TeamSettingsBilling',
@@ -26,11 +30,18 @@ export default {
     watch: { },
     computed: { },
     mounted () {
-        console.log(process.env.VUE_APP_LICENSE_TYPE)
+        // console.log(this.$route)
+        // console.log(this.$store.state.account.team.id)
+        // console.log(process.env.VUE_APP_LICENSE_TYPE)
     },
-    methods: { },
+    methods: {
+        customerPortal () {
+            API.toCustomerPortal(this.$store.state.account.team.id)
+        }
+    },
     components: {
-        FormHeading
+        FormHeading,
+        ExternalLinkIcon
     }
 }
 </script>

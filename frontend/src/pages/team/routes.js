@@ -25,9 +25,9 @@ export default [
         component: CreateTeam
     },
     {
-        path: '/team/:id',
+        path: '/team/:team_slug',
         redirect: to => {
-            return `/team/${to.params.id}/overview`
+            return `/team/${to.params.team_slug}/overview`
         },
         name: 'Team',
         component: Team,
@@ -38,7 +38,7 @@ export default [
                 path: 'members',
                 component: TeamMembers,
                 redirect: to => {
-                    return `/team/${to.params.id}/members/general`
+                    return `/team/${to.params.team_slug}/members/general`
                 },
                 children: [
                     { path: 'general', component: TeamMembersMembers },
@@ -50,7 +50,7 @@ export default [
                 path: 'settings',
                 component: TeamSettings,
                 redirect: to => {
-                    return `/team/${to.params.id}/settings/general`
+                    return `/team/${to.params.team_slug}/settings/general`
                 },
                 children: [
                     { path: 'general', component: TeamSettingsGeneral },
@@ -62,7 +62,7 @@ export default [
         ]
     },
     {
-        path: '/team/:id/projects/create',
+        path: '/team/:team-slug/projects/create',
         name: 'CreateTeamProject',
         component: CreateProject
     }
