@@ -135,7 +135,7 @@ module.exports = async function (app) {
             const teamView = app.db.views.Team.team(team)
 
             if (app.license.get('billing')) {
-                const session = await app.billing.createSubscriptionSession(team)
+                const session = await app.billing.createSubscriptionSession(team, request.session.User)
                 teamView.billingURL = session.url
             }
 
