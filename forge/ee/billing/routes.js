@@ -11,7 +11,6 @@ module.exports = async function (app) {
      */
     app.addHook('preHandler', async (request, response) => {
         if (request.params.teamId) {
-            console.log('preHandler teamId', request.params.teamId)
             request.team = await app.db.models.Team.byId(request.params.teamId)
             if (!request.team) {
                 response.code(404).type('text/html').send('Not Found')
@@ -104,19 +103,6 @@ module.exports = async function (app) {
         }
     )
 
-    /**
-     */
-    app.get('/customer-portal/:teamId', async (request, response) => {
-        const team = request.team
-        const sub = await app.db.models.Subscription.byTeam(team.id)
-        const portal = await stripe.billingPortal.sessions.create({
-            customer: sub.customer,
-            return_url: `${app.config.base_url}/team/${team.slug}/overview`
-        })
-
-        response.redirect(303, portal.url)
-    })
-
     app.get('/teams/:teamId', async (request, response) => {
         const team = request.team
         const sub = await app.db.models.Subscription.byTeam(team.id)
@@ -145,5 +131,18 @@ module.exports = async function (app) {
         })
 
         response.status(200).send(information)
+    })
+
+    /**
+     */
+    app.get('/teams/:teamId/customer-portal', async (request, response) => {
+        const team = request.team
+        const sub = await app.db.models.Subscription.byTeam(team.id)
+        const portal = await stripe.billingPortal.sessions.create({
+            customer: sub.customer,
+            return_url: `${app.config.base_url}/team/${team.slug}/overview`
+        })
+
+        response.redirect(303, portal.url)
     })
 }
