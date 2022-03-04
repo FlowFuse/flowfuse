@@ -65,11 +65,20 @@ module.exports = async function (app) {
 
             switch (event.type) {
             case 'checkout.session.completed':
-                console.log(event)
+                // console.log(event)
+                app.log.info(`Created Subscription for team ${team.hashid}`)
                 app.db.controllers.Subscription.createSubscription(team, subscription, customer)
+                // app.db.controllers.AuditLog.teamLog({
+                //     team.id,
+                //     user.id,
+                //     'billing.session.created',
+                //     { session: session.id }
+                // })
                 break
             case 'checkout.session.expired':
                 // should remove the team here
+                console.log('checkout.session.expired')
+                console.log(event)
                 break
             case 'customer.subscription.created':
 
@@ -81,7 +90,7 @@ module.exports = async function (app) {
 
                 break
             case 'charge.failed':
-
+                // This needs work
                 break
             }
 
@@ -93,8 +102,9 @@ module.exports = async function (app) {
      */
     app.get('/customer-portal/:teamId', async (request, response) => {
         const team = request.team
+        const sub = await app.db.models.Subscription.byTeam(team.id)
         const portal = await stripe.billingPortal.sessions.create({
-            customer: '',
+            customer: sub.customer,
             return_url: `${app.config.base_url}/team/${team.slug}/overview`
         })
 
