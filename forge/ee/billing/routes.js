@@ -13,6 +13,9 @@ module.exports = async function (app) {
         if (request.params.teamId) {
             console.log('preHandler teamId', request.params.teamId)
             request.team = await app.db.models.Team.byId(request.params.teamId)
+            if (!request.team) {
+                response.code(404).type('text/html').send('Not Found')
+            }
         }
     })
 
@@ -61,6 +64,9 @@ module.exports = async function (app) {
             let team = {}
             if (teamId) {
                 team = await app.db.models.Team.byId(teamId)
+                if (!team) {
+                    response.status(404).type('text/html').send('Not Found')
+                }
             }
 
             switch (event.type) {
@@ -111,7 +117,33 @@ module.exports = async function (app) {
         response.redirect(303, portal.url)
     })
 
-    // app.get('/teams/:teamId', async (request, response) => {
-    //     const team = request.team
-    // })
+    app.get('/teams/:teamId', async (request, response) => {
+        const team = request.team
+        const sub = await app.db.models.Subscription.byTeam(team.id)
+        if (!sub) {
+            response.code(404).type('text/html').send('Not Found')
+            return
+        }
+
+        const stripeSubscription = await stripe.subscriptions.retrieve(
+            sub.subscription,
+            {
+                expand: ['items.data.price.product']
+            }
+        )
+
+        const information = {
+            next_billing_date: stripeSubscription.current_period_end,
+            items: []
+        }
+        stripeSubscription.items.data.forEach(item => {
+            information.items.push({
+                name: item.price.product.name,
+                price: item.price.unit_amount,
+                quantity: item.quantity
+            })
+        })
+
+        response.status(200).send(information)
+    })
 }

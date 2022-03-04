@@ -2,7 +2,7 @@ module.exports.init = function (app) {
     const stripe = require('stripe')(app.config.billing.stripe.key)
 
     return {
-        createSubscriptionSession: async (team) => {
+        createSubscriptionSession: async (team, user) => {
             const session = await stripe.checkout.sessions.create({
                 mode: 'subscription',
                 line_items: [{
@@ -19,6 +19,14 @@ module.exports.init = function (app) {
                 success_url: `${app.config.base_url}/team/${team.slug}/overview/?billing_session={CHECKOUT_SESSION_ID}`,
                 cancel_url: `${app.config.base_url}/team/${team.slug}/billing/cancel`
             })
+            // app.db.controllers.AuditLog.teamLog({
+            //     team.id,
+            //     user.id,
+            //     'billing.session.created',
+            //     { session: session.id }
+            // })
+            app.log.info(`Creating Subscription for team ${team.hashid}`)
+            // TODO remove following line needs to go once UI done
             console.log('createSubscription', session)
             return session
         },
@@ -35,9 +43,13 @@ module.exports.init = function (app) {
                 }
             })
 
+            app.log.info(`Adding Project ${project.id} to Subscription for team ${team.hashid}`)
+
             if (projectItem) {
                 const metadata = projectItem.metadata ? projectItem.metadata : {}
+                console.log('updating metadata', metadata)
                 metadata[project.id] = 'true'
+                console.log(metadata)
                 const update = {
                     quantity: projectItem.quantity + 1,
                     proration_behavior: 'always_invoice',
@@ -72,8 +84,10 @@ module.exports.init = function (app) {
                 }
             })
 
+            app.log.info(`Removing Project ${project.id} to Subscription for team ${team.hashid}`)
+
             if (projectItem) {
-                const metadata = {}
+                const metadata = projectItem.metadata ? projectItem.metadata : {}
                 metadata[project.id] = ''
                 const update = {
                     quantity: projectItem.quantity - 1,
@@ -94,6 +108,8 @@ module.exports.init = function (app) {
             }
         },
         closeSubscription: async (subscription) => {
+            app.log.info(`Closing subscription for team ${subscription.Team.hashid}`)
+
             await stripe.subscriptions.del(subscription.subscription, {
                 invoice_now: true,
                 prorate: true
