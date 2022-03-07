@@ -118,7 +118,11 @@ module.exports = async function (app) {
 
         await team.addProject(project)
         await project.setProjectStack(stack)
-
+        await project.reload({
+            include: [
+                { model: app.db.model.ProjectStacks }
+            ]
+        })
         await app.containers.create(project, {})
 
         await app.db.controllers.AuditLog.projectLog(
