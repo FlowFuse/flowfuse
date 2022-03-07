@@ -104,6 +104,7 @@ module.exports = async function (app) {
 
         const project = await app.db.models.Project.create({
             name: request.body.name,
+            type: '',
             url: ''
         })
 

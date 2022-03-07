@@ -11,6 +11,7 @@ module.exports = {
     schema: {
         id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
         name: { type: DataTypes.STRING, allowNull: false },
+        type: { type: DataTypes.STRING, allowNull: false },
         url: { type: DataTypes.STRING, allowNull: false },
         slug: { type: DataTypes.VIRTUAL, get () { return this.id } },
         state: { type: DataTypes.STRING, allowNull: false, defaultValue: 'running' },
