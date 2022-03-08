@@ -16,8 +16,8 @@ module.exports.init = function (app) {
                 },
                 client_reference_id: team.hashid,
                 payment_method_types: ['card'],
-                success_url: `${app.config.base_url}/team/${team.slug}/overview/?billing_session={CHECKOUT_SESSION_ID}`,
-                cancel_url: `${app.config.base_url}/team/${team.slug}/billing/cancel`
+                success_url: `${app.config.base_url}/team/${team.slug}/overview`,
+                cancel_url: `${app.config.base_url}/team/${team.slug}/overview`
             })
             // app.db.controllers.AuditLog.teamLog({
             //     team.id,
