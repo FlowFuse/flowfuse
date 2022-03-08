@@ -39,20 +39,20 @@
 
 <script>
 import { mapState } from 'vuex'
-import { useRouter } from 'vue-router';
-import router from "@/routes"
-import PageFooter from "@/components/PageFooter.vue"
-import PageHeader from "@/components/PageHeader.vue"
-import Login from "@/pages/Login.vue"
-import Loading from '@/components/Loading';
-import Offline from '@/components/Offline';
-import PasswordExpired from "@/pages/PasswordExpired.vue"
+import { useRouter } from 'vue-router'
+import router from '@/routes'
+import PageFooter from '@/components/PageFooter.vue'
+import PageHeader from '@/components/PageHeader.vue'
+import Login from '@/pages/Login.vue'
+import Loading from '@/components/Loading'
+import Offline from '@/components/Offline'
+import PasswordExpired from '@/pages/PasswordExpired.vue'
 
 export default {
     name: 'App',
     computed: {
-        ...mapState('account',['pending','user','team','offline']),
-        loginRequired() {
+        ...mapState('account', ['pending', 'user', 'team', 'offline']),
+        loginRequired () {
             return this.$route.meta.requiresLogin !== false
         }
     },
@@ -64,8 +64,9 @@ export default {
         Loading,
         Offline
     },
-    mounted() {
-        this.$store.dispatch('account/checkState');
+    mounted () {
+        this.$store.dispatch('account/checkState')
+        this.$store.dispatch('features/checkState')
     }
 }
 </script>

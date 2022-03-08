@@ -16,7 +16,13 @@
             </div>
         </div>
         <div v-else>
-            Billing not configured for this team.
+            Billing has not yet been configured for this team. Before proceeding further, you must continue to Stripe and complete this.
+            <div class="mt-3">
+                <button type="button" class="forge-button forge-button-small" @click="setupBilling()">
+                    <span>Setup Payment Details</span>
+                    <ExternalLinkIcon class="ml-3 w-4" />
+                </button>
+            </div>
         </div>
     </form>
 </template>
@@ -24,8 +30,9 @@
 <script>
 
 import { markRaw } from 'vue'
+import { mapState } from 'vuex'
 
-import API from '@/api/billing.js'
+import billingApi from '@/api/billing.js'
 import Loading from '@/components/Loading'
 import FormHeading from '@/components/FormHeading'
 import ItemTable from '@/components/tables/ItemTable'
@@ -49,7 +56,7 @@ const currencyCell = {
 
 export default {
     name: 'TeamSettingsBilling',
-    props: [],
+    props: ['billingUrl'],
     mixins: [formatDateMixin, formatCurrency],
     data () {
         return {
@@ -70,11 +77,13 @@ export default {
         }
     },
     watch: { },
-    computed: { },
+    computed: {
+        ...mapState('account', ['team'])
+    },
     async mounted () {
         this.loading = true
         try {
-            const billingSubscription = await API.getSubscriptionInfo(this.$store.state.account.team.id)
+            const billingSubscription = await billingApi.getSubscriptionInfo(this.team.id)
             this.subscription = billingSubscription
             this.loading = false
         } catch (err) {
@@ -84,7 +93,20 @@ export default {
     },
     methods: {
         customerPortal () {
-            API.toCustomerPortal(this.$store.state.account.team.id)
+            billingApi.toCustomerPortal(this.team.id)
+        },
+        async setupBilling () {
+            let billingUrl = this.$route.query.billingUrl
+            if (!billingUrl) {
+                try {
+                    billingUrl = await billingApi.getSubscriptionInfo(this.team.id)
+                } catch (err) {
+                    if (err.response.status === 404) {
+                        billingUrl = err.response.data.billingURL
+                    }
+                }
+            }
+            window.open(billingUrl, '_self')
         }
     },
     components: {

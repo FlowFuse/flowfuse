@@ -18,8 +18,10 @@
 </template>
 
 <script>
-import teamApi from '@/api/team'
+import billingApi from '@/api/billing'
+
 import Breadcrumbs from '@/mixins/Breadcrumbs'
+
 import SectionTopMenu from '@/components/SectionTopMenu'
 import Loading from '@/components/Loading'
 import { useRoute } from 'vue-router'
@@ -30,7 +32,8 @@ export default {
     name: 'Team',
     mixins: [Breadcrumbs],
     computed: {
-        ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange'])
+        ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange']),
+        ...mapState(['features'])
     },
     data: function () {
         return {
@@ -61,6 +64,25 @@ export default {
                     // { type: "CreateProject" }
                 ])
             }
+        },
+        checkBilling: async function () {
+            // Team Billing
+            if (this.features.billing) {
+                try {
+                    await billingApi.getSubscriptionInfo(this.team.id)
+                } catch (err) {
+                    const path = '/team/' + this.team.slug + '/settings/billing'
+                    // if 404 - no billing setup, but are we running in EE?
+                    if (err.response.status === 404) {
+                        this.$router.push({
+                            path,
+                            query: {
+                                billingUrl: err.response.data.billingURL
+                            }
+                        })
+                    }
+                }
+            }
         }
     },
     async beforeMount () {
@@ -68,10 +90,19 @@ export default {
     },
     async beforeRouteUpdate (to, from, next) {
         await this.$store.dispatch('account/setTeam', to.params.team_slug)
+        const allowedRoutes = [
+            '/team/' + this.team.slug + '/settings/billing',
+            '/team/' + this.team.slug + '/settings/danger'
+        ]
+        if (allowedRoutes.indexOf(to.path) === -1) {
+            // if we're on a path that requires billing
+            await this.checkBilling()
+        }
         next()
     },
     mounted () {
         this.updateTeam()
+        this.checkBilling()
     },
     watch: {
         team: 'updateTeam',
