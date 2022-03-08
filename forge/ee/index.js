@@ -9,6 +9,11 @@ module.exports = fp(async function (app, opts, next) {
         app.log.info('Loading Billing')
         const billing = require('./billing')
         await app.register(billing)
+        app.get('/ee/features', async (request, response) => {
+            response.send({
+                billing: true
+            })
+        })
     }
     next()
 })
