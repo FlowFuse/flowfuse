@@ -1,0 +1,26 @@
+name: Build Documentation
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+jobs:
+  build_deploy:
+    if: ${{ github.repository == 'flowforge/forge-ui-components' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out components repository
+        uses: actions/checkout@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+      - run: npm install
+      - run: npm run build
+      - run: npm run build-docs
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3.7.3
+        with:
+          publish_dir: dist/docs
+          publish_branch: gh-pages
+          github_token: ${{ secrets.GITHUB_TOKEN }}
