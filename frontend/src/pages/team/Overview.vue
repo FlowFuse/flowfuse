@@ -72,14 +72,6 @@ export default {
                 const members = await teamApi.getTeamMembers(this.team.id)
                 this.userCount = members.count
                 this.users = members.members
-                // Team Billing
-                try {
-                    const subscription = await billingApi.getSubscriptionInfo(this.team.id)
-                    console.log(subscription)
-                } catch {
-                    // if 404 - no billing setup, but are we running in EE?
-                    console.log('NO BILLING CONFIGURED')
-                }
             }
         }
     },
