@@ -11,7 +11,7 @@ module.exports = fp(async function (app, opts, next) {
         await app.register(billing)
         app.get('/ee/features', {
             logLevel: 'warn'
-        },async (request, response) => {
+        }, async (request, response) => {
             response.send({
                 billing: true
             })
