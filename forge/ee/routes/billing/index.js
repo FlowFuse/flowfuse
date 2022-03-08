@@ -110,7 +110,7 @@ module.exports = async function (app) {
         const sub = await app.db.models.Subscription.byTeam(team.id)
         if (!sub) {
             const session = await app.billing.createSubscriptionSession(team, request.session.User)
-            response.code(404).type('application/json').send({billingURL: session.url})
+            response.code(404).type('application/json').send({ billingURL: session.url })
             return
         }
 
