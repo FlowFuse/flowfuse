@@ -10,7 +10,7 @@ module.exports = fp(async function (app, opts, next) {
         require('./db/index.js').init(app)
         if (app.config.billing) {
             app.log.info('Loading Billing')
-            app.register(require('./routes/billing'), { prefix: '/ee/billing', logLevel: 'warn'})
+            app.register(require('./routes/billing'), { prefix: '/ee/billing', logLevel: 'warn' })
             app.decorate('billing', require('./lib/billing').init(app))
         }
 
@@ -20,7 +20,7 @@ module.exports = fp(async function (app, opts, next) {
             logLevel: 'warn'
         }, async (request, response) => {
             response.send({
-                billing: app.config.billing ? true: false
+                billing: !!app.config.billing
             })
         })
     }
