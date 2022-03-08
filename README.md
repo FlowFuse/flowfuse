@@ -8,17 +8,17 @@ In order to include these Vue components into an existing VueJs project, include
 
 ```javascript
 // Import FlowForge UI Vue Components
-import FlowForgeUIComponents from '@flowforge/flowforge-ui-components'
+import ForgeUIComponents from '@flowforge/forge-ui-components'
 // Import FlowForge UI Component Styling
-import '@flowforge/flowforge-ui-components/dist/flowforge-ui-components.css'
+import '@flowforge/forge-ui-components/dist/forge-ui-components.css'
 
 createApp()
-    .use(FlowForgeUIComponents)
+    .use(ForgeUIComponents)
     .mount(...)
 
 ```
 
-Detailed documentation on each of the available components (including examples) can be found here: https://flowforge.github.io/flowforge-ui-components/
+Detailed documentation on each of the available components (including examples) can be found here: https://flowforge.github.io/forge-ui-components/
 
 ## Contributing
 
@@ -31,9 +31,9 @@ npm run build
 In order to build the project, ready for publishing and use, run the `npm run build` command. This will output three files: into `/dist`:
 
 ```
-/dist/flowforge-ui-components.css
-/dist/flowforge-ui-components.js
-/dist/flowforge-ui-components.mjs
+/dist/forge-ui-components.css
+/dist/forge-ui-components.js
+/dist/forge-ui-components.mjs
 ```
 
 ### Build Documentation
