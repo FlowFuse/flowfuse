@@ -43,7 +43,7 @@ const licenseDetails = {
     users: '100',
     teams: '100',
     projects: '100',
-    billing: true
+    ee: true
 }
 
 const licenseText = jwt.sign(
