@@ -2,7 +2,7 @@ const path = require('path')
 
 // vue.config.js
 module.exports = {
-    publicPath: process.env.NODE_ENV === 'production' ? '/flowforge-ui-components/' : '/',
+    publicPath: process.env.NODE_ENV === 'production' ? '/forge-ui-components/' : '/',
     pluginOptions: {
         lintStyleOnBuild: true,
         stylelint: {}
