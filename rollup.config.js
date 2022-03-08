@@ -9,11 +9,11 @@ export default [
         output: [
             {
                 format: 'esm',
-                file: 'dist/flowforge-ui-components.mjs'
+                file: 'dist/forge-ui-components.mjs'
             },
             {
                 format: 'cjs',
-                file: 'dist/flowforge-ui-components.js'
+                file: 'dist/forge-ui-components.js'
             }
         ],
         plugins: [
