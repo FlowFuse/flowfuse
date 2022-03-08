@@ -27,7 +27,7 @@ module.exports.init = function (app) {
             // })
             app.log.info(`Creating Subscription for team ${team.hashid}`)
             // TODO remove following line needs to go once UI done
-            console.log('createSubscription', session)
+            // console.log('createSubscription', session)
             return session
         },
         addProject: async (team, project) => {

@@ -13,7 +13,7 @@ module.exports = {
     },
     create: async (project, options) => {
         let value = {}
-        if (this._app.license.get('billing')) {
+        if (this._app.license.get('ee') && this._app.billing) {
             const subscription = this._app.db.models.Subscription.byTeam(project.Team.id)
             if (subscription) {
                 this._app.billing.addProject(project.Team, project)
@@ -28,7 +28,7 @@ module.exports = {
     },
     remove: async (project) => {
         let value = {}
-        if (this._app.license.get('billing')) {
+        if (this._app.license.get('ee') && this._app.billing) {
             const subscription = this._app.db.models.Subscription.byTeam(project.Team.id)
             if (subscription) {
                 this._app.billing.removeProject(project.Team, project)

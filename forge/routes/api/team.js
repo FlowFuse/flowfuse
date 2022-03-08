@@ -134,7 +134,7 @@ module.exports = async function (app) {
 
             const teamView = app.db.views.Team.team(team)
 
-            if (app.license.get('billing')) {
+            if (app.license.get('ee') && app.billing) {
                 const session = await app.billing.createSubscriptionSession(team, request.session.User)
                 teamView.billingURL = session.url
             }
@@ -157,7 +157,7 @@ module.exports = async function (app) {
         // That is handled by the beforeDestroy hook on the Team model and the
         // call to destroy the team will throw an error
         try {
-            if (app.license.get('billing')) {
+            if (app.license.get('ee') && app.billing) {
                 const subscription = await app.db.models.Subscription.byTeam(request.team.id)
                 if (subscription) {
                     await app.billing.closeSubscription(subscription)
