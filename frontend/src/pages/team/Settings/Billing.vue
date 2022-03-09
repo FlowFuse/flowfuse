@@ -1,6 +1,6 @@
 <template>
     <form class="space-y-6">
-        <Loading v-if="loading && !subscription"/>
+        <Loading v-if="loading && !subscription" size="small"/>
         <div v-else-if="!loading && subscription">
             <FormHeading v-if="subscription">Next Bill: <span class="font-normal">{{ formatDate(subscription.next_billing_date) }}</span></FormHeading>
             <FormHeading>Active Subscriptions</FormHeading>
@@ -101,10 +101,10 @@ export default {
         try {
             const billingSubscription = await billingApi.getSubscriptionInfo(this.team.id)
             this.subscription = billingSubscription
-            this.loading = false
+            // this.loading = false
         } catch (err) {
             // check for 404 and redirect if 404 returned
-            this.loading = false
+            // this.loading = false
         }
     },
     methods: {
