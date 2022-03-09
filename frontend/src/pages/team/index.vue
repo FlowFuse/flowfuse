@@ -75,10 +75,7 @@ export default {
                     // if 404 - no billing setup, but are we running in EE?
                     if (err.response.status === 404) {
                         this.$router.push({
-                            path,
-                            query: {
-                                billingUrl: err.response.data.billingURL
-                            }
+                            path
                         })
                     }
                 }

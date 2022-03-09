@@ -48,7 +48,7 @@ const currencyCell = {
     mixins: [formatCurrency],
     computed: {
         formattedPrice: function () {
-            return this.formatCurrency(this.price)
+            return this.formatCurrency(this.price / this.quantity)
         }
     },
     template: '<div>{{ formattedPrice }}</div>'
@@ -69,7 +69,7 @@ export default {
                 name: 'Quantity',
                 property: 'quantity'
             }, {
-                name: 'Price ($)',
+                name: 'Unit Price ($)',
                 component: {
                     is: markRaw(currencyCell)
                 }
