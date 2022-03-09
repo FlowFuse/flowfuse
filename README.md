@@ -1,6 +1,6 @@
 # FlowForge UI Components
 
-Project structure inspired by: https://blog.logrocket.com/building-vue-3-component-library/
+Detailed documentation on each of the available components (including examples) can be found here: https://flowforge.github.io/forge-ui-components/
 
 ## How to use
 
@@ -17,8 +17,6 @@ createApp()
     .mount(...)
 
 ```
-
-Detailed documentation on each of the available components (including examples) can be found here: https://flowforge.github.io/forge-ui-components/
 
 ## Contributing
 
@@ -43,3 +41,7 @@ npm run build-docs
 ```
 
 The GitHub pages documentation is built into `/dist/docs` (defined in `vue.config.js`). It is configured as a subtree of the GitHub repo on the `gh-pages` branch.
+
+## References
+
+Project structure inspired by: https://blog.logrocket.com/building-vue-3-component-library/
