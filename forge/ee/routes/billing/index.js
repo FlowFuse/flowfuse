@@ -29,6 +29,9 @@ module.exports = async function (app) {
      */
     app.post('/callback',
         {
+            config: {
+                allowAnonymous: true
+            },
             preParsing: function (request, reply, payload, done) {
                 const chunks = []
                 payload.on('data', chunk => {
@@ -118,7 +121,7 @@ module.exports = async function (app) {
      * @memberof forge.ee.billing
      */
     app.get('/teams/:teamId', {
-        // preHandler: app.needsPermission('team:create')
+        preHandler: app.needsPermission('team:create')
     }, async (request, response) => {
         const team = request.team
         const sub = await app.db.models.Subscription.byTeam(team.id)
@@ -157,7 +160,7 @@ module.exports = async function (app) {
      * @memberof forge.ee.billing
      */
     app.get('/teams/:teamId/customer-portal', {
-        // preHandler: app.needsPermission('team:create')
+        preHandler: app.needsPermission('team:create')
     }, async (request, response) => {
         const team = request.team
         const sub = await app.db.models.Subscription.byTeam(team.id)
