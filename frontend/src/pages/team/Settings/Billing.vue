@@ -42,13 +42,24 @@ import formatCurrency from '@/mixins/Currency.js'
 
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
 
-const currencyCell = {
-    name: 'CurrencyCell',
+const totalPriceCell = {
+    name: 'TotalPriceCell',
+    props: ['price', 'quantity'],
+    mixins: [formatCurrency],
+    computed: {
+        formattedPrice: function () {
+            return this.formatCurrency(this.price * this.quantity)
+        }
+    },
+    template: '<div>{{ formattedPrice }}</div>'
+}
+const unitPriceCell = {
+    name: 'UnitPriceCell',
     props: ['price'],
     mixins: [formatCurrency],
     computed: {
         formattedPrice: function () {
-            return this.formatCurrency(this.price / this.quantity)
+            return this.formatCurrency(this.price)
         }
     },
     template: '<div>{{ formattedPrice }}</div>'
@@ -69,9 +80,14 @@ export default {
                 name: 'Quantity',
                 property: 'quantity'
             }, {
-                name: 'Unit Price ($)',
+                name: 'Unit Price (US$)',
                 component: {
-                    is: markRaw(currencyCell)
+                    is: markRaw(unitPriceCell)
+                }
+            }, {
+                name: 'Total Price (US$)',
+                component: {
+                    is: markRaw(totalPriceCell)
                 }
             }]
         }
