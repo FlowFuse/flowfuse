@@ -1,5 +1,8 @@
 /**
+ * Routes releated to the EE forge billing api
  *
+ * @namespace api
+ * @memberof forge.ee.billing
  */
 const { Readable } = require('stream')
 
@@ -19,9 +22,16 @@ module.exports = async function (app) {
     })
 
     /**
+     * Callback for Stripe to report events
+     * @name /ee/billing/callback
+     * @static
+     * @memberof forge.ee.billing
      */
     app.post('/callback',
         {
+            config: {
+                allowAnonymous: true
+            },
             preParsing: function (request, reply, payload, done) {
                 const chunks = []
                 payload.on('data', chunk => {
@@ -65,6 +75,7 @@ module.exports = async function (app) {
                 team = await app.db.models.Team.byId(teamId)
                 if (!team) {
                     response.status(404).type('text/html').send('Not Found')
+                    return
                 }
             }
 
@@ -103,8 +114,14 @@ module.exports = async function (app) {
         }
     )
 
+    /**
+     * Get Billing details for a team
+     * @name /ee/billing/teams/:team
+     * @static
+     * @memberof forge.ee.billing
+     */
     app.get('/teams/:teamId', {
-        // preHandler: app.needsPermission('team:create')
+        preHandler: app.needsPermission('team:create')
     }, async (request, response) => {
         const team = request.team
         const sub = await app.db.models.Subscription.byTeam(team.id)
@@ -137,9 +154,13 @@ module.exports = async function (app) {
     })
 
     /**
+     * Redirect to the Stripe Customer portal
+     * @name /ee/billing/teams/:team/customer-portal
+     * @static
+     * @memberof forge.ee.billing
      */
     app.get('/teams/:teamId/customer-portal', {
-        // preHandler: app.needsPermission('team:create')
+        preHandler: app.needsPermission('team:create')
     }, async (request, response) => {
         const team = request.team
         const sub = await app.db.models.Subscription.byTeam(team.id)
