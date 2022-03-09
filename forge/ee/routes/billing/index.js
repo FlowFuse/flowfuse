@@ -1,6 +1,6 @@
 /**
  * Routes releated to the EE forge billing api
- * 
+ *
  * @namespace api
  * @memberof forge.ee.billing
  */

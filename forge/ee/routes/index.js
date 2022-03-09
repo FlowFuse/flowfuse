@@ -1,10 +1,9 @@
 /**
  * Routes releated to the EE forge api
- * 
+ *
  * @namespace api
  * @memberof forge.ee
  */
-const fp = require('fastify-plugin')
 module.exports = async function (app) {
     // app.addHook('preHandler', app.verifyTokenOrSession)
     await app.register(require('./ee'), { logLevel: 'warn' })
