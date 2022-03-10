@@ -65,13 +65,23 @@ export default {
                 }
             },
             errors: {
-                stack: ''
+                stack: '',
+                name: ''
             }
         }
     },
     computed: {
         createEnabled: function() {
-            return this.input.stack && this.input.team && this.input.name && this.input.template
+            return this.input.team && this.input.name && !this.errors.name && this.input.template
+        }
+    },
+    watch: {
+        'input.name': function(value, oldValue) {
+            if (/^[a-z0-9\-]+$/.test(value)) {
+                this.errors.name = ''
+            } else {
+                this.errors.name = 'Names can include a-z, 0-9 & - with no spaces'
+            }
         }
     },
     async created () {
@@ -128,8 +138,11 @@ export default {
             projectApi.create(this.input).then(result => {
                 this.$router.push({ name: 'Project', params: { id: result.id } })
             }).catch(err => {
-                console.log(err)
-            })
+                console.log(err);
+                if (err.response.status === 409) {
+                    this.errors.name = "Name not available"
+                }
+            });
         },
         refreshName () {
             this.input.name = NameGenerator()

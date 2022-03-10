@@ -111,11 +111,19 @@ module.exports = async function (app) {
             return
         }
 
-        const project = await app.db.models.Project.create({
-            name: request.body.name,
-            type: '',
-            url: ''
-        })
+        let project
+        try {
+            project = await app.db.models.Project.create({
+                name: request.body.name,
+                type: '',
+                url: ''
+            })
+        } catch (err) {
+            if (err.name === 'SequelizeUniqueConstraintError') {
+                reply.status(409).type('application/json').send({err: 'name in use'})
+                return
+            }
+        }
 
         // const authClient = await app.db.controllers.AuthClient.createClientForProject(project);
         // const projectToken = await app.db.controllers.AccessToken.createTokenForProject(project, null, ["project:flows:view","project:flows:edit"])
