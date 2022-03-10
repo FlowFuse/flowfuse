@@ -233,6 +233,11 @@ module.exports = {
                             }
                         ]
                     })
+                },
+                byName: async (name) => {
+                    return this.findAll({
+                        where: { name: name }
+                    })
                 }
             }
         }
