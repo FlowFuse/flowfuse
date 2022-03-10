@@ -14,6 +14,20 @@ const ProjectActions = require('./projectActions.js')
  * @namespace project
  * @memberof forge.routes.api
  */
+
+const bannedNameList = [
+    'www',
+    'node-red',
+    'nodered',
+    'forge',
+    'support',
+    'help',
+    'accounts',
+    'account',
+    'status',
+    'billing'
+]
+
 module.exports = async function (app) {
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.projectId !== undefined) {
@@ -112,6 +126,10 @@ module.exports = async function (app) {
         }
 
         let project
+        if (bannedNameList.includes(request.body.name)) {
+            reply.status(409).type('application/json').send({ err: 'name not allowed' })
+            return
+        }
         try {
             project = await app.db.models.Project.create({
                 name: request.body.name,
