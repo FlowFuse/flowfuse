@@ -5,7 +5,6 @@ module.exports = {
             customer: customer,
             subscription: subscription
         })
-        console.log(team)
         newSubscription.setTeam(team)
 
         return newSubscription
