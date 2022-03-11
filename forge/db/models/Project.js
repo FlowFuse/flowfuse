@@ -43,6 +43,8 @@ module.exports = {
             }
         })
         this.hasMany(M.ProjectSettings)
+        this.belongsTo(M.ProjectStack)
+        // this.belongsTo(M.ProjectTemplate)
     },
     hooks: function (M) {
         return {
@@ -134,12 +136,17 @@ module.exports = {
                     return this.findAll({
                         include: {
                             model: M.Team,
-                            include: {
-                                model: M.TeamMember,
-                                where: {
-                                    UserId: user.id
+                            include: [
+                                {
+                                    model: M.TeamMember,
+                                    where: {
+                                        UserId: user.id
+                                    }
+                                },
+                                {
+                                    model: M.ProjectStack
                                 }
-                            },
+                            ],
                             required: true
                         }
                     })
@@ -147,20 +154,30 @@ module.exports = {
                 byId: async (id) => {
                     return this.findOne({
                         where: { id: id },
-                        include: {
-                            model: M.Team,
-                            attributes: ['id', 'name', 'slug', 'links']
-                        }
+                        include: [
+                            {
+                                model: M.Team,
+                                attributes: ['id', 'name', 'slug', 'links']
+                            },
+                            {
+                                model: M.ProjectStack
+                            }
+                        ]
                     })
                 },
                 byTeam: async (teamHashId) => {
                     const teamId = M.Team.decodeHashid(teamHashId)
                     return this.findAll({
-                        include: {
-                            model: M.Team,
-                            where: { id: teamId },
-                            attributes: ['id', 'name', 'slug', 'links']
-                        }
+                        include: [
+                            {
+                                model: M.Team,
+                                where: { id: teamId },
+                                attributes: ['id', 'name', 'slug', 'links']
+                            },
+                            {
+                                model: M.ProjectStack
+                            }
+                        ]
                     })
                 }
             }

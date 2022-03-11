@@ -3,17 +3,14 @@ module.exports = {
         this._driver = driver
         this._app = app
         this.options = options
-
-        let value = {}
+        this.properties = {}
         if (driver.init) {
-            value = await this._driver.init(app, options)
+            this.properties = await this._driver.init(app, options)
         }
-
-        return value
     },
     create: async (project, options) => {
         let value = {}
-        if (this._app.license.get('ee') && this._app.billing) {
+        if (this._app.license.active() && this._app.billing) {
             const subscription = this._app.db.models.Subscription.byTeam(project.Team.id)
             if (subscription) {
                 this._app.billing.addProject(project.Team, project)
@@ -28,7 +25,7 @@ module.exports = {
     },
     remove: async (project) => {
         let value = {}
-        if (this._app.license.get('ee') && this._app.billing) {
+        if (this._app.license.active() && this._app.billing) {
             const subscription = this._app.db.models.Subscription.byTeam(project.Team.id)
             if (subscription) {
                 this._app.billing.removeProject(project.Team, project)
@@ -90,5 +87,6 @@ module.exports = {
         if (this._driver.shutdown) {
             await this._driver.shutdown()
         }
-    }
+    },
+    properties: () => this.properties
 }
