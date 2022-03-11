@@ -14,6 +14,8 @@
                     </template>
                 </FormRow>
 
+                <FormRow :options="stacks" :error="errors.stack" v-model="input.stack" id="stack">Stack</FormRow>
+
                 <!-- <FormRow v-model="input.description" id="description">Description</FormRow> -->
 
                 <button type="button" :disabled="!createEnabled" @click="createProject" class="forge-button">
@@ -27,6 +29,7 @@
 <script>
 import teamApi from '@/api/team'
 import projectApi from '@/api/project'
+import stacksApi from '@/api/stacks'
 
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
@@ -43,19 +46,24 @@ export default {
             init: false,
             currentTeam: null,
             teams: [],
+            stacks: [],
             input: {
                 name: NameGenerator(),
                 team: "",
+                stack: "",
                 // description: "",
                 options: {
                     type: "basic"
                 }
+            },
+            errors: {
+                stack: ''
             }
         }
     },
     computed: {
         createEnabled: function() {
-            return this.input.team && this.input.name
+            return this.input.stack && this.input.team && this.input.name
         }
     },
     async created() {
@@ -83,11 +91,18 @@ export default {
                 { label: 'Create project' }
             ])
         }
+
+        const stackList = await stacksApi.getStacks()
+        this.stacks = stackList.stacks.filter(stack => stack.active).map(stack => { return { value: stack.id, label: stack.name } })
         this.init = true;
         setTimeout(() => {
             // There must be a better Vue way of doing this, but I can't find it.
             // Without the setTimeout, the select box doesn't update
-            this.input.team = this.currentTeam;
+            this.input.team = this.currentTeam
+            this.input.stack = this.stacks.length > 0 ? this.stacks[0].value : ""
+            if (this.stacks.length === 0) {
+                this.errors.stack = "No stacks available. Ask an Administator to create a new stack definition"
+            }
         },100);
     },
     methods: {

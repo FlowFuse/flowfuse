@@ -22,7 +22,16 @@ const defaultPermissions = {
     'project:audit-log': { description: 'Access Project Audit Log', role: Roles.Member },
     // Project Editor
     'project:flows:view': { description: 'View Project Flows', role: Roles.Member },
-    'project:flows:edit': { description: 'Edit Project Flows', role: Roles.Member }
+    'project:flows:edit': { description: 'Edit Project Flows', role: Roles.Member },
+    // Templates
+    'template:create': { description: 'Create a Template', role: Roles.Admin },
+    'template:delete': { description: 'Delete a Template', role: Roles.Admin },
+    'template:edit': { description: 'Edit a Template', role: Roles.Admin },
+    // Stacks
+    'stack:create': { description: 'Create a Stack', role: Roles.Admin },
+    'stack:delete': { description: 'Delete a Stack', role: Roles.Admin },
+    'stack:edit': { description: 'Edit a Stack', role: Roles.Admin }
+
 }
 
 module.exports = fp(async function (app, opts, done) {

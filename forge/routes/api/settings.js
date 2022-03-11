@@ -15,7 +15,8 @@ module.exports = async function (app) {
             const response = {
                 'team:user:invite:external': app.settings.get('team:user:invite:external') && app.postoffice.enabled(),
                 'team:create': app.settings.get('team:create'),
-                email: app.postoffice.enabled()
+                email: app.postoffice.enabled(),
+                stacks: app.containers.properties().stack || {}
             }
 
             if (request.session.User.admin) {
