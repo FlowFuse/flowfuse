@@ -16,6 +16,8 @@
 
                 <FormRow :options="stacks" :error="errors.stack" v-model="input.stack" id="stack">Stack</FormRow>
 
+                <FormRow :options="templates" :error="errors.template" v-model="input.template" id="template">Template</FormRow>
+
                 <!-- <FormRow v-model="input.description" id="description">Description</FormRow> -->
 
                 <button type="button" :disabled="!createEnabled" @click="createProject" class="forge-button">
@@ -30,6 +32,7 @@
 import teamApi from '@/api/team'
 import projectApi from '@/api/project'
 import stacksApi from '@/api/stacks'
+import templatesApi from '@/api/templates'
 
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
@@ -47,10 +50,12 @@ export default {
             currentTeam: null,
             teams: [],
             stacks: [],
+            templates: [],
             input: {
                 name: NameGenerator(),
                 team: "",
                 stack: "",
+                template: "",
                 // description: "",
                 options: {
                     type: "basic"
@@ -63,7 +68,7 @@ export default {
     },
     computed: {
         createEnabled: function() {
-            return this.input.stack && this.input.team && this.input.name
+            return this.input.stack && this.input.team && this.input.name &&  this.input.template
         }
     },
     async created() {
@@ -94,14 +99,23 @@ export default {
 
         const stackList = await stacksApi.getStacks()
         this.stacks = stackList.stacks.filter(stack => stack.active).map(stack => { return { value: stack.id, label: stack.name } })
+
+        const templateList = await templatesApi.getTemplates()
+        this.templates = templateList.templates.map(template => { return { value: template.id, label: template.name } })
+
+
         this.init = true;
         setTimeout(() => {
             // There must be a better Vue way of doing this, but I can't find it.
             // Without the setTimeout, the select box doesn't update
             this.input.team = this.currentTeam
             this.input.stack = this.stacks.length > 0 ? this.stacks[0].value : ""
+            this.input.template = this.templates.length > 0 ? this.templates[0].value : ""
             if (this.stacks.length === 0) {
                 this.errors.stack = "No stacks available. Ask an Administator to create a new stack definition"
+            }
+            if (this.templates.length === 0) {
+                this.errors.template = "No templates available. Ask an Administator to create a new template definition"
             }
         },100);
     },

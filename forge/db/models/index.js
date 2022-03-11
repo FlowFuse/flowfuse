@@ -38,8 +38,7 @@
  * @memberof forge.db
  */
 const { Model, DataTypes } = require('sequelize')
-const Hashids = require('hashids/cjs')
-const hashids = {}
+const { getHashId } = require('../utils')
 
 // The models that should be loaded
 const modelTypes = [
@@ -53,7 +52,7 @@ const modelTypes = [
     'Project',
     'ProjectSettings',
     'ProjectStack',
-    // 'ProjectTemplate',
+    'ProjectTemplate',
     'AccessToken',
     'AuthClient',
     'StorageFlow',
@@ -86,15 +85,6 @@ const M = {}
 async function init (app) {
     const sequelize = app.db.sequelize
     const allModels = []
-
-    function getHashId (type) {
-        if (!hashids[type]) {
-            // This defers trying to access app.settings until after the
-            // database has been initialised
-            hashids[type] = new Hashids((app.settings.get('instanceId') || '') + type, 10)
-        }
-        return hashids[type]
-    }
 
     modelTypes.forEach(type => {
         const m = require(`./${type}`)

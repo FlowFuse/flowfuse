@@ -75,11 +75,12 @@ module.exports = async function (app) {
         schema: {
             body: {
                 type: 'object',
-                required: ['name', 'options', 'team', 'stack'],
+                required: ['name', 'options', 'team', 'stack', 'template'],
                 properties: {
                     name: { type: 'string' },
                     team: { type: ['string', 'number'] },
                     stack: { type: 'string' },
+                    template: { type: 'string' },
                     options: { type: 'object' }
                 }
             }
@@ -102,6 +103,13 @@ module.exports = async function (app) {
             return
         }
 
+        const template = await app.db.models.ProjectTemplate.byId(request.body.template)
+
+        if (!template) {
+            reply.code(400).send({ error: 'Invalid template' })
+            return
+        }
+
         const project = await app.db.models.Project.create({
             name: request.body.name,
             type: '',
@@ -119,9 +127,12 @@ module.exports = async function (app) {
 
         await team.addProject(project)
         await project.setProjectStack(stack)
+        await project.setProjectTemplate(template)
         await project.reload({
             include: [
-                { model: app.db.model.ProjectStacks }
+                { model: app.db.models.ProjectStack },
+                { model: app.db.models.ProjectTemplate }
+
             ]
         })
         await app.containers.create(project, {})
