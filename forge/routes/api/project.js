@@ -121,7 +121,7 @@ module.exports = async function (app) {
         await project.setProjectStack(stack)
         await project.reload({
             include: [
-                { model: app.db.model.ProjectStacks }
+                { model: app.db.models.ProjectStack }
             ]
         })
         await app.containers.create(project, {})
