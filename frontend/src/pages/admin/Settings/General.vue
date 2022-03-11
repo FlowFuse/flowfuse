@@ -20,7 +20,7 @@
             Allow users to create teams
             <template #description>
                 <p>If a user creates a team, they become its Owner. Otherwise they
-                must be invited to an existing team by an Administrator or Team Owner.</p>
+                    must be invited to an existing team by an Administrator or Team Owner.</p>
                 <p>Administrators can always create teams.</p>
             </template>
         </FormRow>
@@ -28,8 +28,8 @@
             Allow users to invite external users to teams
             <template #description>
                 <p>Users can invite existing users to join a team. If they provide
-                an email address of an unregistered user, the invitiation will be
-                sent to that email address.</p>
+                    an email address of an unregistered user, the invitiation will be
+                    sent to that email address.</p>
             </template>
         </FormRow>
         <FormHeading>Platform</FormHeading>
@@ -38,7 +38,7 @@
             <template #description>
                 <p>
                     We collect anonymous statistics about how FlowForge is used.
-                    This allows us to improve how it works and make a better product. 
+                    This allows us to improve how it works and make a better product.
                 </p>
                 <p>
                     For more information about the data we collect and how it is used,
@@ -70,36 +70,36 @@ const validSettings = [
 
 export default {
     name: 'AdminSettingsGeneral',
-    data() {
+    data () {
         return {
             input: {
             },
             errors: {
                 requiresEmail: null
-            },
+            }
         }
     },
     computed: {
-        ...mapState('account',['settings']),
-        saveEnabled: function() {
-            let result = false;
+        ...mapState('account', ['settings']),
+        saveEnabled: function () {
+            let result = false
             validSettings.forEach(s => {
                 result = result || (this.input[s] != this.settings[s])
             })
-            return result;
+            return result
         }
     },
-    created() {
+    created () {
         if (!this.settings.email) {
-            this.errors.requiresEmail = "This option requires email to be configured"
+            this.errors.requiresEmail = 'This option requires email to be configured'
         }
         validSettings.forEach(s => {
             this.input[s] = this.settings[s]
         })
     },
     methods: {
-        async saveChanges() {
-            const options = {};
+        async saveChanges () {
+            const options = {}
             validSettings.forEach(s => {
                 if (this.input[s] != this.settings[s]) {
                     options[s] = this.input[s]
@@ -107,17 +107,15 @@ export default {
             })
             try {
                 await settingsApi.updateSettings(options)
-                this.$store.dispatch('account/refreshSettings');
-            } catch(err) {
-                console.warn(err);
-
+                this.$store.dispatch('account/refreshSettings')
+            } catch (err) {
+                console.warn(err)
             }
-
         }
     },
     components: {
         FormRow,
         FormHeading
-    },
+    }
 }
 </script>

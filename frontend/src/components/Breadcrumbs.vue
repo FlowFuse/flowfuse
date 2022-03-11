@@ -37,52 +37,50 @@
 <script>
 
 import { mapState } from 'vuex'
-import router from "@/routes"
-import DropdownMenu from "@/components/DropdownMenu"
-import { HomeIcon, ChevronRightIcon, PlusSmIcon, CogIcon } from '@heroicons/vue/outline'
+import DropdownMenu from '@/components/DropdownMenu'
+import { ChevronRightIcon, PlusSmIcon, CogIcon } from '@heroicons/vue/outline'
 
 export default {
-  name: "Breadcrumbs",
-  computed: {
-      ...mapState('breadcrumbs',['breadcrumbs']),
-      ...mapState('account',['team','teams','pendingTeamChange','settings','user']),
-      teamOptions: function() {
-          const result = [
-              { icon: CogIcon, name: "Team Settings", link: { path: `/team/${this.team.slug}/settings` }},
-              null,
+    name: 'Breadcrumbs',
+    computed: {
+        ...mapState('breadcrumbs', ['breadcrumbs']),
+        ...mapState('account', ['team', 'teams', 'pendingTeamChange', 'settings', 'user']),
+        teamOptions: function () {
+            const result = [
+                { icon: CogIcon, name: 'Team Settings', link: { path: `/team/${this.team.slug}/settings` } },
+                null,
 
-              ...this.teams.map(team => {
-                  return {
-                      name: team.name,
-                      imgUrl: team.avatar,
-                      action: () => { this.selectTeam(team.slug) },
-                      selected: this.team && (this.team.slug === team.slug)
-                  }
-              })
-          ]
+                ...this.teams.map(team => {
+                    return {
+                        name: team.name,
+                        imgUrl: team.avatar,
+                        action: () => { this.selectTeam(team.slug) },
+                        selected: this.team && (this.team.slug === team.slug)
+                    }
+                })
+            ]
 
-          if (this.user.admin || this.settings['team:create']) {
-              result.push(null);
-              result.push({
-                  name:"Create a new team...",
-                  icon: PlusSmIcon,
-                  link: { name: "CreateTeam"}
-              })
-          }
-          return result;
-      }
-  },
-  methods: {
-      async selectTeam(teamSlug) {
-          this.$router.push({name:"Team",params:{id:teamSlug}})
-      }
-  },
-  components: {
-      DropdownMenu,
-      HomeIcon,
-      ChevronRightIcon,
-      PlusSmIcon
-  }
-};
+            if (this.user.admin || this.settings['team:create']) {
+                result.push(null)
+                result.push({
+                    name: 'Create a new team...',
+                    icon: PlusSmIcon,
+                    link: { name: 'CreateTeam' }
+                })
+            }
+            return result
+        }
+    },
+    methods: {
+        async selectTeam (teamSlug) {
+            this.$router.push({ name: 'Team', params: { team_slug: teamSlug } })
+        }
+    },
+    components: {
+        DropdownMenu,
+        ChevronRightIcon,
+        PlusSmIcon
+    }
+}
 
 </script>

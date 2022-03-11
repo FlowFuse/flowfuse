@@ -72,6 +72,7 @@
         "clean-webpack-plugin": "^4.0.0",
         "copy-webpack-plugin": "^9.1.0",
         "css-loader": "^5.2.7",
+        "dotenv-webpack": "^7.1.0",
         "eslint": "^7.11.0",
         "eslint-config-standard": "^16.0.1",
         "eslint-import-resolver-node": "^0.3.2",
