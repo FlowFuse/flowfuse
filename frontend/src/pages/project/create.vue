@@ -7,12 +7,15 @@
 
                 <FormRow :options="teams" :error="(init && (teams.length === 0))?'You do not have permission to create a project in any team':''" v-model="input.team" id="team">Team</FormRow>
 
-                <FormRow v-model="input.name">
-                    <template v-slot:default>Project Name</template>
-                    <template v-slot:append>
-                        <button type="button" @click="refreshName" class="forge-button-tertiary px-1" ><RefreshIcon class="w-5" /></button>
-                    </template>
-                </FormRow>
+                <div>
+                    <FormRow v-model="input.name">
+                        <template v-slot:default>Project Name</template>
+                        <template v-slot:append>
+                            <button type="button" @click="refreshName" class="forge-button-tertiary px-1" ><RefreshIcon class="w-5" /></button>
+                        </template>
+                    </FormRow>
+                    <span class="block text-xs ml-4 italic text-gray-500 m-0 max-w-sm">Please note, currently, project names cannot be changed once a project is created</span>
+                </div>
 
                 <FormRow :options="stacks" :error="errors.stack" v-model="input.stack" id="stack">Stack</FormRow>
 
@@ -50,7 +53,7 @@ export default {
             input: {
                 name: NameGenerator(),
                 team: '',
-                stack: "",
+                stack: '',
                 // description: "",
                 options: {
                     type: 'basic'
@@ -62,7 +65,7 @@ export default {
         }
     },
     computed: {
-        createEnabled: function() {
+        createEnabled: function () {
             return this.input.stack && this.input.team && this.input.name
         }
     },
@@ -94,17 +97,17 @@ export default {
 
         const stackList = await stacksApi.getStacks()
         this.stacks = stackList.stacks.filter(stack => stack.active).map(stack => { return { value: stack.id, label: stack.name } })
-        this.init = true;
+        this.init = true
 
         setTimeout(() => {
             // There must be a better Vue way of doing this, but I can't find it.
             // Without the setTimeout, the select box doesn't update
             this.input.team = this.currentTeam
-            this.input.stack = this.stacks.length > 0 ? this.stacks[0].value : ""
+            this.input.stack = this.stacks.length > 0 ? this.stacks[0].value : ''
             if (this.stacks.length === 0) {
-                this.errors.stack = "No stacks available. Ask an Administator to create a new stack definition"
+                this.errors.stack = 'No stacks available. Ask an Administator to create a new stack definition'
             }
-        },100);
+        }, 100)
     },
     methods: {
         createProject () {
