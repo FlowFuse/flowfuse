@@ -4,7 +4,6 @@ module.exports = {
         const result = {
             id: proj.id,
             name: proj.name,
-            type: proj.type,
             url: proj.url,
             createdAt: proj.createdAt,
             updatedAt: proj.updatedAt,
@@ -16,6 +15,14 @@ module.exports = {
                 name: proj.Team.name,
                 slug: proj.Team.slug,
                 links: proj.Team.links
+            }
+        }
+        if (proj.ProjectStack) {
+            result.stack = {
+                id: proj.ProjectStack.hashid,
+                name: proj.ProjectStack.name,
+                properties: proj.ProjectStack.properties || {},
+                links: proj.ProjectStack.links
             }
         }
         return result
@@ -30,7 +37,6 @@ module.exports = {
             return {
                 id: t.id,
                 name: t.name,
-                type: t.type,
                 url: t.url,
                 createdAt: t.createdAt,
                 updatedAt: t.updatedAt,

@@ -3,13 +3,10 @@ module.exports = {
         this._driver = driver
         this._app = app
         this.options = options
-
-        let value = {}
+        this.properties = {}
         if (driver.init) {
-            value = await this._driver.init(app, options)
+            this.properties = await this._driver.init(app, options)
         }
-
-        return value
     },
     create: async (project, options) => {
         let value = {}
@@ -90,5 +87,6 @@ module.exports = {
         if (this._driver.shutdown) {
             await this._driver.shutdown()
         }
-    }
+    },
+    properties: () => this.properties
 }

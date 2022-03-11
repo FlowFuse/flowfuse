@@ -37,6 +37,9 @@ module.exports = async (options = {}) => {
     try {
         // Config : loads environment configuration
         await server.register(config, options)
+        if (server.config.logging?.level) {
+            server.log.level = server.config.logging.level
+        }
         // DB : the database connection/models/views/controllers
         await server.register(db)
         // Settings
