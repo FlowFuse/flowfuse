@@ -26,7 +26,7 @@ module.exports = {
                 references: { model: 'Users', key: 'id' },
                 onDelete: 'SET NULL',
                 onUpdate: 'CASCADE'
-              }
+            }
         })
         await context.addColumn('Projects', 'ProjectTemplateId', {
             type: DataTypes.INTEGER,
