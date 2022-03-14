@@ -7,3 +7,6 @@ docs/jsdoc
 # Users should have a system based .gitignore that works globally, however, this
 # list is a failsafe when they don't.
 .DS_Store
+
+*.env
+*.env.local

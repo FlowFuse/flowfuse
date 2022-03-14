@@ -7,12 +7,15 @@
 
                 <FormRow :options="teams" :error="(init && (teams.length === 0))?'You do not have permission to create a project in any team':''" v-model="input.team" id="team">Team</FormRow>
 
-                <FormRow v-model="input.name">
-                    <template v-slot:default>Project Name</template>
-                    <template v-slot:append>
-                        <button type="button" @click="refreshName" class="forge-button-tertiary px-1" ><RefreshIcon class="w-5" /></button>
-                    </template>
-                </FormRow>
+                <div>
+                    <FormRow v-model="input.name">
+                        <template v-slot:default>Project Name</template>
+                        <template v-slot:append>
+                            <button type="button" @click="refreshName" class="forge-button-tertiary px-1" ><RefreshIcon class="w-5" /></button>
+                        </template>
+                    </FormRow>
+                    <span class="block text-xs ml-4 italic text-gray-500 m-0 max-w-sm">Please note, currently, project names cannot be changed once a project is created</span>
+                </div>
 
                 <FormRow :options="stacks" :error="errors.stack" v-model="input.stack" id="stack">Stack</FormRow>
 
@@ -44,7 +47,7 @@ import { Roles } from '@core/lib/roles'
 export default {
     name: 'CreateProject',
     mixins: [Breadcrumbs],
-    data() {
+    data () {
         return {
             init: false,
             currentTeam: null,
@@ -53,12 +56,12 @@ export default {
             templates: [],
             input: {
                 name: NameGenerator(),
-                team: "",
-                stack: "",
-                template: "",
+                team: '',
+                stack: '',
+                template: '',
                 // description: "",
                 options: {
-                    type: "basic"
+                    type: 'basic'
                 }
             },
             errors: {
@@ -68,31 +71,31 @@ export default {
     },
     computed: {
         createEnabled: function() {
-            return this.input.stack && this.input.team && this.input.name &&  this.input.template
+            return this.input.stack && this.input.team && this.input.name && this.input.template
         }
     },
-    async created() {
+    async created () {
         const data = await teamApi.getTeams()
-        const filteredTeams = [];
+        const filteredTeams = []
 
         data.teams.forEach((t) => {
             if (t.role !== Roles.Owner) {
                 return
             }
-            if (t.slug === this.$router.currentRoute.value.params.id) {
-                this.currentTeam = t.id;
+            if (t.slug === this.$route.params.team_slug) {
+                this.currentTeam = t.id
             }
             filteredTeams.push({ value: t.id, label: t.name })
-        });
+        })
 
         if (this.currentTeam == null && filteredTeams.length > 0) {
-            this.currentTeam = filteredTeams[0].value;
+            this.currentTeam = filteredTeams[0].value
         }
-        this.teams = filteredTeams;
+        this.teams = filteredTeams
 
         if (this.currentTeam) {
             this.setBreadcrumbs([
-                { type: 'TeamLink'},
+                { type: 'TeamLink' },
                 { label: 'Create project' }
             ])
         }
@@ -103,31 +106,32 @@ export default {
         const templateList = await templatesApi.getTemplates()
         this.templates = templateList.templates.filter(template => template.active).map(template => { return { value: template.id, label: template.name } })
 
+        this.init = true
 
-        this.init = true;
         setTimeout(() => {
             // There must be a better Vue way of doing this, but I can't find it.
             // Without the setTimeout, the select box doesn't update
             this.input.team = this.currentTeam
-            this.input.stack = this.stacks.length > 0 ? this.stacks[0].value : ""
-            this.input.template = this.templates.length > 0 ? this.templates[0].value : ""
+            this.input.stack = this.stacks.length > 0 ? this.stacks[0].value : ''
+            this.input.template = this.templates.length > 0 ? this.templates[0].value : ''
+
             if (this.stacks.length === 0) {
-                this.errors.stack = "No stacks available. Ask an Administator to create a new stack definition"
+                this.errors.stack = 'No stacks available. Ask an Administator to create a new stack definition'
             }
             if (this.templates.length === 0) {
-                this.errors.template = "No templates available. Ask an Administator to create a new template definition"
+                this.errors.template = 'No templates available. Ask an Administator to create a new template definition'
             }
-        },100);
+        }, 100)
     },
     methods: {
-        createProject() {
+        createProject () {
             projectApi.create(this.input).then(result => {
-                this.$router.push( { name: 'Project', params: { id: result.id }});
+                this.$router.push({ name: 'Project', params: { id: result.id } })
             }).catch(err => {
-                console.log(err);
-            });
+                console.log(err)
+            })
         },
-        refreshName() {
+        refreshName () {
             this.input.name = NameGenerator()
         }
     },

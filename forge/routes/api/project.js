@@ -89,6 +89,7 @@ module.exports = async function (app) {
         const teamMembership = await request.session.User.getTeamMembership(request.body.team, true)
         // Assume membership is enough to allow project creation.
         // If we have roles that limit creation, that will need to be checked here.
+
         if (!teamMembership) {
             reply.code(401).send({ error: 'Current user not in team ' + request.body.team })
             return
@@ -130,9 +131,9 @@ module.exports = async function (app) {
         await project.setProjectTemplate(template)
         await project.reload({
             include: [
+                { model: app.db.models.Team },
                 { model: app.db.models.ProjectStack },
                 { model: app.db.models.ProjectTemplate }
-
             ]
         })
         await app.containers.create(project, {})

@@ -10,6 +10,14 @@ module.exports = {
     },
     create: async (project, options) => {
         let value = {}
+        if (this._app.license.active() && this._app.billing) {
+            const subscription = this._app.db.models.Subscription.byTeam(project.Team.id)
+            if (subscription) {
+                this._app.billing.addProject(project.Team, project)
+            } else {
+                throw new Error('No Subscription for this team')
+            }
+        }
         if (this._driver.create) {
             value = await this._driver.create(project, options)
         }
@@ -17,6 +25,14 @@ module.exports = {
     },
     remove: async (project) => {
         let value = {}
+        if (this._app.license.active() && this._app.billing) {
+            const subscription = this._app.db.models.Subscription.byTeam(project.Team.id)
+            if (subscription) {
+                this._app.billing.removeProject(project.Team, project)
+            } else {
+                throw new Error('No Subscription for this team')
+            }
+        }
         if (this._driver.remove) {
             value = await this._driver.remove(project)
         }

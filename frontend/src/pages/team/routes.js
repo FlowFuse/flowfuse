@@ -12,6 +12,9 @@ import TeamSettingsDanger from '@/pages/team/Settings/Danger.vue'
 import CreateTeam from '@/pages/team/create.vue'
 import CreateProject from '@/pages/project/create.vue'
 
+// EE Only
+import TeamSettingsBilling from '@/pages/team/Settings/Billing.vue'
+
 import ensurePermission from '@/utils/ensurePermission'
 
 export default [
@@ -22,9 +25,9 @@ export default [
         component: CreateTeam
     },
     {
-        path: '/team/:id',
+        path: '/team/:team_slug',
         redirect: to => {
-            return `/team/${to.params.id}/overview`
+            return `/team/${to.params.team_slug}/overview`
         },
         name: 'Team',
         component: Team,
@@ -35,7 +38,7 @@ export default [
                 path: 'members',
                 component: TeamMembers,
                 redirect: to => {
-                    return `/team/${to.params.id}/members/general`
+                    return `/team/${to.params.team_slug}/members/general`
                 },
                 children: [
                     { path: 'general', component: TeamMembersMembers },
@@ -47,10 +50,11 @@ export default [
                 path: 'settings',
                 component: TeamSettings,
                 redirect: to => {
-                    return `/team/${to.params.id}/settings/general`
+                    return `/team/${to.params.team_slug}/settings/general`
                 },
                 children: [
                     { path: 'general', component: TeamSettingsGeneral },
+                    { path: 'billing', component: TeamSettingsBilling },
                     // { path: 'permissions', component: TeamSettingsPermissions},
                     { path: 'danger', component: TeamSettingsDanger }
                 ]
@@ -58,7 +62,7 @@ export default [
         ]
     },
     {
-        path: '/team/:id/projects/create',
+        path: '/team/:team_slug/projects/create',
         name: 'CreateTeamProject',
         component: CreateProject
     }

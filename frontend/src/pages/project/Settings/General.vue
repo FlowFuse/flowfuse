@@ -16,7 +16,7 @@
             Template
         </FormRow>
 
-        <div class="space-x-4 whitespace-nowrap">
+        <!-- <div class="space-x-4 whitespace-nowrap">
             <template v-if="!editing.projectName">
                 <button type="button" class="forge-button forge-button-small" @click="editName">Edit project settings</button>
             </template>
@@ -24,7 +24,7 @@
                 <button type="button" class="forge-button-tertiary forge-button-small" @click="cancelEditName">Cancel</button>
                 <button type="button" class="forge-button forge-button-small" @click="saveEditName">Save project settings</button>
             </template>
-        </div>
+        </div> -->
 
     </form>
 </template>
@@ -35,31 +35,30 @@ import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
 import { ClipboardCopyIcon } from '@heroicons/vue/outline'
 
-
 export default {
     name: 'ProjectSettings',
 
-    props:[ "project" ],
-    data() {
+    props: ['project'],
+    data () {
         return {
             editing: {
                 projectName: false
             },
             input: {
-                projectId: "",
-                projectName: "",
-                stackDescription: "",
-                templateName: "",
+                projectId: '',
+                projectName: '',
+                stackDescription: '',
+                templateName: '',
             },
             original: {
-                projectName: ""
+                projectName: ''
             }
         }
     },
     watch: {
-         project: 'fetchData'
+        project: 'fetchData'
     },
-    mounted() {
+    mounted () {
         this.fetchData()
     },
     // beforeRouteLeave(to, from, next) {
@@ -71,38 +70,40 @@ export default {
     //     }
     // },
     methods: {
-        copyProjectId() {
+        copyProjectId () {
 
         },
-        editName() {
-            this.original.projectName = this.input.projectName;
+        editName () {
+            this.original.projectName = this.input.projectName
             this.editing.projectName = true
             setTimeout(() => {
-                document.getElementById("projectName").focus()
-            },0)
+                document.getElementById('projectName').focus()
+            }, 0)
         },
-        async saveEditName() {
+        async saveEditName () {
             this.editing.projectName = false
-            await projectApi.updateProject(this.project.id, {name: this.input.projectName});
+            await projectApi.updateProject(this.project.id, { name: this.input.projectName })
             this.$emit('projectUpdated')
         },
-        cancelEditName() {
+        cancelEditName () {
             this.editing.projectName = false
-            this.input.projectName = this.original.projectName;
+            this.input.projectName = this.original.projectName
         },
         fetchData () {
-            this.input.projectId = this.project.id;
+            this.input.projectId = this.project.id
             if (this.project.stack) {
-                this.input.stackDescription = this.project.stack.name;
+                this.input.stackDescription = this.project.stack.name
             } else {
-                this.input.stackDescription = "none"
+                this.input.stackDescription = 'none'
             }
+
             if (this.project.template) {
-                this.input.templateName = this.project.template.name;
+                this.input.templateName = this.project.template.name
             } else {
                 this.input.templateName = "none"
             }
-            this.input.projectName = this.project.name;
+
+            this.input.projectName = this.project.name
         }
     },
     components: {

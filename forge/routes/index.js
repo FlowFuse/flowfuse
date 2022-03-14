@@ -10,11 +10,13 @@
  * @namespace routes
  * @memberof forge
  */
-module.exports = async function (app) {
+const fp = require('fastify-plugin')
+module.exports = fp(async function (app, opts, done) {
     await app.register(require('./auth'))
     await app.register(require('./api'), { prefix: '/api/v1' })
     await app.register(require('./ui'))
     await app.register(require('./setup'))
     await app.register(require('./storage'), { prefix: '/storage' })
     await app.register(require('./logging'), { prefix: '/logging' })
-}
+    done()
+})
