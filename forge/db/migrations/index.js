@@ -40,7 +40,7 @@ async function checkPendingMigrations () {
     migrationFiles = migrationFiles.filter(name => /^\d\d\d\d\d\d\d\d-\d\d-.*\.js$/.test(name))
     migrationFiles.sort()
 
-    const tables = await app.db.sequelize.getQueryInterface().showAllSchemas()
+    const tables = await app.db.sequelize.getQueryInterface().showAllTables()
 
     if (tables.length === 1) {
         // We only have the MetaVersion table. This means this is a brand-new
