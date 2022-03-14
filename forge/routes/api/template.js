@@ -50,6 +50,7 @@ module.exports = async function (app) {
                 properties: {
                     name: { type: 'string' },
                     active: { type: 'boolean' },
+                    description: { type: 'string' },
                     settings: { type: 'object' },
                     policy: { type: 'object' }
                 }
@@ -57,13 +58,15 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         // Currently only admins can create a template
-        const templateProperties = {
-            name: request.body.name,
-            active: request.body.active !== undefined ? request.body.active : undefined,
-            settings: request.body.settings,
-            policy: request.body.policy
-        }
         try {
+            const templateSettings = app.db.controllers.ProjectTemplate.validateSettings(request.body.settings)
+            const templateProperties = {
+                name: request.body.name,
+                active: request.body.active !== undefined ? request.body.active : undefined,
+                description: request.body.description || '',
+                settings: templateSettings,
+                policy: request.body.policy
+            }
             const template = await app.db.models.ProjectTemplate.create(templateProperties)
             template.setOwner(request.session.User)
             await template.save()
@@ -92,7 +95,7 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const template = await app.db.models.ProjectTemplate.byId(request.params.templateId)
         // The `beforeDestroy` hook of the ProjectTemplate model ensures
-        // we don't delete an in-use stack
+        // we don't delete an in-use template
         try {
             await template.destroy()
             reply.send({ status: 'okay' })
@@ -110,12 +113,13 @@ module.exports = async function (app) {
     app.put('/:templateId', {
         preHandler: app.needsPermission('template:edit')
     }, async (request, reply) => {
+        const templateSettings = app.db.controllers.ProjectTemplate.validateSettings(request.body.settings)
         const template = await app.db.models.ProjectTemplate.byId(request.params.templateId)
         template.name = request.body.name
+        template.description = request.body.description
         template.active = request.body.active !== undefined ? request.body.active : undefined
-        template.settings = request.body.settings
+        template.settings = templateSettings
         template.policy = request.body.policy
-
         await template.save()
 
         const response = app.db.views.ProjectTemplate.templateSummary(template)

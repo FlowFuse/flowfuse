@@ -16,6 +16,8 @@ import { Roles } from '@core/lib/roles'
 const sideNavigation = [
     { name: "General", path: "./general" },
     // { name: "Environment", path: "./environment" },
+    { name: "Editor", path: "./editor" },
+    { name: "Palette", path: "./palette" },
     { name: "Danger", path: "./danger" }
 ]
 

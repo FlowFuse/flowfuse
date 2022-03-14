@@ -2,12 +2,12 @@ module.exports = {
     template: function (app, template) {
         if (template) {
             const result = template.toJSON()
-            console.log(result)
             const filtered = {
                 id: result.hashid,
                 // template: result.templateId,
                 // revision: result.revision,
                 name: result.name,
+                description: result.description,
                 active: result.active,
                 settings: result.settings || {},
                 policy: result.policy || {},
@@ -30,7 +30,9 @@ module.exports = {
                 // template: result.templateId,
                 // revision: result.revision,
                 name: result.name,
+                description: result.description,
                 active: result.active,
+                projectCount: result.projectCount,
                 createdAt: result.createdAt,
                 links: result.links
             }

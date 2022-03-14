@@ -12,7 +12,22 @@ module.exports = {
         id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
         name: { type: DataTypes.STRING, allowNull: false },
         type: { type: DataTypes.STRING, allowNull: false },
-        url: { type: DataTypes.STRING, allowNull: false },
+        url: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            get () {
+                const originalUrl = this.getDataValue('url').replace(/\/$/, '')
+                let httpAdminRoot = this.ProjectSettings?.[0]?.value.httpAdminRoot || this.ProjectTemplate?.settings?.httpAdminRoot
+                if (httpAdminRoot) {
+                    if (httpAdminRoot[0] !== '/') {
+                        httpAdminRoot = `/${httpAdminRoot}`
+                    }
+                    return originalUrl + httpAdminRoot
+                } else {
+                    return originalUrl
+                }
+            }
+        },
         slug: { type: DataTypes.VIRTUAL, get () { return this.id } },
         state: { type: DataTypes.STRING, allowNull: false, defaultValue: 'running' },
         links: {
@@ -129,6 +144,28 @@ module.exports = {
                         return result.value
                     }
                     return undefined
+                },
+                async getRuntimeSettings () {
+                    // This assumes the project has been loaded via `byId` so that
+                    // it has the template and ProjectSettings attached
+                    let result = {}
+                    if (this.ProjectTemplate) {
+                        result = this.ProjectTemplate.settings
+                    }
+                    if (this.ProjectSettings[0]?.key === 'settings') {
+                        const projectSettings = this.ProjectSettings[0].value
+                        // This is a quick hacky deep merge that limits itself to 2 levels
+                        Object.entries(projectSettings).forEach(([key, value]) => {
+                            if (Array.isArray(value) || typeof value !== 'object') {
+                                result[key] = value
+                            } else {
+                                Object.entries(value).forEach(([subkey, subvalue]) => {
+                                    result[key][subkey] = subvalue
+                                })
+                            }
+                        })
+                    }
+                    return result
                 }
             },
             static: {
@@ -145,6 +182,10 @@ module.exports = {
                                 },
                                 {
                                     model: M.ProjectStack
+                                },
+                                {
+                                    model: M.ProjectTemplate,
+                                    attributes: ['hashid', 'id', 'name', 'links']
                                 }
                             ],
                             required: true
@@ -157,10 +198,19 @@ module.exports = {
                         include: [
                             {
                                 model: M.Team,
-                                attributes: ['id', 'name', 'slug', 'links']
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links']
                             },
                             {
                                 model: M.ProjectStack
+                            },
+                            {
+                                model: M.ProjectTemplate,
+                                attributes: ['hashid', 'id', 'name', 'links', 'settings', 'policy']
+                            },
+                            {
+                                model: M.ProjectSettings,
+                                where: { key: 'settings' },
+                                required: false
                             }
                         ]
                     })
@@ -172,10 +222,14 @@ module.exports = {
                             {
                                 model: M.Team,
                                 where: { id: teamId },
-                                attributes: ['id', 'name', 'slug', 'links']
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links']
                             },
                             {
                                 model: M.ProjectStack
+                            },
+                            {
+                                model: M.ProjectTemplate,
+                                attributes: ['hashid', 'id', 'name', 'links']
                             }
                         ]
                     })

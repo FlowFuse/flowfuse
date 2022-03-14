@@ -17,19 +17,21 @@
             leave-to="opacity-0 scale-95"
           >
             <div class="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-lg rounded">
-              <DialogTitle as="h3" class="text-lg font-medium leading-6 text-red-700">Save template</DialogTitle>
+              <DialogTitle as="h3" class="text-lg font-medium leading-6 text-red-700">Delete template</DialogTitle>
                 <form class="space-y-6">
                   <div class="mt-2 space-y-2">
                       <p class="text-sm text-gray-500">
-                          Are you sure you want to save this template?
-                      </p>
-                      <p class="text-sm text-gray-500">
-                          Any projects using this template will need to be manually restarted to pick up any changes.
+                          <span v-if="!deleteDisabled">
+                              Are you sure you want to delete this template?
+                          </span>
+                          <span v-else>
+                              You cannot delete a template that is still being used by projects.
+                          </span>
                       </p>
                   </div>
                   <div class="mt-4 flex flex-row justify-end">
                       <button type="button" class="forge-button-secondary ml-4" @click="close">Cancel</button>
-                      <button type="button" class="forge-button ml-4" @click="confirm">Save Template</button>
+                      <button type="button" class="forge-button-danger ml-4" :disabled="deleteDisabled" @click="confirm">Delete</button>
                   </div>
               </form>
           </div>
@@ -53,7 +55,7 @@ import {
 import FormRow from '@/components/FormRow'
 
 export default {
-    name: 'AdminTemplateSaveDialog',
+    name: 'AdminStackDeleteDialog',
 
     components: {
         TransitionRoot,
@@ -63,9 +65,15 @@ export default {
         DialogTitle,
         FormRow
     },
+    data() {
+        return {
+            deleteDisabled: false,
+            template: null
+        }
+    },
     methods: {
         confirm() {
-            this.$emit('saveTemplate')
+            this.$emit('deleteTemplate', this.template)
             this.isOpen = false
         }
     },
@@ -76,7 +84,9 @@ export default {
             close() {
                 isOpen.value = false
             },
-            show() {
+            show(template) {
+                this.template = template;
+                this.deleteDisabled = template.projectCount > 0;
                 isOpen.value = true
             },
         }

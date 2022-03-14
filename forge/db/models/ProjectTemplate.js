@@ -2,7 +2,7 @@
  * A Project Template definition
  * @namespace forge.db.models.ProjectTemplate
  */
-const { DataTypes, Op } = require('sequelize')
+const { DataTypes, Op, literal } = require('sequelize')
 
 module.exports = {
     name: 'ProjectTemplate',
@@ -44,6 +44,14 @@ module.exports = {
         this.hasMany(M.Project)
         this.belongsTo(M.User, { as: 'owner' })
     },
+    hooks: {
+        beforeDestroy: async (template, opts) => {
+            const projectCount = await template.projectCount()
+            if (projectCount > 0) {
+                throw new Error('Cannot delete template that is used by projects')
+            }
+        }
+    },
     finders: function (M) {
         const self = this
         return {
@@ -56,14 +64,25 @@ module.exports = {
                         where: { id },
                         include: [
                             { model: M.User, as: 'owner' }
-                        ]
+                        ],
+                        attributes: {
+                            include: [
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "Projects" AS "project"
+                                        WHERE
+                                        "project"."ProjectTemplateId" = "ProjectTemplate"."id"
+                                    )`),
+                                    'projectCount'
+                                ]
+                            ]
+                        }
                     })
                 },
                 getAll: async (pagination = {}) => {
                     const limit = parseInt(pagination.limit) || 30
-                    const where = {
-                        active: true
-                    }
+                    const where = {}
                     if (pagination.cursor) {
                         where.id = {
                             [Op.gt]: M.ProjectTemplate.decodeHashid(pagination.cursor)
@@ -75,7 +94,20 @@ module.exports = {
                         limit,
                         include: [
                             { model: M.User, as: 'owner' }
-                        ]
+                        ],
+                        attributes: {
+                            include: [
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "Projects" AS "project"
+                                        WHERE
+                                        "project"."ProjectTemplateId" = "ProjectTemplate"."id"
+                                    )`),
+                                    'projectCount'
+                                ]
+                            ]
+                        }
                     })
                     return {
                         meta: {

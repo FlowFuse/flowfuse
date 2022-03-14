@@ -101,7 +101,7 @@ export default {
         this.stacks = stackList.stacks.filter(stack => stack.active).map(stack => { return { value: stack.id, label: stack.name } })
 
         const templateList = await templatesApi.getTemplates()
-        this.templates = templateList.templates.map(template => { return { value: template.id, label: template.name } })
+        this.templates = templateList.templates.filter(template => template.active).map(template => { return { value: template.id, label: template.name } })
 
 
         this.init = true;

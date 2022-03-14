@@ -17,7 +17,9 @@ const getTemplate = async (templateId) => {
         return res.data
     })
 }
-
+const deleteTemplate = async (templateId) => {
+    return await client.delete(`/api/v1/templates/${templateId}`)
+}
 const create = async (options) => {
     return client.post('/api/v1/templates/', options).then(res => {
         return res.data
@@ -34,5 +36,6 @@ export default {
     create,
     getTemplate,
     getTemplates,
-    updateTemplate
+    updateTemplate,
+    deleteTemplate
 }

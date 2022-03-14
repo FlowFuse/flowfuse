@@ -26,8 +26,8 @@ import Breadcrumbs from '@/mixins/Breadcrumbs';
 import { markRaw } from "vue"
 import { mapState } from 'vuex'
 
+import AdminStackEditButton from './components/AdminStackEditButton'
 import AdminStackEditDialog from './dialogs/AdminStackEditDialog'
-import AdminStackEditButton from './AdminStackEditButton'
 import AdminStackDeleteDialog from './dialogs/AdminStackDeleteDialog'
 
 const StackPropertiesTable = {

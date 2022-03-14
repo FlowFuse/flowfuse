@@ -35,7 +35,7 @@
             <label :for="inputId" class="block text-sm font-medium text-gray-700 mb-1"><slot></slot></label>
             <div v-if="hasDescription" class="text-xs text-gray-400 mb-2 space-y-1"><slot name="description"></slot></div>
             <div class="flex flex-col sm:flex-row relative">
-                <template v-if="options">
+                <template v-if="options && type !== 'uneditable'">
                     <select :id="inputId"
                         class="w-full"
                         :class="inputClass"

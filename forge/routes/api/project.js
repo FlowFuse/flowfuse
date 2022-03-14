@@ -54,7 +54,7 @@ module.exports = async function (app) {
     app.get('/:projectId', async (request, reply) => {
         const result = await app.db.views.Project.project(request.project)
         result.meta = await app.containers.details(request.project) || { state: 'unknown' }
-        result.team = await app.db.views.Team.team(request.project.Team)
+        // result.team = await app.db.views.Team.team(request.project.Team)
         reply.send(result)
     })
 
@@ -181,9 +181,19 @@ module.exports = async function (app) {
         }
     })
 
+    /**
+     * Update a project
+     * @name /api/v1/project/:id
+     * @memberof forge.routes.api.project
+     */
     app.put('/:projectId', { preHandler: app.needsPermission('project:edit') }, async (request, reply) => {
         if (request.body.name) {
             request.project.name = request.body.name
+        }
+        if (request.body.settings) {
+            // TODO: validate only settings the template policy permits to be set are included
+            const newSettings = app.db.controllers.ProjectTemplate.validateSettings(request.body.settings)
+            await request.project.updateSetting('settings', newSettings)
         }
         await request.project.save()
 
@@ -201,10 +211,13 @@ module.exports = async function (app) {
      */
     app.get('/:projectId/settings', async (request, reply) => {
         const settings = await app.containers.settings(request.project)
+        settings.baseURL = request.project.url
+        settings.forgeURL = app.config.base_url
         settings.storageURL = request.project.storageURL
         settings.auditURL = request.project.auditURL
         settings.state = request.project.state
-        settings.stack = request.project.ProjectStack.properties
+        settings.stack = request.project.ProjectStack?.properties || {}
+        settings.settings = await request.project.getRuntimeSettings()
         reply.send(settings)
     })
 
