@@ -9,8 +9,9 @@
 // Currently, there is both a development public and private key in this repository.
 // These are completely insecure keys to be used at this very early stage of
 // development - they are used by the tests to generate and verify licenses.
-// At some point we will generate the proper keys, storing the private
-// key in a secure location completely outside of this repository.
+//
+// To generate a production license, you will need to access the Production private key
+// file in the FlowForge 1Password vault
 
 // ref: https://www.scottbrady91.com/OpenSSL/Creating-Elliptical-Curve-Keys-using-OpenSSL
 
@@ -26,28 +27,86 @@
 
 const fs = require('fs')
 const jwt = require('jsonwebtoken')
+const promptly = require('promptly')
 
-// const expiry = Math.floor((Date.now()/1000)+(60*60*24));
-const validFrom = Math.floor(Date.now() / 1000)
-const expiry = Math.floor(new Date('2200-01-01').getTime() / 1000)
-const key = fs.readFileSync('dev-private-key_enc.pem')
-const passphrase = 'password'
+;(async () => {
+    console.log('FlowForge EE License Generator')
+    console.log('------------------------------')
+    try {
+        const devLicense = await promptly.confirm('Is this a development-only license? (Y/n): ', { default: 'y' })
 
-const licenseDetails = {
-    iss: 'FlowForge Inc.', // DO NOT CHANGE
-    sub: 'FlowForge Inc. Development', // Name of the license holder
-    nbf: validFrom,
-    exp: expiry, // Expiry of the license in epoch seconds
-    note: 'For development only', // Freeform text to associate with license
-    tier: 'teams', // Must be 'solo' or 'teams',
-    users: '100',
-    teams: '100',
-    projects: '100'
-}
+        const key = devLicense
+            ? fs.readFileSync('dev-private-key_enc.pem')
+            : await promptly.prompt('Production license private key filename: ', {
+                validator: (value) => {
+                    if (!fs.existsSync(value)) {
+                        throw new Error('Private key file not found')
+                    }
+                    return fs.readFileSync(value)
+                }
+            })
 
-const licenseText = jwt.sign(
-    licenseDetails,
-    { key, passphrase },
-    { algorithm: 'ES256' }
-)
-console.log(licenseText)
+        const passphrase = devLicense
+            ? 'password'
+            : await promptly.password('Passphrase: ', {
+                replace: '*'
+            })
+
+        const licenseHolder = await promptly.prompt('License holder name: ')
+
+        const licenseNotes = devLicense
+            ? 'Development-mode Only. Not for production'
+            : await promptly.prompt('License notes: ', { default: '' })
+
+        const today = new Date().toISOString().substring(0, 10)
+        const validFrom = await promptly.prompt(`Valid from [${today}]: `, {
+            default: today,
+            validator: (value) => {
+                const date = new Date(value)
+                if (isNaN(date.getTime())) {
+                    throw new Error('Invalid start time')
+                }
+                return Math.floor(date.getTime() / 1000)
+            }
+        })
+
+        const expiry = validFrom + (366 * 24 * 60 * 60) - 1
+
+        const licenseDetails = {
+            iss: 'FlowForge Inc.', // DO NOT CHANGE
+            sub: licenseHolder, // Name of the license holder
+            nbf: validFrom,
+            exp: expiry, // Expiry of the license in epoch seconds
+            note: licenseNotes // Freeform text to associate with license
+            // tier: 'teams', // Must be 'solo' or 'teams',
+            // users: '100',
+            // teams: '100',
+            // projects: '100'
+        }
+
+        if (devLicense) {
+            licenseDetails.dev = true
+        }
+
+        const licenseText = jwt.sign(
+            licenseDetails,
+            { key, passphrase },
+            { algorithm: 'ES256' }
+        )
+        console.log()
+        console.log('License Details:')
+        console.log(JSON.stringify(licenseDetails, ' ', 4))
+        console.log('License:')
+        console.log('---')
+        console.log(licenseText)
+        console.log('---')
+    } catch (err) {
+        if (err.code === 'ERR_OSSL_EVP_BAD_DECRYPT') {
+            console.warn('Error generating license: bad passphrase')
+        } else if (err.code === 'TIMEDOUT') {
+            // Ctrl-C.. exit quietly
+        } else {
+            console.warn(err)
+        }
+    }
+})()

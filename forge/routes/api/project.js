@@ -195,7 +195,7 @@ module.exports = async function (app) {
         settings.storageURL = request.project.storageURL
         settings.auditURL = request.project.auditURL
         settings.state = request.project.state
-        settings.stack = request.project.ProjectStack.properties
+        settings.stack = request.project.ProjectStack?.properties || {}
         reply.send(settings)
     })
 

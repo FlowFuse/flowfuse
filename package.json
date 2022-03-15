@@ -91,6 +91,7 @@
         "postcss": "^8.4.6",
         "postcss-loader": "^6.2.1",
         "postcss-preset-env": "^6.7.0",
+        "promptly": "^3.2.0",
         "should": "^13.2.3",
         "style-loader": "^3.3.1",
         "tailwindcss": "^2.2.19",
