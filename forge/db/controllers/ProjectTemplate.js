@@ -10,7 +10,7 @@ module.exports = {
                         httpAdminRoot = `/${httpAdminRoot}`
                     }
                     if (httpAdminRoot[httpAdminRoot.length - 1] === '/') {
-                        httpAdminRoot = httpAdminRoot.substring(httpAdminRoot.length - 2)
+                        httpAdminRoot = httpAdminRoot.substring(0, httpAdminRoot.length - 1)
                     }
                     if (!/[0-9a-z_\-\\/]+$/i.test(httpAdminRoot)) {
                         throw new Error('Invalid settings.httpAdminRoot')
