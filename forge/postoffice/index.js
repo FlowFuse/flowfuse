@@ -99,11 +99,13 @@ module.exports = fp(async function (app, _opts, next) {
             html: template.html(templateContext, { allowProtoPropertiesByDefault: true, allowProtoMethodsByDefault: true })
         }
         if (EMAIL_ENABLED) {
-            mailTransport.sendMail(mail, err => {
-                if (err) {
-                    app.log.warn(`Failed to send email: ${err.toString()}`)
-                }
-            })
+            if (mailTransport) {
+                mailTransport.sendMail(mail, err => {
+                    if (err) {
+                        app.log.warn(`Failed to send email: ${err.toString()}`)
+                    }
+                })
+            }
             if (app.config.email.debug) {
                 app.log.info(`
     -----------------------------------

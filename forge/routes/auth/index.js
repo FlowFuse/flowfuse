@@ -330,5 +330,78 @@ module.exports = fp(async function (app, opts, done) {
         }
     })
 
+    app.post('/account/lostpassword', {
+        schema: {
+            body: {
+                type: 'object',
+                required: ['email'],
+                properties: {
+                    email: { type: 'string' }
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const user = await app.db.models.User.byEmail(request.body.email)
+        if (user) {
+            console.log(user.email)
+            if (app.postoffice.enabled()) {
+                const token = await app.db.controllers.AccessToken.createTokenForPasswordReset(user)
+                app.postoffice.send(
+                    user,
+                    'PasswordReset',
+                    {
+                        resetLink: `${app.config.base_url}/account/passwordreset/${token.token}`
+                    }
+                )
+            }
+        }
+        reply.code(200).send({})
+    })
+
+    app.get('/account/passwordreset/:token', {
+
+    }, async (request, reply) => {
+        const token = await app.db.controllers.AccessToken.getOrExpire(request.params.token)
+        if (token) {
+            const user = await app.db.models.User.byId(token.ownerId)
+            if (user) {
+                const session = await app.db.controllers.Session.createUserSession(user.username)
+                if (session) {
+                    const cookieOptions = { ...SESSION_COOKIE_OPTIONS }
+                    reply.setCookie('sid', session.sid, cookieOptions)
+                    reply.redirect(303, app.config.base_url + '/passwordreset')
+                }
+            } else {
+                console.log('No User found')
+                reply.code(404).send('User not found')
+            }
+        } else {
+            // token not found or expired
+            reply.redirect(303, app.config.base_url + '/expiredreset')
+        }
+    })
+
+    app.post('/account/passwordreset', {
+        preHandler: verifySession,
+        schema: {
+            body: {
+                type: 'object',
+                required: ['password'],
+                properties: {
+                    password: { type: 'string' }
+                }
+            }
+        }
+    }, async (request, reply) => {
+        await request.session.User.update({
+            password: request.body.password
+        })
+        if (request.sid) {
+            await app.db.controllers.Session.deleteSession(request.sid)
+        }
+        reply.clearCookie('sid')
+        reply.redirect(303, app.config.base_url)
+    })
+
     done()
 })

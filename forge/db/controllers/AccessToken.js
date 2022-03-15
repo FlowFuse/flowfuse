@@ -21,6 +21,18 @@ module.exports = {
         })
         return { token }
     },
+    createTokenForPasswordReset: async function (app, user) {
+        const token = generateToken(32, 'fft')
+        const expiresAt = new Date(Date.now() + (86400 * 1000))
+        await app.db.models.AccessToken.create({
+            token,
+            expiresAt,
+            scope: 'password:reset',
+            ownerId: user.hashid,
+            ownerType: 'user'
+        })
+        return { token }
+    },
     /**
      * Get a token by its id. If the session has expired, it is deleted
      * and nothing returned.

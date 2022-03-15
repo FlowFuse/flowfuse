@@ -8,7 +8,7 @@ module.exports = fp(async function (app, opts, next) {
     if (app.license.active()) {
         app.log.info('Loading EE Features')
         require('./db/index.js').init(app)
-        await app.register(require('./routes'), { prefix: '/ee' })
+        await app.register(require('./routes'), { prefix: '/ee', logLevel: 'warn' })
         await app.register(require('./lib'))
     }
     next()

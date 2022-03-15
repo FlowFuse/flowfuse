@@ -18,18 +18,15 @@
                 Sign in
             </button>
 
+            <div v-if="settings['email']" class="mt-4 text-xs text-center">
+                <router-link class="font-medium text-indigo-600 hover:text-indigo-500" :to="{'name': 'PasswordRequest'}">Forgotten password</router-link>
+            </div>
+
             <div v-if="settings['user:signup']" class="mt-4 text-xs text-center">
                 <router-link class="forge-button-secondary" to="/account/create">Sign up</router-link>
             </div>
 
         </div>
-        <!-- TODO
-        <div class="text-sm">
-            <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">
-                Forgot your password?
-            </a>
-        </div>
-        -->
 </template>
 
 <script>

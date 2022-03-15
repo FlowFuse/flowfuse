@@ -28,7 +28,8 @@ module.exports = async function (app) {
             reply.send(response)
         } else {
             reply.send({
-                'user:signup': app.settings.get('user:signup') && app.postoffice.enabled()
+                'user:signup': app.settings.get('user:signup') && app.postoffice.enabled(),
+                email: app.postoffice.enabled()
             })
         }
     })

@@ -59,6 +59,11 @@ const triggerVerification = async () => {
         return res.data
     })
 }
+const requestPasswordReset = async (email) => {
+    return client.post('/account/lostpassword', {
+        email
+    }).then(res => res.data)
+}
 export default {
     registerUser,
     getUser,
@@ -69,5 +74,6 @@ export default {
     getTeamInvitations,
     acceptTeamInvitation,
     rejectTeamInvitation,
-    triggerVerification
+    triggerVerification,
+    requestPasswordReset
 }
