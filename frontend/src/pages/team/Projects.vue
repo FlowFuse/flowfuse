@@ -55,8 +55,6 @@ export default {
     },
     methods: {
         fetchData: async function (newVal) {
-            console.log('this.team')
-            console.log(this.team)
             if (this.team.id) {
                 const data = await teamApi.getTeamProjects(this.team.id)
                 this.projectCount = data.count

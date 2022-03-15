@@ -56,9 +56,13 @@ module.exports = fp(async function (app, opts, next) {
     async function applyLicense (license) {
         activeLicense = await loader.verifyLicense(license)
         app.log.info('License verified:')
+        if (activeLicense.dev) {
+            app.log.info('  ****************************')
+            app.log.info('  * Development-mode License *')
+            app.log.info('  ****************************')
+        }
         app.log.info(` Org:     ${activeLicense.organisation}`)
-        app.log.info(` Tier:    ${activeLicense.tier}`)
-        app.log.info(` Expires: ${activeLicense.expiresAt.toISOString()}`)
-        app.log.info(` Valid From: ${activeLicense.validFrom.toISOString()}`)
+        app.log.info(` Valid From : ${activeLicense.validFrom.toISOString()}`)
+        app.log.info(` Expires    : ${activeLicense.expiresAt.toISOString()}`)
     }
 })

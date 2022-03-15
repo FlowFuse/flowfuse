@@ -1,58 +1,78 @@
+const SECOND = 1
+const MINUTE = 60 * SECOND
+const HOUR = 60 * MINUTE
+const DAY = 24 * HOUR
+const MONTH = 30 * DAY
+const YEAR = 365 * DAY
+
+const reportTime = (s, v) => `${v} ${v !== 1 ? s + 's' : s}`
+
 export default function (delta) {
     delta /= 1000
 
-    if (delta < 60) {
-        return 'seconds'
+    const periods = {
+
+    }
+    periods.years = Math.floor(delta / YEAR)
+    if (periods.years > 0) {
+        delta = delta % YEAR
     }
 
-    delta = Math.floor(delta / 60)
-
-    if (delta < 10) {
-        return 'minutes'
-    }
-    if (delta < 60) {
-        return delta + ' minutes'
+    periods.months = Math.floor(delta / MONTH)
+    if (periods.months > 0) {
+        delta = delta % MONTH
     }
 
-    delta = Math.floor(delta / 60)
-
-    if (delta < 24) {
-        return delta + ' hour' + (delta > 1 ? 's' : '')
+    periods.days = Math.floor(delta / DAY)
+    if (periods.days > 0) {
+        delta = delta % DAY
     }
 
-    delta = Math.floor(delta / 24)
-
-    if (delta < 7) {
-        return delta + ' day' + (delta > 1 ? 's' : '')
+    periods.hours = Math.floor(delta / HOUR)
+    if (periods.hours > 0) {
+        delta = delta % HOUR
     }
-    let weeks = Math.floor(delta / 7)
-    const days = delta % 7
 
-    if (weeks < 4) {
-        if (days === 0) {
-            return weeks + ' week' + (weeks > 1 ? 's' : '')
-        } else {
-            return weeks + ' week' + (weeks > 1 ? 's' : '') + ', ' + days + ' day' + (days > 1 ? 's' : '')
+    periods.minutes = Math.floor(delta / MINUTE)
+    if (periods.minutes > 0) {
+        delta = delta % MINUTE
+    }
+
+    periods.seconds = delta
+
+    const parts = []
+    let fineGrained = true
+
+    if (periods.years > 0) {
+        parts.push(reportTime('year', periods.years))
+        fineGrained = false
+    }
+    if (periods.months > 0) {
+        parts.push(reportTime('month', periods.months))
+        fineGrained = false
+    }
+    if (periods.days > 0) {
+        parts.push(reportTime('day', periods.days))
+        fineGrained = false
+    }
+
+    if (fineGrained) {
+        let superFineGrained = true
+        if (periods.hours > 0) {
+            parts.push(reportTime('hour', periods.hours))
+            superFineGrained = false
+        }
+        if (periods.minutes > 0) {
+            parts.push(reportTime('minute', periods.minutes))
+        }
+        if (superFineGrained && periods.seconds > 0) {
+            parts.push(reportTime('second', periods.seconds))
         }
     }
 
-    let months = Math.floor(weeks / 4)
-    weeks = weeks % 4
-
-    if (months < 12) {
-        if (weeks === 0) {
-            return months + ' month' + (months > 1 ? 's' : '')
-        } else {
-            return months + ' month' + (months > 1 ? 's' : '') + ', ' + weeks + ' week' + (weeks > 1 ? 's' : '')
-        }
+    if (parts.length === 0) {
+        // Not sure this can ever really happen
+        return 'moments'
     }
-
-    const years = Math.floor(months / 12)
-    months = months % 12
-
-    if (months === 0) {
-        return years + ' year' + (years > 1 ? 's' : '')
-    } else {
-        return years + ' year' + (years > 1 ? 's' : '') + ', ' + months + ' month' + (months > 1 ? 's' : '')
-    }
+    return parts.join(', ')
 }
