@@ -36,7 +36,7 @@ const getTeamProjects = async (teamId) => {
     res.data.projects = res.data.projects.map(r => {
         r.createdSince = daysSince(r.createdAt)
         r.updatedSince = daysSince(r.updatedAt)
-        r.link = { name: 'Project', params: { id: slugify(r.id) } }
+        r.link = { name: 'Project', params: { team_slug: r.slug } }
         promises.push(client.get(`/api/v1/projects/${r.id}`).then(p => {
             r.status = p.data.meta.state
         }).catch(err => {
