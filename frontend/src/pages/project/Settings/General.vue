@@ -12,6 +12,10 @@
             Stack
         </FormRow>
 
+        <FormRow v-model="input.templateName" type="uneditable">
+            Template
+        </FormRow>
+
         <!-- <div class="space-x-4 whitespace-nowrap">
             <template v-if="!editing.projectName">
                 <button type="button" class="forge-button forge-button-small" @click="editName">Edit project settings</button>
@@ -43,7 +47,8 @@ export default {
             input: {
                 projectId: '',
                 projectName: '',
-                stackDescription: ''
+                stackDescription: '',
+                templateName: '',
             },
             original: {
                 projectName: ''
@@ -91,6 +96,13 @@ export default {
             } else {
                 this.input.stackDescription = 'none'
             }
+
+            if (this.project.template) {
+                this.input.templateName = this.project.template.name
+            } else {
+                this.input.templateName = "none"
+            }
+
             this.input.projectName = this.project.name
         }
     },

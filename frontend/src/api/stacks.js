@@ -17,7 +17,9 @@ const deleteStack = async (stackId) => {
     return await client.delete(`/api/v1/stacks/${stackId}`)
 }
 const getStack = async (stackId) => {
-    return await client.get(`/api/v1/stacks/${stackId}`)
+    return await client.get(`/api/v1/stacks/${stackId}`).then(res => {
+        return res.data
+    })
 }
 const updateStack = async (stackId, options) => {
     return client.put(`/api/v1/stacks/${stackId}`, options).then(res => {

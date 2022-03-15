@@ -3,6 +3,8 @@ import ProjectOverview from '@/pages/project/Overview.vue'
 import ProjectSettings from '@/pages/project/Settings/index.vue'
 import ProjectSettingsGeneral from '@/pages/project/Settings/General.vue'
 import ProjectSettingsDanger from '@/pages/project/Settings/Danger.vue'
+import ProjectSettingsEditor from '@/pages/project/Settings/Editor.vue'
+import ProjectSettingsPalette from '@/pages/project/Settings/Palette.vue'
 import ProjectSettingsEnvVar from '@/pages/project/Settings/Environment.vue'
 // import ProjectDebug from '@/pages/project/Debug.vue'
 // import ProjectDeploys from '@/pages/project/Deploys.vue'
@@ -30,6 +32,8 @@ export default [
                 children: [
                     { path: 'general', component: ProjectSettingsGeneral },
                     { path: 'environment', component: ProjectSettingsEnvVar },
+                    { path: 'editor', component: ProjectSettingsEditor },
+                    { path: 'palette', component: ProjectSettingsPalette },
                     { path: 'danger', component: ProjectSettingsDanger }
                 ]
             },

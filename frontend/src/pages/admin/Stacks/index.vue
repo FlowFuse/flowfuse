@@ -1,6 +1,6 @@
 <template>
     <form class="space-y-6">
-        <FormHeading>Stacks
+        <FormHeading>Project Stacks
             <template v-slot:tools>
                 <button type="button" class="forge-button pl-2 mb-1" @click="showCreateStackDialog"><span class="text-xs">Create stack</span></button>
             </template>
@@ -23,12 +23,11 @@ import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
 import Breadcrumbs from '@/mixins/Breadcrumbs';
 
-import TeamCell from '@/components/tables/cells/TeamCell'
 import { markRaw } from "vue"
 import { mapState } from 'vuex'
 
+import AdminStackEditButton from './components/AdminStackEditButton'
 import AdminStackEditDialog from './dialogs/AdminStackEditDialog'
-import AdminStackEditButton from './AdminStackEditButton'
 import AdminStackDeleteDialog from './dialogs/AdminStackDeleteDialog'
 
 const StackPropertiesTable = {

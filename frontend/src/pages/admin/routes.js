@@ -9,7 +9,11 @@ import AdminUsers from '@/pages/admin/Users/index.vue'
 import AdminUsersGeneral from '@/pages/admin/Users/General.vue'
 import AdminUsersInvitations from '@/pages/admin/Users/Invitations.vue'
 import AdminTeams from '@/pages/admin/Teams.vue'
-import AdminStacks from '@/pages/admin/Stacks.vue'
+import AdminStacks from '@/pages/admin/Stacks/index.vue'
+import AdminTemplates from '@/pages/admin/Templates/index.vue'
+import AdminTemplate from '@/pages/admin/Template/index.vue'
+import AdminTemplateSettings from '@/pages/admin/Template/Settings.vue'
+import AdminTemplatePalette from '@/pages/admin/Template/sections/Palette.vue'
 import AdminCreateUser from '@/pages/admin/Users/createUser.vue'
 import { AdjustmentsIcon } from '@heroicons/vue/outline'
 
@@ -55,7 +59,20 @@ export default [
                 ]
             },
             { path: 'teams', component: AdminTeams },
-            { path: 'stacks', component: AdminStacks }
+            { path: 'stacks', component: AdminStacks },
+            { name: 'Admin Templates', path: 'templates', component: AdminTemplates },
+            {
+                name: 'Admin Template',
+                path: 'templates/:id',
+                redirect: to => {
+                    return `/admin/templates/${to.params.id}/settings`
+                },
+                component: AdminTemplate,
+                children: [
+                    { path: 'settings', component: AdminTemplateSettings },
+                    { path: 'palette', component: AdminTemplatePalette }
+                ]
+            }
         ]
     }
 ]
