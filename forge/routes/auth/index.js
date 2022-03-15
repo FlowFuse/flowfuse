@@ -397,6 +397,13 @@ module.exports = fp(async function (app, opts, done) {
             password: request.body.password
         })
         // need to delete the AccessToken here
+        const token = await app.db.models.AccessToken.findOne({
+            where: {
+                ownerType: 'user',
+                ownerId: request.session.User.hashid
+            }
+        })
+        await token.destroy()
         if (request.sid) {
             await app.db.controllers.Session.deleteSession(request.sid)
         }
