@@ -66,8 +66,10 @@ module.exports = {
                 admins: async () => {
                     return this.scope('admins').findAll()
                 },
-                byId: async (hashid) => {
-                    const id = M.User.decodeHashid(hashid)
+                byId: async (id) => {
+                    if (typeof id === 'string') {
+                        id = M.User.decodeHashid(id)
+                    }
                     return this.findOne({
                         where: { id },
                         include: {

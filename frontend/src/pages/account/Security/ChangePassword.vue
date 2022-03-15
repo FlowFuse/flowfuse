@@ -8,6 +8,7 @@
             Change password
         </button>
         <div v-if="errors.password_change" class="ml-4 text-red-400 font-medium inline text-sm">{{errors.password_change}}</div>
+        <div v-if="changeComplete" class="ml-4 font-medium inline text-md">Password changed</div>
     </form>
 </template>
 
@@ -23,10 +24,12 @@ export default {
     data() {
         const currentUser = this.$store.getters['account/user'];
         return {
+            changeComplete: false,
             errors: {
                 old_password: "",
                 password: "",
-                password_confirm: ""
+                password_confirm: "",
+                password_change: ""
             },
             input: {
                 old_password: "",
@@ -59,8 +62,12 @@ export default {
                 return false
             }
             userApi.changePassword(this.input.old_password, this.input.password).then(() => {
-                console.log("DONE!")
+                this.input.password = ''
+                this.input.old_password = ''
+                this.input.password_confirm = ''
+                this.changeComplete = true
             }).catch(e => {
+                this.changeComplete = false
                 this.errors.password_change = "Password change failed"
                 console.log(e);
             })

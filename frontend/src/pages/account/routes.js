@@ -9,6 +9,9 @@ import AccountTeamInvitations from '@/pages/account/Teams/Invitations.vue'
 import AccessRequest from '@/pages/AccessRequest.vue'
 import AccountCreate from '@/pages/account/Create.vue'
 
+import ForgotPassword from '@/pages/account/ForgotPassword'
+import PasswordReset from '@/pages/account/PasswordReset'
+
 import { CogIcon } from '@heroicons/vue/outline'
 import store from '@/store'
 
@@ -93,6 +96,22 @@ export default [
         redirect: function () {
             store.dispatch('account/logout')
             return { path: '/' }
+        }
+    },
+    {
+        path: '/account/forgot-password',
+        name: 'ForgotPassword',
+        component: ForgotPassword,
+        meta: {
+            requiresLogin: false
+        }
+    },
+    {
+        path: '/account/change-password/:token',
+        name: 'PasswordReset',
+        component: PasswordReset,
+        meta: {
+            requiresLogin: false
         }
     }
 ]

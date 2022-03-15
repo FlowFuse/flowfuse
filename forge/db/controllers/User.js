@@ -28,6 +28,12 @@ module.exports = {
         }
     },
 
+    resetPassword: async function (app, user, newPassword) {
+        user.password = newPassword
+        user.password_expired = false
+        return user.save()
+    },
+
     expirePassword: async function (app, user) {
         if (user) {
             user.password_expired = true

@@ -22,6 +22,7 @@ module.exports = async function (app) {
             if (request.session.User.admin) {
                 response['telemetry:enabled'] = app.settings.get('telemetry:enabled')
                 response['user:signup'] = app.settings.get('user:signup')
+                response['user:reset-password'] = app.settings.get('user:reset-password')
                 response['user:team:auto-create'] = app.settings.get('user:team:auto-create')
                 response.email = app.postoffice.exportSettings(true)
             }
@@ -29,7 +30,7 @@ module.exports = async function (app) {
         } else {
             reply.send({
                 'user:signup': app.settings.get('user:signup') && app.postoffice.enabled(),
-                email: app.postoffice.enabled()
+                'user:reset-password': app.settings.get('user:reset-password') && app.postoffice.enabled()
             })
         }
     })
