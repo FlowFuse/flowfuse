@@ -396,11 +396,12 @@ module.exports = fp(async function (app, opts, done) {
         await request.session.User.update({
             password: request.body.password
         })
+        // need to delete the AccessToken here
         if (request.sid) {
             await app.db.controllers.Session.deleteSession(request.sid)
         }
         reply.clearCookie('sid')
-        reply.redirect(303, app.config.base_url)
+        reply.code(200).send({ url: app.config.base_url })
     })
 
     done()
