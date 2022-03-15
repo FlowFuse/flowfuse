@@ -13,6 +13,17 @@ function publicUserProfile (app, user) {
     return result
 }
 
+function shortProfile (app, user) {
+    const result = {
+        id: user.hashid
+    };
+    [
+        'username',
+        'avatar'
+    ].forEach(p => { result[p] = user[p] })
+    return result
+}
+
 module.exports = {
     /**
      * Render a User object for returning on the API.
@@ -31,7 +42,7 @@ module.exports = {
     },
 
     publicUserProfile,
-
+    shortProfile,
     teamMemberList: function (app, users) {
         const result = users.map(u => {
             return {

@@ -35,7 +35,7 @@
             <label :for="inputId" class="block text-sm font-medium text-gray-700 mb-1"><slot></slot></label>
             <div v-if="hasDescription" class="text-xs text-gray-400 mb-2 space-y-1"><slot name="description"></slot></div>
             <div class="flex flex-col sm:flex-row relative">
-                <template v-if="options">
+                <template v-if="options && type !== 'uneditable'">
                     <select :id="inputId"
                         class="w-full"
                         :class="inputClass"
@@ -68,7 +68,7 @@
                     >
                 </template>
                 <template v-if="hasAppend">
-                    <div class="block sm:inline sm:absolute sm:left-full sm:ml-4 mt-2 sm:mt-0"><slot name="append"></slot></div>
+                    <div class="block h-full sm:inline sm:absolute sm:left-full sm:ml-4 mt-2 sm:mt-0"><slot name="append"></slot></div>
                 </template>
             </div>
             <div v-if="error" class="float-right ml-4 text-red-400 inline text-xs">{{error}}</div>

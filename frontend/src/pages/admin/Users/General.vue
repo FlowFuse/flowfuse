@@ -24,8 +24,8 @@ import { PlusSmIcon, UserAddIcon } from '@heroicons/vue/outline'
 import UserCell from '@/components/tables/cells/UserCell'
 import { markRaw } from "vue"
 
-import AdminUserEditButton from '../AdminUserEditButton'
-import AdminUserEditDialog from '../dialogs/AdminUserEditDialog'
+import AdminUserEditButton from './components/AdminUserEditButton'
+import AdminUserEditDialog from './dialogs/AdminUserEditDialog'
 
 export default {
     name: 'AdminUsers',

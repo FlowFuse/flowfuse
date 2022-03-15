@@ -22,6 +22,7 @@ const path = require('path')
 const fp = require('fastify-plugin')
 
 module.exports = fp(async function (app, _opts, next) {
+    utils.init(app)
     const dbOptions = {
         dialect: app.config.db.type || 'sqlite'
     }
@@ -78,6 +79,9 @@ module.exports = fp(async function (app, _opts, next) {
     await models.init(app)
     await views.init(app)
     await controllers.init(app)
+
+    const { inject } = require('./test-data')
+    await inject(app)
 
     next()
 })

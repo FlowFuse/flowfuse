@@ -9,7 +9,16 @@
  * @memberof forge.db
  */
 
-const modelTypes = ['User', 'Session', 'AuthClient', 'AccessToken', 'Team', 'Invitation', 'AuditLog']
+const modelTypes = [
+    'User',
+    'Session',
+    'AuthClient',
+    'AccessToken',
+    'Team',
+    'Invitation',
+    'AuditLog',
+    'ProjectTemplate'
+]
 
 async function init (app) {
     modelTypes.forEach(type => {

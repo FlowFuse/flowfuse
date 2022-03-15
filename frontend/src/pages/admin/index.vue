@@ -17,7 +17,8 @@ const navigation = [
     { name: "Settings", path: "/admin/settings" },
     { name: "Users", path: "/admin/users" },
     { name: "Teams", path: "/admin/teams" },
-    { name: "Stacks", path: "/admin/stacks" }
+    { name: "Stacks", path: "/admin/stacks" },
+    { name: "Templates", path: "/admin/templates" }
 ]
 
 export default {
