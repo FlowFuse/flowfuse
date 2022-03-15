@@ -10,7 +10,6 @@ import TeamRoutes from '@/pages/team/routes.js'
 import AccountRoutes from '@/pages/account/routes.js'
 import HelpRoutes from '@/pages/help/routes.js'
 
-
 const routes = [
     {
         navigationLink: true,
@@ -27,6 +26,9 @@ const routes = [
     {
         path: '/passwordrequest',
         name: 'PasswordRequest',
+        meta: {
+            requiresLogin: false
+        },
         component: PasswordRequest
     },
     {
