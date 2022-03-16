@@ -8,7 +8,7 @@
                 <FormRow :options="teams" :error="(init && (teams.length === 0))?'You do not have permission to create a project in any team':''" v-model="input.team" id="team">Team</FormRow>
 
                 <div>
-                    <FormRow v-model="input.name">
+                    <FormRow :error="errors.name" v-model="input.name">
                         <template v-slot:default>Project Name</template>
                         <template v-slot:append>
                             <button type="button" @click="refreshName" class="forge-button-tertiary px-1" ><RefreshIcon class="w-5" /></button>
@@ -65,13 +65,24 @@ export default {
                 }
             },
             errors: {
-                stack: ''
+                stack: '',
+                name: '',
+                template: ''
             }
         }
     },
     computed: {
         createEnabled: function() {
-            return this.input.stack && this.input.team && this.input.name && this.input.template
+            return this.input.stack && this.input.team && this.input.name && !this.errors.name && this.input.template
+        }
+    },
+    watch: {
+        'input.name': function(value, oldValue) {
+            if (/^[a-z0-9\-]+$/.test(value)) {
+                this.errors.name = ''
+            } else {
+                this.errors.name = 'Names can include a-z, 0-9 & - with no spaces'
+            }
         }
     },
     async created () {
@@ -129,7 +140,10 @@ export default {
                 this.$router.push({ name: 'Project', params: { id: result.id } })
             }).catch(err => {
                 console.log(err)
-            })
+                if (err.response.status === 409) {
+                    this.errors.name = err.response.data.err
+                }
+            });
         },
         refreshName () {
             this.input.name = NameGenerator()
