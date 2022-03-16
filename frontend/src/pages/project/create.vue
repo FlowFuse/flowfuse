@@ -141,7 +141,6 @@ export default {
             }).catch(err => {
                 console.log(err)
                 if (err.response.status === 409) {
-                    console.log(err.response)
                     this.errors.name = err.response.data.err
                 }
             });
