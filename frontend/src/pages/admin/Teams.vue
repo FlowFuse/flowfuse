@@ -30,6 +30,7 @@ export default {
             nextCursor: null,
             columns: [
                 {name: "Team", class: ['flex-grow'], component: { is: markRaw(TeamCell) }, link: true},
+                { name: '', class: ['font-mono', 'text-xs', 'text-gray-500'], property: 'id' },
                 {name: 'Members', class:['w-32','text-center'],property: 'memberCount'},
                 {name: 'Projects', class:['w-32','text-center'],property: 'projectCount'},
             ]
