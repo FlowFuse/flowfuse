@@ -130,7 +130,6 @@ module.exports = async function (app) {
             return
         }
         if (await app.db.models.Project.count({ where: { name: request.body.name } }) !== 0) {
-            console.log('already exists')
             reply.status(409).type('application/json').send({ err: 'name in use' })
             return
         }

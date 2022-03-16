@@ -8,7 +8,7 @@
                 <FormRow :options="teams" :error="(init && (teams.length === 0))?'You do not have permission to create a project in any team':''" v-model="input.team" id="team">Team</FormRow>
 
                 <div>
-                    <FormRow v-model="input.name">
+                    <FormRow :error="errors.name" v-model="input.name">
                         <template v-slot:default>Project Name</template>
                         <template v-slot:append>
                             <button type="button" @click="refreshName" class="forge-button-tertiary px-1" ><RefreshIcon class="w-5" /></button>
@@ -139,8 +139,10 @@ export default {
                 this.$router.push({ name: 'Project', params: { id: result.id } })
             }).catch(err => {
                 console.log(err);
+                console.log('ben')
                 if (err.response.status === 409) {
-                    this.errors.name = "Name not available"
+                    console.log(err.response)
+                    this.errors.name = err.response.data.err
                 }
             });
         },
