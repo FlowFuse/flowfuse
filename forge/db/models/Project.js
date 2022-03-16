@@ -16,7 +16,7 @@ module.exports = {
             type: DataTypes.STRING,
             allowNull: false,
             get () {
-                const originalUrl = this.getDataValue('url').replace(/\/$/, '')
+                const originalUrl = this.getDataValue('url')?.replace(/\/$/, '') || ''
                 let httpAdminRoot = this.ProjectSettings?.[0]?.value.httpAdminRoot || this.ProjectTemplate?.settings?.httpAdminRoot
                 if (httpAdminRoot) {
                     if (httpAdminRoot[0] !== '/') {
