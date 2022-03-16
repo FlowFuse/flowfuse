@@ -51,7 +51,7 @@ To build the container run the following:
 docker build node-red-container -t flowforge/node-red-dashboard:2.2.2
 ```
 
-You would then enter `flowforge/node-red-dashboard:2.2.2` in the containers section 
+You would then enter `flowforge/node-red-dashboard:2.2.2` in the `container` section
 of the Stack configuration.
 
 *Note:* with the 0.3 release, it is not possible to change the Stack being used
