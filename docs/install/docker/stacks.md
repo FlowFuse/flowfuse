@@ -1,7 +1,7 @@
 # Docker Project Stacks
 
 A Project Stack defines a set of platform configuration options that will get
-applied to each project when created
+applied to each project when created.
 
 For container based deployment models, this covers three things:
 
