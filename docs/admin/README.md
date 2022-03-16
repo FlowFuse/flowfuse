@@ -98,8 +98,8 @@ It is *not* possible to edit a stack that is being used by Projects.
 For Deployment specific information about working with stacks, refer to the
 documentation of your chosen deployment model:
 
- - [Local Stacks](./local/stacks.md)
- - Docker Stacks - *coming soon*
+ - [Local Stacks](../install/local/stacks.md)
+ - [Docker Stacks](../install/docker/stacks.md)
  - Kubernetes Stacks - *coming soon*
 
 ### Managing Templates
