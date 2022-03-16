@@ -139,8 +139,7 @@ export default {
             projectApi.create(this.input).then(result => {
                 this.$router.push({ name: 'Project', params: { id: result.id } })
             }).catch(err => {
-                console.log(err);
-                console.log('ben')
+                console.log(err)
                 if (err.response.status === 409) {
                     console.log(err.response)
                     this.errors.name = err.response.data.err
