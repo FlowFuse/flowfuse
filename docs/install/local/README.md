@@ -127,13 +127,17 @@ For more information, follow [this guide](../first-run.md).
 
 ### Upgrade
 
-To upgrade from v0.1.0 to v0.2.0 you can follow these steps.
+To upgrade to v0.3 you can follow these steps.
 
  1. Stop FlowForge `sudo service flowforge stop` [^2]
  2. `cd /opt/flowforge/app`
- 3. `sudo -u flowforge npm install @flowforge/flowforge@0.2.0` [^3]
+ 3. `sudo -u flowforge npm install @flowforge/flowforge@0.3.0` [^3]
  4. Use the editor of your choice to update `/opt/flowforge/etc/flowforge.yml` to add `host: 0.0.0.0`  (if you need to access from other than localhost)
  5. Restart FlowForge `sudo service flowforge start` [^2]
+ 
+You will then need to create a Project Stack and Project Template before you can
+create any more projects. See [this guide](../first-run.md#next-steps) for more information.
+
 
 If you are running as your normal user you can drop the `sudo -u flowforge` and just run `npm install @flowforge/flowforge@0.2.0`
 
