@@ -5,7 +5,7 @@ applied to each project when created.
 
 For container based deployment models, this covers three things:
 
- - `memory` - the value to apply (in MB) to limit container to consuming.
+ - `memory` - the amount of memory (in MB) to limit container to. Recommended minimum: `256`.
  - `cpu` - a value between 1 and 100 that is the % of a CPU core the container should be allowed to consume.
  - `container` - this is the fully qualified name of the container to use. The default container built when following the install instructions is named `flowforge/node-red:latest`
 
