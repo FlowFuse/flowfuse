@@ -22,7 +22,7 @@ The Admin Settings can be accessed from the main menu:
 
 The Admin Settings view lets you manage the platform and its users.
 
-With the 0.1.0 release, the following settings are available:
+With the 0.3.0 release, the following settings are available:
 
  - **Allow new users to register on the login screen** (default: `false`)
 
@@ -39,6 +39,14 @@ With the 0.1.0 release, the following settings are available:
     By default, this doesn't happen, which means the user must either manually
     create the Team (if that option is enabled), or be invited to an existing
     Team.
+
+ - **Allow users to reset their password on the login screen** (default: `false)
+
+   With this option enabled, a 'forgot your password' link is shown on the login
+   screen, and provides a workflow where a user can reset their password via a
+   link emailed to them.
+
+   This option is only available if email sending has been enabled.
 
  - **Allow users to create teams** (default: `false`)
 
@@ -78,3 +86,27 @@ to what team.
 With the 0.1.0 release, the Teams page just lists the teams on the platform.
 
 Further team management options will come in later releases.
+
+### Managing Stacks
+
+The Stacks page can be used to manage the Project Stacks on the platform.
+
+It can be used to create and edit the stacks on the platform.
+
+It is *not* possible to edit a stack that is being used by Projects.
+
+For Deployment specific information about working with stacks, refer to the
+documentation of your chosen deployment model:
+
+ - [Local Stacks](./local/stacks.md)
+ - Docker Stacks - *coming soon*
+ - Kubernetes Stacks - *coming soon*
+
+### Managing Templates
+
+The Templates page can be used to manage the Project Templates on the platform.
+
+It can be used to create and edit the templates on the platform.
+
+If you edit a template that is being used by a Project, those changes will get
+applied the next time the project is restarted.
