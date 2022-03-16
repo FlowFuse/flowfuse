@@ -55,4 +55,4 @@ You would then enter `flowforge/node-red-dashboard:2.2.2` in the `container` sec
 of the Stack configuration.
 
 *Note:* with the 0.3 release, it is not possible to change the Stack being used
-by a project That will come in a future release.
+by a project. That will come in a future release.
