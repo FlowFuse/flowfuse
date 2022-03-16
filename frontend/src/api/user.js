@@ -59,6 +59,12 @@ const triggerVerification = async () => {
         return res.data
     })
 }
+const requestPasswordReset = async (email) => {
+    return client.post('/account/forgot_password', email).then(res => res.data)
+}
+const resetPassword = async (token, password) => {
+    return client.post(`/account/reset_password/${token}`, password).then(res => res.data)
+}
 export default {
     registerUser,
     getUser,
@@ -69,5 +75,7 @@ export default {
     getTeamInvitations,
     acceptTeamInvitation,
     rejectTeamInvitation,
-    triggerVerification
+    triggerVerification,
+    requestPasswordReset,
+    resetPassword
 }

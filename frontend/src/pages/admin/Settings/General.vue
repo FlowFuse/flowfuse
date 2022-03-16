@@ -15,6 +15,12 @@
                 to join an existing team.
             </template>
         </FormRow>
+        <FormRow v-model="input['user:reset-password']" type="checkbox"  :error="errors.requiresEmail" :disabled="errors.requiresEmail">
+            Allow users to reset their password on the login screen
+            <template #description>
+                Users will be sent an email with a link back to the platform to reset their password.
+            </template>
+        </FormRow>
         <FormHeading>Teams</FormHeading>
         <FormRow v-model="input['team:create']" type="checkbox">
             Allow users to create teams
@@ -62,6 +68,7 @@ import { mapState } from 'vuex'
 
 const validSettings = [
     'user:signup',
+    'user:reset-password',
     'user:team:auto-create',
     'team:create',
     'team:user:invite:external',

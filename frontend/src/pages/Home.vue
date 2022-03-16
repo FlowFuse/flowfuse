@@ -42,8 +42,6 @@ export default {
     methods: {
         redirectOnLoad () {
             if (this.user.email_verified) {
-                console.log(this.team)
-                console.log(this.team.id)
                 if (this.team) {
                     this.$router.push({
                         name: 'Team',

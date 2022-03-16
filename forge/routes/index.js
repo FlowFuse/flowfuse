@@ -12,11 +12,11 @@
  */
 const fp = require('fastify-plugin')
 module.exports = fp(async function (app, opts, done) {
-    await app.register(require('./auth'))
-    await app.register(require('./api'), { prefix: '/api/v1' })
-    await app.register(require('./ui'))
-    await app.register(require('./setup'))
-    await app.register(require('./storage'), { prefix: '/storage' })
-    await app.register(require('./logging'), { prefix: '/logging' })
+    await app.register(require('./auth'), { logLevel: 'warn' })
+    await app.register(require('./api'), { prefix: '/api/v1', logLevel: 'warn' })
+    await app.register(require('./ui'), { logLevel: 'warn' })
+    await app.register(require('./setup'), { logLevel: 'warn' })
+    await app.register(require('./storage'), { prefix: '/storage', logLevel: 'warn' })
+    await app.register(require('./logging'), { prefix: '/logging', logLevel: 'warn' })
     done()
 })
