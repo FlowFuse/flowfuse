@@ -66,13 +66,14 @@ export default {
             },
             errors: {
                 stack: '',
-                name: ''
+                name: '',
+                template: ''
             }
         }
     },
     computed: {
         createEnabled: function() {
-            return this.input.team && this.input.name && !this.errors.name && this.input.template
+            return this.input.stack && this.input.team && this.input.name && !this.errors.name && this.input.template
         }
     },
     watch: {
