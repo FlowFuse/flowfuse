@@ -11,9 +11,9 @@ For container based deployment models, this covers three things:
 
 ## Creating Containers
 
-There is an example `Dockerfile` and `package.json` in the `node-red-container` 
-directory. This will start with `nodered/node-red:latest` as it's base and then 
-add the required FlowForge components.
+There is an example `Dockerfile` and `package.json` in the [node-red-container](https://github.com/flowforge/docker-compose/tree/main/node-red-container) 
+directory of the [docker-compose](https://github.com/flowforge/docker-compose) project. This will start with `nodered/node-red:latest` 
+as it's base and then add the required FlowForge components.
 
 If you wanted to pin at Node-RED v2.2.2 you would change the first line to:
 
