@@ -125,17 +125,19 @@ module.exports = async function (app) {
             return
         }
 
-        if (bannedNameList.includes(request.body.name)) {
+        const name = request.body.name
+
+        if (bannedNameList.includes(name)) {
             reply.status(409).type('application/json').send({ err: 'name not allowed' })
             return
         }
-        if (await app.db.models.Project.count({ where: { name: request.body.name } }) !== 0) {
+        if (await app.db.models.Project.count({ where: { name: name } }) !== 0) {
             reply.status(409).type('application/json').send({ err: 'name in use' })
             return
         }
 
         const project = await app.db.models.Project.create({
-            name: request.body.name,
+            name: name,
             type: '',
             url: ''
         })
