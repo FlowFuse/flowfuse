@@ -14,8 +14,11 @@ module.exports = {
     // Is telemetry enabled?
     'telemetry:enabled': true,
 
-    // Can user's signup via the login page
+    // Can users signup via the login page
     'user:signup': false,
+
+    // Can users reset their password via the login page
+    'user:reset-password': false,
 
     // Can user's create their own teams
     'team:create': false,

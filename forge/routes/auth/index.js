@@ -330,7 +330,7 @@ module.exports = fp(async function (app, opts, done) {
         }
     })
 
-    app.post('/account/lostpassword', {
+    app.post('/account/forgot_password', {
         schema: {
             body: {
                 type: 'object',
@@ -341,48 +341,30 @@ module.exports = fp(async function (app, opts, done) {
             }
         }
     }, async (request, reply) => {
+        if (!app.settings.get('user:reset-password')) {
+            reply.code(400).send({ error: 'password reset not enabled' })
+            return
+        }
         const user = await app.db.models.User.byEmail(request.body.email)
         if (user) {
-            console.log(user.email)
             if (app.postoffice.enabled()) {
                 const token = await app.db.controllers.AccessToken.createTokenForPasswordReset(user)
                 app.postoffice.send(
                     user,
                     'PasswordReset',
                     {
-                        resetLink: `${app.config.base_url}/account/passwordreset/${token.token}`
+                        resetLink: `${app.config.base_url}/account/change-password/${token.token}`
                     }
                 )
+            } else {
+                reply.code(400).send({ status: 'error', message: 'Email not enabled - cannot reset password' })
+                return
             }
         }
         reply.code(200).send({})
     })
 
-    app.get('/account/passwordreset/:token', {
-
-    }, async (request, reply) => {
-        const token = await app.db.controllers.AccessToken.getOrExpire(request.params.token)
-        if (token) {
-            const user = await app.db.models.User.byId(token.ownerId)
-            if (user) {
-                const session = await app.db.controllers.Session.createUserSession(user.username)
-                if (session) {
-                    const cookieOptions = { ...SESSION_COOKIE_OPTIONS }
-                    reply.setCookie('sid', session.sid, cookieOptions)
-                    reply.redirect(303, app.config.base_url + '/passwordreset')
-                }
-            } else {
-                console.log('No User found')
-                reply.code(404).send('User not found')
-            }
-        } else {
-            // token not found or expired
-            reply.redirect(303, app.config.base_url + '/expiredreset')
-        }
-    })
-
-    app.post('/account/passwordreset', {
-        preHandler: verifySession,
+    app.post('/account/reset_password/:token', {
         schema: {
             body: {
                 type: 'object',
@@ -393,22 +375,34 @@ module.exports = fp(async function (app, opts, done) {
             }
         }
     }, async (request, reply) => {
-        await request.session.User.update({
-            password: request.body.password
-        })
-        // need to delete the AccessToken here
-        const token = await app.db.models.AccessToken.findOne({
-            where: {
-                ownerType: 'user',
-                ownerId: request.session.User.hashid
-            }
-        })
-        await token.destroy()
-        if (request.sid) {
-            await app.db.controllers.Session.deleteSession(request.sid)
+        if (!app.settings.get('user:reset-password')) {
+            reply.code(400).send({ error: 'password reset not enabled' })
+            return
         }
-        reply.clearCookie('sid')
-        reply.code(200).send({ url: app.config.base_url })
+
+        // We swallow all errors in this handler and always return 200
+        // This ensures we don't leak any information about valid/invalid requests
+
+        const token = await app.db.controllers.AccessToken.getOrExpirePasswordResetToken(request.params.token)
+        let success = false
+        if (token) {
+            // This is a valid password reset token
+            const user = await app.db.models.User.byId(token.ownerId)
+            if (user) {
+                try {
+                    await app.db.controllers.User.resetPassword(user, request.body.password)
+                    success = true
+                } catch (err) {
+                }
+            }
+            // We've used the one attempt to use this token - remove it
+            await token.destroy()
+        }
+        if (success) {
+            reply.code(200).send({})
+        } else {
+            reply.code(400).send({ status: 'error', message: 'Password reset failed' })
+        }
     })
 
     done()

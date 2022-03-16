@@ -9,11 +9,13 @@
                     </h2>
                 </div>
                 <form class="px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
-                    <FormRow id="reset_email" :error="errors.email" v-model="input.email">Email address</FormRow>
-                    <button type="button" @click="requestPasswordReset" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-900 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-700">
-                        Submit
-                    </button>
                     <div v-if="flash" v-text="flash" class="font-medium"></div>
+                    <template v-else>
+                        <FormRow id="reset_email" :error="errors.email" v-model="input.email">Email address</FormRow>
+                        <button type="button" @click="requestPasswordReset" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-900 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-700">
+                            Send reset link
+                        </button>
+                    </template>
                 </form>
             </template>
             <template v-else>
@@ -36,7 +38,7 @@ export default {
     data() {
         return {
             input: {
-                reset_email: ''
+                email: ''
             },
             errors: {
                 email: null
@@ -47,17 +49,16 @@ export default {
     methods: {
         requestPasswordReset() {
             this.errors.email = ''
-            if (this.input.email === '') {
+            if (this.input.email  === '') {
                 this.errors.email = 'Enter email address'
                 return false
             }
             userApi.requestPasswordReset({ email: this.input.email }).then(() => {
-                console.log('Done!')
                 // show message
-                this.flash = 'Request sent, check your email'
+                this.flash = 'We have sent you an email with instructions to reset your password'
             }).catch(e => {
-                this.errors.email = ''
-                console.log(e)
+               this.errors.email = ''
+               console.log(e)
             })
         },
         focusEmail() {

@@ -2,8 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import Home from '@/pages/Home.vue'
 import PageNotFound from '@/pages/PageNotFound'
-import PasswordRequest from '@/pages/PasswordRequest'
-import PasswordReset from '@/pages/PasswordReset'
 
 import AdminRoutes from '@/pages/admin/routes.js'
 import ProjectRoutes from '@/pages/project/routes.js'
@@ -24,19 +22,6 @@ const routes = [
     ...TeamRoutes,
     ...AdminRoutes,
     ...HelpRoutes,
-    {
-        path: '/passwordrequest',
-        name: 'PasswordRequest',
-        component: PasswordRequest,
-        meta: {
-            requiresLogin: false
-        }
-    },
-    {
-        path: '/passwordreset',
-        name: 'PasswordReset',
-        component: PasswordReset
-    },
     {
         path: '/:pathMatch(.*)*',
         name: 'PageNotFound',

@@ -1,4 +1,5 @@
 const { generateToken, sha256 } = require('../utils')
+const { Op } = require('sequelize')
 
 module.exports = {
     /**
@@ -22,7 +23,7 @@ module.exports = {
         return { token }
     },
     createTokenForPasswordReset: async function (app, user) {
-        const token = generateToken(32, 'fft')
+        const token = generateToken(32, 'ffpr')
         const expiresAt = new Date(Date.now() + (86400 * 1000))
         await app.db.models.AccessToken.create({
             token,
@@ -39,7 +40,28 @@ module.exports = {
      */
     getOrExpire: async function (app, token) {
         let accessToken = await app.db.models.AccessToken.findOne({
-            where: { token: sha256(token) }
+            where: {
+                token: sha256(token),
+                scope: {
+                    [Op.ne]: 'password:reset'
+                }
+            }
+        })
+        if (accessToken) {
+            if (accessToken.expiresAt && accessToken.expiresAt.getTime() < Date.now()) {
+                await accessToken.destroy()
+                accessToken = null
+            }
+        }
+        return accessToken
+    },
+
+    getOrExpirePasswordResetToken: async function (app, token) {
+        let accessToken = await app.db.models.AccessToken.findOne({
+            where: {
+                token: sha256(token),
+                scope: 'password:reset'
+            }
         })
         if (accessToken) {
             if (accessToken.expiresAt && accessToken.expiresAt.getTime() < Date.now()) {

@@ -18,8 +18,8 @@
                 Sign in
             </button>
 
-            <div v-if="settings['email']" class="mt-4 text-xs text-center">
-                <router-link class="font-medium text-indigo-600 hover:text-indigo-500" :to="{'name': 'PasswordRequest'}">Forgotten password</router-link>
+            <div v-if="settings['user:reset-password']" class="mt-4 text-xs text-center">
+                <router-link class="font-medium text-indigo-600 hover:text-indigo-500" :to="{'name': 'ForgotPassword'}">Forgot your password?</router-link>
             </div>
 
             <div v-if="settings['user:signup']" class="mt-4 text-xs text-center">
