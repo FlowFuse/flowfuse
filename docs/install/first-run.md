@@ -63,7 +63,7 @@ chosen deployment model.
 
 
  - [Local Stacks](./local/stacks.md)
- - Docker Stacks - *coming soon*
+ - [Docker Stacks](./docker/stacks.md)
  - Kubernetes Stacks - *coming soon*
 
 ### 2. Create a Project Template
