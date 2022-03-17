@@ -36,37 +36,30 @@
         </div>
     </div>
 
-
 </template>
 
 <script>
-import FormRow from '@/components/FormRow'
-import FormHeading from '@/components/FormHeading'
 import adminApi from '@/api/admin'
-import Breadcrumbs from '@/mixins/Breadcrumbs';
+import Breadcrumbs from '@/mixins/Breadcrumbs'
 
 export default {
     name: 'AdminSettingsGeneral',
-    mixins: [ Breadcrumbs ],
-    components: {
-        FormRow,
-        FormHeading
-    },
-    data: function() {
+    mixins: [Breadcrumbs],
+    data: function () {
         return {
             license: {},
-            stats: {},
+            stats: {}
         }
     },
-    async mounted() {
-        this.stats = await adminApi.getStats();
-        this.license = await adminApi.getLicenseDetails();
+    async mounted () {
+        this.stats = await adminApi.getStats()
+        this.license = await adminApi.getLicenseDetails()
     },
-    created() {
+    created () {
         this.setBreadcrumbs([
-            {label:"Admin", to:{name:"Admin Settings"}},
-            {label:"Overview"}
-        ]);
+            { label: 'Admin', to: { name: 'Admin Settings' } },
+            { label: 'Overview' }
+        ])
     }
 }
 </script>

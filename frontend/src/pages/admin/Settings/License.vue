@@ -58,7 +58,7 @@ export default {
         FormRow,
         FormHeading
     },
-    data() {
+    data () {
         return {
             license: null,
             inspectedLicense: null,
@@ -69,67 +69,67 @@ export default {
                 license: false
             },
             input: {
-                license: ""
+                license: ''
             }
         }
     },
-    async mounted() {
-        this.license = await adminApi.getLicenseDetails();
+    async mounted () {
+        this.license = await adminApi.getLicenseDetails()
     },
     computed: {
-        formValid() {
+        formValid () {
             return this.input.license.length > 0
         }
     },
     watch: {
-        'input.license': function() {
-            this.errors.license = null;
+        'input.license': function () {
+            this.errors.license = null
         }
     },
     methods: {
-        editLicense() {
-            this.input.license = "";
-            this.editing.license = true;
+        editLicense () {
+            this.input.license = ''
+            this.editing.license = true
             setTimeout(() => {
-                document.getElementById("license").focus()
-            },0)
+                document.getElementById('license').focus()
+            }, 0)
         },
-        async inspectLicense() {
+        async inspectLicense () {
             try {
                 this.inspectedLicense = await adminApi.updateLicense({
                     license: this.input.license,
-                    action: "inspect"
+                    action: 'inspect'
                 })
-            } catch(err) {
+            } catch (err) {
                 if (err.response && err.response.data && err.response.data.error) {
                     this.errors.license = err.response.data.error
                 } else {
-                    this.errors.license = "Error inspecting license"
+                    this.errors.license = 'Error inspecting license'
                 }
             }
         },
-        async applyLicense() {
+        async applyLicense () {
             try {
                 this.license = await adminApi.updateLicense({
                     license: this.input.license,
-                    action: "apply"
+                    action: 'apply'
                 })
-                this.$store.dispatch('account/refreshSettings');
-                this.cancelEditLicense();
-            } catch(err) {
-                console.log(err);
+                this.$store.dispatch('account/refreshSettings')
+                this.cancelEditLicense()
+            } catch (err) {
+                console.log(err)
                 if (err.response && err.response.data && err.response.data.error) {
                     this.errors.license = err.response.data.error
                 } else {
-                    this.errors.license = "Error applying license"
+                    this.errors.license = 'Error applying license'
                 }
             }
         },
-        cancelEditLicense() {
-            this.inspectedLicense = null;
+        cancelEditLicense () {
+            this.inspectedLicense = null
             this.editing.license = false
-            this.input.license = "";
-            this.errors.license = null;
+            this.input.license = ''
+            this.errors.license = null
         }
     }
 }

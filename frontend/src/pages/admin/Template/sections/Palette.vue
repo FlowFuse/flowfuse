@@ -35,15 +35,15 @@ import ChangeIndicator from '../components/ChangeIndicator'
 
 export default {
     name: 'AdminTemplatePalette',
-    props: [ 'editTemplate', 'modelValue' ],
-    data() {
+    props: ['editTemplate', 'modelValue'],
+    data () {
         return {
         }
     },
     computed: {
         editable: {
-            get() { return this.modelValue },
-            set(localValue) {this.$emit('update:modelValue', localValue)}
+            get () { return this.modelValue },
+            set (localValue) { this.$emit('update:modelValue', localValue) }
         }
     },
     components: {
@@ -51,6 +51,6 @@ export default {
         FormHeading,
         LockSetting,
         ChangeIndicator
-    },
+    }
 }
 </script>

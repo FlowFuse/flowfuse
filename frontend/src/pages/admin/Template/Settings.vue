@@ -16,14 +16,13 @@
         </FormRow>
         <TemplateSettingsEditor v-model="editableTemplate" :editTemplate="editTemplate" />
     </form>
-        
+
 </template>
 
 <script>
 
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
-import LockSetting from './components/LockSetting'
 import ChangeIndicator from './components/ChangeIndicator'
 import TemplateSettingsEditor from './sections/Editor'
 
@@ -32,16 +31,15 @@ export default {
     props: ['modelValue', 'editTemplate'],
     computed: {
         editableTemplate: {
-            get() { return this.modelValue },
-            set(localValue) {this.$emit('update:modelValue', localValue)}
+            get () { return this.modelValue },
+            set (localValue) { this.$emit('update:modelValue', localValue) }
         }
     },
     components: {
         FormRow,
         FormHeading,
-        LockSetting,
         ChangeIndicator,
         TemplateSettingsEditor
-    },
+    }
 }
 </script>

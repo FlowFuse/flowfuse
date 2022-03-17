@@ -9,33 +9,33 @@
 
 <script>
 import { mapState } from 'vuex'
-import Breadcrumbs from '@/mixins/Breadcrumbs';
-import SectionTopMenu from '@/components/SectionTopMenu';
+import Breadcrumbs from '@/mixins/Breadcrumbs'
+import SectionTopMenu from '@/components/SectionTopMenu'
 
 const navigation = [
-    { name: "Overview", path: "/admin/overview" },
-    { name: "Settings", path: "/admin/settings" },
-    { name: "Users", path: "/admin/users" },
-    { name: "Teams", path: "/admin/teams" },
-    { name: "Stacks", path: "/admin/stacks" },
-    { name: "Templates", path: "/admin/templates" }
+    { name: 'Overview', path: '/admin/overview' },
+    { name: 'Settings', path: '/admin/settings' },
+    { name: 'Users', path: '/admin/users' },
+    { name: 'Teams', path: '/admin/teams' },
+    { name: 'Stacks', path: '/admin/stacks' },
+    { name: 'Templates', path: '/admin/templates' }
 ]
 
 export default {
-    name: 'Admin',
-    mixins: [ Breadcrumbs ],
+    name: 'AdminPage',
+    mixins: [Breadcrumbs],
     computed: {
-        ...mapState('account',['user'])
+        ...mapState('account', ['user'])
     },
-    setup() {
+    setup () {
         return {
             navigation
         }
     },
-    created() {
+    created () {
         this.setBreadcrumbs([
-            {label:"Admin", to:{name:"Admin Settings"}}
-        ]);
+            { label: 'Admin', to: { name: 'Admin Settings' } }
+        ])
     },
     components: {
         SectionTopMenu

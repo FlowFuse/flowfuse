@@ -12,50 +12,47 @@
 import teamsApi from '@/api/teams'
 
 import ItemTable from '@/components/tables/ItemTable'
-import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
-import Breadcrumbs from '@/mixins/Breadcrumbs';
+import Breadcrumbs from '@/mixins/Breadcrumbs'
 
 import TeamCell from '@/components/tables/cells/TeamCell'
-import { markRaw } from "vue"
-
+import { markRaw } from 'vue'
 
 export default {
     name: 'AdminTeams',
-    mixins: [ Breadcrumbs ],
-    data() {
+    mixins: [Breadcrumbs],
+    data () {
         return {
             teams: [],
             loading: false,
             nextCursor: null,
             columns: [
-                {name: "Team", class: ['flex-grow'], component: { is: markRaw(TeamCell) }, link: true},
+                { name: 'Team', class: ['flex-grow'], component: { is: markRaw(TeamCell) }, link: true },
                 { name: '', class: ['font-mono', 'text-xs', 'text-gray-500'], property: 'id' },
-                {name: 'Members', class:['w-32','text-center'],property: 'memberCount'},
-                {name: 'Projects', class:['w-32','text-center'],property: 'projectCount'},
+                { name: 'Members', class: ['w-32', 'text-center'], property: 'memberCount' },
+                { name: 'Projects', class: ['w-32', 'text-center'], property: 'projectCount' }
             ]
         }
     },
-    async created() {
+    async created () {
         this.setBreadcrumbs([
-            {label:"Admin", to:{name:"Admin Settings"}},
-            {label:"Teams"}
-        ]);
+            { label: 'Admin', to: { name: 'Admin Settings' } },
+            { label: 'Teams' }
+        ])
         await this.loadItems()
     },
     methods: {
-        loadItems: async function() {
-            this.loading = true;
-            const result = await teamsApi.getTeams(this.nextCursor,30)
-            this.nextCursor = result.meta.next_cursor;
+        loadItems: async function () {
+            this.loading = true
+            const result = await teamsApi.getTeams(this.nextCursor, 30)
+            this.nextCursor = result.meta.next_cursor
             result.teams.forEach(v => {
-                this.teams.push(v);
+                this.teams.push(v)
             })
-            this.loading = false;
-        },
+            this.loading = false
+        }
     },
     components: {
-        FormRow,
         FormHeading,
         ItemTable
     }

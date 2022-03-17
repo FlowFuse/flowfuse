@@ -9,30 +9,30 @@
 
 <script>
 
-import Breadcrumbs from '@/mixins/Breadcrumbs';
+import Breadcrumbs from '@/mixins/Breadcrumbs'
 import SectionSideMenu from '@/components/SectionSideMenu'
 
 const sideNavigation = [
-    { name: "Users", path: "./general" },
-    { name: "Invitations", path: "./invitations" },
+    { name: 'Users', path: './general' },
+    { name: 'Invitations', path: './invitations' }
 ]
 
 export default {
     name: 'AdminUsers',
-    mixins: [ Breadcrumbs ],
-    setup() {
+    mixins: [Breadcrumbs],
+    setup () {
         return {
             sideNavigation
         }
     },
-    created() {
+    created () {
         this.setBreadcrumbs([
-            {label:"Admin", to:{name:"Admin Settings"}},
-            {label:"Users"}
-        ]);
+            { label: 'Admin', to: { name: 'Admin Settings' } },
+            { label: 'Users' }
+        ])
     },
     components: {
-        SectionSideMenu,
+        SectionSideMenu
     }
 }
 </script>

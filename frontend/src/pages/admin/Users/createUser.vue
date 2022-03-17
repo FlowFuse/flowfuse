@@ -32,15 +32,15 @@ import { mapState } from 'vuex'
 export default {
     name: 'AdminCreateUser',
     mixins: [Breadcrumbs],
-    data() {
+    data () {
         return {
             teams: [],
             input: {
-                name: "",
-                username: "",
-                email: "",
-                password: "",
-                password_confirm: "",
+                name: '',
+                username: '',
+                email: '',
+                password: '',
+                password_confirm: '',
                 isAdmin: false,
                 createDefaultTeam: true
             },
@@ -48,70 +48,68 @@ export default {
         }
     },
     computed: {
-        ...mapState('account',['settings'])
-    },
-    created() {
-        this.setBreadcrumbs([
-            {label:"Admin", to:{name:"Admin Settings"}},
-            {label:"Users", to:{path:"/admin/users"}},
-            {label:"Create a new user" }
-        ]);
-    },
-    watch: {
-        'input.username': function(v) {
-            if (v && !/^[a-z0-9-_]+$/i.test(v)) {
-                this.errors.username = "Must only contain a-z 0-9 - _"
-            } else {
-                this.errors.username = ""
-            }
-        },
-        'input.email': function(v) {
-            if (v && !/.+@.+/.test(v)) {
-                this.errors.email = "Enter a valid email address"
-            } else {
-                this.errors.email = ""
-            }
-        },
-        'input.password': function(v) {
-            if (this.errors.password && v.length >= 8) {
-                this.errors.password = ''
-            }
-        }
-    },
-    computed: {
-        formValid() {
+        ...mapState('account', ['settings']),
+        formValid () {
             return this.input.email &&
                    (this.input.username && !this.errors.username) &&
                    this.input.password === this.input.password_confirm
         }
     },
-    methods: {
-        checkPassword() {
-            if (this.input.password && this.input.password.length < 8) {
-                this.errors.password = "Password must be at least 8 characters"
+    created () {
+        this.setBreadcrumbs([
+            { label: 'Admin', to: { name: 'Admin Settings' } },
+            { label: 'Users', to: { path: '/admin/users' } },
+            { label: 'Create a new user' }
+        ])
+    },
+    watch: {
+        'input.username': function (v) {
+            if (v && !/^[a-z0-9-_]+$/i.test(v)) {
+                this.errors.username = 'Must only contain a-z 0-9 - _'
             } else {
-                this.errors.password = ""
+                this.errors.username = ''
             }
         },
-        createUser() {
-            let opts = { ...this.input, name: this.input.name || this.input.username }
-            delete opts.password_confirm;
+        'input.email': function (v) {
+            if (v && !/.+@.+/.test(v)) {
+                this.errors.email = 'Enter a valid email address'
+            } else {
+                this.errors.email = ''
+            }
+        },
+        'input.password': function (v) {
+            if (this.errors.password && v.length >= 8) {
+                this.errors.password = ''
+            }
+        }
+    },
+    methods: {
+        checkPassword () {
+            if (this.input.password && this.input.password.length < 8) {
+                this.errors.password = 'Password must be at least 8 characters'
+            } else {
+                this.errors.password = ''
+            }
+        },
+        createUser () {
+            const opts = { ...this.input, name: this.input.name || this.input.username }
+            delete opts.password_confirm
             usersApi.create(opts).then(result => {
-                this.$router.push({path:"/admin/users"})
+                this.$router.push({ path: '/admin/users' })
             }).catch(err => {
-                console.log(err.response.data);
+                console.log(err.response.data)
                 if (err.response.data) {
                     if (/username/.test(err.response.data.error)) {
-                        this.errors.username = "Username unavailable"
+                        this.errors.username = 'Username unavailable'
                     }
                     if (/password/.test(err.response.data.error)) {
-                        this.errors.password = "Invalid username"
+                        this.errors.password = 'Invalid username'
                     }
-                    if (err.response.data.error === "email must be unique") {
-                        this.errors.email = "Email already registered"
+                    if (err.response.data.error === 'email must be unique') {
+                        this.errors.email = 'Email already registered'
                     }
                 }
-            });
+            })
         }
     },
     components: {

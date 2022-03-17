@@ -8,33 +8,33 @@
 </template>
 
 <script>
-import Breadcrumbs from '@/mixins/Breadcrumbs';
+import Breadcrumbs from '@/mixins/Breadcrumbs'
 import SectionSideMenu from '@/components/SectionSideMenu'
 
 const sideNavigation = [
-    { name: "General", path: "./general" },
+    { name: 'General', path: './general' },
     // { name: "Permissions", path: "./permissions" },
-    { name: "License", path: "./license" },
-    { name: "Email", path: "./email" },
+    { name: 'License', path: './license' },
+    { name: 'Email', path: './email' }
 ]
 
 export default {
     name: 'AdminSettings',
-    mixins: [ Breadcrumbs ],
-    setup() {
+    mixins: [Breadcrumbs],
+    setup () {
         return {
             sideNavigation
         }
     },
-    data() {
+    data () {
         return {
         }
     },
-    created() {
+    created () {
         this.setBreadcrumbs([
-            {label:"Admin", to:{name:"Admin Settings"}},
-            {label:"Settings"}
-        ]);
+            { label: 'Admin', to: { name: 'Admin Settings' } },
+            { label: 'Settings' }
+        ])
     },
     components: {
         SectionSideMenu
