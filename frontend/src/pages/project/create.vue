@@ -72,13 +72,13 @@ export default {
         }
     },
     computed: {
-        createEnabled: function() {
+        createEnabled: function () {
             return this.input.stack && this.input.team && this.input.name && !this.errors.name && this.input.template
         }
     },
     watch: {
-        'input.name': function(value, oldValue) {
-            if (/^[a-z0-9\-]+$/.test(value)) {
+        'input.name': function (value, oldValue) {
+            if (/^[a-z0-9-]+$/.test(value)) {
                 this.errors.name = ''
             } else {
                 this.errors.name = 'Names can include a-z, 0-9 & - with no spaces'
@@ -143,7 +143,7 @@ export default {
                 if (err.response.status === 409) {
                     this.errors.name = err.response.data.err
                 }
-            });
+            })
         },
         refreshName () {
             this.input.name = NameGenerator()

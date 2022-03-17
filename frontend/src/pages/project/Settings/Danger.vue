@@ -22,29 +22,25 @@
 
 <script>
 import projectApi from '@/api/project'
-import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
 import ConfirmProjectDeleteDialog from './dialogs/ConfirmProjectDeleteDialog'
 
-
 export default {
     name: 'ProjectSettingsDanger',
-
-    props:[ "project" ],
+    props: ['project'],
     methods: {
-        showConfirmDeleteDialog() {
-            this.$refs.confirmProjectDeleteDialog.show(this.project);
+        showConfirmDeleteDialog () {
+            this.$refs.confirmProjectDeleteDialog.show(this.project)
         },
-        deleteProject() {
+        deleteProject () {
             projectApi.deleteProject(this.project.id).then(() => {
-                this.$router.push( { name: 'Home' });
+                this.$router.push({ name: 'Home' })
             }).catch(err => {
-                console.warn(err);
+                console.warn(err)
             })
         }
     },
     components: {
-        FormRow,
         FormHeading,
         ConfirmProjectDeleteDialog
     }

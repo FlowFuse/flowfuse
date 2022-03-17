@@ -8,10 +8,10 @@ import AuditLog from '@/components/AuditLog'
 
 export default {
     name: 'ProjectAuditLog',
-    props:[ "project" ],
+    props: ['project'],
     methods: {
-        loadItems: async function(projectId,cursor) {
-            return await projectApi.getProjectAuditLog(projectId,cursor);
+        loadItems: async function (projectId, cursor) {
+            return await projectApi.getProjectAuditLog(projectId, cursor)
         }
     },
     components: {
