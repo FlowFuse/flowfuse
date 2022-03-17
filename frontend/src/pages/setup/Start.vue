@@ -9,19 +9,12 @@
 </template>
 
 <script>
-import FormHeading from "@/components/FormHeading.vue"
-import FormRow from "@/components/FormRow.vue"
-
 export default {
     name: 'SetupFinal',
     methods: {
-        done() {
+        done () {
             this.$emit('next')
-        },
-    },
-    components: {
-        FormHeading,
-        FormRow
+        }
     }
 }
 </script>

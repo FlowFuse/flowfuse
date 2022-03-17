@@ -26,36 +26,37 @@
 
 <script>
 import httpClient from '@/api/client'
-import FormHeading from "@/components/FormHeading.vue"
-import FormRow from "@/components/FormRow.vue"
+import FormHeading from '@/components/FormHeading.vue'
+import FormRow from '@/components/FormRow.vue'
 
 export default {
     name: 'SetupLicense',
     props: ['state'],
-    data() {
+    data () {
         return {
             input: {
-                license: "",
+                license: ''
             },
             errors: {}
         }
     },
     computed: {
-        formValid() {
+        formValid () {
             return !!this.input.license
         }
     },
     methods: {
-        next() {
-            this.$emit('next');
+        next () {
+            this.$emit('next')
         },
-        addLicense() {
-            let opts = { _csrf: SETUP_CSRF_TOKEN, ...this.input }
-            return httpClient.post(`/setup/add-license`, opts).then(res => {
+        addLicense () {
+            // eslint-disable-next-line no-undef
+            const opts = { _csrf: SETUP_CSRF_TOKEN, ...this.input }
+            return httpClient.post('/setup/add-license', opts).then(res => {
                 this.$emit('next')
             }).catch(err => {
                 this.errors.license = err.response.data.error
-            });
+            })
         }
     },
     components: {
