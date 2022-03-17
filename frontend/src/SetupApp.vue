@@ -19,14 +19,14 @@
 
 <script>
 import httpClient from '@/api/client'
-import { markRaw } from "vue"
-import PageFooter from "@/components/PageFooter"
-import Logo from "@/components/Logo"
-import Start from "@/pages/setup/Start"
-import Options from "@/pages/setup/Options"
-import CreateAdminUser from "@/pages/setup/CreateAdminUser"
-import License from "@/pages/setup/License"
-import Final from "@/pages/setup/Final"
+import { markRaw } from 'vue'
+import PageFooter from '@/components/PageFooter'
+import Logo from '@/components/Logo'
+import Start from '@/pages/setup/Start'
+import Options from '@/pages/setup/Options'
+import CreateAdminUser from '@/pages/setup/CreateAdminUser'
+import License from '@/pages/setup/License'
+import Final from '@/pages/setup/Final'
 
 // To add more views in the setup dialogs, add them to this list.
 // Just make sure 'Final' is the last one.
@@ -35,22 +35,22 @@ const views = [
     CreateAdminUser,
     License,
     Options,
-    Final,
+    Final
 ]
 export default {
     name: 'SetupApp',
-    data() {
+    data () {
         return {
             step: 0,
             views: markRaw(views),
             state: {}
         }
     },
-    async mounted() {
-        this.state = (await httpClient.get("/setup/status")).data;
+    async mounted () {
+        this.state = (await httpClient.get('/setup/status')).data
     },
     methods: {
-        next() {
+        next () {
             this.step++
         }
     },

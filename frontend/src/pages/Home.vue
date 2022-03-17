@@ -21,7 +21,7 @@ import NoVerifiedEmail from './account/NoVerifiedEmail'
 import Breadcrumbs from '@/mixins/Breadcrumbs'
 
 export default {
-    name: 'Home',
+    name: 'HomePage',
     mixins: [Breadcrumbs],
     computed: {
         ...mapState('account', ['pending', 'user', 'team', 'teams'])

@@ -16,18 +16,16 @@
 
 <script>
 import { mapState } from 'vuex'
-import Logo from "@/components/Logo"
-import UpdateExpiredPassword from "@/components/auth/UpdateExpiredPassword"
-import { LockClosedIcon } from '@heroicons/vue/outline'
+import Logo from '@/components/Logo'
+import UpdateExpiredPassword from '@/components/auth/UpdateExpiredPassword'
 
 export default {
-    name: "PasswordExpired",
+    name: 'PasswordExpired',
     methods: {
     },
-    computed:mapState('account',['user']),
+    computed: mapState('account', ['user']),
     components: {
         Logo,
-        LockClosedIcon,
         UpdateExpiredPassword
     }
 }
