@@ -1,3 +1,31 @@
+#### 0.3.0: Release
+
+ - Round down to whole seconds (#375) @hardillb
+ - Add Validation to project names (#350) @hardillb
+ - Add stack/template info to docs (#369) @knolleary
+ - Fix getter for Project.url (#373) @hardillb
+ - Add id column (styled subtly as to not distract) (#367) @joepavitt
+ - Update license to cover EE components (#368) @knolleary
+ - Implement password reset (#365) @hardillb
+ - Add production license keys (#364) @knolleary
+ - Link button to the teamApi removeteamInvitation method (#361) @joepavitt
+ - Introduce Project Templates (#352) @knolleary
+ - Update link params for Team object (#360) @joepavitt
+ - Fix migrations with PostgreSQL (#358) @hardillb
+ - 347 block project rename (#356) @joepavitt
+ - Frontend Billing (#346) @joepavitt
+ - Backend billing (#332) @hardillb
+ - Add initial Project Stacks (#326) @knolleary
+ - Allow logging level to be changed (#344) @hardillb
+ - Signup flows (#336) @knolleary
+ - Do proper check for valid invite on user registration (#335) @knolleary
+ - default to "overview" of navigated to team. (#329) @joepavitt
+ - Implement Container driver wrapper (#327) @hardillb
+ - update favicon to match website (#328) @joepavitt
+ - Update package-lock.json (#321) @hardillb
+ - Automate npm publish on release (#322) @hardillb
+ - Add instructions to upgrade from v0.1.0 to v0.2.0 (#320) @hardillb
+
 #### 0.2.0: Release
 
  - Email Docs (#205)
