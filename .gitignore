@@ -9,4 +9,4 @@ docs/jsdoc
 .DS_Store
 
 *.env
-*.env.local
+*.env.localpackage-lock.json
