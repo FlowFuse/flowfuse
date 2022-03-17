@@ -5,10 +5,10 @@
 import { RoleNames } from '@core/lib/roles'
 
 export default {
-    name: "UserRoleCell",
+    name: 'UserRoleCell',
     props: ['role'],
     methods: {
-        formatRole: r => RoleNames[r]||"unknown"
+        formatRole: r => RoleNames[r] || 'unknown'
     }
 }
 </script>

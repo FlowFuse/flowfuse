@@ -6,7 +6,7 @@
                     <router-link to="/" class="forge-button-inline px-2 flex items-center mr-2">
                         <HomeIcon class="h-5 w-5 my-1" aria-hidden="true" />
                     </router-link>
-                    <Breadcrumbs />
+                    <NavBreadcrumbs />
                 </div>
 
                 <div class="hidden md:block flex-none">
@@ -39,6 +39,7 @@
                         <a :href="item.link" target="_blank" :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm text-gray-700',...(item.class||[])]">
                             <component v-if="item.icon" class="w-4 inline" :is="item.icon"></component>
                             <img v-if="item.imgUrl" :src="item.imgUrl" class="h-4 v-4 inline rounded mr-1"/>
+                            <img v-if="item.imgUrl" :src="item.imgUrl" class="h-4 v-4 inline rounded mr-1"/>
                             {{ item.name }}
                         </a>
                     </template>
@@ -55,50 +56,50 @@
     </Disclosure>
 </template>
 <script>
-import { ref } from "vue"
+import { ref } from 'vue'
 import { mapState } from 'vuex'
-import router from "@/routes"
-import Logo from "@/components/Logo"
-import DropdownMenu from "@/components/DropdownMenu"
-import Breadcrumbs from "@/components/Breadcrumbs"
+import router from '@/routes'
+import FlowForgeLogo from '@/components/Logo'
+import DropdownMenu from '@/components/DropdownMenu'
+import NavBreadcrumbs from '@/components/Breadcrumbs'
 
-import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
+import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue'
 import { MenuIcon, XIcon, HomeIcon, ChevronRightIcon } from '@heroicons/vue/outline'
 
 const navigation = router.options.routes.filter(r => r.navigationLink)
 export default {
-  name: "Navbar",
-  computed: {
-      profile: function() {
-          let profileLinks = router.options.routes.filter(r => {
-              return r.profileLink && (!r.adminOnly || this.user.admin)
-          })
-          profileLinks.sort((A,B) => {
-              return (A.profileMenuIndex||0)-(B.profileMenuIndex||0)
-          })
-          return profileLinks
-      },
-      ...mapState('account',['user','team','teams']),
-  },
-  components: {
-      Logo,
-      DropdownMenu,
-      Disclosure,
-      DisclosureButton,
-      DisclosurePanel,
-      MenuIcon,
-      XIcon,
-      HomeIcon,
-      ChevronRightIcon,
-      Breadcrumbs
-  },
-  setup() {
-      const open = ref(false)
-      return {
-          open,
-          navigation
-      }
-  }
-};
+    name: 'Navbar',
+    computed: {
+        profile: function () {
+            const profileLinks = router.options.routes.filter(r => {
+                return r.profileLink && (!r.adminOnly || this.user.admin)
+            })
+            profileLinks.sort((A, B) => {
+                return (A.profileMenuIndex || 0) - (B.profileMenuIndex || 0)
+            })
+            return profileLinks
+        },
+        ...mapState('account', ['user', 'team', 'teams'])
+    },
+    components: {
+        FlowForgeLogo,
+        DropdownMenu,
+        Disclosure,
+        DisclosureButton,
+        DisclosurePanel,
+        MenuIcon,
+        XIcon,
+        HomeIcon,
+        ChevronRightIcon,
+        NavBreadcrumbs
+    },
+    setup () {
+        const open = ref(false)
+        return {
+            open,
+            navigation
+        }
+    }
+}
 
 </script>

@@ -1,7 +1,7 @@
 <template>
     <template v-if="pending">
         <div class="flex-grow flex flex-col items-center justify-center mx-auto text-gray-600 opacity-50">
-            <Logo class="max-w-xs mx-auto w-full"/>
+            <FlowForgeLogo class="max-w-xs mx-auto w-full"/>
         </div>
     </template>
     <template v-if="!user.email_verified">
@@ -15,7 +15,7 @@
 <script>
 
 import { mapState } from 'vuex'
-import Logo from '@/components/Logo'
+import FlowForgeLogo from '@/components/Logo'
 import NoTeamsUser from './account/NoTeamsUser'
 import NoVerifiedEmail from './account/NoVerifiedEmail'
 import Breadcrumbs from '@/mixins/Breadcrumbs'
@@ -62,7 +62,7 @@ export default {
         }
     },
     components: {
-        Logo,
+        FlowForgeLogo,
         NoTeamsUser,
         NoVerifiedEmail
     }

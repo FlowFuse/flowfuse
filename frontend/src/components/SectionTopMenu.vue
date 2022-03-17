@@ -5,7 +5,7 @@
                 <slot name="hero"></slot>
             </li>
         </template>
-        <template v-for="(item, itemIdx) in options" :key="item.name">
+        <template v-for="item in options" :key="item.name">
             <li class="mr-8 pt-1 flex">
                 <router-link :to="item.path" class="forge-nav-item" active-class="forge-nav-item-active">{{ item.name }}</router-link>
             </li>
@@ -18,12 +18,12 @@
     </ul>
 </template>
 <script>
-import {ref} from "vue";
+import { ref } from 'vue'
 
 export default {
-    name: "SectionTopMenu",
+    name: 'SectionTopMenu',
     props: ['options'],
-    setup(props, {slots}) {
+    setup (props, { slots }) {
         const hasHero = ref(false)
         const hasTools = ref(false)
         if (slots.hero && slots.hero().length) {
@@ -37,6 +37,6 @@ export default {
             hasTools
         }
     }
-};
+}
 
 </script>

@@ -19,13 +19,13 @@ import { LockClosedIcon } from '@heroicons/vue/outline'
 import userApi from '@/api/user'
 
 export default {
-    name: "UpdateExpiredPassword",
-    computed:mapState('account',['loginError']),
-    data() {
+    name: 'UpdateExpiredPassword',
+    computed: mapState('account', ['loginError']),
+    data () {
         return {
             input: {
-                username: "",
-                password: "",
+                username: '',
+                password: '',
                 remember: false
             },
             errors: {
@@ -35,53 +35,53 @@ export default {
         }
     },
     methods: {
-        changePassword() {
-            this.errors.old_password = "";
-            this.errors.password = "";
-            this.errors.password_confirm = "";
-            this.errors.password_change = "";
+        changePassword () {
+            this.errors.old_password = ''
+            this.errors.password = ''
+            this.errors.password_confirm = ''
+            this.errors.password_change = ''
 
-            if (this.input.old_password === "") {
-                this.errors.old_password = "Enter your current password"
+            if (this.input.old_password === '') {
+                this.errors.old_password = 'Enter your current password'
                 return false
             }
-            if (this.input.password === "") {
-                this.errors.password = "Enter a new password"
+            if (this.input.password === '') {
+                this.errors.password = 'Enter a new password'
                 return false
             }
             if (this.input.password.length < 8) {
-                this.errors.password = "Password too short"
+                this.errors.password = 'Password too short'
                 return false
             }
             if (this.input.password !== this.input.password_confirm) {
-                this.errors.password_confirm = "Passwords do not match"
+                this.errors.password_confirm = 'Passwords do not match'
                 return false
             }
             userApi.changePassword(this.input.old_password, this.input.password).then(() => {
-                console.log("DONE!")
-                this.$store.dispatch('account/checkState');
+                console.log('DONE!')
+                this.$store.dispatch('account/checkState')
             }).catch(e => {
-                this.errors.password_change = "Password change failed"
-                console.log(e);
+                this.errors.password_change = 'Password change failed'
+                console.log(e)
             })
         },
-        focusOldPassword() {
-            document.getElementById("old_password").focus();
+        focusOldPassword () {
+            document.getElementById('old_password').focus()
         },
-        focusPassword() {
-            document.getElementById("password").focus();
+        focusPassword () {
+            document.getElementById('password').focus()
         },
-        focusConfirmPassword() {
-            document.getElementById("password_confirm").focus();
+        focusConfirmPassword () {
+            document.getElementById('password_confirm').focus()
         }
     },
-    mounted() {
-        this.focusOldPassword();
+    mounted () {
+        this.focusOldPassword()
     },
     watch: {
-        loginError(newError, oldError) {
-            this.focusOldPassword();
-            this.errors.username = "Login failed"
+        loginError (newError, oldError) {
+            this.focusOldPassword()
+            this.errors.username = 'Login failed'
         }
     },
     components: {
