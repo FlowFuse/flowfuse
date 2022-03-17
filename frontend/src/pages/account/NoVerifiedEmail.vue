@@ -2,7 +2,7 @@
     <div class="forge-block flex flex-col justify-center">
         <div class="sm:max-w-xl mx-auto w-full space-y-2">
             <div class="max-w-xs mx-auto w-full mb-4">
-                <Logo/>
+                <FlowForgeLogo/>
                 <h2 class="mt-2 text-center text-3xl font-bold text-gray-900">
                     <span>FLOW</span><span class="font-light">FORGE</span>
                 </h2>
@@ -23,31 +23,29 @@
 
 import { mapState } from 'vuex'
 import userApi from '@/api/user'
-import Logo from "@/components/Logo"
-import FormRow from '@/components/FormRow'
+import FlowForgeLogo from '@/components/Logo'
 
 export default {
     name: 'NoTeamsUser',
     computed: {
-        ...mapState('account',['user']),
+        ...mapState('account', ['user'])
     },
-    data() {
+    data () {
         return {
-            code: "",
+            code: '',
             sent: false
         }
     },
     methods: {
-        async resend() {
+        async resend () {
             if (!this.sent) {
-                this.sent = true;
+                this.sent = true
                 await userApi.triggerVerification()
             }
         }
     },
     components: {
-        Logo,
-        FormRow
+        FlowForgeLogo
     }
 }
 </script>

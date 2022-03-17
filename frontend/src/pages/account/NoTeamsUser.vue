@@ -2,7 +2,7 @@
     <div class="forge-block flex flex-col justify-center">
         <div class="sm:max-w-xl mx-auto w-full space-y-2">
             <div class="max-w-xs mx-auto w-full mb-4">
-                <Logo/>
+                <FlowForgeLogo/>
                 <h2 class="mt-2 text-center text-3xl font-bold text-gray-900">
                     <span>FLOW</span><span class="font-light">FORGE</span>
                 </h2>
@@ -29,32 +29,32 @@
 
 import userApi from '@/api/user'
 import { mapState } from 'vuex'
-import Logo from "@/components/Logo"
+import FlowForgeLogo from '@/components/Logo'
 import { InboxInIcon, UserGroupIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'NoTeamsUser',
     components: {
-        Logo,
+        FlowForgeLogo,
         UserGroupIcon,
         InboxInIcon
     },
     computed: {
-        ...mapState('account',['settings','user']),
+        ...mapState('account', ['settings', 'user'])
     },
-    data() {
+    data () {
         return {
             invitationCount: 0
         }
     },
-    mounted() {
+    mounted () {
         this.fetchData()
     },
     methods: {
         async fetchData () {
             const invitations = await userApi.getTeamInvitations()
-            this.invitationCount = invitations.count;
+            this.invitationCount = invitations.count
         }
-    },
+    }
 }
 </script>

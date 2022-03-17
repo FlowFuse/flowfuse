@@ -13,7 +13,6 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
 import userApi from '@/api/user'
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
@@ -21,44 +20,43 @@ import FormHeading from '@/components/FormHeading'
 export default {
     name: 'AccountSecurityChangePassword',
 
-    data() {
-        const currentUser = this.$store.getters['account/user'];
+    data () {
         return {
             changeComplete: false,
             errors: {
-                old_password: "",
-                password: "",
-                password_confirm: "",
-                password_change: ""
+                old_password: '',
+                password: '',
+                password_confirm: '',
+                password_change: ''
             },
             input: {
-                old_password: "",
-                password: "",
-                password_confirm: ""
+                old_password: '',
+                password: '',
+                password_confirm: ''
             }
         }
     },
     methods: {
-        changePassword() {
-            this.errors.old_password = "";
-            this.errors.password = "";
-            this.errors.password_confirm = "";
-            this.errors.password_change = "";
+        changePassword () {
+            this.errors.old_password = ''
+            this.errors.password = ''
+            this.errors.password_confirm = ''
+            this.errors.password_change = ''
 
-            if (this.input.old_password === "") {
-                this.errors.old_password = "Enter your current password"
+            if (this.input.old_password === '') {
+                this.errors.old_password = 'Enter your current password'
                 return false
             }
-            if (this.input.password === "") {
-                this.errors.password = "Enter a new password"
+            if (this.input.password === '') {
+                this.errors.password = 'Enter a new password'
                 return false
             }
             if (this.input.password.length < 8) {
-                this.errors.password = "Password too short"
+                this.errors.password = 'Password too short'
                 return false
             }
             if (this.input.password !== this.input.password_confirm) {
-                this.errors.password_confirm = "Passwords do not match"
+                this.errors.password_confirm = 'Passwords do not match'
                 return false
             }
             userApi.changePassword(this.input.old_password, this.input.password).then(() => {
@@ -68,8 +66,8 @@ export default {
                 this.changeComplete = true
             }).catch(e => {
                 this.changeComplete = false
-                this.errors.password_change = "Password change failed"
-                console.log(e);
+                this.errors.password_change = 'Password change failed'
+                console.log(e)
             })
         }
     },

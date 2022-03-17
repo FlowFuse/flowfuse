@@ -22,13 +22,13 @@ export default {
         SectionSideMenu
     },
     computed: {
-        ...mapState('account',['user','teams']),
+        ...mapState('account', ['user', 'teams'])
     },
-    data() {
+    data () {
         return {
             sideNavigation: [
-                { name: "Teams", path: "/account/teams" },
-                { name: "Invitations", path: "/account/teams/invitations" }
+                { name: 'Teams', path: '/account/teams' },
+                { name: 'Invitations', path: '/account/teams/invitations' }
             ]
         }
     }
