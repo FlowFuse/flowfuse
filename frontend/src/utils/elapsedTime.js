@@ -38,7 +38,7 @@ export default function (delta) {
         delta = delta % MINUTE
     }
 
-    periods.seconds = delta
+    periods.seconds = Math.floor(delta)
 
     const parts = []
     let fineGrained = true
