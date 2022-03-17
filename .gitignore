@@ -10,3 +10,4 @@ docs/jsdoc
 
 *.env
 *.env.local
+.vscode/settings.json
