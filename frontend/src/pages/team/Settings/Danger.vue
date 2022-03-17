@@ -14,56 +14,54 @@
 <script>
 import teamApi from '@/api/team'
 
-import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
 import ConfirmTeamDeleteDialog from '../dialogs/ConfirmTeamDeleteDialog'
 
 export default {
     name: 'TeamSettingsDanger',
-    props:[ "team" ],
-    data() {
+    props: ['team'],
+    data () {
         return {
-            deleteDescription: "",
             projectCount: -1
         }
     },
     computed: {
-        deleteActive() {
+        deleteActive () {
+            return this.projectCount === 0
+        },
+        deleteDescription () {
             if (this.projectCount > 0) {
-                this.deleteDescription = "You cannot delete a team that still owns projects." //" You must either transfer them to other teams or delete the projects."
-                return false
-            } else if (this.projectCount === 0){
-                this.deleteDescription = "Deleting the team cannot be undone. Take care.";
-                return true
+                return 'You cannot delete a team that still owns projects.'
+            } else {
+                return 'Deleting the team cannot be undone. Take care.'
             }
         }
     },
     watch: {
-         team: 'fetchData'
+        team: 'fetchData'
     },
-    mounted() {
+    mounted () {
         this.fetchData()
     },
     methods: {
-        showConfirmDeleteDialog() {
-            this.$refs.confirmTeamDeleteDialog.show(this.team);
+        showConfirmDeleteDialog () {
+            this.$refs.confirmTeamDeleteDialog.show(this.team)
         },
-        deleteTeam() {
+        deleteTeam () {
             teamApi.deleteTeam(this.team.id).then(() => {
-                this.$store.dispatch('account/checkState',"/");
+                this.$store.dispatch('account/checkState', '/')
             }).catch(err => {
-                console.warn(err);
+                console.warn(err)
             })
         },
         async fetchData () {
             if (this.team.id) {
-                const data = await teamApi.getTeamProjects(this.team.id);
-                this.projectCount = data.count;
+                const data = await teamApi.getTeamProjects(this.team.id)
+                this.projectCount = data.count
             }
         }
     },
     components: {
-        FormRow,
         FormHeading,
         ConfirmTeamDeleteDialog
     }

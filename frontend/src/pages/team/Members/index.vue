@@ -17,28 +17,28 @@ import { Roles } from '@core/lib/roles'
 // ]
 export default {
     name: 'TeamUsers',
-    props:[ "team", "teamMembership" ],
+    props: ['team', 'teamMembership'],
     components: {
         SectionSideMenu
     },
-    data: function() {
+    data: function () {
         return {
             sideNavigation: []
         }
     },
     watch: {
-         teamMembership: 'checkAccess'
+        teamMembership: 'checkAccess'
     },
-    mounted() {
+    mounted () {
         this.checkAccess()
     },
     methods: {
-        checkAccess: async function() {
+        checkAccess: async function () {
             this.sideNavigation = [
-                { name: "Members", path: "./general" }
+                { name: 'Members', path: './general' }
             ]
             if (this.teamMembership && this.teamMembership.role === Roles.Owner) {
-                this.sideNavigation.push({ name: "Invitations", path: "./invitations" })
+                this.sideNavigation.push({ name: 'Invitations', path: './invitations' })
             }
         }
     }

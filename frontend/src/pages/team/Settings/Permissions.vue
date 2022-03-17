@@ -10,18 +10,17 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
 
 export default {
     name: 'TeamSettingsPermissions',
-    props:[ "team" ],
-    data() {
+    props: ['team'],
+    data () {
         return {
             input: {
                 allowMembers: false
-            },
+            }
         }
     },
     components: {

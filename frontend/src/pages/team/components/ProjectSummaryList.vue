@@ -1,7 +1,7 @@
 <template>
     <div class="grid md:grid-cols-2 gap-2">
         <template v-if="projects && projects.length > 0">
-            <div class="forge-button-tertiary text-xs" v-for="project in projects">
+            <div class="forge-button-tertiary text-xs" v-for="project in projects" :key="project.id">
                 <router-link :to="`/project/${project.id}`" class="px-1 py-1 flex w-full">
                     <div class="flex-grow">
                         <div class="flex items-center mt-2">
@@ -35,13 +35,13 @@
 </template>
 
 <script>
-import ProjectStatusBadge from "@/pages/project/components/ProjectStatusBadge"
-import CreateProjectButton from "@/components/CreateProjectButton"
+import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
+import CreateProjectButton from '@/components/CreateProjectButton'
 import { PlusSmIcon, ChevronRightIcon, ExternalLinkIcon, TemplateIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'MemberProjectSummaryList',
-    props:[ "projects", "team" ],
+    props: ['projects', 'team'],
     components: {
         ProjectStatusBadge,
 
@@ -49,7 +49,7 @@ export default {
         ChevronRightIcon,
         CreateProjectButton,
         PlusSmIcon,
-        TemplateIcon,
+        TemplateIcon
     }
 }
 </script>

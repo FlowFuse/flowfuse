@@ -29,7 +29,7 @@ import { mapState } from 'vuex'
 import { Roles } from '@core/lib/roles'
 
 export default {
-    name: 'Team',
+    name: 'TeamPage',
     mixins: [Breadcrumbs],
     computed: {
         ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange']),

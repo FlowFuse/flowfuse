@@ -1,6 +1,6 @@
 <template>
     <ul>
-        <li class="mb-2 text-xs" v-for="user in users">
+        <li class="mb-2 text-xs" v-for="user in users" :key="user.id">
             <UserCell v-bind="user" />
         </li>
     </ul>
@@ -8,11 +8,11 @@
 
 <script>
 
-import UserCell from "@/components/tables/cells/UserCell"
+import UserCell from '@/components/tables/cells/UserCell'
 
 export default {
     name: 'MemberSummaryList',
-    props:[ "users" ],
+    props: ['users'],
     components: {
         UserCell
     }
