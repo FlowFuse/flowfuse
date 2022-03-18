@@ -1,19 +1,10 @@
 <template>
     <form class="space-y-6">
-
-        <!-- <FormHeading class="text-red-700">Transfer Project</FormHeading>
-        <div class="flex">
-            <div class="max-w-sm pr-2">Transfer this project to another team. You must be a member of the destination team</div>
-            <div class="pl-2">
-                <button type="button" class="forge-button-danger">Transfer Project</button>
-            </div>
-        </div> -->
-
         <FormHeading class="text-red-700">Delete Project</FormHeading>
         <div class="flex">
             <div class="max-w-sm pr-2">Once deleted, your project is gone. This cannot be undone.</div>
             <div class="pl-2">
-                <button type="button" class="forge-button-danger" @click="showConfirmDeleteDialog" >Delete Project</button>
+                <ff-button kind="danger" @click="showConfirmDeleteDialog()">Delete Project</ff-button>
                 <ConfirmProjectDeleteDialog @deleteProject="deleteProject" ref="confirmProjectDeleteDialog"/>
             </div>
         </div>

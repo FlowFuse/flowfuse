@@ -12,19 +12,23 @@
                 <div v-if="editing.teamName">
                     <span class="text-red-700">Warning:</span>
                     Changing this will modify all urls used to access the team.
-                    The platform will not redirect requests to the old url.<br/>
-                    <code>/team/&lt;slug&gt;</code>
+                    The platform will not redirect requests to the old url.
+                    <br/>
+                    <br/>
+                    <pre>/team/&lt;slug&gt;</pre>
                 </div>
             </template>
         </FormRow>
 
         <div class="space-x-4 whitespace-nowrap">
             <template v-if="!editing.teamName">
-                <button type="button" class="forge-button forge-button-small" @click="editName">Edit team settings</button>
+                <ff-button kind="primary" size="small" @click="editName">Edit team settings</ff-button>
             </template>
             <template v-else>
-                <button type="button" class="forge-button-tertiary forge-button-small" @click="cancelEditName">Cancel</button>
-                <button type="button" :disabled="!formValid" class="forge-button forge-button-small" @click="saveEditName">Save team settings</button>
+                <div class="flex gap-x-3">
+                    <ff-button kind="secondary" size="small" @click="cancelEditName">Cancel</ff-button>
+                    <ff-button kind="primary" size="small" :disabled="!formValid" @click="saveEditName">Save team settings</ff-button>
+                </div>
             </template>
         </div>
 

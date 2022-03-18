@@ -1,5 +1,5 @@
 <template>
-    <form class="space-y-4">
+    <div class="space-y-4">
         <FormHeading>Users</FormHeading>
         <FormRow v-model="input['user:signup']" type="checkbox"  :error="errors.requiresEmail" :disabled="errors.requiresEmail">
             Allow new users to register on the login screen
@@ -53,10 +53,10 @@
             </template>
         </FormRow>
         <div>
-            <button type="button" :disabled="!saveEnabled" class="forge-button forge-button-small" @click="saveChanges">Save settings</button>
+            <ff-button :disabled="!saveEnabled" @click="saveChanges">Save settings</ff-button>
         </div>
 
-    </form>
+    </div>
 </template>
 
 <script>

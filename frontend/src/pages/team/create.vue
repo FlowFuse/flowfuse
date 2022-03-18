@@ -18,18 +18,18 @@
                     </template>
                 </FormRow>
 
-                <button type="button" :disabled="!formValid" @click="createTeam" class="forge-button">
+                <ff-button :disabled="!formValid" @click="createTeam()">
                     Create team
-                </button>
+                </ff-button>
             </form>
             <form v-else>
                 <h3 class="font-bold">New Team: {{ team ? team.name : '' }}</h3>
                 <p class="text-sm mt-3">You are about to proceed to Stripe, our payment provider, in order to setup the relevant billing details.</p>
                 <p class="text-sm mt-2">You will only be charged for each project when you create it.</p>
                 <div class="mt-3">
-                    <button type="button" class="forge-button" @click="customerPortal()">
+                    <ff-button @click="customerPortal()">
                         <span>Proceed to Stripe</span>
-                    </button>
+                    </ff-button>
                 </div>
             </form>
         </div>

@@ -10,10 +10,10 @@
             <form class="px-4 sm:px-6 lg:px-8 mt-8 space-y-4 text-center">
                 <p class="text-gray-700 text-lg mt-10 ">Confirm your email address</p>
                 <p class="text-sm text-gray-700">Please click the link in the email we sent to <b>{{user.email}}</b></p>
-                <button type="button" @click="resend()" :disabled="sent" class="forge-button">
+                <ff-button :disabled="sent" @click="resend()">
                     <span v-if="!sent">Resend email</span>
                     <span v-else>Sent</span>
-                </button>
+                </ff-button>
             </form>
         </div>
     </div>

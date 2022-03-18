@@ -5,7 +5,7 @@
                 <input :id="inputId"
                        type="checkbox"
                        :class="inputClass"
-                       v-model="modelValue"
+                       v-model="localModelValue"
                        :disabled="disabled"
                        @change="$emit('update:modelValue', $event.target.checked)"
                 >
@@ -20,7 +20,7 @@
                 <input :id="inputId"
                        type="radio"
                        :class="inputClass"
-                       v-model="modelValue"
+                       v-model="localModelValue"
                        :name="name"
                        :value="value"
                        :disabled="disabled"
@@ -55,20 +55,15 @@
                     <div class="w-full uneditable" :class="inputClass">{{modelValue}}</div>
                 </template>
                 <template v-else>
-                    <input :id="inputId"
-                           class="w-full"
-                           :class="inputClass"
-                           :type="type?type:'text'"
-                           :placeholder="placeholder"
-                           :disabled="disabled"
-                           :value="modelValue"
-                           @input="$emit('update:modelValue', $event.target.value)"
-                           @keyup.enter="onEnter"
-                           @blur="onBlur"
-                    >
+                    <ff-text-input
+                        v-model="localModelValue"
+                        :disabled="disabled"
+                        :password="type === 'password'"
+                        @keyup.enter.prevent="$emit('enter')"
+                        @blur="$emit('blur')"/>
                 </template>
                 <template v-if="hasAppend">
-                    <div class="block h-full sm:inline sm:absolute sm:left-full sm:ml-4 mt-2 sm:mt-0"><slot name="append"></slot></div>
+                    <div class="block sm:inline sm:absolute sm:left-full sm:ml-4 mt-2 sm:mt-0"><slot name="append"></slot></div>
                 </template>
             </div>
             <div v-if="error" class="float-right ml-4 text-red-400 inline text-xs">{{error}}</div>
@@ -78,21 +73,28 @@
 <script>
 import { ref } from 'vue'
 let instanceCount = 0
-
 export default {
     name: 'FormRow',
-    props: ['id', 'type', 'name', 'value', 'disabled', 'modelValue', 'error', 'options', 'placeholder', 'onEnter', 'onBlur', 'inputClass'],
-    emits: ['update:modelValue'],
+    props: ['id', 'type', 'name', 'value', 'disabled', 'modelValue', 'error', 'options', 'placeholder', 'inputClass'],
+    emits: ['update:modelValue', 'blur', 'enter'],
     computed: {
         inputId: function () {
             return this.id || 'formRow-instance-' + (instanceCount++)
+        },
+        localModelValue: {
+            get () { return this.modelValue },
+            set (localModelValue) { this.$emit('update:modelValue', localModelValue) }
+        }
+    },
+    data () {
+        return {
+            rowValue: null
         }
     },
     setup (props, { slots }) {
         const hasDescription = ref(false)
         const hasAppend = ref(false)
         const hasCustomInput = ref(false)
-
         if (slots.description && slots.description().length) {
             hasDescription.value = true
         }
@@ -102,7 +104,6 @@ export default {
         if (slots.input && slots.input().length) {
             hasCustomInput.value = true
         }
-
         return {
             hasDescription,
             hasAppend,

@@ -27,8 +27,8 @@
                                     </template>
                                 </div>
                                 <div class="mt-4 flex flex-row justify-end">
-                                    <button type="button" class="forge-button-secondary ml-4" @click="close">Cancel</button>
-                                    <button type="button" :disabled="responseErrors || !input.userInfo.trim() || errors.userInfo" class="forge-button ml-4" @click="confirm">Invite</button>
+                                    <ff-button kind="secondary" @click="close">Cancel</ff-button>
+                                    <ff-button :disabled="responseErrors || !input.userInfo.trim() || errors.userInfo" class="ml-4" @click="confirm">Invite</ff-button>
                                 </div>
                             </form>
                         </div>

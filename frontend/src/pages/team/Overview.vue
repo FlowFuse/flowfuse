@@ -4,7 +4,7 @@
             <FormHeading>
                 <router-link to="./projects">Projects</router-link>
                 <template v-if="createProjectEnabled" v-slot:tools>
-                    <router-link to="./projects/create" class="forge-button pl-1 pr-2"><PlusSmIcon class="w-4" /><span class="text-xs">Create Project</span></router-link>
+                    <ff-button kind="primary" size="small" to="./projects/create"><template v-slot:icon-left><PlusSmIcon /></template>Create Project</ff-button>
                 </template>
             </FormHeading>
             <template v-if="projectCount > 0">
@@ -20,7 +20,7 @@
             <p>
                 Thank you for signing up to FlowForge. You are now able to create projects and use the platform.
             </p>
-            <router-link to="./projects/create" class="forge-button pl-1 pr-2 mt-2"><PlusSmIcon class="w-4" /><span class="text-xs">Create Project</span></router-link>
+            <ff-button kind="primary" size="small" to="./projects/create"><template v-slot:icon-left><PlusSmIcon /></template>Create Project</ff-button>
         </div>
         <div class="md:w-48 p-2 md:ml-8">
             <FormHeading>

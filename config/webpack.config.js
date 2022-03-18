@@ -55,6 +55,19 @@ module.exports = {
                         }
                     }
                 ]
+            }, {
+                test: /\.css$/i,
+                exclude: getPath('frontend/src'),
+                use: [
+                    {
+                        loader: 'style-loader',
+                        options: {}
+                    },
+                    {
+                        loader: 'css-loader',
+                        options: { importLoaders: 1 }
+                    }
+                ]
             },
             {
                 test: /\.(eot|ttf|woff|woff2)(\?\S*)?$/,
@@ -104,7 +117,7 @@ module.exports = {
     resolve: {
         extensions: ['*', '.js', '.vue', '.json'],
         alias: {
-            vue: 'vue/dist/vue.esm-bundler.js',
+            vue: path.resolve('./node_modules/vue'),
             '@core': getPath('forge'),
             '@': getPath('frontend/src')
         }

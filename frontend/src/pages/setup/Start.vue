@@ -3,7 +3,7 @@
         <p class="text-gray-700 text-lg mt-10 text-center">Welcome to your shiny new FlowForge platform.</p>
         <p class="text-gray-700 text-center">Let's get it setup for you to start using.</p>
         <div class="space-x-2 text-center">
-            <button type="button" @click="done" class="forge-button mt-6">Start setup</button>
+            <ff-button @click="done()" class="mt-6">Start setup</ff-button>
         </div>
     </form>
 </template>

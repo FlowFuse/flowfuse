@@ -2,7 +2,7 @@
     <form class="space-y-6">
         <TemplateSettingsPalette v-model="editable" :editTemplate="false" />
         <div class="space-x-4 whitespace-nowrap">
-            <button type="button" class="forge-button forge-button-small" :disabled="!unsavedChanges" @click="saveSettings">Save settings</button>
+            <ff-button size="small" :disabled="!unsavedChanges" @click="saveSettings()">Save settings</ff-button>
         </div>
     </form>
 </template>
@@ -49,7 +49,7 @@ export default {
                     let changed = false
                     templateFields.forEach(field => {
                         // this.editable.changed.settings[field] = this.editable.settings[field] != this.original.settings[field]
-                        changed = changed || (this.editable.settings[field] != this.original.settings[field])
+                        changed = changed || (this.editable.settings[field] !== this.original.settings[field])
                     })
                     this.unsavedChanges = changed
                 }
@@ -81,7 +81,7 @@ export default {
         async saveSettings () {
             const settings = {}
             templateFields.forEach(field => {
-                if (this.editable.settings[field] != this.original.settings[field]) {
+                if (this.editable.settings[field] !== this.original.settings[field]) {
                     setTemplateValue(settings, field, this.editable.settings[field])
                 }
             })

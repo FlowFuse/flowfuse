@@ -4,9 +4,9 @@
         <FormRow type="password" :error="errors.old_password" v-model="input.old_password" id="old_password">Old Password</FormRow>
         <FormRow type="password" :error="errors.password" v-model="input.password" id="password">New Password</FormRow>
         <FormRow type="password" :error="errors.password_confirm" v-model="input.password_confirm" id="password_confirm">Confirm</FormRow>
-        <button type="button" @click="changePassword" class="py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-900 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-700">
+        <ff-button @click="changePassword">
             Change password
-        </button>
+        </ff-button>
         <div v-if="errors.password_change" class="ml-4 text-red-400 font-medium inline text-sm">{{errors.password_change}}</div>
         <div v-if="changeComplete" class="ml-4 font-medium inline text-md">Password changed</div>
     </form>

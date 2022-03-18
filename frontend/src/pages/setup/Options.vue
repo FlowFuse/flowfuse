@@ -15,9 +15,9 @@
             </template>
         </FormRow>
         <div class="space-x-2">
-            <button type="button" @click="applyOptions" class="forge-button mt-6">
+            <ff-button @click="applyOptions()" class="mt-6">
                 Next
-            </button>
+            </ff-button>
         </div>
     </form>
 </template>

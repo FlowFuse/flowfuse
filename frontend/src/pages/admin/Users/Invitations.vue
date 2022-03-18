@@ -20,7 +20,7 @@ import InviteUserCell from '@/components/tables/cells/InviteUserCell'
 import { TrashIcon } from '@heroicons/vue/outline'
 
 const MemberInviteRemoveButton = {
-    template: '<button type="button" class="forge-button-inline px-2 py-2" @click="removeInvite"><TrashIcon class="w-5" /></button>',
+    template: '<ff-button @click="removeInvite"><template v-slot="icon-left"><TrashIcon/></template></ff-button>',
     props: ['id', 'team', 'onremove'],
     components: {
         TrashIcon

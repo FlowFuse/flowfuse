@@ -22,7 +22,11 @@
                     <div class="pt-1 text-gray-400 " v-else><LockClosedIcon class="inline w-4" /> encrypted</div>
                 </td>
                 <td class="pb-2 pt-4 border w-16 text-center align-top">
-                    <button type="button" @click="removeEnv(itemIdx)" class="forge-button-inline px-2 py-2"><TrashIcon class="w-5" /></button>
+                    <ff-button @click="removeEnv(itemIdx)">
+                        <template v-slot:icon>
+                            <TrashIcon />
+                        </template>
+                    </ff-button>
                 </td>
             </tr>
 
@@ -37,7 +41,11 @@
                     </FormRow>
                 </td>
                 <td class="pb-2 pt-4 border w-16 text-center align-top">
-                    <button type="button" @click="addEnv" class="forge-button-inline px-2 py-2"><PlusSmIcon class="w-5" /></button>
+                    <ff-button @click="addEnv()">
+                        <template v-slot:icon>
+                            <PlusSmIcon />
+                        </template>
+                    </ff-button>
                 </td>
             </tr>
         </tbody>

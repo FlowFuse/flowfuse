@@ -9,19 +9,19 @@
             </div>
             <FormHeading>View/Update Payment Details</FormHeading>
             <div>
-                <button type="button" class="forge-button forge-button-small" @click="customerPortal()">
-                    <span>Stripe Customer Portal</span>
-                    <ExternalLinkIcon class="ml-3 w-4" />
-                </button>
+                <ff-button size="small" @click="customerPortal()">
+                    <template v-slot:icon-right><ExternalLinkIcon /></template>
+                    Stripe Customer Portal
+                </ff-button>
             </div>
         </div>
         <div v-else>
             Billing has not yet been configured for this team. Before proceeding further, you must continue to Stripe and complete this.
             <div class="mt-3">
-                <button type="button" class="forge-button forge-button-small" @click="setupBilling()">
-                    <span>Setup Payment Details</span>
-                    <ExternalLinkIcon class="ml-3 w-4" />
-                </button>
+                <ff-button size="small" @click="setupBilling()">
+                    <template v-slot:icon-right><ExternalLinkIcon /></template>
+                    Setup Payment Details
+                </ff-button>
             </div>
         </div>
     </form>

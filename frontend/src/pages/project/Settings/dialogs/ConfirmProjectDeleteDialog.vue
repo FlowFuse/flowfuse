@@ -29,8 +29,8 @@
                                 </div>
                                 <FormRow v-model="input.projectName" id="projectName">Name</FormRow>
                                 <div class="mt-4 flex flex-row justify-end">
-                                    <button type="button" class="forge-button-secondary ml-4" @click="close">Cancel</button>
-                                    <button type="button" :disabled="!formValid" class="forge-button-danger ml-4" @click="confirm">Delete</button>
+                                    <ff-button kind="secondary" @click="close()">Cancel</ff-button>
+                                    <ff-button kind="danger" :disabled="!formValid" class="ml-4" @click="confirm()">Delete</ff-button>
                                 </div>
                             </form>
                         </div>

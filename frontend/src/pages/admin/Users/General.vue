@@ -3,7 +3,12 @@
     <form class="space-y-6">
         <FormHeading>Users
             <template v-slot:tools>
-                <router-link to="./create" class="forge-button pl-1 pr-2"><UserAddIcon class="w-4 mx-1" /><span class="text-xs">New User</span></router-link>
+                <ff-button to="./create" size="small">
+                    <template v-slot:icon-left>
+                        <UserAddIcon />
+                    </template>
+                    New User
+                </ff-button>
             </template>
         </FormHeading>
         <ItemTable :items="users" :columns="columns" />

@@ -11,7 +11,7 @@
                     <FormRow :error="errors.name" v-model="input.name">
                         <template v-slot:default>Project Name</template>
                         <template v-slot:append>
-                            <button type="button" @click="refreshName" class="forge-button-tertiary px-1" ><RefreshIcon class="w-5" /></button>
+                            <ff-button kind="secondary" @click="refreshName"><template v-slot:icon><RefreshIcon /></template></ff-button>
                         </template>
                     </FormRow>
                     <span class="block text-xs ml-4 italic text-gray-500 m-0 max-w-sm">Please note, currently, project names cannot be changed once a project is created</span>
@@ -21,11 +21,7 @@
 
                 <FormRow :options="templates" :error="errors.template" v-model="input.template" id="template">Template</FormRow>
 
-                <!-- <FormRow v-model="input.description" id="description">Description</FormRow> -->
-
-                <button type="button" :disabled="!createEnabled" @click="createProject" class="forge-button">
-                    Create project
-                </button>
+                <ff-button :disabled="!createEnabled" @click="createProject">Create Project</ff-button>
             </form>
         </div>
     </div>

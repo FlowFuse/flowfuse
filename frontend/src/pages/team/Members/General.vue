@@ -2,7 +2,10 @@
     <FormHeading>
         Team Members
         <template v-slot:tools v-if="isOwner">
-            <button type="button" class="forge-button-secondary pl-2 pl-1" @click="inviteMember"><PlusSmIcon class="w-4" /><span class="text-xs">Add member</span></button>
+            <ff-button kind="secondary" size="small" @click="inviteMember">
+                <template v-slot:icon-left><PlusSmIcon class="w-4" /></template>
+                Add member
+            </ff-button>
         </template>
     </FormHeading>
     <form class="space-y-6 mb-8">

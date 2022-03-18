@@ -33,6 +33,7 @@
     "dependencies": {
         "@aws-sdk/client-ses": "^3.49.0",
         "@aws-sdk/credential-provider-node": "^3.49.0",
+        "@flowforge/forge-ui-components": "file:../forge-ui-components",
         "@flowforge/localfs": "^0.3.0",
         "@headlessui/vue": "1.4.3",
         "@heroicons/vue": "1.0.5",

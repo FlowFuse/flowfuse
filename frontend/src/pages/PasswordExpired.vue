@@ -2,7 +2,7 @@
     <div class="mx-auto min-h-screen flex items-center justify-center bg-gray-50 py-12">
         <div class="sm:w-72 w-xs w-screen space-y-2">
             <div class="max-w-xs mx-auto w-full mb-4">
-                <Logo/>
+                <FlowForgeLogo/>
                 <h2 class="mt-2 text-center text-3xl font-bold text-gray-900">
                     <span>FLOW</span><span class="font-light">FORGE</span>
                 </h2>
@@ -16,7 +16,7 @@
 
 <script>
 import { mapState } from 'vuex'
-import Logo from '@/components/Logo'
+import FlowForgeLogo from '@/components/Logo'
 import UpdateExpiredPassword from '@/components/auth/UpdateExpiredPassword'
 
 export default {
@@ -25,7 +25,7 @@ export default {
     },
     computed: mapState('account', ['user']),
     components: {
-        Logo,
+        FlowForgeLogo,
         UpdateExpiredPassword
     }
 }

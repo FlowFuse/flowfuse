@@ -2,7 +2,12 @@
     <form class="space-y-6">
         <FormHeading>Project Templates
             <template v-slot:tools>
-                <router-link :to="{ name: 'Admin Template', params: { id: 'create' } }" class="forge-button pl-2 mb-1"><span class="text-xs">Create template</span></router-link>
+                <ff-button size="small" :to="{ name: 'Admin Template', params: { id: 'create' } }">
+                    <template v-slot:icon-right>
+                        <PlusSmIcon />
+                    </template>
+                    Create template
+                </ff-button>
             </template>
         </FormHeading>
         <ItemTable :items="templates" :columns="columns" />
@@ -28,8 +33,7 @@ import UserCell from '@/components/tables/cells/UserCell'
 import AdminTemplateEditButton from './components/AdminTemplateEditButton'
 import AdminTemplateDeleteDialog from './dialogs/AdminTemplateDeleteDialog'
 
-// import AdminStackEditDialog from './dialogs/AdminStackEditDialog'
-// import AdminStackEditButton from './AdminStackEditButton'
+import { PlusSmIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'AdminTemplates',
@@ -82,7 +86,8 @@ export default {
     components: {
         FormHeading,
         ItemTable,
-        AdminTemplateDeleteDialog
+        AdminTemplateDeleteDialog,
+        PlusSmIcon
     }
 }
 </script>
