@@ -8,7 +8,7 @@ import { RoleNames } from '@core/lib/roles'
 const getTeams = () => {
     return client.get('/api/v1/user/teams').then(res => {
         res.data.teams = res.data.teams.map(r => {
-            r.link = { name: 'Team', params: { id: slugify(r.name) } }
+            r.link = { name: 'Team', params: { team_slug: r.slug } }
             r.roleName = RoleNames[r.role]
             return r
         })
