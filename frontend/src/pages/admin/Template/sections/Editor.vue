@@ -60,8 +60,8 @@ export default {
     props: ['editTemplate', 'modelValue'],
     computed: {
         editable: {
-            get() { return this.modelValue },
-            set(localValue) {this.$emit('update:modelValue', localValue)}
+            get () { return this.modelValue },
+            set (localValue) { this.$emit('update:modelValue', localValue) }
         }
     },
     components: {
@@ -69,6 +69,6 @@ export default {
         FormHeading,
         LockSetting,
         ChangeIndicator
-    },
+    }
 }
 </script>

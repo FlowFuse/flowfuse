@@ -23,8 +23,8 @@
 
 <script>
 import projectApi from '@/api/project'
-import Breadcrumbs from '@/mixins/Breadcrumbs';
-import SectionTopMenu from '@/components/SectionTopMenu';
+import Breadcrumbs from '@/mixins/Breadcrumbs'
+import SectionTopMenu from '@/components/SectionTopMenu'
 import DropdownMenu from '@/components/DropdownMenu'
 import ProjectStatusBadge from './components/ProjectStatusBadge'
 import { mapState } from 'vuex'
@@ -33,29 +33,33 @@ import { Roles } from '@core/lib/roles'
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
 
 export default {
-    name: 'Project',
+    name: 'ProjectPage',
     mixins: [Breadcrumbs],
-    data: function() {
+    data: function () {
         return {
             project: {},
             navigation: [],
             checkInterval: null
         }
     },
-    async created() {
-        await this.updateProject();
+    async created () {
+        await this.updateProject()
     },
     computed: {
-        ...mapState('account',['teamMembership']),
-        options: function() {
+        ...mapState('account', ['teamMembership']),
+        options: function () {
             return [
-                {name: "Start", action: async() => { this.project.pendingStateChange = true; await projectApi.startProject(this.project.id) } },
-                {name: "Restart", action: async() => { this.project.pendingStateChange = true;  await projectApi.restartProject(this.project.id) } },
-                {name: "Stop", action: async() => { this.project.pendingStateChange = true; await projectApi.stopProject(this.project.id) } },
+                { name: 'Start', action: async () => { this.project.pendingStateChange = true; await projectApi.startProject(this.project.id) } },
+                { name: 'Restart', action: async () => { this.project.pendingStateChange = true; await projectApi.restartProject(this.project.id) } },
+                { name: 'Stop', action: async () => { this.project.pendingStateChange = true; await projectApi.stopProject(this.project.id) } },
                 null,
-                {name: "Delete",class:['text-red-700'], action: () => {
-                    this.$router.push({ path: `/project/${this.project.id}/settings/danger` })
-                }}
+                {
+                    name: 'Delete',
+                    class: ['text-red-700'],
+                    action: () => {
+                        this.$router.push({ path: `/project/${this.project.id}/settings/danger` })
+                    }
+                }
             ]
         }
     },
@@ -64,56 +68,55 @@ export default {
         teamMembership: 'checkAccess',
         'project.pendingStateChange': 'refreshProject'
     },
-    mounted() {
-        this.checkAccess();
+    mounted () {
+        this.checkAccess()
     },
     beforeUnmount () {
-        clearTimeout(this.checkInterval);
+        clearTimeout(this.checkInterval)
     },
     methods: {
-        async updateProject() {
-            const parts = this.$route.path.split("/")
+        async updateProject () {
+            const parts = this.$route.path.split('/')
             try {
                 const data = await projectApi.getProject(parts[2])
-                this.project = data;
-                this.$store.dispatch('account/setTeam',this.project.team.slug);
-            } catch(err) {
+                this.project = data
+                this.$store.dispatch('account/setTeam', this.project.team.slug)
+            } catch (err) {
                 this.$router.push({
-                    name: "PageNotFound",
+                    name: 'PageNotFound',
                     params: { pathMatch: this.$router.currentRoute.value.path.substring(1).split('/') },
                     // preserve existing query and hash if any
                     query: this.$router.currentRoute.value.query,
-                    hash: this.$router.currentRoute.value.hash,
+                    hash: this.$router.currentRoute.value.hash
                 })
-                return;
+                return
             }
             this.setBreadcrumbs([
-                { type: 'TeamLink'},
-                {label: this.project.name /*, to: { name: "Project", params: {id:this.project.id}} */}
+                { type: 'TeamLink' },
+                { label: this.project.name /*, to: { name: "Project", params: {id:this.project.id}} */ }
             ])
         },
-        async refreshProject() {
+        async refreshProject () {
             if (this.project.pendingStateChange) {
-                clearTimeout(this.checkInterval);
+                clearTimeout(this.checkInterval)
                 this.checkInterval = setTimeout(async () => {
                     if (this.project.id) {
                         const data = await projectApi.getProject(this.project.id)
-                        this.project = data;
+                        this.project = data
                     }
-                },5000)
+                }, 5000)
             }
         },
-        checkAccess() {
+        checkAccess () {
             this.navigation = [
-                { name: "Overview", path: `/project/${this.project.id}/overview` },
+                { name: 'Overview', path: `/project/${this.project.id}/overview` },
                 // { name: "Deploys", path: `/project/${this.project.id}/deploys` },
-                { name: "Activity", path: `/project/${this.project.id}/activity` },
-                { name: "Logs", path: `/project/${this.project.id}/logs` },
+                { name: 'Activity', path: `/project/${this.project.id}/activity` },
+                { name: 'Logs', path: `/project/${this.project.id}/logs` }
             ]
             if (this.teamMembership && this.teamMembership.role === Roles.Owner) {
-                this.navigation.push({ name: "Settings", path: `/project/${this.project.id}/settings` })
+                this.navigation.push({ name: 'Settings', path: `/project/${this.project.id}/settings` })
                 // this.navigation.push({ name: "Debug", path: `/project/${this.project.id}/debug` })
-
             }
         }
     },

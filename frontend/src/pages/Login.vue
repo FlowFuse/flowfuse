@@ -38,23 +38,23 @@
 
 <script>
 import { mapState } from 'vuex'
-import Logo from "@/components/Logo"
-import AuthCredentials from "@/components/auth/Credentials"
+import Logo from '@/components/Logo'
+import AuthCredentials from '@/components/auth/Credentials'
 import { LockClosedIcon } from '@heroicons/vue/outline'
 
 export default {
-    name: "Login",
-    data() {
+    name: 'LoginPage',
+    data () {
         return {
             authMode: 'select'
         }
     },
     methods: {
-        selectCredentials() {
+        selectCredentials () {
             this.authMode = 'credentials'
         }
     },
-    computed: mapState('account',['settings', 'pending']),
+    computed: mapState('account', ['settings', 'pending']),
     components: {
         Logo,
         LockClosedIcon,

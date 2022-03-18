@@ -5,9 +5,9 @@
                 <input :id="inputId"
                        type="checkbox"
                        :class="inputClass"
-                    v-model="modelValue"
-                    :disabled="disabled"
-                    @change="$emit('update:modelValue', $event.target.checked)"
+                       v-model="modelValue"
+                       :disabled="disabled"
+                       @change="$emit('update:modelValue', $event.target.checked)"
                 >
                 <label :for="inputId" class="text-sm font-medium text-gray-700"><slot></slot></label>
                 <div v-if="hasAppend" class="inline ml-2"><slot name="append"></slot></div>
@@ -20,11 +20,11 @@
                 <input :id="inputId"
                        type="radio"
                        :class="inputClass"
-                    v-model="modelValue"
-                    :name="name"
-                    :value="value"
-                    :disabled="disabled"
-                    @change="$emit('update:modelValue', $event.target.value)"
+                       v-model="modelValue"
+                       :name="name"
+                       :value="value"
+                       :disabled="disabled"
+                       @change="$emit('update:modelValue', $event.target.value)"
                 >
                 <label :for="inputId" class="text-sm font-medium text-gray-700"><slot></slot></label>
             </div>
@@ -37,16 +37,16 @@
             <div class="flex flex-col sm:flex-row relative">
                 <template v-if="options && type !== 'uneditable'">
                     <select :id="inputId"
-                        class="w-full"
-                        :class="inputClass"
-                        :value="modelValue"
-                        :disabled="disabled"
-                        @input="$emit('update:modelValue', $event.target.value)"
+                            class="w-full"
+                            :class="inputClass"
+                            :value="modelValue"
+                            :disabled="disabled"
+                            @input="$emit('update:modelValue', $event.target.value)"
                     >
-                    <option v-for="option in options" :value="option.value">
-                        {{ option.label }}
-                    </option>
-                </select>
+                        <option v-for="option in options" :value="option.value" :key="option.label">
+                            {{ option.label }}
+                        </option>
+                    </select>
                 </template>
                 <template v-else-if="hasCustomInput">
                     <slot name="input"></slot>
@@ -56,15 +56,15 @@
                 </template>
                 <template v-else>
                     <input :id="inputId"
-                        class="w-full"
-                        :class="inputClass"
-                        :type="type?type:'text'"
-                        :placeholder="placeholder"
-                        :disabled="disabled"
-                        :value="modelValue"
-                        @input="$emit('update:modelValue', $event.target.value)"
-                        @keyup.enter="onEnter"
-                        @blur="onBlur"
+                           class="w-full"
+                           :class="inputClass"
+                           :type="type?type:'text'"
+                           :placeholder="placeholder"
+                           :disabled="disabled"
+                           :value="modelValue"
+                           @input="$emit('update:modelValue', $event.target.value)"
+                           @keyup.enter="onEnter"
+                           @blur="onBlur"
                     >
                 </template>
                 <template v-if="hasAppend">
@@ -76,19 +76,19 @@
     </div>
 </template>
 <script>
-import {ref} from "vue";
-let instanceCount = 0;
+import { ref } from 'vue'
+let instanceCount = 0
 
 export default {
-    name: "FormRow",
-    props: ['id','type','name','value','disabled','modelValue','error','options','placeholder','onEnter','onBlur','inputClass'],
+    name: 'FormRow',
+    props: ['id', 'type', 'name', 'value', 'disabled', 'modelValue', 'error', 'options', 'placeholder', 'onEnter', 'onBlur', 'inputClass'],
     emits: ['update:modelValue'],
     computed: {
-        inputId: function() {
-            return this.id || "formRow-instance-"+(instanceCount++);
+        inputId: function () {
+            return this.id || 'formRow-instance-' + (instanceCount++)
         }
     },
-    setup(props, {slots}) {
+    setup (props, { slots }) {
         const hasDescription = ref(false)
         const hasAppend = ref(false)
         const hasCustomInput = ref(false)

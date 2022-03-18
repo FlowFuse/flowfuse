@@ -13,8 +13,8 @@
 import { ExclamationCircleIcon, PlayIcon, StopIcon, DotsCircleHorizontalIcon, SupportIcon } from '@heroicons/vue/outline'
 
 export default {
-    name: "ProjectStatusBadge",
-    props: ['status','pendingStateChange'],
+    name: 'ProjectStatusBadge',
+    props: ['status', 'pendingStateChange'],
     components: {
         ExclamationCircleIcon, PlayIcon, StopIcon, DotsCircleHorizontalIcon, SupportIcon
     }

@@ -17,7 +17,7 @@
                 </td>
                 <td class="px-4 py-4 border w-auto align-top" :class="{'align-middle':item.encrypted}">
                     <div class="w-full" v-if="!item.encrypted">
-                        <textarea rows="1" class="w-full font-mono">{{item.value}}</textarea>
+                        <textarea rows="1" class="w-full font-mono" v-model="item.value"></textarea>
                     </div>
                     <div class="pt-1 text-gray-400 " v-else><LockClosedIcon class="inline w-4" /> encrypted</div>
                 </td>
@@ -45,44 +45,24 @@
 </template>
 
 <script>
-import projectApi from '@/api/project'
 import FormRow from '@/components/FormRow'
-import FormHeading from '@/components/FormHeading'
-import { markRaw } from "vue"
 import { TrashIcon, PlusSmIcon, LockClosedIcon } from '@heroicons/vue/outline'
-
-
-
-
-const DeleteEnvButton = {
-    template: `<button type="button" class="forge-button-inline px-2 py-2" @click="removeInvite"><TrashIcon class="w-5" /></button>`,
-    props: ['name','value'],
-    components: {
-        TrashIcon
-    },
-    methods: {
-        async removeInvite() {
-            console.log("REMOVE",this.key, this.value)
-        }
-    }
-}
-
 
 export default {
     name: 'ProjectEnvVars',
 
-    props:[ "project" ],
-    data() {
+    props: ['project'],
+    data () {
         return {
             input: {
-                name: "",
-                value: "",
+                name: '',
+                value: '',
                 encrypt: false
             },
             env: [
                 {
                     name: 'NR_GITHU"B_CLIENTID',
-                    value:'',
+                    value: '',
                     encrypted: true
                 },
                 {
@@ -93,32 +73,30 @@ export default {
         }
     },
     watch: {
-         project: 'fetchData'
+        project: 'fetchData'
     },
-    mounted() {
+    mounted () {
         this.fetchData()
     },
     methods: {
-        addEnv() {
+        addEnv () {
             this.env.push({
                 name: this.input.name,
                 value: this.input.value,
                 encrypted: this.input.encrypt
             })
-            this.input.name = "";
-            this.input.value = "";
-            this.input.encrypt = false;
-
+            this.input.name = ''
+            this.input.value = ''
+            this.input.encrypt = false
         },
-        removeEnv(index) {
-            this.env.splice(index,1)
+        removeEnv (index) {
+            this.env.splice(index, 1)
         },
         fetchData () {
         }
     },
     components: {
         FormRow,
-        FormHeading,
         TrashIcon,
         PlusSmIcon,
         LockClosedIcon

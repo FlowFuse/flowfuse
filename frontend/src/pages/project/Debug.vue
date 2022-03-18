@@ -5,10 +5,8 @@
 
 <script>
 
-
-
 export default {
     name: 'ProjectDebug',
-    props:[ "project" ],
+    props: ['project']
 }
 </script>

@@ -6,20 +6,19 @@
 
 <script>
 import userApi from '@/api/user'
-import { markRaw } from "vue"
-import FormHeading from '@/components/FormHeading'
+import { markRaw } from 'vue'
 import ItemTable from '@/components/tables/ItemTable'
 import InviteUserCell from '@/components/tables/cells/InviteUserCell'
 import TeamCell from '@/components/tables/cells/TeamCell'
 
 const UserInviteActions = {
-    template: `<div class="space-x-2"><button type="button" class="forge-button-danger" @click="rejectInvite">Reject</button> <button type="button" class="forge-button" @click="acceptInvite">Accept</button></div>`,
-    props: ['id','onaccept', 'onreject'],
+    template: '<div class="space-x-2"><button type="button" class="forge-button-danger" @click="rejectInvite">Reject</button> <button type="button" class="forge-button" @click="acceptInvite">Accept</button></div>',
+    props: ['id', 'onaccept', 'onreject'],
     methods: {
-        async acceptInvite() {
+        async acceptInvite () {
             await this.onaccept(this.id)
         },
-        async rejectInvite() {
+        async rejectInvite () {
             await this.onreject(this.id)
         }
     }
@@ -27,43 +26,42 @@ const UserInviteActions = {
 
 export default {
     name: 'UserInviteTable',
-    props:[ "user" ],
-    data() {
+    props: ['user'],
+    data () {
         return {
             invitations: [],
             inviteColumns: [
-                {name: 'Team',  class:['w-auto'], component: { is: markRaw(TeamCell) } , property:'team'},
-                {name: 'Sent by', class:['w-auto'], component: { is: markRaw(InviteUserCell) }, property: 'invitor'},
-                {name: 'Expires In',class: ['w-auto'], property: 'expires'},
-                {name: '', class: ['w-48'], component: {is: markRaw(UserInviteActions) } }
+                { name: 'Team', class: ['w-auto'], component: { is: markRaw(TeamCell) }, property: 'team' },
+                { name: 'Sent by', class: ['w-auto'], component: { is: markRaw(InviteUserCell) }, property: 'invitor' },
+                { name: 'Expires In', class: ['w-auto'], property: 'expires' },
+                { name: '', class: ['w-48'], component: { is: markRaw(UserInviteActions) } }
             ]
         }
     },
-    mounted() {
+    mounted () {
         this.fetchData()
     },
     methods: {
-        async acceptInvite(inviteId) {
+        async acceptInvite (inviteId) {
             await userApi.acceptTeamInvitation(inviteId)
-            await this.fetchData();
-            await this.$store.dispatch('account/refreshTeams');
+            await this.fetchData()
+            await this.$store.dispatch('account/refreshTeams')
         },
-        async rejectInvite(inviteId) {
+        async rejectInvite (inviteId) {
             await userApi.rejectTeamInvitation(inviteId)
-            await this.fetchData();
+            await this.fetchData()
         },
         async fetchData () {
             const invitations = await userApi.getTeamInvitations()
             this.invitations = invitations.invitations.map(invite => {
                 invite.onaccept = (inviteId) => { this.acceptInvite(inviteId) }
                 invite.onreject = (inviteId) => { this.rejectInvite(inviteId) }
-                return invite;
+                return invite
             })
-            this.invitationCount = invitations.count;
+            this.invitationCount = invitations.count
         }
     },
     components: {
-        FormHeading,
         ItemTable
     }
 }

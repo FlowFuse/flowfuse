@@ -16,11 +16,10 @@
 </template>
 
 <script>
-import { markRaw } from "vue"
+import { markRaw } from 'vue'
 
 import FormHeading from '@/components/FormHeading'
 import ItemTable from '@/components/tables/ItemTable'
-import Breadcrumbs from '@/mixins/Breadcrumbs'
 import UserCell from '@/components/tables/cells/UserCell'
 import UserRoleCell from '@/components/tables/cells/UserRoleCell'
 import TeamUserEditButton from '../components/TeamUserEditButton'
@@ -29,12 +28,12 @@ import ConfirmTeamUserRemoveDialog from '../dialogs/ConfirmTeamUserRemoveDialog'
 import InviteMemberDialog from '../dialogs/InviteMemberDialog'
 
 import teamApi from '@/api/team'
-import { PlusSmIcon, UsersIcon, ChevronRightIcon } from '@heroicons/vue/outline'
-import { Roles, RoleNames } from '@core/lib/roles'
+import { PlusSmIcon } from '@heroicons/vue/outline'
+import { Roles } from '@core/lib/roles'
 
 export default {
     name: 'TeamUsersGeneral',
-    data() {
+    data () {
         return {
             users: [],
             userCount: 0,
@@ -44,59 +43,59 @@ export default {
         }
     },
     watch: {
-         team: 'fetchData'
+        team: 'fetchData'
     },
-    mounted() {
+    mounted () {
         this.fetchData()
     },
     methods: {
-        inviteMember() {
+        inviteMember () {
             this.$refs.inviteMemberDialog.show()
         },
-        handleUserAction(user,action) {
-            if (action === "changerole") {
-                this.$refs.changeTeamRoleDialog.show(this.team, user, this.ownerCount);
+        handleUserAction (user, action) {
+            if (action === 'changerole') {
+                this.$refs.changeTeamRoleDialog.show(this.team, user, this.ownerCount)
             } else {
-                this.$refs.confirmTeamUserRemoveDialog.show(this.team, user, this.ownerCount);
+                this.$refs.confirmTeamUserRemoveDialog.show(this.team, user, this.ownerCount)
             }
         },
-        roleUpdated(user) {
-            this.fetchData();
+        roleUpdated (user) {
+            this.fetchData()
         },
-        userRemoved(user) {
+        userRemoved (user) {
             if (user.id === this.$store.state.account.user.id) {
-                console.log("SELF REMOVAL")
+                console.log('SELF REMOVAL')
             }
-            this.fetchData();
+            this.fetchData()
         },
         async fetchData () {
             const members = await teamApi.getTeamMembers(this.team.id)
-            this.userCount = members.count;
-            this.users = members.members;
-            this.ownerCount = 0;
+            this.userCount = members.count
+            this.users = members.members
+            this.ownerCount = 0
 
-            const currentUser = this.users.find(user => user.username === this.$store.state.account.user.username )
-            this.isOwner = currentUser && currentUser.role === Roles.Owner;
+            const currentUser = this.users.find(user => user.username === this.$store.state.account.user.username)
+            this.isOwner = currentUser && currentUser.role === Roles.Owner
 
             this.userColumns = [
-                {name: 'User', class:['flex-grow'], component: { is: markRaw(UserCell) }},
-                {name: 'Role',class: ['w-40'], component: { is: markRaw(UserRoleCell) }}
+                { name: 'User', class: ['flex-grow'], component: { is: markRaw(UserCell) } },
+                { name: 'Role', class: ['w-40'], component: { is: markRaw(UserRoleCell) } }
             ]
 
             if (this.isOwner) {
                 if (this.users) {
                     this.users.forEach(u => {
                         if (u.role === Roles.Owner) {
-                            this.ownerCount++;
+                            this.ownerCount++
                         }
-                        u.onselect = (action) => { this.handleUserAction(u,action)}
+                        u.onselect = (action) => { this.handleUserAction(u, action) }
                     })
-                    this.userColumns.push({name: '', class: ['w-16'], component: { is: markRaw(TeamUserEditButton)}})
+                    this.userColumns.push({ name: '', class: ['w-16'], component: { is: markRaw(TeamUserEditButton) } })
                 }
             }
         }
     },
-    props:[ "team", "teamMembership" ],
+    props: ['team', 'teamMembership'],
     components: {
         ItemTable,
         FormHeading,

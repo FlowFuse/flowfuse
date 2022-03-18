@@ -91,7 +91,7 @@ export default {
         saveEnabled: function () {
             let result = false
             validSettings.forEach(s => {
-                result = result || (this.input[s] != this.settings[s])
+                result = result || (this.input[s] !== this.settings[s])
             })
             return result
         }
@@ -108,7 +108,7 @@ export default {
         async saveChanges () {
             const options = {}
             validSettings.forEach(s => {
-                if (this.input[s] != this.settings[s]) {
+                if (this.input[s] !== this.settings[s]) {
                     options[s] = this.input[s]
                 }
             })

@@ -11,22 +11,22 @@
 <script>
 import FormRow from '@/components/FormRow'
 import ChangeIndicator from './ChangeIndicator'
-import { LockClosedIcon  } from '@heroicons/vue/outline'
+import { LockClosedIcon } from '@heroicons/vue/outline'
 
-function toBoolean(v) {
-    return v === "true"  || v === true
+function toBoolean (v) {
+    return v === 'true' || v === true
 }
 export default {
     name: 'LockSetting',
     props: ['modelValue', 'changed', 'editTemplate'],
     emits: ['update:modelValue'],
     computed: {
-        locked() {
+        locked () {
             return !this.editTemplate && !this.localValue
         },
         localValue: {
-            get() { return this.modelValue },
-            set(localValue) {this.$emit('update:modelValue', toBoolean(localValue)) }
+            get () { return this.modelValue },
+            set (localValue) { this.$emit('update:modelValue', toBoolean(localValue)) }
         }
     },
     components: { FormRow, ChangeIndicator, LockClosedIcon }

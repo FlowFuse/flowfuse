@@ -18,10 +18,8 @@
 
 <script>
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
 import { Roles } from '@core/lib/roles'
 import teamApi from '@/api/team'
-import FormHeading from '@/components/FormHeading'
 import ItemTable from '@/components/tables/ItemTable'
 import CreateProjectButton from '@/components/CreateProjectButton'
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
@@ -40,7 +38,7 @@ export default {
             projectCount: 0,
             projects: [],
             columns: [
-                { name: 'Name', class: ['flex-grow'], property: 'name', link: 'link', class: 'flex-grow' },
+                { name: 'Name', class: ['flex-grow'], property: 'name', link: 'link' },
                 { name: 'Status', class: ['w-44'], component: { is: markRaw(ProjectStatusBadge) } },
                 { name: 'Updated', class: ['w-44', 'text-xs'], property: 'updatedSince' },
                 { name: '', class: ['w-14'], linkClass: ['forge-button-inline', 'px-2', 'py-2'], component: { is: markRaw(OpenEditorLink) }, external: true, link: 'url' }
@@ -70,10 +68,7 @@ export default {
     props: ['team', 'teamMembership'],
     components: {
         ItemTable,
-        FormHeading,
-        CreateProjectButton,
-        ExternalLinkIcon,
-        ProjectStatusBadge
+        CreateProjectButton
     }
 }
 </script>

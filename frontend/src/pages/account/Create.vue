@@ -31,95 +31,94 @@
 
 <script>
 import userApi from '@/api/user'
-import { mapState } from 'vuex'
-import Logo from "@/components/Logo"
+import Logo from '@/components/Logo'
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
-import { useRoute } from 'vue-router';
+import { useRoute } from 'vue-router'
 
 export default {
-    name: "AccountCreate",
+    name: 'AccountCreate',
     components: {
         Logo,
         FormRow,
         FormHeading
     },
-    data() {
+    data () {
         return {
             teams: [],
             emailSent: false,
             input: {
-                name: "",
-                username: "",
-                email: "",
-                password: "",
+                name: '',
+                username: '',
+                email: '',
+                password: ''
             },
             errors: {
-                password: "Password must be at least 8 characters"
+                password: 'Password must be at least 8 characters'
             }
         }
     },
-    mounted() {
-        this.input.email = useRoute().query.email || ""
+    mounted () {
+        this.input.email = useRoute().query.email || ''
     },
     computed: {
-        formValid() {
+        formValid () {
             return this.input.email &&
                    (this.input.username && !this.errors.username) &&
                    this.input.password.length >= 8
         }
     },
     watch: {
-        'input.username': function(v) {
+        'input.username': function (v) {
             if (v && !/^[a-z0-9-_]+$/i.test(v)) {
-                this.errors.username = "Must only contain a-z 0-9 - _"
+                this.errors.username = 'Must only contain a-z 0-9 - _'
             } else {
-                this.errors.username = ""
+                this.errors.username = ''
             }
         },
-        'input.email': function(v) {
+        'input.email': function (v) {
             if (v && !/.+@.+/.test(v)) {
-                this.errors.email = "Enter a valid email address"
+                this.errors.email = 'Enter a valid email address'
             } else {
-                this.errors.email = ""
+                this.errors.email = ''
             }
         },
-        'input.password': function(v) {
+        'input.password': function (v) {
             if (this.errors.password && v.length >= 8) {
                 this.errors.password = ''
             }
         }
     },
     methods: {
-        checkPassword() {
+        checkPassword () {
             if (this.input.password.length < 8) {
-                this.errors.password = "Password must be at least 8 characters"
+                this.errors.password = 'Password must be at least 8 characters'
             } else {
-                this.errors.password = ""
+                this.errors.password = ''
             }
         },
-        registerUser() {
-            let opts = { ...this.input, name: this.input.name || this.input.username }
+        registerUser () {
+            const opts = { ...this.input, name: this.input.name || this.input.username }
             userApi.registerUser(opts).then(result => {
-                this.emailSent = true;
+                this.emailSent = true
             }).catch(err => {
-                console.log(err.response.data);
+                console.log(err.response.data)
                 if (err.response.data) {
                     if (/username/.test(err.response.data.error)) {
-                        this.errors.username = "Username unavailable"
+                        this.errors.username = 'Username unavailable'
                     }
                     if (/password/.test(err.response.data.error)) {
-                        this.errors.password = "Invalid username"
+                        this.errors.password = 'Invalid username'
                     }
-                    if (err.response.data.error === "email must be unique") {
-                        this.errors.email = "Email already registered"
+                    if (err.response.data.error === 'email must be unique') {
+                        this.errors.email = 'Email already registered'
                     }
-                    if (err.response.data.error === "user registration not enabled") {
-                        //TODO Where to show this error?
+                    if (err.response.data.error === 'user registration not enabled') {
+                        // TODO Where to show this error?
                     }
                 }
-            });
+            })
         }
-    },
+    }
 }
 </script>

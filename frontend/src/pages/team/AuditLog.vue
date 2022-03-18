@@ -5,33 +5,32 @@
 <script>
 import teamApi from '@/api/team'
 import AuditLog from '@/components/AuditLog'
-import { useRoute, useRouter } from 'vue-router';
 import { Roles } from '@core/lib/roles'
 
 export default {
     name: 'TeamAuditLog',
-    props:[ "team", "teamMembership" ],
+    props: ['team', 'teamMembership'],
     watch: {
-         team: 'fetchData',
-         teamMembership: 'fetchData'
+        team: 'fetchData',
+        teamMembership: 'fetchData'
     },
-    data() {
+    data () {
         return {
-            verifiedTeam: null,
+            verifiedTeam: null
         }
     },
-    mounted() {
+    mounted () {
         this.fetchData()
     },
     methods: {
-        loadItems: async function(projectId,cursor) {
-            return await teamApi.getTeamAuditLog(projectId,cursor);
+        loadItems: async function (projectId, cursor) {
+            return await teamApi.getTeamAuditLog(projectId, cursor)
         },
-        fetchData: async function(newVal) {
+        fetchData: async function (newVal) {
             if (this.team.id && this.teamMembership && this.teamMembership.role === Roles.Owner) {
-                this.verifiedTeam = this.team;
+                this.verifiedTeam = this.team
             } else if (this.teamMembership && this.teamMembership.role !== Roles.Owner) {
-                useRouter().push({ path: `/team/${this.team.slug}/overview` })
+                this.$router.push({ path: `/team/${this.team.slug}/overview` })
             }
         }
     },

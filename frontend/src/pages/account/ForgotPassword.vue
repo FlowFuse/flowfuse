@@ -3,7 +3,7 @@
         <div class="sm:w-72 w-screen space-y-2">
             <template v-if="!pending">
                 <div class="max-w-xs mx-auto w-full mb-4">
-                    <Logo/>
+                    <FlowForgeLogo/>
                     <h2 class="mt-2 text-center text-3xl font-bold text-gray-900">
                         <span>FLOW</span><span class="font-light">FORGE</span>
                     </h2>
@@ -29,13 +29,13 @@
 
 <script>
 import { mapState } from 'vuex'
-import Logo from '@/components/Logo'
+import FlowForgeLogo from '@/components/Logo'
 import FormRow from '@/components/FormRow'
 import userApi from '@/api/user'
 
 export default {
     name: 'PasswordRequest',
-    data() {
+    data () {
         return {
             input: {
                 email: ''
@@ -47,9 +47,9 @@ export default {
         }
     },
     methods: {
-        requestPasswordReset() {
+        requestPasswordReset () {
             this.errors.email = ''
-            if (this.input.email  === '') {
+            if (this.input.email === '') {
                 this.errors.email = 'Enter email address'
                 return false
             }
@@ -57,20 +57,20 @@ export default {
                 // show message
                 this.flash = 'We have sent you an email with instructions to reset your password'
             }).catch(e => {
-               this.errors.email = ''
-               console.log(e)
+                this.errors.email = ''
+                console.log(e)
             })
         },
-        focusEmail() {
+        focusEmail () {
             document.getElementById('reset_email').focus()
         }
     },
-    mounted() {
+    mounted () {
         this.focusEmail()
     },
-    computed: mapState('account',['settings', 'pending']),
+    computed: mapState('account', ['settings', 'pending']),
     components: {
-        Logo,
+        FlowForgeLogo,
         FormRow
     }
 }

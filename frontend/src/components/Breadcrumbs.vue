@@ -41,7 +41,7 @@ import DropdownMenu from '@/components/DropdownMenu'
 import { ChevronRightIcon, PlusSmIcon, CogIcon } from '@heroicons/vue/outline'
 
 export default {
-    name: 'Breadcrumbs',
+    name: 'NavBreadcrumbs',
     computed: {
         ...mapState('breadcrumbs', ['breadcrumbs']),
         ...mapState('account', ['team', 'teams', 'pendingTeamChange', 'settings', 'user']),

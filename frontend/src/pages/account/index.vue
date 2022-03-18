@@ -16,36 +16,33 @@
 
 <script>
 import { mapState } from 'vuex'
-import Breadcrumbs from '@/mixins/Breadcrumbs';
-import SectionTopMenu from '@/components/SectionTopMenu';
+import Breadcrumbs from '@/mixins/Breadcrumbs'
+import SectionTopMenu from '@/components/SectionTopMenu'
 
 const navigation = [
-    { name: "Settings", path: "/account/settings" },
-    { name: "Teams", path: "/account/teams" },
-    { name: "Security", path: "/account/security" }
+    { name: 'Settings', path: '/account/settings' },
+    { name: 'Teams', path: '/account/teams' },
+    { name: 'Security', path: '/account/security' }
 ]
 
 export default {
-    name: 'User',
-    mixins: [ Breadcrumbs ],
+    name: 'UserSettings',
+    mixins: [Breadcrumbs],
     computed: {
-        ...mapState('account',['user'])
+        ...mapState('account', ['user'])
     },
-    created() {
+    created () {
         this.setBreadcrumbs([
-            {label:"User Settings", to:{name:"User Settings"}}
-        ]);
+            { label: 'User Settings', to: { name: 'User Settings' } }
+        ])
     },
     components: {
         SectionTopMenu
     },
-    setup() {
+    setup () {
         return {
             navigation
         }
-    },
-    components: {
-        SectionTopMenu
     }
 }
 </script>

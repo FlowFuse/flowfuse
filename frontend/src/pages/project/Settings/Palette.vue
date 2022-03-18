@@ -9,20 +9,17 @@
 
 <script>
 import projectApi from '@/api/project'
-import FormRow from '@/components/FormRow'
-import FormHeading from '@/components/FormHeading'
 import TemplateSettingsPalette from '../../admin/Template/sections/Palette'
 import {
     getTemplateValue,
     setTemplateValue,
-    defaultTemplateValues,
     templateFields,
     prepareTemplateForEdit
 } from '../../admin/Template/utils'
 
 export default {
     name: 'ProjectSettingsEditor',
-    data() {
+    data () {
         return {
             unsavedChanges: false,
             editable: {
@@ -38,35 +35,33 @@ export default {
                 },
                 errors: {}
             },
-            original: {},
+            original: {}
 
         }
     },
-    props:[ "project" ],
+    props: ['project'],
     watch: {
         project: 'getSettings',
         editable: {
             deep: true,
-            handler(v) {
+            handler (v) {
                 if (this.project.template) {
                     let changed = false
                     templateFields.forEach(field => {
                         // this.editable.changed.settings[field] = this.editable.settings[field] != this.original.settings[field]
-                        changed = changed ||  (this.editable.settings[field] != this.original.settings[field])
+                        changed = changed || (this.editable.settings[field] != this.original.settings[field])
                     })
                     this.unsavedChanges = changed
                 }
-                
             }
-        },
+        }
     },
-    mounted() {
+    mounted () {
         this.getSettings()
     },
     methods: {
-        getSettings: function() {
+        getSettings: function () {
             if (this.project.template) {
-
                 const preparedTemplate = prepareTemplateForEdit(this.project.template)
                 this.editable = preparedTemplate.editable
                 this.original = preparedTemplate.original
@@ -83,20 +78,18 @@ export default {
                 })
             }
         },
-        async saveSettings() {
+        async saveSettings () {
             const settings = {}
             templateFields.forEach(field => {
                 if (this.editable.settings[field] != this.original.settings[field]) {
                     setTemplateValue(settings, field, this.editable.settings[field])
                 }
             })
-            await projectApi.updateProject(this.project.id, { settings });
+            await projectApi.updateProject(this.project.id, { settings })
             this.$emit('projectUpdated')
-        },  
+        }
     },
     components: {
-        FormRow,
-        FormHeading,
         TemplateSettingsPalette
     }
 }

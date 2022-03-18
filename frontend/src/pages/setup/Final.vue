@@ -11,22 +11,17 @@
 </template>
 
 <script>
-import httpClient from "@/api/client"
-import FormHeading from "@/components/FormHeading.vue"
-import FormRow from "@/components/FormRow.vue"
+import httpClient from '@/api/client'
 
 export default {
     name: 'SetupFinal',
     methods: {
-        async done() {
-            let opts = { _csrf: SETUP_CSRF_TOKEN }
-            await httpClient.post("/setup/finish",opts)
+        async done () {
+            // eslint-disable-next-line no-undef
+            const opts = { _csrf: SETUP_CSRF_TOKEN }
+            await httpClient.post('/setup/finish', opts)
             window.location = '/'
-        },
-    },
-    components: {
-        FormHeading,
-        FormRow
+        }
     }
 }
 </script>

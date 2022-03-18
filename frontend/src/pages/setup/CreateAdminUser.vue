@@ -30,23 +30,23 @@
                 Next
             </button>
         </template>
-        </form>
+    </form>
 </template>
 
 <script>
 import httpClient from '@/api/client'
-import FormHeading from "@/components/FormHeading.vue"
-import FormRow from "@/components/FormRow.vue"
+import FormHeading from '@/components/FormHeading.vue'
+import FormRow from '@/components/FormRow.vue'
 export default {
     name: 'CreateAdminUser',
-    data() {
+    data () {
         return {
             input: {
-                name: "",
-                username: "",
-                email: "",
-                password: "",
-                password_confirm: "",
+                name: '',
+                username: '',
+                email: '',
+                password: '',
+                password_confirm: ''
                 // isAdmin: false,
                 // createDefaultTeam: true
             },
@@ -55,28 +55,28 @@ export default {
     },
     props: ['state'],
     watch: {
-        'input.username': function(v) {
+        'input.username': function (v) {
             if (v && !/^[a-z0-9-_]+$/i.test(v)) {
-                this.errors.username = "Must only contain a-z 0-9 - _"
+                this.errors.username = 'Must only contain a-z 0-9 - _'
             } else {
-                this.errors.username = ""
+                this.errors.username = ''
             }
         },
-        'input.email': function(v) {
+        'input.email': function (v) {
             if (v && !/.+@.+/.test(v)) {
-                this.errors.email = "Enter a valid email address"
+                this.errors.email = 'Enter a valid email address'
             } else {
-                this.errors.email = ""
+                this.errors.email = ''
             }
         },
-        'input.password': function(v) {
+        'input.password': function (v) {
             if (this.errors.password && v.length >= 8) {
                 this.errors.password = ''
             }
         }
     },
     computed: {
-        formValid() {
+        formValid () {
             return this.input.email &&
                    (this.input.username && !this.errors.username) &&
                    this.input.password !== '' &&
@@ -84,35 +84,36 @@ export default {
         }
     },
     methods: {
-        next() {
+        next () {
             this.$emit('next')
         },
-        checkPassword() {
+        checkPassword () {
             if (this.input.password && this.input.password.length < 8) {
-                this.errors.password = "Password must be at least 8 characters"
+                this.errors.password = 'Password must be at least 8 characters'
             } else {
-                this.errors.password = ""
+                this.errors.password = ''
             }
         },
-        createUser() {
-            let opts = { _csrf: SETUP_CSRF_TOKEN, ...this.input, name: this.input.name || this.input.username }
-            delete opts.password_confirm;
+        createUser () {
+            // eslint-disable-next-line no-undef
+            const opts = { _csrf: SETUP_CSRF_TOKEN, ...this.input, name: this.input.name || this.input.username }
+            delete opts.password_confirm
 
-            return httpClient.post(`/setup/create-user`, opts).then(res => {
+            return httpClient.post('/setup/create-user', opts).then(res => {
                 this.$emit('next')
             }).catch(err => {
                 if (err.response.data) {
                     if (/username/.test(err.response.data.error)) {
-                        this.errors.username = "Username unavailable"
+                        this.errors.username = 'Username unavailable'
                     } else if (/password/.test(err.response.data.error)) {
-                        this.errors.password = "Invalid username"
-                    } else if (err.response.data.error === "email must be unique") {
-                        this.errors.email = "Email already registered"
+                        this.errors.password = 'Invalid username'
+                    } else if (err.response.data.error === 'email must be unique') {
+                        this.errors.email = 'Email already registered'
                     } else {
                         this.errors.username = err.response.data.error
                     }
                 }
-            });
+            })
         }
     },
     components: {

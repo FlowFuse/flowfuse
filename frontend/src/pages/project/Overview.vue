@@ -29,29 +29,26 @@
 
 <script>
 import projectApi from '@/api/project'
-import stacksApi from '@/api/stacks'
-import DropdownMenu from '@/components/DropdownMenu'
-import { ExternalLinkIcon, ClipboardCopyIcon, TrendingUpIcon, TemplateIcon, HeartIcon, CogIcon} from '@heroicons/vue/outline'
+import { ExternalLinkIcon, TrendingUpIcon, TemplateIcon } from '@heroicons/vue/outline'
 import FormHeading from '@/components/FormHeading'
-import FormRow from '@/components/FormRow'
 import ProjectStatusBadge from './components/ProjectStatusBadge'
 import AuditLog from '@/components/AuditLog'
 
 export default {
     name: 'ProjectOverview',
-    props:[ "project" ],
+    props: ['project'],
     computed: {
-        options: function() {
+        options: function () {
             return [
-                {name: "Start", action: async() => { await projectApi.startProject(this.project.id) } },
-                {name: "Restart", action: async() => { await projectApi.restartProject(this.project.id) } },
-                {name: "Stop", action: async() => { await projectApi.stopProject(this.project.id) } }
+                { name: 'Start', action: async () => { await projectApi.startProject(this.project.id) } },
+                { name: 'Restart', action: async () => { await projectApi.restartProject(this.project.id) } },
+                { name: 'Stop', action: async () => { await projectApi.stopProject(this.project.id) } }
             ]
         }
     },
     methods: {
-        loadItems: async function(projectId,cursor) {
-            return await projectApi.getProjectAuditLog(projectId,cursor,4);
+        loadItems: async function (projectId, cursor) {
+            return await projectApi.getProjectAuditLog(projectId, cursor, 4)
         }
     },
     components: {
@@ -59,12 +56,8 @@ export default {
         FormHeading,
         AuditLog,
         ExternalLinkIcon,
-        ClipboardCopyIcon,
         TemplateIcon,
-        DropdownMenu,
-        HeartIcon,
-        CogIcon,
         TrendingUpIcon
-    },
+    }
 }
 </script>

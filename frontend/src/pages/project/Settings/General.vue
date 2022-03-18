@@ -32,8 +32,6 @@
 <script>
 import projectApi from '@/api/project'
 import FormRow from '@/components/FormRow'
-import FormHeading from '@/components/FormHeading'
-import { ClipboardCopyIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'ProjectSettings',
@@ -48,7 +46,7 @@ export default {
                 projectId: '',
                 projectName: '',
                 stackDescription: '',
-                templateName: '',
+                templateName: ''
             },
             original: {
                 projectName: ''
@@ -100,16 +98,14 @@ export default {
             if (this.project.template) {
                 this.input.templateName = this.project.template.name
             } else {
-                this.input.templateName = "none"
+                this.input.templateName = 'none'
             }
 
             this.input.projectName = this.project.name
         }
     },
     components: {
-        FormRow,
-        FormHeading,
-        ClipboardCopyIcon
+        FormRow
     }
 }
 </script>

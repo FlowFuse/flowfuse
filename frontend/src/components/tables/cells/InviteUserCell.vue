@@ -14,8 +14,8 @@ import UserCell from './UserCell'
 import { UserCircleIcon } from '@heroicons/vue/solid'
 
 export default {
-    name: "InviteUserCell",
-    props: ['external','email','avatar','name','username'],
+    name: 'InviteUserCell',
+    props: ['external', 'email', 'avatar', 'name', 'username'],
     components: {
         UserCell,
         UserCircleIcon

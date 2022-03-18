@@ -54,13 +54,13 @@
 </template>
 <script>
 
-import { ref } from "vue";
+import { ref } from 'vue'
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 import { ChevronDownIcon } from '@heroicons/vue/solid'
 
 export default {
-    name: "DropdownMenu",
-    props: [ 'alt' , 'options', 'buttonClass', 'edge'],
+    name: 'DropdownMenu',
+    props: ['alt', 'options', 'buttonClass', 'edge'],
     components: {
         Menu,
         MenuButton,
@@ -68,7 +68,7 @@ export default {
         MenuItem,
         ChevronDownIcon
     },
-    setup(props, { slots }) {
+    setup (props, { slots }) {
         const hasLabel = ref(false)
         if (slots.default) {
             hasLabel.value = true

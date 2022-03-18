@@ -6,7 +6,7 @@
             <template v-slot:description>
                 <p>
                     We collect anonymous statistics about how FlowForge is used.
-                    This allows us to improve how it works and make a better product. 
+                    This allows us to improve how it works and make a better product.
                 </p>
                 <p>
                     For more information about the data we collect and how it is used,
@@ -24,13 +24,13 @@
 
 <script>
 import httpClient from '@/api/client'
-import FormHeading from "@/components/FormHeading.vue"
-import FormRow from "@/components/FormRow.vue"
+import FormHeading from '@/components/FormHeading.vue'
+import FormRow from '@/components/FormRow.vue'
 
 export default {
     name: 'SetupOptions',
     props: ['state'],
-    data() {
+    data () {
         return {
             input: {
                 telemetry: true
@@ -39,16 +39,17 @@ export default {
         }
     },
     methods: {
-        next() {
-            this.$emit('next');
+        next () {
+            this.$emit('next')
         },
-        applyOptions() {
-            let opts = { _csrf: SETUP_CSRF_TOKEN, ...this.input }
-            return httpClient.post(`/setup/settings`, opts).then(res => {
+        applyOptions () {
+            // eslint-disable-next-line no-undef
+            const opts = { _csrf: SETUP_CSRF_TOKEN, ...this.input }
+            return httpClient.post('/setup/settings', opts).then(res => {
                 this.$emit('next')
             }).catch(err => {
-                console.error(err);
-            });
+                console.error(err)
+            })
         }
     },
     components: {
