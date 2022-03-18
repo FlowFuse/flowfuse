@@ -14,7 +14,8 @@
         "test": "npm run lint && npm run test:unit && npm run test:system",
         "test:unit": "mocha test/unit/**/*_spec.js",
         "test:system": "mocha test/system/**/*_spec.js",
-        "dev:local": "cd ../flowforge-driver-localfs && npm install ../flowforge-nr-storage ../flowforge-nr-auth ../flowforge-nr-audit-logger && cd ../flowforge && npm install ../flowforge-driver-localfs"
+        "dev:local": "cd ../flowforge-driver-localfs && npm install ../flowforge-nr-storage ../flowforge-nr-auth ../flowforge-nr-audit-logger && cd ../flowforge && npm install ../flowforge-driver-localfs",
+        "install-stack": "mkdir -p var/stacks/${npm_config_vers} && npm install --prefix var/stacks/${npm_config_vers} node-red@${npm_config_vers}"
     },
     "bin": {
         "flowforge": "./forge/app.js"
