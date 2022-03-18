@@ -1,5 +1,4 @@
 import client from './client'
-import slugify from '@/utils/slugify'
 import daysSince from '@/utils/daysSince'
 import elapsedTime from '@/utils/elapsedTime'
 import paginateUrl from '@/utils/paginateUrl'
