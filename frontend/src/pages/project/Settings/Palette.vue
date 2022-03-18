@@ -49,7 +49,7 @@ export default {
                     let changed = false
                     templateFields.forEach(field => {
                         // this.editable.changed.settings[field] = this.editable.settings[field] != this.original.settings[field]
-                        changed = changed || (this.editable.settings[field] != this.original.settings[field])
+                        changed = changed || (this.editable.settings[field] !== this.original.settings[field])
                     })
                     this.unsavedChanges = changed
                 }
@@ -81,7 +81,7 @@ export default {
         async saveSettings () {
             const settings = {}
             templateFields.forEach(field => {
-                if (this.editable.settings[field] != this.original.settings[field]) {
+                if (this.editable.settings[field] !== this.original.settings[field]) {
                     setTemplateValue(settings, field, this.editable.settings[field])
                 }
             })

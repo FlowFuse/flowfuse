@@ -36,18 +36,14 @@
 
 <script>
 import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
-import CreateProjectButton from '@/components/CreateProjectButton'
-import { PlusSmIcon, ChevronRightIcon, ExternalLinkIcon, TemplateIcon } from '@heroicons/vue/outline'
+import { PlusSmIcon, ChevronRightIcon, TemplateIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'MemberProjectSummaryList',
     props: ['projects', 'team'],
     components: {
         ProjectStatusBadge,
-
-        ExternalLinkIcon,
         ChevronRightIcon,
-        CreateProjectButton,
         PlusSmIcon,
         TemplateIcon
     }

@@ -9,7 +9,7 @@
 </template>
 <script>
 export default {
-    name: 'Offline',
+    name: 'OfflineMessage',
     methods: {
         reload () {
             this.$store.dispatch('account/checkState')

@@ -15,7 +15,6 @@
 <script>
 import { mapState } from 'vuex'
 import FormRow from '@/components/FormRow'
-import { LockClosedIcon } from '@heroicons/vue/outline'
 import userApi from '@/api/user'
 
 export default {
@@ -85,7 +84,6 @@ export default {
         }
     },
     components: {
-        LockClosedIcon,
         FormRow
     }
 }
