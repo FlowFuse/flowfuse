@@ -11,3 +11,4 @@ docs/jsdoc
 *.env
 *.env.local
 .vscode/settings.json
+package-lock.json
