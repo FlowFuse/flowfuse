@@ -75,7 +75,7 @@ module.exports = async function (app) {
         if (project) {
             const creds = await app.db.models.StorageCredentials.byProject(id)
             if (creds) {
-                response.send(creds)
+                response.send(creds.credentials)
             } else {
                 response.send({})
             }
