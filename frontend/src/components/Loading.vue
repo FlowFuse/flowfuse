@@ -7,7 +7,7 @@
 </template>
 <script>
 export default {
-    name: 'Loading',
+    name: 'LoadingMessage',
     props: {
         size: {
             default: 'normal',

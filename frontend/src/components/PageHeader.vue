@@ -68,7 +68,7 @@ import { MenuIcon, XIcon, HomeIcon, ChevronRightIcon } from '@heroicons/vue/outl
 
 const navigation = router.options.routes.filter(r => r.navigationLink)
 export default {
-    name: 'Navbar',
+    name: 'NavBar',
     computed: {
         profile: function () {
             const profileLinks = router.options.routes.filter(r => {
