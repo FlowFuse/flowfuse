@@ -2,7 +2,12 @@
     <form class="space-y-6">
         <FormHeading>Project Stacks
             <template v-slot:tools>
-                <button type="button" class="forge-button pl-2 mb-1" @click="showCreateStackDialog"><span class="text-xs">Create stack</span></button>
+                <ff-button size="small" @click="showCreateStackDialog">
+                    <template v-slot:icon-right>
+                        <PlusSmIcon />
+                    </template>
+                    Create stack
+                </ff-button>
             </template>
         </FormHeading>
         <ItemTable :items="stacks" :columns="columns" />
@@ -28,6 +33,8 @@ import { mapState } from 'vuex'
 import AdminStackEditButton from './components/AdminStackEditButton'
 import AdminStackEditDialog from './dialogs/AdminStackEditDialog'
 import AdminStackDeleteDialog from './dialogs/AdminStackDeleteDialog'
+
+import { PlusSmIcon } from '@heroicons/vue/outline'
 
 const StackPropertiesTable = {
     template: '<div>{{properties}}</div>',
@@ -110,7 +117,8 @@ export default {
         FormHeading,
         ItemTable,
         AdminStackEditDialog,
-        AdminStackDeleteDialog
+        AdminStackDeleteDialog,
+        PlusSmIcon
     }
 }
 </script>

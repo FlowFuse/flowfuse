@@ -2,7 +2,7 @@
     <form class="space-y-6">
         <TemplateSettingsEditor v-model="editable" :editTemplate="false" />
         <div class="space-x-4 whitespace-nowrap">
-            <button type="button" class="forge-button forge-button-small" :disabled="!unsavedChanges" @click="saveSettings">Save settings</button>
+            <ff-button size="small" :disabled="!unsavedChanges" @click="saveSettings()">Save settings</ff-button>
         </div>
     </form>
 </template>

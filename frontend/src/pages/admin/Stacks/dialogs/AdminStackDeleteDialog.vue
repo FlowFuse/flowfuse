@@ -30,8 +30,8 @@
                                     </p>
                                 </div>
                                 <div class="mt-4 flex flex-row justify-end">
-                                    <button type="button" class="forge-button-secondary ml-4" @click="close">Cancel</button>
-                                    <button type="button" class="forge-button-danger ml-4" :disabled="deleteDisabled" @click="confirm">Delete</button>
+                                    <ff-button kind="secondary" @click="close()">Cancel</ff-button>
+                                    <ff-button class="ml-4" :disabled="deleteDisabled" @click="confirm()">Delete</ff-button>
                                 </div>
                             </form>
                         </div>

@@ -20,15 +20,15 @@
                 <template v-slot:description>At least 8 characters</template>
             </FormRow>
             <FormRow type="password" :error="errors.password_confirm" v-model="input.password_confirm" id="password_confirm">Confirm Password</FormRow>
-            <button type="button" :disabled="!formValid" @click="createUser" class="forge-button mt-6">
+            <ff-button :disabled="!formValid" @click="createUser()" class="mt-6">
                 Next
-            </button>
+            </ff-button>
         </template>
         <template v-else>
             <p class="text-gray-700 mt-10 text-center">You have already created an admin user.</p>
-            <button type="button" @click="next" class="forge-button mt-6">
+            <ff-button @click="next()" class="mt-6">
                 Next
-            </button>
+            </ff-button>
         </template>
     </form>
 </template>

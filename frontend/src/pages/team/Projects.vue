@@ -1,11 +1,16 @@
 <template>
     <form class="space-y-6">
-        <template v-if="projectCount > 0">
+        <template v-if="projects.length > 0">
             <ItemTable :items="projects" :columns="columns" />
         </template>
         <template v-else-if="createProjectEnabled">
             <div class="flex justify-center mb-4 p-8">
-                <CreateProjectButton :url="'/team/'+team.slug+'/projects/create'" class="w-auto flex-grow-0"/>
+                <ff-button>
+                    <template v-slot:icon-right>
+                        <PlusSmIcon />
+                    </template>
+                    Create Project
+                </ff-button>
             </div>
         </template>
         <template v-else>
@@ -21,8 +26,7 @@ import { markRaw } from 'vue'
 import { Roles } from '@core/lib/roles'
 import teamApi from '@/api/team'
 import ItemTable from '@/components/tables/ItemTable'
-import CreateProjectButton from '@/components/CreateProjectButton'
-import { ExternalLinkIcon } from '@heroicons/vue/outline'
+import { ExternalLinkIcon, PlusSmIcon } from '@heroicons/vue/outline'
 
 import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
 
@@ -35,7 +39,6 @@ export default {
     name: 'TeamProjects',
     data () {
         return {
-            projectCount: 0,
             projects: [],
             columns: [
                 { name: 'Name', class: ['flex-grow'], property: 'name', link: 'link' },
@@ -55,7 +58,6 @@ export default {
         fetchData: async function (newVal) {
             if (this.team.id) {
                 const data = await teamApi.getTeamProjects(this.team.id)
-                this.projectCount = data.count
                 this.projects = data.projects
             }
         }
@@ -68,7 +70,7 @@ export default {
     props: ['team', 'teamMembership'],
     components: {
         ItemTable,
-        CreateProjectButton
+        PlusSmIcon
     }
 }
 </script>

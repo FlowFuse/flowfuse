@@ -25,8 +25,11 @@
                                     <FormRow v-model="input.properties[prop.name]" :error="errors[prop.name]" :disabled="editDisabled">{{prop.label}}</FormRow>
                                 </template>
                                 <div class="mt-4 flex flex-row justify-end">
-                                    <button type="button" class="forge-button-secondary ml-4" @click="close">Cancel</button>
-                                    <button type="button" :disabled="!formValid" class="forge-button ml-4" @click="confirm"><span v-if="stack">Update</span><span v-else>Create</span></button>
+                                    <ff-button @click="close()">Cancel</ff-button>
+                                    <ff-button :disabled="!formValid" class="ml-4" @click="confirm()">
+                                        <span v-if="stack">Update</span>
+                                        <span v-else>Create</span>
+                                    </ff-button>
                                 </div>
                             </form>
                         </div>

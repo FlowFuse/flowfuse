@@ -16,16 +16,6 @@
             Template
         </FormRow>
 
-        <!-- <div class="space-x-4 whitespace-nowrap">
-            <template v-if="!editing.projectName">
-                <button type="button" class="forge-button forge-button-small" @click="editName">Edit project settings</button>
-            </template>
-            <template v-else>
-                <button type="button" class="forge-button-tertiary forge-button-small" @click="cancelEditName">Cancel</button>
-                <button type="button" class="forge-button forge-button-small" @click="saveEditName">Save project settings</button>
-            </template>
-        </div> -->
-
     </form>
 </template>
 

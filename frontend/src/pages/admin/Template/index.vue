@@ -6,12 +6,12 @@
 
         </div>
         <div class="text-right space-x-4" v-if="unsavedChanges">
-            <button type="button" class="forge-button-secondary ml-4" @click="cancelEdit">Cancel</button>
-            <button type="button" class="forge-button ml-4" :disabled="hasErrors" @click="showSaveTemplateDialog">Save changes</button>
+            <ff-button kind="secondary" class="ml-4" @click="cancelEdit">Cancel</ff-button>
+            <ff-button class="ml-4" :disabled="hasErrors" @click="showSaveTemplateDialog">Save changes</ff-button>
         </div>
         <div class="text-right space-x-4" v-if="isNew">
-            <router-link :to="{ name: 'Admin Templates' }" class="forge-button-secondary ml-4">Cancel</router-link>
-            <button type="button" :disabled="hasErrors || !createValid" class="forge-button ml-4" @click="createTemplate">Create template</button>
+            <ff-button :to="{ name: 'Admin Templates' }" kind="secondary">Cancel</ff-button>
+            <ff-button :disabled="hasErrors || !createValid" class="ml-4" @click="createTemplate">Create template</ff-button>
         </div>
     </div>
     <div class="flex flex-col sm:flex-row">

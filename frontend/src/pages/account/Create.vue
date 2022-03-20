@@ -14,9 +14,9 @@
                     <FormRow v-model="input.name" :placeholder="input.username">Full Name</FormRow>
                     <FormRow v-model="input.email" :error="errors.email">Email</FormRow>
                     <FormRow type="password" :error="errors.password" v-model="input.password" id="password" :onBlur="checkPassword" >Password</FormRow>
-                    <button type="button" :disabled="!formValid" @click="registerUser" class="forge-button">
+                    <ff-button :disabled="!formValid" @click="registerUser">
                         Sign up
-                    </button>
+                    </ff-button>
                 </form>
             </template>
             <template v-else>

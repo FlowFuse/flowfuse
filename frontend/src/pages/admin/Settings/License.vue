@@ -1,5 +1,5 @@
 <template>
-    <form class="space-y-6">
+    <div class="space-y-6">
         <template v-if="!editing.license">
             <FormHeading>License</FormHeading>
             <template v-if="license">
@@ -18,16 +18,16 @@
                 </table>
             </template>
             <div class="space-x-4 whitespace-nowrap">
-                <button type="button" class="forge-button forge-button-small" @click="editLicense">Update license</button>
+                <ff-button @click="editLicense">Update license</ff-button>
             </div>
         </template>
         <template v-if="editing.license">
             <FormHeading>1. Upload new license</FormHeading>
             <template v-if="!inspectedLicense">
                 <FormRow v-model="input.license" :error="errors.license" id="license" placeholder="Enter new license"></FormRow>
-                <div class="space-x-4 whitespace-nowrap">
-                    <button type="button" class="forge-button-tertiary forge-button-small" @click="cancelEditLicense">Cancel</button>
-                    <button type="button" :disabled="!formValid" class="forge-button forge-button-small" @click="inspectLicense">Check license</button>
+                <div class="space-x-4 whitespace-nowrap flex">
+                    <ff-button @click="cancelEditLicense">Cancel</ff-button>
+                    <ff-button :disabled="!formValid" @click="inspectLicense">Check license</ff-button>
                 </div>
             </template>
             <template v-if="inspectedLicense">
@@ -38,13 +38,13 @@
                     <tr><td class="font-medium p-2 pr-4 align-top">Expires</td><td class="p-2">{{inspectedLicense.expires}}<br><span class="text-xs">{{inspectedLicense.expiresAt}}</span></td></tr>
                 </table>
                 <details><pre class="break-words">{{inspectedLicense}}</pre></details>
-                <div class="space-x-4 whitespace-nowrap">
-                    <button type="button" class="forge-button-tertiary forge-button-small" @click="cancelEditLicense">Cancel</button>
-                    <button type="button" class="forge-button forge-button-small" @click="applyLicense">Apply license</button>
+                <div class="space-x-4 whitespace-nowrap flex">
+                    <ff-button kind="secondary" @click="cancelEditLicense">Cancel</ff-button>
+                    <ff-button kind="primary" @click="applyLicense">Apply license</ff-button>
                 </div>
             </template>
         </template>
-    </form>
+    </div>
 </template>
 
 <script>

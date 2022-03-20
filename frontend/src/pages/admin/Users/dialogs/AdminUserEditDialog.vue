@@ -24,17 +24,22 @@
                                 <FormRow v-model="input.email" :error="errors.email">Email</FormRow>
                                 <FormRow id="admin" :disabled="adminLocked" v-model="input.admin" type="checkbox">Administrator
                                     <template v-slot:append>
-                                        <button type="button" @click="unlockAdmin" :class="[{'opacity-0':!adminLocked}]" class="forge-button-danger px-1" ><LockClosedIcon class="w-4" /></button>
+                                        <ff-button v-if="adminLocked" kind="danger" size="small" @click="unlockAdmin()">
+                                            <template v-slot:icon>
+                                                <LockClosedIcon />
+                                            </template>
+                                        </ff-button>
                                     </template>
                                 </FormRow>
                                 <div class="mt-4 flex flex-row justify-end">
-                                    <button type="button" class="forge-button-secondary ml-4" @click="close">Cancel</button>
-                                    <button type="button" :disabled="!formValid" class="forge-button ml-4" @click="confirm">Save</button>
+                                    <ff-button kind="secondary" @click="close()">Cancel</ff-button>
+                                    <ff-button :disabled="!formValid" class="ml-4" @click="confirm()">Save</ff-button>
                                 </div>
                                 <hr />
                                 <FormHeading class="text-red-700">Danger Zone</FormHeading>
-                                <div><button type="button" class="forge-button-danger ml-4" @click="expirePassword">Expire password</button></div>
-                                <!-- <div><button type="button" class="forge-button-danger ml-4" @click="expireSessions">Expire active sessions</button></div> -->
+                                <div>
+                                    <ff-button kind="danger" @click="expirePassword">Expire password</ff-button>
+                                </div>
                             </form>
                         </div>
                     </TransitionChild>

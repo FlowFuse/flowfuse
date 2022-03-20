@@ -1,6 +1,6 @@
 <template>
-    <FormRow id="login-username" :error="errors.username" v-model="input.username" :onEnter="focusPassword">Username</FormRow>
-    <FormRow id="login-password" type="password" :error="errors.password" v-model="input.password" :onEnter="login">Password</FormRow>
+    <FormRow ref="login-username" :error="errors.username" v-model="input.username" @enter="focusPassword">Username</FormRow>
+    <FormRow ref="login-password" type="password" :error="errors.password" v-model="input.password" @enter="login">Password</FormRow>
     <div class="flex flex-col justify-between">
         <div class="flex items-center">
             <input id="remember_me" name="remember_me" v-model="input.remember" type="checkbox" class="h-4 w-4 text-indigo-600  focus:ring-blue-700 border-gray-300 rounded" />
@@ -11,21 +11,18 @@
     </div>
 
     <div>
-        <button type="button" @click="login" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-900 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-700">
-            <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-                <LockClosedIcon class="h-5 w-5 text-indigo-500 group-hover:text-indigo-400" aria-hidden="true" />
-            </span>
+        <ff-button @click.prevent="login()" class="m-auto w-full" size="full-width">
+            <template v-slot:icon-left><LockClosedIcon aria-hidden="true" /></template>
             Sign in
-        </button>
+        </ff-button>
 
-        <div v-if="settings['user:reset-password']" class="mt-4 text-xs text-center">
-            <router-link class="font-medium text-indigo-600 hover:text-indigo-500" :to="{'name': 'ForgotPassword'}">Forgot your password?</router-link>
-        </div>
+        <ff-button v-if="settings['user:reset-password']" class="m-auto mt-4 text-center" kind="tertiary" size="small" :to="{'name': 'ForgotPassword'}">
+            Forgot your password?
+        </ff-button>
 
-        <div v-if="settings['user:signup']" class="mt-4 text-xs text-center">
-            <router-link class="forge-button-secondary" to="/account/create">Sign up</router-link>
-        </div>
-
+        <ff-button v-if="settings['user:signup']" class="m-auto mt-4" kind="secondary" size="small" to="/account/create">
+            Sign up
+        </ff-button>
     </div>
 </template>
 
@@ -68,13 +65,14 @@ export default {
             }
         },
         focusUsername () {
-            document.getElementById('login-username').focus()
+            this.$refs['login-username'].$el.focus()
         },
         focusPassword () {
-            document.getElementById('login-password').focus()
+            this.$refs['login-password'].$el.focus()
         }
     },
-    mounted () {
+    async mounted () {
+        await this.$nextTick()
         this.focusUsername()
     },
     watch: {

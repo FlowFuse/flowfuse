@@ -11,15 +11,11 @@
                 <form class="px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
                     <template v-if="authMode === 'select'">
                         <div class="h-48 pt-12">
-                            <button type="button" @click="selectCredentials" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-900 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-700">
-                                <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-                                    <LockClosedIcon class="h-5 w-5 text-indigo-500 group-hover:text-indigo-400" aria-hidden="true" />
-                                </span>
+                            <ff-button class="m-auto" @click="selectCredentials">
+                                <template v-slot:icon-left><LockClosedIcon aria-hidden="true" /></template>
                                 Login with username
-                            </button>
-                            <div v-if="settings['user:signup']"  class="mt-4 text-xs text-center">
-                                <router-link class="forge-button-secondary" to="/account/create">Sign up</router-link>
-                            </div>
+                            </ff-button>
+                            <ff-button v-if="settings['user:signup']" class="m-auto mt-4" size="small" kind="secondary" to="/account/create">Sign up</ff-button>
                         </div>
                     </template>
                     <template v-if="authMode === 'credentials'">

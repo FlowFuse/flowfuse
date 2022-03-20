@@ -6,20 +6,20 @@
             <p class="text-sm text-gray-700">If you have a FlowForge Enterprise Edition license, upload it here.</p>
             <FormRow v-model="input.license" :error="errors.license">License</FormRow>
             <div class="space-x-2">
-                <button type="button" @click="next" class="forge-button-secondary mt-6">
+                <ff-button kind="secondary" @click="next()" class="mt-6">
                     Continue with FlowForge CE
-                </button>
-                <button type="button" :disabled="!formValid" @click="addLicense" class="forge-button mt-6">
+                </ff-button>
+                <ff-button :disabled="!formValid" @click="addLicense()" class="mt-6">
                     Next
-                </button>
+                </ff-button>
             </div>
         </template>
         <template v-else>
             <p class="text-gray-700 mt-10 text-center">You have already applied a FlowForge Enterprise Edition license.</p>
             <p class="text-gray-700 mt-10 text-center">To apply a different license, complete this setup then login as the administrator and go to Admin Settings.</p>
-            <button type="button" @click="next" class="forge-button mt-6">
+            <ff-button @click="next()" class="mt-6">
                 Next
-            </button>
+            </ff-button>
         </template>
     </form>
 </template>

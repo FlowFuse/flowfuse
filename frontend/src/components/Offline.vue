@@ -3,7 +3,9 @@
         <div class="text-center">
             <div class="text-9xl">Oh Dear</div>
             <div class="text-2xl">We tried phoning the server, but no-one answered.</div>
-            <div class="text-2xl mt-4"><button class="forge-button" @click="reload">Try again</button></div>
+            <div class="text-2xl mt-4">
+                <ff-button @click="reload">Try again</ff-button>
+            </div>
         </div>
     </div>
 </template>

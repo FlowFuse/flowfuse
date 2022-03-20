@@ -29,8 +29,8 @@
                                     </template>
                                 </div>
                                 <div class="mt-4 flex flex-row justify-end">
-                                    <button type="button" class="forge-button-secondary ml-4" @click="close">Cancel</button>
-                                    <button type="button" :disabled="ownerCount < 2 && isOwner" class="forge-button ml-4" @click="confirm">Change</button>
+                                    <ff-button kind="secondary" class="ml-4" @click="close()">Cancel</ff-button>
+                                    <ff-button :disabled="ownerCount < 2 && isOwner" class="ml-4" @click="confirm()">Change</ff-button>
                                 </div>
                             </form>
                         </div>

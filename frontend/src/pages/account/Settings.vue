@@ -4,7 +4,7 @@
         <FormRow v-model="input.name" :placeholder="input.username">Name</FormRow>
         <FormRow v-model="input.email" :error="errors.email">Email</FormRow>
 
-        <button type="button" :disabled="!formValid" class="forge-button" @click="confirm">Save Changes</button>
+        <ff-button :disabled="!formValid" @click="confirm">Save Changes</ff-button>
 
     </form>
 </template>

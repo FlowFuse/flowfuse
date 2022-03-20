@@ -1,10 +1,10 @@
 <template>
     <form class="space-y-6">
         <FormHeading class="text-red-700">Delete Team</FormHeading>
-        <div class="flex">
+        <div>
             <div class="max-w-sm pr-2">{{deleteDescription}}</div>
-            <div class="pl-2">
-                <button type="button" :disabled="!deleteActive" class="forge-button-danger" @click="showConfirmDeleteDialog" >Delete Team</button>
+            <div class="mt-2">
+                <ff-button kind="danger" :disabled="!deleteActive" @click="showConfirmDeleteDialog()">Delete Team</ff-button>
                 <ConfirmTeamDeleteDialog @deleteTeam="deleteTeam" ref="confirmTeamDeleteDialog"/>
             </div>
         </div>

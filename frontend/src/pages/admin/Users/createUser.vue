@@ -14,9 +14,9 @@
                     <template v-slot:description>A user needs to be in a team to create projects</template>
                 </FormRow>
                 <!-- <FormRow v-model="input.addToTeam">Add to existing team</FormRow> -->
-                <button type="button" :disabled="!formValid" @click="createUser" class="forge-button">
+                <ff-button :disabled="!formValid" @click="createUser()">
                     Create user
-                </button>
+                </ff-button>
             </form>
         </div>
     </div>
