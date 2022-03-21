@@ -75,7 +75,7 @@ module.exports = async function (app) {
         if (project) {
             const creds = await app.db.models.StorageCredentials.byProject(id)
             if (creds) {
-                response.send(creds)
+                response.send(creds.credentials)
             } else {
                 response.send({})
             }
@@ -145,7 +145,7 @@ module.exports = async function (app) {
         if (project) {
             const sessions = await app.db.models.StorageSession.byProject(id)
             if (sessions) {
-                response.send(sessions)
+                response.send(sessions.sessions)
             } else {
                 response.send({})
             }
