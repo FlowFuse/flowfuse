@@ -76,7 +76,7 @@ npm run dev:local
 This will create all the required symlinks to the relevent projects.
 
 **note** do not check in the modified `package.json` that will be created in the 
-`flowforge` or `flowforge-driver-local` project.
+`flowforge` or `flowforge-driver-localfs` project.
 
 
 ### Running FlowForge
