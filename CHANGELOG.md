@@ -1,3 +1,7 @@
+#### 0.3.1: Maintence Release
+ 
+ - Fix broken storage routes (creds/sessions) (#402) @hardillb
+
 #### 0.3.0: Release
 
  - Round down to whole seconds (#375) @hardillb
