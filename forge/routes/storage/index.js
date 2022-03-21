@@ -38,7 +38,7 @@ module.exports = async function (app) {
         if (project) {
             const flow = await app.db.models.StorageFlow.byProject(id)
             if (flow) {
-                response.send(flow.flow)
+                response.type('application/json').send(flow.flow)
             } else {
                 response.send([])
             }
@@ -75,7 +75,7 @@ module.exports = async function (app) {
         if (project) {
             const creds = await app.db.models.StorageCredentials.byProject(id)
             if (creds) {
-                response.send(creds)
+                response.type('application/json').send(creds.credentials)
             } else {
                 response.send({})
             }
@@ -110,7 +110,7 @@ module.exports = async function (app) {
         if (project) {
             const settings = await app.db.models.StorageSettings.byProject(id)
             if (settings) {
-                response.send(settings.settings)
+                response.type('application/json').send(settings.settings)
             } else {
                 response.send({})
             }
@@ -145,7 +145,7 @@ module.exports = async function (app) {
         if (project) {
             const sessions = await app.db.models.StorageSession.byProject(id)
             if (sessions) {
-                response.send(sessions)
+                response.type('application/json').send(sessions.sessions)
             } else {
                 response.send({})
             }
