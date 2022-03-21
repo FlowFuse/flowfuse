@@ -58,6 +58,27 @@ After cloning the core repository, you will need to install the dependencies by 
 npm install
 ```
 
+By default this will install the latest released versions of the FlowForge components. If
+you want to run from the latest source code then you can check out all the required 
+projects in the same directory
+
+- flowforge/flowforge
+- flowforge/flowforge-driver-localfs
+- flowforge/flowforge-nr-launcher
+- flowforge/flowforge-nr-storage
+- flowforge/flowforge-nr-auth
+- flowforge/flowforge-nr-audit-logger
+
+Then in the flowforge directory run
+```
+npm run dev:local
+```
+This will create all the required symlinks to the relevent projects.
+
+**note** do not check in the modified `package.json` that will be created in the 
+`flowforge` or `flowforge-driver-localfs` project.
+
+
 ### Running FlowForge
 
 A number of `npm` tasks are defined in the `package.json` file. To get started use:
