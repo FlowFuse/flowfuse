@@ -1,10 +1,7 @@
 const should = require('should')
-const got = require('got')
-// const FF_UTIL = require('flowforge-test-utils')
 const setup = require('../setup')
 
 describe('Storage API', function () {
-    const forgeURL = 'http://localhost:3000'
     let app
     let tokens
     let project
@@ -20,175 +17,219 @@ describe('Storage API', function () {
 
     it('Get Settings', async function () {
         this.timeout(10000)
-        const settingsURL = `${forgeURL}/api/v1/projects/${app.project.id}/settings`
-        const newSettings = await got(settingsURL, {
+        const settingsURL = `/api/v1/projects/${app.project.id}/settings`
+        const response = await app.inject({
+            method: 'GET',
+            url: settingsURL,
             headers: {
                 authorization: `Bearer ${tokens.token}`
             }
-        }).json()
+        })
+        const newSettings = response.json()
         should(newSettings).have.property('storageURL')
         should(newSettings).have.property('forgeURL')
     })
 
     it('Get Flow', async function () {
         this.timeout(10000)
-        const flow = await got(`${forgeURL}/storage/${project.id}/flows`, {
+        const flowURL = `/storage/${project.id}/flows`
+        const response = await app.inject({
+            method: 'GET',
+            url: flowURL,
             headers: {
                 authorization: `Bearer ${tokens.token}`
             }
-        }).json()
+        })
+        const flow = response.json()
         should(flow).eqls([])
     })
 
     it('Save Flow', async function () {
         this.timeout(10000)
         const newFlow = [{ id: '1', type: 'tab', label: 'tab1', disabled: false, info: '' }]
-        await got.post(`${forgeURL}/storage/${project.id}/flows`, {
-            json: newFlow,
-            responseType: 'json',
+        const flowURL =  `/storage/${project.id}/flows`
+        await app.inject({
+            method: 'POST',
+            url: flowURL,
+            headers: {
+                authorization: `Bearer ${tokens.token}`
+            },
+            payload: newFlow
+        })
+        const response = await app.inject({
+            method: 'GET',
+            url: flowURL,
             headers: {
                 authorization: `Bearer ${tokens.token}`
             }
         })
-        const flow = await got(`${forgeURL}/storage/${project.id}/flows`, {
-            headers: {
-                authorization: `Bearer ${tokens.token}`
-            }
-        }).json()
+        const flow = response.json()
         should(flow).eqls(newFlow)
     })
 
     it('Get Credentials', async function () {
         this.timeout(10000)
-        const creds = await got(`${forgeURL}/storage/${project.id}/credentials`, {
+        const credsURL = `/storage/${project.id}/credentials`
+        const response = await app.inject({
+            method: 'GET',
+            url: credsURL,
             headers: {
                 authorization: `Bearer ${tokens.token}`
             }
-        }).json()
+        })
+        const creds = response.json()
         should(creds).eqls({})
     })
 
     it('Save Credentials', async function () {
         this.timeout(10000)
         const newCreds = [{ id: '1', type: 'tab', label: 'tab1', disabled: false, info: '' }]
-        await got.post(`${forgeURL}/storage/${project.id}/credentials`, {
-            json: newCreds,
-            responseType: 'json',
+        const credsURL = `/storage/${project.id}/credentials`
+        await app.inject({
+            method: 'POST',
+            url: credsURL,
+            payload: newCreds,
             headers: {
                 authorization: `Bearer ${tokens.token}`
             }
         })
-        const creds = await got(`${forgeURL}/storage/${project.id}/credentials`, {
+        const response = await app.inject({
+            method: 'GET',
+            url: credsURL,
             headers: {
                 authorization: `Bearer ${tokens.token}`
             }
-        }).json()
+        })
+        const creds = response.json()
         should(creds).eqls(newCreds)
     })
 
     it('Get Settings', async function () {
         this.timeout(10000)
-        const settings = await got(`${forgeURL}/storage/${project.id}/settings`, {
+        const settingsURL = `/storage/${project.id}/settings`
+        const response = await app.inject({
+            method: 'GET',
+            url: settingsURL,
             headers: {
                 authorization: `Bearer ${tokens.token}`
             }
-        }).json()
+        })
+        const settings = response.json()
         should(settings).eqls({})
     })
 
     it('Save Settings', async function () {
         this.timeout(10000)
         const newSettings = [{ id: '1', type: 'tab', label: 'tab1', disabled: false, info: '' }]
-        await got.post(`${forgeURL}/storage/${project.id}/settings`, {
-            json: newSettings,
+        const settingsURL = `/storage/${project.id}/settings`
+        await app.inject({
+            method: 'POST',
+            url: settingsURL,
+            payload: newSettings,
             responseType: 'json',
             headers: {
                 authorization: `Bearer ${tokens.token}`
             }
         })
-        const creds = await got(`${forgeURL}/storage/${project.id}/settings`, {
+        const response = await app.inject({
+            method: 'GET',
+            url: settingsURL,
             headers: {
                 authorization: `Bearer ${tokens.token}`
             }
-        }).json()
+        })
+        const creds = response.json()
         should(creds).eqls(newSettings)
     })
 
     it('Get Sessions', async function () {
         this.timeout(10000)
-        const sessions = await got(`${forgeURL}/storage/${project.id}/sessions`, {
+        const sessionURL = `/storage/${project.id}/sessions`
+        const response = await app.inject({
+            method: 'GET',
+            url: sessionURL,
             headers: {
                 authorization: `Bearer ${tokens.token}`
             }
-        }).json()
+        })
+        const sessions = response.json()
         should(sessions).eqls({})
     })
 
     it('Save Sessions', async function () {
         this.timeout(10000)
         const newSessions = [{ id: '1', type: 'tab', label: 'tab1', disabled: false, info: '' }]
-        await got.post(`${forgeURL}/storage/${project.id}/sessions`, {
-            json: newSessions,
-            responseType: 'json',
+        const sessionURL = `/storage/${project.id}/sessions`
+        await app.inject({
+            method: 'POST',
+            url: sessionURL,
+            payload: newSessions,
             headers: {
                 authorization: `Bearer ${tokens.token}`
             }
         })
-        const creds = await got(`${forgeURL}/storage/${project.id}/sessions`, {
+        const response = await app.inject({
+            method: 'GET',
+            url: sessionURL,
             headers: {
                 authorization: `Bearer ${tokens.token}`
             }
-        }).json()
-        should(creds).eqls(newSessions)
+        })
+        const sessions = response.json()
+        should(sessions).eqls(newSessions)
     })
 
     it('Add to Library', async function () {
         this.timeout(10000)
         const funcText = '\nreturn msg;'
-        await got.post(`${forgeURL}/storage/${project.id}/library/functions`, {
-            json: {
+        const libraryURL = `/storage/${project.id}/library/functions`
+        await app.inject({
+            method: 'POST',
+            url: libraryURL,
+            payload: {
                 name: 'test',
                 meta: {},
                 body: funcText
             },
-            responseType: 'json',
             headers: {
                 authorization: `Bearer ${tokens.token}`
             }
         })
-        const libraryEntry = await got(`${forgeURL}/storage/${project.id}/library/functions`, {
-            searchParams: {
-                name: 'test'
-            },
+        const response = await app.inject({
+            method: 'GET',
+            url: `${libraryURL}?name=test`,
             headers: {
                 authorization: `Bearer ${tokens.token}`
             }
-        }).text()
+        })
+        const libraryEntry = response.payload
         should(libraryEntry).equal('\nreturn msg;')
     })
 
     it('Add to Library with path', async function () {
         this.timeout(10000)
         const funcText = '\nreturn msg;'
-        await got.post(`${forgeURL}/storage/${project.id}/library/functions`, {
-            json: {
+        const libraryURL = `/storage/${project.id}/library/functions`
+        await app.inject({
+            method: 'POST',
+            url: libraryURL,
+            payload: {
                 name: 'test/foo/bar',
                 meta: {},
                 body: funcText
             },
-            responseType: 'json',
             headers: {
                 authorization: `Bearer ${tokens.token}`
             }
         })
-        const libraryEntry = await got(`${forgeURL}/storage/${project.id}/library/functions`, {
-            searchParams: {
-                name: 'test'
-            },
+        const response = await app.inject({
+            method: 'GET',
+            url: `${libraryURL}?name=test`,
             headers: {
                 authorization: `Bearer ${tokens.token}`
             }
-        }).json()
+        })
+        const libraryEntry = response.json()
         should(libraryEntry).containDeep(['foo'])
     })
 })

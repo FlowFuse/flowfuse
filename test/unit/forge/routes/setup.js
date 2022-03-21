@@ -6,8 +6,6 @@ const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localT
 module.exports = async function (settings = {}, config = {}) {
     config = {
         ...config,
-        host: '127.0.0.1',
-        port: 3000,
         telemetry: { enabled: false },
         logging: {
             level: 'warn'
@@ -69,13 +67,6 @@ module.exports = async function (settings = {}, config = {}) {
     await forge.db.models.StorageSession.create({
         sessions: JSON.stringify({}),
         ProjectId: project1.id
-    })
-
-    forge.listen(config.port, config.host, function (err, address) {
-        if (err) {
-            console.error(err)
-            process.exit(1)
-        }
     })
 
     return forge
