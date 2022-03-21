@@ -11,3 +11,5 @@ docs/jsdoc
 *.env
 *.env.local
 package-lock.json
+coverage
+.nyc_output

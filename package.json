@@ -14,6 +14,10 @@
         "test": "npm run lint && npm run test:unit && npm run test:system",
         "test:unit": "mocha test/unit/**/*_spec.js",
         "test:system": "mocha test/system/**/*_spec.js",
+        "cover": "npm run cover:unit && npm run cover:system && npm run cover:report",
+        "cover:unit": "nyc --silent npm run test:unit",
+        "cover:system": "nyc --silent npm run test:system",
+        "cover:report": "nyc report --reporter=text --reporter html",
         "dev:local": "cd ../flowforge-driver-localfs && npm install ../flowforge-nr-storage ../flowforge-nr-auth ../flowforge-nr-audit-logger && cd ../flowforge && npm install ../flowforge-driver-localfs",
         "install-stack": "mkdir -p var/stacks/${npm_config_vers} && npm install --prefix var/stacks/${npm_config_vers} node-red@${npm_config_vers}"
     },
@@ -91,6 +95,7 @@
         "mocha-cli": "^1.0.1",
         "nodemon": "^2.0.15",
         "npm-run-all": "^4.1.5",
+        "nyc": "^15.1.0",
         "postcss": "^8.4.6",
         "postcss-loader": "^6.2.1",
         "postcss-preset-env": "^6.7.0",
