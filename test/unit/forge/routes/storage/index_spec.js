@@ -47,7 +47,7 @@ describe('Storage API', function () {
     it('Save Flow', async function () {
         this.timeout(10000)
         const newFlow = [{ id: '1', type: 'tab', label: 'tab1', disabled: false, info: '' }]
-        const flowURL =  `/storage/${project.id}/flows`
+        const flowURL = `/storage/${project.id}/flows`
         await app.inject({
             method: 'POST',
             url: flowURL,
