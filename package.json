@@ -17,8 +17,8 @@
         "cover": "npm run cover:unit && npm run cover:system && npm run cover:report",
         "cover:unit": "nyc --silent npm run test:unit",
         "cover:system": "nyc --silent npm run test:system",
-        "cover:report": "nyc report --reporter=text --reporter html",
-        "dev:local": "cd ../flowforge-driver-localfs && npm install ../flowforge-nr-storage ../flowforge-nr-auth ../flowforge-nr-audit-logger && cd ../flowforge && npm install ../flowforge-driver-localfs",
+        "cover:report": "nyc report --reporter=text --reporter html"
+        "dev:local": "cd ../flowforge-nr-launcher && npm install ../flowforge-nr-storage ../flowforge-nr-auth ../flowforge-nr-audit-logger && cd ../flowforge-driver-localfs && npm install ../flowforge-nr-launcher && cd ../flowforge && npm install ../flowforge-driver-localfs ../forge-ui-components",
         "install-stack": "mkdir -p var/stacks/${npm_config_vers} && npm install --prefix var/stacks/${npm_config_vers} node-red@${npm_config_vers}"
     },
     "bin": {

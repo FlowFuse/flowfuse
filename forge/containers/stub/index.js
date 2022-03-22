@@ -39,7 +39,17 @@ module.exports = {
         })
 
         // Should init return an object with details of config options per project?
-        return {}
+        return {
+            stack: {
+                properties: {
+                    nodered: {
+                        label: 'Node-RED Version',
+                        validate: '^(0|[1-9]\\d*)(\\.(0|[1-9]\\d*|x|\\*)(\\.(0|[1-9]\\d*|x|\\*))?)?$',
+                        invalidMessage: 'Invalid version number - expected x.y.z'
+                    }
+                }
+            }
+        }
     },
     /**
      * Create a new Project
