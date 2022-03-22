@@ -113,3 +113,50 @@ If you are developing locally and need to enable external email sending, you can
    useful app that does the job: https://nodemailer.com/app/
  - Alternatively, set the `email.debug` option to `true` in your configuration file
    and the app will print all emails to its log.
+
+### Testing
+
+Our testing philosophy follows the principle of:
+
+> Write tests. Not too many. Mostly integration [^1]
+
+[^1]: https://kentcdodds.com/blog/write-tests
+
+We create both unit tests and system level tests. The former is suitable for
+well-contained components that need to provide a stable api and behaviour to
+the rest of the code base. The latter is for testing the external behaviour
+of the platform as a whole with as little internal mocking as possible.
+
+We use code coverage reporting as *one* aspect of assessing our testing coverage.
+We do not treat 100% coverage as an imperative goal - that can often lead to
+busy work writing tests that don't provide any real value in understanding the
+overall quality of the system.
+
+Unit tests should provide sufficient coverage to give us confidence that a 
+component's behaviour does not unexpectedly change.
+
+We do not *currently* have automated testing capability for the front-end. That
+relies on manual verification.
+
+#### Running tests
+
+To run the tests for the project, you can use the following npm tasks:
+
+ - `npm run test` - runs the whole test suite, covering code linting, unit and systems tests.
+ - `npm run lint` - runs the linting tests
+ - `npm run test:unit` - runs the unit tests
+ - `npm run test:system` - runs the system tests
+
+#### Reporting code coverage
+
+The `test:*` tasks have corresponding code coverage tasks. These tasks run the 
+tests using `nyc` to generate code coverage information.
+
+ - `npm run cover` - runs the whole test suite (excluding linting) with code 
+   coverage enabled and generates a report (via the `cover:report` task)
+ - `npm run cover:unit` - runs the unit tests with code coverage enabled. It
+  does *not* generate the report.
+ - `npm run cover:system` - runs the system tests with code coverage enabled. It
+  does *not* generate the report.
+ - `npm run cover:report` - generates a report of the code coverage. This is 
+  printed to the console and generates a browseable HTML copy under `coverage/index.html`
