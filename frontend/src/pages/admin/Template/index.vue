@@ -5,11 +5,11 @@
             <div v-else class="text-gray-800 text-xl"><span class=" font-bold">Create a new template</span></div>
 
         </div>
-        <div class="text-right space-x-4" v-if="unsavedChanges">
+        <div class="text-right space-x-4 flex" v-if="unsavedChanges">
             <ff-button kind="secondary" class="ml-4" @click="cancelEdit">Cancel</ff-button>
             <ff-button class="ml-4" :disabled="hasErrors" @click="showSaveTemplateDialog">Save changes</ff-button>
         </div>
-        <div class="text-right space-x-4" v-if="isNew">
+        <div class="text-right space-x-4 flex" v-if="isNew">
             <ff-button :to="{ name: 'Admin Templates' }" kind="secondary">Cancel</ff-button>
             <ff-button :disabled="hasErrors || !createValid" class="ml-4" @click="createTemplate">Create template</ff-button>
         </div>
