@@ -1,5 +1,5 @@
 <template>
-    <button class="ff-btn" :class="'ff-btn--' + kind + (hasIcon ? ' ff-btn-icon' : '') + (size === 'small' ? ' ff-btn-small' : '') + (size === 'full-width' ? ' ff-btn-fwidth' : '')" @click="go()">
+    <button class="ff-btn" type="button" :class="'ff-btn--' + kind + (hasIcon ? ' ff-btn-icon' : '') + (size === 'small' ? ' ff-btn-small' : '') + (size === 'full-width' ? ' ff-btn-fwidth' : '')" @click="go()">
         <span v-if="hasIconLeft" class="ff-btn--icon ff-btn--icon-left">
             <slot name="icon-left"></slot>
         </span>
@@ -17,6 +17,10 @@
 export default {
     name: 'ff-button',
     props: {
+        type: {
+            default: 'button', // "button" or "submit"
+            type: String
+        },
         kind: {
             default: 'primary',
             type: String // "primary", "secondary", "tertiary"

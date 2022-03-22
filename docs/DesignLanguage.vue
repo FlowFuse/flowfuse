@@ -142,6 +142,10 @@ export default {
                         code: '<ff-button kind="primary">\n\t<template v-slot:icon><PlusSmIcon /></template>\n</ff-button>'
                     }],
                     props: [{
+                        key: 'type',
+                        default: '"button"',
+                        description: 'The standard HTML "type" attribute for a <button/> element that can define behaviour inside a <form />, e.g. "button", "submit", "reset"'
+                    }, {
                         key: 'kind',
                         default: '"primary"',
                         description: 'Standard interactive button which comes in four different "kinds" - "primary", "secondary", "tertiary" or "danger".'
