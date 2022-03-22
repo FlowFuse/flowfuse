@@ -24,6 +24,7 @@ that make up the platform:
 Repository    | Description
 --------------|---------------------
 [flowforge](https://github.com/flowforge/flowforge) | This is the core of the platform.
+[forge-ui-components](https://github.com/flowforge/forge-ui-components) | Common UI components used in the forge platform.
 [installer](https://github.com/flowforge/installer) | The installer for the platform
 [flowforge-driver-localfs](https://github.com/flowforge/flowforge-driver-localfs) | The LocalFS driver. This deploys projects to the local system.
 [flowforge-driver-docker](https://github.com/flowforge/flowforge-driver-docker) | The Docker driver. This deploys projects as containers in a Docker-managed environment.
@@ -63,6 +64,7 @@ you want to run from the latest source code then you can check out all the requi
 projects in the same directory
 
 - flowforge/flowforge
+- flowforge/forge-ui-components
 - flowforge/flowforge-driver-localfs
 - flowforge/flowforge-nr-launcher
 - flowforge/flowforge-nr-storage
@@ -75,8 +77,8 @@ npm run dev:local
 ```
 This will create all the required symlinks to the relevent projects.
 
-**note** do not check in the modified `package.json` that will be created in the 
-`flowforge` or `flowforge-driver-localfs` project.
+**Note**: do not check in the modified `package.json` that will be created in the 
+`flowforge` or `flowforge-driver-localfs` projects.
 
 
 ### Running FlowForge
