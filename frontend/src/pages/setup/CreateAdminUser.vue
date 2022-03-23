@@ -26,9 +26,11 @@
         </template>
         <template v-else>
             <p class="text-gray-700 mt-10 text-center">You have already created an admin user.</p>
-            <ff-button @click="next()" class="mt-6">
-                Next
-            </ff-button>
+            <div class="flex justify-center">
+                <ff-button @click="next()" class="mt-3">
+                    Next
+                </ff-button>
+            </div>
         </template>
     </form>
 </template>

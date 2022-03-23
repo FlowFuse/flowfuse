@@ -5,7 +5,7 @@
             <p class="text-sm text-gray-700">FlowForge Community Edition is Open Source and can be used freely without a license.</p>
             <p class="text-sm text-gray-700">If you have a FlowForge Enterprise Edition license, upload it here.</p>
             <FormRow v-model="input.license" :error="errors.license">License</FormRow>
-            <div class="space-x-2">
+            <div>
                 <ff-button kind="secondary" @click="next()" class="mt-6">
                     Continue with FlowForge CE
                 </ff-button>
@@ -17,7 +17,7 @@
         <template v-else>
             <p class="text-gray-700 mt-10 text-center">You have already applied a FlowForge Enterprise Edition license.</p>
             <p class="text-gray-700 mt-10 text-center">To apply a different license, complete this setup then login as the administrator and go to Admin Settings.</p>
-            <ff-button @click="next()" class="mt-6">
+            <ff-button @click="next()" class="mt-6 ml-0">
                 Next
             </ff-button>
         </template>
