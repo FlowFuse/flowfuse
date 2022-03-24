@@ -2,6 +2,7 @@
     <input :type="password ? 'password' : 'text'"
         class="ff-input ff-text-input"
         :placeholder="placeholder"
+        :disabled="disabled"
         :value="modelValue"
         @change="$emit('update:modelValue', $event.target.value)"
         @input="$emit('update:modelValue', $event.target.value)"
