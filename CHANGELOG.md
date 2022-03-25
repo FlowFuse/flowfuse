@@ -1,3 +1,7 @@
+#### 0.3.2: Maintence Release
+
+ - Fix setup of billing for existing project (#414) @hardillb
+
 #### 0.3.1: Maintence Release
  
  - Fix broken storage routes (creds/sessions) (#402) @hardillb
