@@ -101,8 +101,9 @@ export default {
         try {
             const billingSubscription = await billingApi.getSubscriptionInfo(this.team.id)
             this.subscription = billingSubscription
-            // this.loading = false
+            this.loading = false
         } catch (err) {
+            console.log('err')
             // check for 404 and redirect if 404 returned
             if (err.response.status === 404) {
                 this.loading = false
