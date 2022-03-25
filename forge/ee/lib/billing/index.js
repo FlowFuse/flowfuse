@@ -15,6 +15,7 @@ module.exports.init = function (app) {
                     }
                 },
                 client_reference_id: team.hashid,
+                allow_promotion_codes: true,
                 payment_method_types: ['card'],
                 success_url: `${app.config.base_url}/team/${team.slug}/overview?billing_session={CHECKOUT_SESSION_ID}`,
                 cancel_url: `${app.config.base_url}/team/${team.slug}/overview`
