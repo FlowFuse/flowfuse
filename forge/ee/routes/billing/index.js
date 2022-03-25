@@ -167,7 +167,7 @@ module.exports = async function (app) {
      * @memberof forge.ee.billing
      */
     app.get('/teams/:teamId/customer-portal', {
-        preHandler: app.needsPermission('team:create')
+        preHandler: app.needsPermission('team:edit')
     }, async (request, response) => {
         const team = request.team
         const sub = await app.db.models.Subscription.byTeam(team.id)
