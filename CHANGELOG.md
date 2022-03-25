@@ -1,3 +1,7 @@
+#### 0.3.3: Maintence Release
+
+ - Fix viewing of bill for Team owners (#417) @hardillb
+
 #### 0.3.2: Maintence Release
 
  - Fix setup of billing for existing project (#414) @hardillb
