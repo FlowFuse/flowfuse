@@ -14,6 +14,10 @@ module.exports = async function (app) {
      */
     app.addHook('preHandler', async (request, response) => {
         if (request.params.teamId) {
+            request.teamMembership = await request.session.User.getTeamMembership(request.params.teamId)
+            if (!request.teamMembership) {
+                response.code(404).type('text/html').send('Not Found')
+            }
             request.team = await app.db.models.Team.byId(request.params.teamId)
             if (!request.team) {
                 response.code(404).type('text/html').send('Not Found')
@@ -77,13 +81,16 @@ module.exports = async function (app) {
                     response.status(404).type('text/html').send('Not Found')
                     return
                 }
+            } else {
+                response.status(404).type('text/html').send('Not Found')
+                return
             }
 
             switch (event.type) {
             case 'checkout.session.completed':
                 // console.log(event)
                 app.log.info(`Created Subscription for team ${team.hashid}`)
-                app.db.controllers.Subscription.createSubscription(team, subscription, customer)
+                await app.db.controllers.Subscription.createSubscription(team, subscription, customer)
                 // app.db.controllers.AuditLog.teamLog({
                 //     team.id,
                 //     user.id,
@@ -121,7 +128,7 @@ module.exports = async function (app) {
      * @memberof forge.ee.billing
      */
     app.get('/teams/:teamId', {
-        preHandler: app.needsPermission('team:create')
+        preHandler: app.needsPermission('team:edit')
     }, async (request, response) => {
         const team = request.team
         const sub = await app.db.models.Subscription.byTeam(team.id)

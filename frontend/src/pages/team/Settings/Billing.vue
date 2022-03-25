@@ -104,7 +104,9 @@ export default {
             // this.loading = false
         } catch (err) {
             // check for 404 and redirect if 404 returned
-            // this.loading = false
+            if (err.response.status === 404) {
+                this.loading = false
+            }
         }
     },
     methods: {
