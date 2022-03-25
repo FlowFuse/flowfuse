@@ -103,7 +103,6 @@ export default {
             this.subscription = billingSubscription
             this.loading = false
         } catch (err) {
-            console.log('err')
             // check for 404 and redirect if 404 returned
             if (err.response.status === 404) {
                 this.loading = false
