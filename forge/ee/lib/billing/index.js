@@ -27,8 +27,6 @@ module.exports.init = function (app) {
             //     { session: session.id }
             // })
             app.log.info(`Creating Subscription for team ${team.hashid}`)
-            // TODO remove following line needs to go once UI done
-            // console.log('createSubscription', session)
             return session
         },
         addProject: async (team, project) => {
@@ -48,16 +46,20 @@ module.exports.init = function (app) {
 
             if (projectItem) {
                 const metadata = projectItem.metadata ? projectItem.metadata : {}
-                console.log('updating metadata', metadata)
+                // console.log('updating metadata', metadata)
                 metadata[project.id] = 'true'
-                console.log(metadata)
+                // console.log(metadata)
                 const update = {
                     quantity: projectItem.quantity + 1,
                     proration_behavior: 'always_invoice',
                     metadata: metadata
                 }
                 // TODO update meta data?
-                stripe.subscriptionItems.update(projectItem.id, update)
+                try {
+                    await stripe.subscriptionItems.update(projectItem.id, update)
+                } catch (error) {
+                    app.log.info(`Problem adding project to subscription\n${error.message}`)
+                }
             } else {
                 const metadata = {}
                 metadata[project.id] = 'true'
@@ -69,7 +71,11 @@ module.exports.init = function (app) {
                     }],
                     metadata: metadata
                 }
-                stripe.subscriptions.update(subscription.subscription, update)
+                try {
+                    await stripe.subscriptions.update(subscription.subscription, update)
+                } catch (error) {
+                    app.log.info(`Problem adding first project to subscription\n${error.message}`)
+                }
             }
         },
         removeProject: async (team, project) => {
@@ -99,7 +105,7 @@ module.exports.init = function (app) {
                 }
 
                 try {
-                    stripe.subscriptionItems.update(projectItem.id, update)
+                    await stripe.subscriptionItems.update(projectItem.id, update)
                 } catch (err) {
                     console.log(err)
                 }
