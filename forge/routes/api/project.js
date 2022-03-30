@@ -213,8 +213,10 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.project
      */
     app.put('/:projectId', { preHandler: app.needsPermission('project:edit') }, async (request, reply) => {
-        if (request.body.name) {
+        let changed = false
+        if (request.body.name && request.project.name !== request.body.name) {
             request.project.name = request.body.name
+            changed = true
         }
         if (request.body.settings) {
             // Validate the settings
@@ -225,8 +227,16 @@ module.exports = async function (app) {
             const currentProjectSettings = await request.project.getSetting('settings') || {}
             const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings)
             await request.project.updateSetting('settings', updatedSettings)
+            changed = true
         }
-        await request.project.save()
+        if (changed) {
+            await request.project.save()
+            await app.db.controllers.AuditLog.projectLog(
+                request.project.id,
+                request.session.User.id,
+                'project.settings.updated'
+            )
+        }
 
         const result = await app.db.views.Project.project(request.project)
         result.meta = await app.containers.details(request.project) || { state: 'unknown' }
