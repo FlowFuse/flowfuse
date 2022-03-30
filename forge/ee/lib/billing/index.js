@@ -60,7 +60,7 @@ module.exports.init = function (app) {
                         metadata: metadata
                     })
                 } catch (error) {
-                    app.log.info(`Problem adding project to subscription\n${error.message}`)
+                    app.log.warn(`Problem adding project to subscription\n${error.message}`)
                 }
             } else {
                 const metadata = {}
