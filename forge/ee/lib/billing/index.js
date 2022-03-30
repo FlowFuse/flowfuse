@@ -76,7 +76,8 @@ module.exports.init = function (app) {
                 try {
                     await stripe.subscriptions.update(subscription.subscription, update)
                 } catch (error) {
-                    app.log.info(`Problem adding first project to subscription\n${error.message}`)
+                    app.log.warn(`Problem adding first project to subscription\n${error.message}`)
+                    throw error
                 }
             }
         },
@@ -111,11 +112,12 @@ module.exports.init = function (app) {
                         metadata: metadata
                     })
                 } catch (err) {
-                    console.log(err)
+                    app.log.warn(`failed removing project from subscription\n${err.message}`)
+                    throw err
                 }
             } else {
                 // not found?
-                console.log('Something wrong here')
+                app.log.warn('Project not found in Subscription, possible Grandfathered in')
             }
         },
         closeSubscription: async (subscription) => {
