@@ -5,13 +5,15 @@
             <div v-else class="text-gray-800 text-xl"><span class=" font-bold">Create a new template</span></div>
 
         </div>
-        <div class="text-right space-x-4 flex" v-if="unsavedChanges">
-            <ff-button kind="secondary" class="ml-4" @click="cancelEdit">Cancel</ff-button>
-            <ff-button class="ml-4" :disabled="hasErrors" @click="showSaveTemplateDialog">Save changes</ff-button>
-        </div>
-        <div class="text-right space-x-4 flex" v-if="isNew">
-            <ff-button :to="{ name: 'Admin Templates' }" kind="secondary">Cancel</ff-button>
-            <ff-button :disabled="hasErrors || !createValid" class="ml-4" @click="createTemplate">Create template</ff-button>
+        <div class="text-right space-x-4 flex h-8" >
+            <template v-if="unsavedChanges">
+                <ff-button kind="secondary" class="ml-4" @click="cancelEdit">Cancel</ff-button>
+                <ff-button class="ml-4" :disabled="hasErrors" @click="showSaveTemplateDialog">Save changes</ff-button>
+            </template>
+            <template v-else-if="isNew">
+                <ff-button :to="{ name: 'Admin Templates' }" kind="secondary">Cancel</ff-button>
+                <ff-button :disabled="hasErrors || !createValid" class="ml-4" @click="createTemplate">Create template</ff-button>
+            </template>
         </div>
     </div>
     <div class="flex flex-col sm:flex-row">
@@ -37,6 +39,7 @@ import {
 
 const sideNavigation = [
     { name: 'Settings', path: './settings' },
+    { name: 'Environment', path: './environment' },
     { name: 'Palette', path: './palette' }
 ]
 
@@ -83,6 +86,7 @@ export default {
         editable: {
             deep: true,
             handler (v) {
+                // Only check for changes in existing templates
                 if (this.template.name) {
                     let changed = false
                     let errors = false
@@ -109,6 +113,35 @@ export default {
                             }
                         }
                     })
+
+                    let envChanged = false
+                    let originalCount = 0
+                    this.editable.settings.env.forEach(field => {
+                        if (/^add/.test(field.index)) {
+                            envChanged = true
+                        } else {
+                            originalCount++
+                            if (this.original.settings.envMap[field.name]) {
+                                const original = this.original.settings.envMap[field.name]
+                                if (original.index !== field.index) {
+                                    envChanged = true
+                                } else if (original.name !== field.name) {
+                                    envChanged = true
+                                } else if (original.value !== field.value) {
+                                    envChanged = true
+                                } else if (original.policy !== field.policy) {
+                                    envChanged = true
+                                }
+                            } else {
+                                envChanged = true
+                            }
+                        }
+                    })
+                    if (originalCount !== this.original.settings.env.length) {
+                        envChanged = true
+                    }
+                    this.editable.changed.env = envChanged
+                    changed = changed || envChanged
                     this.unsavedChanges = changed
                     this.hasErrors = errors
                 }
@@ -140,7 +173,9 @@ export default {
                         name: '',
                         active: false,
                         description: '',
-                        settings: {},
+                        settings: {
+                            env: []
+                        },
                         policy: {}
                     }
                 } else {
@@ -182,6 +217,7 @@ export default {
                 this.editable.changed.policy[field] = false
                 this.editable.policy[field] = this.original.policy[field]
             })
+            this.editable.settings.env = this.original.settings.env.map(f => Object.assign({}, f))
             this.editable.errors = {}
         },
         showSaveTemplateDialog () {
@@ -200,6 +236,18 @@ export default {
                 setTemplateValue(template.settings, field, this.editable.settings[field])
                 setTemplateValue(template.policy, field, this.editable.policy[field])
             })
+
+            template.settings.env = []
+            this.editable.settings.env.forEach(envField => {
+                if (envField.name.length > 0 && !/ /.test(envField.name)) {
+                    template.settings.env.push({
+                        name: envField.name.trim(),
+                        value: envField.value,
+                        policy: envField.policy
+                    })
+                }
+            })
+
             try {
                 await templateApi.updateTemplate(this.template.id, template)
                 await this.loadTemplate()
@@ -217,6 +265,18 @@ export default {
                 setTemplateValue(template.settings, field, this.editable.settings[field])
                 setTemplateValue(template.policy, field, this.editable.policy[field])
             })
+
+            template.settings.env = []
+            this.editable.settings.env.forEach(envField => {
+                if (envField.name.length > 0 && !/ /.test(envField.name)) {
+                    template.settings.env.push({
+                        name: envField.name.trim(),
+                        value: envField.value,
+                        policy: envField.policy
+                    })
+                }
+            })
+
             try {
                 await templateApi.create(template)
                 this.$router.push({

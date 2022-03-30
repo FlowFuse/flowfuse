@@ -144,28 +144,6 @@ module.exports = {
                         return result.value
                     }
                     return undefined
-                },
-                async getRuntimeSettings () {
-                    // This assumes the project has been loaded via `byId` so that
-                    // it has the template and ProjectSettings attached
-                    let result = {}
-                    if (this.ProjectTemplate) {
-                        result = this.ProjectTemplate.settings
-                    }
-                    if (this.ProjectSettings[0]?.key === 'settings') {
-                        const projectSettings = this.ProjectSettings[0].value
-                        // This is a quick hacky deep merge that limits itself to 2 levels
-                        Object.entries(projectSettings).forEach(([key, value]) => {
-                            if (Array.isArray(value) || typeof value !== 'object') {
-                                result[key] = value
-                            } else {
-                                Object.entries(value).forEach(([subkey, subvalue]) => {
-                                    result[key][subkey] = subvalue
-                                })
-                            }
-                        })
-                    }
-                    return result
                 }
             },
             static: {

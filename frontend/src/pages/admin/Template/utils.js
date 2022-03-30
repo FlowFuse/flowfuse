@@ -122,7 +122,20 @@ function prepareTemplateForEdit (template) {
         }
         result.editable.changed.policy[field] = false
     })
+    // `template.settings.env` has to be handled separately
 
+    result.editable.settings.env = []
+    result.original.settings.envMap = {}
+    result.original.settings.env = []
+    result.editable.changed.env = false
+    if (template.settings.env) {
+        template.settings.env.forEach((envVarDefinition, idx) => {
+            envVarDefinition.index = idx
+            result.editable.settings.env.push(Object.assign({}, envVarDefinition))
+            result.original.settings.env.push(Object.assign({}, envVarDefinition))
+            result.original.settings.envMap[envVarDefinition.name] = envVarDefinition
+        })
+    }
     return result
 }
 

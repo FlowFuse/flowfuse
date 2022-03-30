@@ -13,6 +13,7 @@ import AdminStacks from '@/pages/admin/Stacks/index.vue'
 import AdminTemplates from '@/pages/admin/Templates/index.vue'
 import AdminTemplate from '@/pages/admin/Template/index.vue'
 import AdminTemplateSettings from '@/pages/admin/Template/Settings.vue'
+import AdminTemplateEnvironment from '@/pages/admin/Template/sections/Environment.vue'
 import AdminTemplatePalette from '@/pages/admin/Template/sections/Palette.vue'
 import AdminCreateUser from '@/pages/admin/Users/createUser.vue'
 import { AdjustmentsIcon } from '@heroicons/vue/outline'
@@ -70,6 +71,7 @@ export default [
                 component: AdminTemplate,
                 children: [
                     { path: 'settings', component: AdminTemplateSettings },
+                    { path: 'environment', component: AdminTemplateEnvironment },
                     { path: 'palette', component: AdminTemplatePalette }
                 ]
             }
