@@ -2,7 +2,7 @@ module.exports.init = function (app) {
     const stripe = require('stripe')(app.config.billing.stripe.key)
 
     return {
-        createSubscriptionSession: async (team, user) => {
+        createSubscriptionSession: async (team) => {
             const session = await stripe.checkout.sessions.create({
                 mode: 'subscription',
                 line_items: [{
@@ -20,12 +20,6 @@ module.exports.init = function (app) {
                 success_url: `${app.config.base_url}/team/${team.slug}/overview?billing_session={CHECKOUT_SESSION_ID}`,
                 cancel_url: `${app.config.base_url}/team/${team.slug}/overview`
             })
-            // app.db.controllers.AuditLog.teamLog({
-            //     team.id,
-            //     user.id,
-            //     'billing.session.created',
-            //     { session: session.id }
-            // })
             app.log.info(`Creating Subscription for team ${team.hashid}`)
             return session
         },

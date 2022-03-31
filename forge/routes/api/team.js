@@ -135,7 +135,13 @@ module.exports = async function (app) {
             const teamView = app.db.views.Team.team(team)
 
             if (app.license.active() && app.billing) {
-                const session = await app.billing.createSubscriptionSession(team, request.session.User)
+                const session = await app.billing.createSubscriptionSession(team)
+                app.db.controllers.AuditLog.teamLog(
+                    team.id,
+                    request.session.User.id,
+                    'billing.session.created',
+                    { session: session.id }
+                )
                 teamView.billingURL = session.url
             }
 
@@ -160,7 +166,14 @@ module.exports = async function (app) {
             if (app.license.active() && app.billing) {
                 const subscription = await app.db.models.Subscription.byTeam(request.team.id)
                 if (subscription) {
+                    const subId = subscription.subscription
                     await app.billing.closeSubscription(subscription)
+                    app.db.controllers.AuditLog.teamLog(
+                        request.team.id,
+                        request.session.User.id,
+                        'billing.subscription.deleted',
+                        { subscription: subId }
+                    )
                 }
             }
             await request.team.destroy()
