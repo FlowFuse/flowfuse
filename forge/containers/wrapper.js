@@ -13,7 +13,12 @@ module.exports = {
         if (this._app.license.active() && this._app.billing) {
             const subscription = this._app.db.models.Subscription.byTeam(project.Team.id)
             if (subscription) {
-                this._app.billing.addProject(project.Team, project)
+                try {
+                    this._app.billing.addProject(project.Team, project)
+                } catch (err) {
+                    // Rethrow or wrap
+                    throw new Error('Problem with setting up Billing')
+                }
             } else {
                 throw new Error('No Subscription for this team')
             }
@@ -25,16 +30,21 @@ module.exports = {
     },
     remove: async (project) => {
         let value = {}
+        if (this._driver.remove) {
+            value = await this._driver.remove(project)
+        }
         if (this._app.license.active() && this._app.billing) {
             const subscription = this._app.db.models.Subscription.byTeam(project.Team.id)
             if (subscription) {
-                this._app.billing.removeProject(project.Team, project)
+                try {
+                    this._app.billing.removeProject(project.Team, project)
+                } catch (err) {
+                    // Rethrow or wrap?
+                    throw new Error('Problem with setting up Billing')
+                }
             } else {
                 throw new Error('No Subscription for this team')
             }
-        }
-        if (this._driver.remove) {
-            value = await this._driver.remove(project)
         }
         return value
     },
