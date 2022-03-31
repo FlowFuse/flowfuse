@@ -53,7 +53,7 @@ xcode-select --install
 
 ### Installing FlowForge
 
-1. Create a directory to be the home of your FlowForge install. For example: `/opt/flowforge`
+1. Create a directory to be the base of your FlowForge install. For example: `/opt/flowforge` or `c:\flowforge`
 
    For Linux/MacOS:
     ```
