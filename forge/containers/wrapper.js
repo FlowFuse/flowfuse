@@ -14,7 +14,7 @@ module.exports = {
             const subscription = this._app.db.models.Subscription.byTeam(project.Team.id)
             if (subscription) {
                 try {
-                    this._app.billing.addProject(project.Team, project)
+                    await this._app.billing.addProject(project.Team, project)
                 } catch (err) {
                     // Rethrow or wrap
                     throw new Error('Problem with setting up Billing')
@@ -37,7 +37,7 @@ module.exports = {
             const subscription = this._app.db.models.Subscription.byTeam(project.Team.id)
             if (subscription) {
                 try {
-                    this._app.billing.removeProject(project.Team, project)
+                    await this._app.billing.removeProject(project.Team, project)
                 } catch (err) {
                     // Rethrow or wrap?
                     throw new Error('Problem with setting up Billing')
