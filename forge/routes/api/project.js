@@ -213,15 +213,30 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.project
      */
     app.put('/:projectId', { preHandler: app.needsPermission('project:edit') }, async (request, reply) => {
-        if (request.body.name) {
+        let changed = false
+        if (request.body.name && request.project.name !== request.body.name) {
             request.project.name = request.body.name
+            changed = true
         }
         if (request.body.settings) {
-            // TODO: validate only settings the template policy permits to be set are included
-            const newSettings = app.db.controllers.ProjectTemplate.validateSettings(request.body.settings)
-            await request.project.updateSetting('settings', newSettings)
+            // Validate the settings
+            //  1. only store known keys
+            //  2. only store values for keys the template policy allows to be set
+            const newSettings = app.db.controllers.ProjectTemplate.validateSettings(request.body.settings, request.project.ProjectTemplate)
+            // Merge the settings into the existing values
+            const currentProjectSettings = await request.project.getSetting('settings') || {}
+            const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings)
+            await request.project.updateSetting('settings', updatedSettings)
+            changed = true
         }
-        await request.project.save()
+        if (changed) {
+            await request.project.save()
+            await app.db.controllers.AuditLog.projectLog(
+                request.project.id,
+                request.session.User.id,
+                'project.settings.updated'
+            )
+        }
 
         const result = await app.db.views.Project.project(request.project)
         result.meta = await app.containers.details(request.project) || { state: 'unknown' }
@@ -237,13 +252,18 @@ module.exports = async function (app) {
      */
     app.get('/:projectId/settings', async (request, reply) => {
         const settings = await app.containers.settings(request.project)
+        settings.env = settings.env || {}
         settings.baseURL = request.project.url
         settings.forgeURL = app.config.base_url
         settings.storageURL = request.project.storageURL
         settings.auditURL = request.project.auditURL
         settings.state = request.project.state
         settings.stack = request.project.ProjectStack?.properties || {}
-        settings.settings = await request.project.getRuntimeSettings()
+        settings.settings = await app.db.controllers.Project.getRuntimeSettings(request.project)
+        if (settings.settings.env) {
+            settings.env = Object.assign({}, settings.settings.env, settings.env)
+            delete settings.settings.env
+        }
         reply.send(settings)
     })
 

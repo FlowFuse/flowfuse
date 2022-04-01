@@ -9,7 +9,7 @@
                        :disabled="disabled"
                        @change="$emit('update:modelValue', $event.target.checked)"
                 >
-                <label :for="inputId" class="text-sm font-medium text-gray-700"><slot></slot></label>
+                <label v-if="hasTitle" :for="inputId" class="text-sm font-medium text-gray-700"><slot></slot></label>
                 <div v-if="hasAppend" class="inline ml-2"><slot name="append"></slot></div>
             </div>
             <div v-if="error" class="ml-9 text-red-400 inline text-xs">{{error}}</div>
@@ -26,13 +26,13 @@
                        :disabled="disabled"
                        @change="$emit('update:modelValue', $event.target.value)"
                 >
-                <label :for="inputId" class="text-sm font-medium text-gray-700"><slot></slot></label>
+                <label v-if="hasTitle" :for="inputId" class="text-sm font-medium text-gray-700"><slot></slot></label>
             </div>
             <div v-if="error" class="ml-9 text-red-400 inline text-xs">{{error}}</div>
             <div v-if="hasDescription" class="mt-1 text-xs text-gray-400 mb-2 ml-9 space-y-1"><slot name="description"></slot></div>
         </template>
         <template v-else>
-            <label :for="inputId" class="block text-sm font-medium text-gray-700 mb-1"><slot></slot></label>
+            <label v-if="hasTitle" :for="inputId" class="block text-sm font-medium text-gray-700 mb-1"><slot></slot></label>
             <div v-if="hasDescription" class="text-xs text-gray-400 mb-2 space-y-1"><slot name="description"></slot></div>
             <div class="flex flex-col sm:flex-row relative">
                 <template v-if="options && type !== 'uneditable'">
@@ -92,9 +92,13 @@ export default {
         }
     },
     setup (props, { slots }) {
+        const hasTitle = ref(false)
         const hasDescription = ref(false)
         const hasAppend = ref(false)
         const hasCustomInput = ref(false)
+        if (slots.default && slots.default().length) {
+            hasTitle.value = true
+        }
         if (slots.description && slots.description().length) {
             hasDescription.value = true
         }
@@ -105,6 +109,7 @@ export default {
             hasCustomInput.value = true
         }
         return {
+            hasTitle,
             hasDescription,
             hasAppend,
             hasCustomInput

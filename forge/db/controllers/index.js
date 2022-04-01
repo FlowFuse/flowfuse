@@ -17,6 +17,7 @@ const modelTypes = [
     'Team',
     'Invitation',
     'AuditLog',
+    'Project',
     'ProjectTemplate'
 ]
 
