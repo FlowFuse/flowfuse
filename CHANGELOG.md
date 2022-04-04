@@ -1,12 +1,16 @@
-#### 0.3.3: Maintence Release
+#### 0.3.4: Maintenance Release
+
+- Backport project billing metadata fix (#435) @hardillb
+
+#### 0.3.3: Maintenance Release
 
  - Fix viewing of bill for Team owners (#417) @hardillb
 
-#### 0.3.2: Maintence Release
+#### 0.3.2: Maintenance Release
 
  - Fix setup of billing for existing project (#414) @hardillb
 
-#### 0.3.1: Maintence Release
+#### 0.3.1: Maintenance Release
  
  - Fix broken storage routes (creds/sessions) (#402) @hardillb
 
