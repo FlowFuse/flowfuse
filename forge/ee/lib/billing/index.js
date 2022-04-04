@@ -92,7 +92,7 @@ module.exports.init = function (app) {
 
             if (projectItem) {
                 const metadata = existingSub.metadata ? existingSub.metadata : {}
-                delete metadata[project.id]
+                metadata[project.id] = ''
                 const update = {
                     quantity: projectItem.quantity - 1
                 }
