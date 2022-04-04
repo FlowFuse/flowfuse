@@ -39,7 +39,7 @@ module.exports.init = function (app) {
             app.log.info(`Adding Project ${project.id} to Subscription for team ${team.hashid}`)
 
             if (projectItem) {
-                const metadata = subscription.metadata ? subscription.metadata : {}
+                const metadata = existingSub.metadata ? existingSub.metadata : {}
                 // console.log('updating metadata', metadata)
                 metadata[project.id] = 'true'
                 // console.log(metadata)
@@ -91,7 +91,7 @@ module.exports.init = function (app) {
             app.log.info(`Removing Project ${project.id} to Subscription for team ${team.hashid}`)
 
             if (projectItem) {
-                const metadata = subscription.metadata ? subscription.metadata : {}
+                const metadata = existingSub.metadata ? existingSub.metadata : {}
                 delete metadata[project.id]
                 const update = {
                     quantity: projectItem.quantity - 1
