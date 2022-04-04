@@ -47,17 +47,23 @@ module.exports.init = function (app) {
             app.log.info(`Adding Project ${project.id} to Subscription for team ${team.hashid}`)
 
             if (projectItem) {
-                const metadata = projectItem.metadata ? projectItem.metadata : {}
+                const metadata = existingSub.metadata ? existingSub.metadata : {}
                 console.log('updating metadata', metadata)
                 metadata[project.id] = 'true'
                 console.log(metadata)
                 const update = {
                     quantity: projectItem.quantity + 1,
-                    proration_behavior: 'always_invoice',
-                    metadata: metadata
+                    proration_behavior: 'always_invoice'
                 }
                 // TODO update meta data?
-                stripe.subscriptionItems.update(projectItem.id, update)
+                try {
+                    await stripe.subscriptionItems.update(projectItem.id, update)
+                    await stripe.subscriptions.update(subscription.id, {
+                        metadata: metadata
+                    })
+                } catch (error) {
+                    app.log.warn(`Problem adding project to subscription\n${error.message}`)
+                }
             } else {
                 const metadata = {}
                 metadata[project.id] = 'true'
@@ -69,7 +75,12 @@ module.exports.init = function (app) {
                     }],
                     metadata: metadata
                 }
-                stripe.subscriptions.update(subscription.subscription, update)
+                try {
+                    await stripe.subscriptions.update(subscription.subscription, update)
+                } catch (error) {
+                    app.log.warn(`Problem adding first project to subscription\n${error.message}`)
+                    throw error
+                }
             }
         },
         removeProject: async (team, project) => {
@@ -88,24 +99,27 @@ module.exports.init = function (app) {
             app.log.info(`Removing Project ${project.id} to Subscription for team ${team.hashid}`)
 
             if (projectItem) {
-                const metadata = projectItem.metadata ? projectItem.metadata : {}
-                metadata[project.id] = ''
+                const metadata = existingSub.metadata ? existingSub.metadata : {}
+                delete metadata[project.id]
                 const update = {
-                    quantity: projectItem.quantity - 1,
-                    metadata: metadata
+                    quantity: projectItem.quantity - 1
                 }
                 if (projectItem.quantity === 1) {
                     update.proration_behavior = 'always_invoice'
                 }
 
                 try {
-                    stripe.subscriptionItems.update(projectItem.id, update)
+                    await stripe.subscriptionItems.update(projectItem.id, update)
+                    await stripe.subscriptions.update(subscription.id, {
+                        metadata: metadata
+                    })
                 } catch (err) {
-                    console.log(err)
+                    app.log.warn(`failed removing project from subscription\n${err.message}`)
+                    throw err
                 }
             } else {
                 // not found?
-                console.log('Something wrong here')
+                app.log.warn('Project not found in Subscription, possible Grandfathered in')
             }
         },
         closeSubscription: async (subscription) => {

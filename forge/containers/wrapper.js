@@ -13,7 +13,7 @@ module.exports = {
         if (this._app.license.active() && this._app.billing) {
             const subscription = this._app.db.models.Subscription.byTeam(project.Team.id)
             if (subscription) {
-                this._app.billing.addProject(project.Team, project)
+                await this._app.billing.addProject(project.Team, project)
             } else {
                 throw new Error('No Subscription for this team')
             }
@@ -28,7 +28,7 @@ module.exports = {
         if (this._app.license.active() && this._app.billing) {
             const subscription = this._app.db.models.Subscription.byTeam(project.Team.id)
             if (subscription) {
-                this._app.billing.removeProject(project.Team, project)
+                await this._app.billing.removeProject(project.Team, project)
             } else {
                 throw new Error('No Subscription for this team')
             }
