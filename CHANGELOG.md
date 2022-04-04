@@ -1,6 +1,10 @@
+#### 0.3.5: Maintenance Release
+
+ - Use the correct ID when updating billing metadata (#439) @hardillb
+
 #### 0.3.4: Maintenance Release
 
-- Backport project billing metadata fix (#435) @hardillb
+ - Backport project billing metadata fix (#435) @hardillb
 
 #### 0.3.3: Maintenance Release
 

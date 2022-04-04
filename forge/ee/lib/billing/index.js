@@ -58,7 +58,7 @@ module.exports.init = function (app) {
                 // TODO update meta data?
                 try {
                     await stripe.subscriptionItems.update(projectItem.id, update)
-                    await stripe.subscriptions.update(subscription.id, {
+                    await stripe.subscriptions.update(subscription.subscription, {
                         metadata: metadata
                     })
                 } catch (error) {
@@ -110,7 +110,7 @@ module.exports.init = function (app) {
 
                 try {
                     await stripe.subscriptionItems.update(projectItem.id, update)
-                    await stripe.subscriptions.update(subscription.id, {
+                    await stripe.subscriptions.update(subscription.subscription, {
                         metadata: metadata
                     })
                 } catch (err) {
