@@ -52,12 +52,19 @@ const stopProject = async (projectId) => {
 const restartProject = async (projectId) => {
     return client.post(`/api/v1/projects/${projectId}/actions/restart`).then(res => res.data)
 }
+const suspendProject = async (projectId) => {
+    return client.post(`/api/v1/projects/${projectId}/actions/suspend`).then(res => res.data)
+}
 const updateProject = async (projectId, options) => {
     return client.put(`/api/v1/projects/${projectId}`, options).then(res => {
         return res.data
     })
 }
-
+const changeStack = async (projectId, stackId) => {
+    return client.put(`/api/v1/projects/${projectId}`, { stack: stackId }).then(res => {
+        return res.data
+    })
+}
 export default {
     create,
     getProject,
@@ -68,5 +75,7 @@ export default {
     startProject,
     stopProject,
     restartProject,
-    updateProject
+    suspendProject,
+    updateProject,
+    changeStack
 }

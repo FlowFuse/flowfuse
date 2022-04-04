@@ -67,7 +67,18 @@ module.exports = async function (app) {
      */
     app.get('/:projectId', async (request, reply) => {
         const result = await app.db.views.Project.project(request.project)
-        result.meta = await app.containers.details(request.project) || { state: 'unknown' }
+        const inflightState = app.db.controllers.Project.getInflightState(request.project)
+        if (inflightState) {
+            result.meta = {
+                state: inflightState
+            }
+        } else if (request.project.state === 'suspended') {
+            result.meta = {
+                state: 'suspended'
+            }
+        } else {
+            result.meta = await app.containers.details(request.project) || { state: 'unknown' }
+        }
         // result.team = await app.db.views.Team.team(request.project.Team)
         reply.send(result)
     })
@@ -161,7 +172,8 @@ module.exports = async function (app) {
                 { model: app.db.models.ProjectTemplate }
             ]
         })
-        await app.containers.create(project, {})
+
+        await app.containers.start(project)
 
         await app.db.controllers.AuditLog.projectLog(
             project.id,
@@ -176,8 +188,16 @@ module.exports = async function (app) {
         )
 
         const result = await app.db.views.Project.project(project)
-        // result.meta = await app.containers.details(project);
         result.team = team.id
+
+        if (project.state === 'suspended') {
+            result.meta = {
+                state: 'suspended'
+            }
+        } else {
+            result.meta = await app.containers.details(project) || { state: 'unknown' }
+        }
+
         reply.send(result)
     })
     /**
@@ -214,34 +234,97 @@ module.exports = async function (app) {
      */
     app.put('/:projectId', { preHandler: app.needsPermission('project:edit') }, async (request, reply) => {
         let changed = false
-        if (request.body.name && request.project.name !== request.body.name) {
-            request.project.name = request.body.name
-            changed = true
-        }
-        if (request.body.settings) {
-            // Validate the settings
-            //  1. only store known keys
-            //  2. only store values for keys the template policy allows to be set
-            const newSettings = app.db.controllers.ProjectTemplate.validateSettings(request.body.settings, request.project.ProjectTemplate)
-            // Merge the settings into the existing values
-            const currentProjectSettings = await request.project.getSetting('settings') || {}
-            const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings)
-            await request.project.updateSetting('settings', updatedSettings)
-            changed = true
-        }
-        if (changed) {
-            await request.project.save()
-            await app.db.controllers.AuditLog.projectLog(
-                request.project.id,
-                request.session.User.id,
-                'project.settings.updated'
-            )
-        }
+        if (request.body.stack) {
+            if (request.body.stack !== request.project.ProjectStack.id) {
+                const stack = await app.db.models.ProjectStack.byId(request.body.stack)
+                if (!stack) {
+                    reply.code(400).send({ error: 'Invalid stack' })
+                    return
+                }
+                app.log.info(`Updating project ${request.project.id} to use stack ${stack.hashid}`)
 
-        const result = await app.db.views.Project.project(request.project)
-        result.meta = await app.containers.details(request.project) || { state: 'unknown' }
-        result.team = await app.db.views.Team.team(request.project.Team)
-        reply.send(result)
+                // TODO: better inflight state needed
+                app.db.controllers.Project.setInflightState(request.project, 'starting')
+
+                let resumeProject = false
+                // Remember the state to return the project back to
+                const targetState = request.project.state
+                if (request.project.state !== 'suspended') {
+                    resumeProject = true
+                    app.log.info(`Stopping project ${request.project.id}`)
+                    await app.containers.stop(request.project)
+
+                    await app.db.controllers.AuditLog.projectLog(
+                        request.project.id,
+                        request.session.User.id,
+                        'project.suspended'
+                    )
+                }
+                await request.project.setProjectStack(stack)
+                await request.project.save()
+
+                await app.db.controllers.AuditLog.projectLog(
+                    request.project.id,
+                    request.session.User.id,
+                    'project.stack.changed',
+                    { stack: stack.hashid, name: stack.name }
+                )
+
+                // With the project stopped, respond to the request so the UI
+                // can refresh to show 'progress'. We may want to move this even
+                // earlier.
+
+                reply.send({})
+
+                if (resumeProject) {
+                    app.log.info(`Restarting project ${request.project.id}`)
+                    request.project.state = targetState
+                    await request.project.save()
+                    // Ensure the project has the full stack object
+                    await request.project.reload()
+                    const startResult = await app.containers.start(request.project)
+                    startResult.started.then(async () => {
+                        await app.db.controllers.AuditLog.projectLog(
+                            request.project.id,
+                            request.session.User.id,
+                            'project.started'
+                        )
+                        app.db.controllers.Project.clearInflightState(request.project)
+                    })
+                } else {
+                    app.db.controllers.Project.clearInflightState(request.project)
+                }
+            }
+        } else {
+            if (request.body.name && request.project.name !== request.body.name) {
+                request.project.name = request.body.name
+                changed = true
+            }
+            if (request.body.settings) {
+                // Validate the settings
+                //  1. only store known keys
+                //  2. only store values for keys the template policy allows to be set
+                const newSettings = app.db.controllers.ProjectTemplate.validateSettings(request.body.settings, request.project.ProjectTemplate)
+                // Merge the settings into the existing values
+                const currentProjectSettings = await request.project.getSetting('settings') || {}
+                const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings)
+                await request.project.updateSetting('settings', updatedSettings)
+                changed = true
+            }
+            if (changed) {
+                await request.project.save()
+                await app.db.controllers.AuditLog.projectLog(
+                    request.project.id,
+                    request.session.User.id,
+                    'project.settings.updated'
+                )
+            }
+
+            const result = await app.db.views.Project.project(request.project)
+            result.meta = await app.containers.details(request.project) || { state: 'unknown' }
+            result.team = await app.db.views.Team.team(request.project.Team)
+            reply.send(result)
+        }
     })
 
     /**
@@ -251,6 +334,10 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.project
      */
     app.get('/:projectId/settings', async (request, reply) => {
+        if (request.project.state === 'suspended') {
+            reply.code(400).send({ error: 'Project suspended' })
+            return
+        }
         const settings = await app.containers.settings(request.project)
         settings.env = settings.env || {}
         settings.baseURL = request.project.url
@@ -276,6 +363,10 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.project
      */
     app.get('/:projectId/logs', async (request, reply) => {
+        if (request.project.state === 'suspended') {
+            reply.code(400).send({ error: 'Project suspended' })
+            return
+        }
         const paginationOptions = app.getPaginationOptions(request, { limit: 30 })
 
         let logs = await app.containers.logs(request.project)

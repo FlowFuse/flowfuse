@@ -3,13 +3,14 @@
  *
  * Handles the creation and deletation of containers to back Projects
  *
- * This Stub driver doesn't start any containers, just keeps state in memory
+ * This Stub driver doesn't start any real containers, just keeps state in memory
  *
  * @module stub
  * @memberof forge.containers.drivers
  *
  */
 const list = {}
+const forgeUtils = require('../../db/utils')
 
 module.exports = {
     /**
@@ -18,7 +19,7 @@ module.exports = {
      * Use app.db.models.Project.findAll() to get a list of all projects
      * and do the work to synchronise the internal state with that list
      *
-     * @param {string} app - the Vue application
+     * @param {string} app - the forge application
      * @param {object} options - A set of configuration options for the driver
      * @return {forge.containers.ProjectArguments}
      */
@@ -28,17 +29,18 @@ module.exports = {
 
         const projects = await this._app.db.models.Project.findAll()
         projects.forEach(project => {
-            const p = {
-                id: project.id,
-                state: 'running',
-                url: project.url,
-                options: {},
-                meta: { foo: 'bar' }
+            if (project.state !== 'suspended') {
+                const p = {
+                    id: project.id,
+                    state: 'running',
+                    url: project.url,
+                    options: {},
+                    meta: { foo: 'bar' }
+                }
+                list[project.id] = p
             }
-            list[project.id] = p
         })
 
-        // Should init return an object with details of config options per project?
         return {
             stack: {
                 properties: {
@@ -51,8 +53,9 @@ module.exports = {
             }
         }
     },
+
     /**
-     * Create a new Project
+     * Start a new Project
      *
      * If the driver has any driver-specific settings for the project, then
      * it can use the following to store them in the app database:
@@ -80,22 +83,53 @@ module.exports = {
      *
      *
      * @param {Project} project - the project model instance
-     * @param {forge.containers.Options} options - options for the project
      * @return {forge.containers.Project}
      */
-    create: async (project, options) => {
-        console.log('creating ', project.id)
+    start: async (project) => {
+        this._app.log.info(`[stub driver] Starting ${project.id}`)
         if (!list[project.id]) {
+            if (await project.getSetting('stubProjectToken') === undefined) {
+                const stubProjectToken = forgeUtils.generateToken(8)
+                await project.updateSetting('stubProjectToken', stubProjectToken)
+            }
             list[project.id] = {
                 id: project.id,
-                state: 'running',
+                state: 'starting',
                 url: `http://${project.name}.${this._options.domain}`,
-                meta: { foo: 'bar' },
-                options: options
+                meta: { foo: 'bar' }
             }
-            return list[project.id]
+            if (project.name === 'stub-fail-start') {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        delete list[project.id]
+                        reject(new Error('failing to start project'))
+                    }, 5000)
+                })
+            } else {
+                const startTime = project.name === 'stub-slow-start' ? 6000 : 500
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        list[project.id].state = 'running'
+                        resolve()
+                    }, startTime)
+                })
+            }
         } else {
             throw new Error({ error: 'Name already exists' })
+        }
+    },
+    /**
+     * Stop a project
+     * @param {Project} project - the project model instance
+     * @return {Object}
+     */
+    stop: async (project) => {
+        this._app.log.info(`[stub driver] Stopping ${project.id}`)
+        if (list[project.id]) {
+            delete list[project.id]
+            return { status: 'okay' }
+        } else {
+            throw new Error({ error: project.id + ' not found' })
         }
     },
     /**
@@ -104,7 +138,7 @@ module.exports = {
      * @return {Object}
      */
     remove: async (project) => {
-        console.log('removing ', project.id)
+        this._app.log.info(`[stub driver] Removing ${project.id}`)
         if (list[project.id]) {
             delete list[project.id]
             return { status: 'okay' }
@@ -129,56 +163,44 @@ module.exports = {
      */
     settings: async (project) => {
         const settings = {
-            env: {}
+            stubProjectToken: await project.getSetting('stubProjectToken'),
+            isStubDriver: true
         }
         return settings
     },
+
     /**
-     * Lists the running projects
-     * @param {String} filter
-     * @return {Object}
-     */
-    list: async (filter) => {
-        return list
-    },
-    /**
-     * Starts a Project's container
+     * Starts a Project's flows
      * @param {Project} project - the project model instance
+     * @param {} options
      * @return {forge.Status}
      */
-    start: async (project) => {
+    startFlows: async (project, options) => {
         if (list[project.id]) {
+            this._app.log.info(`[stub driver] Start flows ${project.id}`)
             list[project.id].state = 'running'
-            return { status: 'okay' }
-        } else {
-            return { error: 'container not found' }
         }
     },
     /**
-     * Stops a Proejct's container
+     * Stops a Project's flows
      * @param {Project} project - the project model instance
+     * @param {} options
      * @return {forge.Status}
      */
-    stop: async (project) => {
+    stopFlows: async (project, options) => {
         if (list[project.id]) {
+            this._app.log.info(`[stub driver] Stop flows ${project.id}`)
             list[project.id].state = 'stopped'
-            return { status: 'okay' }
-        } else {
-            return { error: 'container not found' }
         }
     },
     /**
-     * Restarts a Project's container
+     * Restarts a Project's flows
      * @param {Project} project - the project model instance
+     * @param {} options
      * @return {forge.Status}
      */
-    restart: async (project) => {
-        const rep = await this._app.containers.stop(project)
-        if (rep.status && rep.status === 'okay') {
-            return await this._app.containers.start(project)
-        } else {
-            return rep
-        }
+    restartFlows: async (project, options) => {
+        this._app.log.info(`[stub driver] Restaring flows ${project.id}`)
     },
 
     /**

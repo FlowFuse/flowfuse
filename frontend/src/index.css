@@ -147,6 +147,10 @@
         @apply bg-red-200;
         @apply border-red-400;
     }
+    .forge-status-suspended {
+        @apply bg-red-200;
+        @apply border-red-400;
+    }
     .forge-status-stopped {
         @apply bg-gray-100;
         @apply border-gray-300;

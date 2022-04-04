@@ -1,5 +1,5 @@
 <template>
-    <div class="max-w-4xl mx-auto text-xs border bg-gray-800 text-gray-200 rounded p-2 font-mono">
+    <div v-if="project.meta && project.meta.state !== 'suspended'" class="max-w-4xl mx-auto text-xs border bg-gray-800 text-gray-200 rounded p-2 font-mono">
         <div v-if="prevCursor" class="flex">
             <a @click="loadPrevious" class=" text-center w-full hover:text-blue-400 cursor-pointer pb-1">Load earlier...</a>
         </div>
@@ -8,6 +8,9 @@
             <div class="w-20 flex-shrink-0 align-right">[{{item.level}}]</div>
             <div class="flex-grow break-all whitespace-pre-wrap">{{item.msg}}</div>
         </div>
+    </div>
+    <div v-else class="flex text-gray-500 justify-center italic mb-4 p-8">
+        Logs unavailable
     </div>
 </template>
 
@@ -32,7 +35,11 @@ export default {
     mounted () {
         this.fetchData()
         this.checkInterval = setInterval(() => {
-            this.loadNext()
+            if (this.project.meta && this.project.meta.state !== 'suspended') {
+                this.loadNext()
+            } else {
+                clearInterval(this.checkInterval)
+            }
         }, 5000)
     },
     beforeUnmount () {
@@ -41,9 +48,13 @@ export default {
     methods: {
         fetchData: async function () {
             if (this.project.id) {
-                this.loading = true
-                this.loadItems(this.project.id)
-                this.loading = false
+                if (this.project.meta.state !== 'suspended') {
+                    this.loading = true
+                    this.loadItems(this.project.id)
+                    this.loading = false
+                } else {
+                    clearInterval(this.checkInterval)
+                }
             }
         },
         loadPrevious: async function () {
