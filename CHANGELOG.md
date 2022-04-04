@@ -1,6 +1,6 @@
 #### 0.3.5: Maintenance Release
 
- - Use the correct ID when updating billing metadata (#) @hardillb
+ - Use the correct ID when updating billing metadata (#439) @hardillb
 
 #### 0.3.4: Maintenance Release
 
