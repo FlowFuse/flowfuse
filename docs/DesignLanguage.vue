@@ -10,83 +10,92 @@
             </li>
         </ul>
     </nav>
-    <main>
-        <!-- <h1>Documentation</h1> -->
-        <div class="section" id="section-buttons">
-            <!-- <markdown-viewer :content="'# Hello World'"/> -->
-            <div>
-                <h1>Buttons</h1>
-                <h2 ref="ff-button"><pre>ff-button</pre></h2>
-                <h3>Properties:</h3>
-                <props-table :rows="groups[0].components[0].props"></props-table>
-                <h3>Slots:</h3>
-                <slots-table :rows="groups[0].components[0].slots"></slots-table>
-                <h3>Examples:</h3>
-                <div class="examples">
-                    <div class="example">
-                        <ff-button>Hello World</ff-button>
-                        <code>{{ groups[0].components[0].examples[0].code }}</code>
-                    </div>
-                    <div class="example">
-                        <ff-button kind="secondary">Hello World</ff-button>
-                        <code>{{ groups[0].components[0].examples[1].code }}</code>
-                    </div>
-                    <div class="example">
-                        <ff-button kind="tertiary">Hello World</ff-button>
-                        <code>{{ groups[0].components[0].examples[2].code }}</code>
-                    </div>
-                    <div class="example">
-                        <ff-button kind="danger">Hello World</ff-button>
-                        <code>{{ groups[0].components[0].examples[3].code }}</code>
-                    </div>
-                    <div class="example">
-                        <ff-button :disabled="true">Hello World</ff-button>
-                        <code>{{ groups[0].components[0].examples[4].code }}</code>
-                    </div>
-                    <div class="example">
-                        <ff-button kind="primary">
-                            <template v-slot:icon-left><PlusSmIcon /></template>
-                            Hello World
-                        </ff-button>
-                        <code>{{ groups[0].components[0].examples[5].code }}</code>
-                    </div>
-                    <div class="example">
-                        <ff-button kind="primary">
-                            <template v-slot:icon-right><PlusSmIcon /></template>
-                            Hello World
-                        </ff-button>
-                        <code>{{ groups[0].components[0].examples[6].code }}</code>
-                    </div>
-                    <div class="example">
-                        <ff-button kind="primary" size="small">
-                            <template v-slot:icon-left><PlusSmIcon /></template>
-                            Hello World
-                        </ff-button>
-                        <code>{{ groups[0].components[0].examples[7].code }}</code>
-                    </div>
-                    <div class="example">
-                        <ff-button kind="primary">
-                            <template v-slot:icon><PlusSmIcon /></template>
-                        </ff-button>
-                        <code>{{ groups[0].components[0].examples[8].code }}</code>
+    <main :class="{'ff-bg-light': theme === 'light', 'ff-bg-dark': theme === 'dark'}">
+        <!-- Theme Selection -->
+        <div class="theme-selection">
+            <label>Theme:</label>
+            <select v-model="theme">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+            </select>
+        </div>
+        <div class="container">
+            <div class="section" id="section-buttons">
+                <!-- <markdown-viewer :content="'# Hello World'"/> -->
+                <div>
+                    <h1>Buttons</h1>
+                    <h2 ref="ff-button"><pre>ff-button</pre></h2>
+                    <h3>Properties:</h3>
+                    <props-table :rows="groups[0].components[0].props"></props-table>
+                    <h3>Slots:</h3>
+                    <slots-table :rows="groups[0].components[0].slots"></slots-table>
+                    <h3>Examples:</h3>
+                    <div class="examples">
+                        <div class="example">
+                            <ff-button>Hello World</ff-button>
+                            <code>{{ groups[0].components[0].examples[0].code }}</code>
+                        </div>
+                        <div class="example">
+                            <ff-button kind="secondary">Hello World</ff-button>
+                            <code>{{ groups[0].components[0].examples[1].code }}</code>
+                        </div>
+                        <div class="example">
+                            <ff-button kind="tertiary">Hello World</ff-button>
+                            <code>{{ groups[0].components[0].examples[2].code }}</code>
+                        </div>
+                        <div class="example">
+                            <ff-button kind="danger">Hello World</ff-button>
+                            <code>{{ groups[0].components[0].examples[3].code }}</code>
+                        </div>
+                        <div class="example">
+                            <ff-button :disabled="true">Hello World</ff-button>
+                            <code>{{ groups[0].components[0].examples[4].code }}</code>
+                        </div>
+                        <div class="example">
+                            <ff-button kind="primary">
+                                <template v-slot:icon-left><PlusSmIcon /></template>
+                                Hello World
+                            </ff-button>
+                            <code>{{ groups[0].components[0].examples[5].code }}</code>
+                        </div>
+                        <div class="example">
+                            <ff-button kind="primary">
+                                <template v-slot:icon-right><PlusSmIcon /></template>
+                                Hello World
+                            </ff-button>
+                            <code>{{ groups[0].components[0].examples[6].code }}</code>
+                        </div>
+                        <div class="example">
+                            <ff-button kind="primary" size="small">
+                                <template v-slot:icon-left><PlusSmIcon /></template>
+                                Hello World
+                            </ff-button>
+                            <code>{{ groups[0].components[0].examples[7].code }}</code>
+                        </div>
+                        <div class="example">
+                            <ff-button kind="primary">
+                                <template v-slot:icon><PlusSmIcon /></template>
+                            </ff-button>
+                            <code>{{ groups[0].components[0].examples[8].code }}</code>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div>
-                <h1>Inputs</h1>
-                <h2 ref="ff-text-input"><pre>ff-text-input</pre></h2>
-                <h3>Properties:</h3>
-                <props-table :rows="groups[1].components[0].props"></props-table>
-                <h3>Examples:</h3>
-                <div class="examples">
-                    <div class="example">
-                        <ff-text-input placeholder="Insert something here..." v-model="models.textInput0"/>
-                        {{ models.textInput0 }}
-                        <code>{{ groups[1].components[0].examples[0].code }}</code>
-                    </div>
-                    <div class="example">
-                        <ff-text-input :password="true" placeholder="Password goes here..."/>
-                        <code>{{ groups[1].components[0].examples[1].code }}</code>
+                <div>
+                    <h1>Inputs</h1>
+                    <h2 ref="ff-text-input"><pre>ff-text-input</pre></h2>
+                    <h3>Properties:</h3>
+                    <props-table :rows="groups[1].components[0].props"></props-table>
+                    <h3>Examples:</h3>
+                    <div class="examples">
+                        <div class="example">
+                            <ff-text-input placeholder="Insert something here..." v-model="models.textInput0"/>
+                            {{ models.textInput0 }}
+                            <code>{{ groups[1].components[0].examples[0].code }}</code>
+                        </div>
+                        <div class="example">
+                            <ff-text-input :password="true" placeholder="Password goes here..."/>
+                            <code>{{ groups[1].components[0].examples[1].code }}</code>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -114,6 +123,7 @@ export default {
     },
     data () {
         return {
+            theme: 'light',
             models: {
                 textInput0: ''
             },

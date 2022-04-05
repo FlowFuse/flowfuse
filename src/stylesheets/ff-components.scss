@@ -11,6 +11,12 @@
   line-height: 20px;
   height: 32px;
   position: relative;
+  
+  justify-content: center;
+  font-weight: bold;
+  height: auto;
+  padding: 8px 16px;
+  border: 0;
 
   &.ff-btn-icon {
     padding: $ff-unit-sm $ff-unit-md;
@@ -57,7 +63,8 @@
     }
   }
   &--danger {
-    color: $ff-color--danger;
+    color: $ff-white;
+    background-color: $ff-color--danger;
     border: 1px solid $ff-color--danger;
     &:hover {
       background-color: $ff-color--danger;
@@ -100,7 +107,8 @@
     .ff-btn--icon-left {
       left: 0;
       padding-left: $ff-unit-lg;
-    }.ff-btn--icon-left {
+    }
+    .ff-btn--icon-left {
       right: 0;
       padding-right: $ff-unit-lg;
     }
@@ -108,9 +116,6 @@
 
   &:disabled {
     cursor: not-allowed;
-    background-color: $ff-white;
-    border-color: $ff-grey-300;
-    color: $ff-grey-300;
   }
 }
 
@@ -121,5 +126,8 @@
     padding: $ff-unit-sm $ff-unit-md;
     height: 32px;
     width: 100%;
+    &:focus {
+      outline: none;
+    }
   }
 }

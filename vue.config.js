@@ -7,10 +7,5 @@ module.exports = {
         lintStyleOnBuild: true,
         stylelint: {}
     },
-    pages: {
-        index: {
-            entry: 'docs/main.js'
-        }
-    },
     outputDir: path.resolve(__dirname, 'dist/docs')
 }

@@ -5,6 +5,10 @@ var vue = require('vue');
 var script$1 = {
     name: 'ff-button',
     props: {
+        type: {
+            default: 'button', // "button" or "submit"
+            type: String
+        },
         kind: {
             default: 'primary',
             type: String // "primary", "secondary", "tertiary"
@@ -56,6 +60,7 @@ const _hoisted_3 = {
 function render$1(_ctx, _cache, $props, $setup, $data, $options) {
   return (vue.openBlock(), vue.createElementBlock("button", {
     class: vue.normalizeClass(["ff-btn", 'ff-btn--' + $props.kind + ($options.hasIcon ? ' ff-btn-icon' : '') + ($props.size === 'small' ? ' ff-btn-small' : '') + ($props.size === 'full-width' ? ' ff-btn-fwidth' : '')]),
+    type: "button",
     onClick: _cache[0] || (_cache[0] = $event => ($options.go()))
   }, [
     ($options.hasIconLeft)
@@ -111,13 +116,14 @@ var script = {
     emits: ['update:modelValue', 'input', 'blur', 'keyup']
 };
 
-const _hoisted_1 = ["type", "placeholder", "value"];
+const _hoisted_1 = ["type", "placeholder", "disabled", "value"];
 
 function render(_ctx, _cache, $props, $setup, $data, $options) {
   return (vue.openBlock(), vue.createElementBlock("input", {
     type: $props.password ? 'password' : 'text',
     class: "ff-input ff-text-input",
     placeholder: $props.placeholder,
+    disabled: $props.disabled,
     value: $props.modelValue,
     onChange: _cache[0] || (_cache[0] = $event => (_ctx.$emit('update:modelValue', $event.target.value))),
     onInput: _cache[1] || (_cache[1] = $event => (_ctx.$emit('update:modelValue', $event.target.value))),

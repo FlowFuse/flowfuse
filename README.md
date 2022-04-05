@@ -43,6 +43,16 @@ npm run build-docs
 
 The GitHub pages documentation is built into `/dist/docs` (defined in `vue.config.js`). It is configured as a subtree of the GitHub repo on the `gh-pages` branch.
 
+
+### Running Documentation
+
+```bash
+npm run serve
+```
+
+The documentation should then become available at `http://localhost:8080` (or the next available port)
+
+
 ## References
 
 Project structure inspired by: https://blog.logrocket.com/building-vue-3-component-library/

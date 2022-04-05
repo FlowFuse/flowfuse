@@ -29,7 +29,6 @@ h3 {
   margin-bottom: 6px;
   font-weight: bold; }
 code {
-  background-color: #F3F4F6;
   border-radius: 6px;
   border: 1px solid #E5E7EB;
   padding: 9px; }
@@ -44,7 +43,12 @@ code {
   font-size: 0.85rem;
   line-height: 20px;
   height: 32px;
-  position: relative; }
+  position: relative;
+  justify-content: center;
+  font-weight: bold;
+  height: auto;
+  padding: 8px 16px;
+  border: 0; }
 .ff-btn.ff-btn-icon {
     padding: 6px 9px; }
 .ff-btn.ff-btn-small {
@@ -57,29 +61,26 @@ code {
 .ff-btn:hover {
     cursor: pointer; }
 .ff-btn--primary {
-    background-color: #1E3A8A;
-    border: 1px solid #1E3A8A;
-    color: #F9FAFB; }
+    background-color: #BC3838;
+    color: white; }
 .ff-btn--primary:hover {
-      background-color: #4338CA; }
+      background-color: #AB1818; }
 .ff-btn--secondary {
-    background-color: white;
-    color: #1E3A8A;
-    border: 1px solid #1E3A8A; }
+    color: white;
+    background-color: #31959A; }
 .ff-btn--secondary:hover {
-      background-color: #4338CA;
-      border-color: #4338CA;
-      color: white; }
+      background-color: #397B7E; }
 .ff-btn--tertiary {
-    color: #1E3A8A; }
+    color: #31959A; }
 .ff-btn--tertiary:hover {
-      background-color: #4338CA;
+      background-color: #397B7E;
       color: white; }
 .ff-btn--danger {
-    color: #D12B2B;
-    border: 1px solid #D12B2B; }
+    color: white;
+    background-color: #D82525;
+    border: 1px solid #D82525; }
 .ff-btn--danger:hover {
-      background-color: #D12B2B;
+      background-color: #D82525;
       color: white; }
 .ff-btn .ff-btn--icon,
   .ff-btn .ff-btn--icon svg {
@@ -117,3 +118,41 @@ code {
   padding: 6px 9px;
   height: 32px;
   width: 100%; }
+.ff-input.ff-text-input:focus {
+    outline: none; }
+.ff-bg-light {
+  color: #1F2937;
+  background-color: #F9FAFB;
+  /* Core */
+  /* FlowForge Components */ }
+.ff-bg-light h1, .ff-bg-light h2, .ff-bg-light h3, .ff-bg-light h4, .ff-bg-light h5 {
+    color: #374151; }
+.ff-bg-light p {
+    color: #1F2937; }
+.ff-bg-light select {
+    background-color: #F9FAFB; }
+.ff-bg-light code {
+    background-color: #F3F4F6;
+    border-color: #E5E7EB; }
+.ff-bg-light .ff-input.ff-text-input {
+    background-color: white;
+    border-color: #D1D5DB; }
+.ff-bg-light .ff-input.ff-text-input:focus {
+      border-color: #31959A; }
+.ff-bg-dark {
+  color: #F9FAFB;
+  background-color: #1F2937;
+  /* Core */
+  /* FlowForge Components */ }
+.ff-bg-dark table td, .ff-bg-dark table th {
+    border-color: #6B7280; }
+.ff-bg-dark select {
+    background-color: #1F2937; }
+.ff-bg-dark code {
+    background-color: #111827;
+    border-color: #374151; }
+.ff-bg-dark .ff-input.ff-text-input {
+    background-color: #374151;
+    border-color: #111827; }
+.ff-bg-dark .ff-input.ff-text-input:focus {
+      border-color: #31959A; }

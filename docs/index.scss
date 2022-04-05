@@ -23,9 +23,15 @@ nav {
     color: $ff-white;
 }
 
-main {
-    color: $ff-grey-800;
+.container {
     max-width: 968px;
+}
+
+.theme-selection {
+    position: fixed;
+    top: 0;
+    right: 0;
+    padding: $ff-unit-sm $ff-unit-md;
 }
 
 h1 {
