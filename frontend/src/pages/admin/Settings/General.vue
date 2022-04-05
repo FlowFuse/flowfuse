@@ -15,10 +15,22 @@
                 to join an existing team.
             </template>
         </FormRow>
-        <FormRow v-model="input['user:reset-password']" type="checkbox"  :error="errors.requiresEmail" :disabled="errors.requiresEmail">
+        <FormRow v-model="input['user:reset-password']" type="checkbox" :error="errors.requiresEmail" :disabled="errors.requiresEmail">
             Allow users to reset their password on the login screen
             <template #description>
                 Users will be sent an email with a link back to the platform to reset their password.
+            </template>
+        </FormRow>
+        <FormRow v-model="input['user:tcs-required']" type="checkbox">
+            Require user agreement to Terms &amp; Conditions
+            <template #description>
+                When signing up, users will be presented with a link to the terms and conditions, and will be required to accept them in order to register.
+            </template>
+        </FormRow>
+        <FormRow v-if="input['user:tcs-required']" v-model="input['user:tcs-url']" type="text" :error="errors.termsAndConditions">
+            Terms &amp; Conditions URL:
+            <template #description>
+                The URL for the Terms &amp; Conditions to load when a user wishes to view them.
             </template>
         </FormRow>
         <FormHeading>Teams</FormHeading>
@@ -70,6 +82,8 @@ const validSettings = [
     'user:signup',
     'user:reset-password',
     'user:team:auto-create',
+    'user:tcs-required',
+    'user:tcs-url',
     'team:create',
     'team:user:invite:external',
     'telemetry:enabled'
@@ -82,7 +96,8 @@ export default {
             input: {
             },
             errors: {
-                requiresEmail: null
+                requiresEmail: null,
+                termsAndConditions: null
             }
         }
     },
@@ -90,9 +105,17 @@ export default {
         ...mapState('account', ['settings']),
         saveEnabled: function () {
             let result = false
-            validSettings.forEach(s => {
-                result = result || (this.input[s] !== this.settings[s])
-            })
+            // check values are valid
+            if (this.validate()) {
+                // has anything changed
+                validSettings.forEach(s => {
+                    if (s === 'user:tsc-url') {
+                        result = this.input['user:tcs-required'] ? this.input[s] : null
+                    } else {
+                        result = result || (this.input[s] !== this.settings[s])
+                    }
+                })
+            }
             return result
         }
     },
@@ -105,6 +128,15 @@ export default {
         })
     },
     methods: {
+        validate () {
+            if (this.input['user:tcs-required'] && this.input['user:tcs-url'] === '') {
+                this.errors.termsAndConditions = 'It is required to set a URL for the Terms & Conditions.'
+                return false
+            } else {
+                this.errors.termsAndConditions = ''
+                return true
+            }
+        },
         async saveChanges () {
             const options = {}
             validSettings.forEach(s => {
@@ -112,6 +144,10 @@ export default {
                     options[s] = this.input[s]
                 }
             })
+
+            // don't save the T&C's URL if no requirement for T&Cs
+            options['user:tcs-url'] = this.input['user:tcs-required'] ? options['user:tcs-url'] : null
+
             try {
                 await settingsApi.updateSettings(options)
                 this.$store.dispatch('account/refreshSettings')

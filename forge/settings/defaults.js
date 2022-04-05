@@ -20,6 +20,12 @@ module.exports = {
     // Can users reset their password via the login page
     'user:reset-password': false,
 
+    // Can users reset their password via the login page
+    'user:tcs-required': false,
+
+    // Can users reset their password via the login page
+    'user:tcs-url': '',
+
     // Can user's create their own teams
     'team:create': false,
 
