@@ -77,7 +77,7 @@ module.exports = async function (app) {
                 state: 'suspended'
             }
         } else {
-            result.meta = await app.containers.details(request.project) || { state: 'unknown' }
+            result.meta = await app.containers.details(request.project) || { state: 'unknownn' }
         }
         // result.team = await app.db.views.Team.team(request.project.Team)
         reply.send(result)
@@ -246,6 +246,12 @@ module.exports = async function (app) {
                 // TODO: better inflight state needed
                 app.db.controllers.Project.setInflightState(request.project, 'starting')
 
+                // With the project stopped, respond to the request so the UI
+                // can refresh to show 'progress'. We may want to move this even
+                // earlier.
+
+                reply.send({})
+
                 let resumeProject = false
                 // Remember the state to return the project back to
                 const targetState = request.project.state
@@ -269,12 +275,6 @@ module.exports = async function (app) {
                     'project.stack.changed',
                     { stack: stack.hashid, name: stack.name }
                 )
-
-                // With the project stopped, respond to the request so the UI
-                // can refresh to show 'progress'. We may want to move this even
-                // earlier.
-
-                reply.send({})
 
                 if (resumeProject) {
                     app.log.info(`Restarting project ${request.project.id}`)

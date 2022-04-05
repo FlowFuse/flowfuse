@@ -98,7 +98,6 @@ module.exports = {
         }
         project.state = 'suspended'
         await project.save()
-        console.log('saved ssuspended state')
         if (this._driver.stop) {
             await this._driver.stop(project)
         }
