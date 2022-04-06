@@ -18,7 +18,11 @@ module.exports = fp(async function (app, opts, next) {
 
     // TODO: load license from local file or app.config.XYZ
 
-    const userLicense = await app.settings.get('license')
+    let userLicense = await app.settings.get('license')
+
+    if (!userLicense) {
+        userLicense = app.config.license
+    }
 
     // if (!userLicense) {
     //     console.log("No user-provided license found - using development license")

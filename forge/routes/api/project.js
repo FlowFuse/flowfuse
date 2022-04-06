@@ -100,13 +100,12 @@ module.exports = async function (app) {
         schema: {
             body: {
                 type: 'object',
-                required: ['name', 'options', 'team', 'stack', 'template'],
+                required: ['name', 'team', 'stack', 'template'],
                 properties: {
                     name: { type: 'string' },
                     team: { type: ['string', 'number'] },
                     stack: { type: 'string' },
-                    template: { type: 'string' },
-                    options: { type: 'object' }
+                    template: { type: 'string' }
                 }
             }
         }
@@ -188,7 +187,6 @@ module.exports = async function (app) {
         )
 
         const result = await app.db.views.Project.project(project)
-        result.team = team.id
 
         if (project.state === 'suspended') {
             result.meta = {

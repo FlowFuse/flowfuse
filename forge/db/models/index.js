@@ -136,7 +136,11 @@ async function init (app) {
                 return getHashId(m.name).encode(id)
             }
             m.model.decodeHashid = function (hashid) {
-                return getHashId(m.name).decode(hashid)
+                try {
+                    return getHashId(m.name).decode(hashid)
+                } catch (err) {
+                    return null
+                }
             }
         }
 

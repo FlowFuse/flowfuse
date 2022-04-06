@@ -54,11 +54,8 @@ export default {
                 name: NameGenerator(),
                 team: '',
                 stack: '',
-                template: '',
+                template: ''
                 // description: "",
-                options: {
-                    type: 'basic'
-                }
             },
             errors: {
                 stack: '',

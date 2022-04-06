@@ -87,23 +87,24 @@ module.exports = {
      */
     start: async (project) => {
         this._app.log.info(`[stub driver] Starting ${project.id}`)
-        if (!list[project.id]) {
-            if (await project.getSetting('stubProjectToken') === undefined) {
-                const stubProjectToken = forgeUtils.generateToken(8)
-                await project.updateSetting('stubProjectToken', stubProjectToken)
-            }
+        if (!list[project.id] || list[project.id].state === 'suspended') {
             list[project.id] = {
                 id: project.id,
                 state: 'starting',
                 url: `http://${project.name}.${this._options.domain}`,
-                meta: { foo: 'bar' }
+                meta: { foo: 'bar' },
+                stack: project.ProjectStack.hashid
+            }
+            if (await project.getSetting('stubProjectToken') === undefined) {
+                const stubProjectToken = forgeUtils.generateToken(8)
+                await project.updateSetting('stubProjectToken', stubProjectToken)
             }
             if (project.name === 'stub-fail-start') {
                 return new Promise((resolve, reject) => {
                     setTimeout(() => {
                         delete list[project.id]
                         reject(new Error('failing to start project'))
-                    }, 5000)
+                    }, 500)
                 })
             } else {
                 const startTime = project.name === 'stub-slow-start' ? 6000 : 500
@@ -115,7 +116,7 @@ module.exports = {
                 })
             }
         } else {
-            throw new Error({ error: 'Name already exists' })
+            throw new Error('Name already exists')
         }
     },
     /**
@@ -126,8 +127,12 @@ module.exports = {
     stop: async (project) => {
         this._app.log.info(`[stub driver] Stopping ${project.id}`)
         if (list[project.id]) {
-            delete list[project.id]
-            return { status: 'okay' }
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    list[project.id].state = 'suspended'
+                    resolve()
+                }, 250)
+            })
         } else {
             throw new Error({ error: project.id + ' not found' })
         }
@@ -140,8 +145,12 @@ module.exports = {
     remove: async (project) => {
         this._app.log.info(`[stub driver] Removing ${project.id}`)
         if (list[project.id]) {
-            delete list[project.id]
-            return { status: 'okay' }
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    delete list[project.id]
+                    resolve()
+                }, 250)
+            })
         } else {
             throw new Error({ error: project.id + ' not found' })
         }

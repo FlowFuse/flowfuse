@@ -25,7 +25,7 @@ module.exports = {
      */
     start: async (project) => {
         if (this._app.license.active() && this._app.billing) {
-            const subscription = this._app.db.models.Subscription.byTeam(project.Team.id)
+            const subscription = await this._app.db.models.Subscription.byTeam(project.Team.id)
             if (subscription) {
                 try {
                     await this._app.billing.addProject(project.Team, project)
@@ -53,7 +53,7 @@ module.exports = {
                 )
 
                 if (this._app.license.active() && this._app.billing) {
-                    const subscription = this._app.db.models.Subscription.byTeam(project.Team.id)
+                    const subscription = await this._app.db.models.Subscription.byTeam(project.Team.id)
                     if (subscription) {
                         try {
                             await this._app.billing.removeProject(project.Team, project)
@@ -102,7 +102,7 @@ module.exports = {
             await this._driver.stop(project)
         }
         if (this._app.license.active() && this._app.billing) {
-            const subscription = this._app.db.models.Subscription.byTeam(project.Team.id)
+            const subscription = await this._app.db.models.Subscription.byTeam(project.Team.id)
             if (subscription) {
                 try {
                     await this._app.billing.removeProject(project.Team, project)
