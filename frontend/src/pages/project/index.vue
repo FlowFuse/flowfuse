@@ -62,8 +62,6 @@ export default {
                 { name: 'Restart', action: async () => { this.project.pendingRestart = true; this.project.pendingStateChange = true; await projectApi.restartProject(this.project.id) }, disabled: flowActionsDisabled },
                 { name: 'Stop', action: async () => { this.project.pendingStateChange = true; await projectApi.stopProject(this.project.id) }, disabled: flowActionsDisabled },
                 null,
-                { name: 'Suspend', action: async () => { this.project.pendingStateChange = true; await projectApi.suspendProject(this.project.id) }, disabled: flowActionsDisabled },
-                null,
                 {
                     name: 'Delete',
                     class: ['text-red-700'],
