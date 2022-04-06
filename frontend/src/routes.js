@@ -50,7 +50,6 @@ router.beforeEach((to, from, next) => {
 
     const previousNearestWithMeta = from.matched.slice().reverse().find(r => r.meta && r.meta.metaTags)
 
-    console.log('title', nearestWithTitle)
 
     // If a route with a title was found, set the document (page) title to that value.
     if (nearestWithTitle) {
