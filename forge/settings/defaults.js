@@ -23,7 +23,7 @@ module.exports = {
     // Users are required to acknowledge they have accepted TCs on signup
     'user:tcs-required': false,
 
-    // Can users reset their password via the login page
+    // URL to link to Terms & Conditions on signup
     'user:tcs-url': '',
 
     // Can user's create their own teams
