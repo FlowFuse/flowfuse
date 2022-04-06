@@ -39,7 +39,6 @@ const router = createRouter({
 
 // This callback runs before every route change, including on page load.
 router.beforeEach((to, from, next) => {
-    console.log(from, to)
     // This goes through the matched routes from last to first, finding the closest route with a title.
     // e.g., if we have `/some/deep/nested/route` and `/some`, `/deep`, and `/nested` have titles,
     // `/nested`'s will be chosen.
