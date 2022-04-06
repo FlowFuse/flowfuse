@@ -22,7 +22,10 @@ export default [
         path: '/team/create',
         name: 'CreateTeam',
         beforeEnter: ensurePermission('team:create'),
-        component: CreateTeam
+        component: CreateTeam,
+        meta: {
+            title: 'Create Team'
+        }
     },
     {
         path: '/team/:team_slug',
@@ -31,12 +34,24 @@ export default [
         },
         name: 'Team',
         component: Team,
+        meta: {
+            title: 'Team | Overview'
+        },
         children: [
             { path: 'overview', component: TeamOverview },
-            { path: 'projects', component: TeamProjects },
+            {
+                path: 'projects',
+                component: TeamProjects,
+                meta: {
+                    title: 'Team | Projects'
+                }
+            },
             {
                 path: 'members',
                 component: TeamMembers,
+                meta: {
+                    title: 'Team | Members'
+                },
                 redirect: to => {
                     return `/team/${to.params.team_slug}/members/general`
                 },
@@ -45,10 +60,19 @@ export default [
                     { path: 'invitations', component: TeamMembersInvitations }
                 ]
             },
-            { path: 'audit-log', component: TeamAuditLog },
+            {
+                path: 'audit-log',
+                component: TeamAuditLog,
+                meta: {
+                    title: 'Team | Audit Log'
+                }
+            },
             {
                 path: 'settings',
                 component: TeamSettings,
+                meta: {
+                    title: 'Team | Settings'
+                },
                 redirect: to => {
                     return `/team/${to.params.team_slug}/settings/general`
                 },
@@ -64,6 +88,9 @@ export default [
     {
         path: '/team/:team_slug/projects/create',
         name: 'CreateTeamProject',
-        component: CreateProject
+        component: CreateProject,
+        meta: {
+            title: 'Team | Create Project'
+        }
     }
 ]

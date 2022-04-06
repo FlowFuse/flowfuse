@@ -47,13 +47,22 @@ export default [
         path: '/account',
         redirect: '/account/settings',
         name: 'User Settings',
+        meta: {
+            title: 'Account | Settings'
+        },
         icon: CogIcon,
         component: Account,
         children: [
-            { path: 'settings', component: AccountSettings },
+            {
+                path: 'settings',
+                component: AccountSettings
+            },
             {
                 path: 'teams',
                 component: AccountTeams,
+                meta: {
+                    title: 'Account | Teams'
+                },
                 children: [
                     { path: '', component: AccountTeamTeams },
                     { path: 'invitations', component: AccountTeamInvitations }
@@ -63,6 +72,9 @@ export default [
             {
                 path: 'security',
                 component: AccountSecurity,
+                meta: {
+                    title: 'Account | Security'
+                },
                 redirect: '/account/security/password',
                 children: [
                     { path: 'password', component: AccountSecurityChangePassword }
@@ -76,7 +88,8 @@ export default [
         path: '/account/create',
         name: 'Sign up',
         meta: {
-            requiresLogin: false
+            requiresLogin: false,
+            title: 'Sign Up'
         },
         component: AccountCreate
     },
@@ -103,6 +116,7 @@ export default [
         name: 'ForgotPassword',
         component: ForgotPassword,
         meta: {
+            title: 'Forgot Password',
             requiresLogin: false
         }
     },

@@ -25,7 +25,10 @@ export default [
         path: '/admin/users/create',
         beforeEnter: ensureAdmin,
         name: 'AdminCreateUser',
-        component: AdminCreateUser
+        component: AdminCreateUser,
+        meta: {
+            title: 'Admin | Create User'
+        }
     },
     {
         path: '/admin/',
@@ -37,11 +40,17 @@ export default [
         name: 'Admin Settings',
         icon: AdjustmentsIcon,
         component: Admin,
+        meta: {
+            title: 'Admin | Overview'
+        },
         children: [
             { path: 'overview', component: AdminOverview },
             {
                 path: 'settings',
                 component: AdminSettings,
+                meta: {
+                    title: 'Admin | Settings'
+                },
                 redirect: '/admin/settings/general',
                 children: [
                     { path: 'general', component: AdminSettingsGeneral },
@@ -53,15 +62,37 @@ export default [
             {
                 path: 'users',
                 component: AdminUsers,
+                meta: {
+                    title: 'Admin | Users'
+                },
                 redirect: '/admin/users/general',
                 children: [
                     { path: 'general', component: AdminUsersGeneral },
                     { path: 'invitations', component: AdminUsersInvitations }
                 ]
             },
-            { path: 'teams', component: AdminTeams },
-            { path: 'stacks', component: AdminStacks },
-            { name: 'Admin Templates', path: 'templates', component: AdminTemplates },
+            {
+                path: 'teams',
+                component: AdminTeams,
+                meta: {
+                    title: 'Admin | Teams'
+                }
+            },
+            {
+                path: 'stacks',
+                component: AdminStacks,
+                meta: {
+                    title: 'Admin | Stacks'
+                }
+            },
+            {
+                name: 'Admin Templates',
+                path: 'templates',
+                component: AdminTemplates,
+                meta: {
+                    title: 'Admin | Templates'
+                }
+            },
             {
                 name: 'Admin Template',
                 path: 'templates/:id',
@@ -69,6 +100,9 @@ export default [
                     return `/admin/templates/${to.params.id}/settings`
                 },
                 component: AdminTemplate,
+                meta: {
+                    title: 'Admin | Template'
+                },
                 children: [
                     { path: 'settings', component: AdminTemplateSettings },
                     { path: 'environment', component: AdminTemplateEnvironment },
