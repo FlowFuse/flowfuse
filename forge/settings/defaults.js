@@ -20,7 +20,7 @@ module.exports = {
     // Can users reset their password via the login page
     'user:reset-password': false,
 
-    // Can users reset their password via the login page
+    // Users are required to acknowledge they have accepted TCs on signup
     'user:tcs-required': false,
 
     // Can users reset their password via the login page
