@@ -82,8 +82,14 @@ module.exports = async function (app) {
                     return
                 }
             } else {
-                response.status(404).type('text/html').send('Not Found')
-                return
+                if (event.type === 'charge.failed') {
+                    const sub = await app.db.models.Subscription.byCustomer(customer)
+                    team = sub?.Team
+                }
+                if (!team) {
+                    response.status(404).type('text/html').send('Not Found')
+                    return
+                }
             }
 
             switch (event.type) {
@@ -100,8 +106,8 @@ module.exports = async function (app) {
                 break
             case 'checkout.session.expired':
                 // should remove the team here
-                console.log('checkout.session.expired')
-                console.log(event)
+                app.log.info('checkout.session.expired')
+                // console.log(event)
                 break
             case 'customer.subscription.created':
 

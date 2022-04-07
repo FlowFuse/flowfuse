@@ -43,6 +43,17 @@ module.exports = {
                             attributes: ['id', 'name', 'slug', 'links']
                         }
                     })
+                },
+                byCustomer: async function(customer) {
+                    return self.findOne({
+                        where: {
+                            customer: customer
+                        },
+                        include: {
+                            model: M.Team,
+                            attributes: ['id', 'name', 'slug', 'links']
+                        }
+                    })
                 }
             }
         }
