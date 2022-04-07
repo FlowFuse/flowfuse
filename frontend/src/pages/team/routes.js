@@ -90,7 +90,7 @@ export default [
         name: 'CreateTeamProject',
         component: CreateProject,
         meta: {
-            title: 'Team | Create Project'
+            title: 'Team - Create Project'
         }
     }
 ]

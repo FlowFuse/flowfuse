@@ -27,7 +27,7 @@ export default [
         name: 'AdminCreateUser',
         component: AdminCreateUser,
         meta: {
-            title: 'Admin | Create User'
+            title: 'Admin - Create User'
         }
     },
     {
@@ -41,7 +41,7 @@ export default [
         icon: AdjustmentsIcon,
         component: Admin,
         meta: {
-            title: 'Admin | Overview'
+            title: 'Admin - Overview'
         },
         children: [
             { path: 'overview', component: AdminOverview },
@@ -49,7 +49,7 @@ export default [
                 path: 'settings',
                 component: AdminSettings,
                 meta: {
-                    title: 'Admin | Settings'
+                    title: 'Admin - Settings'
                 },
                 redirect: '/admin/settings/general',
                 children: [
@@ -63,7 +63,7 @@ export default [
                 path: 'users',
                 component: AdminUsers,
                 meta: {
-                    title: 'Admin | Users'
+                    title: 'Admin - Users'
                 },
                 redirect: '/admin/users/general',
                 children: [
@@ -75,14 +75,14 @@ export default [
                 path: 'teams',
                 component: AdminTeams,
                 meta: {
-                    title: 'Admin | Teams'
+                    title: 'Admin - Teams'
                 }
             },
             {
                 path: 'stacks',
                 component: AdminStacks,
                 meta: {
-                    title: 'Admin | Stacks'
+                    title: 'Admin - Stacks'
                 }
             },
             {
@@ -90,7 +90,7 @@ export default [
                 path: 'templates',
                 component: AdminTemplates,
                 meta: {
-                    title: 'Admin | Templates'
+                    title: 'Admin - Templates'
                 }
             },
             {
@@ -101,7 +101,7 @@ export default [
                 },
                 component: AdminTemplate,
                 meta: {
-                    title: 'Admin | Template'
+                    title: 'Admin - Template'
                 },
                 children: [
                     { path: 'settings', component: AdminTemplateSettings },

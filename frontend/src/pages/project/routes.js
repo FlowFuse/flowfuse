@@ -22,7 +22,7 @@ export default [
         name: 'Project',
         component: Project,
         meta: {
-            title: 'Project | Overview'
+            title: 'Project - Overview'
         },
         children: [
             { path: 'overview', component: ProjectOverview },
@@ -30,7 +30,7 @@ export default [
                 path: 'settings',
                 component: ProjectSettings,
                 meta: {
-                    title: 'Project | Settings'
+                    title: 'Project - Settings'
                 },
                 redirect: to => {
                     return `/project/${to.params.id}/settings/general`
@@ -47,7 +47,7 @@ export default [
                 path: 'logs',
                 component: ProjectLogs,
                 meta: {
-                    title: 'Project | Logs'
+                    title: 'Project - Logs'
                 }
             },
             // { path: 'deploys', component: ProjectDeploys},
@@ -55,7 +55,7 @@ export default [
                 path: 'activity',
                 component: ProjectActivity,
                 meta: {
-                    title: 'Project | Activity'
+                    title: 'Project - Activity'
                 }
             }
             // { path: 'debug', component: ProjectDebug }

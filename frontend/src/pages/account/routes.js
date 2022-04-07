@@ -48,7 +48,7 @@ export default [
         redirect: '/account/settings',
         name: 'User Settings',
         meta: {
-            title: 'Account | Settings'
+            title: 'Account - Settings'
         },
         icon: CogIcon,
         component: Account,
@@ -61,7 +61,7 @@ export default [
                 path: 'teams',
                 component: AccountTeams,
                 meta: {
-                    title: 'Account | Teams'
+                    title: 'Account - Teams'
                 },
                 children: [
                     { path: '', component: AccountTeamTeams },
@@ -73,7 +73,7 @@ export default [
                 path: 'security',
                 component: AccountSecurity,
                 meta: {
-                    title: 'Account | Security'
+                    title: 'Account - Security'
                 },
                 redirect: '/account/security/password',
                 children: [
