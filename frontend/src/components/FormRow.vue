@@ -66,7 +66,7 @@
                     <div class="block sm:inline sm:absolute sm:left-full sm:ml-4 mt-2 sm:mt-0"><slot name="append"></slot></div>
                 </template>
             </div>
-            <div v-if="error" class="float-right ml-4 text-red-400 inline text-xs">{{error}}</div>
+            <div v-if="error" class="ml-4 text-red-400 text-xs">{{error}}</div>
         </template>
     </div>
 </template>
