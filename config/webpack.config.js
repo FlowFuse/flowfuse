@@ -1,4 +1,4 @@
-const htmlWebpackPlugin = require('html-webpack-plugin')
+const HTMLWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const { VueLoaderPlugin } = require('vue-loader')
 const CopyPlugin = require('copy-webpack-plugin')
@@ -89,14 +89,14 @@ module.exports = {
     plugins: [
         new VueLoaderPlugin(),
         new CleanWebpackPlugin(),
-        new htmlWebpackPlugin({
+        new HTMLWebpackPlugin({
             title: 'FlowForge',
             template: getPath('frontend/src/index.html'),
             favicon: getPath('frontend/public/favicon.ico'),
             filename: getPath('frontend/dist/index.html'),
             chunks: ['main']
         }),
-        new htmlWebpackPlugin({
+        new HTMLWebpackPlugin({
             title: 'FlowForge',
             template: getPath('frontend/src/setup.html'),
             favicon: getPath('frontend/public/favicon.ico'),
@@ -117,7 +117,7 @@ module.exports = {
     resolve: {
         extensions: ['*', '.js', '.vue', '.json'],
         alias: {
-            vue: path.resolve('./node_modules/vue'),
+            vue: path.resolve('./node_modules/vue/dist/vue.esm-bundler.js'),
             '@core': getPath('forge'),
             '@': getPath('frontend/src')
         }
