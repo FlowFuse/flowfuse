@@ -49,7 +49,6 @@ router.beforeEach((to, from, next) => {
 
     const previousNearestWithMeta = from.matched.slice().reverse().find(r => r.meta && r.meta.metaTags)
 
-
     // If a route with a title was found, set the document (page) title to that value.
     if (nearestWithTitle) {
         document.title = nearestWithTitle.meta.title + ' - FlowForge'
