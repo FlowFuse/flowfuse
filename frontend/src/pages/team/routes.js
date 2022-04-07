@@ -35,7 +35,7 @@ export default [
         name: 'Team',
         component: Team,
         meta: {
-            title: 'Team | Overview'
+            title: 'Team - Overview'
         },
         children: [
             { path: 'overview', component: TeamOverview },
@@ -43,14 +43,14 @@ export default [
                 path: 'projects',
                 component: TeamProjects,
                 meta: {
-                    title: 'Team | Projects'
+                    title: 'Team - Projects'
                 }
             },
             {
                 path: 'members',
                 component: TeamMembers,
                 meta: {
-                    title: 'Team | Members'
+                    title: 'Team - Members'
                 },
                 redirect: to => {
                     return `/team/${to.params.team_slug}/members/general`
@@ -64,14 +64,14 @@ export default [
                 path: 'audit-log',
                 component: TeamAuditLog,
                 meta: {
-                    title: 'Team | Audit Log'
+                    title: 'Team - Audit Log'
                 }
             },
             {
                 path: 'settings',
                 component: TeamSettings,
                 meta: {
-                    title: 'Team | Settings'
+                    title: 'Team - Settings'
                 },
                 redirect: to => {
                     return `/team/${to.params.team_slug}/settings/general`
