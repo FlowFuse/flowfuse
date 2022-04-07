@@ -44,7 +44,7 @@ module.exports = {
                         }
                     })
                 },
-                byCustomer: async function(customer) {
+                byCustomer: async function (customer) {
                     return self.findOne({
                         where: {
                             customer: customer
