@@ -82,8 +82,14 @@ module.exports = async function (app) {
                     return
                 }
             } else {
-                response.status(404).type('text/html').send('Not Found')
-                return
+                if (event.type === 'charge.failed') {
+                    const sub = await app.db.models.Subscription.byCustomer(customer)
+                    team = sub?.Team
+                }
+                if (!team) {
+                    response.status(404).type('text/html').send('Not Found')
+                    return
+                }
             }
 
             switch (event.type) {
@@ -100,8 +106,8 @@ module.exports = async function (app) {
                 break
             case 'checkout.session.expired':
                 // should remove the team here
-                console.log('checkout.session.expired')
-                console.log(event)
+                app.log.info(`Stripe 'checkout.session.expired' event for team ${team.hashid}`)
+                // console.log(event)
                 break
             case 'customer.subscription.created':
 
@@ -113,7 +119,8 @@ module.exports = async function (app) {
 
                 break
             case 'charge.failed':
-                // This needs work
+                // TODO: This needs work, we need to count failures and susspend projects
+                // after we hit a threshold (should track a charge.sucess to reset?)
                 break
             }
 
