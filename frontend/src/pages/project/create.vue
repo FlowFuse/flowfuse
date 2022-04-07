@@ -24,7 +24,7 @@
                 <FormRow type="checkbox" v-model="input.billingConfirmation" id="billing-confirmation">
                     Confirm additional charges
                     <template v-slot:description>
-                        You will be charged $15/month for this project.
+                        You will be charged US$15/month for this project.
                     </template>
                 </FormRow>
 
