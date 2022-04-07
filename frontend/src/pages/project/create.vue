@@ -21,6 +21,8 @@
 
                 <FormRow :options="templates" :error="errors.template" v-model="input.template" id="template">Template</FormRow>
 
+                <FormRow v-if="features.billing" type="checkbox" v-model="input.billingConfirmation" id="billing-confirmation">Please acknowledge that you will be charged (15 USD) for creating this project.</FormRow>
+
                 <ff-button :disabled="!createEnabled" @click="createProject">Create Project</ff-button>
             </form>
         </div>
@@ -28,6 +30,8 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 import teamApi from '@/api/team'
 import projectApi from '@/api/project'
 import stacksApi from '@/api/stacks'
@@ -55,6 +59,7 @@ export default {
                 team: '',
                 stack: '',
                 template: '',
+                billingConfirmation: false,
                 // description: "",
                 options: {
                     type: 'basic'
@@ -68,8 +73,9 @@ export default {
         }
     },
     computed: {
+        ...mapState(['features']),
         createEnabled: function () {
-            return this.input.stack && this.input.team && this.input.name && !this.errors.name && this.input.template
+            return this.input.stack && this.input.team && this.input.name && !this.errors.name && this.input.template && (this.features.billing ? this.input.billingConfirmation : true)
         }
     },
     watch: {
