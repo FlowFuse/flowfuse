@@ -21,7 +21,12 @@
 
                 <FormRow :options="templates" :error="errors.template" v-model="input.template" id="template">Template</FormRow>
 
-                <FormRow v-if="features.billing" type="checkbox" v-model="input.billingConfirmation" id="billing-confirmation">Please acknowledge that you will be charged (15 USD) for creating this project.</FormRow>
+                <FormRow type="checkbox" v-model="input.billingConfirmation" id="billing-confirmation">
+                    Confirm additional charges
+                    <template v-slot:description>
+                        You will be charged $15/month for this project.
+                    </template>
+                </FormRow>
 
                 <ff-button :disabled="!createEnabled" @click="createProject">Create Project</ff-button>
             </form>
