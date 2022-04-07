@@ -106,7 +106,7 @@ module.exports = async function (app) {
                 break
             case 'checkout.session.expired':
                 // should remove the team here
-                app.log.info('checkout.session.expired')
+                app.log.info(`Stripe 'checkout.session.expired' event for team ${team.hashid}`)
                 // console.log(event)
                 break
             case 'customer.subscription.created':
@@ -119,7 +119,8 @@ module.exports = async function (app) {
 
                 break
             case 'charge.failed':
-                // This needs work
+                // TODO: This needs work, we need to count failures and susspend projects
+                // after we hit a threshold (should track a charge.sucess to reset?)
                 break
             }
 
