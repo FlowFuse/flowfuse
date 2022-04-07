@@ -34,12 +34,9 @@ import AdminStackEditButton from './components/AdminStackEditButton'
 import AdminStackEditDialog from './dialogs/AdminStackEditDialog'
 import AdminStackDeleteDialog from './dialogs/AdminStackDeleteDialog'
 
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import StackPropertiesCell from './components/StackPropertiesCell'
 
-const StackPropertiesTable = {
-    template: '<div>{{properties}}</div>',
-    props: ['properties']
-}
+import { PlusSmIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'AdminStacks',
@@ -52,7 +49,7 @@ export default {
             columns: [
                 { name: 'Stack', class: ['w-56'], property: 'name' },
                 { name: 'Active', class: ['w-32', 'text-center'], property: 'active' },
-                { name: 'Properties', class: ['flex-grow'], component: { is: markRaw(StackPropertiesTable) } },
+                { name: 'Properties', class: ['flex-grow'], component: { is: markRaw(StackPropertiesCell) } },
                 { name: 'Project Count', class: ['w-32', 'text-center'], property: 'projectCount' },
                 { name: '', class: ['w-16', 'text-center'], component: { is: markRaw(AdminStackEditButton) } }
             ]
@@ -63,12 +60,6 @@ export default {
             { label: 'Admin', to: { name: 'Admin Settings' } },
             { label: 'Stacks' }
         ])
-        StackPropertiesTable.template = '<table class="table-auto">'
-        Object.entries(this.settings.stacks.properties).forEach(([key, value]) => {
-            StackPropertiesTable.template += `<tr><td class="pr-8">${value.label}</td><td>{{properties.${key}}}</td></tr>`
-            // tableColumns.push({name: value.label, class:['w-32'], property:`properties.${key}`})
-        })
-        StackPropertiesTable.template += '</table>'
         await this.loadItems()
     },
     computed: {
