@@ -39,7 +39,6 @@ const router = createRouter({
 
 // This callback runs before every route change, including on page load.
 router.beforeEach((to, from, next) => {
-    console.log(from, to)
     // This goes through the matched routes from last to first, finding the closest route with a title.
     // e.g., if we have `/some/deep/nested/route` and `/some`, `/deep`, and `/nested` have titles,
     // `/nested`'s will be chosen.
@@ -50,7 +49,6 @@ router.beforeEach((to, from, next) => {
 
     const previousNearestWithMeta = from.matched.slice().reverse().find(r => r.meta && r.meta.metaTags)
 
-    console.log('title', nearestWithTitle)
 
     // If a route with a title was found, set the document (page) title to that value.
     if (nearestWithTitle) {
