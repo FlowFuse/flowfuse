@@ -82,7 +82,6 @@ module.exports = async function (app) {
             }
             reply.send({ status: 'okay' })
         } catch (err) {
-            console.log(err)
             reply.code(400).send({ error: 'cannot remove only owner' })
         }
     })
@@ -107,7 +106,6 @@ module.exports = async function (app) {
                 }
                 reply.send({ status: 'okay' })
             } catch (err) {
-                console.log(err)
                 reply.code(403).type('text/html').send('Forbidden')
             }
         } else {
