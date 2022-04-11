@@ -29,6 +29,7 @@ module.exports = async function (settings = {}, config = {}) {
     const userAlice = await forge.db.models.User.create({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
     const team1 = await forge.db.models.Team.create({ name: 'ATeam' })
     await team1.addUser(userAlice, { through: { role: Roles.Owner } })
+
     const templateProperties = {
         name: 'template1',
         active: true,
@@ -51,23 +52,5 @@ module.exports = async function (settings = {}, config = {}) {
     await project1.setProjectTemplate(template)
 
     forge.project = project1
-
-    await forge.db.models.StorageFlow.create({
-        flow: JSON.stringify([]),
-        ProjectId: project1.id
-    })
-    await forge.db.models.StorageCredentials.create({
-        credentials: JSON.stringify({}),
-        ProjectId: project1.id
-    })
-    await forge.db.models.StorageSettings.create({
-        settings: JSON.stringify({}),
-        ProjectId: project1.id
-    })
-    await forge.db.models.StorageSession.create({
-        sessions: JSON.stringify({}),
-        ProjectId: project1.id
-    })
-
     return forge
 }
