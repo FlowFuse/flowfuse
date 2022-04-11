@@ -14,7 +14,6 @@ At present, the projects are fairly plain instances of Node-RED -
 with some custom settings to integrate them into the platform properly. 
 There are a number of settings that can be modified for a project based on what has been configured and allowed in the [Project Template](#project-template). These can be access from the Settings page of the project and there is a description of each one in the settings.
 
-
 ### Team
 
 Each project is owned by a Team. Only members of that team have access to the
