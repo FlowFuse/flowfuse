@@ -21,11 +21,17 @@ export default [
         },
         name: 'Project',
         component: Project,
+        meta: {
+            title: 'Project - Overview'
+        },
         children: [
             { path: 'overview', component: ProjectOverview },
             {
                 path: 'settings',
                 component: ProjectSettings,
+                meta: {
+                    title: 'Project - Settings'
+                },
                 redirect: to => {
                     return `/project/${to.params.id}/settings/general`
                 },
@@ -37,9 +43,21 @@ export default [
                     { path: 'danger', component: ProjectSettingsDanger }
                 ]
             },
-            { path: 'logs', component: ProjectLogs },
+            {
+                path: 'logs',
+                component: ProjectLogs,
+                meta: {
+                    title: 'Project - Logs'
+                }
+            },
             // { path: 'deploys', component: ProjectDeploys},
-            { path: 'activity', component: ProjectActivity }
+            {
+                path: 'activity',
+                component: ProjectActivity,
+                meta: {
+                    title: 'Project - Activity'
+                }
+            }
             // { path: 'debug', component: ProjectDebug }
         ]
     },

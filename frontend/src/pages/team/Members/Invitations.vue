@@ -16,22 +16,9 @@ import { markRaw } from 'vue'
 import FormHeading from '@/components/FormHeading'
 import ItemTable from '@/components/tables/ItemTable'
 import InviteUserCell from '@/components/tables/cells/InviteUserCell'
-import { TrashIcon } from '@heroicons/vue/outline'
 import { useRoute, useRouter } from 'vue-router'
 import { Roles } from '@core/lib/roles'
-
-const MemberInviteRemoveButton = {
-    template: '<ff-button @click="removeInvite"><template v-slot:icon><TrashIcon /></template></ff-button>',
-    props: ['id', 'team', 'onremove'],
-    components: {
-        TrashIcon
-    },
-    methods: {
-        async removeInvite () {
-            await this.onremove(this.team.id, this.id)
-        }
-    }
-}
+import MemberInviteRemoveButton from '../../admin/Users/components/MemberInviteRemoveButton.vue'
 
 export default {
     name: 'MemberInviteTable',

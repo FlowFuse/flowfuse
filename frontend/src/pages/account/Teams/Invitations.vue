@@ -11,18 +11,7 @@ import ItemTable from '@/components/tables/ItemTable'
 import InviteUserCell from '@/components/tables/cells/InviteUserCell'
 import TeamCell from '@/components/tables/cells/TeamCell'
 
-const UserInviteActions = {
-    template: '<div class="space-x-2"><ff-button kind="danger" @click="rejectInvite">Reject</button> <ff-button @click="acceptInvite">Accept</ff-button></div>',
-    props: ['id', 'onaccept', 'onreject'],
-    methods: {
-        async acceptInvite () {
-            await this.onaccept(this.id)
-        },
-        async rejectInvite () {
-            await this.onreject(this.id)
-        }
-    }
-}
+import UserInviteActions from '../components/UserInviteActions'
 
 export default {
     name: 'UserInviteTable',

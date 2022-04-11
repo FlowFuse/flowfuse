@@ -9,6 +9,23 @@ describe('Storage API', function () {
         app = await setup()
         project = app.project
         tokens = await project.refreshAuthTokens()
+
+        await app.db.models.StorageFlow.create({
+            flow: JSON.stringify([]),
+            ProjectId: project.id
+        })
+        await app.db.models.StorageCredentials.create({
+            credentials: JSON.stringify({}),
+            ProjectId: project.id
+        })
+        await app.db.models.StorageSettings.create({
+            settings: JSON.stringify({}),
+            ProjectId: project.id
+        })
+        await app.db.models.StorageSession.create({
+            sessions: JSON.stringify({}),
+            ProjectId: project.id
+        })
     })
 
     afterEach(async function () {

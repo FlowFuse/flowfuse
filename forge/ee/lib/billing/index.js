@@ -39,7 +39,7 @@ module.exports.init = function (app) {
             app.log.info(`Adding Project ${project.id} to Subscription for team ${team.hashid}`)
 
             if (projectItem) {
-                const metadata = subscription.metadata ? subscription.metadata : {}
+                const metadata = existingSub.metadata ? existingSub.metadata : {}
                 // console.log('updating metadata', metadata)
                 metadata[project.id] = 'true'
                 // console.log(metadata)
@@ -50,7 +50,7 @@ module.exports.init = function (app) {
                 // TODO update meta data?
                 try {
                     await stripe.subscriptionItems.update(projectItem.id, update)
-                    await stripe.subscriptions.update(subscription.id, {
+                    await stripe.subscriptions.update(subscription.subscription, {
                         metadata: metadata
                     })
                 } catch (error) {
@@ -91,8 +91,8 @@ module.exports.init = function (app) {
             app.log.info(`Removing Project ${project.id} to Subscription for team ${team.hashid}`)
 
             if (projectItem) {
-                const metadata = subscription.metadata ? subscription.metadata : {}
-                delete metadata[project.id]
+                const metadata = existingSub.metadata ? existingSub.metadata : {}
+                metadata[project.id] = ''
                 const update = {
                     quantity: projectItem.quantity - 1
                 }
@@ -102,7 +102,7 @@ module.exports.init = function (app) {
 
                 try {
                     await stripe.subscriptionItems.update(projectItem.id, update)
-                    await stripe.subscriptions.update(subscription.id, {
+                    await stripe.subscriptions.update(subscription.subscription, {
                         metadata: metadata
                     })
                 } catch (err) {

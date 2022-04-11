@@ -9,11 +9,14 @@
             </div>
             <template v-if="!emailSent">
                 <form class="bg-white p-4 border-t border-b space-y-4">
-                    <FormHeading>Sign up</FormHeading>
+                    <FormHeading>Sign Up</FormHeading>
                     <FormRow v-model="input.username" :error="errors.username">Username</FormRow>
                     <FormRow v-model="input.name" :placeholder="input.username">Full Name</FormRow>
                     <FormRow v-model="input.email" :error="errors.email">Email</FormRow>
                     <FormRow type="password" :error="errors.password" v-model="input.password" id="password" :onBlur="checkPassword" >Password</FormRow>
+                    <FormRow  v-if="settings['user:tcs-required']" class="mt-3" type="checkbox" :error="errors.tandcs" v-model="input.tandcs" id="tandcs">
+                        I accept the <a target="_blank" :href="settings['user:tcs-url']" class="text-blue-600">FlowForge Terms &amp; Conditions.</a>
+                    </FormRow>
                     <ff-button :disabled="!formValid" @click="registerUser">
                         Sign up
                     </ff-button>
@@ -30,7 +33,10 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 import userApi from '@/api/user'
+
 import Logo from '@/components/Logo'
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
@@ -51,7 +57,8 @@ export default {
                 name: '',
                 username: '',
                 email: '',
-                password: ''
+                password: '',
+                tandcs: false
             },
             errors: {
                 password: 'Password must be at least 8 characters'
@@ -62,10 +69,11 @@ export default {
         this.input.email = useRoute().query.email || ''
     },
     computed: {
+        ...mapState('account', ['settings', 'pending']),
         formValid () {
             return this.input.email &&
                    (this.input.username && !this.errors.username) &&
-                   this.input.password.length >= 8
+                   this.input.password.length >= 8 && (this.settings['user:tcs-required'] ? this.input.tandcs : true)
         }
     },
     watch: {
