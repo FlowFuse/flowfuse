@@ -29,6 +29,6 @@ The second one `locked` is set by the tempalte and the value is set to `true` is
 
 The third one `user` is set for the project, the value can be edited or the variable deleted
 
-<img src="../images/project-envar.png" width=300 />
+<img src="images/project-envar.png" width=300 />
 
 
