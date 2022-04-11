@@ -64,7 +64,7 @@ export default {
                 team: '',
                 stack: '',
                 template: '',
-                billingConfirmation: false,
+                billingConfirmation: false
                 // description: "",
             },
             errors: {
