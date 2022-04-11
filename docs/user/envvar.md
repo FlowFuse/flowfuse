@@ -12,7 +12,7 @@ Changes  will only take effect when the project is restarted.
 If you modify the value of an Environment Variable within the flow that change will not show up within the FlowForge application, and it may not persist across restarts. 
 
 ## Template
-The [Template](../concepts/#project-template) May contain some environment variables, some of these may be locked in that the value cannot be changed while others may allow their value to be edited for an individual project.
+The [Template](concepts/#project-template) May contain some environment variables, some of these may be locked in that the value cannot be changed while others may allow their value to be edited for an individual project.
 
 Variables set by the template cannot be deleted, however if they are editable the value can be set to blank
 
@@ -29,6 +29,6 @@ The second one `locked` is set by the tempalte and the value is set to `true` is
 
 The third one `user` is set for the project, the value can be edited or the variable deleted
 
-<img src="images/project-envar.png" width=300 />
+<img src="images/project-envvar.png" width=300 />
 
 
