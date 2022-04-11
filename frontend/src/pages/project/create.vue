@@ -64,11 +64,8 @@ export default {
                 team: '',
                 stack: '',
                 template: '',
-                billingConfirmation: false,
+                billingConfirmation: false
                 // description: "",
-                options: {
-                    type: 'basic'
-                }
             },
             errors: {
                 stack: '',

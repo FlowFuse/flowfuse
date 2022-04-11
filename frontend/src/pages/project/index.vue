@@ -8,7 +8,7 @@
                 <ProjectStatusBadge :status="project.meta.state" :pendingStateChange="project.pendingStateChange" v-if="project.meta" />
             </div>
             <div class="text-right space-x-4">
-                <a :href="project.url" target="_blank" class="forge-button-secondary">
+                <a v-if="editorAvailable" :href="project.url" target="_blank" class="forge-button-secondary">
                     Editor <ExternalLinkIcon class="w-5 ml-1 py-1" />
                 </a>
                 <DropdownMenu buttonClass="forge-button" alt="Open actions menu" :options="options">Actions</DropdownMenu>
@@ -32,6 +32,13 @@ import { Roles } from '@core/lib/roles'
 
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
 
+const projectTransitionStates = [
+    'starting',
+    'stopping',
+    'restarting',
+    'suspending'
+]
+
 export default {
     name: 'ProjectPage',
     mixins: [Breadcrumbs],
@@ -48,10 +55,12 @@ export default {
     computed: {
         ...mapState('account', ['teamMembership']),
         options: function () {
+            const flowActionsDisabled = !(this.project.meta && this.project.meta.state !== 'suspended')
+
             return [
                 { name: 'Start', action: async () => { this.project.pendingStateChange = true; await projectApi.startProject(this.project.id) } },
-                { name: 'Restart', action: async () => { this.project.pendingStateChange = true; await projectApi.restartProject(this.project.id) } },
-                { name: 'Stop', action: async () => { this.project.pendingStateChange = true; await projectApi.stopProject(this.project.id) } },
+                { name: 'Restart', action: async () => { this.project.pendingRestart = true; this.project.pendingStateChange = true; await projectApi.restartProject(this.project.id) }, disabled: flowActionsDisabled },
+                { name: 'Stop', action: async () => { this.project.pendingStateChange = true; await projectApi.stopProject(this.project.id) }, disabled: flowActionsDisabled },
                 null,
                 {
                     name: 'Delete',
@@ -61,6 +70,9 @@ export default {
                     }
                 }
             ]
+        },
+        editorAvailable: function () {
+            return this.project.meta && this.project.meta.state === 'running'
         }
     },
     watch: {
@@ -102,9 +114,13 @@ export default {
                 this.checkInterval = setTimeout(async () => {
                     if (this.project.id) {
                         const data = await projectApi.getProject(this.project.id)
+                        const wasPendingRestart = this.project.pendingRestart
                         this.project = data
+                        if (wasPendingRestart && this.project.meta.state !== 'running') {
+                            this.project.pendingRestart = true
+                        }
                     }
-                }, 5000)
+                }, 1000)
             }
         },
         checkAccess () {
@@ -117,6 +133,10 @@ export default {
             if (this.teamMembership && this.teamMembership.role === Roles.Owner) {
                 this.navigation.push({ name: 'Settings', path: `/project/${this.project.id}/settings` })
                 // this.navigation.push({ name: "Debug", path: `/project/${this.project.id}/debug` })
+            }
+            if (this.project.meta && (this.project.pendingRestart || projectTransitionStates.includes(this.project.meta.state))) {
+                this.project.pendingStateChange = true
+                this.refreshProject()
             }
         }
     },

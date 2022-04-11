@@ -8,10 +8,24 @@ module.exports = {
             this.properties = await this._driver.init(app, options)
         }
     },
-    create: async (project, options) => {
-        let value = {}
+    /**
+     * Start a container.
+     *
+     *  - If Billing is enabled, this first checks the billing subscription and adds
+     *    the project to the team subscription
+     *  - Passes the request to the driver and returns without waiting for the
+     *    driver to complete.
+     *  - Returns an object that contains the driver's promise:
+     *      { started: <driver promise> }
+     *  - The driver promise is also watched so we can revert billing if needed should
+     *    the create fail - and we put the project into suspended state
+     *
+     * @param {*} project The project to start
+     * @returns {Promise} Resolves when the start request has been *accepted*.
+     */
+    start: async (project) => {
         if (this._app.license.active() && this._app.billing) {
-            const subscription = this._app.db.models.Subscription.byTeam(project.Team.id)
+            const subscription = await this._app.db.models.Subscription.byTeam(project.Team.id)
             if (subscription) {
                 try {
                     await this._app.billing.addProject(project.Team, project)
@@ -23,30 +37,120 @@ module.exports = {
                 throw new Error('No Subscription for this team')
             }
         }
-        if (this._driver.create) {
-            value = await this._driver.create(project, options)
+        const result = {}
+        if (this._driver.start) {
+            const startPromise = this._driver.start(project).catch(async err => {
+                this._app.log.error(`Failed to start container ${project.id}: ${err.toString()}`)
+                // The driver has failed to start this project for some reason
+                project.state = 'suspended'
+                await project.save()
+
+                await this._app.db.controllers.AuditLog.projectLog(
+                    project.id,
+                    undefined,
+                    'project.start.failed',
+                    { error: err.toString() }
+                )
+
+                if (this._app.license.active() && this._app.billing) {
+                    const subscription = await this._app.db.models.Subscription.byTeam(project.Team.id)
+                    if (subscription) {
+                        try {
+                            await this._app.billing.removeProject(project.Team, project)
+                        } catch (err) {
+                            // Rethrow or wrap
+                            throw new Error('Problem with setting up Billing')
+                        }
+                    } else {
+                        throw new Error('No Subscription for this team')
+                    }
+                }
+            })
+            result.started = startPromise
+        } else {
+            result.started = Promise.resolve()
         }
-        return value
+        return result
     },
-    remove: async (project) => {
-        let value = {}
-        if (this._driver.remove) {
-            value = await this._driver.remove(project)
+
+    /**
+     * Stop a container.
+     *
+     * This is used when the container should be stopped, but the Project has
+     * not been deleted. For example, the Stack is being modified, or the user
+     * has asked to suspend the project.
+     *
+     * - This tells the driver to stop the container running. This places
+     *   it into 'suspended' state. It *could* be restarted later, so the container
+     *   may choose to keep some state in place.
+     *
+     * - If billing is enabled (and the project isn't already in suspended state)
+     *   it is removed from the subscription
+     *
+     * @param {*} project The project to stop
+     * @returns {Promise} Resolves when the project has been stopped
+     */
+
+    stop: async (project) => {
+        if (project.state === 'suspended') {
+            // Already in the right state, nothing to do
+            return
+        }
+        project.state = 'suspended'
+        await project.save()
+        if (this._driver.stop) {
+            await this._driver.stop(project)
         }
         if (this._app.license.active() && this._app.billing) {
-            const subscription = this._app.db.models.Subscription.byTeam(project.Team.id)
+            const subscription = await this._app.db.models.Subscription.byTeam(project.Team.id)
             if (subscription) {
                 try {
                     await this._app.billing.removeProject(project.Team, project)
                 } catch (err) {
                     // Rethrow or wrap?
-                    throw new Error('Problem with setting up Billing')
+                    throw new Error('Problem with removing project from subscription')
                 }
             } else {
                 throw new Error('No Subscription for this team')
             }
         }
-        return value
+    },
+
+    /**
+     * Remove a container entirely
+     *
+     * This is used when a Project is being deleted.
+     *
+     * - This tells the driver to stop the container running (if it hasn't
+     *   already been stopped ('suspended' state)) and remove any/all resources
+     *   it has been allocated.
+     *
+     * - If billing is enabled (and the project isn't already in suspended state)
+     *   it is removed from the subscription
+     *
+     * @param {*} project The project to remove
+     * @returns {Promise} Resolves when the project has been stopped
+     */
+    remove: async (project) => {
+        if (this._driver.remove) {
+            await this._driver.remove(project)
+        }
+        if (project.state !== 'suspended') {
+            // Only updated billing if the project isn't already suspended
+            if (this._app.license.active() && this._app.billing) {
+                const subscription = this._app.db.models.Subscription.byTeam(project.Team.id)
+                if (subscription) {
+                    try {
+                        await this._app.billing.removeProject(project.Team, project)
+                    } catch (err) {
+                        // Rethrow or wrap?
+                        throw new Error('Problem with removing project from subscription')
+                    }
+                } else {
+                    throw new Error('No Subscription for this team')
+                }
+            }
+        }
     },
     details: async (project) => {
         let value = {}
@@ -62,29 +166,20 @@ module.exports = {
         }
         return value
     },
-    start: async (project) => {
-        let value = {}
-        if (this._driver.start) {
-            value = await this._driver.start(project)
+    startFlows: async (project, options) => {
+        if (this._driver.startFlows) {
+            await this._driver.startFlows(project, options)
         }
-        return value
     },
-    stop: async (project) => {
-        let value = {}
-        if (this._driver.stop) {
-            value = await this._driver.stop(project)
+    stopFlows: async (project) => {
+        if (this._driver.stopFlows) {
+            await this._driver.stopFlows(project)
         }
-        return value
     },
-    restart: async (project) => {
-        let value = {}
-        if (this._driver.restart) {
-            value = this._driver.restart(project)
-        } else {
-            await this._driver.stop(project)
-            value = await this._driver.start(project)
+    restartFlows: async (project, options) => {
+        if (this._driver.restartFlows) {
+            this._driver.restartFlows(project, options)
         }
-        return value
     },
     logs: async (project) => {
         let value = []

@@ -7,7 +7,10 @@
                 <table class="table-fixed w-full">
                     <tr class="border-b">
                         <td class="w-1/4">Editor</td>
-                        <td><a :href="project.url" target="_blank" class="forge-button-inline py-2 -mx-3"><span class="ml-r">{{project.url}}</span><ExternalLinkIcon class="w-4 ml-3" /></a></td>
+                        <td>
+                            <a v-if="editorAvailable" :href="project.url" target="_blank" class="forge-button-inline py-2 -mx-3"><span class="ml-r">{{project.url}}</span><ExternalLinkIcon class="w-4 ml-3" /></a>
+                            <div v-else class="my-2">Unavailable</div>
+                        </td>
                     </tr>
                     <tr class="border-b">
                         <td class="">Status</td>
@@ -44,6 +47,9 @@ export default {
                 { name: 'Restart', action: async () => { await projectApi.restartProject(this.project.id) } },
                 { name: 'Stop', action: async () => { await projectApi.stopProject(this.project.id) } }
             ]
+        },
+        editorAvailable: function () {
+            return this.project.meta && this.project.meta.state === 'running'
         }
     },
     methods: {
