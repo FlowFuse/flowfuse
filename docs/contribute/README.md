@@ -59,6 +59,10 @@ After cloning the core repository, you will need to install the dependencies by 
 npm install
 ```
 
+**Note** If running on MacOS 12.3 or newer you may get an error around node-gyp being unable to build sqllite3.
+This is because MacOS no longer includes python2.7.
+The solution is to run the command `npm config set python python3` to alias to python3 and then run `npm install` again
+
 By default this will install the latest released versions of the FlowForge components. If
 you want to run from the latest source code then you can check out all the required 
 projects in the same directory
@@ -77,13 +81,43 @@ npm run dev:local
 ```
 This will create all the required symlinks to the relevent projects.
 
+Next in the `forge-ui-components`  directory run
+```
+npm install
+npm run build
+```
+
+In the `flowforge-nr-auth` directory run
+```
+npm install
+```
+
+In the `flowforge-nr-audit-logger` directory run
+```
+npm install
+```
+
+In the `flowforge-nr-storage` directory run
+```
+npm install
+```
+
 **Note**: do not check in the modified `package.json` that will be created in the 
 `flowforge`, `flowforge-nr-launcher` or `flowforge-driver-localfs` projects.
 
+### Create a Stack
+You will need to setup the version(s) of Node-RED you want to use in your stacks.
+
+From the flowforge directory run
+
+```
+npm run install-stack --vers=2.2.2
+```
+Where `2.2.2` is the version of Node-RED you want to use in the stack
 
 ### Running FlowForge
 
-A number of `npm` tasks are defined in the `package.json` file. To get started use:
+A number of `npm` tasks are defined in the `package.json` file. To get started from the flowforge directory use:
 
 ```
 npm run serve
