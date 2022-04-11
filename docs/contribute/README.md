@@ -63,7 +63,6 @@ npm install
 This is because MacOS no longer includes python2.7.
 The solution is to run the command `npm config set python python3` to alias to python3 and then run `npm install` again
 
-
 By default this will install the latest released versions of the FlowForge components. If
 you want to run from the latest source code then you can check out all the required 
 projects in the same directory
