@@ -105,6 +105,15 @@ npm install
 **Note**: do not check in the modified `package.json` that will be created in the 
 `flowforge`, `flowforge-nr-launcher` or `flowforge-driver-localfs` projects.
 
+### Create a Stack
+You will need to setup the version(s) of Node-RED you want to use in your stacks.
+
+From the flowforge directory run
+
+```
+npm run install-stack --vers=2.2.2
+```
+Where `2.2.2` is the version of Node-RED you want to use in the stack
 
 ### Running FlowForge
 
