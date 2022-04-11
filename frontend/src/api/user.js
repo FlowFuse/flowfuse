@@ -37,7 +37,7 @@ const getTeamInvitations = async () => {
     return client.get('/api/v1/user/invitations').then(res => {
         res.data.invitations = res.data.invitations.map(r => {
             r.createdSince = daysSince(r.createdAt)
-            r.expires = elapsedTime((new Date(r.expiresAt)).getTime() - Date.now())
+            r.expires = elapsedTime(r.expiresAt, Date.now())
             return r
         })
         return res.data
