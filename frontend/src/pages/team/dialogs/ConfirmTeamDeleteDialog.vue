@@ -24,7 +24,7 @@
                                         Are you sure you want to delete this team? Once deleted, there is no going back.
                                     </p>
                                     <p class="text-sm text-gray-500">
-                                        Enter the team name '<code>{{team.name}}</code>' to continue.
+                                        Enter the team name <code class="block">{{team.name}}</code> to continue.
                                     </p>
                                 </div>
                                 <FormRow v-model="input.teamName" id="projectName">Name</FormRow>
