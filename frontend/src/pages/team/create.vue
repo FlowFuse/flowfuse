@@ -14,7 +14,7 @@
                 <FormRow v-model="input.slug" id="team" :error="input.slugError" :placeholder="input.defaultSlug">URL Slug
                     <template v-slot:description>
                         Use the default slug based on the team name or set your own.<br/>
-                        <code>/team/&lt;slug&gt;</code>
+                        <pre>/team/&lt;slug&gt;</pre>
                     </template>
                 </FormRow>
 

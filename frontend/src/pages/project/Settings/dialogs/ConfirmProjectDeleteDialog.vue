@@ -24,7 +24,8 @@
                                         Are you sure you want to delete this project? Once deleted, there is no going back.
                                     </p>
                                     <p class="text-sm text-gray-500">
-                                        Enter the project name '<code>{{project.name}}</code>' to continue.
+                                        Enter the project name to continue.
+                                        <code class="block">{{ project.name }}</code>
                                     </p>
                                 </div>
                                 <FormRow v-model="input.projectName" id="projectName">Name</FormRow>
