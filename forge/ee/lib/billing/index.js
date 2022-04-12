@@ -93,7 +93,7 @@ module.exports.init = function (app) {
             if (projectItem) {
                 const metadata = existingSub.metadata ? existingSub.metadata : {}
                 metadata[project.id] = ''
-                const newQuantity = projectItem.quantity > 0 ? 0 : projectItem.quantity - 1
+                const newQuantity = projectItem.quantity > 0 ? projectItem.quantity - 1 : 0
                 const update = {
                     quantity: newQuantity
                 }
