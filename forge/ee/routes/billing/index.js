@@ -146,7 +146,7 @@ module.exports = async function (app) {
                         app.log.info(`Crediting activation fee to ${invoice}`)
                     }
                 }
-                break;
+                break
             case 'charge.failed':
                 // TODO: This needs work, we need to count failures and susspend projects
                 // after we hit a threshold (should track a charge.sucess to reset?)
