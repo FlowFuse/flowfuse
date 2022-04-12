@@ -21,7 +21,7 @@
 
                 <FormRow :options="templates" :error="errors.template" v-model="input.template" id="template">Template</FormRow>
 
-                <FormRow type="checkbox" v-model="input.billingConfirmation" id="billing-confirmation">
+                <FormRow v-if="this.features.billing" type="checkbox" v-model="input.billingConfirmation" id="billing-confirmation">
                     Confirm additional charges
                     <template v-slot:description>
                         You will be charged US$15/month for this project.
