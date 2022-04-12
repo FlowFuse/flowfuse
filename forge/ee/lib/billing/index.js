@@ -3,7 +3,7 @@ module.exports.init = function (app) {
 
     return {
         createSubscriptionSession: async (team) => {
-            const session = await stripe.checkout.sessions.create({
+            const sub = {
                 mode: 'subscription',
                 line_items: [{
                     price: app.config.billing.stripe.team_price,
@@ -19,7 +19,16 @@ module.exports.init = function (app) {
                 payment_method_types: ['card'],
                 success_url: `${app.config.base_url}/team/${team.slug}/overview?billing_session={CHECKOUT_SESSION_ID}`,
                 cancel_url: `${app.config.base_url}/team/${team.slug}/overview`
-            })
+            }
+
+            if (app.config.billing?.stripe?.activation_price) {
+                sub.line_items.push({
+                    price: app.config.billing.stripe.activation_price,
+                    quantity: 1
+                })
+            }
+
+            const session = await stripe.checkout.sessions.create(sub)
             app.log.info(`Creating Subscription for team ${team.hashid}`)
             return session
         },
