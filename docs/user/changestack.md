@@ -6,7 +6,7 @@ Notably the Version of Node-RED which a project uses, you can now change the sta
 **Note:** An administrator must make a specific version of Node-RED availble by creating the relevent stack
 
 ## How to Change Stack
-Before changing a stack you should ensure that you have a backup of your data from Node-RED and that there are no active job, siwtching the stack will restart the project and involve a few seconds of downtime.
+Before changing a stack you should ensure that you have a backup of your data from Node-RED and that there are no active workflows, switching the stack will restart the project and involve a few seconds of downtime.
 
 
 - From the project page  select the `Settings` tab then  the `Danger` section.
