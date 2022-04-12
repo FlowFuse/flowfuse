@@ -10,9 +10,9 @@ The platform refers to each Node-RED instance as a Project.
 Within the FlowForge application, you can create/start/stop projects and view
 its logs.
 
-With the 0.1.0 release, the projects are fairly plain instances of Node-RED -
-with some custom settings to integrate them into the platform properly. In the
-future it will be possible to further customise the project settings.
+At present, the projects are fairly plain instances of Node-RED -
+with some custom settings to integrate them into the platform properly. 
+There are a number of settings that can be modified for a project based on what has been configured and allowed in the [Project Template](#project-template). These can be access from the Settings page of the project and there is a description of each one in the settings.
 
 ### Team
 
@@ -33,12 +33,16 @@ on how and where FlowForge is running.
 Project Stacks are created and owned by the platform Administrator. When a User
 comes to create a new project, they chose from the available stacks.
 
+
 ### Project Template
 
 A Project Template describes properties of Node-RED itself. It is how many of the
 settings a user familiar with Node-RED would be used to modifying in their settings
 file. But it can also be used to customise the palette of nodes that are preinstalled,
 provide a set of default flows and change the look and feel of the editor.
+
+A template can also specify [Environment Variables](envvar) which can then have their values as editable for each project or locked.
+It is not possible to disable the use of environment variables in a project.
 
 *Note:* not all of these features are available today.
 
