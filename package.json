@@ -57,6 +57,7 @@
         "jsonwebtoken": "^8.5.1",
         "lru-cache": "^6.0.0",
         "marked": "^4.0.12",
+        "moment": "^2.29.2",
         "nodemailer": "^6.7.2",
         "pino-pretty": "^5.1.3",
         "semver": "^7.3.5",
