@@ -42,7 +42,7 @@ export default {
                 password: '',
                 password_confirm: '',
                 isAdmin: false,
-                createDefaultTeam: true
+                createDefaultTeam: false
             },
             errors: {}
         }
