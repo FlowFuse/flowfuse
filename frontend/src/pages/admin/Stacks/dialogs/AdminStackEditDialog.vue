@@ -17,8 +17,16 @@
                         leave-to="opacity-0 scale-95"
                     >
                         <div class="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-lg rounded">
-                            <DialogTitle as="h3" class="text-lg font-medium leading-6"><span v-if="stack">Update</span><span v-else>Create</span> stack</DialogTitle>
+                            <DialogTitle as="h3" class="text-lg font-medium leading-6">
+                                <span v-if="stack">Update</span>
+                                <span v-else>Create</span>
+                                Stack
+                            </DialogTitle>
                             <form class="space-y-6 mt-2">
+                                <FormRow :options="options" v-model="input.baseStack">
+                                    Optionally, use an existing Stack as a starting point:
+                                </FormRow>
+                                <hr />
                                 <FormRow v-model="input.name" :error="errors.name" :disabled="editDisabled">Name</FormRow>
                                 <FormRow v-model="input.active" type="checkbox">Active</FormRow>
                                 <template v-for="(prop) in stackProperties" :key="prop.name">
@@ -57,7 +65,6 @@ import { mapState } from 'vuex'
 
 export default {
     name: 'AdminStackCreateDialog',
-
     components: {
         TransitionRoot,
         TransitionChild,
@@ -68,10 +75,13 @@ export default {
     },
     data () {
         return {
+            stacks: [],
+            options: [],
             input: {
                 name: '',
                 active: true,
-                properties: {}
+                properties: {},
+                baseStack: null
             },
             errors: {},
             editDisabled: false
@@ -96,13 +106,30 @@ export default {
             } else {
                 this.errors.name = ''
             }
+        },
+        'input.baseStack': function (v) {
+            if (v) {
+                let baseStack = null
+                for (const s in this.stacks) {
+                    const stack = this.stacks[s]
+                    if (stack.id === v) {
+                        baseStack = stack
+                        break
+                    }
+                }
+                this.input.baseStack = null
+                // loop through and assign explicitely to prevent two-way binding
+                for (const prop in baseStack.properties) {
+                    this.input.properties[prop] = baseStack.properties[prop]
+                }
+            }
         }
     },
     computed: {
+        ...mapState('account', ['settings']),
         formValid () {
             return (this.input.name)
         },
-        ...mapState('account', ['settings']),
         stackProperties () {
             return Object.entries(this.settings.stacks.properties).map(([key, value]) => {
                 return {
@@ -111,6 +138,20 @@ export default {
                     invalidMessage: value.invalidMessage || 'Invalid',
                     validator: new RegExp(value.validate)
                 }
+            })
+        }
+    },
+    mounted () {
+        if (!this.stack) {
+            // we are creating a stack, not editing one
+            stacksApi.getStacks().then((data) => {
+                this.stacks = data.stacks
+                this.options = data.stacks.map((stack) => {
+                    return {
+                        value: stack.id,
+                        label: stack.name
+                    }
+                })
             })
         }
     },
