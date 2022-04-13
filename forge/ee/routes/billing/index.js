@@ -92,6 +92,10 @@ module.exports = async function (app) {
                 }
             }
 
+            let invoice
+            let activation = false
+            let invoiceItem
+
             switch (event.type) {
             case 'checkout.session.completed':
                 // console.log(event)
@@ -117,6 +121,32 @@ module.exports = async function (app) {
                 break
             case 'customer.subscription.deleted':
 
+                break
+            case 'charge.succeeded':
+                // gate on config setting
+                if (app.config.billing?.stripe?.activation_price) {
+                    invoice = await stripe.invoice.retrieve(event.data.object.invoice)
+                    invoice.lines.data.forEach(item => {
+                        if (item.price.id === app.config.billing?.stripe?.activation_price) {
+                            activation = true
+                            invoiceItem = item
+                        }
+                    })
+                    if (activation) {
+                        // refund the actication test charge
+                        await stripe.creditNote.create({
+                            invoice: invoice.id,
+                            lines: [{
+                                type: 'invoice_line_item',
+                                invoice_line_item: invoiceItem.id,
+                                amount: invoiceItem.amount
+                            }],
+                            memo: 'Activation check credit',
+                            credit_ammount: invoiceItem.amount
+                        })
+                        app.log.info(`Crediting activation fee to ${invoice}`)
+                    }
+                }
                 break
             case 'charge.failed':
                 // TODO: This needs work, we need to count failures and susspend projects
