@@ -15,7 +15,7 @@ module.exports = async function (app) {
     app.addHook('preHandler', async (request, response) => {
         if (request.params.teamId) {
             request.teamMembership = await request.session.User.getTeamMembership(request.params.teamId)
-            if (!request.teamMembership) {
+            if (!request.teamMembership && !request.session.User.admin) {
                 response.code(404).type('text/html').send('Not Found')
             }
             request.team = await app.db.models.Team.byId(request.params.teamId)
@@ -170,8 +170,15 @@ module.exports = async function (app) {
         const team = request.team
         const sub = await app.db.models.Subscription.byTeam(team.id)
         if (!sub) {
-            const session = await app.billing.createSubscriptionSession(team, '') // request.session.User)
-            response.code(404).type('application/json').send({ billingURL: session.url })
+            if (!request.session.User.admin) {
+                const session = await app.billing.createSubscriptionSession(team, '') // request.session.User)
+                response.code(404).type('application/json').send({ billingURL: session.url })
+            } else {
+                response.status(200).send({
+                    next_billing_date: new Date().getTime(),
+                    items: []
+                })
+            }
             return
         }
 
