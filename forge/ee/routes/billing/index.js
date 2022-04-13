@@ -133,15 +133,16 @@ module.exports = async function (app) {
                         }
                     })
                     if (activation) {
+                        // refund the actication test charge
                         await stripe.creditNote.create({
                             invoice: invoice.id,
                             lines: [{
                                 type: 'invoice_line_item',
-                                invoice_line_item: invoiceItem,
-                                amount: 100
+                                invoice_line_item: invoiceItem.id,
+                                amount: invoiceItem.amount
                             }],
                             memo: 'Activation check credit',
-                            credit_ammount: 100
+                            credit_ammount: invoiceItem.amount
                         })
                         app.log.info(`Crediting activation fee to ${invoice}`)
                     }
