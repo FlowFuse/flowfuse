@@ -65,6 +65,16 @@ export default {
                 ])
             }
         },
+        checkRoute: async function (route) {
+            const allowedRoutes = [
+                '/team/' + this.team.slug + '/settings/billing',
+                '/team/' + this.team.slug + '/settings/danger'
+            ]
+            if (allowedRoutes.indexOf(route.path) === -1) {
+                // if we're on a path that requires billing
+                await this.checkBilling()
+            }
+        },
         checkBilling: async function () {
             // Team Billing
             if (this.features.billing) {
@@ -84,22 +94,17 @@ export default {
     },
     async beforeMount () {
         await this.$store.dispatch('account/setTeam', useRoute().params.team_slug)
+        this.checkRoute(this.$route)
     },
     async beforeRouteUpdate (to, from, next) {
         await this.$store.dispatch('account/setTeam', to.params.team_slug)
-        const allowedRoutes = [
-            '/team/' + this.team.slug + '/settings/billing',
-            '/team/' + this.team.slug + '/settings/danger'
-        ]
-        if (allowedRoutes.indexOf(to.path) === -1) {
-            // if we're on a path that requires billing
-            await this.checkBilling()
-        }
+        // even if billing is not yet enabled, users should be able to see these screens,
+        // in order to delete the project, or setup billing
+        await this.checkRoute(to)
         next()
     },
     mounted () {
         this.updateTeam()
-        this.checkBilling()
     },
     watch: {
         team: 'updateTeam',
