@@ -2,6 +2,7 @@ const templateFields = [
     'disableEditor',
     'httpAdminRoot',
     'codeEditor',
+    'timeZone',
     'palette_allowInstall',
     'palette_nodesExcludes',
     'modules_allowInstall'
@@ -10,6 +11,7 @@ const defaultTemplateValues = {
     disableEditor: false,
     httpAdminRoot: '',
     codeEditor: 'monaco',
+    timeZone: 'UTC',
     palette_allowInstall: true,
     palette_nodesExcludes: '',
     modules_allowInstall: true
@@ -22,8 +24,13 @@ const templateValidators = {
         }
     },
     palette_nodesExcludes: (v) => {
-        if (v.trim() === '') { return }
-        const parts = v.split(',').map(fn => fn.trim()).filter(fn => fn.length > 0)
+        if (v.trim() === '') {
+            return
+        }
+        const parts = v
+            .split(',')
+            .map((fn) => fn.trim())
+            .filter((fn) => fn.length > 0)
         for (let i = 0; i < parts.length; i++) {
             const fn = parts[i]
             if (!/^[a-z0-9\-._]+\.js$/i.test(fn)) {
@@ -100,7 +107,7 @@ function prepareTemplateForEdit (template) {
 
     result.editable.errors = {}
 
-    templateFields.forEach(field => {
+    templateFields.forEach((field) => {
         const templateValue = getTemplateValue(template.settings, field)
         if (templateValue !== undefined) {
             result.editable.settings[field] = templateValue

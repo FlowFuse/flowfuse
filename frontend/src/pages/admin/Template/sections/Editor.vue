@@ -34,7 +34,15 @@
             </div>
             <LockSetting :editTemplate="editTemplate" v-model="editable.policy.codeEditor" :changed="editable.changed.policy.codeEditor"></LockSetting>
         </div>
-
+        <div class="flex flex-col sm:flex-row">
+            <div class="w-full max-w-md sm:mr-8">
+                <FormRow v-model="editable.settings.timeZone" :type="(editTemplate||editable.policy.timeZone)?'select':'uneditable'" :options="timezones">
+                    Time Zone
+                    <template #append><ChangeIndicator :value="editable.changed.settings.timeZone"></ChangeIndicator></template>
+                </FormRow>
+            </div>
+            <LockSetting :editTemplate="editTemplate" v-model="editable.policy.timeZone" :changed="editable.changed.policy.timeZone"></LockSetting>
+        </div>
         <FormHeading class="pt-8">External Modules</FormHeading>
         <div class="flex flex-col sm:flex-row">
             <div class="space-y-4 w-full max-w-md sm:mr-8">
@@ -49,19 +57,27 @@
 </template>
 
 <script>
-
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
 import LockSetting from '../components/LockSetting'
 import ChangeIndicator from '../components/ChangeIndicator'
-
+import timezonesData from '@/data/timezones.json'
 export default {
     name: 'TemplateSettingsEditor',
     props: ['editTemplate', 'modelValue'],
     computed: {
         editable: {
-            get () { return this.modelValue },
-            set (localValue) { this.$emit('update:modelValue', localValue) }
+            get () {
+                return this.modelValue
+            },
+            set (localValue) {
+                this.$emit('update:modelValue', localValue)
+            }
+        }
+    },
+    data () {
+        return {
+            timezones: timezonesData.timezones
         }
     },
     components: {

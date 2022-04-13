@@ -2,6 +2,7 @@ const validSettings = [
     'disableEditor',
     'httpAdminRoot',
     'codeEditor',
+    'timeZone',
     'palette_allowInstall',
     'palette_nodesExcludes',
     'modules_allowInstall'
@@ -38,20 +39,20 @@ function setTemplateValue (template, path, value) {
 
 module.exports = {
     /**
-     * For a given template, check the project settings are valid. This consists of:
-     *  1. ensure the template policy allows the settings to be provided - drop
-     *     any that are blocked by policy
-     *  2. do any setting-specific validation and cleansing of the value
-     * @param {*} app the forge app
-     * @param {*} settings the project settings to validate.
-     * @param {*} template the template to validate against
-     * @returns the validated and cleansed object
-     */
+   * For a given template, check the project settings are valid. This consists of:
+   *  1. ensure the template policy allows the settings to be provided - drop
+   *     any that are blocked by policy
+   *  2. do any setting-specific validation and cleansing of the value
+   * @param {*} app the forge app
+   * @param {*} settings the project settings to validate.
+   * @param {*} template the template to validate against
+   * @returns the validated and cleansed object
+   */
     validateSettings: function (app, settings, template) {
         const result = {}
 
         // First pass - copy over only the known and policy-permitted settings
-        validSettings.forEach(name => {
+        validSettings.forEach((name) => {
             const value = getTemplateValue(settings, name)
             if (value !== undefined) {
                 if (!template || getTemplateValue(template.policy, name)) {
@@ -64,12 +65,15 @@ module.exports = {
             const templateEnvPolicyMap = {}
             const templateEnv = template?.settings.env
             if (templateEnv) {
-                templateEnv.forEach(envVar => {
+                templateEnv.forEach((envVar) => {
                     templateEnvPolicyMap[envVar.name] = envVar.policy
                 })
             }
-            settings.env.forEach(envVar => {
-                if (templateEnvPolicyMap[envVar.name] !== false && !/ /.test(envVar.name)) {
+            settings.env.forEach((envVar) => {
+                if (
+                    templateEnvPolicyMap[envVar.name] !== false &&
+          !/ /.test(envVar.name)
+                ) {
                     result.env.push(envVar)
                 }
             })
@@ -86,7 +90,10 @@ module.exports = {
                         httpAdminRoot = `/${httpAdminRoot}`
                     }
                     if (httpAdminRoot[httpAdminRoot.length - 1] === '/') {
-                        httpAdminRoot = httpAdminRoot.substring(0, httpAdminRoot.length - 1)
+                        httpAdminRoot = httpAdminRoot.substring(
+                            0,
+                            httpAdminRoot.length - 1
+                        )
                     }
                     if (!/^[0-9a-z_\-\\/]*$/i.test(httpAdminRoot)) {
                         throw new Error('Invalid settings.httpAdminRoot')
@@ -98,8 +105,14 @@ module.exports = {
         if (result.palette?.nodesExcludes !== undefined) {
             const paletteNodeExcludes = result.palette.nodesExcludes
             delete result.palette.nodesExcludes
-            if (typeof paletteNodeExcludes === 'string' && paletteNodeExcludes.length > 0) {
-                const parts = paletteNodeExcludes.split(',').map(fn => fn.trim()).filter(fn => fn.length > 0)
+            if (
+                typeof paletteNodeExcludes === 'string' &&
+        paletteNodeExcludes.length > 0
+            ) {
+                const parts = paletteNodeExcludes
+                    .split(',')
+                    .map((fn) => fn.trim())
+                    .filter((fn) => fn.length > 0)
                 if (parts.length > 0) {
                     for (let i = 0; i < parts.length; i++) {
                         const fn = parts[i]
@@ -115,21 +128,21 @@ module.exports = {
     },
 
     /**
-     * For a given project, merge in the provided settings. This will update
-     * settings that have a new value provided, whilst leaving others untouched
-     *
-     * TODO: This probably doesn't belong in the ProjectTemplate controller
-     * as it doesn't do anything with the template itself. However it makes use of
-     * validSettings/getTemplateValue/setTemplateValue from this file which
-     * aren't otherwise exposed.
-     * @param {*} app the forge app
-     * @param {*} existingSettings the existing project settings
-     * @param {*} settings the new settings to merge in
-     */
+   * For a given project, merge in the provided settings. This will update
+   * settings that have a new value provided, whilst leaving others untouched
+   *
+   * TODO: This probably doesn't belong in the ProjectTemplate controller
+   * as it doesn't do anything with the template itself. However it makes use of
+   * validSettings/getTemplateValue/setTemplateValue from this file which
+   * aren't otherwise exposed.
+   * @param {*} app the forge app
+   * @param {*} existingSettings the existing project settings
+   * @param {*} settings the new settings to merge in
+   */
     mergeSettings: function (app, existingSettings, settings) {
-        // Quick deep clone that is safe as we know settings are JSON-safe
+    // Quick deep clone that is safe as we know settings are JSON-safe
         const result = JSON.parse(JSON.stringify(existingSettings))
-        validSettings.forEach(name => {
+        validSettings.forEach((name) => {
             const value = getTemplateValue(settings, name)
             if (value !== undefined) {
                 setTemplateValue(result, name, value)
