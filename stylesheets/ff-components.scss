@@ -2,6 +2,9 @@
   ff-core contains styling on the custom, ff components
 */
 
+/*
+  FF Button
+*/
 .ff-btn {
   padding: $ff-unit-sm $ff-unit-lg;
   border-radius: $ff-unit-sm;
@@ -119,6 +122,9 @@
   }
 }
 
+/*
+  FF Input
+*/
 .ff-input {
   &.ff-text-input {
     border: 1px solid $ff-grey-300;
@@ -128,6 +134,40 @@
     width: 100%;
     &:focus {
       outline: none;
+    }
+  }
+}
+
+/*
+  FF Tabs
+*/
+.ff-tabs {
+  display: flex;
+  .ff-tab-option {
+    padding: $ff-unit-md;
+    &:hover {
+      color: $ff-blue-700;
+      cursor: pointer;
+    }
+  }
+  &.ff-tabs--horizontal {
+    flex-direction: row;
+    .ff-tab-option {
+      margin-right: $ff-unit-md;
+      &.ff-tab-option--active {
+        border-bottom: $ff-unit-xs solid $ff-blue-700;
+      }
+    }
+  }
+  &.ff-tabs--vertical {
+    flex-direction: column;
+    .ff-tab-option {
+      border-left-width: $ff-unit-xs;
+      border-color: transparent;
+      margin-bottom: $ff-unit-md;
+      &.ff-tab-option--active {
+        border-left: $ff-unit-xs solid $ff-blue-700;
+      }
     }
   }
 }
