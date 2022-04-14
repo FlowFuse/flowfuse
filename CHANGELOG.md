@@ -1,3 +1,6 @@
+#### 0.4.0: Release
+
+
 #### 0.3.0: Release
 
  - Round down to whole seconds (#375) @hardillb
