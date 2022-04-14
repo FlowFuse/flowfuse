@@ -23,6 +23,7 @@ createApp()
 ### Build Library
 
 ```bash
+npm install
 npm run build
 ```
 
