@@ -1,0 +1,23 @@
+{
+    "name": "Tabs",
+    "id": "tabs",
+    "description": "Tab content should be differentiated by URL. When a tab is selected, you should subscribe to the `tab-selected` and use this event to control route navigation",
+    "components": [{
+        "name": "ff-tabs",
+        "examples": [{
+            "code": "<ff-tabs orientation=\"horizontal\">\n\t<ff-tab label=\"Option 1\" to=\"\" />\n\t<ff-tab label=\"Option 2\" to=\"\" />\n\t<ff-tab label=\"Option 3\" to=\"\" />\n</ff-tabs>"
+        }, {
+            "code": "<ff-tabs orientation=\"vertical\">\n\t<ff-tab label=\"Option 1\" to=\"\" />\n\t<ff-tab label=\"Option 2\" to=\"\" />\n\t<ff-tab label=\"Option 3\" to=\"\" />\n</ff-tabs>"
+        }],
+        "props": [{
+            "key": "orientation",
+            "default": "horizontal",
+            "description": "'horizontal' or 'vertical'. Defines which direction the tab options are displayed."
+        }],
+        "emits": [{
+            "event": "tab-selected",
+            "example": "{label: 'Option 1', to: ''}",
+            "description": "The label of the tab selected, along with the route that the tab is associated with."
+        }]
+    }]
+}

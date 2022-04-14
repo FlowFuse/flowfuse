@@ -61,26 +61,30 @@ code {
 .ff-btn:hover {
     cursor: pointer; }
 .ff-btn--primary {
-    background-color: #BC3838;
-    color: white; }
+    background-color: #1E3A8A;
+    border: 1px solid #1E3A8A;
+    color: #F9FAFB; }
 .ff-btn--primary:hover {
-      background-color: #AB1818; }
+      background-color: #4338CA; }
 .ff-btn--secondary {
-    color: white;
-    background-color: #31959A; }
+    background-color: white;
+    color: #1E3A8A;
+    border: 1px solid #1E3A8A; }
 .ff-btn--secondary:hover {
-      background-color: #397B7E; }
+      background-color: #4338CA;
+      border-color: #4338CA;
+      color: white; }
 .ff-btn--tertiary {
-    color: #31959A; }
+    color: #1E3A8A; }
 .ff-btn--tertiary:hover {
-      background-color: #397B7E;
+      background-color: #4338CA;
       color: white; }
 .ff-btn--danger {
     color: white;
-    background-color: #D82525;
-    border: 1px solid #D82525; }
+    background-color: #D12B2B;
+    border: 1px solid #D12B2B; }
 .ff-btn--danger:hover {
-      background-color: #D82525;
+      background-color: #D12B2B;
       color: white; }
 .ff-btn .ff-btn--icon,
   .ff-btn .ff-btn--icon svg {
@@ -108,10 +112,7 @@ code {
     right: 0;
     padding-right: 18px; }
 .ff-btn:disabled {
-    cursor: not-allowed;
-    background-color: white;
-    border-color: #D1D5DB;
-    color: #D1D5DB; }
+    cursor: not-allowed; }
 .ff-input.ff-text-input {
   border: 1px solid #D1D5DB;
   border-radius: 3px;
@@ -134,11 +135,13 @@ code {
 .ff-bg-light code {
     background-color: #F3F4F6;
     border-color: #E5E7EB; }
+.ff-bg-light .ff-btn:disabled {
+    background-color: white;
+    border-color: #D1D5DB;
+    color: #D1D5DB; }
 .ff-bg-light .ff-input.ff-text-input {
     background-color: white;
     border-color: #D1D5DB; }
-.ff-bg-light .ff-input.ff-text-input:focus {
-      border-color: #31959A; }
 .ff-bg-dark {
   color: #F9FAFB;
   background-color: #1F2937;
@@ -151,8 +154,14 @@ code {
 .ff-bg-dark code {
     background-color: #111827;
     border-color: #374151; }
+.ff-bg-dark .ff-btn--tertiary:hover {
+    color: white; }
+.ff-bg-dark .ff-btn:disabled {
+    background-color: #374151;
+    border-color: #6B7280;
+    color: #6B7280; }
 .ff-bg-dark .ff-input.ff-text-input {
     background-color: #374151;
     border-color: #111827; }
 .ff-bg-dark .ff-input.ff-text-input:focus {
-      border-color: #31959A; }
+      border-color: white; }

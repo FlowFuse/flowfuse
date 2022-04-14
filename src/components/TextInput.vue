@@ -12,6 +12,7 @@
 <script>
 export default {
     name: 'ff-text-input',
+    emits: ['update:modelValue', 'input', 'blur', 'keyup'],
     props: {
         // broker standard text-input props
         disabled: {
@@ -37,7 +38,6 @@ export default {
             default: '',
             required: true
         }
-    },
-    emits: ['update:modelValue', 'input', 'blur', 'keyup']
+    }
 }
 </script>

@@ -12,6 +12,7 @@ export default {
     },
     computed: {
         markdownToHtml () {
+            console.log(this.content)
             return this.md(this.content)
         }
     }
