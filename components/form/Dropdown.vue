@@ -1,9 +1,16 @@
 <template>
     <div class="ff-dropdown" :class="'ff-dropdown--' + (isOpen ? 'open' : 'closed')">
-        <div class="ff-dropdown-selected" @click="open()">
-            {{ selected?.label || placeholder }}
-        <ChevronDownIcon class="ff-icon"/></div>
-        <div class="ff-dropdown-options">
+        <div v-if="dropdownStyle === 'select'" @click="open()">
+            <div class="ff-dropdown-selected">
+                {{ selected?.label || placeholder }}
+                <ChevronDownIcon class="ff-icon"/>
+            </div>
+        </div>
+        <ff-button v-else-if="dropdownStyle === 'button'" @click="open()">
+            {{ placeholder }}
+            <template v-slot:icon-right><ChevronDownIcon /></template>
+        </ff-button>
+        <div class="ff-dropdown-options" :class="{'ff-dropdown-options--full-width': dropdownStyle === 'select', 'ff-dropdown-options--fit': dropdownStyle === 'button', 'ff-dropdown-options--align-left': optionsAlign === 'left', 'ff-dropdown-options--align-right': optionsAlign === 'right'}">
             <slot></slot>
         </div>
     </div>
@@ -24,9 +31,12 @@ export default {
         placeholder: {
             default: 'Please Select'
         },
-        options: {
-            default: null,
-            type: Array
+        dropdownStyle: {
+            default: 'select'
+        },
+        optionsAlign: {
+            default: 'left',
+            type: String
         }
     },
     data () {
@@ -41,7 +51,6 @@ export default {
                 return this.selected
             },
             set (selected) {
-                console.log(selected)
                 this.selected = selected
                 this.$emit('update:modelValue', selected.value)
                 this.isOpen = false
