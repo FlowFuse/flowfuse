@@ -151,6 +151,24 @@
                         {{ models.dropdown0 }}
                         <code>{{ groups['input'].components[1].examples[0].code }}</code>
                     </div>
+                    <div class="example">
+                        <ff-dropdown v-model="models.dropdown1" placeholder="Dropdown Button" dropdown-style="button">
+                            <ff-dropdown-option label="Option 1" value="1"></ff-dropdown-option>
+                            <ff-dropdown-option label="Option 2" value="2"></ff-dropdown-option>
+                            <ff-dropdown-option label="Option 3" value="3"></ff-dropdown-option>
+                        </ff-dropdown>
+                        {{ models.dropdown1 }}
+                        <code>{{ groups['input'].components[1].examples[1].code }}</code>
+                    </div>
+                    <div class="example">
+                        <ff-dropdown v-model="models.dropdown1" placeholder="Dropdown Button Right" dropdown-style="button" options-align="right">
+                            <ff-dropdown-option label="Option 1" value="1"></ff-dropdown-option>
+                            <ff-dropdown-option label="Option 2" value="2"></ff-dropdown-option>
+                            <ff-dropdown-option label="Option 3" value="3"></ff-dropdown-option>
+                        </ff-dropdown>
+                        {{ models.dropdown2 }}
+                        <code>{{ groups['input'].components[1].examples[2].code }}</code>
+                    </div>
                 </div>
                 <!-- Checkbox -->
                 <h2 ref="ff-checkbox"><pre>ff-checkbox</pre></h2>
@@ -251,6 +269,7 @@ export default {
                 showDialog1: false,
                 textInput0: '',
                 dropdown0: null,
+                dropdown1: null,
                 checkbox0: false,
                 radio0: null,
                 radio1: null

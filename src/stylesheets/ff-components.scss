@@ -16,7 +16,6 @@
   FF Button
 */
 .ff-btn {
-  padding: $ff-unit-sm $ff-unit-lg;
   border-radius: $ff-unit-sm;
   display: flex;
   align-items: center;
@@ -28,7 +27,7 @@
   justify-content: center;
   font-weight: bold;
   height: auto;
-  padding: 8px 16px;
+  padding: $ff-unit-sm 16px;
   border: 0;
 
   &.ff-btn-icon {
@@ -150,6 +149,7 @@
 
 .ff-dropdown {
   position: relative;
+  display: inline-block;
   .ff-dropdown-selected {
     border: 1px solid $ff-grey-300;
     border-radius: $ff-unit-xs;
@@ -162,16 +162,33 @@
     z-index: 2;
   }
   .ff-dropdown-options {
-    width: 100%;
     position: absolute;
     top: 100%;
     display: none;
+    box-shadow: 0px 6px 9px 0px #00000038;
     .ff-dropdown-option {
       padding: $ff-unit-sm $ff-unit-md;
       background-color: $ff-grey-50;
       &:hover {
         background-color: $ff-grey-200;
       }
+    }
+    &.ff-dropdown-options--full-width {
+      width: 100%;
+      border-width: 0 1px 1px 1px;
+    }
+    &.ff-dropdown-options--fit {
+      border-width: 1px;
+      min-width: none;
+      .ff-dropdown-option {
+        padding-right: $ff-unit-xl;
+      }
+    }
+    &.ff-dropdown-options--align-left {
+      left: 0;
+    }
+    &.ff-dropdown-options--align-right {
+      right: 0;
     }
   }
   &.ff-dropdown--open {
@@ -181,8 +198,6 @@
     }
     .ff-dropdown-options {
       display: block;
-      border-width: 0 1px 1px 1px;
-      box-shadow: 0px 6px 9px 0px #00000038
     }
   }
 }
