@@ -80,6 +80,44 @@
                 </div>
             </div>
             <div class="section">
+                <!-- Dialog Box -->
+                <h1>Dialog Box</h1>
+                <h2 ref="ff-dialog"><pre>ff-dialog</pre></h2>
+                <h3>Properties:</h3>
+                <props-table :rows="groups['dialog'].components[0].props"></props-table>
+                <h3>Emits:</h3>
+                <events-table :rows="groups['dialog'].components[0].emits"></events-table>
+                <h3>Examples:</h3>
+                <div class="examples">
+                    <div class="example">
+                        <ff-button @click="models.showDialog = !models.showDialog">Show Dialog</ff-button>
+                        <ff-dialog :open="models.showDialog" header="My Dialog Box"
+                            @cancel="models.showDialog = false"
+                            @confirm="models.showDialog = false">
+                            <p style="margin-bottom: 12px">The main message for the dialog box goes here. We can put any elements we like here.
+                            For example, a text input:</p>
+                            <ff-text-input placeholder="My Text Input"/>
+                        </ff-dialog>
+                        <code>{{ groups['dialog'].components[0].examples[0].code }}</code>
+                    </div>
+                    <div class="example">
+                        <ff-button @click="models.showDialog1 = !models.showDialog1">Show Delete Dialog</ff-button>
+                        <ff-dialog :open="models.showDialog1" header="My Other Dialog Box"
+                            @cancel="models.showDialog1 = false"
+                            @confirm="models.showDialog1 = false">
+                            <template v-slot:default>
+                                Are you sure you want to delete this?
+                            </template>
+                            <template v-slot:actions>
+                                <ff-button kind="secondary" @click="models.showDialog1 = false">Cancel</ff-button>
+                                <ff-button kind="danger" @click="models.showDialog1 = false">Delete</ff-button>
+                            </template>
+                        </ff-dialog>
+                        <code>{{ groups['dialog'].components[0].examples[1].code }}</code>
+                    </div>
+                </div>
+            </div>
+            <div class="section">
                 <!-- Form Elements -->
                 <h1>Form Elements</h1>
                 <!-- Text Input -->
@@ -186,6 +224,7 @@ import EventsTable from './components/EventsTable.vue'
 import SlotsTable from './components/SlotsTable.vue'
 
 import buttonDocs from './data/button.docs.json'
+import dialogDocs from './data/dialog.docs.json'
 import inputDocs from './data/input.docs.json'
 import tabsDocs from './data/tabs.docs.json'
 
@@ -208,6 +247,8 @@ export default {
         return {
             theme: 'light',
             models: {
+                showDialog: false,
+                showDialog1: false,
                 textInput0: '',
                 dropdown0: null,
                 checkbox0: false,
@@ -216,6 +257,7 @@ export default {
             },
             groups: {
                 button: buttonDocs,
+                dialog: dialogDocs,
                 input: inputDocs,
                 tabs: tabsDocs
             }

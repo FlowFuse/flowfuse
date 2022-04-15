@@ -285,6 +285,63 @@
 }
 
 /*
+  FF Dialog Box
+*/
+.ff-dialog-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+  &--open {
+    display: flex;
+  }
+  &--closed {
+    display: none;
+  }
+}
+
+.ff-dialog-box {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 42rem;
+  background-color: $ff-white;
+  .ff-dialog {
+    &-header {
+      height: 48px;
+      line-height: 48px;
+      background-color: $ff-grey-800;
+      border-bottom: 2px solid $ff-red-400;
+      padding: 0 $ff-unit-lg;
+      color: $ff-white;
+      font-weight: 600;
+    }
+    &-content {
+      padding: $ff-funit-lg;
+    }
+    &-actions {
+      display: flex;
+      justify-content: flex-end;
+      padding: 0 $ff-unit-lg $ff-unit-lg $ff-unit-lg;
+      .ff-btn {
+        margin-left: $ff-funit-md;
+      }
+    }
+  }
+}
+
+.ff-dialog-backdrop {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: $ff-grey-800;
+  opacity: 0.3;
+}
+
+/*
   FF Tabs
 */
 .ff-tabs {
