@@ -1,5 +1,7 @@
 import FFButton from './components/Button.vue'
 
+import FFDialogBox from './components/DialogBox.vue'
+
 // Form Elements
 import FFTextInput from './components/form/TextInput.vue'
 import FFDropdown from './components/form/Dropdown.vue'
@@ -14,6 +16,7 @@ import FFTab from './components/tabs/Tab.vue'
 
 export default {
     FFButton,
+    FFDialogBox,
     // Form Elements
     FFTextInput,
     FFDropdown,
