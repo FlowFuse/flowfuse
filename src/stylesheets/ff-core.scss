@@ -4,6 +4,8 @@
 
 * {
     box-sizing: border-box;
+    transition: 0.3s color, 0.3s background-color;
+    -webkit-transition: 0.3s color, 0.3s background-color;
 }
 
 html {

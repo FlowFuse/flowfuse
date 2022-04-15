@@ -68,10 +68,10 @@ ul#grouplist {
     ul {
         padding-left: $ff-unit-lg;
         li {
-            padding-bottom: 0;
+            padding-bottom: $ff-unit-md;
             &:hover {
                 cursor: pointer;
-                font-style: italic;
+                font-weight: bold;
             }
         }
     }

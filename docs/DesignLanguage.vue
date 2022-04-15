@@ -4,8 +4,8 @@
         <ul id="grouplist">
             <li v-for="g in groups" :key="g.name">
                 <h3>{{ g.name }}</h3>
-                <ul v-for="c in g.components" :key="c.name">
-                    <li @click="toSection(c.name)">{{ c.name }}</li>
+                <ul>
+                    <li v-for="c in g.components" :key="c.name" @click="toSection(c.name)">{{ c.name }}</li>
                 </ul>
             </li>
         </ul>
@@ -80,8 +80,9 @@
                 </div>
             </div>
             <div class="section">
-                <!-- Inputs -->
-                <h1>Inputs</h1>
+                <!-- Form Elements -->
+                <h1>Form Elements</h1>
+                <!-- Text Input -->
                 <h2 ref="ff-text-input"><pre>ff-text-input</pre></h2>
                 <h3>Properties:</h3>
                 <props-table :rows="groups['input'].components[0].props"></props-table>
@@ -95,6 +96,51 @@
                     <div class="example">
                         <ff-text-input :password="true" placeholder="Password goes here..."/>
                         <code>{{ groups['input'].components[0].examples[1].code }}</code>
+                    </div>
+                </div>
+                <!-- Dropdown -->
+                <h2 ref="ff-dropdown"><pre>ff-dropdown</pre></h2>
+                <h3>Properties:</h3>
+                <props-table :rows="groups['input'].components[1].props"></props-table>
+                <h3>Examples:</h3>
+                <div class="examples">
+                    <div class="example">
+                        <ff-dropdown v-model="models.dropdown0">
+                            <ff-dropdown-option label="Option 1" value="1"></ff-dropdown-option>
+                            <ff-dropdown-option label="Option 2" value="2"></ff-dropdown-option>
+                            <ff-dropdown-option label="Option 3" value="3"></ff-dropdown-option>
+                        </ff-dropdown>
+                        {{ models.dropdown0 }}
+                        <code>{{ groups['input'].components[1].examples[0].code }}</code>
+                    </div>
+                </div>
+                <!-- Checkbox -->
+                <h2 ref="ff-checkbox"><pre>ff-checkbox</pre></h2>
+                <h3>Properties:</h3>
+                <props-table :rows="groups['input'].components[2].props"></props-table>
+                <h3>Examples:</h3>
+                <div class="examples">
+                    <div class="example">
+                        <ff-checkbox label="My Checkbox" v-model="models.checkbox0"></ff-checkbox>
+                        {{ models.checkbox0 }}
+                        <code>{{ groups['input'].components[2].examples[0].code }}</code>
+                    </div>
+                </div>
+                <!-- Radio -->
+                <h2 ref="ff-radio"><pre>ff-radio</pre></h2>
+                <h3>Properties:</h3>
+                <props-table :rows="groups['input'].components[3].props"></props-table>
+                <h3>Examples:</h3>
+                <div class="examples">
+                    <div class="example">
+                        <ff-radio-group v-model="models.radio0" :options="[{label: 'Option 1', value: 1, checked: true}, {label: 'Option 2', value: 2}]"></ff-radio-group>
+                        {{ models.radio0 }}
+                        <code>{{ groups['input'].components[3].examples[0].code }}</code>
+                    </div>
+                    <div class="example">
+                        <ff-radio-group v-model="models.radio1" label="We can also provide a label here" :options="[{label: 'Option 1', value: 1, checked: true}, {label: 'Option 2', value: 2}]" orientation="vertical"></ff-radio-group>
+                        {{ models.radio1 }}
+                        <code>{{ groups['input'].components[3].examples[1].code }}</code>
                     </div>
                 </div>
             </div>
@@ -162,7 +208,11 @@ export default {
         return {
             theme: 'light',
             models: {
-                textInput0: ''
+                textInput0: '',
+                dropdown0: null,
+                checkbox0: false,
+                radio0: null,
+                radio1: null
             },
             groups: {
                 button: buttonDocs,
@@ -178,7 +228,6 @@ export default {
     },
     async mounted () {
         await this.$nextTick()
-        console.log(window.location.hash)
         this.toSection(window.location.hash.replace('#', ''))
     },
     methods: {
