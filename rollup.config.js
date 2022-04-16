@@ -2,6 +2,7 @@ import vue from 'rollup-plugin-vue'
 import peerDepsExternal from 'rollup-plugin-peer-deps-external'
 // import scss from 'rollup-plugin-scss'
 import postcss from 'rollup-plugin-postcss'
+import copy from 'rollup-plugin-copy'
 
 export default [
     {
@@ -26,6 +27,11 @@ export default [
                     sass: true
                 },
                 extract: true
+            }),
+            copy({
+                targets: [
+                    { src: 'src/stylesheets/ff-colors.scss', dest: 'dist/scss/forge-colors.scss' }
+                ]
             })
         ]
     }
