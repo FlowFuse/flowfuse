@@ -5,7 +5,9 @@
   ff-core contains styling on the fundamental HTML elements
 */
 * {
-  box-sizing: border-box; }
+  box-sizing: border-box;
+  transition: 0.3s color, 0.3s background-color;
+  -webkit-transition: 0.3s color, 0.3s background-color; }
 html {
   font-family: ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
   font-size: 14px;
@@ -35,8 +37,16 @@ code {
 /*
   ff-core contains styling on the custom, ff components
 */
+.ff-icon {
+  width: 20px;
+  height: 20px; }
+.ff-icon-sm {
+  width: 16px;
+  height: 16px; }
+/*
+  FF Button
+*/
 .ff-btn {
-  padding: 6px 18px;
   border-radius: 6px;
   display: flex;
   align-items: center;
@@ -47,7 +57,7 @@ code {
   justify-content: center;
   font-weight: bold;
   height: auto;
-  padding: 8px 16px;
+  padding: 6px 16px;
   border: 0; }
 .ff-btn.ff-btn-icon {
     padding: 6px 9px; }
@@ -113,6 +123,9 @@ code {
     padding-right: 18px; }
 .ff-btn:disabled {
     cursor: not-allowed; }
+/*
+  FF Input
+*/
 .ff-input.ff-text-input {
   border: 1px solid #D1D5DB;
   border-radius: 3px;
@@ -121,6 +134,188 @@ code {
   width: 100%; }
 .ff-input.ff-text-input:focus {
     outline: none; }
+.ff-dropdown {
+  position: relative;
+  display: inline-block; }
+.ff-dropdown .ff-dropdown-selected {
+    border: 1px solid #D1D5DB;
+    border-radius: 3px;
+    padding: 6px 9px;
+    height: 32px;
+    width: 100%;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    z-index: 2; }
+.ff-dropdown .ff-dropdown-options {
+    position: absolute;
+    top: 100%;
+    display: none;
+    box-shadow: 0px 6px 9px 0px #00000038; }
+.ff-dropdown .ff-dropdown-options .ff-dropdown-option {
+      padding: 6px 9px;
+      background-color: #F9FAFB; }
+.ff-dropdown .ff-dropdown-options .ff-dropdown-option:hover {
+        background-color: #E5E7EB; }
+.ff-dropdown .ff-dropdown-options.ff-dropdown-options--full-width {
+      width: 100%;
+      border-width: 0 1px 1px 1px; }
+.ff-dropdown .ff-dropdown-options.ff-dropdown-options--fit {
+      border-width: 1px;
+      min-width: none; }
+.ff-dropdown .ff-dropdown-options.ff-dropdown-options--fit .ff-dropdown-option {
+        padding-right: 27px; }
+.ff-dropdown .ff-dropdown-options.ff-dropdown-options--align-left {
+      left: 0; }
+.ff-dropdown .ff-dropdown-options.ff-dropdown-options--align-right {
+      right: 0; }
+.ff-dropdown.ff-dropdown--open .ff-dropdown-selected {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0; }
+.ff-dropdown.ff-dropdown--open .ff-dropdown-options {
+    display: block; }
+.ff-checkbox,
+.ff-radio-btn {
+  position: relative;
+  padding-left: 25px;
+  cursor: pointer;
+  /* Create a custom checkbox */ }
+.ff-checkbox input[type=checkbox], .ff-checkbox input[type=radio],
+  .ff-radio-btn input[type=checkbox],
+  .ff-radio-btn input[type=radio] {
+    display: none; }
+.ff-checkbox label,
+  .ff-radio-btn label {
+    cursor: pointer; }
+.ff-checkbox .checkbox,
+  .ff-radio-btn .checkbox {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 16px;
+    width: 16px;
+    border-radius: 3px;
+    background-color: transparent;
+    border: 1px solid #9CA3AF; }
+.ff-checkbox .checkbox:after,
+  .ff-radio-btn .checkbox:after {
+    content: "";
+    display: none;
+    position: absolute;
+    left: 4.5px;
+    top: 1px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg); }
+.ff-checkbox:hover .checkbox,
+  .ff-radio-btn:hover .checkbox {
+    background-color: #E5E7EB; }
+.ff-checkbox .checkbox[checked=true],
+  .ff-radio-btn .checkbox[checked=true] {
+    background-color: #1F2937;
+    border-color: #111827; }
+.ff-checkbox .checkbox[checked=true]:after,
+  .ff-radio-btn .checkbox[checked=true]:after {
+    display: block; }
+.ff-radio-group .ff-radio-group-label {
+  display: block;
+  margin-bottom: 9px; }
+.ff-radio-group.ff-radio-group--horizontal .ff-radio-btn {
+  margin-right: 1.5rem; }
+.ff-radio-group.ff-radio-group--vertical .ff-radio-btn {
+  display: block;
+  margin-bottom: 1rem; }
+.ff-radio-btn .checkbox {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 16px;
+  width: 16px;
+  border-radius: 8px;
+  background-color: transparent;
+  border: 1px solid #9CA3AF; }
+.ff-radio-btn .checkbox:after {
+  content: "";
+  display: none;
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  width: 14px;
+  height: 14px;
+  background-color: black;
+  border: solid white;
+  border-width: 2px;
+  border-radius: 50%; }
+/*
+  FF Dialog Box
+*/
+.ff-dialog-container {
+  position: fixed;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  align-items: center; }
+.ff-dialog-container--open {
+    display: flex; }
+.ff-dialog-container--closed {
+    display: none; }
+.ff-dialog-box {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 42rem;
+  background-color: white; }
+.ff-dialog-box .ff-dialog-header {
+    height: 48px;
+    line-height: 48px;
+    background-color: #1F2937;
+    border-bottom: 2px solid #ED4E4E;
+    padding: 0 18px;
+    color: white;
+    font-weight: 600; }
+.ff-dialog-box .ff-dialog-content {
+    padding: 1.5rem; }
+.ff-dialog-box .ff-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0 18px 18px 18px; }
+.ff-dialog-box .ff-dialog-actions .ff-btn {
+      margin-left: 1rem; }
+.ff-dialog-backdrop {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: #1F2937;
+  opacity: 0.3; }
+/*
+  FF Tabs
+*/
+.ff-tabs {
+  display: flex; }
+.ff-tabs .ff-tab-option {
+    padding: 9px; }
+.ff-tabs .ff-tab-option:hover {
+      color: #1D4ED8;
+      cursor: pointer; }
+.ff-tabs.ff-tabs--horizontal {
+    flex-direction: row; }
+.ff-tabs.ff-tabs--horizontal .ff-tab-option {
+      margin-right: 9px; }
+.ff-tabs.ff-tabs--horizontal .ff-tab-option.ff-tab-option--active {
+        border-bottom: 3px solid #1D4ED8; }
+.ff-tabs.ff-tabs--vertical {
+    flex-direction: column; }
+.ff-tabs.ff-tabs--vertical .ff-tab-option {
+      border-left-width: 3px;
+      border-color: transparent;
+      margin-bottom: 9px; }
+.ff-tabs.ff-tabs--vertical .ff-tab-option.ff-tab-option--active {
+        border-left: 3px solid #1D4ED8; }
 .ff-bg-light {
   color: #1F2937;
   background-color: #F9FAFB;
