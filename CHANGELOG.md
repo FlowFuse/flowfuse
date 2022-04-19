@@ -1,6 +1,6 @@
 #### 0.4.1: Maintence Release
 
- - Fix for Stripe "charge.succeded" callback (#484) @hardillb
+ - Fix for Stripe "charge.succeeded" callback (#484) @hardillb
 
 #### 0.4.0: Release
 
