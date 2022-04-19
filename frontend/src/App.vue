@@ -31,9 +31,9 @@
         <template v-else>
             <Login/>
         </template>
-        <div class="w-full bg-gray-800 flex-grow-0">
+        <!-- <div class="w-full bg-gray-800 flex-grow-0">
             <PageFooter />
-        </div>
+        </div> -->
     </div>
 </template>
 
@@ -68,3 +68,7 @@ export default {
     }
 }
 </script>
+
+<style lang="scss">
+@import "./stylesheets/common.scss";
+</style>
