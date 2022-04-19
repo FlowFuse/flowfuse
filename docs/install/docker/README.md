@@ -57,6 +57,8 @@ This is the container you can customise for your deployment.
 
 Configuration details are stored in the `etc/flowforge.yml` file which is mapped into the `flowforge/forge-docker` container. You will need to edit this file to update the `domain` and `base_url` entries to match the DNS settings.
 
+You also need to update the `VIRTUAL_HOST` entry in the `docker-compose.yml` file to use the same domain as in the `etc/flowforge.yml` file.
+
 For more details on the options available, see the [configuration guide](../configuration.md).
 
 ### Running FlowForge
