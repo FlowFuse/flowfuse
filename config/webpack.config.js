@@ -68,6 +68,13 @@ module.exports = {
                         options: { importLoaders: 1 }
                     }
                 ]
+            }, {
+                test: /\.scss$/,
+                use: [
+                    'style-loader',
+                    'css-loader',
+                    'sass-loader'
+                ]
             },
             {
                 test: /\.(eot|ttf|woff|woff2)(\?\S*)?$/,
@@ -80,7 +87,7 @@ module.exports = {
                 test: /\.(png|jpe?g|gif|webm|mp4|svg)$/,
                 loader: 'file-loader',
                 options: {
-                    outputPath: 'assets',
+                    outputPath: '/assets',
                     esModule: false
                 }
             }
