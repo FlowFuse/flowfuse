@@ -46,7 +46,6 @@ export default {
     },
     methods: {
         login () {
-            console.log('hello world')
             let valid = true
             this.errors.username = ''
             this.errors.password = ''
