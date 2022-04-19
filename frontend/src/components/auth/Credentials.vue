@@ -1,35 +1,31 @@
 <template>
-    <FormRow ref="login-username" :error="errors.username" v-model="input.username" @enter="focusPassword">Username</FormRow>
-    <FormRow ref="login-password" type="password" :error="errors.password" v-model="input.password" @enter="login">Password</FormRow>
-    <div class="flex flex-col justify-between">
-        <div class="flex items-center">
-            <input id="remember_me" name="remember_me" v-model="input.remember" type="checkbox" class="h-4 w-4 text-indigo-600  focus:ring-blue-700 border-gray-300 rounded" />
-            <label for="remember_me" class="ml-2 block text-sm text-gray-900">
-                Remember me
-            </label>
+    <div class="ff-login-form">
+        <div class="ff-logo">
+            <img src="@/images/ff-logo--wordmark-caps--dark.png" />
         </div>
-    </div>
-
-    <div>
-        <ff-button @click.prevent="login()" class="m-auto w-full" size="full-width">
-            <template v-slot:icon-left><LockClosedIcon aria-hidden="true" /></template>
-            Sign in
-        </ff-button>
-
-        <ff-button v-if="settings['user:reset-password']" class="m-auto mt-4 text-center" kind="tertiary" size="small" :to="{'name': 'ForgotPassword'}">
-            Forgot your password?
-        </ff-button>
-
-        <ff-button v-if="settings['user:signup']" class="m-auto mt-4" kind="secondary" size="small" to="/account/create">
-            Sign up
-        </ff-button>
+        <div>
+            <label>username</label>
+            <ff-text-input ref="login-username" label="username" :error="errors.username" v-model="input.username" @enter="focusPassword"/>
+            <label class="ff-error-inline">{{ errors.username }}</label>
+            <label>password</label>
+            <ff-text-input ref="login-password" label="password" :error="errors.password" v-model="input.password" @enter="login" :password="true"/>
+            <label class="ff-error-inline">{{ errors.password }}</label>
+        </div>
+        <div>
+            <ff-checkbox v-model="input.remember" label="Remember Me"></ff-checkbox>
+        </div>
+        <label class="ff-error-inline">{{ errors.general }}</label>
+        <div class="ff-login-actions">
+            <ff-button @click="login()">Login</ff-button>
+            <ff-button v-if="settings['user:signup']" kind="tertiary" to="/account/create">Sign Up</ff-button>
+            <ff-button v-if="settings['user:reset-password']" kind="tertiary" :to="{'name': 'ForgotPassword'}">Forgot your password?</ff-button>
+        </div>
     </div>
 </template>
 
 <script>
 import { mapState } from 'vuex'
 import FormRow from '@/components/FormRow'
-import { LockClosedIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'AuthCredentials',
@@ -42,6 +38,7 @@ export default {
                 remember: false
             },
             errors: {
+                general: null,
                 username: null,
                 password: null
             }
@@ -49,6 +46,7 @@ export default {
     },
     methods: {
         login () {
+            console.log('hello world')
             let valid = true
             this.errors.username = ''
             this.errors.password = ''
@@ -78,11 +76,10 @@ export default {
     watch: {
         loginError (newError, oldError) {
             this.focusUsername()
-            this.errors.username = 'Login failed'
+            this.errors.general = 'Login failed'
         }
     },
     components: {
-        LockClosedIcon,
         FormRow
     }
 }

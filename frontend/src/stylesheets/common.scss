@@ -1,0 +1,10 @@
+@import '~@flowforge/forge-ui-components/dist/scss/forge-colors.scss';
+
+* {
+    transition: 0.3s background-color, 0.3s color;
+    -webkit-transition: 0.3s background-color, 0.3s color;
+}
+
+.ff-login .ff-error-inline {
+    color: $ff-red-400;
+}
