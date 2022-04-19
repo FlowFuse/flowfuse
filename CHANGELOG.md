@@ -1,6 +1,6 @@
 #### 0.4.2: Maintence Release
 
-- Fix for Stripe credit note crate (#488) @hardillb
+- Fix for Stripe credit note create (#488) @hardillb
 
 #### 0.4.1: Maintence Release
 
