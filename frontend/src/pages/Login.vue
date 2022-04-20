@@ -1,22 +1,20 @@
 <template>
-    <div class="ff-login">
-        <div class="ff-login-wrapper">
-            <!-- Login Box -->
-            <AuthCredentials v-if="!pending"/>
-            <div v-else>
-                <div class="flex justify-center">
-                    <div class="w-1/2"><Logo /></div>
-                </div>
+    <ff-layout-box class="ff-login">
+        <AuthCredentials v-if="!pending"/>
+        <div v-else>
+            <div class="flex justify-center">
+                <div class="w-1/2"><Logo /></div>
             </div>
         </div>
-    </div>
+    </ff-layout-box>
 </template>
 
 <script>
 import { mapState } from 'vuex'
 import Logo from '@/components/Logo'
 import AuthCredentials from '@/components/auth/Credentials'
-import { LockClosedIcon } from '@heroicons/vue/outline'
+
+import FFLayoutBox from '@/layouts/Box'
 
 export default {
     name: 'LoginPage',
@@ -33,8 +31,8 @@ export default {
     computed: mapState('account', ['settings', 'pending']),
     components: {
         Logo,
-        LockClosedIcon,
-        AuthCredentials
+        AuthCredentials,
+        'ff-layout-box': FFLayoutBox
     }
 }
 </script>

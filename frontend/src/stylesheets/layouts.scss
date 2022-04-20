@@ -1,0 +1,104 @@
+@import '~@flowforge/forge-ui-components/dist/scss/forge-colors.scss';
+
+.ff-layout--box {
+    background-color: $ff-grey-800;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: inherit;
+    background-image: url("@/images/ff-flow-bg-white.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position-y: 90%;
+    .ff-error-inline {
+        color: $ff-red-300;
+    }
+}
+
+.ff-layout--box--wrapper {
+    width: 75%;
+    border-top: 2px solid $ff-red-400;
+    max-width: 1024px;
+    height: 60%;
+    padding: 128px 0;
+    margin-bottom: 64px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba($ff-grey-600, 0.2);
+    .ff-logo {
+        max-width: 200px;
+        margin: auto;
+        margin-bottom: 48px;
+    }
+}
+
+.ff-layout--box--content {
+    background-color: $ff-grey-700;
+    min-width: 400px;
+    min-height: 400px;
+    padding: 64px;
+    border-radius: 32px;
+    color: white;
+    h2 {
+        margin-top: -12px;
+        margin-bottom: 24px;
+    }
+    h5 {
+        font-weight: bold;
+        margin-bottom: 0.75rem;
+    }
+    label {
+        display: block;
+        color: white;
+        text-transform: uppercase;
+        font-weight: 600;
+        margin-bottom: 4px;
+        font-size: 0.75rem;
+    }
+    a {
+        color: $ff-teal-400;
+    }
+    input.ff-input:not(.ff-input--error) {
+        border-color: transparent;
+    }
+    input.ff-input {
+        color: $ff-grey-50;
+        background-color: $ff-grey-600;
+        border-width: 2px;
+        &:focus {
+            border-color: $ff-teal-400;
+        }
+    }
+    .ff-error-inline {
+        margin-bottom: 12px;
+    }
+
+    .ff-actions {
+        margin-top: 18px;
+        .ff-btn {
+            text-transform: uppercase;
+            width: 100%;
+            margin-bottom: 6px;
+        }
+        .ff-btn.ff-btn--primary {
+            background-color: $ff-teal-600;
+            color: white;
+            &:hover {
+                background-color: $ff-teal-700;
+            }
+            &:disabled {
+                background-color: $ff-grey-400;
+                color: $ff-grey-300;
+            }
+        }
+        .ff-btn.ff-btn--tertiary {
+            color: $ff-teal-500;
+            font-weight: normal;
+            &:hover {
+                background-color: transparent;
+                color: white;
+            }
+        }
+    }
+}
