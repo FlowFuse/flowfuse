@@ -134,6 +134,7 @@
 /*
   FF Input
 */
+
 .ff-input {
   &.ff-text-input {
     border: 1px solid $ff-grey-300;
@@ -144,6 +145,12 @@
     &:focus {
       outline: none;
     }
+  }
+}
+
+.ff-input--error {
+  &.ff-text-input {
+    border-color: $ff-red-300;
   }
 }
 

@@ -156,6 +156,10 @@ var script$7 = {
             type: Boolean,
             default: false
         },
+        error: {
+            type: String,
+            default: ''
+        },
         placeholder: {
             type: String,
             default: ''
@@ -183,15 +187,16 @@ const _hoisted_1$5 = ["type", "placeholder", "disabled", "value"];
 function render$6(_ctx, _cache, $props, $setup, $data, $options) {
   return (openBlock(), createElementBlock("input", {
     type: $props.password ? 'password' : 'text',
-    class: "ff-input ff-text-input",
+    class: normalizeClass(["ff-input ff-text-input", {'ff-input--error': $props.error}]),
     placeholder: $props.placeholder,
     disabled: $props.disabled,
     value: $props.modelValue,
     onChange: _cache[0] || (_cache[0] = $event => (_ctx.$emit('update:modelValue', $event.target.value))),
     onInput: _cache[1] || (_cache[1] = $event => (_ctx.$emit('update:modelValue', $event.target.value))),
-    onBlur: _cache[2] || (_cache[2] = $event => (_ctx.$emit('blur'))),
-    onKeyup: _cache[3] || (_cache[3] = withKeys($event => (_ctx.$emit('keyup')), ["enter"]))
-  }, null, 40 /* PROPS, HYDRATE_EVENTS */, _hoisted_1$5))
+    onEnter: _cache[2] || (_cache[2] = $event => (_ctx.$emit('enter', $event))),
+    onBlur: _cache[3] || (_cache[3] = $event => (_ctx.$emit('blur'))),
+    onKeyup: _cache[4] || (_cache[4] = withKeys($event => (_ctx.$emit('enter', _ctx.$evt)), ["enter"]))
+  }, null, 42 /* CLASS, PROPS, HYDRATE_EVENTS */, _hoisted_1$5))
 }
 
 script$7.render = render$6;
@@ -352,7 +357,11 @@ function render$3(_ctx, _cache, $props, $setup, $data, $options) {
     }, null, 8 /* PROPS */, _hoisted_3$1),
     createElementVNode("label", {
       onClick: _cache[1] || (_cache[1] = $event => ($options.model = !$options.model))
-    }, toDisplayString($props.label), 1 /* TEXT */)
+    }, [
+      renderSlot(_ctx.$slots, "default", {}, () => [
+        createTextVNode(toDisplayString($props.label), 1 /* TEXT */)
+      ])
+    ])
   ]))
 }
 

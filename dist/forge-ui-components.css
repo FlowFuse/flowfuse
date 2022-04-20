@@ -134,6 +134,8 @@ code {
   width: 100%; }
 .ff-input.ff-text-input:focus {
     outline: none; }
+.ff-input--error.ff-text-input {
+  border-color: #F16F6F; }
 .ff-dropdown {
   position: relative;
   display: inline-block; }
