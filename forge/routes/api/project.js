@@ -335,7 +335,7 @@ module.exports = async function (app) {
         preHandler: (request, reply, done) => {
             // check accessToken is project scope
             if (request.session.ownerType !== 'project') {
-                reply.code(401).send('Permission Denied')
+                reply.code(401).send({ err: 'unauthorised' })
             } else {
                 done()
             }
