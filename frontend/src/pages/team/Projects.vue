@@ -5,7 +5,7 @@
         </template>
         <template v-else-if="createProjectEnabled">
             <div class="flex justify-center mb-4 p-8">
-                <ff-button>
+                <ff-button to="./projects/create">
                     <template v-slot:icon-right>
                         <PlusSmIcon />
                     </template>
