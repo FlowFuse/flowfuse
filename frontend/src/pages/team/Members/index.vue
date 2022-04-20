@@ -8,6 +8,8 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 import SectionSideMenu from '@/components/SectionSideMenu'
 import { Roles } from '@core/lib/roles'
 
@@ -18,6 +20,9 @@ import { Roles } from '@core/lib/roles'
 export default {
     name: 'TeamUsers',
     props: ['team', 'teamMembership'],
+    computed: {
+        ...mapState('account', ['user'])
+    },
     components: {
         SectionSideMenu
     },
@@ -37,7 +42,7 @@ export default {
             this.sideNavigation = [
                 { name: 'Members', path: './general' }
             ]
-            if (this.teamMembership && this.teamMembership.role === Roles.Owner) {
+            if (this.user.admin || (this.teamMembership && this.teamMembership.role === Roles.Owner)) {
                 this.sideNavigation.push({ name: 'Invitations', path: './invitations' })
             }
         }
