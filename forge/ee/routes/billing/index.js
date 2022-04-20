@@ -144,7 +144,7 @@ module.exports = async function (app) {
                             memo: 'Activation check credit',
                             credit_amount: invoiceItem.amount
                         })
-                        app.log.info(`Crediting activation fee to ${invoice}`)
+                        app.log.info(`Crediting activation fee to ${invoice.id}`)
                     }
                 }
                 break
