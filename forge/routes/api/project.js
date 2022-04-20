@@ -331,7 +331,16 @@ module.exports = async function (app) {
      * @name /api/v1/project/:id/settings
      * @memberof forge.routes.api.project
      */
-    app.get('/:projectId/settings', async (request, reply) => {
+    app.get('/:projectId/settings', {
+        preHandler: (request, reply, done) => {
+            // check accessToken is project scope
+            if (request.session.ownerType !== 'project') {
+                reply.code(401).send('Permission Denied')
+            } else {
+                done()
+            }
+        }
+    }, async (request, reply) => {
         if (request.project.state === 'suspended') {
             reply.code(400).send({ error: 'Project suspended' })
             return
