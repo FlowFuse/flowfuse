@@ -1,3 +1,7 @@
+#### 0.4.3: Maintence Release
+
+ - Fix for Stripe credit note amount (#491) @hardillb
+
 #### 0.4.2: Maintence Release
 
 - Fix for Stripe credit note create (#488) @hardillb
