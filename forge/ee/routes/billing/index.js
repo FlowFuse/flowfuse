@@ -133,7 +133,7 @@ module.exports = async function (app) {
                         }
                     })
                     if (activation) {
-                        // refund the actication test charge
+                        // refund the activation test charge
                         await stripe.creditNotes.create({
                             invoice: invoice.id,
                             lines: [{
