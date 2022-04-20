@@ -32,7 +32,6 @@ import { Roles } from '@core/lib/roles'
 import teamApi from '@/api/team'
 import ItemTable from '@/components/tables/ItemTable'
 import { PlusSmIcon } from '@heroicons/vue/outline'
-
 import FormHeading from '@/components/FormHeading'
 
 import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
