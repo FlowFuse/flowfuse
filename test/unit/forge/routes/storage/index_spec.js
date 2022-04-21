@@ -47,20 +47,6 @@ describe('Storage API', function () {
         should(newSettings).have.property('forgeURL')
     })
 
-    it('Get Flow', async function () {
-        this.timeout(10000)
-        const flowURL = `/storage/${project.id}/flows`
-        const response = await app.inject({
-            method: 'GET',
-            url: flowURL,
-            headers: {
-                authorization: `Bearer ${tokens.token}`
-            }
-        })
-        const flow = response.json()
-        should(flow).eqls([])
-    })
-
     it('Save Flow', async function () {
         this.timeout(10000)
         const newFlow = [{ id: '1', type: 'tab', label: 'tab1', disabled: false, info: '' }]
