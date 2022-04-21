@@ -1,8 +1,5 @@
 <template>
-    <div class="ff-login-form">
-        <div class="ff-logo">
-            <img src="@/images/ff-logo--wordmark-caps--dark.png" />
-        </div>
+    <div>
         <div>
             <label>username</label>
             <ff-text-input ref="login-username" label="username" :error="errors.username" v-model="input.username" @enter="focusPassword"/>
@@ -15,7 +12,7 @@
             <ff-checkbox v-model="input.remember" label="Remember Me"></ff-checkbox>
         </div>
         <label class="ff-error-inline">{{ errors.general }}</label>
-        <div class="ff-login-actions">
+        <div class="ff-actions">
             <ff-button @click="login()">Login</ff-button>
             <ff-button v-if="settings['user:signup']" kind="tertiary" to="/account/create">Sign Up</ff-button>
             <ff-button v-if="settings['user:reset-password']" kind="tertiary" :to="{'name': 'ForgotPassword'}">Forgot your password?</ff-button>
