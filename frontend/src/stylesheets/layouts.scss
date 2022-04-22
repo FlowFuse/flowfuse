@@ -1,5 +1,9 @@
 @import '~@flowforge/forge-ui-components/dist/scss/forge-colors.scss';
 
+/*
+    Layout - Box
+        used in login/setup/signup screens
+*/
 .ff-layout--box {
     background-color: $ff-grey-800;
     display: flex;
@@ -101,6 +105,108 @@
         &:hover {
             background-color: transparent;
             color: white;
+        }
+    }
+}
+
+/*
+    Layout - Platform
+        used in all other pages
+*/
+
+.ff-layout--platform {
+    min-height: inherit;
+    display: flex;
+    flex-direction: column;
+}
+
+.ff-layout--platform--wrapper {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    flex-grow: 1;
+    main {
+        margin: 24px;
+        padding: 32px;
+        background-color: $ff-grey-50;
+    }
+}
+
+.ff-header {
+    background-color: $ff-grey-800;
+    height: 60px;
+    border-bottom: 2px solid $ff-red-500;
+    img {
+        padding: 16px;
+        height: 100%;
+        margin: auto;
+    }
+}
+
+.ff-side-navigation {
+    background-color: $ff-grey-700;
+    ul {
+        border-bottom: 2px solid $ff-red-600;
+    }
+    li, .ff-team-selection {
+        &:not(:last-child) {
+            border-bottom: 1px solid $ff-grey-600;
+        }        
+        padding: 16px 24px;
+        display: flex;
+        align-items: center;
+        svg {
+            fill: $ff-white;
+            width: 20px;
+        }
+        label {
+            margin-left: 12px;
+            color: $ff-white;
+            pointer-events: none;
+        }
+    }
+    li {
+        &:hover {
+            cursor: pointer;
+            svg {
+                fill: $ff-teal-300;
+            }
+            label {
+                color: $ff-teal-300;
+            }
+        }
+    }
+    .ff-team-selection {
+        display: flex;
+        justify-content: space-between;
+        background-color: $ff-grey-800;
+        padding: 12px 22px;
+        >div {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+        }
+        svg {
+            &:hover {
+                fill: $ff-teal-300;
+                cursor: pointer;
+            }
+        }
+    }
+    .ff-team-selection-name {
+        margin-left: 10px;
+        label {
+            font-size: 0.7rem;
+            line-height: 0.7rem;
+            color: $ff-grey-300;
+            margin-left: 0;
+        }
+        h5 {
+            color: white;
+        }
+    }
+    .router-link-active {
+        li {
+            background-color: $ff-grey-600;
         }
     }
 }
