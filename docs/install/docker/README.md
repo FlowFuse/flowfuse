@@ -61,6 +61,28 @@ You also need to update the `VIRTUAL_HOST` entry in the `docker-compose.yml` fil
 
 For more details on the options available, see the [configuration guide](../configuration.md).
 
+### SSL (optional)
+If you want to serve the forge app and projects via SSL you will need to obtain wildcard SSL certs for the domain you are using eg `*.example.com`
+
+Create a folder in the `docker-compose-0.x.0` directory named `certs`, place your .crt and .key files in there, they should be named for the domain without the `*` eg `example.com.crt` & `example.com.key`
+
+In the `docker-compose.yml` file, 
+- uncomment the line 
+```
+-   "443:443"
+```
+
+- Add this line to the `volumes` section of the nginx proxy 
+```
+- "./certs:/etc/nginx/certs"
+```
+
+If you wish to redirect all traffic to use HTTPS then add the following section to the nginx service on docker-compose.yml
+```
+environment:
+      - "HTTPS_METHOD=redirect"
+```
+
 ### Running FlowForge
 
 Once the containers have been built you can start FlowForge by running:
