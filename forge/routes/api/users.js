@@ -54,7 +54,47 @@ module.exports = async function (app) {
             reply.code(404).type('text/html').send('Not Found')
         }
     })
+    /**
+     * Delete user by id frin dv
+     * @name /api/v1/users/:id
+     * @static
+     * @memberof forge.routes.api.
+     * users*/
+    app.delete('/:id', async (request, reply) => {
+        const user = await app.db.models.User.byId(request.params.id)
+        if (user) {
+            await user.destroy()
+            reply.send({ status: 'okay' })
+        } else {
+            reply.code(404).type('text/html').send('Not Found')
+        }
+    })
 
+    app.delete('/:teamId', { preHandler: app.needsPermission('team:delete') }, async (request, reply) => {
+        // At this point we know the requesting user has permission to do this.
+        // But we also need to ensure the team has no projects
+        // That is handled by the beforeDestroy hook on the Team model and the
+        // call to destroy the team will throw an error
+        try {
+            if (app.license.active() && app.billing) {
+                const subscription = await app.db.models.Subscription.byTeam(request.team.id)
+                if (subscription) {
+                    const subId = subscription.subscription
+                    await app.billing.closeSubscription(subscription)
+                    app.db.controllers.AuditLog.teamLog(
+                        request.team.id,
+                        request.session.User.id,
+                        'billing.subscription.deleted',
+                        { subscription: subId }
+                    )
+                }
+            }
+            await request.team.destroy()
+            reply.send({ status: 'okay' })
+        } catch (err) {
+            reply.code(400).send({ error: err.toString() })
+        }
+    })
     /**
      * Create a new user
      */

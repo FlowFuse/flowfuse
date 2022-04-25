@@ -51,6 +51,23 @@ module.exports = {
             if (user.avatar.startsWith(`${process.env.FLOWFORGE_BASE_URL}/avatar/`)) {
                 user.avatar = generateUserAvatar(user.name || user.username)
             }
+        },
+        beforeDestroy: async (user, opts) => {
+            const admins = await app.db.models.User.admins()
+            //is user an admin? find user in the admin list
+            const userIsAdmin = findUserInAdminList(admins, user)
+            // if yes, is admin count == 1?
+            if (userIsAdmin && admins.length <= 1) {
+                throw new Error('Cannot delete the only admin.')
+            }
+            // Check if user is only owner of a team
+            // 1.) get teams associated with this user.
+            // 2.) Check owner count of each team, if ANY of teams Owner count == 1, DO NOT DELETE user.
+        },
+        afterDestroy: async (user, opts) => {
+            // TODO: what needs tidying up after a user is deleted?
+            // Need to delete all user sessions, invitations, ARE These assocations deleted automatically on calling user.destroy()?????
+            // StorageSessions - What to do?? This is for any active Node Red Instance editor sessions for current user
         }
     },
     associations: function (M) {
