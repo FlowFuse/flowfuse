@@ -28,7 +28,7 @@ export default {
             type: String // "small", "normal"
         },
         type: {
-            default: 'text', // One of: 'text' or 'password'
+            default: 'text', // One of: 'text', 'email', or 'password'
             type: String,
             required: true
         },

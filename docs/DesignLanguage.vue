@@ -88,6 +88,10 @@
                         <ff-text-input type="password" placeholder="Password goes here..."/>
                         <code>{{ groups[1].components[0].examples[1].code }}</code>
                     </div>
+                    <div class="example">
+                        <ff-text-input type="email"/>
+                        <code>{{ groups[1].components[0].examples[2].code }}</code>
+                    </div>
                 </div>
             </div>
         </div>
@@ -178,6 +182,8 @@ export default {
                         code: '<ff-text-input v-model="myVar" placeholder="Insert something here..." />'
                     }, {
                         code: '<ff-text-input :type"password" v-model="myPassword" placeholder="Password goes here..." />'
+                    }, {
+                        code: '<ff-text-input :type"email" v-model="myEmail" />'
                     }],
                     props: [{
                         key: 'disabled',
@@ -190,7 +196,7 @@ export default {
                     }, {
                         key: 'type',
                         default: 'text',
-                        description: 'Text or password, password hides the content of the text input'
+                        description: 'text, email, or password. password hides the content of the text input'
                     }]
                 }]
             }]
