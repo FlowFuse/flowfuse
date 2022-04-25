@@ -59,7 +59,8 @@ module.exports = async function (app) {
      * @name /api/v1/users/:id
      * @static
      * @memberof forge.routes.api.
-     * users*/
+     * users
+     */
     app.delete('/:id', async (request, reply) => {
         const user = await app.db.models.User.byId(request.params.id)
         if (user) {
