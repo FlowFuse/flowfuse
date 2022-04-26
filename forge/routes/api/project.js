@@ -1,4 +1,5 @@
 const ProjectActions = require('./projectActions.js')
+const crypto = require('crypto')
 
 /**
  * Instance api routes
@@ -428,4 +429,65 @@ module.exports = async function (app) {
         // console.log(logEntries);
         reply.send(result)
     })
+
+    /**
+     *
+     * @name /api/v1/project/:id/export
+     * @memberof forge.routes.api.project 
+     */
+    app.post('/:projectId/export', async (request, reply) => {
+        const components = request.body.components
+        reply.header('content-disposition', 'attachment; filename="project.json"')
+        const projectExport = {}
+        if (components.flows) {
+            const flows = await app.db.models.StorageFlow.byProject(request.project.id)
+            projectExport.flows = !flows ? [] : JSON.parse(flows.flow)
+        }
+        if (components.creds) {
+            const origCredentials = await app.db.models.StorageCredentials.byProject(request.project.id)
+            if (origCredentials) {
+                const encryptedCreds = JSON.parse(origCredentials.credentials)
+                const settings = JSON.parse((await app.db.models.StorageSettings.byProject(request.project.id)).settings)
+                const key = crypto.createHash('sha256').update(settings._credentialSecret).digest()
+                const plainText = decryptCreds(key, encryptedCreds)
+                const newKey = crypto.createHash('sha256').update(components.creds).digest()
+                const newCreds = encryptCreds(newKey, plainText)
+
+                projectExport.credentials = newCreds
+            }
+        }
+        if (components.envVars) {
+            const settings = await app.db.controllers.Project.getRuntimeSettings(request.project)
+            if (components.envVarsKo) {
+                projectExport.envVars = {}
+                Object.keys(settings.env).forEach(key => {
+                    projectExport.envVars[key] = ''
+                })
+            } else {
+                if (settings.env) {
+                    projectExport.envVars = settings.env
+                }
+            }
+        }
+        const NRSettings = await app.db.models.StorageSettings.byProject(request.project.id)
+        if (NRSettings) {
+            projectExport.nodes = JSON.parse(NRSettings.settings).nodes
+        }
+        reply.send(projectExport)
+    })
+
+    function decryptCreds (key, cipher) {
+        let flows = cipher.$
+        const initVector = Buffer.from(flows.substring(0, 32),'hex')
+        flows = flows.substring(32)
+        const decipher = crypto.createDecipheriv('aes-256-ctr', key, initVector)
+        const decrypted = decipher.update(flows, 'base64', 'utf8') + decipher.final('utf8')
+        return JSON.parse(decrypted)
+    }
+
+    function encryptCreds (key, plain) {
+        const initVector = crypto.randomBytes(16)
+        const cipher = crypto.createCipheriv('aes-256-ctr', key, initVector)
+        return { $: initVector.toString('hex') + cipher.update(JSON.stringify(plain), 'utf8', 'base64') + cipher.final('base64') }
+    }
 }
