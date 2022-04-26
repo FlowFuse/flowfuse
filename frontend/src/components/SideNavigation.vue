@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-navigation">
+    <div class="ff-navigation" v-if="team">
         <div class="ff-team-selection">
             <div>
                 <img :src="team.avatar" class="ff-avatar"/>
@@ -11,7 +11,7 @@
             <SwitchHorizontalIcon :class="{'active': teamSelectionOpen }" @click="switchTeam"/>
             <ul :class="{'active': teamSelectionOpen }">
                 <li class="ff-nav-item"><label>Team Selection</label></li>
-                <nav-item v-for="t in teams" :key="t.id" :label="t.name" :avatar="t.avatar" @click="selectTeam(t)"></nav-item>
+                <nav-item v-for="t in teams" :key="t.id" :label="t.name" :avatar="t?.avatar" @click="selectTeam(t)"></nav-item>
                 <nav-item label="Create Team" :icon="plusIcon" @click="createTeam"></nav-item>
             </ul>
         </div>
@@ -82,14 +82,15 @@ export default {
             this.teamSelectionOpen = !this.teamSelectionOpen
         },
         selectTeam (team) {
-            console.log(team)
-            this.$router.push({
-                name: 'Team',
-                params: {
-                    team_slug: team.slug
-                }
-            })
-            this.switchTeam()
+            if (team) {
+                this.$router.push({
+                    name: 'Team',
+                    params: {
+                        team_slug: team.slug
+                    }
+                })
+                this.switchTeam()
+            }
         },
         createTeam () {
             this.$router.push({
