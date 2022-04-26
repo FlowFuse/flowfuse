@@ -8,7 +8,12 @@
                     <h5>{{ team.name }}</h5>
                 </div>
             </div>
-            <SwitchHorizontalIcon />
+            <SwitchHorizontalIcon :class="{'active': teamSelectionOpen }" @click="switchTeam"/>
+            <ul :class="{'active': teamSelectionOpen }">
+                <li class="ff-nav-item"><label>Team Selection</label></li>
+                <nav-item v-for="t in teams" :key="t.id" :label="t.name" :avatar="t.avatar" @click="selectTeam(t)"></nav-item>
+                <nav-item label="Create Team" :icon="plusIcon" @click="createTeam"></nav-item>
+            </ul>
         </div>
         <ul class="ff-side-navigation--options">
             <router-link v-for="route in routes.general" :key="route.label" :to="'/team/' + team.slug + route.to">
@@ -26,7 +31,7 @@
 <script>
 import { mapState } from 'vuex'
 
-import { SwitchHorizontalIcon, CollectionIcon, UsersIcon, DatabaseIcon, CurrencyDollarIcon, CogIcon } from '@heroicons/vue/solid'
+import { SwitchHorizontalIcon, CollectionIcon, UsersIcon, DatabaseIcon, CurrencyDollarIcon, CogIcon, PlusIcon } from '@heroicons/vue/solid'
 import NavItem from '@/components/NavItem'
 
 export default {
@@ -36,10 +41,12 @@ export default {
         SwitchHorizontalIcon
     },
     computed: {
-        ...mapState('account', ['user', 'team', 'teamMembership'])
+        ...mapState('account', ['user', 'team', 'teams', 'teamMembership'])
     },
     data () {
         return {
+            teamSelectionOpen: false,
+            plusIcon: PlusIcon,
             routes: {
                 general: [{
                     label: 'Overview',
@@ -68,6 +75,27 @@ export default {
                     icon: CogIcon
                 }]
             }
+        }
+    },
+    methods: {
+        switchTeam () {
+            this.teamSelectionOpen = !this.teamSelectionOpen
+        },
+        selectTeam (team) {
+            console.log(team)
+            this.$router.push({
+                name: 'Team',
+                params: {
+                    team_slug: team.slug
+                }
+            })
+            this.switchTeam()
+        },
+        createTeam () {
+            this.$router.push({
+                name: 'CreateTeam'
+            })
+            this.switchTeam()
         }
     }
 }

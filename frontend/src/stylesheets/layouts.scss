@@ -188,6 +188,7 @@
 
 .ff-navigation {
     background-color: $ff-grey-700;
+    border-right: 2px solid $ff-grey-800;
     ul {
         border-bottom: 2px solid $ff-red-600;
     }
@@ -225,6 +226,7 @@
         }
     }
     .ff-team-selection {
+        position: relative;
         display: flex;
         justify-content: space-between;
         background-color: $ff-grey-800;
@@ -238,6 +240,28 @@
             &:hover {
                 fill: $ff-teal-300;
                 cursor: pointer;
+            }
+            &.active {
+                fill: $ff-teal-300;
+            }
+        }
+        ul {
+            position: absolute;
+            left: 100%;
+            top: 0;
+            min-width: 250px;
+            margin-left: 2px;
+            display: none;
+            li:first-child {
+                height: 60px;
+                pointer-events: none;
+                background-color: $ff-grey-700;
+            }
+            li {
+                background-color: $ff-grey-500;
+            }
+            &.active {
+                display: block;
             }
         }
     }
