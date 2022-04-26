@@ -252,6 +252,8 @@
             min-width: 250px;
             margin-left: 2px;
             display: none;
+            z-index: 10;
+            border-bottom: 0;
             li:first-child {
                 height: 60px;
                 pointer-events: none;
