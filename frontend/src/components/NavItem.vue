@@ -11,7 +11,7 @@ export default {
     name: 'NavItem',
     props: {
         icon: {
-            type: String
+            type: Function
         },
         avatar: {
             type: String
