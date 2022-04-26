@@ -79,7 +79,7 @@ export default {
             window.open(route.url, '_blank')
         },
         signout () {
-            console.log('sign out')
+            this.$router.push({ name: 'Sign out' })
         }
     }
 }
