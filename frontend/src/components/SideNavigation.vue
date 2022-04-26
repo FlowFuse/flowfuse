@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-side-navigation">
+    <div class="ff-navigation">
         <div class="ff-team-selection">
             <div>
                 <img :src="team.avatar" class="ff-avatar"/>
@@ -12,18 +12,12 @@
         </div>
         <ul class="ff-side-navigation--options">
             <router-link v-for="route in routes.general" :key="route.label" :to="'/team/' + team.slug + route.to">
-                <li>
-                    <component :is="route.icon" />
-                    <label>{{ route.label }}</label>
-                </li>
+                <nav-item :label="route.label" :icon="route.icon"></nav-item>
             </router-link>
         </ul>
         <ul class="ff-side-navigation--admin">
             <router-link v-for="route in routes.admin" :key="route.label" :to="'/team/' + team.slug + route.to">
-                <li>
-                    <component :is="route.icon" />
-                    <label>{{ route.label }}</label>
-                </li>
+                <nav-item :icon="route.icon" :label="route.label"></nav-item>
             </router-link>
         </ul>
     </div>
@@ -33,10 +27,12 @@
 import { mapState } from 'vuex'
 
 import { SwitchHorizontalIcon, CollectionIcon, UsersIcon, DatabaseIcon, CurrencyDollarIcon, CogIcon } from '@heroicons/vue/solid'
+import NavItem from '@/components/NavItem'
 
 export default {
     name: 'FFSideNavigation',
     components: {
+        NavItem,
         SwitchHorizontalIcon
     },
     computed: {

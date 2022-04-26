@@ -132,26 +132,73 @@
 }
 
 .ff-header {
+    z-index: 10;
     background-color: $ff-grey-800;
     height: 60px;
     border-bottom: 2px solid $ff-red-500;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     img {
         padding: 16px;
         height: 100%;
-        margin: auto;
+    }
+    .ff-navigation {
+        img {
+            padding: 0;
+            margin-right: 9px;
+        }
+        .ff-user {
+            display: flex;
+            align-items: center;
+            margin-left: -2px;
+        }
+    }
+    .ff-dropdown {
+        height: 100%;
+        color: white;
+        min-width: 250px;
+        .ff-dropdown-selected {
+            height: 100%;
+            padding: 16px 16px 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-width: 0 0 0 1px;
+            border-color: $ff-grey-500;
+            border-radius: 0;
+            background-color: $ff-grey-800;
+            &:hover {
+                background-color: $ff-grey-700;
+            }
+        }
+        .ff-dropdown-options {
+            width: 100%;
+            margin-top: 2px;
+            border-color: $ff-grey-500;
+            border-right: 0;
+        }
+        .ff-dropdown-option {
+            &:last-child {
+                border-top: 2px solid $ff-red-600;
+            }
+        }
     }
 }
 
-.ff-side-navigation {
+.ff-navigation {
     background-color: $ff-grey-700;
     ul {
         border-bottom: 2px solid $ff-red-600;
     }
-    li, .ff-team-selection {
+    .ff-dropdown-options .ff-dropdown-option {
+        padding: 0;
+    }
+    .ff-nav-item, .ff-team-selection {
         &:not(:last-child) {
             border-bottom: 1px solid $ff-grey-600;
         }        
-        padding: 16px 24px;
+        padding: 16px 16px 16px 24px;
         display: flex;
         align-items: center;
         svg {
@@ -164,7 +211,9 @@
             pointer-events: none;
         }
     }
-    li {
+    .ff-nav-item {
+        background-color: $ff-grey-700;
+        border-bottom: 1px solid $ff-grey-600;
         &:hover {
             cursor: pointer;
             svg {
