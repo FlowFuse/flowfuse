@@ -75,7 +75,7 @@ export default {
     },
     methods: {
         confirm () {
-            const parts = this.parts;
+            const parts = this.parts
             if (parts.creds && parts.credsSecret) {
                 parts.creds = parts.credsSecret
                 delete parts.credsSecret

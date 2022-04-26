@@ -71,7 +71,7 @@ const exportProject = async (projectId, components) => {
         const blob = new Blob([JSON.stringify(res.data)], { type: 'application/json' })
         const disposition = res.headers['content-disposition']
         const matches = /"([^"]*)"/.exec(disposition)
-        const filename = (matches != null && matches[1] ? matches[1] : 'project.json');
+        const filename = (matches != null && matches[1] ? matches[1] : 'project.json')
         const link = document.createElement('a')
         link.href = window.URL.createObjectURL(blob)
         link.download = filename
