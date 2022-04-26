@@ -1,4 +1,5 @@
 @import '~@flowforge/forge-ui-components/dist/scss/forge-colors.scss';
+@import '~@flowforge/forge-ui-components/dist/scss/forge-variables.scss';
 
 /*
     Layout - Box
@@ -20,11 +21,11 @@
 }
 
 .ff-layout--box--wrapper {
-    width: 75%;
+    width: calc(100% - 48px);
     border-top: 2px solid $ff-red-400;
     max-width: 1024px;
     height: 60%;
-    padding: 128px 0;
+    padding: 64px 24px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -38,9 +39,9 @@
 
 .ff-layout--box--content {
     background-color: $ff-grey-700;
-    min-width: 400px;
+    width: 100%;
     min-height: 400px;
-    padding: 64px;
+    padding: 64px 24px;
     border-radius: 32px;
     color: white;
     h2 {
@@ -283,5 +284,17 @@
         li {
             background-color: $ff-grey-600;
         }
+    }
+}
+
+@media screen and (min-width: $ff-screen-sm){
+    .ff-layout--box--wrapper {
+        width: 75%;
+        padding: 128px 0;
+    }
+    .ff-layout--box--content {
+        min-width: 400px;
+        width: initial;
+        padding: 64px;
     }
 }
