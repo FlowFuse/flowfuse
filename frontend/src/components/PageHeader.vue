@@ -1,6 +1,22 @@
 <template>
     <div class="ff-header">
+        <!-- Mobile: Toggle(Team & Team Admin Options) -->
+        <i class="ff-header--mobile-toggle" :class="{'active': mobileMenuOpen}">
+            <MenuIcon class="ff-avatar" @click="$emit('menu-toggle')"/>
+        </i>
+        <!-- FlowForge Logo -->
         <img src="@/images/ff-logo--wordmark-caps--dark.png"/>
+        <!-- Mobile: Toggle(User Options) -->
+        <i class="ff-header--mobile-usertoggle" :class="{'active': mobileUserOptionsOpen}">
+            <img :src="user.avatar" class="ff-avatar" @click="mobileUserOptionsOpen = !mobileUserOptionsOpen" />
+        </i>
+        <!-- Mobile: User Options -->
+        <div class="ff-navigation ff-navigation-right" :class="{'open': mobileUserOptionsOpen}">
+            <nav-item v-for="option in options" :key="option.label"
+                      :label="option.label" :icon="option.icon"
+                      @click="mobileUserOptionsOpen = false; option.onclick(option.onclickparams)"></nav-item>
+        </div>
+        <!-- Desktop: User Options -->
         <ff-dropdown class="ff-navigation">
             <template v-slot:placeholder>
                 <div class="ff-user">
@@ -21,13 +37,19 @@ import { ref } from 'vue'
 import { mapState } from 'vuex'
 import router from '@/routes'
 
-import { QuestionMarkCircleIcon, AdjustmentsIcon, CogIcon, LogoutIcon } from '@heroicons/vue/solid'
+import { MenuIcon, QuestionMarkCircleIcon, AdjustmentsIcon, CogIcon, LogoutIcon } from '@heroicons/vue/solid'
 
 import NavItem from '@/components/NavItem'
 
 const navigation = router.options.routes.filter(r => r.navigationLink)
 export default {
     name: 'NavBar',
+    props: {
+        'mobile-menu-open': {
+            type: Boolean
+        }
+    },
+    emits: ['menu-toggle'],
     computed: {
         profile: function () {
             const profileLinks = router.options.routes.filter(r => {
@@ -41,10 +63,12 @@ export default {
         ...mapState('account', ['user'])
     },
     components: {
-        NavItem
+        NavItem,
+        MenuIcon
     },
     data () {
         return {
+            mobileUserOptionsOpen: false,
             options: [{
                 label: 'User Settings',
                 icon: CogIcon,

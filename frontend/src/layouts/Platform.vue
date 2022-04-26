@@ -1,8 +1,8 @@
 <template>
     <div class="ff-layout--platform">
-        <PageHeader />
+        <PageHeader :mobile-menu-open="mobileMenuOpen" @menu-toggle="toggleMenu"/>
         <div class="ff-layout--platform--wrapper">
-            <SideNavigation />
+            <SideNavigation :mobile-menu-open="mobileMenuOpen" @option-selected="mobileMenuOpen = false"/>
             <main>
                 <slot></slot>
             </main>
@@ -19,6 +19,16 @@ export default {
     components: {
         PageHeader,
         SideNavigation
+    },
+    data () {
+        return {
+            mobileMenuOpen: false
+        }
+    },
+    methods: {
+        toggleMenu () {
+            this.mobileMenuOpen = !this.mobileMenuOpen
+        }
     }
 }
 </script>

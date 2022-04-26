@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-navigation" v-if="team">
+    <div class="ff-navigation" v-if="team" :class="{'open': mobileMenuOpen}">
         <div class="ff-team-selection">
             <div>
                 <img :src="team.avatar" class="ff-avatar"/>
@@ -15,11 +15,14 @@
                 <nav-item label="Create Team" :icon="plusIcon" @click="createTeam"></nav-item>
             </ul>
         </div>
+        <!-- Team Options: General -->
         <ul class="ff-side-navigation--options">
-            <router-link v-for="route in routes.general" :key="route.label" :to="'/team/' + team.slug + route.to">
+            <router-link v-for="route in routes.general" :key="route.label"
+                         :to="'/team/' + team.slug + route.to" @click="$emit('option-selected')">
                 <nav-item :label="route.label" :icon="route.icon"></nav-item>
             </router-link>
         </ul>
+        <!-- Team Options: Admin -->
         <ul class="ff-side-navigation--admin">
             <router-link v-for="route in routes.admin" :key="route.label" :to="'/team/' + team.slug + route.to">
                 <nav-item :icon="route.icon" :label="route.label"></nav-item>
@@ -36,6 +39,8 @@ import NavItem from '@/components/NavItem'
 
 export default {
     name: 'FFSideNavigation',
+    props: ['mobile-menu-open'],
+    emits: ['option-selected'],
     components: {
         NavItem,
         SwitchHorizontalIcon
