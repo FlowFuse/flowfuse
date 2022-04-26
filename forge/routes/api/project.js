@@ -433,7 +433,7 @@ module.exports = async function (app) {
     /**
      *
      * @name /api/v1/project/:id/export
-     * @memberof forge.routes.api.project 
+     * @memberof forge.routes.api.project
      */
     app.post('/:projectId/export', async (request, reply) => {
         const components = request.body.components
@@ -478,7 +478,7 @@ module.exports = async function (app) {
 
     function decryptCreds (key, cipher) {
         let flows = cipher.$
-        const initVector = Buffer.from(flows.substring(0, 32),'hex')
+        const initVector = Buffer.from(flows.substring(0, 32), 'hex')
         flows = flows.substring(32)
         const decipher = crypto.createDecipheriv('aes-256-ctr', key, initVector)
         const decrypted = decipher.update(flows, 'base64', 'utf8') + decipher.final('utf8')
