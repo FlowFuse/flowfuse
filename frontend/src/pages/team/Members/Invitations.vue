@@ -47,7 +47,7 @@ export default {
         },
         async fetchData () {
             if (this.team && this.teamMembership) {
-                if (this.teamMembership.role !== Roles.Owner) {
+                if (this.teamMembership.role !== Roles.Owner && this.teamMembership.role !== Roles.Admin) {
                     useRouter().push({ path: `/team/${useRoute().params.team_slug}/members/general` })
                     return
                 }

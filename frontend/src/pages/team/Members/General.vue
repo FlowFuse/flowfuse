@@ -1,7 +1,7 @@
 <template>
     <FormHeading>
         Team Members
-        <template v-slot:tools v-if="isOwner">
+        <template v-slot:tools v-if="canModifyMembers">
             <ff-button kind="secondary" size="small" @click="inviteMember">
                 <template v-slot:icon-left><PlusSmIcon class="w-4" /></template>
                 Add member
@@ -15,7 +15,7 @@
 
     <ChangeTeamRoleDialog @roleUpdated="roleUpdated" ref="changeTeamRoleDialog" />
     <ConfirmTeamUserRemoveDialog @userRemoved="userRemoved" ref="confirmTeamUserRemoveDialog" />
-    <InviteMemberDialog :team="team" v-if="isOwner" ref="inviteMemberDialog" />
+    <InviteMemberDialog :team="team" v-if="canModifyMembers" ref="inviteMemberDialog" />
 </template>
 
 <script>
@@ -42,7 +42,7 @@ export default {
             userCount: 0,
             userColumns: [],
             ownerCount: 0,
-            isOwner: false
+            canModifyMembers: false
         }
     },
     watch: {
@@ -78,14 +78,14 @@ export default {
             this.ownerCount = 0
 
             const currentUser = this.users.find(user => user.username === this.$store.state.account.user.username)
-            this.isOwner = currentUser && currentUser.role === Roles.Owner
+            this.canModifyMembers = this.$store.state.account.user.admin || (currentUser && (currentUser.role === Roles.Owner))
 
             this.userColumns = [
                 { name: 'User', class: ['flex-grow'], component: { is: markRaw(UserCell) } },
                 { name: 'Role', class: ['w-40'], component: { is: markRaw(UserRoleCell) } }
             ]
 
-            if (this.isOwner) {
+            if (this.canModifyMembers) {
                 if (this.users) {
                     this.users.forEach(u => {
                         if (u.role === Roles.Owner) {
