@@ -106,11 +106,31 @@ module.exports = async function (app) {
                     name: { type: 'string' },
                     team: { type: ['string', 'number'] },
                     stack: { type: 'string' },
-                    template: { type: 'string' }
+                    template: { type: 'string' },
+                    sourceProject: {
+                        type: 'object',
+                        properties: {
+                            id: { type: 'string' },
+                            options: { type: 'object' }
+                        }
+                    }
                 }
             }
         }
     }, async (request, reply) => {
+        let sourceProject
+        if (request.body.sourceProject && request.body.sourceProject.id) {
+            sourceProject = await app.db.models.Project.byId(request.body.sourceProject.id)
+            if (!sourceProject) {
+                reply.code(400).send('Source Project Not Found')
+                return
+            } else if (sourceProject.Team.hashid !== request.body.team) {
+                console.log(sourceProject.Team.hashid, request.body.team)
+                reply.code(400).send('Source Project Not in Same Team')
+                return
+            }
+        }
+
         const teamMembership = await request.session.User.getTeamMembership(request.body.team, true)
         // Assume membership is enough to allow project creation.
         // If we have roles that limit creation, that will need to be checked here.
@@ -172,6 +192,67 @@ module.exports = async function (app) {
                 { model: app.db.models.ProjectTemplate }
             ]
         })
+
+        if (sourceProject) {
+            // need to copy values over
+            const settingsString = (await app.db.models.StorageSettings.byProject(sourceProject.id))?.settings
+            const sourceSettings = JSON.parse(settingsString)
+            const newSettings = {
+                ...sourceSettings.nodes,
+                users: {}
+            }
+            const options = request.body.sourceProject.options
+            if (options.flows) {
+                const sourceFlows = await app.db.models.StorageFlow.byProject(sourceProject.id)
+                const newFlow = await app.db.models.StorageFlow.create({
+                    flow: sourceFlows.flow,
+                    ProjectId: project.id
+                })
+                await newFlow.save()
+
+                if (options.creds) {
+                    // need to work out how to insert the credentialsSecret
+                    let newKey
+                    if (options.creds === true) {
+                        newKey = crypto.randomBytes(32).toString('hex')
+                    } else {
+                        newKey = options.creds
+                    }
+                    const origCredentials = await app.db.models.StorageCredentials.byProject(sourceProject.id)
+                    if (origCredentials) {
+                        const sourceCreds = JSON.parse(origCredentials.credentials)
+                        const newCreds = recryptCreds(sourceCreds, sourceSettings._credentialSecret, newKey)
+                        const creds = await app.db.models.StorageCredentials.create({
+                            credentials: JSON.stringify(newCreds),
+                            ProjectId: project.id
+                        })
+                        await creds.save()
+                        newSettings._credentialSecret = newKey
+                    }
+                }
+            }
+            const settings = await app.db.models.StorageSettings.create({
+                settings: JSON.stringify(newSettings),
+                ProjectId: project.id
+            })
+            await settings.save()
+
+            if (options.envVars) {
+                const sourceProjectSettings = await app.db.controllers.Project.getRuntimeSettings(sourceProject)
+                if (sourceProjectSettings && sourceProjectSettings.env) {
+                    const newEnvVars = {
+                        env: []
+                    }
+                    Object.keys(sourceProjectSettings.env).forEach(key => {
+                        newEnvVars.env.push({
+                            name: key,
+                            value: options.envVarsKo ? '' : sourceProjectSettings.env[key]
+                        })
+                    })
+                    await project.updateSetting('settings', newEnvVars)
+                }
+            }
+        }
 
         await app.containers.start(project)
 
@@ -442,18 +523,19 @@ module.exports = async function (app) {
         if (components.flows) {
             const flows = await app.db.models.StorageFlow.byProject(request.project.id)
             projectExport.flows = !flows ? [] : JSON.parse(flows.flow)
-        }
-        if (components.creds) {
-            const origCredentials = await app.db.models.StorageCredentials.byProject(request.project.id)
-            if (origCredentials) {
-                const encryptedCreds = JSON.parse(origCredentials.credentials)
-                const settings = JSON.parse((await app.db.models.StorageSettings.byProject(request.project.id)).settings)
-                const key = crypto.createHash('sha256').update(settings._credentialSecret).digest()
-                const plainText = decryptCreds(key, encryptedCreds)
-                const newKey = crypto.createHash('sha256').update(components.creds).digest()
-                const newCreds = encryptCreds(newKey, plainText)
 
-                projectExport.credentials = newCreds
+            if (components.creds) {
+                const origCredentials = await app.db.models.StorageCredentials.byProject(request.project.id)
+                if (origCredentials) {
+                    const encryptedCreds = JSON.parse(origCredentials.credentials)
+                    const settings = JSON.parse((await app.db.models.StorageSettings.byProject(request.project.id)).settings)
+                    const key = crypto.createHash('sha256').update(settings._credentialSecret).digest()
+                    const plainText = decryptCreds(key, encryptedCreds)
+                    const newKey = crypto.createHash('sha256').update(components.creds).digest()
+                    const newCreds = encryptCreds(newKey, plainText)
+
+                    projectExport.credentials = newCreds
+                }
             }
         }
         if (components.envVars) {
@@ -475,6 +557,12 @@ module.exports = async function (app) {
         }
         reply.send(projectExport)
     })
+
+    function recryptCreds (original, oldKey, newKey) {
+        const newHash = crypto.createHash('sha256').update(newKey).digest()
+        const oldHash = crypto.createHash('sha256').update(oldKey).digest()
+        return encryptCreds(newHash, decryptCreds(oldHash, original))
+    }
 
     function decryptCreds (key, cipher) {
         let flows = cipher.$

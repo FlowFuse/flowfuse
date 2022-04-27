@@ -4,17 +4,14 @@
             Flows
             <template #description>Export Project Flows</template>
         </FormRow>
-        <div v-if="parts.flows">
-            <FormRow type="checkbox" v-model="parts.creds">
-                Credentials
-                <template #description>Export Flow Credentials</template>
-            </FormRow>
-            <FormRow type="text" v-model="parts.credsSecret" v-bind:disabled="!parts.creds">
-                Secret
-                <template #description>Provide a Secret to encrypt the exported Credentials</template>
-            </FormRow>
-        </div>
-        <!-- <FormRow type="checkbox" v-model="parts.nodes">Installed Nodes</FormRow> -->
+        <FormRow type="checkbox" v-bind:disabled="!parts.flows" v-model="parts.creds">
+            Credentials
+            <template #description>Export Flow Credentials</template>
+        </FormRow>
+        <FormRow type="text" v-model="parts.credsSecret" v-bind:disabled="!parts.flows && !parts.creds">
+            Secret
+            <template #description>Provide a Secret to encrypt the exported Credentials</template>
+        </FormRow>
         <FormRow type="checkbox" v-model="parts.envVars">
             Environment Variables
             <template #description>Export Environment Variables</template>

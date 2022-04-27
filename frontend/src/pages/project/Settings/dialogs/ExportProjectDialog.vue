@@ -76,8 +76,8 @@ export default {
     methods: {
         confirm () {
             const parts = this.parts
-            if (parts.creds && parts.credsSecret) {
-                parts.creds = parts.credsSecret
+            if (parts.creds && parts.credsSecret.trim()) {
+                parts.creds = parts.credsSecret.trim()
                 delete parts.credsSecret
             }
             this.$emit('exportProject', this.parts)
