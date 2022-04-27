@@ -98,6 +98,7 @@ export default {
                 billingConfirmation: false
             },
             parts: {
+                showSecret: false,
                 flows: true,
                 creds: true,
                 nodes: true,
@@ -161,6 +162,7 @@ export default {
             async show (project) {
                 this.project = project
                 this.parts = {
+                    showSecret: false,
                     flows: true,
                     creds: true,
                     nodes: true,

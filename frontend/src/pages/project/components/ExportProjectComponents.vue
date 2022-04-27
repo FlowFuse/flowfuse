@@ -8,7 +8,7 @@
             Credentials
             <template #description>Export Flow Credentials</template>
         </FormRow>
-        <FormRow type="text" v-model="parts.credsSecret" v-bind:disabled="!parts.flows && !parts.creds">
+        <FormRow v-if="parts.showSecret" type="text" v-model="parts.credsSecret" v-bind:disabled="!parts.flows && !parts.creds">
             Secret
             <template #description>Provide a Secret to encrypt the exported Credentials</template>
         </FormRow>
