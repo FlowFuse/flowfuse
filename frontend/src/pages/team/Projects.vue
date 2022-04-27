@@ -1,11 +1,16 @@
 <template>
     <form class="space-y-6">
         <template v-if="projects.length > 0">
+            <FormHeading>
+                <template v-if="createProjectEnabled" v-slot:tools>
+                    <ff-button kind="primary" size="small" to="./projects/create"><template v-slot:icon-left><PlusSmIcon /></template>Create Project</ff-button>
+                </template>
+            </FormHeading>
             <ItemTable :items="projects" :columns="columns" />
         </template>
         <template v-else-if="createProjectEnabled">
             <div class="flex justify-center mb-4 p-8">
-                <ff-button>
+                <ff-button to="./projects/create">
                     <template v-slot:icon-right>
                         <PlusSmIcon />
                     </template>
@@ -27,6 +32,7 @@ import { Roles } from '@core/lib/roles'
 import teamApi from '@/api/team'
 import ItemTable from '@/components/tables/ItemTable'
 import { PlusSmIcon } from '@heroicons/vue/outline'
+import FormHeading from '@/components/FormHeading'
 
 import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
 
@@ -63,6 +69,7 @@ export default {
     },
     props: ['team', 'teamMembership'],
     components: {
+        FormHeading,
         ItemTable,
         PlusSmIcon
     }
