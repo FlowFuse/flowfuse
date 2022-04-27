@@ -35,6 +35,7 @@ import { LogoutIcon, PlayIcon, StopIcon, ChipIcon, UserIcon, PencilIcon } from '
 
 const eventDescriptions = {
     'project.created': 'Project created',
+    'project.dulplicated': 'Project Duplicated',
     'project.deleted': 'Project deleted',
     'project.stopped': 'Project stopped',
     'project.started': 'Project started',
@@ -54,6 +55,7 @@ const eventIcons = {
     'project.started': 'play',
     'project.stopped': 'stop',
     'project.created': 'create',
+    'project.duplicated': 'create',
     'project.deleted': 'create',
     'auth.login': 'user',
     'auth.login.revoke': 'logout',

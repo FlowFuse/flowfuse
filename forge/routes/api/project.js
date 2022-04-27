@@ -118,6 +118,17 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
+        const teamMembership = await request.session.User.getTeamMembership(request.body.team, true)
+        // Assume membership is enough to allow project creation.
+        // If we have roles that limit creation, that will need to be checked here.
+
+        if (!teamMembership) {
+            reply.code(401).send({ error: 'Current user not in team ' + request.body.team })
+            return
+        }
+
+        const team = teamMembership.get('Team')
+
         let sourceProject
         if (request.body.sourceProject && request.body.sourceProject.id) {
             sourceProject = await app.db.models.Project.byId(request.body.sourceProject.id)
@@ -130,17 +141,6 @@ module.exports = async function (app) {
                 return
             }
         }
-
-        const teamMembership = await request.session.User.getTeamMembership(request.body.team, true)
-        // Assume membership is enough to allow project creation.
-        // If we have roles that limit creation, that will need to be checked here.
-
-        if (!teamMembership) {
-            reply.code(401).send({ error: 'Current user not in team ' + request.body.team })
-            return
-        }
-
-        const team = teamMembership.get('Team')
 
         const stack = await app.db.models.ProjectStack.byId(request.body.stack)
 
@@ -261,12 +261,26 @@ module.exports = async function (app) {
             request.session.User.id,
             'project.created'
         )
-        await app.db.controllers.AuditLog.teamLog(
-            team.id,
-            request.session.User.id,
-            'project.created',
-            { id: project.id, name: project.name }
-        )
+        if (sourceProject) {
+            await app.db.controllers.AuditLog.teamLog(
+                team.id,
+                request.session.User.id,
+                'project.duplicated',
+                {
+                    sourceId: sourceProject.id,
+                    sourceName: sourceProject.name,
+                    newId: project.id,
+                    newName: project.name
+                }
+            )
+        } else {
+            await app.db.controllers.AuditLog.teamLog(
+                team.id,
+                request.session.User.id,
+                'project.created',
+                { id: project.id, name: project.name }
+            )
+        }
 
         const result = await app.db.views.Project.project(project)
 
