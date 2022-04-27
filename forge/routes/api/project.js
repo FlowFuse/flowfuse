@@ -118,19 +118,6 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        let sourceProject
-        if (request.body.sourceProject && request.body.sourceProject.id) {
-            sourceProject = await app.db.models.Project.byId(request.body.sourceProject.id)
-            if (!sourceProject) {
-                reply.code(400).send('Source Project Not Found')
-                return
-            } else if (sourceProject.Team.hashid !== request.body.team) {
-                console.log(sourceProject.Team.hashid, request.body.team)
-                reply.code(400).send('Source Project Not in Same Team')
-                return
-            }
-        }
-
         const teamMembership = await request.session.User.getTeamMembership(request.body.team, true)
         // Assume membership is enough to allow project creation.
         // If we have roles that limit creation, that will need to be checked here.
