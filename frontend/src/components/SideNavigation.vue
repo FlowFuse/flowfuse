@@ -22,8 +22,9 @@
                 <nav-item :label="route.label" :icon="route.icon"></nav-item>
             </router-link>
         </ul>
+        <span v-if="showAdmin" class="ff-navigation-divider">Team Admin Zone</span>
         <!-- Team Options: Admin -->
-        <ul class="ff-side-navigation--admin">
+        <ul v-if="showAdmin" class="ff-side-navigation--admin">
             <router-link v-for="route in routes.admin" :key="route.label" :to="'/team/' + team.slug + route.to">
                 <nav-item :icon="route.icon" :label="route.label"></nav-item>
             </router-link>
@@ -33,6 +34,8 @@
 
 <script>
 import { mapState } from 'vuex'
+
+import { Roles } from '@core/lib/roles'
 
 import { SwitchHorizontalIcon, CollectionIcon, UsersIcon, DatabaseIcon, CurrencyDollarIcon, CogIcon, PlusIcon } from '@heroicons/vue/solid'
 import NavItem from '@/components/NavItem'
@@ -46,7 +49,10 @@ export default {
         SwitchHorizontalIcon
     },
     computed: {
-        ...mapState('account', ['user', 'team', 'teams', 'teamMembership'])
+        ...mapState('account', ['user', 'team', 'teams', 'teamMembership']),
+        showAdmin: function () {
+            return this.teamMembership.role === Roles.Admin || this.teamMembership.role === Roles.Owner
+        }
     },
     data () {
         return {

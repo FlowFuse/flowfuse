@@ -244,8 +244,13 @@
         left: initial;
         right: 0;
     }
-    ul {
-        border-bottom: 2px solid $ff-red-600;
+    .ff-navigation-divider {
+        background-color: $ff-grey-800;
+        color: white;
+        padding: 6px 12px;
+        display: block;
+        font-size: 0.85rem;
+        border-bottom: 1px solid $ff-grey-600;
     }
     .ff-dropdown-options .ff-dropdown-option {
         padding: 0;
