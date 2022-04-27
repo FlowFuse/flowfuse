@@ -85,8 +85,12 @@
                         <code>{{ groups[1].components[0].examples[0].code }}</code>
                     </div>
                     <div class="example">
-                        <ff-text-input :password="true" placeholder="Password goes here..."/>
+                        <ff-text-input type="password" placeholder="Password goes here..."/>
                         <code>{{ groups[1].components[0].examples[1].code }}</code>
+                    </div>
+                    <div class="example">
+                        <ff-text-input type="email"/>
+                        <code>{{ groups[1].components[0].examples[2].code }}</code>
                     </div>
                 </div>
             </div>
@@ -177,7 +181,9 @@ export default {
                     examples: [{
                         code: '<ff-text-input v-model="myVar" placeholder="Insert something here..." />'
                     }, {
-                        code: '<ff-text-input :password"true" v-model="myPassword" placeholder="Password goes here..." />'
+                        code: '<ff-text-input :type"password" v-model="myPassword" placeholder="Password goes here..." />'
+                    }, {
+                        code: '<ff-text-input :type"email" v-model="myEmail" />'
                     }],
                     props: [{
                         key: 'disabled',
@@ -188,9 +194,9 @@ export default {
                         default: 'null',
                         description: 'Informative text to assist the user with the information required in this input field.'
                     }, {
-                        key: 'password',
-                        default: 'false',
-                        description: 'Hide the content of this text input as a password field.'
+                        key: 'type',
+                        default: 'text',
+                        description: 'text, email, or password. password hides the content of the text input'
                     }]
                 }]
             }]
