@@ -7,7 +7,11 @@
                 <div class="text-l text-gray-400">{{ user.username }}</div>
             </div>
         </div>
-        <SectionTopMenu :options="navigation" />
+        <SectionTopMenu :options="navigation">
+            <template v-slot:hero>
+                <div class="text-gray-800 text-xl font-bold">User Settings</div>
+            </template>
+        </SectionTopMenu>
         <div class="text-sm sm:px-6 mt-4 sm:mt-8">
             <router-view></router-view>
         </div>

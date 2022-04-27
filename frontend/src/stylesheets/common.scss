@@ -6,3 +6,17 @@
     transition: 0.3s background-color, 0.3s color;
     -webkit-transition: 0.3s background-color, 0.3s color;
 }
+
+#ff-app {
+    background-color: $ff-grey-300;
+}
+
+.ff-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+}
+
+label {
+    cursor: inherit;
+}

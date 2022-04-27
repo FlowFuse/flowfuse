@@ -11,7 +11,7 @@
                 </router-link>
             </template>
         </SectionTopMenu>
-        <div class="text-sm sm:px-6 mt-4 sm:mt-8">
+        <div class="">
             <router-view :team="team" :teamMembership="teamMembership"></router-view>
         </div>
     </div>

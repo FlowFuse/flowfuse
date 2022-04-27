@@ -1,6 +1,10 @@
 <template>
     <div class="forge-block">
-        <SectionTopMenu :options="navigation"></SectionTopMenu>
+        <SectionTopMenu :options="navigation">
+            <template v-slot:hero>
+                <div class="text-gray-800 text-xl font-bold">Admin Settings</div>
+            </template>
+        </SectionTopMenu>
         <div class="text-sm sm:px-6 mt-4 sm:mt-8">
             <router-view></router-view>
         </div>
