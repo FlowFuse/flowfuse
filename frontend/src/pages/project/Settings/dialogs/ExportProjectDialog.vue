@@ -64,6 +64,7 @@ export default {
     data () {
         return {
             parts: {
+                showSecret: true,
                 flows: true,
                 creds: false,
                 nodes: true,
@@ -95,6 +96,7 @@ export default {
             async show (project) {
                 this.project = project
                 this.parts = {
+                    showSecret: true,
                     flows: true,
                     creds: false,
                     nodes: true,
