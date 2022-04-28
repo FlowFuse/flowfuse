@@ -23,6 +23,7 @@
             <div class="section" id="section-buttons">
                 <!-- Buttons -->
                 <h1>Buttons</h1>
+                <!-- FF Button -->
                 <h2 ref="ff-button"><pre>ff-button</pre></h2>
                 <h3>Properties:</h3>
                 <props-table :rows="groups['button'].components[0].props"></props-table>
@@ -76,6 +77,27 @@
                             <template v-slot:icon><PlusSmIcon /></template>
                         </ff-button>
                         <code>{{ groups['button'].components[0].examples[8].code }}</code>
+                    </div>
+                </div>
+                <!-- FF Kebab Menu -->
+                <h2 ref="ff-kebab-menu"><pre>ff-kebab-menu</pre></h2>
+                <h3>Properties:</h3>
+                <props-table :rows="groups['button'].components[1].props"></props-table>
+                <h3>Examples:</h3>
+                <div class="examples">
+                    <div class="example">
+                        <ff-kebab-menu menu-align="left">
+                            <ff-list-item label="Option 1" />
+                            <ff-list-item label="Option 2" />
+                        </ff-kebab-menu>
+                        <code>{{ groups['button'].components[1].examples[0].code }}</code>
+                    </div>
+                    <div class="example">
+                        <ff-kebab-menu style="margin-left: 150px;" menu-align="right">
+                            <ff-list-item label="Option 1" />
+                            <ff-list-item label="Option 2" />
+                        </ff-kebab-menu>
+                        <code>{{ groups['button'].components[1].examples[1].code }}</code>
                     </div>
                 </div>
             </div>

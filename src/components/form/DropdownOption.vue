@@ -1,6 +1,6 @@
 <template>
     <div class="ff-dropdown-option" @click="select()">
-        {{ label }}
+        <slot>{{ label }}</slot>
     </div>
 </template>
 

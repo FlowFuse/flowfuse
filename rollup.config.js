@@ -30,7 +30,8 @@ export default [
             }),
             copy({
                 targets: [
-                    { src: 'src/stylesheets/ff-colors.scss', dest: 'dist/scss', rename: 'forge-colors.scss' }
+                    { src: 'src/stylesheets/ff-colors.scss', dest: 'dist/scss', rename: 'forge-colors.scss' },
+                    { src: 'src/stylesheets/ff-utility.scss', dest: 'dist/scss', rename: 'forge-variables.scss' }
                 ]
             })
         ]
