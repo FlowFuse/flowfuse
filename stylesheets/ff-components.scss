@@ -128,6 +128,57 @@
 
   &:disabled {
     cursor: not-allowed;
+    border-color: $ff-grey-200;
+    color: $ff-grey-400;
+    background-color: $ff-grey-200;
+  }
+}
+
+/*
+  FF Kebab Menu
+*/
+
+.ff-kebab-menu {
+  position: relative;
+  >svg {
+    width: 20px;
+    cursor: pointer;
+    &:hover {
+      fill: $ff-blue-600;
+    }
+  }
+  &.active {
+    >svg {
+      fill: $ff-blue-600;
+    }
+  }
+}
+
+.ff-kebab-options {
+  position: absolute;
+  top: 24px;
+  border: 1px solid $ff-grey-300;
+  z-index: 10;
+  li {
+    min-width: 150px;    
+  }
+  &--left {
+    left: 0;
+  }
+  &--right {
+    right: calc(100% - 24px);
+  }
+}
+
+/*
+  FF List Item
+*/
+li.ff-list-item {
+  padding: 12px 48px 12px 12px;
+  background-color: white;
+  &:hover {
+    cursor: pointer;
+    background-color: $ff-grey-200;
   }
 }
 

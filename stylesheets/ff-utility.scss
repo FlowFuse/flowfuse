@@ -2,6 +2,13 @@
     ff-utility contains functional variables and classes for padding/margin and sizings
 */
 
+// screen sizes
+$ff-screen-sm: 640px; 
+$ff-screen-md: 768px; 
+$ff-screen-lg: 1024px; 
+$ff-screen-xl: 1280px; 
+$ff-screen-2xl: 1536px;
+
 // unit
 $ff-unit-xs: 3px;
 $ff-unit-sm: 6px;

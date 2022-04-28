@@ -1,10 +1,10 @@
 <template>
     <div class="ff-dropdown" :class="'ff-dropdown--' + (isOpen ? 'open' : 'closed')">
-        <div v-if="dropdownStyle === 'select'" @click="open()">
-            <div class="ff-dropdown-selected">
+        <div v-if="dropdownStyle === 'select'" @click="open()" class="ff-dropdown-selected">
+            <slot name="placeholder">
                 {{ selected?.label || placeholder }}
-                <ChevronDownIcon class="ff-icon"/>
-            </div>
+            </slot>
+            <ChevronDownIcon class="ff-icon"/>
         </div>
         <ff-button v-else-if="dropdownStyle === 'button'" @click="open()">
             {{ placeholder }}
@@ -32,7 +32,7 @@ export default {
             default: 'Please Select'
         },
         dropdownStyle: {
-            default: 'select'
+            default: 'select' // 'button' or 'select'
         },
         optionsAlign: {
             default: 'left',
