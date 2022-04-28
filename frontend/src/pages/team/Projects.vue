@@ -32,7 +32,6 @@ import { Roles } from '@core/lib/roles'
 import teamApi from '@/api/team'
 import ItemTable from '@/components/tables/ItemTable'
 import { PlusSmIcon } from '@heroicons/vue/outline'
-import FormHeading from '@/components/FormHeading'
 import SectionTopMenu from '@/components/SectionTopMenu'
 
 import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
@@ -70,7 +69,6 @@ export default {
     },
     props: ['team', 'teamMembership'],
     components: {
-        FormHeading,
         ItemTable,
         PlusSmIcon,
         SectionTopMenu

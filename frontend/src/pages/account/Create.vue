@@ -38,9 +38,6 @@ import { mapState } from 'vuex'
 
 import userApi from '@/api/user'
 
-import Logo from '@/components/Logo'
-import FormRow from '@/components/FormRow'
-import FormHeading from '@/components/FormHeading'
 import { useRoute } from 'vue-router'
 
 import FFLayoutBox from '@/layouts/Box'
@@ -48,9 +45,6 @@ import FFLayoutBox from '@/layouts/Box'
 export default {
     name: 'AccountCreate',
     components: {
-        Logo,
-        FormRow,
-        FormHeading,
         'ff-layout-box': FFLayoutBox
     },
     data () {

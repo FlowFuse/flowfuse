@@ -22,7 +22,6 @@
 
 <script>
 import { mapState } from 'vuex'
-import FormRow from '@/components/FormRow'
 
 export default {
     name: 'AuthCredentials',
@@ -74,9 +73,6 @@ export default {
             this.focusUsername()
             this.errors.general = 'Login failed'
         }
-    },
-    components: {
-        FormRow
     }
 }
 </script>
