@@ -28,15 +28,8 @@ export default {
             active: -1
         }
     },
-    watch: {
-        active: function () {
-            console.log(this.active)
-        }
-    },
     created () {
-        console.log(this.orientation)
         this.tabs = this.$slots.default().map((vnode) => {
-            console.log(vnode)
             return vnode.props
         })
     },
