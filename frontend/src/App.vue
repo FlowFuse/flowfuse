@@ -14,17 +14,20 @@
                 </div>
             </main>
         </template>
+        <!-- Platform Entry Point -->
         <template v-else-if="user && !user.password_expired">
             <ff-layout-platform>
                 <router-view></router-view>
             </ff-layout-platform>
         </template>
+        <!-- Password Reset Required -->
         <template v-else-if="user && user.password_expired">
             <PasswordExpired/>
         </template>
         <template v-else-if="!loginRequired">
             <router-view></router-view>
         </template>
+        <!-- Authentication Screen -->
         <template v-else>
             <Login/>
         </template>

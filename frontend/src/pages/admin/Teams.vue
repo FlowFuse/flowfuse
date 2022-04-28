@@ -1,6 +1,6 @@
 <template>
-    <form class="space-y-6">
-        <FormHeading>Teams</FormHeading>
+    <form>
+        <SectionTopMenu hero="Teams" />
         <ItemTable :items="teams" :columns="columns" />
         <div v-if="nextCursor">
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
@@ -12,8 +12,9 @@
 import teamsApi from '@/api/teams'
 
 import ItemTable from '@/components/tables/ItemTable'
-import FormHeading from '@/components/FormHeading'
 import Breadcrumbs from '@/mixins/Breadcrumbs'
+
+import SectionTopMenu from '@/components/SectionTopMenu'
 
 import TeamCell from '@/components/tables/cells/TeamCell'
 import { markRaw } from 'vue'
@@ -53,7 +54,7 @@ export default {
         }
     },
     components: {
-        FormHeading,
+        SectionTopMenu,
         ItemTable
     }
 }

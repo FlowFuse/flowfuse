@@ -5,7 +5,7 @@
             <MenuIcon class="ff-avatar" @click="$emit('menu-toggle')"/>
         </i>
         <!-- FlowForge Logo -->
-        <img src="@/images/ff-logo--wordmark-caps--dark.png"/>
+        <img src="@/images/ff-logo--wordmark-caps--dark.png" @click="home()"/>
         <!-- Mobile: Toggle(User Options) -->
         <i class="ff-header--mobile-usertoggle" :class="{'active': mobileUserOptionsOpen}">
             <img :src="user.avatar" class="ff-avatar" @click="mobileUserOptionsOpen = !mobileUserOptionsOpen" />
@@ -60,7 +60,7 @@ export default {
             })
             return profileLinks
         },
-        ...mapState('account', ['user'])
+        ...mapState('account', ['user', 'team'])
     },
     components: {
         NavItem,
@@ -99,6 +99,9 @@ export default {
         }
     },
     methods: {
+        home () {
+            this.$router.push({ name: 'Team', params: { team_slug: this.team.slug } })
+        },
         to (route) {
             window.open(route.url, '_blank')
         },

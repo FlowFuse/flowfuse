@@ -1,5 +1,6 @@
 <template>
-    <div class="sm:ml-32 max-w-2xl grid grid-cols-3 gap-4 text-gray-700">
+    <SectionTopMenu hero="Admin Settings" />
+    <div class="grid grid-cols-3 gap-4 text-gray-700">
         <div class="border rounded px-4 py-2 text-center">
             <router-link to="/admin/users/general">
                 <div class="text-xl">{{stats.userCount}}</div>
@@ -40,11 +41,10 @@
 
 <script>
 import adminApi from '@/api/admin'
-import Breadcrumbs from '@/mixins/Breadcrumbs'
+import SectionTopMenu from '@/components/SectionTopMenu'
 
 export default {
     name: 'AdminSettingsGeneral',
-    mixins: [Breadcrumbs],
     data: function () {
         return {
             license: {},
@@ -55,11 +55,8 @@ export default {
         this.stats = await adminApi.getStats()
         this.license = await adminApi.getLicenseDetails()
     },
-    created () {
-        this.setBreadcrumbs([
-            { label: 'Admin', to: { name: 'Admin Settings' } },
-            { label: 'Overview' }
-        ])
+    components: {
+        SectionTopMenu
     }
 }
 </script>

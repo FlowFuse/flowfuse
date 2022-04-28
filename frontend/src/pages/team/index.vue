@@ -1,12 +1,15 @@
 <template>
-    <template v-if="pendingTeamChange">
-        <Loading />
-    </template>
-    <div class="forge-block" v-else-if="team">
-        <div class="">
+    <Teleport v-if="mounted" to="#platform-sidenav">
+        <SideNavigationTeamOptions/>
+    </Teleport>
+    <main>
+        <template v-if="pendingTeamChange">
+            <Loading />
+        </template>
+        <div v-else-if="team">
             <router-view :team="team" :teamMembership="teamMembership"></router-view>
         </div>
-    </div>
+    </main>
 </template>
 
 <script>
@@ -18,6 +21,8 @@ import Loading from '@/components/Loading'
 import { useRoute } from 'vue-router'
 import { mapState } from 'vuex'
 
+import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vue'
+
 export default {
     name: 'TeamPage',
     mixins: [Breadcrumbs],
@@ -26,7 +31,16 @@ export default {
         ...mapState(['features'])
     },
     components: {
-        Loading
+        Loading,
+        SideNavigationTeamOptions
+    },
+    data () {
+        return {
+            mounted: false
+        }
+    },
+    mounted () {
+        this.mounted = true
     },
     methods: {
         checkRoute: async function (route) {

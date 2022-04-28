@@ -41,6 +41,7 @@ export default [
             { path: 'overview', component: TeamOverview },
             {
                 path: 'projects',
+                name: 'Projects',
                 component: TeamProjects,
                 meta: {
                     title: 'Team - Projects'
