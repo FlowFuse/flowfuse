@@ -6,7 +6,9 @@
         "examples": [{
             "code": "<ff-text-input v-model=\"myVar\" placeholder=\"Insert something here...\" />"
         }, {
-            "code": "<ff-text-input :password\"true\" v-model=\"myPassword\" placeholder=\"Password goes here...\" />"
+            "code": "<ff-text-input type\"password\" v-model=\"myPassword\" placeholder=\"Password goes here...\" />"
+        }, {
+            "code": "<ff-text-input type\"email\" v-model=\"myEmail\" />"
         }],
         "props": [{
             "key": "disabled",
