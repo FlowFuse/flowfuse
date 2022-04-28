@@ -1,5 +1,6 @@
 name: Release Published
 on:
+  workflow_dispatch:
   push:
     tags:
       - "v*.*.*"
