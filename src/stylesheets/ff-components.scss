@@ -2,8 +2,20 @@
   ff-core contains styling on the custom, ff components
 */
 
+.ff-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.ff-icon-sm {
+  width: 16px;
+  height: 16px;
+}
+
+/*
+  FF Button
+*/
 .ff-btn {
-  padding: $ff-unit-sm $ff-unit-lg;
   border-radius: $ff-unit-sm;
   display: flex;
   align-items: center;
@@ -11,6 +23,12 @@
   line-height: 20px;
   height: 32px;
   position: relative;
+  
+  justify-content: center;
+  font-weight: bold;
+  height: auto;
+  padding: $ff-unit-sm 16px;
+  border: 0;
 
   &.ff-btn-icon {
     padding: $ff-unit-sm $ff-unit-md;
@@ -57,7 +75,8 @@
     }
   }
   &--danger {
-    color: $ff-color--danger;
+    color: $ff-white;
+    background-color: $ff-color--danger;
     border: 1px solid $ff-color--danger;
     &:hover {
       background-color: $ff-color--danger;
@@ -100,7 +119,8 @@
     .ff-btn--icon-left {
       left: 0;
       padding-left: $ff-unit-lg;
-    }.ff-btn--icon-left {
+    }
+    .ff-btn--icon-left {
       right: 0;
       padding-right: $ff-unit-lg;
     }
@@ -108,11 +128,63 @@
 
   &:disabled {
     cursor: not-allowed;
-    background-color: $ff-white;
-    border-color: $ff-grey-300;
-    color: $ff-grey-300;
+    border-color: $ff-grey-200;
+    color: $ff-grey-400;
+    background-color: $ff-grey-200;
   }
 }
+
+/*
+  FF Kebab Menu
+*/
+
+.ff-kebab-menu {
+  position: relative;
+  >svg {
+    width: 20px;
+    cursor: pointer;
+    &:hover {
+      fill: $ff-blue-600;
+    }
+  }
+  &.active {
+    >svg {
+      fill: $ff-blue-600;
+    }
+  }
+}
+
+.ff-kebab-options {
+  position: absolute;
+  top: 24px;
+  border: 1px solid $ff-grey-300;
+  z-index: 10;
+  li {
+    min-width: 150px;    
+  }
+  &--left {
+    left: 0;
+  }
+  &--right {
+    right: calc(100% - 24px);
+  }
+}
+
+/*
+  FF List Item
+*/
+li.ff-list-item {
+  padding: 12px 48px 12px 12px;
+  background-color: white;
+  &:hover {
+    cursor: pointer;
+    background-color: $ff-grey-200;
+  }
+}
+
+/*
+  FF Input
+*/
 
 .ff-input {
   &.ff-text-input {
@@ -121,5 +193,258 @@
     padding: $ff-unit-sm $ff-unit-md;
     height: 32px;
     width: 100%;
+    &:focus {
+      outline: none;
+    }
+  }
+}
+
+.ff-input--error {
+  &.ff-text-input {
+    border-color: $ff-red-300;
+  }
+}
+
+.ff-dropdown {
+  position: relative;
+  display: inline-block;
+  .ff-dropdown-selected {
+    border: 1px solid $ff-grey-300;
+    border-radius: $ff-unit-xs;
+    padding: $ff-unit-sm $ff-unit-md;
+    height: 32px;
+    width: 100%;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    z-index: 2;
+  }
+  .ff-dropdown-options {
+    position: absolute;
+    top: 100%;
+    display: none;
+    box-shadow: 0px 6px 9px 0px #00000038;
+    .ff-dropdown-option {
+      padding: $ff-unit-sm $ff-unit-md;
+      background-color: $ff-grey-50;
+      &:hover {
+        background-color: $ff-grey-200;
+      }
+    }
+    &.ff-dropdown-options--full-width {
+      width: 100%;
+      border-width: 0 1px 1px 1px;
+    }
+    &.ff-dropdown-options--fit {
+      border-width: 1px;
+      min-width: none;
+      .ff-dropdown-option {
+        padding-right: $ff-unit-xl;
+      }
+    }
+    &.ff-dropdown-options--align-left {
+      left: 0;
+    }
+    &.ff-dropdown-options--align-right {
+      right: 0;
+    }
+  }
+  &.ff-dropdown--open {
+    .ff-dropdown-selected {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+    .ff-dropdown-options {
+      display: block;
+    }
+  }
+}
+
+.ff-checkbox,
+.ff-radio-btn {
+  position: relative;
+  padding-left: 25px;
+  cursor: pointer;
+  input[type=checkbox], input[type=radio] {
+    display: none
+    // background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e")
+  }
+  label {
+    cursor: pointer;
+  }
+  /* Create a custom checkbox */
+  .checkbox {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 16px;
+    width: 16px;
+    border-radius: $ff-unit-xs;
+    background-color: transparent;
+    border: 1px solid $ff-grey-400;    
+  }
+  .checkbox:after {
+    content: "";
+    display: none;
+    position: absolute;
+    left: 4.5px;
+    top: 1px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+  }
+  &:hover {
+    .checkbox {
+      background-color: $ff-grey-200;
+    }
+  }
+  .checkbox {
+    &[checked=true] {
+      background-color: $ff-grey-800;
+      border-color: $ff-grey-900;
+    }
+    &[checked=true]:after {
+      display: block;
+    }
+  }
+}
+
+.ff-radio-group {
+  .ff-radio-group-label {
+    display: block;
+    margin-bottom: $ff-unit-md;
+  }
+  &.ff-radio-group--horizontal {
+    .ff-radio-btn {
+      margin-right: $ff-funit-lg;
+    }
+  }
+  &.ff-radio-group--vertical {
+    .ff-radio-btn {
+      display: block;
+      margin-bottom: $ff-funit-md;
+    }
+  }
+}
+
+.ff-radio-btn {
+  .checkbox {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 16px;
+    width: 16px;
+    border-radius: 8px;
+    background-color: transparent;
+    border: 1px solid $ff-grey-400;    
+  }
+  .checkbox:after {
+    content: "";
+    display: none;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 14px;
+    height: 14px;
+    background-color: black;
+    border: solid white;
+    border-width: 2px;
+    border-radius: 50%;
+  }
+}
+
+/*
+  FF Dialog Box
+*/
+.ff-dialog-container {
+  position: fixed;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+  &--open {
+    display: flex;
+  }
+  &--closed {
+    display: none;
+  }
+}
+
+.ff-dialog-box {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 42rem;
+  background-color: $ff-white;
+  .ff-dialog {
+    &-header {
+      height: 48px;
+      line-height: 48px;
+      background-color: $ff-grey-800;
+      border-bottom: 2px solid $ff-red-400;
+      padding: 0 $ff-unit-lg;
+      color: $ff-white;
+      font-weight: 600;
+    }
+    &-content {
+      padding: $ff-funit-lg;
+    }
+    &-actions {
+      display: flex;
+      justify-content: flex-end;
+      padding: 0 $ff-unit-lg $ff-unit-lg $ff-unit-lg;
+      .ff-btn {
+        margin-left: $ff-funit-md;
+      }
+    }
+  }
+}
+
+.ff-dialog-backdrop {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: $ff-grey-800;
+  opacity: 0.3;
+}
+
+/*
+  FF Tabs
+*/
+.ff-tabs {
+  display: flex;
+  .ff-tab-option {
+    padding: $ff-unit-md;
+    &:hover {
+      color: $ff-blue-700;
+      cursor: pointer;
+    }
+  }
+  &.ff-tabs--horizontal {
+    flex-direction: row;
+    .ff-tab-option {
+      margin-right: $ff-unit-md;
+      &.ff-tab-option--active {
+        border-bottom: $ff-unit-xs solid $ff-blue-700;
+      }
+    }
+  }
+  &.ff-tabs--vertical {
+    flex-direction: column;
+    .ff-tab-option {
+      border-left-width: $ff-unit-xs;
+      border-color: transparent;
+      margin-bottom: $ff-unit-md;
+      &.ff-tab-option--active {
+        border-left: $ff-unit-xs solid $ff-blue-700;
+      }
+    }
   }
 }

@@ -10,7 +10,7 @@ body, #app {
 
 #app {
     display: grid;
-    grid-template-columns: 300px 1fr;
+    // grid-template-columns: 300px 1fr;
 }
 
 main, nav {
@@ -18,37 +18,79 @@ main, nav {
     padding: $ff-unit-lg;
 }
 
+main {
+    width: calc(100% - 300px);
+    height: 100%;
+    margin-left: 300px;
+    position: absolute;
+    overflow-y: scroll;
+}
+
 nav {
     background-color: $ff-red-700;
     color: $ff-white;
+    position: absolute;
+    width: 300px;
 }
 
-main {
-    color: $ff-grey-800;
+p {
+    line-height: 1.5rem;
+}
+
+.container {
     max-width: 968px;
+}
+
+.section > div {
+
+}
+
+.theme-selection {
+    position: fixed;
+    top: 0;
+    right: 0;
+    padding: $ff-unit-sm $ff-unit-md;
 }
 
 h1 {
     border-bottom-width: 1px;
 }
 
+.description {
+    margin-bottom: $ff-unit-lg;
+}
+
+// Side Navigation
 ul#grouplist {
     li {
-        padding-bottom: $ff-unit-md;
+        padding-bottom: $ff-unit-lg;
     }
     ul {
         padding-left: $ff-unit-lg;
         li {
-            padding-bottom: 0;
+            padding-bottom: $ff-unit-md;
             &:hover {
                 cursor: pointer;
-                font-style: italic;
+                font-weight: bold;
             }
         }
     }
 }
 
 .section {
+    padding-left: $ff-unit-xl;
+    h1 {
+        margin-top: 2 * $ff-unit-xl;
+        margin-left: - $ff-unit-xl;
+    }
+    h3 {
+        margin-top: $ff-unit-lg;
+    }
+    &:first-child {
+        h1 {
+            margin-top: 0;
+        }
+    }
     .examples {
         margin-top: $ff-unit-lg;
         margin-bottom: $ff-unit-lg;

@@ -1,0 +1,79 @@
+{
+    "name": "Form Elements",
+    "id": "inputs",
+    "components": [{
+        "name": "ff-text-input",
+        "examples": [{
+            "code": "<ff-text-input v-model=\"myVar\" placeholder=\"Insert something here...\" />"
+        }, {
+            "code": "<ff-text-input type\"password\" v-model=\"myPassword\" placeholder=\"Password goes here...\" />"
+        }, {
+            "code": "<ff-text-input type\"email\" v-model=\"myEmail\" />"
+        }],
+        "props": [{
+            "key": "disabled",
+            "default": "false",
+            "description": "Whether or not the input field can be modified."
+        }, {
+            "key": "placeholder",
+            "default": "null",
+            "description": "Informative text to assist the user with the information required in this input field."
+        }, {
+            "key": "password",
+            "default": "false",
+            "description": "Hide the content of this text input as a password field."
+        }]
+    }, {
+        "name": "ff-dropdown",
+        "examples": [{
+            "code": "<ff-dropdown v-model=\"mVar\">\n\t<ff-dropdown-option label=\"Option 1\" value=\"1\"></ff-dropdown-option>\n\t<ff-dropdown-option label=\"Option 2\" value=\"2\"></ff-dropdown-option>\n\t<ff-dropdown-option label=\"Option 3\" value=\"3\"></ff-dropdown-option>\n</ff-dropdown>"
+        }, {
+            "code": "<ff-dropdown v-model=\"mVar\" placeholder=\"Dropdown Button\" dropdown-style=\"button\">\n\t<template v-slot:button>\n\t\t<ff-button>\n\t\t\tButton\n\t\t\t<template v-slot:icon-right>\n\t\t\t\t<ChevronDownIcon />\n\t\t\t</template>\n\t\t</ff-button>\n\t</template>\n\t<template v-slot:default>\n\t\t<ff-dropdown-option label=\"Option 1\" value=\"1\"></ff-dropdown-option>\n\t\t<ff-dropdown-option label=\"Option 2\" value=\"2\"></ff-dropdown-option>\n\t\t<ff-dropdown-option label=\"Option 3\" value=\"3\"></ff-dropdown-option>\n\t</template>\n</ff-dropdown>"
+        }, {
+            "code": "<ff-dropdown v-model=\"mVar\" placeholder=\"Dropdown Button Right\" dropdown-style=\"button\" options-align=\"right\">\n\t<template v-slot:button>\n\t\t<ff-button>\n\t\t\tButton\n\t\t\t<template v-slot:icon-right>\n\t\t\t\t<ChevronDownIcon />\n\t\t\t</template>\n\t\t</ff-button>\n\t</template>\n\t<template v-slot:default>\n\t\t<ff-dropdown-option label=\"Option 1\" value=\"1\"></ff-dropdown-option>\n\t\t<ff-dropdown-option label=\"Option 2\" value=\"2\"></ff-dropdown-option>\n\t\t<ff-dropdown-option label=\"Option 3\" value=\"3\"></ff-dropdown-option>\n\t</template>\n</ff-dropdown>"
+        }],
+        "props": [{
+            "key": "placeholder",
+            "default": "Please Select",
+            "description": "Informative text to assist the user with the information required in this input field."
+        }]
+    }, {
+        "name": "ff-checkbox",
+        "examples": [{
+            "code": "<ff-checkbox label=\"My Checkbox\" v-model=\"myVar\"></ff-checkbox>"
+        }],
+        "props": [{
+            "key": "disabled",
+            "default": "false",
+            "description": "Whether or not the input field can be modified."
+        }, {
+            "key": "placeholder",
+            "default": "null",
+            "description": "Informative text to assist the user with the information required in this input field."
+        }, {
+            "key": "password",
+            "default": "false",
+            "description": "Hide the content of this text input as a password field."
+        }]
+    }, {
+        "name": "ff-radio-group",
+        "examples": [{
+            "code": "<ff-radio-group v-model=\"myVar\" :options=\"[{label: 'Option 1', value: 1, checked: true}, {label: 'Option 2', value: 2}]\"></ff-radio-group>"
+        }, {
+            "code": "<ff-radio-group label=\"We can also provide a label here\" v-model=\"myVar\" orientation=\"vertical\" :options=\"[{label: 'Option 1', value: 1, checked: true}, {label: 'Option 2', value: 2}]\"></ff-radio-group>"
+        }],
+        "props": [{
+            "key": "options",
+            "default": "null",
+            "description": "An array of objects, each with a 'label' and 'value' key that define the options available in the radio group."
+        }, {
+            "key": "label",
+            "default": "''",
+            "description": "(optional) Use this to provide guidance/intructions for what the radio buttons are being used for."
+        }, {
+            "key": "orientation",
+            "default": "horizontal",
+            "description": "(optional) The direction that the radio group renders."
+        }]
+    }]
+}

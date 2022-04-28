@@ -4,6 +4,8 @@
 
 * {
     box-sizing: border-box;
+    transition: 0.3s color, 0.3s background-color;
+    -webkit-transition: 0.3s color, 0.3s background-color;
 }
 
 html {
@@ -39,7 +41,6 @@ h3 {
 }
 
 code {
-    background-color: $ff-grey-100;
     border-radius: $ff-unit-sm;
     border: 1px solid $ff-grey-200;
     padding: $ff-unit-md;

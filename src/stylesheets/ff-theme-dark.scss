@@ -1,0 +1,46 @@
+.ff-bg-dark {
+    color: $ff-grey-50;
+    background-color: $ff-grey-800;
+    
+    /* Core */
+
+    table {
+        td, th {
+            border-color: $ff-grey-500;
+        }
+    }
+
+    select {
+        background-color: $ff-grey-800;
+    }
+
+    code {
+        background-color: $ff-grey-900;
+        border-color: $ff-grey-700;
+    }
+
+    /* FlowForge Components */
+
+    .ff-btn {
+        &--tertiary {
+            // color: $ff-teal-500;
+            &:hover {
+                // background-color: $ff-color--secondary--highlight;
+                color: $ff-white;
+            }
+        }
+        &:disabled {
+            background-color: $ff-grey-700;
+            border-color: $ff-grey-500;
+            color: $ff-grey-500;
+        }
+    }
+
+    .ff-input.ff-text-input {
+        background-color: $ff-grey-700;
+        border-color: $ff-grey-900;
+        &:focus {
+          border-color: $ff-white;
+        }
+    }
+}

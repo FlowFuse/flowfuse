@@ -1,6 +1,6 @@
 {
     "name": "@flowforge/forge-ui-components",
-    "version": "0.1.2",
+    "version": "0.2.0",
     "description": "",
     "author": {
         "name": "FlowForge Inc."
@@ -8,7 +8,6 @@
     "license": "Apache-2.0",
     "homepage": "https://github.com/flowforge/forge-ui-components#readme",
     "main": "dist/forge-ui-components.js",
-    "module": "dist/forge-ui-components.mjs",
     "files": [
         "dist/*"
     ],
@@ -23,12 +22,12 @@
         "node": ">=16.x"
     },
     "peerDependencies": {
-        "vue": "^3.2.21"
+        "vue": "^3.2.21",
+        "@heroicons/vue": "^1.0.6"
     },
     "devDependencies": {
         "@babel/core": "^7.12.16",
         "@babel/eslint-parser": "^7.12.16",
-        "@heroicons/vue": "^1.0.5",
         "@vue/cli-plugin-babel": "~5.0.0",
         "@vue/cli-plugin-eslint": "~5.0.0",
         "@vue/cli-service": "~5.0.0",
@@ -44,6 +43,7 @@
         "postcss-loader": "^6.2.1",
         "postcss-preset-env": "^6.7.0",
         "rollup": "^2.68.0",
+        "rollup-plugin-copy": "^3.4.0",
         "rollup-plugin-peer-deps-external": "^2.2.4",
         "rollup-plugin-postcss": "^4.0.2",
         "rollup-plugin-vue": "^6.0.0",
