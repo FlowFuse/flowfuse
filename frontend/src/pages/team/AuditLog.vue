@@ -1,9 +1,11 @@
 <template>
+    <SectionTopMenu hero="Audit Log" />
     <AuditLog :entity="verifiedTeam" :loadItems="loadItems" />
 </template>
 
 <script>
 import teamApi from '@/api/team'
+import SectionTopMenu from '@/components/SectionTopMenu'
 import AuditLog from '@/components/AuditLog'
 import { Roles } from '@core/lib/roles'
 
@@ -35,7 +37,8 @@ export default {
         }
     },
     components: {
-        AuditLog
+        AuditLog,
+        SectionTopMenu
     }
 }
 </script>

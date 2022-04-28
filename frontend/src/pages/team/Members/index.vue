@@ -1,6 +1,6 @@
 <template>
-    <div class="flex flex-col sm:flex-row">
-        <SectionSideMenu :options="sideNavigation" />
+    <div class="">
+        <SectionTopMenu hero="Members" :options="sideNavigation" />
         <div class="flex-grow">
             <router-view :team="team" :teamMembership="teamMembership"></router-view>
         </div>
@@ -10,7 +10,7 @@
 <script>
 import { mapState } from 'vuex'
 
-import SectionSideMenu from '@/components/SectionSideMenu'
+import SectionTopMenu from '@/components/SectionTopMenu'
 import { Roles } from '@core/lib/roles'
 
 // const sideNavigation = [
@@ -21,10 +21,10 @@ export default {
     name: 'TeamUsers',
     props: ['team', 'teamMembership'],
     computed: {
-        ...mapState('account', ['user'])
+        ...mapState('account', ['user', 'team'])
     },
     components: {
-        SectionSideMenu
+        SectionTopMenu
     },
     data: function () {
         return {
@@ -40,7 +40,7 @@ export default {
     methods: {
         checkAccess: async function () {
             this.sideNavigation = [
-                { name: 'Members', path: './general' }
+                { name: 'Team Members', path: './general' }
             ]
             if (this.user.admin || (this.teamMembership && this.teamMembership.role === Roles.Owner)) {
                 this.sideNavigation.push({ name: 'Invitations', path: './invitations' })

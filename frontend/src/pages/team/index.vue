@@ -3,14 +3,6 @@
         <Loading />
     </template>
     <div class="forge-block" v-else-if="team">
-        <SectionTopMenu :options="navigation">
-            <template v-slot:hero>
-                <router-link :to="navigation[0]?navigation[0].path:''" class="flex items-center">
-                    <div class="mr-3 rounded"><img :src="team.avatar" class="h-6 v-6 rounded-md"/></div>
-                    <div class="text-gray-800 text-xl font-bold">{{ team.name }}</div>
-                </router-link>
-            </template>
-        </SectionTopMenu>
         <div class="">
             <router-view :team="team" :teamMembership="teamMembership"></router-view>
         </div>
@@ -22,11 +14,9 @@ import billingApi from '@/api/billing'
 
 import Breadcrumbs from '@/mixins/Breadcrumbs'
 
-import SectionTopMenu from '@/components/SectionTopMenu'
 import Loading from '@/components/Loading'
 import { useRoute } from 'vue-router'
 import { mapState } from 'vuex'
-import { Roles } from '@core/lib/roles'
 
 export default {
     name: 'TeamPage',
@@ -35,36 +25,10 @@ export default {
         ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange']),
         ...mapState(['features'])
     },
-    data: function () {
-        return {
-            navigation: []
-        }
-    },
     components: {
-        SectionTopMenu,
         Loading
     },
     methods: {
-        updateTeam: function (newVal, oldVal) {
-            if (this.team && this.teamMembership) {
-                this.navigation = [
-                    { name: 'Overview', path: `/team/${this.team.slug}/overview` },
-                    { name: 'Projects', path: `/team/${this.team.slug}/projects` },
-                    { name: 'Members', path: `/team/${this.team.slug}/members` }
-                ]
-                // const teamUser = this.team.users.filter(u => { console.log(u,this.$store.state.account.user.email); return  u.email === this.$store.state.account.user.email })
-                // if (teamUser.role === Roles.Owner) {
-                if (this.teamMembership.role === Roles.Owner) {
-                    this.navigation.push({ name: 'Audit Log', path: `/team/${this.team.slug}/audit-log` })
-                    this.navigation.push({ name: 'Settings', path: `/team/${this.team.slug}/settings` })
-                }
-                // }
-                this.setBreadcrumbs([
-                    { type: 'TeamPicker' }
-                    // { type: "CreateProject" }
-                ])
-            }
-        },
         checkRoute: async function (route) {
             const allowedRoutes = [
                 '/team/' + this.team.slug + '/settings/billing',
@@ -102,13 +66,6 @@ export default {
         // in order to delete the project, or setup billing
         await this.checkRoute(to)
         next()
-    },
-    mounted () {
-        this.updateTeam()
-    },
-    watch: {
-        team: 'updateTeam',
-        teamMembership: 'updateTeam'
     }
 }
 </script>
