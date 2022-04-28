@@ -50,45 +50,57 @@ export default {
     },
     computed: {
         ...mapState('account', ['user', 'team', 'teams', 'teamMembership']),
+        ...mapState(['features']),
         showAdmin: function () {
             return this.teamMembership.role === Roles.Admin || this.teamMembership.role === Roles.Owner
         }
     },
     data () {
+        const routes = {
+            general: [{
+                label: 'Overview',
+                to: '/overview',
+                icon: CollectionIcon
+            }, {
+                label: 'Projects',
+                to: '/projects',
+                icon: CollectionIcon
+            }, {
+                label: 'Members',
+                to: '/members',
+                icon: UsersIcon
+            }],
+            admin: [{
+                label: 'Audit Log',
+                to: '/audit-log',
+                icon: DatabaseIcon
+            }, {
+                label: 'Team Settings',
+                to: '/settings/general',
+                icon: CogIcon
+            }]
+        }
+
         return {
             teamSelectionOpen: false,
             plusIcon: PlusIcon,
-            routes: {
-                general: [{
-                    label: 'Overview',
-                    to: '/overview',
-                    icon: CollectionIcon
-                }, {
-                    label: 'Projects',
-                    to: '/projects',
-                    icon: CollectionIcon
-                }, {
-                    label: 'Members',
-                    to: '/members',
-                    icon: UsersIcon
-                }],
-                admin: [{
-                    label: 'Audit Log',
-                    to: '/audit-log',
-                    icon: DatabaseIcon
-                }, {
+            routes: routes
+        }
+    },
+    mounted () {
+        this.checkFeatures()
+    },
+    methods: {
+        checkFeatures () {
+            if (this.features.billing) {
+                // insert billing in second slot of admin
+                this.routes.admin.splice(1, 0, {
                     label: 'Billing',
                     to: '/settings/billing',
                     icon: CurrencyDollarIcon
-                }, {
-                    label: 'Team Settings',
-                    to: '/settings/general',
-                    icon: CogIcon
-                }]
+                })
             }
-        }
-    },
-    methods: {
+        },
         switchTeam () {
             this.teamSelectionOpen = !this.teamSelectionOpen
         },
