@@ -1,7 +1,7 @@
 <template>
-    <input :type="password ? 'password' : 'text'"
-        class="ff-input ff-text-input"
+    <input class="ff-input ff-text-input"
         :class="{'ff-input--error': error}"
+        :type="type"
         :placeholder="placeholder"
         :disabled="disabled"
         :value="modelValue"
@@ -34,15 +34,14 @@ export default {
             default: 'normal',
             type: String // "small", "normal"
         },
-        password: {
-            default: false,
-            type: Boolean
+        type: {
+            default: 'text', // One of: 'text', 'email', or 'password'
+            type: String
         },
         // v-model
         modelValue: {
             type: String,
-            default: '',
-            required: true
+            default: ''
         }
     }
 }
