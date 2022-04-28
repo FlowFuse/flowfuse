@@ -154,8 +154,12 @@
                         <code>{{ groups['input'].components[0].examples[0].code }}</code>
                     </div>
                     <div class="example">
-                        <ff-text-input :password="true" placeholder="Password goes here..."/>
+                        <ff-text-input type="password" placeholder="Password goes here..."/>
                         <code>{{ groups['input'].components[0].examples[1].code }}</code>
+                    </div>
+                    <div class="example">
+                        <ff-text-input type="email"/>
+                        <code>{{ groups['input'].components[0].examples[2].code }}</code>
                     </div>
                 </div>
                 <!-- Dropdown -->
