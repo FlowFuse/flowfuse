@@ -19,7 +19,7 @@ const updateUser = async (userId, options) => {
 }
 
 const deleteUser = async (userId, options) => {
-    return client.delete(`/api/v1/users/${userId}`, options).then(res => {
+    return client.delete(`/api/v1/users/user/${userId}`, options).then(res => {
         return res.data
     })
 }
