@@ -40,6 +40,9 @@
                                 <div>
                                     <ff-button kind="danger" @click="expirePassword">Expire password</ff-button>
                                 </div>
+                                <div>
+                                    <ff-button kind="danger" @click="deleteUser">Delete user</ff-button>
+                                </div>
                             </form>
                         </div>
                     </TransitionChild>
@@ -157,6 +160,14 @@ export default {
         expirePassword () {
             usersApi.updateUser(this.user.id, { password_expired: true }).then((response) => {
                 this.isOpen = false
+            }).catch(err => {
+                console.log(err.response.data)
+            })
+        },
+        deleteUser () {
+            usersApi.deleteUser(this.user.id).then((response) => {
+                this.isOpen = false
+                this.$emit('userDeleted')
             }).catch(err => {
                 console.log(err.response.data)
             })

@@ -15,7 +15,7 @@
         <div v-if="nextCursor">
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
         </div>
-        <AdminUserEditDialog @userUpdated="userUpdated" ref="adminUserEditDialog"/>
+        <AdminUserEditDialog @userUpdated="userUpdated" @userDeleted="loadItems" ref="adminUserEditDialog"/>
 
     </form>
 </template>
@@ -67,6 +67,7 @@ export default {
         },
         loadItems: async function () {
             this.loading = true
+            this.users = []
             const result = await usersApi.getUsers(this.nextCursor, 30)
             this.nextCursor = result.meta.next_cursor
             result.users.forEach(v => {

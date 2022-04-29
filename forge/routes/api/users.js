@@ -41,6 +41,38 @@ module.exports = async function (app) {
     })
 
     /**
+     * Delete user by id frin dv
+     * @name /api/v1/users/user/:id
+     * @static
+     * @memberof forge.routes.api.
+     * users
+     */
+    app.delete('/user/:id', async (request, reply) => {
+        const user = await app.db.models.User.byId(request.params.id)
+        if (user) {
+            const userTeams = user.dataValues.Teams.map(T => app.db.models.Team.byName(T.dataValues.name))
+            const teams = await Promise.all(userTeams)
+            const teamOwnerLists = await Promise.all(teams.map(T => T.owners()))
+            // teamOwnerLists = teamOwnerLists.filter(ownerList => ownerList.length <= 1 && use)
+            // teamOwnerLists = teamOwnerLists.filter(ownerList => ownerList.length <= 1)
+            // const teamsWithAdminCountOne = teams.filter(T => {
+            //     T.Users.reduce((adminCount, U) => {
+            //         U.dataValues.admin
+            //     },0)
+            // })
+
+            // const otherUsers = app.db.models.Team.byId
+            // Get list of admins for the given user's team
+            // if (user.dataValues.admin) {
+            await user.destroy()
+            // await user.destroy({ teamOwnerCounts: teamOwnerCounts })
+            reply.send({ status: 'okay' })
+            // }
+        } else {
+            reply.code(404).type('text/html').send('Not Found')
+        }
+    })
+    /**
      * Update user settings
      * @name /api/v1/users/:id
      * @static
@@ -54,48 +86,32 @@ module.exports = async function (app) {
             reply.code(404).type('text/html').send('Not Found')
         }
     })
-    /**
-     * Delete user by id frin dv
-     * @name /api/v1/users/:id
-     * @static
-     * @memberof forge.routes.api.
-     * users
-     */
-    app.delete('/:id', async (request, reply) => {
-        const user = await app.db.models.User.byId(request.params.id)
-        if (user) {
-            await user.destroy()
-            reply.send({ status: 'okay' })
-        } else {
-            reply.code(404).type('text/html').send('Not Found')
-        }
-    })
 
-    app.delete('/:teamId', { preHandler: app.needsPermission('team:delete') }, async (request, reply) => {
-        // At this point we know the requesting user has permission to do this.
-        // But we also need to ensure the team has no projects
-        // That is handled by the beforeDestroy hook on the Team model and the
-        // call to destroy the team will throw an error
-        try {
-            if (app.license.active() && app.billing) {
-                const subscription = await app.db.models.Subscription.byTeam(request.team.id)
-                if (subscription) {
-                    const subId = subscription.subscription
-                    await app.billing.closeSubscription(subscription)
-                    app.db.controllers.AuditLog.teamLog(
-                        request.team.id,
-                        request.session.User.id,
-                        'billing.subscription.deleted',
-                        { subscription: subId }
-                    )
-                }
-            }
-            await request.team.destroy()
-            reply.send({ status: 'okay' })
-        } catch (err) {
-            reply.code(400).send({ error: err.toString() })
-        }
-    })
+    // app.delete('/:teamId', { preHandler: app.needsPermission('team:delete') }, async (request, reply) => {
+    //     // At this point we know the requesting user has permission to do this.
+    //     // But we also need to ensure the team has no projects
+    //     // That is handled by the beforeDestroy hook on the Team model and the
+    //     // call to destroy the team will throw an error
+    //     try {
+    //         if (app.license.active() && app.billing) {
+    //             const subscription = await app.db.models.Subscription.byTeam(request.team.id)
+    //             if (subscription) {
+    //                 const subId = subscription.subscription
+    //                 await app.billing.closeSubscription(subscription)
+    //                 app.db.controllers.AuditLog.teamLog(
+    //                     request.team.id,
+    //                     request.session.User.id,
+    //                     'billing.subscription.deleted',
+    //                     { subscription: subId }
+    //                 )
+    //             }
+    //         }
+    //         await request.team.destroy()
+    //         reply.send({ status: 'okay' })
+    //     } catch (err) {
+    //         reply.code(400).send({ error: err.toString() })
+    //     }
+    // })
     /**
      * Create a new user
      */

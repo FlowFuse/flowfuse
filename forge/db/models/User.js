@@ -53,13 +53,13 @@ module.exports = {
             }
         },
         beforeDestroy: async (user, opts) => {
-            const admins = await app.db.models.User.admins()
-            //is user an admin? find user in the admin list
-            const userIsAdmin = findUserInAdminList(admins, user)
+            // is user an admin? find user in the admin list
+            // const userIsAdmin = findUserInAdminList(admins, user)
             // if yes, is admin count == 1?
-            if (userIsAdmin && admins.length <= 1) {
-                throw new Error('Cannot delete the only admin.')
-            }
+            // if (userIsAdmin && admins.length <= 1) {
+            //     throw new Error('Cannot delete the only admin.')
+
+            // }
             // Check if user is only owner of a team
             // 1.) get teams associated with this user.
             // 2.) Check owner count of each team, if ANY of teams Owner count == 1, DO NOT DELETE user.
