@@ -76,7 +76,7 @@ export default {
                 icon: DatabaseIcon
             }, {
                 label: 'Team Settings',
-                to: '/settings/general',
+                to: '/settings',
                 icon: CogIcon
             }]
         }
@@ -96,7 +96,7 @@ export default {
                 // insert billing in second slot of admin
                 this.routes.admin.splice(1, 0, {
                     label: 'Billing',
-                    to: '/settings/billing',
+                    to: '/billing',
                     icon: CurrencyDollarIcon
                 })
             }

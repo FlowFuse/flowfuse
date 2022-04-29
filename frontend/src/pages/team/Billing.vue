@@ -1,13 +1,14 @@
 <template>
-    <form class="space-y-6">
+    <SectionTopMenu hero="Team Billing"/>
+    <form>
         <Loading v-if="loading && !subscription" size="small"/>
         <div v-else-if="!loading && subscription">
-            <FormHeading v-if="subscription">Next Bill: <span class="font-normal">{{ formatDate(subscription.next_billing_date) }}</span></FormHeading>
+            <FormHeading v-if="subscription" class="mb-6">Next Bill: <span class="font-normal">{{ formatDate(subscription.next_billing_date) }}</span></FormHeading>
             <FormHeading>Active Subscriptions</FormHeading>
             <div v-if="subscription">
                 <ItemTable :items="subscription.items" :columns="columns" />
             </div>
-            <FormHeading>View/Update Payment Details</FormHeading>
+            <FormHeading class="mt-6">View/Update Payment Details</FormHeading>
             <div>
                 <ff-button size="small" @click="customerPortal()">
                     <template v-slot:icon-right><ExternalLinkIcon /></template>
@@ -42,6 +43,8 @@ import formatCurrency from '@/mixins/Currency.js'
 
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
 
+import SectionTopMenu from '@/components/SectionTopMenu'
+
 const totalPriceCell = {
     name: 'TotalPriceCell',
     props: ['price', 'quantity'],
@@ -66,8 +69,8 @@ const unitPriceCell = {
 }
 
 export default {
-    name: 'TeamSettingsBilling',
-    props: ['billingUrl'],
+    name: 'TeamBilling',
+    props: ['billingUrl', 'team', 'teamMembership'],
     mixins: [formatDateMixin, formatCurrency],
     data () {
         return {
@@ -93,9 +96,6 @@ export default {
         }
     },
     watch: { },
-    computed: {
-        ...mapState('account', ['team'])
-    },
     async mounted () {
         this.loading = true
         try {
@@ -131,7 +131,8 @@ export default {
         Loading,
         FormHeading,
         ItemTable,
-        ExternalLinkIcon
+        ExternalLinkIcon,
+        SectionTopMenu
     }
 }
 </script>

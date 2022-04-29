@@ -36,18 +36,11 @@ export default {
     },
     mounted () {
         this.checkAccess()
-        this.checkFeatures()
     },
     methods: {
         checkAccess: async function () {
             if (this.teamMembership && this.teamMembership.role !== Roles.Owner) {
                 useRouter().push({ path: `/team/${this.team.slug}/overview` })
-            }
-        },
-        checkFeatures: function () {
-            if (this.features.billing) {
-                // running in EE
-                this.sideOptions.splice(1, 0, { name: 'Billing', path: './billing' })
             }
         }
     }

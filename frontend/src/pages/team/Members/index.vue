@@ -13,10 +13,6 @@ import { mapState } from 'vuex'
 import SectionTopMenu from '@/components/SectionTopMenu'
 import { Roles } from '@core/lib/roles'
 
-// const sideNavigation = [
-//     { name: "Members", path: "./general" },
-//     { name: "Invitations", path: "./invitations" }
-// ]
 export default {
     name: 'TeamUsers',
     props: ['team', 'teamMembership'],

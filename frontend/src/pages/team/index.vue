@@ -15,8 +15,6 @@
 <script>
 import billingApi from '@/api/billing'
 
-import Breadcrumbs from '@/mixins/Breadcrumbs'
-
 import Loading from '@/components/Loading'
 import { useRoute } from 'vue-router'
 import { mapState } from 'vuex'
@@ -25,7 +23,6 @@ import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vu
 
 export default {
     name: 'TeamPage',
-    mixins: [Breadcrumbs],
     computed: {
         ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange']),
         ...mapState(['features'])
@@ -45,7 +42,7 @@ export default {
     methods: {
         checkRoute: async function (route) {
             const allowedRoutes = [
-                '/team/' + this.team.slug + '/settings/billing',
+                '/team/' + this.team.slug + '/billing',
                 '/team/' + this.team.slug + '/settings/danger'
             ]
             if (allowedRoutes.indexOf(route.path) === -1) {
@@ -59,7 +56,7 @@ export default {
                 try {
                     await billingApi.getSubscriptionInfo(this.team.id)
                 } catch (err) {
-                    const path = '/team/' + this.team.slug + '/settings/billing'
+                    const path = '/team/' + this.team.slug + '/billing'
                     // if 404 - no billing setup, but are we running in EE?
                     if (err.response.status === 404) {
                         this.$router.push({
