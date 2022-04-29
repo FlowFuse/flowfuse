@@ -1,5 +1,14 @@
 <template>
-    <div class="forge-block">
+    <Teleport v-if="mounted" to="#platform-sidenav">
+        <SideNavigation>
+            <template v-slot:back>
+                <router-link :to="{name: 'Projects', params: {team_slug: team.slug}}">
+                    <nav-item :icon="icons.chevronLeft" label="Back to Projects"></nav-item>
+                </router-link>
+            </template>
+        </SideNavigation>
+    </Teleport>
+    <main>
         <div class="max-w-2xl m-auto">
             <form class="space-y-6" v-if="!needsBilling">
                 <FormHeading>Create a new team</FormHeading>
@@ -23,7 +32,7 @@
                 </ff-button>
             </form>
             <form v-else>
-                <h3 class="font-bold">New Team: {{ team ? team.name : '' }}</h3>
+                <h3 class="font-bold">New Team: {{ newTeam ? newTeam.name : '' }}</h3>
                 <p class="text-sm mt-3">You are about to proceed to Stripe, our payment provider, in order to setup the relevant billing details.</p>
                 <p class="text-sm mt-2">You will only be charged for each project when you create it.</p>
                 <div class="mt-3">
@@ -33,21 +42,30 @@
                 </div>
             </form>
         </div>
-    </div>
+    </main>
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 import teamApi from '@/api/team'
 import slugify from '@/utils/slugify'
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
-import Breadcrumbs from '@/mixins/Breadcrumbs'
+
+import NavItem from '@/components/NavItem'
+import SideNavigation from '@/components/SideNavigation'
+
+import { ChevronLeftIcon } from '@heroicons/vue/solid'
 
 export default {
     name: 'CreateTeam',
-    mixins: [Breadcrumbs],
     data () {
         return {
+            mounted: false,
+            icons: {
+                chevronLeft: ChevronLeftIcon
+            },
             teams: [],
             input: {
                 name: '',
@@ -56,15 +74,12 @@ export default {
                 slugError: ''
             },
             needsBilling: false,
-            team: null
+            newTeam: null
         }
-    },
-    created () {
-        this.clearBreadcrumbs()
     },
     watch: {
         'input.name': function () {
-            this.input.defaultSlug = slugify(this.input.name)
+            this.input.slug = slugify(this.input.name)
         },
         'input.slug': function (v) {
             if (v && !/^[a-z0-9-_]+$/i.test(v)) {
@@ -75,9 +90,13 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['team']),
         formValid () {
             return this.input.name && !this.input.slugError
         }
+    },
+    mounted () {
+        this.mounted = true
     },
     methods: {
         createTeam () {
@@ -91,7 +110,7 @@ export default {
                 await this.$store.dispatch('account/setTeam', result)
                 // are we in EE?
                 if (result.billingURL) {
-                    this.team = result
+                    this.newTeam = result
                     this.needsBilling = true
                 } else {
                     // TODO: Re-route this to a holding billing page that will redirect to Stripe
@@ -109,12 +128,14 @@ export default {
             this.$router.push({ name: 'Team', params: { team_slug: slug } })
         },
         customerPortal () {
-            window.open(this.team.billingURL, '_self')
+            window.open(this.newTeam.billingURL, '_self')
         }
     },
     components: {
         FormRow,
-        FormHeading
+        FormHeading,
+        SideNavigation,
+        NavItem
     }
 }
 </script>

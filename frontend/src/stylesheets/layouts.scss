@@ -1,0 +1,395 @@
+@import '~@flowforge/forge-ui-components/dist/scss/forge-colors.scss';
+@import '~@flowforge/forge-ui-components/dist/scss/forge-variables.scss';
+
+/*
+    Layout - Box
+        used in login/setup/signup screens
+*/
+.ff-layout--box {
+    background-color: $ff-grey-800;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: inherit;
+    background-image: url("@/images/ff-flow-bg-white.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position-y: 90%;
+    .ff-error-inline {
+        color: $ff-red-300;
+    }
+}
+
+.ff-layout--box--wrapper {
+    width: calc(100% - 48px);
+    border-top: 2px solid $ff-red-400;
+    max-width: 1024px;
+    height: 60%;
+    padding: 64px 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba($ff-grey-600, 0.2);
+    .ff-logo {
+        max-width: 200px;
+        margin: auto;
+        margin-bottom: 48px;
+    }
+}
+
+.ff-layout--box--content {
+    background-color: $ff-grey-700;
+    width: 100%;
+    min-height: 400px;
+    padding: 64px 24px;
+    border-radius: 32px;
+    color: white;
+    h2 {
+        margin-top: -12px;
+        margin-bottom: 24px;
+    }
+    h5 {
+        font-weight: bold;
+        margin-bottom: 0.75rem;
+    }
+    label {
+        display: block;
+        color: white;
+        text-transform: uppercase;
+        font-weight: 600;
+        margin-bottom: 4px;
+        font-size: 0.75rem;
+    }
+    p {
+        margin-bottom: 1rem;
+    }
+    a {
+        color: $ff-teal-400;
+    }
+    input.ff-input:not(.ff-input--error) {
+        border-color: transparent;
+    }
+    input.ff-input {
+        color: $ff-grey-50;
+        background-color: $ff-grey-600;
+        border-width: 2px;
+        &:focus {
+            border-color: $ff-teal-400;
+        }
+    }
+    .ff-error-inline {
+        margin-bottom: 12px;
+    }
+
+    .ff-actions {
+        margin-top: 18px;
+    }
+    .ff-btn {
+        text-transform: uppercase;
+        width: 100%;
+        margin-bottom: 6px;
+    }
+    .ff-btn.ff-btn--primary {
+        background-color: $ff-teal-600;
+        color: white;
+        &:hover {
+            background-color: $ff-teal-700;
+        }
+        &:disabled {
+            background-color: $ff-grey-400;
+            color: $ff-grey-300;
+        }
+    }
+    .ff-btn.ff-btn--tertiary {
+        color: $ff-teal-500;
+        font-weight: normal;
+        &:hover {
+            background-color: transparent;
+            color: white;
+        }
+    }
+}
+
+/*
+    Layout - Platform
+        used in all other pages
+*/
+
+.ff-layout--platform {
+    min-height: inherit;
+    display: flex;
+    flex-direction: column;
+}
+
+.ff-layout--platform--wrapper {
+    display: grid;
+    flex-grow: 1;
+    padding-top: 60px;
+    main {
+        margin: 9px;
+        padding: 12px;
+        background-color: $ff-grey-50;
+    }
+}
+
+.ff-header {
+    z-index: 10;
+    background-color: $ff-grey-800;
+    height: 60px;
+    border-bottom: 2px solid $ff-red-500;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    width: 100%;
+    img {
+        padding: 20px;
+        height: 100%;
+        &:hover {
+            cursor: pointer;
+        }
+    }
+    .ff-header--mobile-toggle {
+        padding: 16px;
+        svg {
+            fill: white;
+        }
+        &.active {
+            cursor: pointer;
+            background-color: $ff-grey-700;
+        }
+    }
+    .ff-header--mobile-usertoggle {
+        padding: 16px;
+        img {
+            padding: 0;
+        }
+        &.active {
+            cursor: pointer;
+            background-color: $ff-grey-700;
+        }
+    }
+    .ff-navigation {
+        position: absolute;
+        top: 100%;
+        margin-top: 2px;
+        // display: none;
+        img {
+            padding: 0;
+            margin-right: 9px;
+        }
+        .ff-user {
+            display: flex;
+            align-items: center;
+            margin-left: -2px;
+        }
+    }
+    .ff-navigation-right {
+        height: 100%;
+    }
+    .ff-dropdown {
+        display: none;
+        height: 100%;
+        color: white;
+        min-width: 250px;
+        position: relative;
+        top: 0;
+        margin-top: 0;
+        .ff-dropdown-selected {
+            height: 100%;
+            padding: 16px 16px 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-width: 0 0 0 1px;
+            border-color: $ff-grey-500;
+            border-radius: 0;
+            background-color: $ff-grey-800;
+            &:hover {
+                background-color: $ff-grey-700;
+            }
+        }
+        .ff-dropdown-options {
+            width: 100%;
+            margin-top: 2px;
+            border-color: $ff-grey-500;
+            border-right: 0;
+        }
+        .ff-dropdown-option {
+            &:last-child {
+                border-top: 2px solid $ff-red-600;
+            }
+        }
+    }
+}
+
+.ff-navigation {
+    background-color: $ff-grey-700;
+    border-right: 2px solid $ff-grey-800;
+    position: fixed;
+    left: -250px;
+    height: 100%;
+    z-index: 10;
+    transition: 0.3s left, 0.3s right;
+    -webkit-transition: 0.3s left, 0.3s right;
+    width: 250px;
+    &.ff-navigation-right {
+        left: initial;
+        right: -250px;
+        .ff-nav-item:last-child {
+            border-top: 2px solid $ff-red-600;
+        }
+    }
+    &.open {
+        left: 0;
+    }
+    &.ff-navigation-right.open {
+        left: initial;
+        right: 0;
+    }
+    .ff-navigation-divider {
+        background-color: $ff-grey-800;
+        color: white;
+        padding: 6px 12px;
+        display: block;
+        font-size: 0.85rem;
+        border-bottom: 1px solid $ff-grey-600;
+    }
+    .ff-dropdown-options .ff-dropdown-option {
+        padding: 0;
+    }
+    .ff-nav-item, .ff-team-selection {
+        &:not(:last-child) {
+            border-bottom: 1px solid $ff-grey-600;
+        }        
+        padding: 16px 16px 16px 24px;
+        display: flex;
+        align-items: center;
+        svg {
+            fill: $ff-white;
+            width: 20px;
+        }
+        label {
+            margin-left: 12px;
+            color: $ff-white;
+            pointer-events: none;
+        }
+    }
+    .ff-nav-item {
+        background-color: $ff-grey-700;
+        border-bottom: 1px solid $ff-grey-600;
+        &:hover {
+            cursor: pointer;
+            svg {
+                fill: $ff-teal-300;
+            }
+            label {
+                color: $ff-teal-300;
+            }
+        }
+    }
+    .ff-side-navigation--options-back {
+        // width: 100%;
+        li {
+            border-top: 1px solid $ff-grey-600;
+        }
+    }
+    .ff-team-selection {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        background-color: $ff-grey-800;
+        padding: 12px 22px;
+        >div {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+        }
+        svg {
+            &:hover {
+                fill: $ff-teal-300;
+                cursor: pointer;
+            }
+            &.active {
+                fill: $ff-teal-300;
+            }
+        }
+        ul {
+            position: absolute;
+            left: 100%;
+            top: 0;
+            min-width: 250px;
+            margin-left: 2px;
+            display: none;
+            z-index: 10;
+            border-bottom: 0;
+            li:first-child {
+                height: 60px;
+                pointer-events: none;
+                background-color: $ff-grey-700;
+            }
+            li {
+                background-color: $ff-grey-500;
+            }
+            &.active {
+                display: block;
+            }
+        }
+    }
+    .ff-team-selection-name {
+        margin-left: 10px;
+        label {
+            font-size: 0.7rem;
+            line-height: 0.7rem;
+            color: $ff-grey-300;
+            margin-left: 0;
+        }
+        h5 {
+            color: white;
+        }
+    }
+    .router-link-active {
+        li {
+            background-color: $ff-grey-600;
+        }
+    }
+}
+
+@media screen and (min-width: $ff-screen-sm) {
+    /* Box */
+    .ff-layout--box--wrapper {
+        width: 75%;
+        padding: 128px 0;
+    }
+    .ff-layout--box--content {
+        min-width: 400px;
+        width: initial;
+        padding: 64px;
+    }
+    /* Platform */
+    .ff-layout--platform--wrapper {
+        grid-template-columns: 250px 1fr;
+        main {
+            margin: 24px;
+            padding: 32px;
+        }
+    }
+    .ff-navigation {
+        left: 0;
+        position: relative;
+    }
+    .ff-header {
+        .ff-header--mobile-toggle {
+            display: none;
+        }
+        .ff-header--mobile-usertoggle {
+            display: none;
+        }
+        img {
+            padding: 16px;
+        }
+        .ff-dropdown {
+            display: block;
+        }
+    }
+}

@@ -1,5 +1,20 @@
 <template>
-    <div class="forge-block">
+    <Teleport v-if="mounted" to="#platform-sidenav">
+        <SideNavigation>
+            <template v-slot:options>
+                <li class="ff-navigation-divider">Project</li>
+                <router-link v-for="route in navigation" :key="route.label" :to="route.path">
+                    <nav-item :icon="route.icon" :label="route.name"></nav-item>
+                </router-link>
+            </template>
+            <template v-slot:back>
+                <router-link :to="{name: 'Projects', params: {team_slug: team.slug}}">
+                    <nav-item :icon="icons.chevronLeft" label="Back to Projects"></nav-item>
+                </router-link>
+            </template>
+        </SideNavigation>
+    </Teleport>
+    <main>
         <div class="flex flex-col sm:flex-row mb-2">
             <div class="flex-grow space-x-6 items-center inline-flex">
                 <router-link :to="navigation[0]?navigation[0].path:''" class="inline-flex items-center">
@@ -14,23 +29,26 @@
                 <DropdownMenu buttonClass="forge-button" alt="Open actions menu" :options="options">Actions</DropdownMenu>
             </div>
         </div>
-        <SectionTopMenu :options="navigation" />
+        <hr />
         <div class="text-sm sm:px-6 mt-4 sm:mt-8">
             <router-view :project="project" @projectUpdated="updateProject"></router-view>
         </div>
-    </div>
+    </main>
 </template>
 
 <script>
 import projectApi from '@/api/project'
-import Breadcrumbs from '@/mixins/Breadcrumbs'
-import SectionTopMenu from '@/components/SectionTopMenu'
+
+import NavItem from '@/components/NavItem'
+import SideNavigation from '@/components/SideNavigation'
 import DropdownMenu from '@/components/DropdownMenu'
 import ProjectStatusBadge from './components/ProjectStatusBadge'
+
 import { mapState } from 'vuex'
 import { Roles } from '@core/lib/roles'
 
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
+import { ChevronLeftIcon, TemplateIcon, CogIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
 
 const projectTransitionStates = [
     'starting',
@@ -41,9 +59,12 @@ const projectTransitionStates = [
 
 export default {
     name: 'ProjectPage',
-    mixins: [Breadcrumbs],
     data: function () {
         return {
+            mounted: false,
+            icons: {
+                chevronLeft: ChevronLeftIcon
+            },
             project: {},
             navigation: [],
             checkInterval: null
@@ -53,7 +74,7 @@ export default {
         await this.updateProject()
     },
     computed: {
-        ...mapState('account', ['teamMembership']),
+        ...mapState('account', ['teamMembership', 'team']),
         options: function () {
             const flowActionsDisabled = !(this.project.meta && this.project.meta.state !== 'suspended')
 
@@ -82,6 +103,7 @@ export default {
     },
     mounted () {
         this.checkAccess()
+        this.mounted = true
     },
     beforeUnmount () {
         clearTimeout(this.checkInterval)
@@ -101,12 +123,7 @@ export default {
                     query: this.$router.currentRoute.value.query,
                     hash: this.$router.currentRoute.value.hash
                 })
-                return
             }
-            this.setBreadcrumbs([
-                { type: 'TeamLink' },
-                { label: this.project.name /*, to: { name: "Project", params: {id:this.project.id}} */ }
-            ])
         },
         async refreshProject () {
             if (this.project.pendingStateChange) {
@@ -125,13 +142,13 @@ export default {
         },
         checkAccess () {
             this.navigation = [
-                { name: 'Overview', path: `/project/${this.project.id}/overview` },
+                { name: 'Overview', path: `/project/${this.project.id}/overview`, icon: TemplateIcon },
                 // { name: "Deploys", path: `/project/${this.project.id}/deploys` },
-                { name: 'Activity', path: `/project/${this.project.id}/activity` },
-                { name: 'Logs', path: `/project/${this.project.id}/logs` }
+                { name: 'Activity', path: `/project/${this.project.id}/activity`, icon: ViewListIcon },
+                { name: 'Logs', path: `/project/${this.project.id}/logs`, icon: TerminalIcon }
             ]
             if (this.teamMembership && this.teamMembership.role === Roles.Owner) {
-                this.navigation.push({ name: 'Settings', path: `/project/${this.project.id}/settings` })
+                this.navigation.push({ name: 'Settings', path: `/project/${this.project.id}/settings`, icon: CogIcon })
                 // this.navigation.push({ name: "Debug", path: `/project/${this.project.id}/debug` })
             }
             if (this.project.meta && (this.project.pendingRestart || projectTransitionStates.includes(this.project.meta.state))) {
@@ -141,7 +158,8 @@ export default {
         }
     },
     components: {
-        SectionTopMenu,
+        NavItem,
+        SideNavigation,
         ExternalLinkIcon,
         DropdownMenu,
         ProjectStatusBadge

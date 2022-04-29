@@ -1,5 +1,5 @@
 <template>
-    <div v-if="project.meta && project.meta.state !== 'suspended'" class="max-w-4xl mx-auto text-xs border bg-gray-800 text-gray-200 rounded p-2 font-mono">
+    <div v-if="project.meta && project.meta.state !== 'suspended'" class="mx-auto text-xs border bg-gray-800 text-gray-200 rounded p-2 font-mono">
         <div v-if="prevCursor" class="flex">
             <a @click="loadPrevious" class=" text-center w-full hover:text-blue-400 cursor-pointer pb-1">Load earlier...</a>
         </div>

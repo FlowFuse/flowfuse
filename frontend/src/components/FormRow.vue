@@ -58,7 +58,7 @@
                     <ff-text-input
                         v-model="localModelValue"
                         :disabled="disabled"
-                        :password="type === 'password'"
+                        :type="type"
                         @keyup.enter.prevent="$emit('enter')"
                         @blur="$emit('blur')"/>
                 </template>

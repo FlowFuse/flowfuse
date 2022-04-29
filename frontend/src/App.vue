@@ -1,5 +1,5 @@
 <template>
-    <div class="min-h-screen flex flex-col bg-gray-300 ">
+    <div id="ff-app" class="min-h-screen flex flex-col">
         <template v-if="offline">
             <main class="flex-grow flex flex-col">
                 <div class="w-full max-w-screen-2xl mx-auto my-2 sm:my-8 flex-grow flex flex-col">
@@ -14,37 +14,34 @@
                 </div>
             </main>
         </template>
+        <!-- Platform Entry Point -->
         <template v-else-if="user && !user.password_expired">
-            <PageHeader />
-            <main class="flex-grow flex flex-col">
-                <div class="w-full max-w-screen-2xl mx-auto my-2 sm:my-8 flex-grow flex flex-col">
-                    <router-view></router-view>
-                </div>
-            </main>
+            <ff-layout-platform>
+                <router-view></router-view>
+            </ff-layout-platform>
         </template>
+        <!-- Password Reset Required -->
         <template v-else-if="user && user.password_expired">
             <PasswordExpired/>
         </template>
         <template v-else-if="!loginRequired">
             <router-view></router-view>
         </template>
+        <!-- Authentication Screen -->
         <template v-else>
             <Login/>
         </template>
-        <div class="w-full bg-gray-800 flex-grow-0">
-            <PageFooter />
-        </div>
     </div>
 </template>
 
 <script>
 import { mapState } from 'vuex'
-import PageFooter from '@/components/PageFooter.vue'
-import PageHeader from '@/components/PageHeader.vue'
 import Login from '@/pages/Login.vue'
 import Loading from '@/components/Loading'
 import Offline from '@/components/Offline'
 import PasswordExpired from '@/pages/PasswordExpired.vue'
+
+import FFLayoutPlatform from '@/layouts/Platform.vue'
 
 export default {
     name: 'App',
@@ -55,12 +52,11 @@ export default {
         }
     },
     components: {
-        PageFooter,
-        PageHeader,
         Login,
         PasswordExpired,
         Loading,
-        Offline
+        Offline,
+        'ff-layout-platform': FFLayoutPlatform
     },
     mounted () {
         this.$store.dispatch('account/checkState')
@@ -68,3 +64,7 @@ export default {
     }
 }
 </script>
+
+<style lang="scss">
+@import "./stylesheets/common.scss";
+</style>
