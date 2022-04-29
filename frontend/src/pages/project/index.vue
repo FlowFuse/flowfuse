@@ -41,7 +41,6 @@ import projectApi from '@/api/project'
 
 import NavItem from '@/components/NavItem'
 import SideNavigation from '@/components/SideNavigation'
-import SectionTopMenu from '@/components/SectionTopMenu'
 import DropdownMenu from '@/components/DropdownMenu'
 import ProjectStatusBadge from './components/ProjectStatusBadge'
 
@@ -161,7 +160,6 @@ export default {
     components: {
         NavItem,
         SideNavigation,
-        SectionTopMenu,
         ExternalLinkIcon,
         DropdownMenu,
         ProjectStatusBadge
