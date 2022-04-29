@@ -31,7 +31,6 @@
 <script>
 
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
 
 import billingApi from '@/api/billing.js'
 import Loading from '@/components/Loading'
