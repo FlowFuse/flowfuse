@@ -5,7 +5,7 @@
             <ff-text-input ref="login-username" label="username" :error="errors.username" v-model="input.username" @enter="focusPassword"/>
             <label class="ff-error-inline">{{ errors.username }}</label>
             <label>password</label>
-            <ff-text-input ref="login-password" label="password" :error="errors.password" v-model="input.password" @enter="login" :password="true"/>
+            <ff-text-input ref="login-password" label="password" :error="errors.password" v-model="input.password" @enter="login" type="password"/>
             <label class="ff-error-inline">{{ errors.password }}</label>
         </div>
         <div>
