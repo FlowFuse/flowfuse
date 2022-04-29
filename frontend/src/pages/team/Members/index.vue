@@ -21,7 +21,7 @@ export default {
     name: 'TeamUsers',
     props: ['team', 'teamMembership'],
     computed: {
-        ...mapState('account', ['user', 'team'])
+        ...mapState('account', ['user'])
     },
     components: {
         SectionTopMenu
