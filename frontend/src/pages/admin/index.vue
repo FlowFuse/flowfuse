@@ -7,7 +7,7 @@
                     <nav-item :icon="route.icon" :label="route.name"></nav-item>
                 </router-link>
             </template>
-            <template v-slot:bottom>
+            <template v-slot:back>
                 <router-link :to="{name: 'Team', params: {team_slug: team.slug}}">
                     <nav-item :icon="icons.chevronLeft" label="Back to Dashboard"></nav-item>
                 </router-link>

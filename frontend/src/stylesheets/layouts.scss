@@ -288,10 +288,8 @@
             }
         }
     }
-    .ff-side-navigation--options-bottom {
-        position: absolute;
-        bottom: 0;
-        width: 100%;
+    .ff-side-navigation--options-back {
+        // width: 100%;
         li {
             border-top: 1px solid $ff-grey-600;
         }

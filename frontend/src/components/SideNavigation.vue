@@ -1,9 +1,9 @@
 <template>
     <ul class="ff-side-navigation--options">
-        <slot name="options"></slot>
-        <div class="ff-side-navigation--options-bottom">
-            <slot name="bottom"></slot>
+        <div class="ff-side-navigation--options-back">
+            <slot name="back"></slot>
         </div>
+        <slot name="options"></slot>
     </ul>
 </template>
 
