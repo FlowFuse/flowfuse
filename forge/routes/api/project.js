@@ -1,4 +1,5 @@
 const ProjectActions = require('./projectActions.js')
+const crypto = require('crypto')
 
 /**
  * Instance api routes
@@ -105,7 +106,14 @@ module.exports = async function (app) {
                     name: { type: 'string' },
                     team: { type: ['string', 'number'] },
                     stack: { type: 'string' },
-                    template: { type: 'string' }
+                    template: { type: 'string' },
+                    sourceProject: {
+                        type: 'object',
+                        properties: {
+                            id: { type: 'string' },
+                            options: { type: 'object' }
+                        }
+                    }
                 }
             }
         }
@@ -120,6 +128,19 @@ module.exports = async function (app) {
         }
 
         const team = teamMembership.get('Team')
+
+        let sourceProject
+        if (request.body.sourceProject && request.body.sourceProject.id) {
+            sourceProject = await app.db.models.Project.byId(request.body.sourceProject.id)
+            if (!sourceProject) {
+                reply.code(400).send('Source Project Not Found')
+                return
+            } else if (sourceProject.Team.hashid !== request.body.team) {
+                console.log(sourceProject.Team.hashid, request.body.team)
+                reply.code(400).send('Source Project Not in Same Team')
+                return
+            }
+        }
 
         const stack = await app.db.models.ProjectStack.byId(request.body.stack)
 
@@ -172,6 +193,67 @@ module.exports = async function (app) {
             ]
         })
 
+        if (sourceProject) {
+            // need to copy values over
+            const settingsString = (await app.db.models.StorageSettings.byProject(sourceProject.id))?.settings
+            const sourceSettings = JSON.parse(settingsString)
+            const newSettings = {
+                ...sourceSettings.nodes,
+                users: {}
+            }
+            const options = request.body.sourceProject.options
+            if (options.flows) {
+                const sourceFlows = await app.db.models.StorageFlow.byProject(sourceProject.id)
+                const newFlow = await app.db.models.StorageFlow.create({
+                    flow: sourceFlows.flow,
+                    ProjectId: project.id
+                })
+                await newFlow.save()
+
+                if (options.creds) {
+                    // need to work out how to insert the credentialsSecret
+                    let newKey
+                    if (options.creds === true) {
+                        newKey = crypto.randomBytes(32).toString('hex')
+                    } else {
+                        newKey = options.creds
+                    }
+                    const origCredentials = await app.db.models.StorageCredentials.byProject(sourceProject.id)
+                    if (origCredentials) {
+                        const sourceCreds = JSON.parse(origCredentials.credentials)
+                        const newCreds = recryptCreds(sourceCreds, sourceSettings._credentialSecret, newKey)
+                        const creds = await app.db.models.StorageCredentials.create({
+                            credentials: JSON.stringify(newCreds),
+                            ProjectId: project.id
+                        })
+                        await creds.save()
+                        newSettings._credentialSecret = newKey
+                    }
+                }
+            }
+            const settings = await app.db.models.StorageSettings.create({
+                settings: JSON.stringify(newSettings),
+                ProjectId: project.id
+            })
+            await settings.save()
+
+            if (options.envVars) {
+                const sourceProjectSettings = await app.db.controllers.Project.getRuntimeSettings(sourceProject)
+                if (sourceProjectSettings && sourceProjectSettings.env) {
+                    const newEnvVars = {
+                        env: []
+                    }
+                    Object.keys(sourceProjectSettings.env).forEach(key => {
+                        newEnvVars.env.push({
+                            name: key,
+                            value: options.envVarsKo ? '' : sourceProjectSettings.env[key]
+                        })
+                    })
+                    await project.updateSetting('settings', newEnvVars)
+                }
+            }
+        }
+
         await app.containers.start(project)
 
         await app.db.controllers.AuditLog.projectLog(
@@ -179,12 +261,26 @@ module.exports = async function (app) {
             request.session.User.id,
             'project.created'
         )
-        await app.db.controllers.AuditLog.teamLog(
-            team.id,
-            request.session.User.id,
-            'project.created',
-            { id: project.id, name: project.name }
-        )
+        if (sourceProject) {
+            await app.db.controllers.AuditLog.teamLog(
+                team.id,
+                request.session.User.id,
+                'project.duplicated',
+                {
+                    sourceId: sourceProject.id,
+                    sourceName: sourceProject.name,
+                    newId: project.id,
+                    newName: project.name
+                }
+            )
+        } else {
+            await app.db.controllers.AuditLog.teamLog(
+                team.id,
+                request.session.User.id,
+                'project.created',
+                { id: project.id, name: project.name }
+            )
+        }
 
         const result = await app.db.views.Project.project(project)
 
@@ -428,4 +524,72 @@ module.exports = async function (app) {
         // console.log(logEntries);
         reply.send(result)
     })
+
+    /**
+     *
+     * @name /api/v1/project/:id/export
+     * @memberof forge.routes.api.project
+     */
+    app.post('/:projectId/export', async (request, reply) => {
+        const components = request.body.components
+        reply.header('content-disposition', 'attachment; filename="project.json"')
+        const projectExport = {}
+        if (components.flows) {
+            const flows = await app.db.models.StorageFlow.byProject(request.project.id)
+            projectExport.flows = !flows ? [] : JSON.parse(flows.flow)
+
+            if (components.creds) {
+                const origCredentials = await app.db.models.StorageCredentials.byProject(request.project.id)
+                if (origCredentials) {
+                    const encryptedCreds = JSON.parse(origCredentials.credentials)
+                    const settings = JSON.parse((await app.db.models.StorageSettings.byProject(request.project.id)).settings)
+                    const key = crypto.createHash('sha256').update(settings._credentialSecret).digest()
+                    const plainText = decryptCreds(key, encryptedCreds)
+                    const newKey = crypto.createHash('sha256').update(components.creds).digest()
+                    const newCreds = encryptCreds(newKey, plainText)
+
+                    projectExport.credentials = newCreds
+                }
+            }
+        }
+        if (components.envVars) {
+            const settings = await app.db.controllers.Project.getRuntimeSettings(request.project)
+            if (components.envVarsKo) {
+                projectExport.envVars = {}
+                Object.keys(settings.env).forEach(key => {
+                    projectExport.envVars[key] = ''
+                })
+            } else {
+                if (settings.env) {
+                    projectExport.envVars = settings.env
+                }
+            }
+        }
+        const NRSettings = await app.db.models.StorageSettings.byProject(request.project.id)
+        if (NRSettings) {
+            projectExport.nodes = JSON.parse(NRSettings.settings).nodes
+        }
+        reply.send(projectExport)
+    })
+
+    function recryptCreds (original, oldKey, newKey) {
+        const newHash = crypto.createHash('sha256').update(newKey).digest()
+        const oldHash = crypto.createHash('sha256').update(oldKey).digest()
+        return encryptCreds(newHash, decryptCreds(oldHash, original))
+    }
+
+    function decryptCreds (key, cipher) {
+        let flows = cipher.$
+        const initVector = Buffer.from(flows.substring(0, 32), 'hex')
+        flows = flows.substring(32)
+        const decipher = crypto.createDecipheriv('aes-256-ctr', key, initVector)
+        const decrypted = decipher.update(flows, 'base64', 'utf8') + decipher.final('utf8')
+        return JSON.parse(decrypted)
+    }
+
+    function encryptCreds (key, plain) {
+        const initVector = crypto.randomBytes(16)
+        const cipher = crypto.createCipheriv('aes-256-ctr', key, initVector)
+        return { $: initVector.toString('hex') + cipher.update(JSON.stringify(plain), 'utf8', 'base64') + cipher.final('base64') }
+    }
 }
