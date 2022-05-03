@@ -53,15 +53,18 @@ module.exports = {
             }
         },
         beforeDestroy: async (user, opts) => {
-            const teamCount = await user.getTeamMembership
-            console.log(teamCount)
+            const role = await user.getTeamsRole()
+            const adminUser = await user.getAdminStatus()
+            if (role === 50) {
             // is user an admin? find user in the admin list
             // const userIsAdmin = findUserInAdminList(admins, user)
             // if yes, is admin count == 1?
             // if (userIsAdmin && admins.length <= 1) {
-            throw new Error('Cannot delete team owner.')
-
-            // }
+                throw new Error('Cannot delete team owner.')
+            };
+            if (adminUser === true) {
+                throw new Error('Cannot delete admin user.')
+            }
             // Check if user is only owner of a team
             // 1.) get teams associated with this user.
             // 2.) Check owner count of each team, if ANY of teams Owner count == 1, DO NOT DELETE user.
@@ -189,6 +192,15 @@ module.exports = {
                 // TODO: standardize on using hashids externally
                 getTeamMembership: async function (teamId, includeTeam) {
                     return M.TeamMember.getTeamMembership(this.id, teamId, includeTeam)
+                },
+                getTeamsRole: async function () {
+                    const teams = await M.Team.forUser(this)
+                    const teamRole = await teams[0].dataValues.role
+                    return teamRole
+                },
+                getAdminStatus: async function () {
+                    const user = await M.User.byId(this.id)
+                    return user.dataValues.admin
                 }
             }
         }
