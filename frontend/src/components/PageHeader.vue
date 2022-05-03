@@ -37,8 +37,6 @@ import { ref } from 'vue'
 import { mapState } from 'vuex'
 import router from '@/routes'
 
-import { Roles } from '@core/lib/roles'
-
 import { MenuIcon, QuestionMarkCircleIcon, AdjustmentsIcon, CogIcon, LogoutIcon } from '@heroicons/vue/solid'
 
 import NavItem from '@/components/NavItem'
