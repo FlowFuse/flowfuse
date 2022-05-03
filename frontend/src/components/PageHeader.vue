@@ -37,11 +37,12 @@ import { ref } from 'vue'
 import { mapState } from 'vuex'
 import router from '@/routes'
 
+import { Roles } from '@core/lib/roles'
+
 import { MenuIcon, QuestionMarkCircleIcon, AdjustmentsIcon, CogIcon, LogoutIcon } from '@heroicons/vue/solid'
 
 import NavItem from '@/components/NavItem'
 
-const navigation = router.options.routes.filter(r => r.navigationLink)
 export default {
     name: 'NavBar',
     props: {
@@ -75,11 +76,6 @@ export default {
                 onclick: this.$router.push,
                 onclickparams: { name: 'User Settings' }
             }, {
-                label: 'Admin Settings',
-                icon: AdjustmentsIcon,
-                onclick: this.$router.push,
-                onclickparams: { name: 'Admin Settings' }
-            }, {
                 label: 'Documentation',
                 icon: QuestionMarkCircleIcon,
                 onclick: this.to,
@@ -94,8 +90,17 @@ export default {
     setup () {
         const open = ref(false)
         return {
-            open,
-            navigation
+            open
+        }
+    },
+    mounted () {
+        if (this.user.role === Roles.Admin) {
+            this.options.splice(1, 0, {
+                label: 'Admin Settings',
+                icon: AdjustmentsIcon,
+                onclick: this.$router.push,
+                onclickparams: { name: 'Admin Settings' }
+            })
         }
     },
     methods: {
