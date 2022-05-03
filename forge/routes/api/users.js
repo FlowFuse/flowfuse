@@ -1,3 +1,4 @@
+const users = require('./shared/users')
 const sharedUser = require('./shared/users')
 
 /**
@@ -50,9 +51,14 @@ module.exports = async function (app) {
     app.delete('/user/:id', async (request, reply) => {
         const user = await app.db.models.User.byId(request.params.id)
         if (user) {
+            reply.send(app.db.views.User.userProfile(user.admin))
+            console.log(user.admin)
             const userTeams = user.dataValues.Teams.map(T => app.db.models.Team.byName(T.dataValues.name))
             const teams = await Promise.all(userTeams)
-            const teamOwnerLists = await Promise.all(teams.map(T => T.owners()))
+            console.log(teams)
+            // const teamOwnerLists = await Promise.all(teams.map(T => T.owners()))
+            // const users = user.findAll
+            // console.log(users)
             // teamOwnerLists = teamOwnerLists.filter(ownerList => ownerList.length <= 1 && use)
             // teamOwnerLists = teamOwnerLists.filter(ownerList => ownerList.length <= 1)
             // const teamsWithAdminCountOne = teams.filter(T => {
@@ -65,8 +71,8 @@ module.exports = async function (app) {
             // Get list of admins for the given user's team
             // if (user.dataValues.admin) {
             await user.destroy()
-            // await user.destroy({ teamOwnerCounts: teamOwnerCounts })
-            reply.send({ status: 'okay' })
+            // await user.destroy({ teamOwnerCounts:  })
+            await (userTeams); reply.send({ status: 'okay' })
             // }
         } else {
             reply.code(404).type('text/html').send('Not Found')

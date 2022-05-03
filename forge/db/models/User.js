@@ -53,11 +53,13 @@ module.exports = {
             }
         },
         beforeDestroy: async (user, opts) => {
+            const teamCount = await user.getTeamMembership
+            console.log(teamCount)
             // is user an admin? find user in the admin list
             // const userIsAdmin = findUserInAdminList(admins, user)
             // if yes, is admin count == 1?
             // if (userIsAdmin && admins.length <= 1) {
-            //     throw new Error('Cannot delete the only admin.')
+            throw new Error('Cannot delete team owner.')
 
             // }
             // Check if user is only owner of a team
