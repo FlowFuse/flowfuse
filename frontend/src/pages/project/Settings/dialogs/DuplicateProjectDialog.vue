@@ -125,7 +125,8 @@ export default {
     methods: {
         confirm () {
             const parts = this.parts
-            if (parts.creds && parts.credsSecret.trim()) {
+            console.log(parts)
+            if (parts.creds && parts.credsSecret && parts.credsSecret.trim()) {
                 parts.creds = parts.credsSecret.trim()
                 delete parts.credsSecret
             }

@@ -16,11 +16,11 @@
             Environment Variables
             <template #description>Export Environment Variables</template>
         </FormRow>
-        <FormRow v-if="parts.envVars" type="radio" v-model="parts.envVarsKo" :value="false">
+        <FormRow class="ml-9" v-if="parts.envVars" type="radio" v-model="parts.envVarsKo" :value="false">
             Keys and Values
             <!-- <template v-slot:description>Keys and Values</template> -->
         </FormRow>
-        <FormRow v-if="parts.envVars" type="radio" v-model="parts.envVarsKo" :value="true">
+        <FormRow class="ml-9" v-if="parts.envVars" type="radio" v-model="parts.envVarsKo" :value="true">
             Keys only
             <!-- <template v-slot:description>Keys only</template> -->
         </FormRow>
