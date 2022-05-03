@@ -94,7 +94,7 @@ export default {
         }
     },
     mounted () {
-        if (this.user.role === Roles.Admin) {
+        if (this.user.admin) {
             this.options.splice(1, 0, {
                 label: 'Admin Settings',
                 icon: AdjustmentsIcon,
