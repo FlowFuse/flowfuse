@@ -68,7 +68,11 @@ export default {
         async regenerateCredentials () {
             const creds = await deviceApi.generateCredentials(this.device.id)
             this.device.credentials = creds
-        }
+        },
+        close () {
+            this.isOpen = false
+            this.device.credentials = undefined
+        },
     },
     computed: {
         hasCredentials: function () {
@@ -88,13 +92,9 @@ token: ${this.device.credentials.token}
         const isOpen = ref(false)
         return {
             isOpen,
-            close () {
-                isOpen.value = false
-            },
             show (device) {
                 this.device = device
                 isOpen.value = true
-                delete this.device.credentials
             }
         }
     }
