@@ -92,7 +92,12 @@ module.exports = fp(async function (app, opts, next) {
         }
 
         if (!config.telemetry) {
-            config.telemetry = { enabled: true }
+            config.telemetry = {
+                enabled: true,
+                plausible: {
+                    domain: null
+                }
+            }
         }
 
         Object.freeze(config)
