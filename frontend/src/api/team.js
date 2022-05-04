@@ -106,6 +106,13 @@ const updateTeam = async (teamId, options) => {
         return res.data
     })
 }
+
+const getTeamDevices = async (teamId, cursor, limit) => {
+    const url = paginateUrl(`/api/v1/teams/${teamId}/devices`, cursor, limit)
+    const res = await client.get(url)
+    return res.data
+}
+
 export default {
     create,
     getTeam,
@@ -120,5 +127,6 @@ export default {
     createTeamInvitation,
     removeTeamInvitation,
     getTeamAuditLog,
-    getTeamUserMembership
+    getTeamUserMembership,
+    getTeamDevices
 }

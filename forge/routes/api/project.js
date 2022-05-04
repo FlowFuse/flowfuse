@@ -1,5 +1,5 @@
-const ProjectActions = require('./projectActions.js')
-
+const ProjectActions = require('./projectActions')
+const ProjectDevices = require('./projectDevices')
 /**
  * Instance api routes
  *
@@ -57,6 +57,7 @@ module.exports = async function (app) {
         }
     })
 
+    app.register(ProjectDevices, { prefix: '/:projectId/devices' })
     app.register(ProjectActions, { prefix: '/:projectId/actions' })
 
     /**

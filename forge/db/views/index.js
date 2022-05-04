@@ -14,6 +14,7 @@ const modelTypes = [
     'User',
     'Team',
     'Project',
+    'Device',
     'Invitation',
     'AuditLog',
     'ProjectStack',

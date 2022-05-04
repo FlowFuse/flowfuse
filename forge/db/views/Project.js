@@ -52,6 +52,15 @@ module.exports = {
             return r
         })
     },
+    projectSummary: function (app, project) {
+        return {
+            id: project.id,
+            name: project.name,
+            createdAt: project.createdAt,
+            updatedAt: project.updatedAt,
+            links: project.links
+        }
+    },
     userProjectList: function (app, projectList) {
         return projectList.map((t) => {
             return {

@@ -37,7 +37,7 @@ import { mapState } from 'vuex'
 
 import { Roles } from '@core/lib/roles'
 
-import { SwitchHorizontalIcon, CollectionIcon, UsersIcon, DatabaseIcon, CurrencyDollarIcon, CogIcon, PlusIcon } from '@heroicons/vue/solid'
+import { SwitchHorizontalIcon, CollectionIcon, UsersIcon, DatabaseIcon, ChipIcon, CurrencyDollarIcon, CogIcon, PlusIcon } from '@heroicons/vue/solid'
 import NavItem from '@/components/NavItem'
 
 export default {
@@ -64,6 +64,10 @@ export default {
                 label: 'Projects',
                 to: '/projects',
                 icon: CollectionIcon
+            }, {
+                label: 'Devices',
+                to: '/devices',
+                icon: ChipIcon
             }, {
                 label: 'Members',
                 to: '/members',

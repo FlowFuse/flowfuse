@@ -65,6 +65,13 @@ const changeStack = async (projectId, stackId) => {
         return res.data
     })
 }
+
+const getProjectDevices = async (projectId, cursor, limit) => {
+    const url = paginateUrl(`/api/v1/projects/${projectId}/devices`, cursor, limit)
+    const res = await client.get(url)
+    return res.data
+}
+
 export default {
     create,
     getProject,
@@ -77,5 +84,6 @@ export default {
     restartProject,
     suspendProject,
     updateProject,
-    changeStack
+    changeStack,
+    getProjectDevices
 }

@@ -48,7 +48,7 @@ import { mapState } from 'vuex'
 import { Roles } from '@core/lib/roles'
 
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
-import { ChevronLeftIcon, TemplateIcon, CogIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
+import { ChevronLeftIcon, TemplateIcon, CogIcon, ChipIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
 
 const projectTransitionStates = [
     'starting',
@@ -144,6 +144,7 @@ export default {
             this.navigation = [
                 { name: 'Overview', path: `/project/${this.project.id}/overview`, icon: TemplateIcon },
                 // { name: "Deploys", path: `/project/${this.project.id}/deploys` },
+                { name: 'Devices', path: `/project/${this.project.id}/devices`, icon: ChipIcon },
                 { name: 'Activity', path: `/project/${this.project.id}/activity`, icon: ViewListIcon },
                 { name: 'Logs', path: `/project/${this.project.id}/logs`, icon: TerminalIcon }
             ]
