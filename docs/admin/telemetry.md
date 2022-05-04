@@ -10,7 +10,10 @@ We do not collect:
  - Any personally identifiable information. We do store a secure hash of the sending IP address - but the plain value is never stored
  - Any specific details of the flows running on the platform.
 
-## Configuring Telemetry
+## Core Telemetry 
+
+### Configuring Telemetry
+
 
 By default, usage telemetry is enabled on the platform. The administrator can
 opt-out of sharing information as part of the initial setup, or through the Admin
@@ -24,8 +27,7 @@ telemetry:
   enabled: false
 ```
 
-
-## Collected Data
+### Collected Data
 
 The following pieces of information are included in the telemetry sent back to us:
 
@@ -59,10 +61,31 @@ Property | Description
 When the data is collected, we also store the timestamp the data was received and
 a **hash** of the sending IP address - we do not store the plain value.
 
-## Schedule
 
-The platform will send the telemetry data:
+### Schedule
+
+For the core tracking, the platform will send the telemetry data:
  - 30 seconds after the platform starts up (but only if the platform has already been initialised)
  - Once every 24 hours at a time randomly picked when the platform starts
 
 The data is sent via an HTTP Post to `https://ping.flowforge.com`.
+
+## Plausible
+
+### Configuring Telemetry
+
+Further details about how users are navigating around your instance of FlowForge can be enabled via [Plausible](https://plausible.io/). This can be enabled with:
+
+```
+telemetry:
+  enabled: true
+  plausible:
+    domain: <data-domain>
+```
+### Collected Data
+
+Details on the metrics gathered through Plausible can be found in the [Plausible Documentation](https://plausible.io/docs/metrics-definitions)
+
+### Schedule 
+
+Plausible tracking is sent as the relevant events are triggered, e.g. as a user navigates between two pages, or as they load the platform.

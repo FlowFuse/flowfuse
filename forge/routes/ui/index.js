@@ -27,7 +27,7 @@ module.exports = async function (app) {
     async function injectPlausible (domain, extension) {
         const filepath = path.join(frontendAssetsDir, 'index.html')
         const data = await fsp.readFile(filepath, 'utf8')
-        const injected = data.replace(/<!-- FORGE INJECTED SCRIPTS GO HERE -->/g,
+        const injected = data.replace(/<!-- forge injected scripts go here -->/g,
             `<script defer data-domain="${domain}" src="https://plausible.io/js/plausible${extension ? '.' + extension : ''}.js"></script>`)
         return injected
     }
@@ -45,7 +45,7 @@ module.exports = async function (app) {
             return
         }
         // check if we need to inject plausible
-        if (app.config.telemetry.plausible.domain) {
+        if (app.config.telemetry.plausible?.domain) {
             const injectedContent = await injectPlausible(app.config.telemetry.plausible.domain, app.config.telemetry.plausible.extension)
             reply.type('text/html').send(injectedContent)
         } else {
@@ -65,7 +65,7 @@ module.exports = async function (app) {
     // if the user then hits reload
     app.get('*', async (request, reply) => {
         // check if we need to inject plausible
-        if (app.config.telemetry.plausible.domain) {
+        if (app.config.telemetry.plausible?.domain) {
             const injectedContent = await injectPlausible(app.config.telemetry.plausible.domain, app.config.telemetry.plausible.extension)
             reply.type('text/html').send(injectedContent)
         } else {
