@@ -28,7 +28,7 @@ export default {
                 menu.push(null)
                 menu.push({ name: 'Remove from project', class: ['text-red-700'], action: () => { this.$parent.$emit('deviceAction', 'removeFromProject', this.id) } })
             } else {
-                menu.push({ name: 'Assign to project', action: () => { this.$parent.$emit('deviceAction', 'assignToProject', this.id) } })
+                menu.push({ name: 'Add to project', action: () => { this.$parent.$emit('deviceAction', 'assignToProject', this.id) } })
                 menu.push(null)
             }
             menu.push({ name: 'Regenerate credentials', class: ['text-red-700'], action: () => { this.$parent.$emit('deviceAction', 'updateCredentials', this.id) } })

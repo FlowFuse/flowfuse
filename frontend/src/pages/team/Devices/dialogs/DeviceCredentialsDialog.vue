@@ -72,7 +72,7 @@ export default {
         close () {
             this.isOpen = false
             this.device.credentials = undefined
-        },
+        }
     },
     computed: {
         hasCredentials: function () {
