@@ -21,13 +21,11 @@
 
 import userApi from '@/api/user'
 import { mapState } from 'vuex'
-import FlowForgeLogo from '@/components/Logo'
 import { InboxInIcon, UserGroupIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'NoTeamsUser',
     components: {
-        FlowForgeLogo,
         UserGroupIcon,
         InboxInIcon
     },
