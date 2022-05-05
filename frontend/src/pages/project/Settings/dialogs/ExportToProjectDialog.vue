@@ -29,10 +29,6 @@
                                         <template v-slot:default>Target Project</template>
                                     </FormRow>
                                 </div>
-                                <!-- <FormRow :options="stacks" :error="errors.stack" v-model="input.stack" id="stack">Stack</FormRow>
-
-                                <FormRow disabled :options="templates" :error="errors.template" v-model="input.template" id="template">Template</FormRow> -->
-
                                 <FormHeading>Copy from {{project.name}}</FormHeading>
                                 <ExportProjectComponents id="exportSettings" v-model="parts" />
                                 <div class="mt-4 flex flex-row justify-end">
