@@ -67,7 +67,7 @@ export default [
                 },
                 redirect: '/admin/users/general',
                 children: [
-                    { path: 'general', component: AdminUsersGeneral },
+                    { path: 'general', component: AdminUsersGeneral, name: 'AdminUsersGeneral' },
                     { path: 'invitations', component: AdminUsersInvitations }
                 ]
             },
