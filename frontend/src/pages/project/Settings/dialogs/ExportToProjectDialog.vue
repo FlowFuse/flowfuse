@@ -29,8 +29,7 @@
                                         <template v-slot:default>Target Project</template>
                                     </FormRow>
                                 </div>
-<!-- 
-                                <FormRow :options="stacks" :error="errors.stack" v-model="input.stack" id="stack">Stack</FormRow>
+                                <!-- <FormRow :options="stacks" :error="errors.stack" v-model="input.stack" id="stack">Stack</FormRow>
 
                                 <FormRow disabled :options="templates" :error="errors.template" v-model="input.template" id="template">Template</FormRow> -->
 
