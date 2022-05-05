@@ -1,4 +1,7 @@
 module.exports.init = function (app) {
+    // Set the billing feature flag
+    app.config.features.register('billing', true, true)
+
     const stripe = require('stripe')(app.config.billing.stripe.key)
 
     return {

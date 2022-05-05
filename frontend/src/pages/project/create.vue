@@ -91,8 +91,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(['features']),
-        ...mapState('account', ['team']),
+        ...mapState('account', ['features', 'team']),
         createEnabled: function () {
             return this.input.stack && this.input.team && this.input.name && !this.errors.name && this.input.template && (this.features.billing ? this.input.billingConfirmation : true)
         }

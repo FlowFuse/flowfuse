@@ -49,8 +49,7 @@ export default {
         SwitchHorizontalIcon
     },
     computed: {
-        ...mapState('account', ['user', 'team', 'teams', 'teamMembership']),
-        ...mapState(['features']),
+        ...mapState('account', ['user', 'team', 'teams', 'teamMembership', 'features']),
         showAdmin: function () {
             return this.teamMembership.role === Roles.Admin || this.teamMembership.role === Roles.Owner
         }
@@ -92,6 +91,7 @@ export default {
     },
     methods: {
         checkFeatures () {
+            console.log(this.features)
             if (this.features.billing) {
                 // insert billing in second slot of admin
                 this.routes.admin.splice(1, 0, {
