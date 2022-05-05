@@ -67,5 +67,5 @@ For more information about this feature, see [here](/docs/admin/telemetry.md)
 Option        | Description
 --------------|------------
 `telemetry.enabled` | Enables the anonymous usage telemetry of the platform. Default: `true`
-`telemetry.plausible.domain` | The `data-domain` of your site (see [Plausible docs](https://plausible.io/docs/plausible-script)). Default: `null`
-`telemetry.plausible.extension` | By default, Plausible only detects events running in a production environment, it is possible to enhance measurements with [script extensions](https://plausible.io/docs/script-extensions). You can, for example, detect localhost events using `local`. Default: `null`
+`telemetry.frontend.plausible.domain` | The `data-domain` of your site (see [Plausible docs](https://plausible.io/docs/plausible-script)). Default: `null`
+`telemetry.frontend.plausible.extension` | By default, Plausible only detects events running in a production environment, it is possible to enhance measurements with [script extensions](https://plausible.io/docs/script-extensions). You can, for example, detect localhost events using `local`. Default: `null`

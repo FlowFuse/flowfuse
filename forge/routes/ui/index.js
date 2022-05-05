@@ -45,8 +45,8 @@ module.exports = async function (app) {
             return
         }
         // check if we need to inject plausible
-        if (app.config.telemetry.plausible?.domain) {
-            const injectedContent = await injectPlausible(app.config.telemetry.plausible.domain, app.config.telemetry.plausible.extension)
+        if (app.config.telemetry.frontend?.plausible?.domain) {
+            const injectedContent = await injectPlausible(app.config.telemetry.frontend.plausible.domain, app.config.telemetry.frontend.plausible.extension)
             reply.type('text/html').send(injectedContent)
         } else {
             reply.sendFile('index.html')
@@ -65,8 +65,8 @@ module.exports = async function (app) {
     // if the user then hits reload
     app.get('*', async (request, reply) => {
         // check if we need to inject plausible
-        if (app.config.telemetry.plausible?.domain) {
-            const injectedContent = await injectPlausible(app.config.telemetry.plausible.domain, app.config.telemetry.plausible.extension)
+        if (app.config.telemetry.frontend?.plausible?.domain) {
+            const injectedContent = await injectPlausible(app.config.telemetry.frontend.plausible.domain, app.config.telemetry.frontend.plausible.extension)
             reply.type('text/html').send(injectedContent)
         } else {
             reply.sendFile('index.html')

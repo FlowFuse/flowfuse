@@ -79,9 +79,22 @@ Further details about how users are navigating around your instance of FlowForge
 ```
 telemetry:
   enabled: true
-  plausible:
-    domain: <data-domain>
+  frontend:
+    plausible:
+      domain: <data-domain>
 ```
+
+Optionally, you can use a Plausible `extension` too:
+
+```
+telemetry:
+  enabled: true
+  frontend:
+    plausible:
+      domain: <data-domain>
+      extension: local
+```
+
 ### Collected Data
 
 Details on the metrics gathered through Plausible can be found in the [Plausible Documentation](https://plausible.io/docs/metrics-definitions)
