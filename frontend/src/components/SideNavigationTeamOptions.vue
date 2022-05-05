@@ -49,8 +49,7 @@ export default {
         SwitchHorizontalIcon
     },
     computed: {
-        ...mapState('account', ['user', 'team', 'teams', 'teamMembership']),
-        ...mapState(['features']),
+        ...mapState('account', ['user', 'team', 'teams', 'teamMembership', 'features']),
         showAdmin: function () {
             return this.teamMembership.role === Roles.Admin || this.teamMembership.role === Roles.Owner
         }

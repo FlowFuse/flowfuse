@@ -60,7 +60,6 @@ export default {
     },
     mounted () {
         this.$store.dispatch('account/checkState')
-        this.$store.dispatch('features/checkState')
     }
 }
 </script>
