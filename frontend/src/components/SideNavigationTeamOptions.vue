@@ -91,7 +91,6 @@ export default {
     },
     methods: {
         checkFeatures () {
-            console.log(this.features)
             if (this.features.billing) {
                 // insert billing in second slot of admin
                 this.routes.admin.splice(1, 0, {
