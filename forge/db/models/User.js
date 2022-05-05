@@ -196,6 +196,8 @@ module.exports = {
                 getTeamsRole: async function () {
                     const teams = await M.Team.forUser(this)
                     const teamRole = await teams[0].dataValues.role
+                    console.log(teams)
+                    console.log(teamRole)
                     return teamRole
                 },
                 getAdminStatus: async function () {

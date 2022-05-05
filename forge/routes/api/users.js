@@ -70,7 +70,7 @@ module.exports = async function (app) {
             // const otherUsers = app.db.models.Team.byId
             // Get list of admins for the given user's team
             // if (user.dataValues.admin) {
-            await user.destroy()
+            // await user.destroy()
             // await user.destroy({ teamOwnerCounts:  })
             await (userTeams); reply.send({ status: 'okay' })
             // }
