@@ -455,6 +455,12 @@ module.exports = async function (app) {
                 await targetCreds.save()
             }
 
+            if (options.template) {
+                request.project.ProjectTemplateId = sourceProject.ProjectTemplateId
+                await request.project.save()
+                request.project.reload()
+            }
+
             if (options.envVars) {
                 const sourceProjectSettings = await app.db.controllers.Project.getRuntimeSettings(sourceProject)
                 if (sourceProjectSettings && sourceProjectSettings.env) {

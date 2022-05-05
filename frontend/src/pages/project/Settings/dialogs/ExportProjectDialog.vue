@@ -65,6 +65,7 @@ export default {
         return {
             parts: {
                 showSecret: true,
+                exportTemplate: false,
                 flows: true,
                 creds: false,
                 nodes: true,
@@ -97,6 +98,7 @@ export default {
                 this.project = project
                 this.parts = {
                     showSecret: true,
+                    exportTemplate: false,
                     flows: true,
                     creds: false,
                     nodes: true,

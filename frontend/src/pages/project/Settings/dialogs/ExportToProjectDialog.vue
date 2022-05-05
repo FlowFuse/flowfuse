@@ -94,8 +94,10 @@ export default {
             parts: {
                 showSecret: false,
                 allowJustCreds: true,
+                exportTemplate: true,
                 flows: true,
                 creds: true,
+                template: true,
                 nodes: true,
                 envVars: true,
                 envVarsKo: false,
@@ -155,9 +157,11 @@ export default {
                 this.project = project
                 this.parts = {
                     allowJustCreds: true,
+                    exportTemplate: true,
                     showSecret: false,
                     flows: true,
                     creds: true,
+                    template: true,
                     nodes: true,
                     envVars: true,
                     envVarsKo: false,

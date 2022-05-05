@@ -8,6 +8,10 @@
             Credentials
             <template #description>Export Flow Credentials</template>
         </FormRow>
+        <FormRow type="checkbox" v-if="parts.exportTemplate" v-model="parts.template">
+            Template
+            <template #description>Export Project Template</template>
+        </FormRow>
         <FormRow v-if="parts.showSecret" type="text" v-model="parts.credsSecret" v-bind:disabled="!parts.flows && !parts.creds">
             Secret
             <template #description>Provide a Secret to encrypt the exported Credentials</template>
