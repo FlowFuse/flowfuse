@@ -1,50 +1,50 @@
 <template>
     <form class="space-y-6">
         <FormHeading>Change Project Stack</FormHeading>
-        <div class="flex">
-            <div class="max-w-sm pr-2">Changing the project stack requires the
-                project to be restarted. The flows will not be running whilst
-                this happens.</div>
-            <div class="pl-2">
+        <div>
+            <div>
                 <ff-button kind="secondary" @click="showChangeStackDialog()">Change Project Stack</ff-button>
                 <ChangeStackDialog @changeStack="changeStack" ref="changeStackDialog"/>
             </div>
+            <div class="max-w-sm pt-2 pl-5">Changing the project stack requires the
+                project to be restarted. The flows will not be running whilst
+                this happens.</div>
         </div>
 
         <FormHeading>Export Project</FormHeading>
-        <div class="flex">
-            <div class="max-w-sm pr-2">Allows you to export a snapshot of the
-                project's current state.</div>
-            <div class="pl-2">
+        <div>
+            <div>
                 <ff-button kind="secondary" @click="showExportProjectDialog()">Export Project</ff-button>
                 <ExportProjectDialog @exportProject="exportProject" ref="exportProjectDialog"/>
             </div>
+            <div class="max-w-sm pt-2 pl-5">Allows you to export a snapshot of the
+                project's current state.</div>
         </div>
 
-        <div class="flex">
-            <div class="max-w-sm pr-2">Allows you to use a snapshot of the
-                project's current state to create a new project.</div>
-            <div class="pl-2">
+        <div>
+            <div>
                 <ff-button kind="secondary" @click="showDuplicateProjectDialog()">Duplicate Project</ff-button>
                 <DuplicateProjectDialog @duplicateProject="duplicateProject" ref="duplicateProjectDialog"/>
             </div>
+            <div class="max-w-sm pt-2 pl-5">Allows you to use a snapshot of the
+                project's current state to create a new project.</div>
         </div>
 
-        <div class="flex">
-            <div class="max-w-sm pr-2">Copy a project's state to another existing project</div>
-            <div class="pl-2">
+        <div>
+            <div>
                 <ff-button kind="secondary" @click="showExportToProjectDialog()">Export State</ff-button>
                 <ExportToProjectDialog @exportToProject="exportToProject" ref="exportToProjectDialog"/>
             </div>
+            <div class="max-w-sm pt-2 pl-5">Copy a project's state to another existing project.</div>
         </div>
 
         <FormHeading class="text-red-700">Delete Project</FormHeading>
-        <div class="flex">
-            <div class="max-w-sm pr-2">Once deleted, your project is gone. This cannot be undone.</div>
-            <div class="pl-2">
+        <div>
+            <div>
                 <ff-button kind="danger" @click="showConfirmDeleteDialog()">Delete Project</ff-button>
                 <ConfirmProjectDeleteDialog @deleteProject="deleteProject" ref="confirmProjectDeleteDialog"/>
             </div>
+            <div class="max-w-sm pt-2 pl-5">Once deleted, your project is gone. This cannot be undone.</div>
         </div>
     </form>
 </template>
