@@ -175,7 +175,6 @@ export default {
                 this.projects = []
                 for (let i = 0; i < projectList.count; i++) {
                     if (this.project.id !== projectList.projects[i].id) {
-                        console.log(projectList.projects[i].id, projectList.projects[i].name)
                         this.projects.push({
                             label: projectList.projects[i].name,
                             value: projectList.projects[i].id
