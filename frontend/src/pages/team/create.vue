@@ -2,8 +2,8 @@
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigation>
             <template v-slot:back>
-                <router-link :to="{name: 'Projects', params: {team_slug: team.slug}}">
-                    <nav-item :icon="icons.chevronLeft" label="Back to Projects"></nav-item>
+                <router-link :to="{name: 'Home'}">
+                    <nav-item :icon="icons.chevronLeft" label="Back to Dashboard"></nav-item>
                 </router-link>
             </template>
         </SideNavigation>
