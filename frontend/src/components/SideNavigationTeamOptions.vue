@@ -65,10 +65,6 @@ export default {
                 to: '/projects',
                 icon: CollectionIcon
             }, {
-                label: 'Devices',
-                to: '/devices',
-                icon: ChipIcon
-            }, {
                 label: 'Members',
                 to: '/members',
                 icon: UsersIcon
@@ -101,6 +97,13 @@ export default {
                     label: 'Billing',
                     to: '/billing',
                     icon: CurrencyDollarIcon
+                })
+            }
+            if (this.features.devices) {
+                this.routes.general.splice(2, 0, {
+                    label: 'Devices',
+                    to: '/devices',
+                    icon: ChipIcon
                 })
             }
         },

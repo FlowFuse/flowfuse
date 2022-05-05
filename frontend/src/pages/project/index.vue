@@ -74,7 +74,7 @@ export default {
         await this.updateProject()
     },
     computed: {
-        ...mapState('account', ['teamMembership', 'team']),
+        ...mapState('account', ['teamMembership', 'team', 'features']),
         options: function () {
             const flowActionsDisabled = !(this.project.meta && this.project.meta.state !== 'suspended')
 
@@ -143,11 +143,12 @@ export default {
         checkAccess () {
             this.navigation = [
                 { name: 'Overview', path: `/project/${this.project.id}/overview`, icon: TemplateIcon },
-                // { name: "Deploys", path: `/project/${this.project.id}/deploys` },
-                { name: 'Devices', path: `/project/${this.project.id}/devices`, icon: ChipIcon },
                 { name: 'Activity', path: `/project/${this.project.id}/activity`, icon: ViewListIcon },
                 { name: 'Logs', path: `/project/${this.project.id}/logs`, icon: TerminalIcon }
             ]
+            if (this.features.devices) {
+                this.navigation.splice(1, 0, { name: 'Devices', path: `/project/${this.project.id}/devices`, icon: ChipIcon })
+            }
             if (this.teamMembership && this.teamMembership.role === Roles.Owner) {
                 this.navigation.push({ name: 'Settings', path: `/project/${this.project.id}/settings`, icon: CogIcon })
                 // this.navigation.push({ name: "Debug", path: `/project/${this.project.id}/debug` })

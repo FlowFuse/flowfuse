@@ -40,6 +40,8 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+import { useRoute, useRouter } from 'vue-router'
 import { markRaw } from 'vue'
 import { Roles } from '@core/lib/roles'
 import teamApi from '@/api/team'
@@ -79,9 +81,16 @@ export default {
         project: 'fetchData'
     },
     mounted () {
-        this.fetchData()
+        this.checkAccess()
     },
     methods: {
+        checkAccess: async function () {
+            if (!this.features.devices) {
+                useRouter().push({ path: `/team/${useRoute().params.team_slug}` })
+            } else {
+                this.fetchData()
+            }
+        },
         fetchData: async function (newVal) {
             if (this.team.id && !this.project) {
                 const data = await teamApi.getTeamDevices(this.team.id)
@@ -144,6 +153,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['features']),
         isProjectDeviceView: function () {
             return this.project && this.project.id
         },

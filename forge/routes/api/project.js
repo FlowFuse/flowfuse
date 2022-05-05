@@ -57,7 +57,9 @@ module.exports = async function (app) {
         }
     })
 
-    app.register(ProjectDevices, { prefix: '/:projectId/devices' })
+    if (app.config.features.enabled('devices')) {
+        app.register(ProjectDevices, { prefix: '/:projectId/devices' })
+    }
     app.register(ProjectActions, { prefix: '/:projectId/actions' })
 
     /**
