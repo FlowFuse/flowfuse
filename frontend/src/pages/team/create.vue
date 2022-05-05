@@ -1,6 +1,6 @@
 <template>
     <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigation>
+        <SideNavigation v-if="team">
             <template v-slot:back>
                 <router-link :to="{name: 'Home'}">
                     <nav-item :icon="icons.chevronLeft" label="Back to Dashboard"></nav-item>
