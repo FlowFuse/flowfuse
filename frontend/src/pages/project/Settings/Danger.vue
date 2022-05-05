@@ -82,19 +82,13 @@ export default {
             projectApi.exportProject(this.project.id, parts)
         },
         duplicateProject (parts) {
-            console.log('copy project', parts)
             projectApi.create(parts).then(result => {
-                console.log(result)
-                console.log(result.id)
-                console.log(result.name)
                 this.$router.push({ name: 'Project', params: { id: result.id } })
             }).catch(err => {
                 console.log(err)
             })
         },
         exportToProject (parts) {
-            console.log('Ben')
-            console.log(parts)
             const options = {
                 sourceProject: parts.sourceProject
             }
