@@ -42,7 +42,6 @@ import NavItem from '@/components/NavItem'
 import SideNavigation from '@/components/SideNavigation'
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
 
-
 export default {
     name: 'AdminCreateUser',
     mixins: [Breadcrumbs],
