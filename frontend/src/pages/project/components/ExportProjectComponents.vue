@@ -4,7 +4,7 @@
             Flows
             <template #description>Export Project Flows</template>
         </FormRow>
-        <FormRow type="checkbox" v-bind:disabled="!parts.flows" v-model="parts.creds">
+        <FormRow type="checkbox" v-bind:disabled="!justCreds" v-model="parts.creds">
             Credentials
             <template #description>Export Flow Credentials</template>
         </FormRow>
@@ -35,6 +35,9 @@ export default {
     name: 'ExportProjectComponets',
     props: ['modelValue'],
     computed: {
+        justCreds: function () {
+            return this.parts.allowJustCreds ? true : this.parts.flows
+        },
         parts: {
             get () {
                 return this.modelValue

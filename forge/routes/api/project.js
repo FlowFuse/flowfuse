@@ -389,6 +389,105 @@ module.exports = async function (app) {
                     app.db.controllers.Project.clearInflightState(request.project)
                 }
             }
+        } else if (request.body.sourceProject) {
+            const sourceProject = await app.db.models.Project.byId(request.body.sourceProject.id)
+            const options = request.body.sourceProject.options
+            if (!sourceProject) {
+                reply.code(404).send('Source Project not found')
+            }
+            if (sourceProject.Team.id !== request.project.Team.id) {
+                reply.conde(403).send('Source Project and Target not in same team')
+            }
+
+            reply.send({})
+
+            let resumeProject = false
+            const targetState = request.project.state
+            if (request.project.state !== 'suspended') {
+                resumeProject = true
+                app.log.info(`Stopping project ${request.project.id}`)
+                await app.containers.stop(request.project)
+
+                await app.db.controllers.AuditLog.projectLog(
+                    request.project.id,
+                    request.session.User.id,
+                    'project.suspended'
+                )
+            }
+
+            const sourceSettingsString = (await app.db.models.StorageSettings.byProject(sourceProject.id))?.settings
+            const sourceSettings = JSON.parse(sourceSettingsString)
+            const targetStorageSettings = await app.db.models.StorageSettings.byProject(request.project.id)
+            const targetSettingString = targetStorageSettings?.settings
+            const targetSettings = JSON.parse(targetSettingString)
+            targetSettings.nodes = sourceSettings.nodes
+            targetStorageSettings.settings = JSON.stringify(targetSettings)
+            await targetStorageSettings.save()
+
+            if (options.flows) {
+                const sourceFlow = await app.db.models.StorageFlow.byProject(sourceProject.id)
+                let targetFlow = await app.db.models.StorageFlow.byProject(request.project.id)
+                if (targetFlow) {
+                    targetFlow.flow = sourceFlow.flow
+                } else {
+                    targetFlow = await app.db.models.StorageFlow.create({
+                        flow: sourceFlow.flow,
+                        ProjectId: request.project.id
+                    })
+                }
+                await targetFlow.save()
+            }
+            if (options.creds) {
+                const sourceCreds = await app.db.models.StorageCredentials.byProject(sourceProject.id)
+                const sourceEncryptedCreds = JSON.parse(sourceCreds.credentials)
+                const sourceSettings = JSON.parse((await app.db.models.StorageSettings.byProject(sourceProject.id)).settings)
+                const sourceCredsKey = sourceSettings._credentialSecret
+                const targetSettings = JSON.parse((await app.db.models.StorageSettings.byProject(request.project.id)).settings)
+                const targetCredsKey = targetSettings._credentialSecret
+                let targetCreds = await app.db.models.StorageCredentials.byProject(request.project.id)
+                if (targetCreds) {
+                    targetCreds.credentials = JSON.stringify(recryptCreds(sourceEncryptedCreds, sourceCredsKey, targetCredsKey))
+                } else {
+                    targetCreds = app.db.models.StorageCredentials.create({
+                        credentials: JSON.stringify(recryptCreds(sourceEncryptedCreds, sourceCredsKey, targetCredsKey))
+                    })
+                }
+                await targetCreds.save()
+            }
+
+            if (options.envVars) {
+                const sourceProjectSettings = await app.db.controllers.Project.getRuntimeSettings(sourceProject)
+                if (sourceProjectSettings && sourceProjectSettings.env) {
+                    const env = []
+                    Object.keys(sourceProjectSettings.env).forEach(key => {
+                        env.push({
+                            name: key,
+                            value: options.envVarsKo ? '' : sourceProjectSettings.env[key]
+                        })
+                    })
+                    const targetSetting = request.project.getSetting('settings')
+                    targetSetting.env = env
+                    await request.project.updateSetting('settings', targetSetting)
+                }
+            }
+
+            if (resumeProject) {
+                app.log.info(`Restarting project ${request.project.id}`)
+                request.project.state = targetState
+                await request.project.save()
+                await request.project.reload()
+                const startResult = await app.containers.start(request.project)
+                startResult.started.then(async () => {
+                    await app.db.controllers.AuditLog.projectLog(
+                        request.project.id,
+                        request.session.User.id,
+                        'project.started'
+                    )
+                    app.db.controllers.Project.clearInflightState(request.project)
+                })
+            } else {
+                app.db.controllers.Project.clearInflightState(request.project)
+            }
         } else {
             if (request.body.name && request.project.name !== request.body.name) {
                 request.project.name = request.body.name

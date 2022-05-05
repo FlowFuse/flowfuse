@@ -30,6 +30,14 @@
             </div>
         </div>
 
+        <div class="flex">
+            <div class="max-w-sm pr-2">Copy a project's state to another existing project</div>
+            <div class="pl-2">
+                <ff-button kind="secondary" @click="showExportToProjectDialog()">Export State</ff-button>
+                <ExportToProjectDialog @exportToProject="exportToProject" ref="exportToProjectDialog"/>
+            </div>
+        </div>
+
         <FormHeading class="text-red-700">Delete Project</FormHeading>
         <div class="flex">
             <div class="max-w-sm pr-2">Once deleted, your project is gone. This cannot be undone.</div>
@@ -47,6 +55,7 @@ import FormHeading from '@/components/FormHeading'
 import ConfirmProjectDeleteDialog from './dialogs/ConfirmProjectDeleteDialog'
 import ChangeStackDialog from './dialogs/ChangeStackDialog'
 import ExportProjectDialog from './dialogs/ExportProjectDialog'
+import ExportToProjectDialog from './dialogs/ExportToProjectDialog'
 import DuplicateProjectDialog from './dialogs/DuplicateProjectDialog'
 
 export default {
@@ -65,6 +74,9 @@ export default {
         showDuplicateProjectDialog () {
             this.$refs.duplicateProjectDialog.show(this.project)
         },
+        showExportToProjectDialog () {
+            this.$refs.exportToProjectDialog.show(this.project)
+        },
         exportProject (parts) {
             // call projectApi to generate zipped json
             projectApi.exportProject(this.project.id, parts)
@@ -79,6 +91,14 @@ export default {
             }).catch(err => {
                 console.log(err)
             })
+        },
+        exportToProject (parts) {
+            console.log('Ben')
+            console.log(parts)
+            const options = {
+                sourceProject: parts.sourceProject
+            }
+            projectApi.updateProject(parts.target, options)
         },
         deleteProject () {
             projectApi.deleteProject(this.project.id).then(() => {
@@ -103,6 +123,7 @@ export default {
         ConfirmProjectDeleteDialog,
         ChangeStackDialog,
         ExportProjectDialog,
+        ExportToProjectDialog,
         DuplicateProjectDialog
     }
 }
