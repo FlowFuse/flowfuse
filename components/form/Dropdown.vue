@@ -11,7 +11,7 @@
             <template v-slot:icon-right><ChevronDownIcon /></template>
         </ff-button>
         <template v-if="isOpen">
-            <div class="ff-dropdown-options" v-click-outside='close' :class="{'ff-dropdown-options--full-width': dropdownStyle === 'select', 'ff-dropdown-options--fit': dropdownStyle === 'button', 'ff-dropdown-options--align-left': optionsAlign === 'left', 'ff-dropdown-options--align-right': optionsAlign === 'right'}">
+            <div class="ff-dropdown-options" v-click-outside="close" :class="{'ff-dropdown-options--full-width': dropdownStyle === 'select', 'ff-dropdown-options--fit': dropdownStyle === 'button', 'ff-dropdown-options--align-left': optionsAlign === 'left', 'ff-dropdown-options--align-right': optionsAlign === 'right'}">
                 <slot></slot>
             </div>
         </template>
