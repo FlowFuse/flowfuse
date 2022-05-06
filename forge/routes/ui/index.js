@@ -25,12 +25,16 @@ module.exports = async function (app) {
      * Inject additional script imports for index.html that are dependant upon flowforge.yml
      */
     async function injectPlausible (domain, extension) {
-        const filepath = path.join(frontendAssetsDir, 'index.html')
-        const data = await fsp.readFile(filepath, 'utf8')
-        const injected = data.replace(/<!-- forge injected scripts go here -->/g,
-            `<script defer data-domain="${domain}" src="https://plausible.io/js/plausible${extension ? '.' + extension : ''}.js"></script>`)
-        return injected
+        if (!cachedIndex) {
+            const filepath = path.join(frontendAssetsDir, 'index.html')
+            const data = await fsp.readFile(filepath, 'utf8')
+            cachedIndex = data.replace(/<!-- forge injected scripts go here -->/g,
+                `<script defer data-domain="${domain}" src="https://plausible.io/js/plausible${extension ? '.' + extension : ''}.js"></script>`)
+        }
+        return cachedIndex
     }
+
+    let cachedIndex = null
 
     // Check the frontend has been built
     if (!fs.existsSync(path.join(frontendAssetsDir, 'index.html'))) {
