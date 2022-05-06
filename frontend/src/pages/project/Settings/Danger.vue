@@ -12,14 +12,15 @@
         </div>
 
         <FormHeading>Export Project</FormHeading>
-        <div>
+        <!-- Hiding for now (0.5) -->
+        <!-- <div>
             <div>
                 <ff-button kind="secondary" @click="showExportProjectDialog()">Export Project</ff-button>
                 <ExportProjectDialog @exportProject="exportProject" ref="exportProjectDialog"/>
             </div>
             <div class="max-w-sm pt-2 pl-5">Allows you to export a snapshot of the
                 project's current state.</div>
-        </div>
+        </div> -->
 
         <div>
             <div>
