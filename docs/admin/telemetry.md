@@ -70,7 +70,11 @@ For the core tracking, the platform will send the telemetry data:
 
 The data is sent via an HTTP Post to `https://ping.flowforge.com`.
 
-## Plausible
+## Frontend Telemetry
+
+The FlowForge UI can be configured to track usage to help understand how users are navigating the pages.
+
+It currently supports using [Plausible Analytics](https://plausible.io/) to gather the information.
 
 ### Configuring Telemetry
 
