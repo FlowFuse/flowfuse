@@ -21,7 +21,7 @@ export default {
         SectionTopMenu
     },
     computed: {
-        ...mapState(['features'])
+        ...mapState('account', ['features'])
     },
     data: function () {
         return {

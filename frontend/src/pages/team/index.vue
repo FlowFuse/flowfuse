@@ -24,8 +24,7 @@ import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vu
 export default {
     name: 'TeamPage',
     computed: {
-        ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange']),
-        ...mapState(['features'])
+        ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange', 'features'])
     },
     components: {
         Loading,

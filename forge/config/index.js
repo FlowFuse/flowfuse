@@ -19,6 +19,8 @@ const path = require('path')
 const fp = require('fastify-plugin')
 const YAML = require('yaml')
 
+const features = require('./features')
+
 // const FastifySecrets = require('fastify-secrets-env')
 
 module.exports = fp(async function (app, opts, next) {
@@ -92,8 +94,15 @@ module.exports = fp(async function (app, opts, next) {
         }
 
         if (!config.telemetry) {
-            config.telemetry = { enabled: true }
+            config.telemetry = {
+                enabled: true,
+                plausible: {
+                    domain: null
+                }
+            }
         }
+
+        config.features = features(app, config)
 
         Object.freeze(config)
         app.decorate('config', config)

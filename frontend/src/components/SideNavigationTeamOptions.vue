@@ -1,20 +1,6 @@
 <template>
     <div v-if="team">
-        <div class="ff-team-selection">
-            <div>
-                <img :src="team.avatar" class="ff-avatar"/>
-                <div class="ff-team-selection-name">
-                    <label>TEAM:</label>
-                    <h5>{{ team.name }}</h5>
-                </div>
-            </div>
-            <SwitchHorizontalIcon :class="{'active': teamSelectionOpen }" @click="switchTeam"/>
-            <ul :class="{'active': teamSelectionOpen }">
-                <li class="ff-nav-item"><label>Team Selection</label></li>
-                <nav-item v-for="t in teams" :key="t.id" :label="t.name" :avatar="t?.avatar" @click="selectTeam(t)"></nav-item>
-                <nav-item label="Create Team" :icon="plusIcon" @click="createTeam"></nav-item>
-            </ul>
-        </div>
+        <ff-team-selection></ff-team-selection>
         <!-- Team Options: General -->
         <ul class="ff-side-navigation--options">
             <router-link v-for="route in routes.general" :key="route.label"
@@ -37,8 +23,9 @@ import { mapState } from 'vuex'
 
 import { Roles } from '@core/lib/roles'
 
-import { SwitchHorizontalIcon, CollectionIcon, UsersIcon, DatabaseIcon, CurrencyDollarIcon, CogIcon, PlusIcon } from '@heroicons/vue/solid'
+import { CollectionIcon, UsersIcon, DatabaseIcon, CurrencyDollarIcon, CogIcon } from '@heroicons/vue/solid'
 import NavItem from '@/components/NavItem'
+import SideTeamSelection from '@/components/SideTeamSelection'
 
 export default {
     name: 'FFSideNavigationTeamOptions',
@@ -46,11 +33,10 @@ export default {
     emits: ['option-selected'],
     components: {
         NavItem,
-        SwitchHorizontalIcon
+        'ff-team-selection': SideTeamSelection
     },
     computed: {
-        ...mapState('account', ['user', 'team', 'teams', 'teamMembership']),
-        ...mapState(['features']),
+        ...mapState('account', ['user', 'team', 'teamMembership', 'features']),
         showAdmin: function () {
             return this.teamMembership.role === Roles.Admin || this.teamMembership.role === Roles.Owner
         }
@@ -82,8 +68,6 @@ export default {
         }
 
         return {
-            teamSelectionOpen: false,
-            plusIcon: PlusIcon,
             routes: routes
         }
     },
@@ -100,26 +84,6 @@ export default {
                     icon: CurrencyDollarIcon
                 })
             }
-        },
-        switchTeam () {
-            this.teamSelectionOpen = !this.teamSelectionOpen
-        },
-        selectTeam (team) {
-            if (team) {
-                this.$router.push({
-                    name: 'Team',
-                    params: {
-                        team_slug: team.slug
-                    }
-                })
-                this.switchTeam()
-            }
-        },
-        createTeam () {
-            this.$router.push({
-                name: 'CreateTeam'
-            })
-            this.switchTeam()
         }
     }
 }

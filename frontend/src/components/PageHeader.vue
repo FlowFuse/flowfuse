@@ -41,7 +41,6 @@ import { MenuIcon, QuestionMarkCircleIcon, AdjustmentsIcon, CogIcon, LogoutIcon 
 
 import NavItem from '@/components/NavItem'
 
-const navigation = router.options.routes.filter(r => r.navigationLink)
 export default {
     name: 'NavBar',
     props: {
@@ -75,11 +74,6 @@ export default {
                 onclick: this.$router.push,
                 onclickparams: { name: 'User Settings' }
             }, {
-                label: 'Admin Settings',
-                icon: AdjustmentsIcon,
-                onclick: this.$router.push,
-                onclickparams: { name: 'Admin Settings' }
-            }, {
                 label: 'Documentation',
                 icon: QuestionMarkCircleIcon,
                 onclick: this.to,
@@ -94,13 +88,24 @@ export default {
     setup () {
         const open = ref(false)
         return {
-            open,
-            navigation
+            open
+        }
+    },
+    mounted () {
+        if (this.user.admin) {
+            this.options.splice(1, 0, {
+                label: 'Admin Settings',
+                icon: AdjustmentsIcon,
+                onclick: this.$router.push,
+                onclickparams: { name: 'Admin Settings' }
+            })
         }
     },
     methods: {
         home () {
-            this.$router.push({ name: 'Team', params: { team_slug: this.team.slug } })
+            if (this.team?.slug) {
+                this.$router.push({ name: 'Team', params: { team_slug: this.team.slug } })
+            }
         },
         to (route) {
             window.open(route.url, '_blank')

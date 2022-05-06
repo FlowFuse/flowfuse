@@ -5,7 +5,9 @@
             <div id="platform-sidenav" class="ff-navigation" :class="{'open': mobileMenuOpen}">
                 <!-- Each view uses a <Teleport> to fill this -->
             </div>
-            <slot></slot>
+            <div class="ff-view">
+                <slot></slot>
+            </div>
         </div>
     </div>
 </template>
