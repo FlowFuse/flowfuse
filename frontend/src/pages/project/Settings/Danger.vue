@@ -55,7 +55,7 @@ import projectApi from '@/api/project'
 import FormHeading from '@/components/FormHeading'
 import ConfirmProjectDeleteDialog from './dialogs/ConfirmProjectDeleteDialog'
 import ChangeStackDialog from './dialogs/ChangeStackDialog'
-import ExportProjectDialog from './dialogs/ExportProjectDialog'
+// import ExportProjectDialog from './dialogs/ExportProjectDialog'
 import ExportToProjectDialog from './dialogs/ExportToProjectDialog'
 import DuplicateProjectDialog from './dialogs/DuplicateProjectDialog'
 
@@ -117,7 +117,7 @@ export default {
         FormHeading,
         ConfirmProjectDeleteDialog,
         ChangeStackDialog,
-        ExportProjectDialog,
+        // ExportProjectDialog,
         ExportToProjectDialog,
         DuplicateProjectDialog
     }
