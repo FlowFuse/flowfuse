@@ -196,19 +196,23 @@ module.exports = async function (app) {
         if (sourceProject) {
             // need to copy values over
             const settingsString = (await app.db.models.StorageSettings.byProject(sourceProject.id))?.settings
-            const sourceSettings = JSON.parse(settingsString)
             const newSettings = {
-                ...sourceSettings.nodes,
                 users: {}
+            }
+            const sourceSettings = JSON.parse(settingsString)
+            if (settingsString) {
+                newSettings.nodes = sourceSettings.nodes
             }
             const options = request.body.sourceProject.options
             if (options.flows) {
                 const sourceFlows = await app.db.models.StorageFlow.byProject(sourceProject.id)
-                const newFlow = await app.db.models.StorageFlow.create({
-                    flow: sourceFlows.flow,
-                    ProjectId: project.id
-                })
-                await newFlow.save()
+                if (sourceFlows) {
+                    const newFlow = await app.db.models.StorageFlow.create({
+                        flow: sourceFlows.flow,
+                        ProjectId: project.id
+                    })
+                    await newFlow.save()
+                }
 
                 if (options.creds) {
                     // need to work out how to insert the credentialsSecret
@@ -425,8 +429,13 @@ module.exports = async function (app) {
             await targetStorageSettings.save()
 
             if (options.flows) {
-                const sourceFlow = await app.db.models.StorageFlow.byProject(sourceProject.id)
+                let sourceFlow = await app.db.models.StorageFlow.byProject(sourceProject.id)
                 let targetFlow = await app.db.models.StorageFlow.byProject(request.project.id)
+                if (!sourceFlow) {
+                    sourceFlow = {
+                        flow: '[]'
+                    }
+                }
                 if (targetFlow) {
                     targetFlow.flow = sourceFlow.flow
                 } else {
@@ -438,21 +447,24 @@ module.exports = async function (app) {
                 await targetFlow.save()
             }
             if (options.creds) {
+                const sourceSettings = JSON.parse((await app.db.models.StorageSettings.byProject(sourceProject.id))?.settings)
+                const targetSettings = JSON.parse((await app.db.models.StorageSettings.byProject(request.project.id))?.settings)
+                const sourceCredsKey = sourceSettings?._credentialSecret
+                const targetCredsKey = targetSettings?._credentialSecret
+
                 const sourceCreds = await app.db.models.StorageCredentials.byProject(sourceProject.id)
-                const sourceEncryptedCreds = JSON.parse(sourceCreds.credentials)
-                const sourceSettings = JSON.parse((await app.db.models.StorageSettings.byProject(sourceProject.id)).settings)
-                const sourceCredsKey = sourceSettings._credentialSecret
-                const targetSettings = JSON.parse((await app.db.models.StorageSettings.byProject(request.project.id)).settings)
-                const targetCredsKey = targetSettings._credentialSecret
+                const sourceEncryptedCreds = JSON.parse(sourceCreds ? sourceCreds.credentials : null)
+
                 let targetCreds = await app.db.models.StorageCredentials.byProject(request.project.id)
-                if (targetCreds) {
+                if (targetCreds && sourceEncryptedCreds) {
                     targetCreds.credentials = JSON.stringify(recryptCreds(sourceEncryptedCreds, sourceCredsKey, targetCredsKey))
-                } else {
+                    await targetCreds.save()
+                } else if (sourceEncryptedCreds) {
                     targetCreds = app.db.models.StorageCredentials.create({
                         credentials: JSON.stringify(recryptCreds(sourceEncryptedCreds, sourceCredsKey, targetCredsKey))
                     })
+                    await targetCreds.save()
                 }
-                await targetCreds.save()
             }
 
             if (options.template) {
