@@ -55,19 +55,13 @@ module.exports = {
         beforeDestroy: async (user, opts) => {
             const role = await user.getTeamsRole()
             const adminUser = await user.getAdminStatus()
-            if (role === 50) {
-            // is user an admin? find user in the admin list
-            // const userIsAdmin = findUserInAdminList(admins, user)
-            // if yes, is admin count == 1?
-            // if (userIsAdmin && admins.length <= 1) {
+            if (role === true) {
                 throw new Error('Cannot delete team owner.')
-            };
+            }
+
             if (adminUser === true) {
                 throw new Error('Cannot delete admin user.')
             }
-            // Check if user is only owner of a team
-            // 1.) get teams associated with this user.
-            // 2.) Check owner count of each team, if ANY of teams Owner count == 1, DO NOT DELETE user.
         },
         afterDestroy: async (user, opts) => {
             // TODO: what needs tidying up after a user is deleted?
@@ -194,11 +188,15 @@ module.exports = {
                     return M.TeamMember.getTeamMembership(this.id, teamId, includeTeam)
                 },
                 getTeamsRole: async function () {
-                    const teams = await M.Team.forUser(this)
-                    const teamRole = await teams[0].dataValues.role
-                    console.log(teams)
-                    console.log(teamRole)
-                    return teamRole
+                    const user = await M.Team.forUser(this)
+                    const teamRoles = []
+                    for (let i = 0; i < user.length; i++) {
+                        const team = user[i]
+                        teamRoles.push(team.dataValues.role)
+                    }
+                    const isAdmin = (Element) => Element === 50;
+                    console.log(teamRoles.some(isAdmin))
+                    return teamRoles.some(isAdmin)
                 },
                 getAdminStatus: async function () {
                     const user = await M.User.byId(this.id)
