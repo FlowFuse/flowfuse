@@ -27,16 +27,15 @@
                 <ff-button kind="secondary" @click="showDuplicateProjectDialog()">Duplicate Project</ff-button>
                 <DuplicateProjectDialog @duplicateProject="duplicateProject" ref="duplicateProjectDialog"/>
             </div>
-            <div class="max-w-sm pt-2 pl-5">Allows you to use a snapshot of the
-                project's current state to create a new project.</div>
+            <div class="max-w-sm pt-2 pl-5">Create a copy of this project.</div>
         </div>
 
         <div>
             <div>
-                <ff-button kind="secondary" @click="showExportToProjectDialog()">Export State</ff-button>
+                <ff-button kind="secondary" @click="showExportToProjectDialog()">Copy to existing project</ff-button>
                 <ExportToProjectDialog @exportToProject="exportToProject" ref="exportToProjectDialog"/>
             </div>
-            <div class="max-w-sm pt-2 pl-5">Copy a project's state to another existing project.</div>
+            <div class="max-w-sm pt-2 pl-5">Copy the project's state to an existing project.</div>
         </div>
 
         <FormHeading class="text-red-700">Delete Project</FormHeading>
