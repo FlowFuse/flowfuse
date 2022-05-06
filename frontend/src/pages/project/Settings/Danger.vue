@@ -27,8 +27,7 @@
                 <ff-button kind="secondary" @click="showDuplicateProjectDialog()">Duplicate Project</ff-button>
                 <DuplicateProjectDialog @duplicateProject="duplicateProject" ref="duplicateProjectDialog"/>
             </div>
-            <div class="max-w-sm pt-2 pl-5">Allows you to use a snapshot of the
-                project's current state to create a new project.</div>
+            <div class="max-w-sm pt-2 pl-5">Create a copy of this project.</div>
         </div>
 
         <div>
