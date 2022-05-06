@@ -447,8 +447,10 @@ module.exports = async function (app) {
                 await targetFlow.save()
             }
             if (options.creds) {
-                const sourceSettings = JSON.parse((await app.db.models.StorageSettings.byProject(sourceProject.id))?.settings)
-                const targetSettings = JSON.parse((await app.db.models.StorageSettings.byProject(request.project.id))?.settings)
+                const sourceSettingsDb = await app.db.models.StorageSettings.byProject(sourceProject.id)
+                const targetSettingsDb = await app.db.models.StorageSettings.byProject(request.project.id)
+                const sourceSettings = sourceSettingsDb ? JSON.parse(sourceSettingsDb.settings) : undefined
+                const targetSettings = targetSettingsDb ? JSON.parse(targetSettingsDb.settings) : undefined
                 const sourceCredsKey = sourceSettings?._credentialSecret
                 const targetCredsKey = targetSettings?._credentialSecret
 
