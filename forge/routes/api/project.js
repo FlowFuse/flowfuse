@@ -246,10 +246,10 @@ module.exports = async function (app) {
             newProjectSettings.env = []
 
             if (options.envVars) {
-                Object.keys(sourceProjectEnvVars).forEach(key => {
+                sourceProjectEnvVars.forEach(envVar => {
                     newProjectSettings.env.push({
-                        name: key,
-                        value: options.envVars === 'keys' ? '' : sourceProjectEnvVars[key]
+                        name: envVar.name,
+                        value: options.envVars === 'keys' ? '' : envVar.value
                     })
                 })
             }
