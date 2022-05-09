@@ -169,7 +169,15 @@ export default {
                 this.isOpen = false
                 this.$emit('userDeleted')
             }).catch(err => {
-                console.log(err.response.data)
+                // if (err.response.data) {
+                console.log('Err', err.response.data)
+                //     if (err.response.data.error.indexOf('admin') !== -1) {
+                //         this.errors.deleteAdmin = 'Cannot delete an Admin User'
+                //     }
+                //     if (err.response.data.error.indexOf('owner') !== -1) {
+                //         this.errors.deleteOwner = 'Cannot delete a team\'s owner'
+                //     }
+                // }
             })
         }
     },

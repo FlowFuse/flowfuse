@@ -1,4 +1,3 @@
-const users = require('./shared/users')
 const sharedUser = require('./shared/users')
 
 /**
@@ -50,27 +49,13 @@ module.exports = async function (app) {
      */
     app.delete('/user/:id', async (request, reply) => {
         const user = await app.db.models.User.byId(request.params.id)
-        if (user) {
-            try {
-                //  reply.send(app.db.views.User.userProfile(user.admin))
-                //  console.log(user.admin)
-                //  const userTeams = user.dataValues.Teams.map(T => app.db.models.Team.byName(T.dataValues.name))
-                //   const teams = await Promise.all(userTeams)
+        try {
+            if (user) {
                 await user.destroy()
-                // await user.destroy({ teamOwnerCounts:  })
                 reply.send({ status: 'okay' })
-                // }
-            } catch (err) {
-                let responseMessage
-                if (err.errors) {
-                    responseMessage = err.errors.map(err => err.message).join(',')
-                } else {
-                    responseMessage = err.toString()
-                }
-                reply.code(400).send({ error: responseMessage })
             }
-        } else {
-            reply.code(404).type('text/html').send('Not Found')
+        } catch (err) {
+            reply.code(400).send({ error: err.toString() })
         }
     })
     /**

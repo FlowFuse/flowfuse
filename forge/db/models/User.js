@@ -194,7 +194,7 @@ module.exports = {
                         const team = user[i]
                         teamRoles.push(team.dataValues.role)
                     }
-                    const isAdmin = (Element) => Element === 50;
+                    const isAdmin = (Element) => Element === 50
                     console.log(teamRoles.some(isAdmin))
                     return teamRoles.some(isAdmin)
                 },
