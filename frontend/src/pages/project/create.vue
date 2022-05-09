@@ -1,5 +1,14 @@
 <template>
-    <div class="forge-block">
+    <Teleport v-if="mounted" to="#platform-sidenav">
+        <SideNavigation>
+            <template v-slot:back>
+                <router-link :to="{name: 'Projects', params: {team_slug: team.slug}}">
+                    <nav-item :icon="icons.chevronLeft" label="Back to Projects"></nav-item>
+                </router-link>
+            </template>
+        </SideNavigation>
+    </Teleport>
+    <main>
         <div class="max-w-2xl m-auto">
             <form class="space-y-6">
                 <FormHeading>Create a new project</FormHeading>
@@ -31,7 +40,7 @@
                 <ff-button :disabled="!createEnabled" @click="createProject">Create Project</ff-button>
             </form>
         </div>
-    </div>
+    </main>
 </template>
 
 <script>
@@ -42,18 +51,25 @@ import projectApi from '@/api/project'
 import stacksApi from '@/api/stacks'
 import templatesApi from '@/api/templates'
 
+import NavItem from '@/components/NavItem'
+import SideNavigation from '@/components/SideNavigation'
+
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
 import NameGenerator from '@/utils/name-generator'
 import { RefreshIcon } from '@heroicons/vue/outline'
-import Breadcrumbs from '@/mixins/Breadcrumbs'
 import { Roles } from '@core/lib/roles'
+
+import { ChevronLeftIcon } from '@heroicons/vue/solid'
 
 export default {
     name: 'CreateProject',
-    mixins: [Breadcrumbs],
     data () {
         return {
+            mounted: false,
+            icons: {
+                chevronLeft: ChevronLeftIcon
+            },
             init: false,
             currentTeam: null,
             teams: [],
@@ -75,7 +91,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(['features']),
+        ...mapState('account', ['features', 'team']),
         createEnabled: function () {
             return this.input.stack && this.input.team && this.input.name && !this.errors.name && this.input.template && (this.features.billing ? this.input.billingConfirmation : true)
         }
@@ -108,13 +124,6 @@ export default {
         }
         this.teams = filteredTeams
 
-        if (this.currentTeam) {
-            this.setBreadcrumbs([
-                { type: 'TeamLink' },
-                { label: 'Create project' }
-            ])
-        }
-
         const stackList = await stacksApi.getStacks()
         this.stacks = stackList.stacks.filter(stack => stack.active).map(stack => { return { value: stack.id, label: stack.name } })
 
@@ -138,6 +147,9 @@ export default {
             }
         }, 100)
     },
+    mounted () {
+        this.mounted = true
+    },
     methods: {
         createProject () {
             projectApi.create(this.input).then(result => {
@@ -156,7 +168,9 @@ export default {
     components: {
         FormRow,
         FormHeading,
-        RefreshIcon
+        RefreshIcon,
+        SideNavigation,
+        NavItem
     }
 }
 </script>

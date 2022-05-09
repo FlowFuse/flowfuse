@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 @layer base {
-    .forge-block {
+    /* .forge-block {
         @apply bg-white;
         @apply shadow;
         @apply rounded;
@@ -14,7 +14,7 @@
         @apply sm:px-6;
         @apply lg:px-8;
         @apply mb-1;
-    }
+    } */
 
     .forge-inner-block {
         @apply py-6;

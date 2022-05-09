@@ -1,73 +1,47 @@
 <template>
-    <template v-if="pendingTeamChange">
-        <Loading />
-    </template>
-    <div class="forge-block" v-else-if="team">
-        <SectionTopMenu :options="navigation">
-            <template v-slot:hero>
-                <router-link :to="navigation[0]?navigation[0].path:''" class="flex items-center">
-                    <div class="mr-3 rounded"><img :src="team.avatar" class="h-6 v-6 rounded-md"/></div>
-                    <div class="text-gray-800 text-xl font-bold">{{ team.name }}</div>
-                </router-link>
-            </template>
-        </SectionTopMenu>
-        <div class="text-sm sm:px-6 mt-4 sm:mt-8">
+    <Teleport v-if="mounted" to="#platform-sidenav">
+        <SideNavigationTeamOptions/>
+    </Teleport>
+    <main>
+        <template v-if="pendingTeamChange">
+            <Loading />
+        </template>
+        <div v-else-if="team">
             <router-view :team="team" :teamMembership="teamMembership"></router-view>
         </div>
-    </div>
+    </main>
 </template>
 
 <script>
 import billingApi from '@/api/billing'
 
-import Breadcrumbs from '@/mixins/Breadcrumbs'
-
-import SectionTopMenu from '@/components/SectionTopMenu'
 import Loading from '@/components/Loading'
 import { useRoute } from 'vue-router'
 import { mapState } from 'vuex'
-import { Roles } from '@core/lib/roles'
+
+import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vue'
 
 export default {
     name: 'TeamPage',
-    mixins: [Breadcrumbs],
     computed: {
-        ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange']),
-        ...mapState(['features'])
-    },
-    data: function () {
-        return {
-            navigation: []
-        }
+        ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange', 'features'])
     },
     components: {
-        SectionTopMenu,
-        Loading
+        Loading,
+        SideNavigationTeamOptions
+    },
+    data () {
+        return {
+            mounted: false
+        }
+    },
+    mounted () {
+        this.mounted = true
     },
     methods: {
-        updateTeam: function (newVal, oldVal) {
-            if (this.team && this.teamMembership) {
-                this.navigation = [
-                    { name: 'Overview', path: `/team/${this.team.slug}/overview` },
-                    { name: 'Projects', path: `/team/${this.team.slug}/projects` },
-                    { name: 'Members', path: `/team/${this.team.slug}/members` }
-                ]
-                // const teamUser = this.team.users.filter(u => { console.log(u,this.$store.state.account.user.email); return  u.email === this.$store.state.account.user.email })
-                // if (teamUser.role === Roles.Owner) {
-                if (this.teamMembership.role === Roles.Owner) {
-                    this.navigation.push({ name: 'Audit Log', path: `/team/${this.team.slug}/audit-log` })
-                    this.navigation.push({ name: 'Settings', path: `/team/${this.team.slug}/settings` })
-                }
-                // }
-                this.setBreadcrumbs([
-                    { type: 'TeamPicker' }
-                    // { type: "CreateProject" }
-                ])
-            }
-        },
         checkRoute: async function (route) {
             const allowedRoutes = [
-                '/team/' + this.team.slug + '/settings/billing',
+                '/team/' + this.team.slug + '/billing',
                 '/team/' + this.team.slug + '/settings/danger'
             ]
             if (allowedRoutes.indexOf(route.path) === -1) {
@@ -81,7 +55,7 @@ export default {
                 try {
                     await billingApi.getSubscriptionInfo(this.team.id)
                 } catch (err) {
-                    const path = '/team/' + this.team.slug + '/settings/billing'
+                    const path = '/team/' + this.team.slug + '/billing'
                     // if 404 - no billing setup, but are we running in EE?
                     if (err.response.status === 404) {
                         this.$router.push({
@@ -102,13 +76,6 @@ export default {
         // in order to delete the project, or setup billing
         await this.checkRoute(to)
         next()
-    },
-    mounted () {
-        this.updateTeam()
-    },
-    watch: {
-        team: 'updateTeam',
-        teamMembership: 'updateTeam'
     }
 }
 </script>

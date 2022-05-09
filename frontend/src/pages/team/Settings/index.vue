@@ -1,6 +1,6 @@
 <template>
-    <div class="flex flex-col sm:flex-row">
-        <SectionSideMenu :options="sideOptions" />
+    <div class="">
+        <SectionTopMenu hero="Team Settings" :options="sideOptions" />
         <div class="flex-grow">
             <router-view :team="team" :teamMembership="teamMembership"></router-view>
         </div>
@@ -10,7 +10,7 @@
 <script>
 import { mapState } from 'vuex'
 
-import SectionSideMenu from '@/components/SectionSideMenu'
+import SectionTopMenu from '@/components/SectionTopMenu'
 import { useRouter } from 'vue-router'
 import { Roles } from '@core/lib/roles'
 
@@ -18,10 +18,10 @@ export default {
     name: 'TeamSettings',
     props: ['team', 'teamMembership'],
     components: {
-        SectionSideMenu
+        SectionTopMenu
     },
     computed: {
-        ...mapState(['features'])
+        ...mapState('account', ['features'])
     },
     data: function () {
         return {
@@ -36,18 +36,11 @@ export default {
     },
     mounted () {
         this.checkAccess()
-        this.checkFeatures()
     },
     methods: {
         checkAccess: async function () {
             if (this.teamMembership && this.teamMembership.role !== Roles.Owner) {
                 useRouter().push({ path: `/team/${this.team.slug}/overview` })
-            }
-        },
-        checkFeatures: function () {
-            if (this.features.billing) {
-                // running in EE
-                this.sideOptions.splice(1, 0, { name: 'Billing', path: './billing' })
             }
         }
     }

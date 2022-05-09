@@ -15,10 +15,26 @@
  */
 const path = require('path')
 const fs = require('fs')
+const fsp = require('fs').promises
 const Avatar = require('./avatar')
 
 module.exports = async function (app) {
     const frontendAssetsDir = path.join(__dirname, '../../../frontend/dist/')
+
+    /**
+     * Inject additional script imports for index.html that are dependant upon flowforge.yml
+     */
+    async function injectPlausible (domain, extension) {
+        if (!cachedIndex) {
+            const filepath = path.join(frontendAssetsDir, 'index.html')
+            const data = await fsp.readFile(filepath, 'utf8')
+            cachedIndex = data.replace(/<!-- forge injected scripts go here -->/g,
+                `<script defer data-domain="${domain}" src="https://plausible.io/js/plausible${extension ? '.' + extension : ''}.js"></script>`)
+        }
+        return cachedIndex
+    }
+
+    let cachedIndex = null
 
     // Check the frontend has been built
     if (!fs.existsSync(path.join(frontendAssetsDir, 'index.html'))) {
@@ -27,12 +43,18 @@ module.exports = async function (app) {
 
     app.register(Avatar, { prefix: '/avatar' })
 
-    app.get('/', (request, reply) => {
+    app.get('/', async (request, reply) => {
         if (!app.settings.get('setup:initialised')) {
             reply.redirect('/setup')
             return
         }
-        reply.sendFile('index.html')
+        // check if we need to inject plausible
+        if (app.config.telemetry.frontend?.plausible?.domain) {
+            const injectedContent = await injectPlausible(app.config.telemetry.frontend.plausible.domain, app.config.telemetry.frontend.plausible.extension)
+            reply.type('text/html').send(injectedContent)
+        } else {
+            reply.sendFile('index.html')
+        }
     })
 
     // Setup static file serving for the UI assets.
@@ -45,7 +67,13 @@ module.exports = async function (app) {
     // Any requests not handled by this time get served `index.html`.
     // This allows the frontend vue router to change the browser URL and we cope
     // if the user then hits reload
-    app.get('*', (request, reply) => {
-        reply.sendFile('index.html')
+    app.get('*', async (request, reply) => {
+        // check if we need to inject plausible
+        if (app.config.telemetry.frontend?.plausible?.domain) {
+            const injectedContent = await injectPlausible(app.config.telemetry.frontend.plausible.domain, app.config.telemetry.frontend.plausible.extension)
+            reply.type('text/html').send(injectedContent)
+        } else {
+            reply.sendFile('index.html')
+        }
     })
 }

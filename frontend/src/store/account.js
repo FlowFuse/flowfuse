@@ -7,6 +7,8 @@ import router from '@/routes'
 const state = () => ({
     // Runtime settings
     settings: null,
+    // Feature flags
+    features: {},
     // We do not know if there is a valid session yet
     pending: true,
     // A login attempt is inflight
@@ -64,6 +66,7 @@ const getters = {
 const mutations = {
     setSettings (state, settings) {
         state.settings = settings
+        state.features = settings.features || {}
     },
     clearPending (state) {
         state.pending = false

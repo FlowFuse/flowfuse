@@ -16,7 +16,8 @@ module.exports = async function (app) {
                 'team:user:invite:external': app.settings.get('team:user:invite:external') && app.postoffice.enabled(),
                 'team:create': app.settings.get('team:create'),
                 email: app.postoffice.enabled(),
-                stacks: app.containers.properties().stack || {}
+                stacks: app.containers.properties().stack || {},
+                features: app.config.features.getAllFeatures()
             }
 
             if (request.session.User.admin) {
@@ -32,6 +33,7 @@ module.exports = async function (app) {
             reply.send(response)
         } else {
             reply.send({
+                features: app.config.features.getPublicFeatures(),
                 'user:signup': app.settings.get('user:signup') && app.postoffice.enabled(),
                 'user:reset-password': app.settings.get('user:reset-password') && app.postoffice.enabled(),
                 'user:tcs-required': app.settings.get('user:tcs-required') && app.postoffice.enabled(),
