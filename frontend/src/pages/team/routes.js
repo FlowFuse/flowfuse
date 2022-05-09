@@ -1,6 +1,7 @@
 import Team from '@/pages/team/index.vue'
 import TeamOverview from '@/pages/team/Overview.vue'
 import TeamProjects from '@/pages/team/Projects.vue'
+import TeamDevices from '@/pages/team/Devices/index.vue'
 import TeamMembers from '@/pages/team/Members/index.vue'
 import TeamMembersMembers from '@/pages/team/Members/General.vue'
 import TeamMembersInvitations from '@/pages/team/Members/Invitations.vue'
@@ -45,6 +46,14 @@ export default [
                 component: TeamProjects,
                 meta: {
                     title: 'Team - Projects'
+                }
+            },
+            {
+                name: 'TeamDevices',
+                path: 'devices',
+                component: TeamDevices,
+                meta: {
+                    title: 'Team - Devices'
                 }
             },
             {

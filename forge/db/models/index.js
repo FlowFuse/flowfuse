@@ -55,6 +55,7 @@ const modelTypes = [
     'ProjectTemplate',
     'AccessToken',
     'AuthClient',
+    'Device',
     'StorageFlow',
     'StorageCredentials',
     'StorageSettings',

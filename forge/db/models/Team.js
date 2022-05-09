@@ -37,6 +37,7 @@ module.exports = {
     associations: function (M) {
         this.belongsToMany(M.User, { through: M.TeamMember })
         this.hasMany(M.TeamMember)
+        this.hasMany(M.Device)
         this.hasMany(M.Project)
         this.hasMany(M.Invitation, { foreignKey: 'teamId' })
     },

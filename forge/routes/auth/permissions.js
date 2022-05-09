@@ -30,8 +30,12 @@ const defaultPermissions = {
     // Stacks
     'stack:create': { description: 'Create a Stack', role: Roles.Admin },
     'stack:delete': { description: 'Delete a Stack', role: Roles.Admin },
-    'stack:edit': { description: 'Edit a Stack', role: Roles.Admin }
-
+    'stack:edit': { description: 'Edit a Stack', role: Roles.Admin },
+    // Devices
+    'device:list': { description: 'List Devices', role: Roles.Admin },
+    'device:create': { description: 'Create a Device', role: Roles.Owner },
+    'device:delete': { description: 'Delete a Device', role: Roles.Owner },
+    'device:edit': { description: 'Edit a Stack', role: Roles.Owner }
 }
 
 module.exports = fp(async function (app, opts, done) {

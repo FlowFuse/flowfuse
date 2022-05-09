@@ -23,7 +23,7 @@ import { mapState } from 'vuex'
 
 import { Roles } from '@core/lib/roles'
 
-import { CollectionIcon, UsersIcon, DatabaseIcon, CurrencyDollarIcon, CogIcon } from '@heroicons/vue/solid'
+import { ChipIcon, CollectionIcon, UsersIcon, DatabaseIcon, CurrencyDollarIcon, CogIcon } from '@heroicons/vue/solid'
 import NavItem from '@/components/NavItem'
 import SideTeamSelection from '@/components/SideTeamSelection'
 
@@ -84,6 +84,33 @@ export default {
                     icon: CurrencyDollarIcon
                 })
             }
+            if (this.features.devices) {
+                this.routes.general.splice(2, 0, {
+                    label: 'Devices',
+                    to: '/devices',
+                    icon: ChipIcon
+                })
+            }
+        },
+        switchTeam () {
+            this.teamSelectionOpen = !this.teamSelectionOpen
+        },
+        selectTeam (team) {
+            if (team) {
+                this.$router.push({
+                    name: 'Team',
+                    params: {
+                        team_slug: team.slug
+                    }
+                })
+                this.switchTeam()
+            }
+        },
+        createTeam () {
+            this.$router.push({
+                name: 'CreateTeam'
+            })
+            this.switchTeam()
         }
     }
 }
