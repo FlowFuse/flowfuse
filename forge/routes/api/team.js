@@ -176,6 +176,11 @@ module.exports = async function (app) {
                     )
                 }
             }
+            await app.db.controllers.AuditLog.teamLog(
+                request.team.id,
+                request.session.User.id,
+                'team.deleted'
+            )
             await request.team.destroy()
             reply.send({ status: 'okay' })
         } catch (err) {
@@ -197,14 +202,28 @@ module.exports = async function (app) {
     app.put('/:teamId', { preHandler: app.needsPermission('team:edit') }, async (request, reply) => {
         try {
             if (request.body.name) {
+                const oldname = request.team.name
                 request.team.name = request.body.name
+                app.db.controllers.AuditLog.teamLog(
+                    request.team.id,
+                    request.session.User.id,
+                    'team.settings.nameChanged',
+                    { oldName: oldname, newName: request.body.name }
+                )
             }
             if (request.body.slug) {
                 if (request.body.slug === 'create') {
                     reply.code(400).send({ error: 'slug not available' })
                     return
                 }
+                const oldSlug = request.team.slug
                 request.team.slug = request.body.slug
+                app.db.controllers.AuditLog.teamLog(
+                    request.team.id,
+                    request.session.User.id,
+                    'team.settings.slugChanged',
+                    { oldSlug: oldSlug, newSlug: request.body.slug }
+                )
             }
             await request.team.save()
             reply.send(app.db.views.Team.team(request.team))
