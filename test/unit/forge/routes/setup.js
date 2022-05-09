@@ -34,8 +34,12 @@ module.exports = async function (settings = {}, config = {}) {
         name: 'template1',
         active: true,
         description: '',
-        settings: {},
-        policy: {}
+        settings: {
+            httpAdminRoot: ''
+        },
+        policy: {
+            httpAdminRoot: true
+        }
     }
     const template = await forge.db.models.ProjectTemplate.create(templateProperties)
     template.setOwner(userAlice)
@@ -52,5 +56,7 @@ module.exports = async function (settings = {}, config = {}) {
     await project1.setProjectTemplate(template)
 
     forge.project = project1
+    forge.template = template
+    forge.stack = stack
     return forge
 }

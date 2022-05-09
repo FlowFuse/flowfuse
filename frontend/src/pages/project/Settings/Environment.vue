@@ -31,7 +31,8 @@ export default {
                 },
                 errors: {}
             },
-            original: {}
+            original: {},
+            templateEnvValues: {}
         }
     },
     props: ['project'],
@@ -86,8 +87,10 @@ export default {
                 this.editable = preparedTemplate.editable
                 this.original = preparedTemplate.original
                 const templateEnvMap = {}
+                this.templateEnvValues = {}
                 this.editable.settings.env.forEach(envVar => {
                     templateEnvMap[envVar.name] = envVar
+                    this.templateEnvValues[envVar.name] = envVar.value
                 })
                 if (this.project.settings.env) {
                     this.project.settings.env.forEach(envVar => {
@@ -113,17 +116,11 @@ export default {
             const settings = {
                 env: []
             }
-            const originalTemplateValues = {}
-            this.original.settings.env.forEach(field => {
-                if (field.policy) {
-                    originalTemplateValues[field.name] = field.value
-                }
-            })
             this.editable.settings.env.forEach(field => {
                 if (field.policy === false) {
                     // This is a value that cannot be overwritten, so skip it
                     return
-                } else if (field.policy && field.value === originalTemplateValues[field.name]) {
+                } else if (field.policy && field.value === this.templateEnvValues[field.name]) {
                     // This is a template value that can be overwritten. Check
                     // if the value matches template - if so, skip adding it
                     return

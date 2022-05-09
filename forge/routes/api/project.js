@@ -1,3 +1,4 @@
+const crypto = require('crypto')
 const ProjectActions = require('./projectActions')
 const ProjectDevices = require('./projectDevices')
 /**
@@ -108,7 +109,14 @@ module.exports = async function (app) {
                     name: { type: 'string' },
                     team: { type: ['string', 'number'] },
                     stack: { type: 'string' },
-                    template: { type: 'string' }
+                    template: { type: 'string' },
+                    sourceProject: {
+                        type: 'object',
+                        properties: {
+                            id: { type: 'string' },
+                            options: { type: 'object' }
+                        }
+                    }
                 }
             }
         }
@@ -123,6 +131,18 @@ module.exports = async function (app) {
         }
 
         const team = teamMembership.get('Team')
+
+        let sourceProject
+        if (request.body.sourceProject && request.body.sourceProject.id) {
+            sourceProject = await app.db.models.Project.byId(request.body.sourceProject.id)
+            if (!sourceProject) {
+                reply.code(400).send({ error: 'Source Project Not Found' })
+                return
+            } else if (sourceProject.Team.hashid !== request.body.team) {
+                reply.code(403).send({ error: 'Source Project Not in Same Team' })
+                return
+            }
+        }
 
         const stack = await app.db.models.ProjectStack.byId(request.body.stack)
 
@@ -141,11 +161,11 @@ module.exports = async function (app) {
         const name = request.body.name
 
         if (bannedNameList.includes(name)) {
-            reply.status(409).type('application/json').send({ err: 'name not allowed' })
+            reply.status(409).type('application/json').send({ error: 'name not allowed' })
             return
         }
         if (await app.db.models.Project.count({ where: { name: name } }) !== 0) {
-            reply.status(409).type('application/json').send({ err: 'name in use' })
+            reply.status(409).type('application/json').send({ error: 'name in use' })
             return
         }
 
@@ -175,6 +195,71 @@ module.exports = async function (app) {
             ]
         })
 
+        if (sourceProject) {
+            // need to copy values over
+            const settingsString = (await app.db.models.StorageSettings.byProject(sourceProject.id))?.settings
+            const newSettings = {
+                users: {}
+            }
+            const sourceSettings = JSON.parse(settingsString)
+            if (settingsString) {
+                newSettings.nodes = sourceSettings.nodes
+            }
+            const options = request.body.sourceProject.options
+            if (options.flows) {
+                const sourceFlows = await app.db.models.StorageFlow.byProject(sourceProject.id)
+                if (sourceFlows) {
+                    const newFlow = await app.db.models.StorageFlow.create({
+                        flow: sourceFlows.flow,
+                        ProjectId: project.id
+                    })
+                    await newFlow.save()
+                }
+
+                if (options.credentials) {
+                    // To copy over the credentials, we have to:
+                    //  - get the existing credentials + credentialSecret
+                    //  - generate a new credentialSecret for the new project
+                    //    (this is normally left to NR to do itself)
+                    //  - re-encrypt the credentials using the new key
+                    const origCredentials = await app.db.models.StorageCredentials.byProject(sourceProject.id)
+                    if (origCredentials) {
+                        // There are existing credentials to copy
+                        const sourceCreds = JSON.parse(origCredentials.credentials)
+                        const newKey = crypto.randomBytes(32).toString('hex')
+                        const newCreds = recryptCreds(sourceCreds, sourceSettings._credentialSecret, newKey)
+                        const creds = await app.db.models.StorageCredentials.create({
+                            credentials: JSON.stringify(newCreds),
+                            ProjectId: project.id
+                        })
+                        await creds.save()
+                        newSettings._credentialSecret = newKey
+                    }
+                }
+            }
+            const settings = await app.db.models.StorageSettings.create({
+                settings: JSON.stringify(newSettings),
+                ProjectId: project.id
+            })
+            await settings.save()
+
+            const sourceProjectSettings = await sourceProject.getSetting('settings') || { env: [] }
+            const sourceProjectEnvVars = sourceProjectSettings.env || []
+            const newProjectSettings = { ...sourceProjectSettings }
+            newProjectSettings.env = []
+
+            if (options.envVars) {
+                sourceProjectEnvVars.forEach(envVar => {
+                    newProjectSettings.env.push({
+                        name: envVar.name,
+                        value: options.envVars === 'keys' ? '' : envVar.value
+                    })
+                })
+            }
+
+            await project.updateSetting('settings', newProjectSettings)
+        }
+
         await app.containers.start(project)
 
         await app.db.controllers.AuditLog.projectLog(
@@ -182,12 +267,26 @@ module.exports = async function (app) {
             request.session.User.id,
             'project.created'
         )
-        await app.db.controllers.AuditLog.teamLog(
-            team.id,
-            request.session.User.id,
-            'project.created',
-            { id: project.id, name: project.name }
-        )
+        if (sourceProject) {
+            await app.db.controllers.AuditLog.teamLog(
+                team.id,
+                request.session.User.id,
+                'project.duplicated',
+                {
+                    sourceId: sourceProject.id,
+                    sourceName: sourceProject.name,
+                    newId: project.id,
+                    newName: project.name
+                }
+            )
+        } else {
+            await app.db.controllers.AuditLog.teamLog(
+                team.id,
+                request.session.User.id,
+                'project.created',
+                { id: project.id, name: project.name }
+            )
+        }
 
         const result = await app.db.views.Project.project(project)
 
@@ -296,6 +395,158 @@ module.exports = async function (app) {
                     app.db.controllers.Project.clearInflightState(request.project)
                 }
             }
+        } else if (request.body.sourceProject) {
+            const sourceProject = await app.db.models.Project.byId(request.body.sourceProject.id)
+            const options = request.body.sourceProject.options
+            if (!sourceProject) {
+                reply.code(404).send('Source Project not found')
+            }
+            if (sourceProject.Team.id !== request.project.Team.id) {
+                reply.code(403).send('Source Project and Target not in same team')
+            }
+
+            reply.send({})
+
+            let resumeProject = false
+            const targetState = request.project.state
+            if (request.project.state !== 'suspended') {
+                resumeProject = true
+                app.log.info(`Stopping project ${request.project.id}`)
+                await app.containers.stop(request.project)
+
+                await app.db.controllers.AuditLog.projectLog(
+                    request.project.id,
+                    request.session.User.id,
+                    'project.suspended'
+                )
+            }
+
+            const sourceSettingsString = ((await app.db.models.StorageSettings.byProject(sourceProject.id))?.settings) || '{}'
+            const sourceSettings = JSON.parse(sourceSettingsString)
+            let targetStorageSettings = await app.db.models.StorageSettings.byProject(request.project.id)
+            const targetSettingString = targetStorageSettings?.settings || '{}'
+            const targetSettings = JSON.parse(targetSettingString)
+
+            targetSettings.nodes = sourceSettings.nodes
+            if (targetStorageSettings) {
+                targetStorageSettings.settings = JSON.stringify(targetSettings)
+            } else {
+                targetStorageSettings = await app.db.models.StorageSettings.create({
+                    settings: JSON.stringify(targetSettings),
+                    ProjectId: request.project.id
+                })
+            }
+            await targetStorageSettings.save()
+
+            if (options.flows) {
+                let sourceFlow = await app.db.models.StorageFlow.byProject(sourceProject.id)
+                let targetFlow = await app.db.models.StorageFlow.byProject(request.project.id)
+                if (!sourceFlow) {
+                    sourceFlow = {
+                        flow: '[]'
+                    }
+                }
+                if (targetFlow) {
+                    targetFlow.flow = sourceFlow.flow
+                } else {
+                    targetFlow = await app.db.models.StorageFlow.create({
+                        flow: sourceFlow.flow,
+                        ProjectId: request.project.id
+                    })
+                }
+                await targetFlow.save()
+            }
+            if (options.credentials) {
+                const sourceSettingsDb = await app.db.models.StorageSettings.byProject(sourceProject.id)
+                const targetSettingsDb = await app.db.models.StorageSettings.byProject(request.project.id)
+                const sourceSettings = sourceSettingsDb ? JSON.parse(sourceSettingsDb.settings) : undefined
+                const targetSettings = targetSettingsDb ? JSON.parse(targetSettingsDb.settings) : undefined
+                const sourceCredsKey = sourceSettings?._credentialSecret
+                const targetCredsKey = targetSettings?._credentialSecret
+
+                const sourceCreds = await app.db.models.StorageCredentials.byProject(sourceProject.id)
+                const sourceEncryptedCreds = JSON.parse(sourceCreds ? sourceCreds.credentials : null)
+
+                let targetCreds = await app.db.models.StorageCredentials.byProject(request.project.id)
+                if (targetCreds && sourceEncryptedCreds) {
+                    targetCreds.credentials = JSON.stringify(recryptCreds(sourceEncryptedCreds, sourceCredsKey, targetCredsKey))
+                    await targetCreds.save()
+                } else if (sourceEncryptedCreds) {
+                    targetCreds = app.db.models.StorageCredentials.create({
+                        credentials: JSON.stringify(recryptCreds(sourceEncryptedCreds, sourceCredsKey, targetCredsKey))
+                    })
+                    await targetCreds.save()
+                }
+            }
+
+            if (options.template) {
+                request.project.ProjectTemplateId = sourceProject.ProjectTemplateId
+                await request.project.save()
+                request.project.reload()
+            }
+            // Get the source project settings
+            const sourceProjectSettings = await sourceProject.getSetting('settings') || { env: [] }
+            // Get the target project settings
+            let targetProjectSettings = await request.project.getSetting('settings') || { env: [] }
+            const targetProjectEnvVars = targetProjectSettings.env
+
+            let updateSettings = false
+
+            if (options.settings) {
+                // The target project needs to pickup the source project settings
+                targetProjectSettings = sourceProjectSettings
+                if (!options.envVars) {
+                    // Need to keep the existing env vars
+                    targetProjectSettings.env = targetProjectEnvVars
+                }
+                updateSettings = true
+            }
+            if (options.envVars) {
+                const env = []
+
+                const existingEnvVars = {}
+                targetProjectEnvVars.forEach(envVar => {
+                    existingEnvVars[envVar.name] = envVar.value
+                })
+
+                sourceProjectSettings.env.forEach(envVar => {
+                    let value = envVar.value
+                    if (options.envVars === 'keys') {
+                        // Only copying over keynames - need to ensure
+                        // any existing value is maintained
+                        if (existingEnvVars[envVar.name] !== undefined) {
+                            value = existingEnvVars[envVar.name]
+                        }
+                    }
+                    env.push({
+                        name: envVar.name,
+                        value: value
+                    })
+                })
+                targetProjectSettings.env = env
+                updateSettings = true
+            }
+            if (updateSettings) {
+                await request.project.updateSetting('settings', targetProjectSettings)
+            }
+
+            if (resumeProject) {
+                app.log.info(`Restarting project ${request.project.id}`)
+                request.project.state = targetState
+                await request.project.save()
+                await request.project.reload()
+                const startResult = await app.containers.start(request.project)
+                startResult.started.then(async () => {
+                    await app.db.controllers.AuditLog.projectLog(
+                        request.project.id,
+                        request.session.User.id,
+                        'project.started'
+                    )
+                    app.db.controllers.Project.clearInflightState(request.project)
+                })
+            } else {
+                app.db.controllers.Project.clearInflightState(request.project)
+            }
         } else {
             if (request.body.name && request.project.name !== request.body.name) {
                 request.project.name = request.body.name
@@ -338,7 +589,7 @@ module.exports = async function (app) {
         preHandler: (request, reply, done) => {
             // check accessToken is project scope
             if (request.session.ownerType !== 'project') {
-                reply.code(401).send({ err: 'unauthorised' })
+                reply.code(401).send({ error: 'unauthorised' })
             } else {
                 done()
             }
@@ -431,4 +682,72 @@ module.exports = async function (app) {
         // console.log(logEntries);
         reply.send(result)
     })
+
+    /**
+     *
+     * @name /api/v1/project/:id/export
+     * @memberof forge.routes.api.project
+     */
+    // app.post('/:projectId/export', async (request, reply) => {
+    //     const components = request.body.components
+    //     reply.header('content-disposition', 'attachment; filename="project.json"')
+    //     const projectExport = {}
+    //     if (components.flows) {
+    //         const flows = await app.db.models.StorageFlow.byProject(request.project.id)
+    //         projectExport.flows = !flows ? [] : JSON.parse(flows.flow)
+
+    //         if (components.creds) {
+    //             const origCredentials = await app.db.models.StorageCredentials.byProject(request.project.id)
+    //             if (origCredentials) {
+    //                 const encryptedCreds = JSON.parse(origCredentials.credentials)
+    //                 const settings = JSON.parse((await app.db.models.StorageSettings.byProject(request.project.id)).settings)
+    //                 const key = crypto.createHash('sha256').update(settings._credentialSecret).digest()
+    //                 const plainText = decryptCreds(key, encryptedCreds)
+    //                 const newKey = crypto.createHash('sha256').update(components.creds).digest()
+    //                 const newCreds = encryptCreds(newKey, plainText)
+
+    //                 projectExport.credentials = newCreds
+    //             }
+    //         }
+    //     }
+    //     if (components.envVars) {
+    //         const settings = await app.db.controllers.Project.getRuntimeSettings(request.project)
+    //         if (components.envVarsKo) {
+    //             projectExport.envVars = {}
+    //             Object.keys(settings.env).forEach(key => {
+    //                 projectExport.envVars[key] = ''
+    //             })
+    //         } else {
+    //             if (settings.env) {
+    //                 projectExport.envVars = settings.env
+    //             }
+    //         }
+    //     }
+    //     const NRSettings = await app.db.models.StorageSettings.byProject(request.project.id)
+    //     if (NRSettings) {
+    //         projectExport.nodes = JSON.parse(NRSettings.settings).nodes
+    //     }
+    //     reply.send(projectExport)
+    // })
+
+    function recryptCreds (original, oldKey, newKey) {
+        const newHash = crypto.createHash('sha256').update(newKey).digest()
+        const oldHash = crypto.createHash('sha256').update(oldKey).digest()
+        return encryptCreds(newHash, decryptCreds(oldHash, original))
+    }
+
+    function decryptCreds (key, cipher) {
+        let flows = cipher.$
+        const initVector = Buffer.from(flows.substring(0, 32), 'hex')
+        flows = flows.substring(32)
+        const decipher = crypto.createDecipheriv('aes-256-ctr', key, initVector)
+        const decrypted = decipher.update(flows, 'base64', 'utf8') + decipher.final('utf8')
+        return JSON.parse(decrypted)
+    }
+
+    function encryptCreds (key, plain) {
+        const initVector = crypto.randomBytes(16)
+        const cipher = crypto.createCipheriv('aes-256-ctr', key, initVector)
+        return { $: initVector.toString('hex') + cipher.update(JSON.stringify(plain), 'utf8', 'base64') + cipher.final('base64') }
+    }
 }

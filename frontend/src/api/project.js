@@ -9,9 +9,8 @@ const create = async (options) => {
     })
 }
 
-const getProject = (project) => {
-    const slug = slugify(project)
-    return client.get(`/api/v1/projects/${slug}`).then(res => {
+const getProject = (projectId) => {
+    return client.get(`/api/v1/projects/${projectId}`).then(res => {
         res.data.createdSince = daysSince(res.data.createdAt)
         res.data.updatedSince = daysSince(res.data.updatedAt)
         return res.data
@@ -65,6 +64,21 @@ const changeStack = async (projectId, stackId) => {
         return res.data
     })
 }
+// const exportProject = async (projectId, components) => {
+//     return client.post(`/api/v1/projects/${projectId}/export`, { components: components }).then(res => {
+//         console.log(res.data, typeof res.data)
+//         const blob = new Blob([JSON.stringify(res.data)], { type: 'application/json' })
+//         const disposition = res.headers['content-disposition']
+//         const matches = /"([^"]*)"/.exec(disposition)
+//         const filename = (matches != null && matches[1] ? matches[1] : 'project.json')
+//         const link = document.createElement('a')
+//         link.href = window.URL.createObjectURL(blob)
+//         link.download = filename
+//         document.body.appendChild(link)
+//         link.click()
+//         document.body.removeChild(link)
+//     })
+// }
 
 const getProjectDevices = async (projectId, cursor, limit) => {
     const url = paginateUrl(`/api/v1/projects/${projectId}/devices`, cursor, limit)
