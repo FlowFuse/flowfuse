@@ -103,7 +103,9 @@ export default {
     },
     methods: {
         home () {
-            this.$router.push({ name: 'Team', params: { team_slug: this.team.slug } })
+            if (this.team?.slug) {
+                this.$router.push({ name: 'Team', params: { team_slug: this.team.slug } })
+            }
         },
         to (route) {
             window.open(route.url, '_blank')

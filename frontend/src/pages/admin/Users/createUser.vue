@@ -1,5 +1,14 @@
 <template>
-    <div class="forge-block">
+    <Teleport v-if="mounted" to="#platform-sidenav">
+        <SideNavigation>
+            <template v-slot:back>
+                <router-link :to="{name: 'AdminUsersGeneral'}">
+                    <nav-item :icon="icons.chevronLeft" label="Back to Users"></nav-item>
+                </router-link>
+            </template>
+        </SideNavigation>
+    </Teleport>
+    <main>
         <div class="max-w-2xl m-auto">
             <form class="space-y-6">
                 <FormHeading>Create a new user</FormHeading>
@@ -19,7 +28,7 @@
                 </ff-button>
             </form>
         </div>
-    </div>
+    </main>
 </template>
 
 <script>
@@ -29,11 +38,19 @@ import FormHeading from '@/components/FormHeading'
 import Breadcrumbs from '@/mixins/Breadcrumbs'
 import { mapState } from 'vuex'
 
+import NavItem from '@/components/NavItem'
+import SideNavigation from '@/components/SideNavigation'
+import { ChevronLeftIcon } from '@heroicons/vue/solid'
+
 export default {
     name: 'AdminCreateUser',
     mixins: [Breadcrumbs],
     data () {
         return {
+            mounted: false,
+            icons: {
+                chevronLeft: ChevronLeftIcon
+            },
             teams: [],
             input: {
                 name: '',
@@ -54,6 +71,9 @@ export default {
                    (this.input.username && !this.errors.username) &&
                    this.input.password === this.input.password_confirm
         }
+    },
+    mounted () {
+        this.mounted = true
     },
     created () {
         this.setBreadcrumbs([
@@ -114,7 +134,9 @@ export default {
     },
     components: {
         FormRow,
-        FormHeading
+        FormHeading,
+        SideNavigation,
+        NavItem
     }
 }
 </script>

@@ -8,7 +8,7 @@
  - [`flowforge.yml` configuration](../install/configuration.md) - base platform configuration, done before you run.
  - [First Run Setup](../install/first-run.md) - create your admin user
  - [FlowForge Concepts](../user/concepts.md)
- - [Usage Telemetry](./telemetry.md)
+ - [Usage Telemetry](/docs/admin/telemetry.md)
 
 ## Administering FlowForge
 

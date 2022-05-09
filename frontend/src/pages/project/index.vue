@@ -2,15 +2,13 @@
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigation>
             <template v-slot:options>
-                <li class="ff-navigation-divider">Project</li>
+                <li class="ff-navigation-divider">{{ project.name }}</li>
                 <router-link v-for="route in navigation" :key="route.label" :to="route.path">
                     <nav-item :icon="route.icon" :label="route.name"></nav-item>
                 </router-link>
             </template>
             <template v-slot:back>
-                <router-link :to="{name: 'Projects', params: {team_slug: team.slug}}">
-                    <nav-item :icon="icons.chevronLeft" label="Back to Projects"></nav-item>
-                </router-link>
+                <ff-team-selection></ff-team-selection>
             </template>
         </SideNavigation>
     </Teleport>
@@ -41,6 +39,7 @@ import projectApi from '@/api/project'
 
 import NavItem from '@/components/NavItem'
 import SideNavigation from '@/components/SideNavigation'
+import SideTeamSelection from '@/components/SideTeamSelection'
 import DropdownMenu from '@/components/DropdownMenu'
 import ProjectStatusBadge from './components/ProjectStatusBadge'
 
@@ -164,7 +163,8 @@ export default {
         SideNavigation,
         ExternalLinkIcon,
         DropdownMenu,
-        ProjectStatusBadge
+        ProjectStatusBadge,
+        'ff-team-selection': SideTeamSelection
     }
 }
 </script>

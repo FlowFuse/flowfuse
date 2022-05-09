@@ -7,9 +7,14 @@
                     <nav-item :icon="route.icon" :label="route.name"></nav-item>
                 </router-link>
             </template>
-            <template v-slot:back>
+            <template v-slot:back v-if="team">
                 <router-link :to="{name: 'Team', params: {team_slug: team.slug}}">
                     <nav-item :icon="icons.chevronLeft" label="Back to Dashboard"></nav-item>
+                </router-link>
+            </template>
+            <template v-slot:back v-else>
+                <router-link :to="{name: 'CreateTeam'}">
+                    <nav-item :icon="icons.chevronLeft" label="Back to Create Team"></nav-item>
                 </router-link>
             </template>
         </SideNavigation>
