@@ -240,7 +240,7 @@ module.exports = async function (app) {
             })
             await settings.save()
 
-            const sourceProjectSettings = await app.db.controllers.Project.getRuntimeSettings(sourceProject) || {}
+            const sourceProjectSettings = await sourceProject.getSetting('settings') || { env: [] }
             const sourceProjectEnvVars = sourceProjectSettings.env || []
             const newProjectSettings = { ...sourceProjectSettings }
             newProjectSettings.env = []
@@ -418,13 +418,21 @@ module.exports = async function (app) {
                 )
             }
 
-            const sourceSettingsString = (await app.db.models.StorageSettings.byProject(sourceProject.id))?.settings
+            const sourceSettingsString = ((await app.db.models.StorageSettings.byProject(sourceProject.id))?.settings) || '{}'
             const sourceSettings = JSON.parse(sourceSettingsString)
-            const targetStorageSettings = await app.db.models.StorageSettings.byProject(request.project.id)
-            const targetSettingString = targetStorageSettings?.settings
+            let targetStorageSettings = await app.db.models.StorageSettings.byProject(request.project.id)
+            const targetSettingString = targetStorageSettings?.settings || '{}'
             const targetSettings = JSON.parse(targetSettingString)
+
             targetSettings.nodes = sourceSettings.nodes
-            targetStorageSettings.settings = JSON.stringify(targetSettings)
+            if (targetStorageSettings) {
+                targetStorageSettings.settings = JSON.stringify(targetSettings)
+            } else {
+                targetStorageSettings = await app.db.models.StorageSettings.create({
+                    settings: JSON.stringify(targetSettings),
+                    ProjectId: request.project.id
+                })
+            }
             await targetStorageSettings.save()
 
             if (options.flows) {
@@ -473,21 +481,50 @@ module.exports = async function (app) {
                 await request.project.save()
                 request.project.reload()
             }
+            // Get the source project settings
+            const sourceProjectSettings = await sourceProject.getSetting('settings') || { env: [] }
+            // Get the target project settings
+            let targetProjectSettings = await request.project.getSetting('settings') || { env: [] }
+            const targetProjectEnvVars = targetProjectSettings.env
 
-            if (options.envVars) {
-                const sourceProjectSettings = await app.db.controllers.Project.getRuntimeSettings(sourceProject)
-                if (sourceProjectSettings && sourceProjectSettings.env) {
-                    const env = []
-                    Object.keys(sourceProjectSettings.env).forEach(key => {
-                        env.push({
-                            name: key,
-                            value: options.envVarsKo ? '' : sourceProjectSettings.env[key]
-                        })
-                    })
-                    const targetSetting = request.project.getSetting('settings')
-                    targetSetting.env = env
-                    await request.project.updateSetting('settings', targetSetting)
+            let updateSettings = false
+
+            if (options.settings) {
+                // The target project needs to pickup the source project settings
+                targetProjectSettings = sourceProjectSettings
+                if (!options.envVars) {
+                    // Need to keep the existing env vars
+                    targetProjectSettings.env = targetProjectEnvVars
                 }
+                updateSettings = true
+            }
+            if (options.envVars) {
+                const env = []
+
+                const existingEnvVars = {}
+                targetProjectEnvVars.forEach(envVar => {
+                    existingEnvVars[envVar.name] = envVar.value
+                })
+
+                sourceProjectSettings.env.forEach(envVar => {
+                    let value = envVar.value
+                    if (options.envVars === 'keys') {
+                        // Only copying over keynames - need to ensure
+                        // any existing value is maintained
+                        if (existingEnvVars[envVar.name] !== undefined) {
+                            value = existingEnvVars[envVar.name]
+                        }
+                    }
+                    env.push({
+                        name: envVar.name,
+                        value: value
+                    })
+                })
+                targetProjectSettings.env = env
+                updateSettings = true
+            }
+            if (updateSettings) {
+                await request.project.updateSetting('settings', targetProjectSettings)
             }
 
             if (resumeProject) {
