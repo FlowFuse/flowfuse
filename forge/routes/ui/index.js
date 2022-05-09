@@ -55,6 +55,7 @@ module.exports = async function (app) {
         } else {
             reply.sendFile('index.html')
         }
+        return reply
     })
 
     // Setup static file serving for the UI assets.
@@ -75,5 +76,6 @@ module.exports = async function (app) {
         } else {
             reply.sendFile('index.html')
         }
+        return reply
     })
 }

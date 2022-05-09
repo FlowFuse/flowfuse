@@ -11,8 +11,6 @@ import ProjectSettingsEnvVar from '@/pages/project/Settings/Environment.vue'
 import ProjectLogs from '@/pages/project/Logs.vue'
 import ProjectActivity from '@/pages/project/Activity.vue'
 
-import CreateProject from '@/pages/project/create.vue'
-
 export default [
     {
         path: '/project/:id',
@@ -60,10 +58,5 @@ export default [
             }
             // { path: 'debug', component: ProjectDebug }
         ]
-    },
-    {
-        path: '/create',
-        name: 'CreateProject',
-        component: CreateProject
     }
 ]

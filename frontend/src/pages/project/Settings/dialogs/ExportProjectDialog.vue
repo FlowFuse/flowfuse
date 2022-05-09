@@ -24,7 +24,7 @@
                                         Select project components to export:
                                     </p>
                                 </div>
-                                <ExportProjectComponents id="exportSettings" v-model="parts" />
+                                <ExportProjectComponents id="exportSettings" v-model="parts" showSecret="true"/>
                                 <div class="mt-4 flex flex-row justify-end">
                                     <ff-button kind="secondary" @click="close()">Cancel</ff-button>
                                     <ff-button class="ml-4" @click="confirm()">Export project</ff-button>
@@ -64,14 +64,11 @@ export default {
     data () {
         return {
             parts: {
-                showSecret: true,
-                exportTemplate: false,
                 flows: true,
-                creds: false,
+                credentials: false,
                 nodes: true,
                 envVars: true,
-                envVarsKo: false,
-                settings: true
+                envVarsKo: false
             }
         }
     },
@@ -97,14 +94,11 @@ export default {
             async show (project) {
                 this.project = project
                 this.parts = {
-                    showSecret: true,
-                    exportTemplate: false,
                     flows: true,
-                    creds: false,
+                    credentials: false,
                     nodes: true,
                     envVars: true,
-                    envVarsKo: false,
-                    settings: true
+                    envVarsKo: false
                 }
                 isOpen.value = true
             }

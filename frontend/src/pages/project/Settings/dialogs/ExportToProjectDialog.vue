@@ -17,23 +17,27 @@
                         leave-to="opacity-0 scale-95"
                     >
                         <div class="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-lg rounded">
-                            <DialogTitle as="h3" class="text-lg font-medium leading-6 text-red-700">Export To Project</DialogTitle>
+                            <DialogTitle as="h3" class="text-lg font-medium leading-6 text-red-700">Export to Existing Project</DialogTitle>
                             <form class="space-y-6">
-                                <div class="mt-2 space-y-2">
-                                    <p class="text-sm text-gray-500">
-                                        Select project components to copy to project:
-                                    </p>
-                                </div>
-                                <div>
-                                    <FormRow :error="errors.target" v-model="input.target" :options="projects">
-                                        <template v-slot:default>Target Project</template>
-                                    </FormRow>
-                                </div>
-                                <FormHeading>Copy from {{project.name}}</FormHeading>
-                                <ExportProjectComponents id="exportSettings" v-model="parts" />
+                                <FormRow>
+                                    Select the components to copy over to the new project
+                                    <template #input>
+                                        <ExportProjectComponents id="exportSettings" v-model="parts" showTemplate="true" showSettings="true" />
+                                    </template>
+                                </FormRow>
+                                <FormRow v-model="input.target" :options="projects">
+                                    <template v-slot:default>Target Project</template>
+                                </FormRow>
+
+                                <FormRow type="checkbox" v-model="input.exportConfirm">
+                                    Confirm export
+                                    <template v-slot:description>
+                                        The target project will be restarted once the export is complete.
+                                    </template>
+                                </FormRow>
                                 <div class="mt-4 flex flex-row justify-end">
                                     <ff-button kind="secondary" @click="close()">Cancel</ff-button>
-                                    <ff-button class="ml-4" @click="confirm()">Export To Project</ff-button>
+                                    <ff-button :disabled="!exportEnabled" class="ml-4" @click="confirm()">Export To Existing Project</ff-button>
                                 </div>
                             </form>
                         </div>
@@ -54,12 +58,9 @@ import {
     DialogTitle
 } from '@headlessui/vue'
 
-import stacksApi from '@/api/stacks'
-import templatesApi from '@/api/templates'
 import teamApi from '@/api/team'
 
 import FormRow from '@/components/FormRow'
-import FormHeading from '@/components/FormHeading'
 import ExportProjectComponents from '../../components/ExportProjectComponents'
 
 export default {
@@ -71,75 +72,45 @@ export default {
         DialogOverlay,
         DialogTitle,
         FormRow,
-        FormHeading,
         ExportProjectComponents
+    },
+    computed: {
+        exportEnabled () {
+            return this.input.exportConfirm && this.input.target
+        }
     },
     data () {
         return {
-            init: false,
-            teams: [],
-            stacks: [],
             projects: [],
             input: {
                 target: '',
                 team: '',
                 stack: '',
                 template: '',
-                billingConfirmation: false
+                exportConfirm: false
             },
             parts: {
-                showSecret: false,
-                allowJustCreds: true,
-                exportTemplate: true,
                 flows: true,
-                creds: true,
+                credentials: true,
                 template: true,
                 nodes: true,
-                envVars: true,
-                envVarsKo: false,
-                settings: true
-            },
-            errors: {
-                stack: '',
-                name: '',
-                template: ''
-            }
-        }
-    },
-    watch: {
-        'input.name': function (value, oldValue) {
-            if (/^[a-z0-9-]+$/.test(value)) {
-                this.errors.name = ''
-            } else {
-                this.errors.name = 'Names can include a-z, 0-9 & - with no spaces'
+                settings: false,
+                envVars: 'all'
             }
         }
     },
     methods: {
         confirm () {
-            const parts = this.parts
-            if (parts.creds && parts.credsSecret && parts.credsSecret.trim()) {
-                parts.creds = parts.credsSecret.trim()
-                delete parts.credsSecret
-            }
-
             const settings = {
                 target: this.input.target,
                 sourceProject: {
                     id: this.project.id,
-                    options: parts
+                    options: { ...this.parts }
                 }
             }
             this.$emit('exportToProject', settings)
             this.isOpen = false
         }
-    },
-    async created () {
-        const stackList = await stacksApi.getStacks()
-        this.stacks = stackList.stacks.filter(stack => stack.active).map(stack => { return { value: stack.id, label: stack.name } })
-
-        const templateList = await templatesApi.getTemplates()
-        this.templates = templateList.templates.filter(template => template.active).map(template => { return { value: template.id, label: template.name } })
     },
     setup () {
         const isOpen = ref(false)
@@ -150,18 +121,16 @@ export default {
                 isOpen.value = false
             },
             async show (project) {
+                this.input.target = ''
+                this.input.exportConfirm = false
                 this.project = project
                 this.parts = {
-                    allowJustCreds: true,
-                    exportTemplate: true,
-                    showSecret: false,
                     flows: true,
-                    creds: true,
+                    credentials: true,
                     template: true,
                     nodes: true,
-                    envVars: true,
-                    envVarsKo: false,
-                    settings: true
+                    settings: false,
+                    envVars: 'all'
                 }
                 isOpen.value = true
                 this.input.stack = this.project.stack.id
@@ -178,9 +147,9 @@ export default {
                     }
                 }
 
-                setTimeout(() => {
-                    this.input.target = this.projects.length > 0 ? this.projects[0].value : ''
-                }, 100)
+                // setTimeout(() => {
+                //     this.input.target = this.projects.length > 0 ? this.projects[0].value : ''
+                // }, 100)
             }
         }
     }

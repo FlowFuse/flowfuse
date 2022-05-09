@@ -1,20 +1,25 @@
 <template>
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigation>
+            <template v-slot:options>
+                <a @click="$router.back()">
+                    <nav-item :icon="icons.chevronLeft" label="Back"></nav-item>
+                </a>
+            </template>
             <template v-slot:back>
-                <router-link :to="{name: 'Projects', params: {team_slug: team.slug}}">
-                    <nav-item :icon="icons.chevronLeft" label="Back to Projects"></nav-item>
-                </router-link>
+                <ff-team-selection></ff-team-selection>
             </template>
         </SideNavigation>
     </Teleport>
     <main>
         <div class="max-w-2xl m-auto">
             <form class="space-y-6">
-                <FormHeading>Create a new project</FormHeading>
-                <div class="mb-8 text-sm text-gray-500">Let's get your new Node-RED instance setup in no time.</div>
+                <SectionTopMenu hero="Create a new project"></SectionTopMenu>
+                <div class="mb-8 text-sm text-gray-500">
+                    <template v-if="!isCopyProject">Let's get your new Node-RED project setup in no time.</template>
+                </div>
 
-                <FormRow :options="teams" :error="(init && (teams.length === 0))?'You do not have permission to create a project in any team':''" v-model="input.team" id="team">Team</FormRow>
+                <!-- <FormRow :options="teams" :error="(init && (teams.length === 0))?'You do not have permission to create a project in any team':''" v-model="input.team" id="team">Team</FormRow> -->
 
                 <div>
                     <FormRow :error="errors.name" v-model="input.name">
@@ -27,8 +32,13 @@
                 </div>
 
                 <FormRow :options="stacks" :error="errors.stack" v-model="input.stack" id="stack">Stack</FormRow>
-
-                <FormRow :options="templates" :error="errors.template" v-model="input.template" id="template">Template</FormRow>
+                <FormRow :options="templates" :disabled="isCopyProject" :error="errors.template" v-model="input.template" id="template">Template</FormRow>
+                <template v-if="isCopyProject">
+                    <p class="text-gray-500">
+                        Select the components to copy from '{{this.sourceProject?.name}}'
+                    </p>
+                    <ExportProjectComponents id="exportSettings" v-model="copyParts" />
+                </template>
 
                 <FormRow v-if="this.features.billing" type="checkbox" v-model="input.billingConfirmation" id="billing-confirmation">
                     Confirm additional charges
@@ -51,21 +61,27 @@ import projectApi from '@/api/project'
 import stacksApi from '@/api/stacks'
 import templatesApi from '@/api/templates'
 
+import SideTeamSelection from '@/components/SideTeamSelection'
 import NavItem from '@/components/NavItem'
+import SectionTopMenu from '@/components/SectionTopMenu'
+
 import SideNavigation from '@/components/SideNavigation'
 
 import FormRow from '@/components/FormRow'
-import FormHeading from '@/components/FormHeading'
 import NameGenerator from '@/utils/name-generator'
 import { RefreshIcon } from '@heroicons/vue/outline'
 import { Roles } from '@core/lib/roles'
+
+import ExportProjectComponents from '../project/components/ExportProjectComponents'
 
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
 
 export default {
     name: 'CreateProject',
+    props: ['sourceProjectId'],
     data () {
         return {
+            sourceProject: null,
             mounted: false,
             icons: {
                 chevronLeft: ChevronLeftIcon
@@ -81,18 +97,26 @@ export default {
                 stack: '',
                 template: '',
                 billingConfirmation: false
-                // description: "",
             },
             errors: {
                 stack: '',
                 name: '',
                 template: ''
+            },
+            copyParts: {
+                flows: true,
+                credentials: true,
+                nodes: true,
+                envVars: 'all'
             }
         }
     },
     computed: {
         ...mapState('account', ['features', 'team']),
-        createEnabled: function () {
+        isCopyProject () {
+            return !!this.sourceProjectId
+        },
+        createEnabled () {
             return this.input.stack && this.input.team && this.input.name && !this.errors.name && this.input.template && (this.features.billing ? this.input.billingConfirmation : true)
         }
     },
@@ -149,15 +173,31 @@ export default {
     },
     mounted () {
         this.mounted = true
+        if (this.sourceProjectId) {
+            projectApi.getProject(this.sourceProjectId).then(project => {
+                this.sourceProject = project
+                this.input.stack = this.sourceProject.stack?.id || ''
+                this.input.template = this.sourceProject.template?.id || ''
+            }).catch(err => {
+                console.log('Failed to load project', err)
+            })
+        }
     },
     methods: {
         createProject () {
-            projectApi.create(this.input).then(result => {
+            const createPayload = { ...this.input }
+            if (this.isCopyProject) {
+                createPayload.sourceProject = {
+                    id: this.sourceProjectId,
+                    options: { ...this.copyParts }
+                }
+            }
+            projectApi.create(createPayload).then(result => {
                 this.$router.push({ name: 'Project', params: { id: result.id } })
             }).catch(err => {
                 console.log(err)
                 if (err.response.status === 409) {
-                    this.errors.name = err.response.data.err
+                    this.errors.name = err.response.data.error
                 }
             })
         },
@@ -167,10 +207,12 @@ export default {
     },
     components: {
         FormRow,
-        FormHeading,
         RefreshIcon,
+        ExportProjectComponents,
+        SectionTopMenu,
+        NavItem,
         SideNavigation,
-        NavItem
+        'ff-team-selection': SideTeamSelection
     }
 }
 </script>

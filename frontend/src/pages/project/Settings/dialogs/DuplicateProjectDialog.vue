@@ -98,14 +98,11 @@ export default {
                 billingConfirmation: false
             },
             parts: {
-                showSecret: false,
-                exportTemplate: false,
                 flows: true,
-                creds: true,
+                credentials: true,
                 nodes: true,
                 envVars: true,
-                envVarsKo: false,
-                settings: true
+                envVarsKo: false
             },
             errors: {
                 stack: '',
@@ -164,14 +161,11 @@ export default {
             async show (project) {
                 this.project = project
                 this.parts = {
-                    showSecret: false,
-                    exportTemplate: false,
                     flows: true,
-                    creds: true,
+                    credentials: true,
                     nodes: true,
                     envVars: true,
-                    envVarsKo: false,
-                    settings: true
+                    envVarsKo: false
                 }
                 isOpen.value = true
                 this.input.name = NameGenerator()

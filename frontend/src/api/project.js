@@ -9,9 +9,8 @@ const create = async (options) => {
     })
 }
 
-const getProject = (project) => {
-    const slug = slugify(project)
-    return client.get(`/api/v1/projects/${slug}`).then(res => {
+const getProject = (projectId) => {
+    return client.get(`/api/v1/projects/${projectId}`).then(res => {
         res.data.createdSince = daysSince(res.data.createdAt)
         res.data.updatedSince = daysSince(res.data.updatedAt)
         return res.data

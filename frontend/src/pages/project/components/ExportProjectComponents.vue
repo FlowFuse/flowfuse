@@ -1,44 +1,82 @@
 <template>
-    <div>
+    <div class="space-y-4 my-3">
         <FormRow type="checkbox" v-model="parts.flows">
             Flows
-            <template #description>Export Project Flows</template>
         </FormRow>
-        <FormRow type="checkbox" v-bind:disabled="!justCreds" v-model="parts.creds">
-            Credentials
-            <template #description>Export Flow Credentials</template>
-        </FormRow>
-        <FormRow type="checkbox" v-if="parts.exportTemplate" v-model="parts.template">
+        <div :class="parts.flows?'opacity-100':'opacity-30'">
+            <FormRow type="checkbox" v-bind:disabled="!parts.flows" v-model="parts.credentials">
+                Credentials
+            </FormRow>
+        </div>
+        <FormRow type="checkbox" v-if="showTemplate" v-model="parts.template">
             Template
-            <template #description>Export Project Template</template>
         </FormRow>
-        <FormRow v-if="parts.showSecret" type="text" v-model="parts.credsSecret" v-bind:disabled="!parts.flows && !parts.creds">
+        <FormRow v-if="showSecret" type="text" v-model="parts.credsSecret" v-bind:disabled="!parts.flows && !parts.credentials">
             Secret
             <template #description>Provide a Secret to encrypt the exported Credentials</template>
         </FormRow>
-        <FormRow type="checkbox" v-model="parts.envVars">
+        <FormRow v-if="showSettings" type="checkbox" v-model="parts.settings">
+            Project Settings
+        </FormRow>
+        <FormRow type="checkbox" v-model="envVarOpts.envVars">
             Environment Variables
-            <template #description>Export Environment Variables</template>
         </FormRow>
-        <FormRow class="ml-9" v-if="parts.envVars" type="radio" v-model="parts.envVarsKo" :value="false">
-            Keys and Values
-        </FormRow>
-        <FormRow class="ml-9" v-if="parts.envVars" type="radio" v-model="parts.envVarsKo" :value="true">
-            Keys only
-        </FormRow>
+        <div :class="['space-y-4', envVarOpts.envVars?'opacity-100':'opacity-30']">
+            <FormRow class="ml-9" :disabled="!envVarOpts.envVars" type="radio" v-model="envVarOpts.envVarsKo" value="all">
+                Keys and Values
+            </FormRow>
+            <FormRow class="ml-9" :disabled="!envVarOpts.envVars" type="radio" v-model="envVarOpts.envVarsKo" value="keys">
+                Keys only
+            </FormRow>
+        </div>
     </div>
 </template>
 
 <script>
 import FormRow from '@/components/FormRow'
-
+/**
+ * flows
+ * credentials
+ * template
+ * showSecret
+ * envVars
+ * envVarsKo
+ */
 export default {
     name: 'ExportProjectComponets',
-    props: ['modelValue'],
+    props: ['modelValue', 'showSecret', 'showTemplate', 'showSettings'],
+    data () {
+        return {
+            envVarOpts: {
+                envVars: true,
+                envVarsKo: false
+            }
+        }
+    },
+    mounted () {
+        if (this.parts.envVars === false) {
+            this.envVarOpts.envVars = false
+        } else if (this.parts.envVars === true || this.parts.envVars === 'all') {
+            this.envVarOpts.envVars = true
+            this.envVarOpts.envVarsKo = 'all'
+        } else {
+            this.envVarOpts.envVars = true
+            this.envVarOpts.envVarsKo = 'keys'
+        }
+    },
+    watch: {
+        envVarOpts: {
+            deep: true,
+            handler: function (value) {
+                if (!value.envVars) {
+                    this.parts.envVars = false
+                } else {
+                    this.parts.envVars = value.envVarsKo
+                }
+            }
+        }
+    },
     computed: {
-        justCreds: function () {
-            return this.parts.allowJustCreds ? true : this.parts.flows
-        },
         parts: {
             get () {
                 return this.modelValue
