@@ -16,7 +16,7 @@ module.exports = async function (app) {
     app.get('/', async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const stacks = await app.db.models.ProjectStack.getAll(paginationOptions)
-        stacks.stacks = stacks.stacks.map(s => app.db.views.ProjectStack.stack(s))
+        stacks.stacks = stacks.stacks.map(s => app.db.views.ProjectStack.stack(s, request.session.User.admin))
         reply.send(stacks)
     })
 
@@ -29,7 +29,7 @@ module.exports = async function (app) {
     app.get('/:stackId', async (request, reply) => {
         const stack = await app.db.models.ProjectStack.byId(request.params.stackId)
         if (stack) {
-            reply.send(app.db.views.ProjectStack.stack(stack))
+            reply.send(app.db.views.ProjectStack.stack(stack, request.session.User.admin))
         } else {
             reply.code(404).type('text/html').send('Not Found')
         }
@@ -120,7 +120,7 @@ module.exports = async function (app) {
                 stack.properties = request.body.properties
             }
             await stack.save()
-            reply.send(app.db.views.ProjectStack.stack(stack))
+            reply.send(app.db.views.ProjectStack.stack(stack, request.session.User.admin))
         }
     })
 }
