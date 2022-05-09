@@ -101,16 +101,16 @@ module.exports = async function (app) {
                 // console.log(event)
                 app.log.info(`Created Subscription for team ${team.hashid}`)
                 await app.db.controllers.Subscription.createSubscription(team, subscription, customer)
-                // app.db.controllers.AuditLog.teamLog({
-                //     team.id,
-                //     user.id,
-                //     'billing.session.created',
-                //     { session: session.id }
-                // })
+                app.db.controllers.AuditLog.teamLog(
+                    team.id,
+                    null,
+                    'billing.session.completed',
+                    { session: event.data.object.id }
+                )
                 break
             case 'checkout.session.expired':
                 // should remove the team here
-                app.log.info(`Stripe 'checkout.session.expired' event for team ${team.hashid}`)
+                app.log.info(`Stripe 'checkout.session.expired' event ${event.data.object.id} for team ${team.hashid}`)
                 // console.log(event)
                 break
             case 'customer.subscription.created':
@@ -172,6 +172,12 @@ module.exports = async function (app) {
         if (!sub) {
             if (!request.session.User.admin) {
                 const session = await app.billing.createSubscriptionSession(team, '') // request.session.User)
+                app.db.controllers.AuditLog.teamLog(
+                    team.id,
+                    request.session.User.id,
+                    'billing.session.created',
+                    { session: session.id }
+                )
                 response.code(404).type('application/json').send({ billingURL: session.url })
             } else {
                 response.status(200).send({

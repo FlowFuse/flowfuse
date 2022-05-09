@@ -1,6 +1,6 @@
-const ProjectActions = require('./projectActions.js')
 const crypto = require('crypto')
-
+const ProjectActions = require('./projectActions')
+const ProjectDevices = require('./projectDevices')
 /**
  * Instance api routes
  *
@@ -58,6 +58,9 @@ module.exports = async function (app) {
         }
     })
 
+    if (app.config.features.enabled('devices')) {
+        app.register(ProjectDevices, { prefix: '/:projectId/devices' })
+    }
     app.register(ProjectActions, { prefix: '/:projectId/actions' })
 
     /**

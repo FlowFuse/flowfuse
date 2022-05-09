@@ -33,6 +33,7 @@ module.exports = {
     },
     associations: function (M) {
         this.belongsTo(M.Project, { foreignKey: 'ownerId', constraints: false })
+        this.belongsTo(M.Device, { foreignKey: 'ownerId', constraints: false })
     },
     finders: function (M) {
         return {

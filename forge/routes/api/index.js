@@ -13,6 +13,7 @@ const Admin = require('./admin.js')
 const Settings = require('./settings.js')
 const Stack = require('./stack.js')
 const Template = require('./template.js')
+const Device = require('./device.js')
 
 module.exports = async function (app) {
     app.addHook('preHandler', app.verifyTokenOrSession)
@@ -35,6 +36,9 @@ module.exports = async function (app) {
     app.register(Project, { prefix: '/projects' })
     app.register(Stack, { prefix: '/stacks' })
     app.register(Template, { prefix: '/templates' })
+    if (app.config.features.enabled('devices')) {
+        app.register(Device, { prefix: '/devices' })
+    }
     app.get('*', function (request, reply) {
         reply.code(404).type('text/html').send('Not Found')
     })

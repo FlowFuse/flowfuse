@@ -35,6 +35,26 @@ module.exports = {
         return { token }
     },
     /**
+     * Create a new auth client for the given project.
+     * The token is hashed in the database. The only time the
+     * true value is available is when it is returned from this function.
+     */
+    createTokenForDevice: async function (app, device) {
+        const existingDeviceToken = await device.getAccessToken()
+        if (existingDeviceToken) {
+            await existingDeviceToken.destroy()
+        }
+        const token = generateToken(32, 'ffd')
+        await app.db.models.AccessToken.create({
+            token,
+            expiresAt: 0,
+            scope: 'device',
+            ownerId: device.id,
+            ownerType: 'device'
+        })
+        return { token }
+    },
+    /**
      * Get a token by its id. If the session has expired, it is deleted
      * and nothing returned.
      */
