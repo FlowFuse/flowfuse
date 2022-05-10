@@ -7,6 +7,12 @@ const create = async (options) => {
     })
 }
 
+const deleteUser = async (userId) => {
+    return client.delete(`/api/v1/users/${userId}`).then(res => {
+        return res.data
+    })
+}
+
 const getUsers = (cursor, limit) => {
     const url = paginateUrl('/api/v1/users', cursor, limit)
     return client.get(url).then(res => res.data)
@@ -21,5 +27,6 @@ const updateUser = async (userId, options) => {
 export default {
     create,
     getUsers,
+    deleteUser,
     updateUser
 }

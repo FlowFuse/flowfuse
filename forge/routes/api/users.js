@@ -58,7 +58,7 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.users
      */
     app.put('/:userId', async (request, reply) => {
-        sharedUser.updateUser(app, request.user, request, reply)
+        await sharedUser.updateUser(app, request.user, request, reply)
     })
 
     /**

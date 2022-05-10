@@ -15,7 +15,7 @@
         <div v-if="nextCursor">
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
         </div>
-        <AdminUserEditDialog @userUpdated="userUpdated" ref="adminUserEditDialog"/>
+        <AdminUserEditDialog @userUpdated="userUpdated" @userDeleted="userDeleted" ref="adminUserEditDialog"/>
 
     </form>
 </template>
@@ -63,6 +63,12 @@ export default {
                     this.users[i] = user
                     break
                 }
+            }
+        },
+        userDeleted (userId) {
+            const index = this.users.findIndex(u => u.id === userId)
+            if (index > -1) {
+                this.users.splice(index, 1)
             }
         },
         loadItems: async function () {

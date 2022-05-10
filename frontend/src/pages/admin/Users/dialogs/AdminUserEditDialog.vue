@@ -8,6 +8,7 @@
                 <FormRow id="admin" :disabled="adminLocked" v-model="input.admin" type="checkbox">Administrator
                     <template v-slot:append>
                         <ff-button v-if="adminLocked" kind="danger" size="small" @click="unlockAdmin()">
+                            Unlock
                             <template v-slot:icon>
                                 <LockClosedIcon />
                             </template>
@@ -15,8 +16,35 @@
                     </template>
                 </FormRow>
                 <FormHeading class="text-red-700">Danger Zone</FormHeading>
-                <div>
-                    <ff-button kind="danger" @click="expirePassword">Expire password</ff-button>
+                <div class="flex items-center space-x-2">
+                    <FormRow :error="errors.expirePassword">
+                        <template #input>
+                            <div class="flex items-center space-x-2">
+                                <ff-button :disabled="expirePassLocked"  :kind="expirePassLocked?'secondary':'danger'" @click="expirePassword">Expire password</ff-button>
+                                <ff-button v-if="expirePassLocked" kind="danger" size="small" @click="unlockExpirePassword()">
+                                    Unlock
+                                    <template v-slot:icon>
+                                        <LockClosedIcon />
+                                    </template>
+                                </ff-button>
+                            </div>
+                        </template>
+                    </FormRow>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <FormRow :error="errors.deleteUser">
+                        <template #input>
+                            <div class="flex items-center space-x-2">
+                                <ff-button :disabled="deleteLocked" :kind="deleteLocked?'secondary':'danger'" @click="deleteUser">Delete user</ff-button>
+                                <ff-button v-if="deleteLocked" kind="danger" size="small" @click="unlockDelete()">
+                                    Unlock
+                                    <template v-slot:icon>
+                                        <LockClosedIcon />
+                                    </template>
+                                </ff-button>
+                            </div>
+                        </template>
+                    </FormRow>
                 </div>
             </form>
         </template>
@@ -49,7 +77,9 @@ export default {
             input: {},
             errors: {},
             user: null,
-            adminLocked: true
+            adminLocked: true,
+            deleteLocked: true,
+            expirePassLocked: true
         }
     },
     watch: {
@@ -77,6 +107,12 @@ export default {
     methods: {
         unlockAdmin () {
             this.adminLocked = false
+        },
+        unlockDelete () {
+            this.deleteLocked = false
+        },
+        unlockExpirePassword () {
+            this.expirePassLocked = false
         },
         confirm () {
             const opts = {}
@@ -120,11 +156,19 @@ export default {
                 this.isOpen = false
             }
         },
+        deleteUser () {
+            usersApi.deleteUser(this.user.id).then((response) => {
+                this.isOpen = false
+                this.$emit('userDeleted', this.user.id)
+            }).catch(err => {
+                this.errors.deleteUser = err.response.data.error
+            })
+        },
         expirePassword () {
             usersApi.updateUser(this.user.id, { password_expired: true }).then((response) => {
                 this.isOpen = false
             }).catch(err => {
-                console.log(err.response.data)
+                this.errors.expirePassword = err.response.data.error
             })
         }
     },
@@ -142,6 +186,9 @@ export default {
                 this.input.email = user.email
                 this.input.admin = user.admin
                 this.adminLocked = true
+                this.deleteLocked = true
+                this.expirePassLocked = true
+                this.errors = {}
                 isOpen.value = true
             }
         }
