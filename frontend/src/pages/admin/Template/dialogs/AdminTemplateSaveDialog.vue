@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog :open="isOpen" header="Delete Stack" @close="close">
+    <ff-dialog :open="isOpen" header="Update Template" @close="close">
         <template v-slot:default>
             <form class="space-y-6">
                 <div class="space-y-2">
@@ -17,24 +17,9 @@
 
 <script>
 import { ref } from 'vue'
-import {
-    TransitionRoot,
-    TransitionChild,
-    Dialog,
-    DialogOverlay,
-    DialogTitle
-} from '@headlessui/vue'
 
 export default {
     name: 'AdminTemplateSaveDialog',
-
-    components: {
-        TransitionRoot,
-        TransitionChild,
-        Dialog,
-        DialogOverlay,
-        DialogTitle
-    },
     methods: {
         confirm () {
             this.$emit('saveTemplate')
