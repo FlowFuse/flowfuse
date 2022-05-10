@@ -19,7 +19,7 @@
         "cover:system": "nyc --silent --no-clean npm run test:system",
         "cover:report": "nyc report --reporter=text --reporter html",
         "dev:local": "cd ../flowforge-nr-launcher && npm install ../flowforge-nr-storage ../flowforge-nr-auth ../flowforge-nr-audit-logger && cd ../flowforge-driver-localfs && npm install ../flowforge-nr-launcher && cd ../flowforge && npm install ../flowforge-driver-localfs ../forge-ui-components",
-        "install-stack": "mkdir -p var/stacks/${npm_config_vers} && npm install --prefix var/stacks/${npm_config_vers} node-red@${npm_config_vers}"
+        "install-stack": "node forge/install-stack.js --"
     },
     "bin": {
         "flowforge": "./forge/app.js"
