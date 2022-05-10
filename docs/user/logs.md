@@ -4,7 +4,7 @@ FlowForge presents log information in several different places depending on what
 
 ## Project Logs
 
-Within the project view the logs tab displays the Node-RED log, this will contain information such as nodes being added, and errors relating to your flows.
+Within the project view the logs tab displays the Node-RED log. This will contain information such as nodes being added and errors relating to your flows.
 
 The log information is kept back to the last time the container was restarted, you can view older information on the `Load earlier...` link at the top of the log.
 
