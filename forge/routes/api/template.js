@@ -28,6 +28,7 @@ module.exports = async function (app) {
      */
     app.get('/:templateId', async (request, reply) => {
         const template = await app.db.models.ProjectTemplate.byId(request.params.templateId)
+        console.log(template)
         if (template) {
             reply.send(app.db.views.ProjectTemplate.template(template))
         } else {
