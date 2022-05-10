@@ -5,6 +5,7 @@ const templateFields = [
     'timeZone',
     'palette_allowInstall',
     'palette_nodesExcludes',
+    'palette_denyList',
     'modules_allowInstall'
 ]
 const defaultTemplateValues = {
@@ -14,6 +15,7 @@ const defaultTemplateValues = {
     timeZone: 'UTC',
     palette_allowInstall: true,
     palette_nodesExcludes: '',
+    palette_denyList: '',
     modules_allowInstall: true
 }
 
@@ -35,6 +37,21 @@ const templateValidators = {
             const fn = parts[i]
             if (!/^[a-z0-9\-._]+\.js$/i.test(fn)) {
                 return 'Must be a comma-separated list of .js filenames'
+            }
+        }
+    },
+    palette_denyList: (v) => {
+        if (v.trim() === '') {
+            return
+        }
+        const parts = v
+            .split(',')
+            .map((fn) => fn.trim())
+            .filter((fn) => fn.length > 0)
+        for (let i = 0; i < parts.length; i++) {
+            const fn = parts[i]
+            if (!/^((@[a-z0-9-~][a-z0-9-._~]*\/)?([a-z0-9-~][a-z0-9-._~]*|\*))(@([~^><]|<=|>=)?((0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?))?$/i.test(fn)) {
+                return 'Must be a comma-seperated list of nodes[@version]'
             }
         }
     }
