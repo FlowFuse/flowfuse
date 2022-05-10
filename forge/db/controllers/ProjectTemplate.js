@@ -107,8 +107,7 @@ module.exports = {
             const paletteNodeExcludes = result.palette.nodesExcludes
             delete result.palette.nodesExcludes
             if (
-                typeof paletteNodeExcludes === 'string' &&
-        paletteNodeExcludes.length > 0
+                typeof paletteNodeExcludes === 'string' && paletteNodeExcludes.length > 0
             ) {
                 const parts = paletteNodeExcludes
                     .split(',')
@@ -128,22 +127,15 @@ module.exports = {
         if (result.palette?.denyList !== undefined) {
             const paletteDenyList = result.palette.denyList
             delete result.palette.denyList
-            if (
-                typeof paletteDenyList === 'string' &&
-                paletteDenyList.length > 0
-            ) {
-                const parts = paletteDenyList
-                    .split(',')
-                    .map((fn) => fn.trim())
-                    .filter((fn) => fn.length > 0)
-                if (parts.length > 0) {
-                    for (let i = 0; i < parts.length; i++) {
-                        const fn = parts[i]
+            if (Array.isArray(paletteDenyList)) {
+                if (paletteDenyList.length > 0) {
+                    for (let i = 0; i < paletteDenyList.length; i++) {
+                        const fn = paletteDenyList[i]
                         if (!/^((@[a-z0-9-~][a-z0-9-._~]*\/)?([a-z0-9-~][a-z0-9-._~]*|\*))(@([~^><]|<=|>=)?((0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?))?$/i.test(fn)) {
                             throw new Error('Invalid settings.palette.denyList')
                         }
                     }
-                    result.palette.denyList = parts.join(',')
+                    result.palette.denyList = paletteDenyList
                 }
             }
         }

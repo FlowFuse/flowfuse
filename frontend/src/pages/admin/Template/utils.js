@@ -19,6 +19,38 @@ const defaultTemplateValues = {
     modules_allowInstall: true
 }
 
+// Functions to map template values to a string for editing
+//
+// This is used to handle palette_denyList and the like that
+// are intended to be stored as arrays of values, but are currently
+// edited as a single string (comma-separated list of values)
+const templateEncoders = {
+    palette_denyList: {
+        decode: (v) => {
+            // this is reused for the policy object, so let booleans pass through
+            if (typeof v === 'boolean') {
+                return v
+            }
+            if (typeof v === 'string') {
+                return v
+            } else if (Array.isArray(v)) {
+                return v.join(', ')
+            } else {
+                return ''
+            }
+        },
+        encode: (v) => {
+            // this is reused for the policy object, so let booleans pass through
+            if (typeof v === 'boolean') {
+                return v
+            }
+            return v.split(',')
+                .map((fn) => fn.trim())
+                .filter((fn) => fn.length > 0)
+        }
+    }
+}
+
 const templateValidators = {
     httpAdminRoot: (v) => {
         if (!/^[0-9a-z_\-\\/]*$/i.test(v)) {
@@ -68,6 +100,9 @@ function getTemplateValue (template, path) {
             p = p[part]
         }
     }
+    if (templateEncoders[path]) {
+        return templateEncoders[path].decode(p)
+    }
     return p
 }
 
@@ -82,7 +117,11 @@ function setTemplateValue (template, path, value) {
         p = p[part]
     }
     const lastPart = parts.shift()
-    p[lastPart] = value
+    if (templateEncoders[path]) {
+        p[lastPart] = templateEncoders[path].encode(value)
+    } else {
+        p[lastPart] = value
+    }
 }
 
 function prepareTemplateForEdit (template) {
