@@ -38,18 +38,42 @@ module.exports = {
     scopes: {
         admins: { where: { admin: true } }
     },
-    hooks: {
-        beforeCreate: (user, options) => {
-            if (!user.avatar) {
-                user.avatar = generateUserAvatar(user.name || user.username)
-            }
-            if (!user.name) {
-                user.name = user.username
-            }
-        },
-        beforeUpdate: (user) => {
-            if (user.avatar.startsWith(`${process.env.FLOWFORGE_BASE_URL}/avatar/`)) {
-                user.avatar = generateUserAvatar(user.name || user.username)
+    hooks: function (M) {
+        return {
+            beforeCreate: (user, options) => {
+                if (!user.avatar) {
+                    user.avatar = generateUserAvatar(user.name || user.username)
+                }
+                if (!user.name) {
+                    user.name = user.username
+                }
+            },
+            beforeUpdate: (user) => {
+                if (user.avatar.startsWith(`${process.env.FLOWFORGE_BASE_URL}/avatar/`)) {
+                    user.avatar = generateUserAvatar(user.name || user.username)
+                }
+            },
+            beforeDestroy: async (user, opts) => {
+                if (user.admin) {
+                    throw new Error('Cannot delete Admin user')
+                }
+                const teamsOwned = await user.getTeamsOwned()
+                if (teamsOwned.length > 0) {
+                    throw new Error('Cannot delete user that owns teams')
+                }
+                // Need to do this in beforeDestroy as the Session.UserId field
+                // is set to NULL when user is deleted.
+                // TODO: modify cascade delete relationship between the tables
+                await M.Session.destroy({
+                    where: {
+                        UserId: user.id
+                    }
+                })
+                await M.Invitation.destroy({
+                    where: {
+                        [Op.or]: [{ invitorId: user.id }, { inviteeId: user.id }]
+                    }
+                })
             }
         }
     },
@@ -170,6 +194,9 @@ module.exports = {
                 // TODO: standardize on using hashids externally
                 getTeamMembership: async function (teamId, includeTeam) {
                     return M.TeamMember.getTeamMembership(this.id, teamId, includeTeam)
+                },
+                getTeamsOwned: async function () {
+                    return M.TeamMember.getTeamsOwnedBy(this.id)
                 }
             }
         }

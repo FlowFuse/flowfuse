@@ -308,7 +308,7 @@ module.exports = async function (app) {
     app.delete('/:projectId', { preHandler: app.needsPermission('project:delete') }, async (request, reply) => {
         try {
             await app.containers.remove(request.project)
-            request.project.destroy()
+            await request.project.destroy()
             await app.db.controllers.AuditLog.projectLog(
                 request.project.id,
                 request.session.User.id,
