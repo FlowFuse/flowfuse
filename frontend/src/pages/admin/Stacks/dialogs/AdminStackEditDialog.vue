@@ -1,64 +1,29 @@
 <template>
-    <TransitionRoot appear :show="isOpen" as="template">
-        <Dialog as="div" @close="close">
-            <div class="fixed inset-0 z-10 overflow-y-auto">
-                <div class="min-h-screen px-4 text-center">
-                    <DialogOverlay class="fixed inset-0 bg-black opacity-50" />
-                    <span class="inline-block h-screen align-middle" aria-hidden="true">
-                        &#8203;
-                    </span>
-                    <TransitionChild
-                        as="template"
-                        enter="duration-300 ease-out"
-                        enter-from="opacity-0 scale-95"
-                        enter-to="opacity-100 scale-100"
-                        leave="duration-200 ease-in"
-                        leave-from="opacity-100 scale-100"
-                        leave-to="opacity-0 scale-95"
-                    >
-                        <div class="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-lg rounded">
-                            <DialogTitle as="h3" class="text-lg font-medium leading-6">
-                                <span v-if="stack">Update</span>
-                                <span v-else>Create</span>
-                                Stack
-                            </DialogTitle>
-                            <form class="space-y-6 mt-2">
-                                <FormRow :options="options" v-model="input.baseStack">
-                                    Optionally, use an existing Stack as a starting point:
-                                </FormRow>
-                                <hr />
-                                <FormRow v-model="input.name" :error="errors.name" :disabled="editDisabled">Name</FormRow>
-                                <FormRow v-model="input.active" type="checkbox">Active</FormRow>
-                                <template v-for="(prop) in stackProperties" :key="prop.name">
-                                    <FormRow v-model="input.properties[prop.name]" :error="errors[prop.name]" :disabled="editDisabled">{{prop.label}}</FormRow>
-                                </template>
-                                <div class="mt-4 flex flex-row justify-end">
-                                    <ff-button @click="close()">Cancel</ff-button>
-                                    <ff-button :disabled="!formValid" class="ml-4" @click="confirm()">
-                                        <span v-if="stack">Update</span>
-                                        <span v-else>Create</span>
-                                    </ff-button>
-                                </div>
-                            </form>
-                        </div>
-                    </TransitionChild>
-                </div>
-            </div>
-        </Dialog>
-    </TransitionRoot>
+    <ff-dialog :open="isOpen" :header="(stack ? 'Update' : 'Create') + ' Stack'" @confirm="isOpen = false">
+        <template v-slot:default>
+            <form class="space-y-6">
+                <FormRow v-if="!stack" :options="options" v-model="input.baseStack">
+                    Optionally, use an existing Stack as a starting point:
+                </FormRow>
+                <hr v-if="!stack" />
+                <FormRow v-model="input.name" :error="errors.name" :disabled="editDisabled">Name</FormRow>
+                <FormRow v-model="input.active" type="checkbox">Active</FormRow>
+                <template v-for="(prop) in stackProperties" :key="prop.name">
+                    <FormRow v-model="input.properties[prop.name]" :error="errors[prop.name]" :disabled="editDisabled">{{prop.label}}</FormRow>
+                </template>
+            </form>
+        </template>
+        <template v-slot:actions>
+            <ff-button kind="secondary" @click="close()">Cancel</ff-button>
+            <ff-button kind="primary" @click="confirm()" :disabled="!formValid">{{ (stack ? 'Save' : 'Create') }}</ff-button>
+        </template>
+    </ff-dialog>
 </template>
 
 <script>
 import stacksApi from '@/api/stacks'
 
 import { ref } from 'vue'
-import {
-    TransitionRoot,
-    TransitionChild,
-    Dialog,
-    DialogOverlay,
-    DialogTitle
-} from '@headlessui/vue'
 
 import FormRow from '@/components/FormRow'
 import { mapState } from 'vuex'
@@ -66,15 +31,12 @@ import { mapState } from 'vuex'
 export default {
     name: 'AdminStackCreateDialog',
     components: {
-        TransitionRoot,
-        TransitionChild,
-        Dialog,
-        DialogOverlay,
-        DialogTitle,
         FormRow
     },
+    emits: ['stackCreated', 'stackUpdated'],
     data () {
         return {
+            stack: null,
             stacks: [],
             options: [],
             input: {
@@ -128,7 +90,14 @@ export default {
     computed: {
         ...mapState('account', ['settings']),
         formValid () {
-            return (this.input.name)
+            let propError = false
+            // check for validation errors:
+            this.stackProperties.forEach(prop => {
+                if (!this.input.properties[prop.name] || this.errors[prop.name]) {
+                    propError = true
+                }
+            })
+            return !propError && this.input.name && !this.errors.name
         },
         stackProperties () {
             return Object.entries(this.settings.stacks.properties).map(([key, value]) => {

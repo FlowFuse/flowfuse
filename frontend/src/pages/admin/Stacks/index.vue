@@ -16,7 +16,7 @@
         </div>
     </form>
     <AdminStackEditDialog @stackCreated="stackCreated" @stackUpdated="stackUpdated" ref="adminStackEditDialog"/>
-    <AdminStackDeleteDialog @deleteStack="deleteStack"  ref="adminStackDeleteDialog"/>
+    <AdminStackDeleteDialog @deleteStack="deleteStack" ref="adminStackDeleteDialog"/>
 
 </template>
 
