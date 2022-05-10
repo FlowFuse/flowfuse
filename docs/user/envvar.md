@@ -1,6 +1,6 @@
 # Environment Variables
 
-Environment Variables allow you to manage variables used in your Node-RED flows from the FlowForge application, you can read more on how to access enironment varibles inside Node-RED [in the Node-RED Docs](https://nodered.org/docs/user-guide/environment-variables)
+Environment Variables allow you to manage variables used in your Node-RED flows from the FlowForge application, you can read more on how to access enironment variables inside Node-RED [in the Node-RED Docs](https://nodered.org/docs/user-guide/environment-variables)
 
 An Environment Variable consists of a name and a value.
 
@@ -25,7 +25,7 @@ The image below shows a project with 3 environment variables.
 
 The first one `foo` is set by the template but the value `bar` is editable
 
-The second one `locked` is set by the tempalte and the value is set to `true` is not editable
+The second one `locked` is set by the template and the value is set to `true` is not editable
 
 The third one `user` is set for the project, the value can be edited or the variable deleted
 
