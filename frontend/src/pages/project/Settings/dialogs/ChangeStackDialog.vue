@@ -52,7 +52,6 @@ export default {
             },
             async show (project) {
                 this.project = project
-                console.log(this.project)
                 this.input.stack = this.project.stack.id
                 isOpen.value = true
                 const stackList = await stacksApi.getStacks()
