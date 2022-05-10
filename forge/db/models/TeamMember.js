@@ -33,6 +33,20 @@ module.exports = {
     finders: function (M) {
         return {
             static: {
+                getTeamsOwnedBy: async (userId) => {
+                    if (typeof userId === 'string') {
+                        userId = M.User.decodeHashid(userId)
+                    }
+                    return this.findAll({
+                        where: {
+                            UserId: userId,
+                            role: Roles.Owner
+                        },
+                        include: {
+                            model: M.Team
+                        }
+                    })
+                },
                 getTeamMembership: async (userId, teamId, includeTeam) => {
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)

@@ -11,7 +11,23 @@ const sharedUser = require('./shared/users')
 module.exports = async function (app) {
     // Lets assume all apis that access bulk users are admin only.
     app.addHook('preHandler', app.verifyAdmin)
-
+    app.addHook('preHandler', async (request, reply) => {
+        if (request.params.userId !== undefined) {
+            if (request.params.userId) {
+                try {
+                    request.user = await app.db.models.User.byId(request.params.userId)
+                    if (!request.user) {
+                        reply.code(404).type('text/html').send('Not Found')
+                        return
+                    }
+                } catch (err) {
+                    reply.code(404).type('text/html').send('Not Found')
+                }
+            } else {
+                reply.code(404).type('text/html').send('Not Found')
+            }
+        }
+    })
     /**
      * Get a list of all known users
      * @name /api/v1/users
@@ -27,32 +43,22 @@ module.exports = async function (app) {
 
     /**
      * Get a user's settings
-     * @name /api/v1/users/:id
+     * @name /api/v1/users/:userId
      * @static
      * @memberof forge.routes.api.users
      */
-    app.get('/:id', async (request, reply) => {
-        const user = await app.db.models.User.byId(request.params.id)
-        if (user) {
-            reply.send(app.db.views.User.userProfile(user))
-        } else {
-            reply.code(404).type('text/html').send('Not Found')
-        }
+    app.get('/:userId', async (request, reply) => {
+        reply.send(app.db.views.User.userProfile(request.user))
     })
 
     /**
      * Update user settings
-     * @name /api/v1/users/:id
+     * @name /api/v1/users/:userId
      * @static
      * @memberof forge.routes.api.users
      */
-    app.put('/:id', async (request, reply) => {
-        const user = await app.db.models.User.byId(request.params.id)
-        if (user) {
-            sharedUser.updateUser(app, user, request, reply)
-        } else {
-            reply.code(404).type('text/html').send('Not Found')
-        }
+    app.put('/:userId', async (request, reply) => {
+        await sharedUser.updateUser(app, request.user, request, reply)
     })
 
     /**
@@ -102,6 +108,21 @@ module.exports = async function (app) {
                 responseMessage = err.toString()
             }
             reply.code(400).send({ error: responseMessage })
+        }
+    })
+
+    /**
+     * Delete a user
+     * @name /api/v1/users/:userId
+     * @static
+     * @memberof forge.routes.api.users
+     */
+    app.delete('/:userId', async (request, reply) => {
+        try {
+            await request.user.destroy()
+            reply.send({ status: 'okay' })
+        } catch (err) {
+            reply.code(400).send({ error: err.toString() })
         }
     })
 }

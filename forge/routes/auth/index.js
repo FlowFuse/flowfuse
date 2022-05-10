@@ -97,7 +97,7 @@ module.exports = fp(async function (app, opts, done) {
     async function verifySession (request, reply) {
         if (request.sid) {
             request.session = await app.db.controllers.Session.getOrExpire(request.sid)
-            if (request.session) {
+            if (request.session && request.session.User) {
                 return
             }
         }
