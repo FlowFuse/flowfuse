@@ -9,7 +9,7 @@
         </SideNavigation>
     </Teleport>
     <main>
-        <div v-if="needsBilling" class="max-w-2xl m-auto">
+        <div v-if="!needsBilling" class="max-w-2xl m-auto">
             <form class="space-y-6" >
                 <FormHeading>Create a new team</FormHeading>
                 <div class="mb-8 text-sm text-gray-500">Teams are how you organize who collaborates on your projects.</div>
