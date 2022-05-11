@@ -9,7 +9,10 @@
                 <FormRow v-model="input.name" :error="errors.name" :disabled="editDisabled">Name</FormRow>
                 <FormRow v-model="input.active" type="checkbox">Active</FormRow>
                 <template v-for="(prop) in stackProperties" :key="prop.name">
-                    <FormRow v-model="input.properties[prop.name]" :error="errors[prop.name]" :disabled="editDisabled">{{prop.label}}</FormRow>
+                    <FormRow v-model="input.properties[prop.name]" :error="errors[prop.name]" :disabled="editDisabled">
+                        {{prop.label}}
+                        <template v-if="prop.description" #description>{{prop.description}}</template>
+                    </FormRow>
                 </template>
             </form>
         </template>
@@ -104,6 +107,7 @@ export default {
                 return {
                     name: key,
                     label: value.label,
+                    description: value.description,
                     invalidMessage: value.invalidMessage || 'Invalid',
                     validator: new RegExp(value.validate)
                 }
