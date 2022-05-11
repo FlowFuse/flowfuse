@@ -19,7 +19,32 @@ FlowForge is installed.
 As new versions of Node-RED are released, the following steps can be used to
 make them available within FlowForge.
 
-For example, to add Node-RED 2.2.2:
+### Development
+
+If you are developing FlowForge having checked it out from GitHub then you can run 
+the following command in the project root
+
+```bash
+npm run install-stack --vers=2.2.2
+```
+
+### Production
+
+If you are running a version from the installer then you can run the following 
+commands where `bin` is in the FlowForge Home directory 
+(e.g. `/opt/flowforge`)
+
+Linux/Mac
+```
+bin/install-stack.sh 2.2.2
+```
+
+Windows:
+```
+bin\install-stack.bat 2.2.2
+```
+
+These scripts will automate the following steps
 
 1. In the `var` directory in your FlowForge home directory, create a directory
    called `stacks`

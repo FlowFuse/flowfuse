@@ -8,10 +8,15 @@ const flowforgeHome = process.env.FLOWFORGE_HOME
 let vers = process.env.npm_config_vers
 if (!vers) {
     vers = process.argv[process.argv.length - 1]
-    if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/.test(vers)) {
+    if (!vers) {
         throw new Error('command line arg vars is missing')
     }
 }
+
+if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/.test(vers)) {
+    throw new Error('version not valid semantic version')
+}
+
 const p = path.join('var', 'stacks', vers)
 if (flowforgeHome) {
     path.join(flowforgeHome, p)
