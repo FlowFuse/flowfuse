@@ -19,10 +19,11 @@
         "cover:system": "nyc --silent --no-clean npm run test:system",
         "cover:report": "nyc report --reporter=text --reporter html",
         "dev:local": "cd ../flowforge-nr-launcher && npm install ../flowforge-nr-storage ../flowforge-nr-auth ../flowforge-nr-audit-logger && cd ../flowforge-driver-localfs && npm install ../flowforge-nr-launcher && cd ../flowforge && npm install ../flowforge-driver-localfs ../forge-ui-components",
-        "install-stack": "node forge/install-stack.js --"
+        "install-stack": "node scripts/install-stack.js --"
     },
     "bin": {
-        "flowforge": "./forge/app.js"
+        "flowforge": "./forge/app.js",
+        "ff-install-stack": "./scripts/install-stack.js"
     },
     "repository": {
         "type": "git",
