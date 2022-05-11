@@ -1,7 +1,6 @@
 <template>
     <form class="space-y-6">
         <div>You must set a new password before continuing</div>
-
         <FormRow type="password" :onEnter="focusPassword" :error="errors.old_password" v-model="input.old_password" id="old_password">Old Password</FormRow>
         <FormRow type="password" :onEnter="focusConfirmPassword" :error="errors.password" v-model="input.password" id="password">New Password</FormRow>
         <FormRow type="password" :onEnter="changePassword" :error="errors.password_confirm" v-model="input.password_confirm" id="password_confirm">Confirm</FormRow>
@@ -57,8 +56,8 @@ export default {
                 return false
             }
             userApi.changePassword(this.input.old_password, this.input.password).then(() => {
-                console.log('DONE!')
                 this.$store.dispatch('account/checkState')
+                this.$router.go()
             }).catch(e => {
                 this.errors.password_change = 'Password change failed'
                 console.log(e)

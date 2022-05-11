@@ -56,6 +56,7 @@
                 </template>
                 <template v-else>
                     <ff-text-input
+                        ref="text_input"
                         v-model="localModelValue"
                         :disabled="disabled"
                         :type="type"
