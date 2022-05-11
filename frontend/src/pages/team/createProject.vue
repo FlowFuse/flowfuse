@@ -160,8 +160,10 @@ export default {
             // There must be a better Vue way of doing this, but I can't find it.
             // Without the setTimeout, the select box doesn't update
             this.input.team = this.currentTeam
-            this.input.stack = this.stacks.length > 0 ? this.stacks[0].value : ''
-            this.input.template = this.templates.length > 0 ? this.templates[0].value : ''
+            if (!this.sourceProjectId) {
+                this.input.stack = this.stacks.length > 0 ? this.stacks[0].value : ''
+                this.input.template = this.templates.length > 0 ? this.templates[0].value : ''
+            }
 
             if (this.stacks.length === 0) {
                 this.errors.stack = 'No stacks available. Ask an Administator to create a new stack definition'
