@@ -2,11 +2,20 @@ const { exec } = require('child_process')
 const { log, error } = require('console')
 const fs = require('fs')
 const path = require('path')
-const vers = process.env.npm_config_vers
+
+const flowforgeHome = process.env.FLOWFORGE_HOME
+
+let vers = process.env.npm_config_vers
 if (!vers) {
-    throw new Error('command line arg vars is missing')
+    vers = process.argv[process.argv.length - 1]
+    if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/.test(vers)) {
+        throw new Error('command line arg vars is missing')
+    }
 }
 const p = path.join('var', 'stacks', vers)
+if (flowforgeHome) {
+    path.join(flowforgeHome, p)
+}
 fs.mkdirSync(p, { recursive: true })
 
 log(`installing stack node-red@${vers}`)
