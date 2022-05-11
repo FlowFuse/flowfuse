@@ -56,7 +56,6 @@ export default {
                 return false
             }
             userApi.changePassword(this.input.old_password, this.input.password).then(() => {
-                console.log('DONE!')
                 this.$store.dispatch('account/checkState')
                 this.$router.go()
             }).catch(e => {
