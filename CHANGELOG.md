@@ -1,3 +1,43 @@
+#### v0.5.0: Release
+
+ - Fix stack installer (#571) @hardillb
+ - Ensure correct stack is preselected when copying project (#570) @knolleary
+ - Add click-outside directive to team switcher to ensure it closes (#569) @knolleary
+ - Ensure latest forge-ui-components is pulled in (#567) @knolleary
+ - Update "Please provide payment details" page (#566) @joepavitt
+ - Allow stack properties to have descriptions (#565) @knolleary
+ - Encode palette.denyList as an array rather than string (#562) @knolleary
+ - change install-stack to node script for cross-dev (#561) @Steve-Mcl
+ - Branding updates & fix update expired password routing after success (#564) @joepavitt
+ - Allow admin to delete users (#555) @knolleary
+ - Allow Admin to limit what nodes can be installed (#558) @hardillb
+ - Rebrand Dialog Boxes (#556) @joepavitt
+ - Add project export and duplicate options (#547) @knolleary
+ - Initial Device support (#535) @knolleary
+ - Add missing audit log (#548) @hardillb
+ - Hide projectCount from none admin users (#549) @hardillb
+ - 523 platform usage tracking (#537) @joepavitt
+ - Rework sidebar for "Project" view to show nesting within Team. (#545) @joepavitt
+ - Only render side content if team available on create team page (#538) @joepavitt
+ - fix links on workflows (#544) @sammachin
+ - Change back button for Team Create page (#542) @knolleary
+ - Refactor /ee/features endpoint to be included in /api/v1/settings (#540) @knolleary
+ - Fix Admin Create User page layout (#541) @knolleary
+ - Remove Roles import (#532) @joepavitt
+ - Use Platform admin status, not team admin status (#531) @joepavitt
+ - Add 'ff-view' container to control content scroll (#525) @joepavitt
+ - Ensure user is Admin, before adding "Admin Settings" nav option (#527) @joepavitt
+ - Rebrand - Stage 1 (#521) @joepavitt
+ - Allow admin users to access team membership management options (#493) @knolleary
+ - Convert figma to mermaid (#509) @hardillb
+ - Fix the Create Project button on Team/Projects page (#494) @hardillb
+ - Add SSL instructions for Docker (#508) @sammachin
+ - Limit access to Project Settings (#495) @hardillb
+ - Another Stripe typo (#491) @hardillb
+ - Fix none pluralised Stripe API endpoint (#488) @hardillb
+ - Add note about updating VIRTUAL_HOST in config (#486) @hardillb
+ - Fix `stripe.invoice` should be `stripe.invoices` (#484) @hardillb
+
 #### 0.4.0: Release
 
  - Timezone support for Node-RED (#452) @PLCMercenary
