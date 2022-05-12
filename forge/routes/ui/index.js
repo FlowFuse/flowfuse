@@ -28,7 +28,7 @@ module.exports = async function (app) {
         if (!cachedIndex) {
             const filepath = path.join(frontendAssetsDir, 'index.html')
             const data = await fsp.readFile(filepath, 'utf8')
-            cachedIndex = data.replace(/<!-- forge injected scripts go here -->/g,
+            cachedIndex = data.replace(/<script>\/\*inject-ff-scripts\*\/<\/script>/g,
                 `<script defer data-domain="${domain}" src="https://plausible.io/js/plausible${extension ? '.' + extension : ''}.js"></script>`)
         }
         return cachedIndex
