@@ -1,7 +1,5 @@
 #### v0.5.0: Release
 
- - Update version to 0.5.0
- - Update CHANGELOG for 0.5.0
  - Fix stack installer (#571) @hardillb
  - Ensure correct stack is preselected when copying project (#570) @knolleary
  - Add click-outside directive to team switcher to ensure it closes (#569) @knolleary
