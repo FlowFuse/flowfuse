@@ -1,3 +1,7 @@
+#### v0.5.1: Maintence Release
+
+- Modify index.html script placeholder to survive minification (#574) @knolleary
+
 #### v0.5.0: Release
 
  - Fix stack installer (#571) @hardillb
