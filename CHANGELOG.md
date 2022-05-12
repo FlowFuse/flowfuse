@@ -1,3 +1,6 @@
+#### 0.5.0: Release
+
+
 #### 0.4.0: Release
 
  - Timezone support for Node-RED (#452) @PLCMercenary
