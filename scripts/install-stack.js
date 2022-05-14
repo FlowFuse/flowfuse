@@ -1,3 +1,4 @@
+#!/usr/bin/exec node
 const { exec } = require('child_process')
 const { log, error } = require('console')
 const fs = require('fs')
