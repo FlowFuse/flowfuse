@@ -62,7 +62,7 @@ xcode-select --install
     ```
    
    For Windows:
-    ```console
+    ```
     mkdir c:\flowforge
     ```
 
@@ -79,7 +79,7 @@ xcode-select --install
     ```
 
    For Windows:
-    ```console
+    ```
     cd c:\temp
     tar -xf flowforge-installer-x.y.z.zip
     xcopy /E /I flowforge-installer-x.y.z c:\flowforge
@@ -94,7 +94,7 @@ xcode-select --install
     ```
 
    For Windows:
-    ```console
+    ```
     cd c:\flowforge
     install.bat
     ```
