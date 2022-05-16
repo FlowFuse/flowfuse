@@ -18,7 +18,7 @@
         "cover:unit": "nyc --silent npm run test:unit",
         "cover:system": "nyc --silent --no-clean npm run test:system",
         "cover:report": "nyc report --reporter=text --reporter html",
-        "dev:local": "cd ../flowforge-nr-launcher && npm install ../flowforge-nr-storage ../flowforge-nr-auth ../flowforge-nr-audit-logger && cd ../flowforge-driver-localfs && npm install ../flowforge-nr-launcher && cd ../flowforge && npm install ../flowforge-driver-localfs ../forge-ui-components",
+        "dev:local": "cd ../flowforge-nr-launcher && npm install ../flowforge-nr-storage ../flowforge-nr-auth ../flowforge-nr-audit-logger && cd ../flowforge-driver-localfs && npm install ../flowforge-nr-launcher && cd ../flowforge && npm install ../flowforge-driver-localfs ../forge-ui-components && cd ../forge-ui-components && npm install && npm run build && cd ../flowforge-nr-storage && npm install && cd ../flowforge-nr-audit-logger && npm install && cd ../flowforge-nr-auth && npm install",
         "install-stack": "node scripts/install-stack.js --"
     },
     "bin": {
