@@ -20,7 +20,7 @@ if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0
 
 const p = path.join('var', 'stacks', vers)
 if (flowforgeHome) {
-    path.join(flowforgeHome, p)
+    p = path.join(flowforgeHome, p)
 }
 fs.mkdirSync(p, { recursive: true })
 
