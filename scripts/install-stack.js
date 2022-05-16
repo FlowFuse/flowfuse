@@ -18,7 +18,7 @@ if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0
     throw new Error('version not valid semantic version')
 }
 
-const p = path.join('var', 'stacks', vers)
+let p = path.join('var', 'stacks', vers)
 if (flowforgeHome) {
     p = path.join(flowforgeHome, p)
 }
