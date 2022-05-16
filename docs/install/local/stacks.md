@@ -8,8 +8,8 @@ For the Local deployment model, this covers two things:
  - `memory` - the value to apply (in MB) to the Node.js `max-old-space-size` option.
     This defines the point where Node.js will start freeing unused memory. It is
     not a hard limit - the project's memory usage will not be capped - but this
-    is useful when running on a memory constrained device such as a Raspberry Pi.
- - `nodered` - the version number of Node-RED to use.
+    is useful when running on a memory constrained device such as a Raspberry Pi. Recomended minium `256`.
+ - `nodered` - the version number of Node-RED to use. This shold match the value used in the steps following.
 
 ## Upgrading Node-RED
 
