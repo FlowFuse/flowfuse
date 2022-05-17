@@ -28,7 +28,6 @@
 
 <script>
 import { mapState } from 'vuex'
-import Breadcrumbs from '@/mixins/Breadcrumbs'
 import NavItem from '@/components/NavItem'
 import SideNavigation from '@/components/SideNavigation'
 
@@ -45,7 +44,6 @@ const navigation = [
 
 export default {
     name: 'AdminPage',
-    mixins: [Breadcrumbs],
     computed: {
         ...mapState('account', ['user', 'team'])
     },
@@ -61,11 +59,6 @@ export default {
         return {
             navigation
         }
-    },
-    created () {
-        this.setBreadcrumbs([
-            { label: 'Admin', to: { name: 'Admin Settings' } }
-        ])
     },
     mounted () {
         this.mounted = true

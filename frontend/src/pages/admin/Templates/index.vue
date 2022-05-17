@@ -24,7 +24,6 @@ import templatesApi from '@/api/templates'
 
 import ItemTable from '@/components/tables/ItemTable'
 import FormHeading from '@/components/FormHeading'
-import Breadcrumbs from '@/mixins/Breadcrumbs'
 
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
@@ -37,7 +36,6 @@ import { PlusSmIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'AdminTemplates',
-    mixins: [Breadcrumbs],
     data () {
         return {
             templates: [],
@@ -54,10 +52,6 @@ export default {
         }
     },
     async created () {
-        this.setBreadcrumbs([
-            { label: 'Admin', to: { name: 'Admin Settings' } },
-            { label: 'Templates' }
-        ])
         await this.loadItems()
     },
     computed: {

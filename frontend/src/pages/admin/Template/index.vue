@@ -27,7 +27,6 @@
 
 <script>
 import templateApi from '@/api/templates'
-import Breadcrumbs from '@/mixins/Breadcrumbs'
 import SectionSideMenu from '@/components/SectionSideMenu'
 import AdminTemplateSaveDialog from './dialogs/AdminTemplateSaveDialog'
 import {
@@ -45,7 +44,6 @@ const sideNavigation = [
 
 export default {
     name: 'AdminTemplate',
-    mixins: [Breadcrumbs],
     setup () {
         return {
             sideNavigation
@@ -158,10 +156,6 @@ export default {
         }
     },
     async created () {
-        this.setBreadcrumbs([
-            { label: 'Admin', to: { name: 'Admin Settings' } },
-            { label: 'Templates', to: { name: 'Admin Templates' } }
-        ])
         await this.loadTemplate()
     },
     methods: {
@@ -196,13 +190,7 @@ export default {
                     query: this.$router.currentRoute.value.query,
                     hash: this.$router.currentRoute.value.hash
                 })
-                return
             }
-            this.setBreadcrumbs([
-                { label: 'Admin', to: { name: 'Admin Settings' } },
-                { label: 'Templates', to: { name: 'Admin Templates' } },
-                { label: this.isNew ? 'Create template' : this.template.name }
-            ])
         },
         cancelEdit () {
             this.editable.name = this.original.name

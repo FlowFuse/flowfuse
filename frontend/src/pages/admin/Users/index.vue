@@ -7,7 +7,6 @@
 
 <script>
 
-import Breadcrumbs from '@/mixins/Breadcrumbs'
 import SectionTopMenu from '@/components/SectionTopMenu'
 
 const sideNavigation = [
@@ -17,17 +16,10 @@ const sideNavigation = [
 
 export default {
     name: 'AdminUsers',
-    mixins: [Breadcrumbs],
     setup () {
         return {
             sideNavigation
         }
-    },
-    created () {
-        this.setBreadcrumbs([
-            { label: 'Admin', to: { name: 'Admin Settings' } },
-            { label: 'Users' }
-        ])
     },
     components: {
         SectionTopMenu

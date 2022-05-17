@@ -35,7 +35,6 @@
 import usersApi from '@/api/users'
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
-import Breadcrumbs from '@/mixins/Breadcrumbs'
 import { mapState } from 'vuex'
 
 import NavItem from '@/components/NavItem'
@@ -44,7 +43,6 @@ import { ChevronLeftIcon } from '@heroicons/vue/solid'
 
 export default {
     name: 'AdminCreateUser',
-    mixins: [Breadcrumbs],
     data () {
         return {
             mounted: false,
@@ -74,13 +72,6 @@ export default {
     },
     mounted () {
         this.mounted = true
-    },
-    created () {
-        this.setBreadcrumbs([
-            { label: 'Admin', to: { name: 'Admin Settings' } },
-            { label: 'Users', to: { path: '/admin/users' } },
-            { label: 'Create a new user' }
-        ])
     },
     watch: {
         'input.username': function (v) {

@@ -12,7 +12,6 @@
 import teamsApi from '@/api/teams'
 
 import ItemTable from '@/components/tables/ItemTable'
-import Breadcrumbs from '@/mixins/Breadcrumbs'
 
 import SectionTopMenu from '@/components/SectionTopMenu'
 
@@ -21,7 +20,6 @@ import { markRaw } from 'vue'
 
 export default {
     name: 'AdminTeams',
-    mixins: [Breadcrumbs],
     data () {
         return {
             teams: [],
@@ -36,10 +34,6 @@ export default {
         }
     },
     async created () {
-        this.setBreadcrumbs([
-            { label: 'Admin', to: { name: 'Admin Settings' } },
-            { label: 'Teams' }
-        ])
         await this.loadItems()
     },
     methods: {
