@@ -20,6 +20,7 @@ describe('Project controller', function () {
                 name: 'defaultTemplate',
                 active: true,
                 settings: {
+                    credentialSecret: 'aaaaaaaabbbbbbbbccccccccdddddddd',
                     disableEditor: true,
                     httpAdminRoot: '/foo',
                     codeEditor: 'monaco',
@@ -59,6 +60,7 @@ describe('Project controller', function () {
 
             const result = await app.db.controllers.Project.getRuntimeSettings(reloadedProject)
 
+            result.should.have.property('credentialSecret', 'aaaaaaaabbbbbbbbccccccccdddddddd')
             result.should.have.property('disableEditor', true)
             result.should.have.property('httpAdminRoot', '/bar')
             result.should.have.property('codeEditor', 'monaco')

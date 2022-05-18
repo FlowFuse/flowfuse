@@ -206,6 +206,7 @@ module.exports = async function (app) {
                 newSettings.nodes = sourceSettings.nodes
             }
             const options = request.body.sourceProject.options
+            const newCredentialSecret = generateCredentialSecret()
             if (options.flows) {
                 const sourceFlows = await app.db.models.StorageFlow.byProject(sourceProject.id)
                 if (sourceFlows) {
@@ -225,18 +226,19 @@ module.exports = async function (app) {
                     const origCredentials = await app.db.models.StorageCredentials.byProject(sourceProject.id)
                     if (origCredentials) {
                         // There are existing credentials to copy
-                        const sourceCreds = JSON.parse(origCredentials.credentials)
-                        const newKey = crypto.randomBytes(32).toString('hex')
-                        const newCreds = recryptCreds(sourceCreds, sourceSettings._credentialSecret, newKey)
-                        const creds = await app.db.models.StorageCredentials.create({
-                            credentials: JSON.stringify(newCreds),
+                        const srcCredentials = JSON.parse(origCredentials.credentials)
+                        const srcCredentialSecret = await sourceProject.getSetting('credentialSecret') || sourceSettings._credentialSecret
+                        const newCredentials = recryptCreds(srcCredentials, srcCredentialSecret, newCredentialSecret)
+                        const credentials = await app.db.models.StorageCredentials.create({
+                            credentials: JSON.stringify(newCredentials),
                             ProjectId: project.id
                         })
-                        await creds.save()
-                        newSettings._credentialSecret = newKey
+                        await credentials.save()
+                        newSettings._credentialSecret = newCredentialSecret
                     }
                 }
             }
+            await project.updateSetting('credentialSecret', newCredentialSecret)
             const settings = await app.db.models.StorageSettings.create({
                 settings: JSON.stringify(newSettings),
                 ProjectId: project.id
@@ -256,8 +258,9 @@ module.exports = async function (app) {
                     })
                 })
             }
-
             await project.updateSetting('settings', newProjectSettings)
+        } else {
+            await project.updateSetting('credentialSecret', generateCredentialSecret())
         }
 
         await app.containers.start(project)
@@ -612,6 +615,7 @@ module.exports = async function (app) {
             settings.env = Object.assign({}, settings.settings.env, settings.env)
             delete settings.settings.env
         }
+        settings.settings.credentialSecret = await request.project.getSetting('credentialSecret')
         reply.send(settings)
     })
 
@@ -688,6 +692,9 @@ module.exports = async function (app) {
      * @name /api/v1/project/:id/export
      * @memberof forge.routes.api.project
      */
+    /*
+       @Steve-Mcl @hardillb "will need updating to check if there is a credentialsSecret in the ProjectSettings tables first and only look in the StorageSettings entry if it's not found"
+    */
     // app.post('/:projectId/export', async (request, reply) => {
     //     const components = request.body.components
     //     reply.header('content-disposition', 'attachment; filename="project.json"')
@@ -729,6 +736,10 @@ module.exports = async function (app) {
     //     }
     //     reply.send(projectExport)
     // })
+
+    function generateCredentialSecret () {
+        return crypto.randomBytes(32).toString('hex')
+    }
 
     function recryptCreds (original, oldKey, newKey) {
         const newHash = crypto.createHash('sha256').update(newKey).digest()
