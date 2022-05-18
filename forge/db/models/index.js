@@ -53,6 +53,7 @@ const modelTypes = [
     'ProjectSettings',
     'ProjectStack',
     'ProjectTemplate',
+    'ProjectSnapshot',
     'AccessToken',
     'AuthClient',
     'Device',
