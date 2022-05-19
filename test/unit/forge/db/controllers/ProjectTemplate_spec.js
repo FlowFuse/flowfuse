@@ -17,7 +17,6 @@ describe('Project Template controller', function () {
     describe('Validate Settings', function () {
         it('only allows settings from the known list', async function () {
             const result = app.db.controllers.ProjectTemplate.validateSettings({
-                credentialSecret: 'aaaaaaaabbbbbbbbccccccccdddddddd',
                 disableEditor: true,
                 httpAdminRoot: '/foo',
                 codeEditor: 'monaco',
@@ -34,7 +33,6 @@ describe('Project Template controller', function () {
                 NOT_ALLOWED: true
             })
 
-            result.should.have.property('credentialSecret', 'aaaaaaaabbbbbbbbccccccccdddddddd')
             result.should.have.property('disableEditor', true)
             result.should.have.property('httpAdminRoot', '/foo')
             result.should.have.property('codeEditor', 'monaco')
@@ -162,7 +160,6 @@ describe('Project Template controller', function () {
     describe('mergeSettings', function () {
         it('merges new settings in a project', async function () {
             const originalSettings = {
-                credentialSecret: 'aaaaaaaabbbbbbbbccccccccdddddddd',
                 disableEditor: true,
                 httpAdminRoot: '/foo',
                 codeEditor: 'monaco',
@@ -184,7 +181,6 @@ describe('Project Template controller', function () {
                 env: [{ name: 'two', value: 'b' }]
             })
 
-            result.should.have.property('credentialSecret', 'aaaaaaaabbbbbbbbccccccccdddddddd')
             result.should.have.property('disableEditor', false)
             result.should.have.property('httpAdminRoot', '/foo')
             result.should.have.property('codeEditor', 'monaco')

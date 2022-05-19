@@ -615,7 +615,6 @@ module.exports = async function (app) {
             settings.env = Object.assign({}, settings.settings.env, settings.env)
             delete settings.settings.env
         }
-        settings.settings.credentialSecret = await request.project.getSetting('credentialSecret')
         reply.send(settings)
     })
 
@@ -693,7 +692,7 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.project
      */
     /*
-       @Steve-Mcl @hardillb "will need updating to check if there is a credentialsSecret in the ProjectSettings tables first and only look in the StorageSettings entry if it's not found"
+       @Steve-Mcl @hardillb "will need updating to check if there is a credentialSecret in the ProjectSettings tables first and only look in the StorageSettings entry if it's not found"
     */
     // app.post('/:projectId/export', async (request, reply) => {
     //     const components = request.body.components

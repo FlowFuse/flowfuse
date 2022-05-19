@@ -1,5 +1,4 @@
 const validSettings = [
-    'credentialSecret',
     'disableEditor',
     'httpAdminRoot',
     'codeEditor',

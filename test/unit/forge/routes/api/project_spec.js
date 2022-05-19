@@ -286,6 +286,7 @@ describe('Project API', function () {
                     authorization: `Bearer ${newAccessToken}`
                 }
             })).json()
+            runtimeSettings.settings.should.not.have.property('credentialSecret')
             runtimeSettings.settings.should.have.property('httpAdminRoot', '/test-red')
             runtimeSettings.should.have.property('env')
             runtimeSettings.env.should.have.property('one', 'a')
@@ -339,6 +340,7 @@ describe('Project API', function () {
                     authorization: `Bearer ${newAccessToken}`
                 }
             })).json()
+            runtimeSettings.settings.should.not.have.property('credentialSecret')
             runtimeSettings.should.have.property('env')
             runtimeSettings.env.should.have.property('one', '')
             runtimeSettings.env.should.have.property('two', '')
@@ -391,6 +393,7 @@ describe('Project API', function () {
                     authorization: `Bearer ${newAccessToken}`
                 }
             })).json()
+            runtimeSettings.settings.should.not.have.property('credentialSecret')
             runtimeSettings.should.have.property('env')
             runtimeSettings.env.should.not.have.property('one')
             runtimeSettings.env.should.not.have.property('two')
@@ -495,6 +498,7 @@ describe('Project API', function () {
                     authorization: `Bearer ${newAccessToken}`
                 }
             })).json()
+            runtimeSettings.settings.should.not.have.property('credentialSecret')
             runtimeSettings.should.have.property('env')
             runtimeSettings.env.should.have.property('one')
             runtimeSettings.env.should.have.property('two')
