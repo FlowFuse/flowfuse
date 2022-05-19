@@ -691,9 +691,6 @@ module.exports = async function (app) {
      * @name /api/v1/project/:id/export
      * @memberof forge.routes.api.project
      */
-    /*
-       @Steve-Mcl @hardillb "will need updating to check if there is a credentialSecret in the ProjectSettings tables first and only look in the StorageSettings entry if it's not found"
-    */
     // app.post('/:projectId/export', async (request, reply) => {
     //     const components = request.body.components
     //     reply.header('content-disposition', 'attachment; filename="project.json"')
