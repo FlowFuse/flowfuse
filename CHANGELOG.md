@@ -1,3 +1,9 @@
+#### v0.5.2: Maintence Release
+
+- Update dev:local npm script to include all required projects (#588) @Steve-Mcl
+- Update codeblock names so they render properly (#582) @ZJvandeWeg
+- Add cross-env to support developing on Windows (#585) @Steve-Mcl
+
 #### v0.5.1: Maintence Release
 
 - Modify index.html script placeholder to survive minification (#574) @knolleary
