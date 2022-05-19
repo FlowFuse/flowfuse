@@ -17,7 +17,7 @@ as it's base and then add the required FlowForge components.
 
 If you wanted to pin at Node-RED v2.2.2 you would change the first line to:
 
-```Dockerfile
+```docker
 FROM nodered/node-red:2.2.2
 
 ARG REGISTRY

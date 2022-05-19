@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const { exec } = require('child_process')
 const { log, error } = require('console')
 const fs = require('fs')
@@ -17,9 +18,9 @@ if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0
     throw new Error('version not valid semantic version')
 }
 
-const p = path.join('var', 'stacks', vers)
+let p = path.join('var', 'stacks', vers)
 if (flowforgeHome) {
-    path.join(flowforgeHome, p)
+   p = path.join(flowforgeHome, p)
 }
 fs.mkdirSync(p, { recursive: true })
 

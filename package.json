@@ -1,12 +1,12 @@
 {
     "name": "@flowforge/flowforge",
-    "version": "0.5.1",
+    "version": "0.5.2",
     "description": "An open source low-code development platform",
     "scripts": {
         "start": "node forge/app.js",
         "build": "webpack -c ./config/webpack.config.js",
         "serve": "npm-run-all --parallel build-watch start-watch",
-        "start-watch": "NODE_ENV=development nodemon -w forge -w ee/forge -i forge/containers/localfs_root forge/app.js",
+        "start-watch": "cross-env NODE_ENV=development nodemon -w forge -w ee/forge -i forge/containers/localfs_root forge/app.js",
         "build-watch": "webpack --mode=development -c ./config/webpack.config.js --watch",
         "docs": "jsdoc -c ./config/jsdoc.json",
         "lint": "eslint -c .eslintrc 'forge/**/*.js' 'frontend/**/*.js' 'frontend/**/*.vue' 'test/**/*.js' --ignore-pattern 'frontend/dist/**'",
@@ -18,7 +18,7 @@
         "cover:unit": "nyc --silent npm run test:unit",
         "cover:system": "nyc --silent --no-clean npm run test:system",
         "cover:report": "nyc report --reporter=text --reporter html",
-        "dev:local": "cd ../flowforge-nr-launcher && npm install ../flowforge-nr-storage ../flowforge-nr-auth ../flowforge-nr-audit-logger && cd ../flowforge-driver-localfs && npm install ../flowforge-nr-launcher && cd ../flowforge && npm install ../flowforge-driver-localfs ../forge-ui-components",
+        "dev:local": "cd ../flowforge-nr-launcher && npm install ../flowforge-nr-storage ../flowforge-nr-auth ../flowforge-nr-audit-logger && cd ../flowforge-driver-localfs && npm install ../flowforge-nr-launcher && cd ../flowforge && npm install ../flowforge-driver-localfs ../forge-ui-components && cd ../forge-ui-components && npm install && npm run build && cd ../flowforge-nr-storage && npm install && cd ../flowforge-nr-audit-logger && npm install && cd ../flowforge-nr-auth && npm install",
         "install-stack": "node scripts/install-stack.js --"
     },
     "bin": {
@@ -80,6 +80,7 @@
         "clean-jsdoc-theme": "^3.3.1",
         "clean-webpack-plugin": "^4.0.0",
         "copy-webpack-plugin": "^9.1.0",
+        "cross-env": "^7.0.3",
         "css-loader": "^5.2.7",
         "dotenv-webpack": "^7.1.0",
         "eslint": "^7.11.0",
