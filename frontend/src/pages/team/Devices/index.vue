@@ -1,11 +1,14 @@
 <template>
+    <SectionTopMenu v-if="!isProjectDeviceView" hero="Devices">
+        <template v-slot:tools>
+            <ff-button v-if="addDeviceEnabled" kind="primary" size="small" @click="showCreateDeviceDialog"><template v-slot:icon-left><PlusSmIcon /></template>Register Device</ff-button>
+        </template>
+    </SectionTopMenu>
     <form class="space-y-6">
         <template v-if="devices.length > 0">
-            <FormHeading v-if="addDeviceEnabled">
-                <template v-slot:tools>
-                    <ff-button kind="primary" size="small" @click="showCreateDeviceDialog"><template v-slot:icon-left><PlusSmIcon /></template>Register Device</ff-button>
-                </template>
-            </FormHeading>
+            <template v-if="isProjectDeviceView">
+                <ff-button kind="primary" size="small" @click="showCreateDeviceDialog"><template v-slot:icon-left><PlusSmIcon /></template>Register Device</ff-button>
+            </template>
             <ItemTable :items="devices" :columns="columns" @deviceAction="deviceAction"/>
         </template>
         <template v-else-if="addDeviceEnabled">
@@ -18,7 +21,7 @@
                 </ff-button>
             </div>
         </template>
-        <template v-else>
+        <template v-if="devices.length === 0">
             <div class="flex text-gray-500 justify-center italic mb-4 p-8">
                 <template v-if="isProjectDeviceView">
                     <div class="text-center">
@@ -49,13 +52,13 @@ import deviceApi from '@/api/devices'
 import projectApi from '@/api/project'
 import ItemTable from '@/components/tables/ItemTable'
 import { PlusSmIcon } from '@heroicons/vue/outline'
-import FormHeading from '@/components/FormHeading'
 import TeamDeviceCreateDialog from './dialogs/TeamDeviceCreateDialog'
 import ConfirmDeviceDeleteDialog from './dialogs/ConfirmDeviceDeleteDialog'
 import ConfirmDeviceUnassignDialog from './dialogs/ConfirmDeviceUnassignDialog'
 import DeviceCredentialsDialog from './dialogs/DeviceCredentialsDialog'
 import DeviceAssignProjectDialog from './dialogs/DeviceAssignProjectDialog'
 import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
+import SectionTopMenu from '@/components/SectionTopMenu'
 
 import DeviceEditButton from './components/DeviceEditButton.vue'
 
@@ -101,7 +104,7 @@ export default {
             }
         },
         showCreateDeviceDialog () {
-            this.$refs.teamDeviceCreateDialog.show()
+            this.$refs.teamDeviceCreateDialog.show(null, this.project)
         },
         showEditDeviceDialog (device) {
             this.$refs.teamDeviceCreateDialog.show(device)
@@ -178,14 +181,14 @@ export default {
     },
     props: ['team', 'teamMembership', 'project'],
     components: {
-        FormHeading,
         ItemTable,
         PlusSmIcon,
         TeamDeviceCreateDialog,
         ConfirmDeviceDeleteDialog,
         DeviceCredentialsDialog,
         ConfirmDeviceUnassignDialog,
-        DeviceAssignProjectDialog
+        DeviceAssignProjectDialog,
+        SectionTopMenu
     }
 }
 </script>

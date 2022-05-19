@@ -54,11 +54,11 @@ module.exports = {
                         ProjectId: projectId
                     }
                     if (pagination.cursor) {
-                        where.id = { [Op.gt]: M.ProjectSnapshot.decodeHashid(pagination.cursor) }
+                        where.id = { [Op.lt]: M.ProjectSnapshot.decodeHashid(pagination.cursor) }
                     }
                     const { count, rows } = await this.findAndCountAll({
                         where,
-                        order: [['id', 'ASC']],
+                        order: [['id', 'DESC']],
                         limit,
                         attributes: ['hashid', 'id', 'name', 'createdAt', 'updatedAt'],
                         include: {
