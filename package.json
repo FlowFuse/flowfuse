@@ -6,7 +6,7 @@
         "start": "node forge/app.js",
         "build": "webpack -c ./config/webpack.config.js",
         "serve": "npm-run-all --parallel build-watch start-watch",
-        "start-watch": "cross-dev NODE_ENV=development nodemon -w forge -w ee/forge -i forge/containers/localfs_root forge/app.js",
+        "start-watch": "cross-env NODE_ENV=development nodemon -w forge -w ee/forge -i forge/containers/localfs_root forge/app.js",
         "build-watch": "webpack --mode=development -c ./config/webpack.config.js --watch",
         "docs": "jsdoc -c ./config/jsdoc.json",
         "lint": "eslint -c .eslintrc 'forge/**/*.js' 'frontend/**/*.js' 'frontend/**/*.vue' 'test/**/*.js' --ignore-pattern 'frontend/dist/**'",
