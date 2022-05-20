@@ -1,5 +1,19 @@
-import { expect } from 'vitest'
+import { expect, vi } from 'vitest'
 
-test('Billing API.toCustomerPortal', () => {
-    expect(true).toBeTruthy()
+const mockGet = vi.fn().mockImplementation().mockReturnValue(Promise.resolve({ data: {} }))
+
+vi.mock('@/api/client', () => {
+    return {
+        default: {
+            get: mockGet
+        }
+    }
+})
+
+describe('Billing API', async () => {
+    const BillingAPI = await import('@/api/billing')
+    test('getSubscriptionInfo', () => {
+        BillingAPI.default.getSubscriptionInfo()
+        expect(mockGet).toHaveBeenCalledOnce()
+    })
 })
