@@ -1,10 +1,11 @@
 <template>
     <div class="flex-grow flex flex-col items-center justify-center mx-auto h-92 text-gray-400">
-        <div class="text-center">
-            <div class="text-9xl">Oh Dear</div>
+        <div class="text-center text-white">
+            <img class="w-64 m-auto" src="../images/pictograms/cloud_teal.png">
+            <div class="text-6xl mb-3">Oh Dear</div>
             <div class="text-2xl">We tried phoning the server, but no-one answered.</div>
             <div class="text-2xl mt-4">
-                <ff-button @click="reload">Try again</ff-button>
+                <ff-button class="m-auto" kind="primary" @click="reload">Try again</ff-button>
             </div>
         </div>
     </div>

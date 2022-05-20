@@ -19,6 +19,12 @@
 
 .ff-bg-dark {
     background-color: $ff-grey-800;
+    .ff-btn.ff-btn--primary {
+        background-color: $ff-teal-600;
+        &:hover {
+            background-color: $ff-teal-700;
+        }
+    }
 }
 
 .ff-loading {
