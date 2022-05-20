@@ -234,7 +234,6 @@ module.exports = async function (app) {
                             ProjectId: project.id
                         })
                         await credentials.save()
-                        newSettings._credentialSecret = newCredentialSecret
                     }
                 }
             }
@@ -464,9 +463,12 @@ module.exports = async function (app) {
                 const targetSettingsDb = await app.db.models.StorageSettings.byProject(request.project.id)
                 const sourceSettings = sourceSettingsDb ? JSON.parse(sourceSettingsDb.settings) : undefined
                 const targetSettings = targetSettingsDb ? JSON.parse(targetSettingsDb.settings) : undefined
-                const sourceCredsKey = sourceSettings?._credentialSecret
-                const targetCredsKey = targetSettings?._credentialSecret
-
+                const sourceCredsKey = sourceSettings?._credentialSecret || await sourceProject.getSetting('credentialSecret')
+                const targetCredsKey = targetSettings?._credentialSecret || await request.project.getSetting('credentialSecret') || generateCredentialSecret()
+                if (request.project.state === 'suspended' && targetSettings?._credentialSecret) {
+                    delete targetSettings?._credentialSecret
+                    request.project.updateSetting('credentialSecret', targetCredsKey)
+                }
                 const sourceCreds = await app.db.models.StorageCredentials.byProject(sourceProject.id)
                 const sourceEncryptedCreds = JSON.parse(sourceCreds ? sourceCreds.credentials : null)
 
