@@ -1,16 +1,23 @@
 <template>
-    <div class="flex-grow flex flex-col items-center justify-center mx-auto text-gray-600 opacity-50 " :class="{'h-92 text-9xl': size === 'normal', 'h-32 text-3xl': size === 'small'}">
-        <div class="text-center">
-            <div>Loading</div>
+    <div class="ff-loading flex-grow flex flex-col items-center justify-center mx-auto" :class="{'theme-light': color == 'black', 'theme-dark': color == 'white'}">
+        <div class="text-center w-64">
+            <lottie-animation v-if="color == 'white'" :animationData="require('../images/lottie/ff-loading-white.json')" :loop="true"/>
+            <lottie-animation v-else-if="color == 'black'" :animationData="require('../images/lottie/ff-loading-black.json')" :loop="true"/>
+            <h4>{{ message || 'Loading...' }}</h4>
         </div>
     </div>
 </template>
 <script>
+
 export default {
     name: 'LoadingMessage',
     props: {
-        size: {
-            default: 'normal',
+        color: {
+            default: 'black', // 'white', 'black'
+            type: String
+        },
+        message: {
+            default: null,
             type: String
         }
     }

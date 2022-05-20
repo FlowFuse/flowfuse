@@ -8,9 +8,9 @@
             </main>
         </template>
         <template v-else-if="pending">
-            <main class="flex-grow flex flex-col">
-                <div class="w-full max-w-screen-2xl mx-auto my-2 sm:my-8 flex-grow flex flex-col">
-                    <Loading />
+            <main class="ff-bg-dark flex-grow flex flex-col">
+                <div class="w-full mx-auto flex-grow flex flex-col">
+                    <Loading color="white" />
                 </div>
             </main>
         </template>
