@@ -12,6 +12,12 @@ vi.mock('@/api/client', () => {
 
 describe('Billing API', async () => {
     const BillingAPI = await import('@/api/billing')
+    test('toCustomerPortal', () => {
+        window.open = vi.fn()
+        BillingAPI.default.toCustomerPortal()
+        expect(window.open).toHaveBeenCalledOnce()
+    })
+
     test('getSubscriptionInfo', () => {
         BillingAPI.default.getSubscriptionInfo()
         expect(mockGet).toHaveBeenCalledOnce()
