@@ -23,6 +23,8 @@ module.exports = {
                 ownerType: 'device'
             }
         })
+        this.belongsTo(M.ProjectSnapshot, { as: 'targetSnapshot' })
+        this.belongsTo(M.ProjectSnapshot, { as: 'activeSnapshot' })
     },
     hooks: function (M) {
         return {
@@ -63,8 +65,9 @@ module.exports = {
                             {
                                 model: M.Project,
                                 attributes: ['id', 'name', 'links']
-                            }
-
+                            },
+                            { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
+                            { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
                         ]
                     })
                 },
@@ -80,7 +83,9 @@ module.exports = {
                             {
                                 model: M.Project,
                                 attributes: ['id', 'name', 'links']
-                            }
+                            },
+                            { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
+                            { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
                         ]
                     })
                 },
@@ -99,8 +104,9 @@ module.exports = {
                             {
                                 model: M.Project,
                                 attributes: ['id', 'name', 'links']
-                            }
-
+                            },
+                            { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
+                            { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
                         ],
                         order: [['id', 'ASC']],
                         limit

@@ -112,8 +112,14 @@ export default {
             const parts = this.$route.path.split('/')
             try {
                 const data = await projectApi.getProject(parts[2])
+                if (this.features.devices) {
+                    data.deviceSettings = {}
+                }
                 this.project = data
                 this.$store.dispatch('account/setTeam', this.project.team.slug)
+                if (this.features.devices) {
+                    this.project.deviceSettings = await projectApi.getProjectDeviceSettings(parts[2])
+                }
             } catch (err) {
                 this.$router.push({
                     name: 'PageNotFound',
@@ -147,7 +153,7 @@ export default {
                 { name: 'Logs', path: `/project/${this.project.id}/logs`, icon: TerminalIcon }
             ]
             if (this.features.devices) {
-                this.navigation.splice(1, 0, { name: 'Devices', path: `/project/${this.project.id}/devices`, icon: ChipIcon })
+                this.navigation.splice(3, 0, { name: 'Devices', path: `/project/${this.project.id}/devices`, icon: ChipIcon })
             }
             if (this.teamMembership && this.teamMembership.role === Roles.Owner) {
                 this.navigation.push({ name: 'Settings', path: `/project/${this.project.id}/settings`, icon: CogIcon })

@@ -66,6 +66,17 @@ describe('Device API', async function () {
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
+    async function createSnapshot (projectId, name, token) {
+        return await app.inject({
+            method: 'POST',
+            url: `/api/v1/projects/${projectId}/snapshots`,
+            payload: {
+                name
+            },
+            cookies: { sid: token }
+        })
+    }
+
     afterEach(async function () {
         await app.close()
     })
@@ -180,6 +191,8 @@ describe('Device API', async function () {
             result.should.have.property('type', 'something')
             result.should.have.property('links')
             result.should.have.property('team')
+            result.should.have.property('targetSnapshot')
+            result.should.have.property('activeSnapshot')
             result.team.should.have.property('id', TestObjects.ATeam.hashid)
             result.should.not.have.property('project')
         })
@@ -225,9 +238,27 @@ describe('Device API', async function () {
             response.statusCode.should.equal(403)
         })
         describe('assign to project', function () {
-            it('can assign to a project', async function () {
+            async function setupProjectWithSnapshot (setActive) {
                 TestObjects.deviceProject = await app.db.models.Project.create({ name: 'deviceProject', type: '', url: '' })
                 TestObjects.deviceProject.setTeam(TestObjects.ATeam)
+                // Create a snapshot
+                TestObjects.deviceProjectSnapshot = (await createSnapshot(TestObjects.deviceProject.id, 'test-snapshot', TestObjects.tokens.alice)).json()
+                if (setActive) {
+                    // Set snapshot as active
+                    await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/projects/${TestObjects.deviceProject.id}/devices/settings`,
+                        body: {
+                            targetSnapshot: TestObjects.deviceProjectSnapshot.id
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                }
+            }
+
+            it('can assign to a project - no active snapshot', async function () {
+                // Create a project
+                await setupProjectWithSnapshot(false)
 
                 const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
                 const response = await app.inject({
@@ -240,11 +271,30 @@ describe('Device API', async function () {
                 })
                 const result = response.json()
                 result.should.have.property('project')
+                result.should.have.property('targetSnapshot', null)
+                result.project.should.have.property('id', TestObjects.deviceProject.id)
+            })
+            it('can assign to a project - with active snapshot', async function () {
+                // Create a project
+                await setupProjectWithSnapshot(true)
+
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
+                    body: {
+                        project: TestObjects.deviceProject.id
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                const result = response.json()
+                result.should.have.property('project')
+                result.should.have.property('targetSnapshot')
+                result.targetSnapshot.should.have.property('id', TestObjects.deviceProjectSnapshot.id)
                 result.project.should.have.property('id', TestObjects.deviceProject.id)
             })
             it('can unassign from a project', async function () {
-                TestObjects.deviceProject = await app.db.models.Project.create({ name: 'deviceProject', type: '', url: '' })
-                TestObjects.deviceProject.setTeam(TestObjects.ATeam)
+                await setupProjectWithSnapshot(true)
 
                 const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
                 const response = await app.inject({
@@ -258,6 +308,8 @@ describe('Device API', async function () {
                 const result = response.json()
                 result.should.have.property('project')
                 result.project.should.have.property('id', TestObjects.deviceProject.id)
+                result.should.have.property('targetSnapshot')
+                result.targetSnapshot.should.have.property('id', TestObjects.deviceProjectSnapshot.id)
 
                 const response2 = await app.inject({
                     method: 'PUT',
@@ -269,6 +321,8 @@ describe('Device API', async function () {
                 })
                 const result2 = response2.json()
                 result2.should.not.have.property('project')
+                // Check the targetSnapshot has been cleared
+                result2.should.have.property('targetSnapshot', null)
             })
 
             it('non-owner cannot assign to a project', async function () {
@@ -367,10 +421,5 @@ describe('Device API', async function () {
             const teamCList = await listDevices({ team: TestObjects.CTeam.hashid, as: TestObjects.tokens.chris })
             teamCList.should.have.property('count', 0)
         })
-    })
-
-    describe('Get list of devices assigned to a project', async function () {
-        // GET /api/v1/project/:projectId/devices
-        // - Admin/Owner/Member
     })
 })
