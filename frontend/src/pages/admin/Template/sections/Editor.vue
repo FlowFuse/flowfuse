@@ -100,8 +100,8 @@ export default {
         return {
             timezones: timezonesData.timezones,
             themes: [
-                { label: 'Node-RED', value: '' }, 
-                { label: 'FlowForge Light', value: 'forge-light' }, 
+                { label: 'Node-RED', value: '' },
+                { label: 'FlowForge Light', value: 'forge-light' },
                 { label: 'FlowForge Dark', value: 'forge-dark' }
             ] // FUTURE: Get from theme plugins
         }
