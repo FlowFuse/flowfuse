@@ -7,8 +7,11 @@
             <ItemTable :items="snapshots" :columns="columns" @snapshotAction="snapshotAction"/>
         </template>
         <template v-else>
-            <div class="flex text-gray-500 justify-center italic mb-4 p-8">
-                You have not created any snapshots yet
+            <div class="flex flex-col text-gray-500 items-center italic mb-4 p-8 space-y-6">
+                <div>You have not created any snapshots yet</div>
+                <template v-if="createSnapshotEnabled">
+                    <ff-button kind="primary" size="small" @click="showCreateSnapshotDialog"><template v-slot:icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
+                </template>
             </div>
         </template>
         <ConfirmSnapshotDeleteDialog @deleteSnapshot="deleteSnapshot" ref="confirmSnapshotDeleteDialog" />
