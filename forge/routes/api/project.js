@@ -459,35 +459,38 @@ module.exports = async function (app) {
                 await targetFlow.save()
             }
             if (options.credentials) {
-                const sourceSettingsDb = await app.db.models.StorageSettings.byProject(sourceProject.id)
-                const targetSettingsDb = await app.db.models.StorageSettings.byProject(request.project.id)
-                const sourceSettings = sourceSettingsDb ? JSON.parse(sourceSettingsDb.settings) : undefined
-                const targetSettings = targetSettingsDb ? JSON.parse(targetSettingsDb.settings) : undefined
-                const sourceCredsKey = sourceSettings?._credentialSecret || await sourceProject.getSetting('credentialSecret')
-                const targetCredsKey = targetSettings?._credentialSecret || await request.project.getSetting('credentialSecret') || generateCredentialSecret()
-                if (request.project.state === 'suspended' && targetSettings?._credentialSecret) {
-                    delete targetSettings?._credentialSecret
-                    request.project.updateSetting('credentialSecret', targetCredsKey)
-                }
-                const sourceCreds = await app.db.models.StorageCredentials.byProject(sourceProject.id)
-                const sourceEncryptedCreds = JSON.parse(sourceCreds ? sourceCreds.credentials : null)
-
-                let targetCreds = await app.db.models.StorageCredentials.byProject(request.project.id)
-                if (targetCreds && sourceEncryptedCreds) {
-                    targetCreds.credentials = JSON.stringify(recryptCreds(sourceEncryptedCreds, sourceCredsKey, targetCredsKey))
-                    await targetCreds.save()
-                } else if (sourceEncryptedCreds) {
-                    targetCreds = app.db.models.StorageCredentials.create({
-                        credentials: JSON.stringify(recryptCreds(sourceEncryptedCreds, sourceCredsKey, targetCredsKey))
-                    })
-                    await targetCreds.save()
+                // To copy over the credentials, we have to:
+                //  - get the source credentials + credentialSecret
+                //  - get the target credentials + credentialSecret
+                //  - decrypt credentials from src and re-encrypt the
+                //  - credentials using the target key for target StorageCredentials
+                const origCredentials = await app.db.models.StorageCredentials.byProject(sourceProject.id)
+                if (origCredentials) {
+                    let trgCredentialSecret = await request.project.getSetting('credentialSecret')
+                    if (trgCredentialSecret == null) {
+                        trgCredentialSecret = targetSettings?._credentialSecret || generateCredentialSecret()
+                        request.project.updateSetting('credentialSecret', trgCredentialSecret)
+                        delete targetSettings._credentialSecret
+                    }
+                    const srcCredentials = JSON.parse(origCredentials.credentials)
+                    const srcCredentialSecret = await sourceProject.getSetting('credentialSecret') || sourceSettings._credentialSecret
+                    let targetCreds = await app.db.models.StorageCredentials.byProject(request.project.id)
+                    if (targetCreds && srcCredentials) {
+                        targetCreds.credentials = JSON.stringify(recryptCreds(srcCredentials, srcCredentialSecret, trgCredentialSecret))
+                        await targetCreds.save()
+                    } else if (srcCredentials) {
+                        targetCreds = await app.db.models.StorageCredentials.create({
+                            credentials: JSON.stringify(recryptCreds(srcCredentials, srcCredentialSecret, trgCredentialSecret)),
+                            ProjectId: request.project.id
+                        })
+                        await targetCreds.save()
+                    }
                 }
             }
-
             if (options.template) {
                 request.project.ProjectTemplateId = sourceProject.ProjectTemplateId
                 await request.project.save()
-                request.project.reload()
+                await request.project.reload()
             }
             // Get the source project settings
             const sourceProjectSettings = await sourceProject.getSetting('settings') || { env: [] }
@@ -507,28 +510,7 @@ module.exports = async function (app) {
                 updateSettings = true
             }
             if (options.envVars) {
-                const env = []
-
-                const existingEnvVars = {}
-                targetProjectEnvVars.forEach(envVar => {
-                    existingEnvVars[envVar.name] = envVar.value
-                })
-
-                sourceProjectSettings.env.forEach(envVar => {
-                    let value = envVar.value
-                    if (options.envVars === 'keys') {
-                        // Only copying over keynames - need to ensure
-                        // any existing value is maintained
-                        if (existingEnvVars[envVar.name] !== undefined) {
-                            value = existingEnvVars[envVar.name]
-                        }
-                    }
-                    env.push({
-                        name: envVar.name,
-                        value: value
-                    })
-                })
-                targetProjectSettings.env = env
+                targetProjectSettings.env = mergeEnvVars(options, sourceProjectSettings.env, targetProjectEnvVars)
                 updateSettings = true
             }
             if (updateSettings) {
@@ -737,6 +719,29 @@ module.exports = async function (app) {
     //     }
     //     reply.send(projectExport)
     // })
+
+    /**
+     * Merge env vars from 2 arrays.
+     *
+     * NOTE: When a var is found in both, currentVars will take precedence
+     * @param {{envVars:boolean|string}} options the merge options. `true` will merge (existing), `'keys'` will merge only the key names from `incomingVars`
+     * @param {[{name:string, value:string}]} incomingVars an array containing the vars to merge with currentVars
+     * @param {[{name:string, value:string}]} currentVars an array containing the current vars
+     * @returns {*} an object containing the merged vars
+     */
+    function mergeEnvVars (options, incomingVars, currentVars) {
+        if (!options || options.envVars === false) {
+            return currentVars
+        }
+        const incomingKV = Object.fromEntries((incomingVars || []).map(e => {
+            return e && e.name ? [e.name, options.envVars === 'keys' ? '' : e.value || ''] : ['', '']
+        }))
+        const existingKV = Object.fromEntries((currentVars || []).map(e => {
+            return e && e.name ? [e.name, e.value || ''] : ['', '']
+        }))
+        const mergedKV = Object.assign({}, incomingKV, existingKV)
+        return Object.entries(mergedKV).filter(e => !!e[0]).map(([k, v]) => { return { name: k, value: v } })
+    }
 
     function generateCredentialSecret () {
         return crypto.randomBytes(32).toString('hex')
