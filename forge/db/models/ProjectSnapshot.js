@@ -43,6 +43,8 @@ module.exports = {
         return {
             static: {
                 byId: async function (id) {
+                    // This returns the full snapshot - including settings and flows
+                    // This should _only_ be used when getting all of that information
                     if (typeof id === 'string') {
                         id = M.ProjectSnapshot.decodeHashid(id)
                     }

@@ -1,3 +1,5 @@
+const DeviceLive = require('./deviceLive')
+
 /**
  * Project Device api routes
  *
@@ -24,6 +26,8 @@ module.exports = async function (app) {
             }
         }
     })
+
+    app.register(DeviceLive, { prefix: '/:deviceId/live' })
 
     /**
      * Get a list of all devices

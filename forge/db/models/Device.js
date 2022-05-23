@@ -11,7 +11,8 @@ module.exports = {
     schema: {
         name: { type: DataTypes.STRING, allowNull: false },
         type: { type: DataTypes.STRING, allowNull: false },
-        state: { type: DataTypes.STRING, allowNull: false, defaultValue: '' }
+        state: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
+        lastSeenAt: { type: DataTypes.DATE, allowNull: true }
     },
     associations: function (M) {
         this.belongsTo(M.Team)

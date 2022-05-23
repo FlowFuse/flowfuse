@@ -40,6 +40,7 @@ module.exports = {
      * true value is available is when it is returned from this function.
      */
     createTokenForDevice: async function (app, device) {
+        console.log('createTokenForDevice')
         const existingDeviceToken = await device.getAccessToken()
         if (existingDeviceToken) {
             await existingDeviceToken.destroy()
@@ -47,11 +48,12 @@ module.exports = {
         const token = generateToken(32, 'ffd')
         await app.db.models.AccessToken.create({
             token,
-            expiresAt: 0,
+            expiresAt: null,
             scope: 'device',
             ownerId: device.id,
             ownerType: 'device'
         })
+        console.log(token)
         return { token }
     },
     /**

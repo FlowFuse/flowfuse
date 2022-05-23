@@ -181,7 +181,8 @@ export default {
                 { name: 'ID', class: ['w-16'], property: 'id' },
                 { name: 'Device Name', class: ['w-64'], property: 'name' },
                 { name: 'Status', class: ['w-64'], component: { is: markRaw(ProjectStatusBadge) } },
-                { name: 'Type', class: ['w-64'], property: 'type' }
+                { name: 'Type', class: ['w-64'], property: 'type' },
+                { name: 'Last Seen', class: ['w-64'], property: 'lastSeenAt' }
             ]
             if (!this.isProjectDeviceView) {
                 cols.push({
