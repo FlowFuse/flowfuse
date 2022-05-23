@@ -53,9 +53,9 @@ module.exports = async function (app) {
             reply.send({})
         } else {
             const snapshot = await app.db.models.ProjectSnapshot.byId(request.device.targetSnapshot.id)
-            console.log(snapshot)
             if (snapshot) {
                 reply.send({
+                    id: request.device.targetSnapshot.hashid,
                     ...snapshot.settings,
                     ...snapshot.flows
                 })
