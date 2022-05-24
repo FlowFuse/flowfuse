@@ -13,6 +13,7 @@ export default defineConfig({
         environment: 'jsdom',
         coverage: {
           src: ['./frontend/src'],
+          reportsDirectory: './coverage/frontend',
           all: true
         }
     },
