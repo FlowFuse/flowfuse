@@ -1,3 +1,4 @@
+const crypto = require('crypto')
 /**
  * Device Live api routes
  *
@@ -54,14 +55,44 @@ module.exports = async function (app) {
         } else {
             const snapshot = await app.db.models.ProjectSnapshot.byId(request.device.targetSnapshot.id)
             if (snapshot) {
-                reply.send({
+                const result = {
                     id: request.device.targetSnapshot.hashid,
                     ...snapshot.settings,
                     ...snapshot.flows
-                })
+                }
+                if (result.credentials) {
+                    // Need to re-encrypt these credentials from the Project secret
+                    // to the Device secret
+                    const projectSecret = await (await snapshot.getProject()).getCredentialSecret()
+                    const deviceSecret = request.device.credentialSecret
+                    result.credentials = recryptCreds(result.credentials, projectSecret, deviceSecret)
+                }
+                reply.send(result)
             } else {
                 reply.send({})
             }
         }
     })
+}
+
+// TODO: These are getting copied around way too much. Need to be centralised.
+function recryptCreds (original, oldKey, newKey) {
+    const newHash = crypto.createHash('sha256').update(newKey).digest()
+    const oldHash = crypto.createHash('sha256').update(oldKey).digest()
+    return encryptCreds(newHash, decryptCreds(oldHash, original))
+}
+
+function decryptCreds (key, cipher) {
+    let flows = cipher.$
+    const initVector = Buffer.from(flows.substring(0, 32), 'hex')
+    flows = flows.substring(32)
+    const decipher = crypto.createDecipheriv('aes-256-ctr', key, initVector)
+    const decrypted = decipher.update(flows, 'base64', 'utf8') + decipher.final('utf8')
+    return JSON.parse(decrypted)
+}
+
+function encryptCreds (key, plain) {
+    const initVector = crypto.randomBytes(16)
+    const cipher = crypto.createCipheriv('aes-256-ctr', key, initVector)
+    return { $: initVector.toString('hex') + cipher.update(JSON.stringify(plain), 'utf8', 'base64') + cipher.final('base64') }
 }
