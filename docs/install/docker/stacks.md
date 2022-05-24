@@ -54,5 +54,5 @@ docker build node-red-container -t flowforge/node-red-dashboard:2.2.2
 You would then enter `flowforge/node-red-dashboard:2.2.2` in the `container` section
 of the Stack configuration.
 
-*Note:* with the 0.3 release, it is not possible to change the Stack being used
-by a project. That will come in a future release.
+Stacks can be changed on a per project basis, see also the
+[user stack documentation](../../user/changestack.md).
