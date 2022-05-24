@@ -11,11 +11,14 @@
 </template>
 <script>
 import DropdownMenu from '@/components/DropdownMenu'
+import { mapState } from 'vuex'
+
 export default {
     name: 'SnapshotEditButton',
     props: ['id'],
     emits: ['snapshotAction'],
     computed: {
+        ...mapState('account', ['features']),
         options: function () {
             // Trying something different for this menu. By using `this.$parent.$emit` we can register
             // event handlers on the containing ItemTable.
@@ -27,6 +30,11 @@ export default {
             const menu = [
                 { name: 'Delete snapshot', class: ['text-red-700'], action: () => { this.$parent.$emit('snapshotAction', 'delete', this.id) } }
             ]
+            if (this.features.devices) {
+                menu.unshift(null)
+                menu.unshift({ name: 'Set as Device Target', action: () => { this.$parent.$emit('snapshotAction', 'setDeviceTarget', this.id) } })
+            }
+
             return menu
         }
     },

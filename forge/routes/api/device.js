@@ -143,6 +143,9 @@ module.exports = async function (app) {
                 if (request.device.project !== null) {
                     // unassign from project
                     await request.device.setProject(null)
+                    // Clear its target snapshot, so the next time it calls home
+                    // it will stop the current snapshot
+                    await request.device.setTargetSnapshot(null)
                 } else {
                     // project is already unassigned - nothing to do
                 }
@@ -163,6 +166,9 @@ module.exports = async function (app) {
                     }
                     // Project exists and is in the right team
                     await request.device.setProject(project)
+                    // Set the target snapshot to match the project's one
+                    const deviceSettings = await project.getSetting('deviceSettings')
+                    request.device.targetSnapshotId = deviceSettings?.targetSnapshot
                     // if (project.team.id)
                 }
             }
