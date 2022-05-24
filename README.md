@@ -25,7 +25,7 @@ npm run build
 npm start
 ```
 
-If you're actively developing for the flowforge core, then use `npm run serve` to run the application
+If you're actively developing for the FlowForge core, then use `npm run serve` to run the application
 with automatic rebuilds of the front-end, and restarts of the application when
 it is modified.
 

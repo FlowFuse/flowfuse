@@ -54,7 +54,7 @@ want to begin.
 
 ### Instructions
 1. [Clone the repository](#clone-the-flowforgeflowforge-repository)
-1. [Install dependencies](#)
+1. [Install dependencies](#install-flowforgeflowforge-dependencies)
 1. [Running FlowForge](#running-flowforge)
 1. [Create a Stack](#create-a-stack)
 1. [Configuring FlowForge](#configuring-flowforge)
@@ -227,8 +227,8 @@ There are 2 other "Run and Debug" entries in the menu...
 * "Debug Current Test" - this will enable you to step debug a test (starts debugging the currently open test file)
 
 #### 
- ```javascript
- {
+```javascript
+{
     // Use IntelliSense to learn about possible attributes.
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
@@ -273,4 +273,4 @@ There are 2 other "Run and Debug" entries in the menu...
         }
     ]
 }
- ```
+```
