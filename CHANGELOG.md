@@ -1,3 +1,7 @@
+#### v0.5.3: Maintence Release
+
+- Password field should hide input by user (#619) @joepavitt
+
 #### v0.5.2: Maintence Release
 
 - Update dev:local npm script to include all required projects (#588) @Steve-Mcl
