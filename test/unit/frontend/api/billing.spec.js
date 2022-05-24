@@ -12,14 +12,17 @@ vi.mock('@/api/client', () => {
 
 describe('Billing API', async () => {
     const BillingAPI = await import('@/api/billing')
+    const teamid = 'teamid'
     test('toCustomerPortal', () => {
         window.open = vi.fn()
-        BillingAPI.default.toCustomerPortal()
+        BillingAPI.default.toCustomerPortal(teamid)
         expect(window.open).toHaveBeenCalledOnce()
+        expect(window.open).toHaveBeenCalledWith('/ee/billing/teams/' + teamid + '/customer-portal', '_blank')
     })
 
     test('getSubscriptionInfo', () => {
-        BillingAPI.default.getSubscriptionInfo()
+        BillingAPI.default.getSubscriptionInfo(teamid)
         expect(mockGet).toHaveBeenCalledOnce()
+        expect(mockGet).toHaveBeenCalledWith('/ee/billing/teams/' + teamid)
     })
 })
