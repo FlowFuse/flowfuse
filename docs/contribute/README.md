@@ -14,6 +14,7 @@ This guide assumes you have a working development environment including:
    - Linux: `apt-get install build-essential`
    - MacOS: `xcode-select --install`
    - Windows: installed as part of the official node.js installer
+     - ☑️ Automatically install the necessary tools must be checked
  - Git
 
 ### Project Repositories
@@ -41,7 +42,7 @@ want to begin.
 
 ### FlowForge Code Structure
 
-```
+```console
 /
 ├── config   - developer tools configuration files  
 ├── docs     - documentation
@@ -51,66 +52,85 @@ want to begin.
 └── test     - test material
 ```
 
-### Installing code dependencies
+### Instructions
+1. [Clone the repository](#clone-the-flowforgeflowforge-repository)
+1. [Install dependencies](#)
+1. [Running FlowForge](#running-flowforge)
+1. [Create a Stack](#create-a-stack)
+1. [Configuring FlowForge](#configuring-flowforge)
+1. [Mocking email](#mocking-email)
+1. [Testing](#testing)
+1. [VSCode Tips](#vscode-tips)
 
+### Clone the `flowforge/flowforge` repository
 
-After cloning the core repository, you will need to install the dependencies by running
+```console
+git clone https://github.com/flowforge/flowforge
 ```
+
+### Install `flowforge/flowforge` dependencies
+
+Once the core project is cloned, you will need to install its depenedancies.
+There are 2 options here...
+* [OPTION 1](#option-1-npm) - Install `flowforge/flowforge` dependencies from NPM
+* [OPTION 2](#option-2-source-code) - Install `flowforge/flowforge` dependencies from GitHub
+
+> **NOTE:**  
+> If running on MacOS 12.3 or newer you may get an error around `node-gyp` 
+> being unable to build sqllite3. This is because MacOS no longer includes
+> python2.7. The solution is to run the command `npm config set python python3`
+> to alias to python3 and then run `npm install` again
+
+
+
+#### OPTION 1 NPM
+
+
+After cloning the core repository, you will need to install 
+`flowforge/flowforge` dependancies
+
+```console
+cd flowforge
 npm install
 ```
 
-**Note** If running on MacOS 12.3 or newer you may get an error around node-gyp being unable to build sqllite3.
-This is because MacOS no longer includes python2.7.
-The solution is to run the command `npm config set python python3` to alias to python3 and then run `npm install` again
+By default this will install the latest released versions of the FlowForge
+components. 
 
-By default this will install the latest released versions of the FlowForge components. If
-you want to run from the latest source code then you can check out all the required 
-projects in the same directory
 
-- flowforge/flowforge
-- flowforge/forge-ui-components
-- flowforge/flowforge-driver-localfs
-- flowforge/flowforge-nr-launcher
-- flowforge/flowforge-nr-storage
-- flowforge/flowforge-nr-auth
-- flowforge/flowforge-nr-audit-logger
+#### OPTION 2 Source Code
 
-Then in the flowforge directory run
-```
+After cloning the core repository, you will need to install 
+`flowforge/flowforge` dependancies
+
+Instead of using NPM, you can instead run from the latest source code.
+You can check out all the required projects in the same directory
+
+```console
+cd flowforge
+git clone https://github.com/flowforge/flowforge-driver-localfs.git
+git clone https://github.com/flowforge/flowforge-nr-launcher.git
+git clone https://github.com/flowforge/flowforge-nr-storage.git
+git clone https://github.com/flowforge/flowforge-nr-auth.git
+git clone https://github.com/flowforge/flowforge-nr-audit-logger.git
+git clone https://github.com/flowforge/forge-ui-components.git
 npm run dev:local
-```
-This will create all the required symlinks to the relevent projects.
-
-Next in the `forge-ui-components`  directory run
-```
-npm install
 npm run build
 ```
 
-In the `flowforge-nr-auth` directory run
-```
-npm install
-```
+This will install all the dependancies from source code, create all the required symlinks to the relevent projects and install the necessary npm dependancies.
 
-In the `flowforge-nr-audit-logger` directory run
-```
-npm install
-```
-
-In the `flowforge-nr-storage` directory run
-```
-npm install
-```
-
-**Note**: do not check in the modified `package.json` that will be created in the 
-`flowforge`, `flowforge-nr-launcher` or `flowforge-driver-localfs` projects.
+> **Note**
+> The `npm run dev:local` script will modifiy `package.json` in the 
+`flowforge`, `flowforge-nr-launcher` and `flowforge-driver-localfs` projects. 
+> DO NOT check modifications into git.
 
 ### Create a Stack
 You will need to setup the version(s) of Node-RED you want to use in your stacks.
 
 From the flowforge directory run
 
-```
+```console
 npm run install-stack --vers=2.2.2
 ```
 Where `2.2.2` is the version of Node-RED you want to use in the stack
@@ -119,7 +139,7 @@ Where `2.2.2` is the version of Node-RED you want to use in the stack
 
 A number of `npm` tasks are defined in the `package.json` file. To get started from the flowforge directory use:
 
-```
+```console
 npm run serve
 ```
 
@@ -194,3 +214,63 @@ tests using `nyc` to generate code coverage information.
   does *not* generate the report.
  - `npm run cover:report` - generates a report of the code coverage. This is 
   printed to the console and generates a browseable HTML copy under `coverage/index.html`
+
+### VSCode Tips
+
+To step debug in VSCode
+1. Open `launch.json` config and enter the JavaScript below
+2. Choose `Start-Watch` from the "Run and Debug" menu
+3. Press ▶️ or <kbd>F5</kbd> to start debugging
+
+There are 2 other "Run and Debug" entries in the menu...
+* "Attach by Process ID" - this will allow you to attach to a launched driver
+* "Debug Current Test" - this will enable you to step debug a test (starts debugging the currently open test file)
+
+#### 
+ ```javascript
+ {
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "command": "npm run start-watch",
+            "name": "Start-Watch",
+            "request": "launch",
+            "type": "node-terminal",
+            "env": {
+                "NODE_ENV": "development"
+            }
+        },
+        {
+            "name": "Attach by Process ID",
+            "processId": "${command:PickProcess}",
+            "request": "attach",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Current Test",
+            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+            "args": [
+              "--no-warnings",
+              "-u",
+              "bdd",// set to bdd, not tdd
+              "--timeout",
+              "999999",
+              "--colors",
+              "${file}"
+            ],
+            "env": {
+                "NODE_ENV": "development"
+            },
+            "internalConsoleOptions": "openOnSessionStart"
+        }
+    ]
+}
+ ```
