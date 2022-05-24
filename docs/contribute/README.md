@@ -42,7 +42,7 @@ want to begin.
 
 ### FlowForge Code Structure
 
-```console
+```
 /
 ├── config   - developer tools configuration files  
 ├── docs     - documentation
