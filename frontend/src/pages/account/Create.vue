@@ -13,7 +13,7 @@
                 <ff-text-input ref="signup-email" label="E-Mail Address" :error="errors.email" v-model="input.email" @enter="focusPassword"/>
                 <label class="ff-error-inline">{{ errors.email }}</label>
                 <label>Password</label>
-                <ff-text-input ref="signup-password" label="password" :error="errors.password" v-model="input.password" @enter="login" :password="true"/>
+                <ff-text-input ref="signup-password" label="password" :error="errors.password" v-model="input.password" @enter="login" type="password"/>
                 <label class="ff-error-inline">{{ errors.password }}</label>
             </div>
             <div v-if="settings['user:tcs-required']">
