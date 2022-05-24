@@ -33,6 +33,7 @@ export default {
     data () {
         return {
             device: null,
+            project: null,
             input: {
                 name: '',
                 type: ''
@@ -71,8 +72,22 @@ export default {
             } else {
                 opts.team = this.team.id
                 devicesApi.create(opts).then((response) => {
-                    this.isOpen = false
-                    this.$emit('deviceCreated', response)
+                    if (!this.project) {
+                        this.isOpen = false
+                        this.$emit('deviceCreated', response)
+                    } else {
+                        const creds = response.credentials
+                        // TODO: should the create allow a device to be created
+                        //       in the project directly? Currently done as a two
+                        //       step process
+                        return devicesApi.updateDevice(response.id, { project: this.project.id }).then((response) => {
+                            this.isOpen = false
+                            // Reattach the credentials from the create request
+                            // so they can be displayed to the user
+                            response.credentials = creds
+                            this.$emit('deviceCreated', response)
+                        })
+                    }
                 }).catch(err => {
                     console.log(err.response.data)
                     if (err.response.data) {
@@ -91,7 +106,8 @@ export default {
             close () {
                 isOpen.value = false
             },
-            show (device) {
+            show (device, project) {
+                this.project = project
                 this.device = device
                 if (device) {
                     this.input = {

@@ -1,6 +1,8 @@
 const crypto = require('crypto')
 const ProjectActions = require('./projectActions')
 const ProjectDevices = require('./projectDevices')
+const ProjectSnapshots = require('./projectSnapshots')
+
 /**
  * Instance api routes
  *
@@ -62,6 +64,7 @@ module.exports = async function (app) {
         app.register(ProjectDevices, { prefix: '/:projectId/devices' })
     }
     app.register(ProjectActions, { prefix: '/:projectId/actions' })
+    app.register(ProjectSnapshots, { prefix: '/:projectId/snapshots' })
 
     /**
      * Get the details of a given project
@@ -675,45 +678,10 @@ module.exports = async function (app) {
      * @name /api/v1/project/:id/export
      * @memberof forge.routes.api.project
      */
-    // app.post('/:projectId/export', async (request, reply) => {
-    //     const components = request.body.components
-    //     reply.header('content-disposition', 'attachment; filename="project.json"')
-    //     const projectExport = {}
-    //     if (components.flows) {
-    //         const flows = await app.db.models.StorageFlow.byProject(request.project.id)
-    //         projectExport.flows = !flows ? [] : JSON.parse(flows.flow)
-
-    //         if (components.creds) {
-    //             const origCredentials = await app.db.models.StorageCredentials.byProject(request.project.id)
-    //             if (origCredentials) {
-    //                 const encryptedCreds = JSON.parse(origCredentials.credentials)
-    //                 const settings = JSON.parse((await app.db.models.StorageSettings.byProject(request.project.id)).settings)
-    //                 const key = crypto.createHash('sha256').update(settings._credentialSecret).digest()
-    //                 const plainText = decryptCreds(key, encryptedCreds)
-    //                 const newKey = crypto.createHash('sha256').update(components.creds).digest()
-    //                 const newCreds = encryptCreds(newKey, plainText)
-
-    //                 projectExport.credentials = newCreds
-    //             }
-    //         }
-    //     }
-    //     if (components.envVars) {
-    //         const settings = await app.db.controllers.Project.getRuntimeSettings(request.project)
-    //         if (components.envVarsKo) {
-    //             projectExport.envVars = {}
-    //             Object.keys(settings.env).forEach(key => {
-    //                 projectExport.envVars[key] = ''
-    //             })
-    //         } else {
-    //             if (settings.env) {
-    //                 projectExport.envVars = settings.env
-    //             }
-    //         }
-    //     }
-    //     const NRSettings = await app.db.models.StorageSettings.byProject(request.project.id)
-    //     if (NRSettings) {
-    //         projectExport.nodes = JSON.parse(NRSettings.settings).nodes
-    //     }
+    // app.get('/:projectId/export', async (request, reply) => {
+    //     const components = request.body?.components
+    //     // reply.header('content-disposition', 'attachment; filename="project.json"')
+    //     const projectExport = await app.db.controllers.Project.exportProject(request.project, components)
     //     reply.send(projectExport)
     // })
 

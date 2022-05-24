@@ -18,7 +18,8 @@ const modelTypes = [
     'Invitation',
     'AuditLog',
     'Project',
-    'ProjectTemplate'
+    'ProjectTemplate',
+    'ProjectSnapshot'
 ]
 
 async function init (app) {
