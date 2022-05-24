@@ -7,7 +7,7 @@ import ProjectSettingsEditor from '@/pages/project/Settings/Editor.vue'
 import ProjectSettingsPalette from '@/pages/project/Settings/Palette.vue'
 import ProjectSettingsEnvVar from '@/pages/project/Settings/Environment.vue'
 // import ProjectDebug from '@/pages/project/Debug.vue'
-// import ProjectDeploys from '@/pages/project/Deploys.vue'
+import ProjectSnapshots from '@/pages/project/Snapshots/index.vue'
 import ProjectDevices from '@/pages/project/Devices.vue'
 import ProjectLogs from '@/pages/project/Logs.vue'
 import ProjectActivity from '@/pages/project/Activity.vue'
@@ -56,7 +56,13 @@ export default [
                     title: 'Project - Logs'
                 }
             },
-            // { path: 'deploys', component: ProjectDeploys},
+            {
+                path: 'snapshots',
+                component: ProjectSnapshots,
+                meta: {
+                    title: 'Project - Snapshots'
+                }
+            },
             {
                 path: 'activity',
                 component: ProjectActivity,

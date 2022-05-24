@@ -86,6 +86,13 @@ const getProjectDevices = async (projectId, cursor, limit) => {
     return res.data
 }
 
+const getProjectDeviceSettings = async (projectId) => {
+    return client.get(`/api/v1/projects/${projectId}/devices/settings`).then(res => res.data)
+}
+const updateProjectDeviceSettings = async (projectId, settings) => {
+    return client.post(`/api/v1/projects/${projectId}/devices/settings`, settings).then(res => res.data)
+}
+
 export default {
     create,
     getProject,
@@ -99,5 +106,7 @@ export default {
     suspendProject,
     updateProject,
     changeStack,
-    getProjectDevices
+    getProjectDevices,
+    getProjectDeviceSettings,
+    updateProjectDeviceSettings
 }

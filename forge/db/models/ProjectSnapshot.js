@@ -7,7 +7,7 @@ const { DataTypes, Op } = require('sequelize')
 module.exports = {
     name: 'ProjectSnapshot',
     schema: {
-        name: { type: DataTypes.STRING, allowNull: false, unique: true },
+        name: { type: DataTypes.STRING, allowNull: false },
         settings: {
             type: DataTypes.TEXT,
             set (value) {
@@ -35,6 +35,8 @@ module.exports = {
     associations: function (M) {
         this.belongsTo(M.Project)
         this.belongsTo(M.User)
+        this.hasMany(M.Device, { foreignKey: 'targetSnapshotId' })
+        this.hasMany(M.Device, { foreignKey: 'activeSnapshotId' })
     },
     finders: function (M) {
         const self = this
@@ -54,11 +56,11 @@ module.exports = {
                         ProjectId: projectId
                     }
                     if (pagination.cursor) {
-                        where.id = { [Op.gt]: M.ProjectSnapshot.decodeHashid(pagination.cursor) }
+                        where.id = { [Op.lt]: M.ProjectSnapshot.decodeHashid(pagination.cursor) }
                     }
                     const { count, rows } = await this.findAndCountAll({
                         where,
-                        order: [['id', 'ASC']],
+                        order: [['id', 'DESC']],
                         limit,
                         attributes: ['hashid', 'id', 'name', 'createdAt', 'updatedAt'],
                         include: {
