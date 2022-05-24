@@ -19,6 +19,7 @@
                     </p>
                     <FormRow v-model="device.id" type="uneditable">Device ID</FormRow>
                     <FormRow v-model="device.credentials.token" type="uneditable">Access Token</FormRow>
+                    <FormRow v-model="device.credentials.credentialSecret" type="uneditable">Credential Secret</FormRow>
                 </template>
             </form>
         </template>
@@ -82,6 +83,7 @@ export default {
             if (this.device) {
                 return `deviceId: ${this.device.id}
 token: ${this.device.credentials.token}
+credentialSecret: ${this.device.credentials.credentialSecret}
 `
             } else {
                 return ''

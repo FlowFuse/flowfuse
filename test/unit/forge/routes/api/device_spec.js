@@ -152,7 +152,7 @@ describe('Device API', async function () {
     })
     describe('Get device details', async function () {
         it('provides device details including project and team', async function () {
-            TestObjects.deviceOne = await app.db.models.Device.create({ name: 'deviceOne', type: 'something' })
+            TestObjects.deviceOne = await app.db.models.Device.create({ name: 'deviceOne', type: 'something', credentialSecret: 'deviceKey' })
             TestObjects.deviceProject = await app.db.models.Project.create({ name: 'deviceProject', type: '', url: '' })
             await TestObjects.deviceOne.setTeam(TestObjects.ATeam)
             await TestObjects.deviceOne.setProject(TestObjects.deviceProject)
@@ -176,7 +176,7 @@ describe('Device API', async function () {
         })
 
         it('provides device details - unassigned project', async function () {
-            TestObjects.deviceOne = await app.db.models.Device.create({ name: 'deviceOne', type: 'something' })
+            TestObjects.deviceOne = await app.db.models.Device.create({ name: 'deviceOne', type: 'something', credentialSecret: 'deviceKey' })
             TestObjects.deviceProject = await app.db.models.Project.create({ name: 'deviceProject', type: '', url: '' })
             await TestObjects.deviceOne.setTeam(TestObjects.ATeam)
 

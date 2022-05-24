@@ -3,15 +3,17 @@
  * @namespace forge.db.models.Device
  */
 const { DataTypes, Op } = require('sequelize')
-
-// const Controllers = require('../controllers')
+const crypto = require('crypto')
+const Controllers = require('../controllers')
 
 module.exports = {
     name: 'Device',
     schema: {
         name: { type: DataTypes.STRING, allowNull: false },
         type: { type: DataTypes.STRING, allowNull: false },
-        state: { type: DataTypes.STRING, allowNull: false, defaultValue: '' }
+        credentialSecret: { type: DataTypes.STRING, allowNull: false },
+        state: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
+        lastSeenAt: { type: DataTypes.DATE, allowNull: true }
     },
     associations: function (M) {
         this.belongsTo(M.Team)
@@ -41,14 +43,16 @@ module.exports = {
     finders: function (M) {
         return {
             instance: {
-                // async refreshAuthTokens () {
-                //     const authClient = await Controllers.AuthClient.createClientForProject(this)
-                //     const projectToken = await Controllers.AccessToken.createTokenForProject(this, null, ['project:flows:view', 'project:flows:edit'])
-                //     return {
-                //         token: projectToken.token,
-                //         ...authClient
-                //     }
-                // },
+                async refreshAuthTokens () {
+                    const accessToken = await Controllers.AccessToken.createTokenForDevice(this)
+                    const credentialSecret = crypto.randomBytes(32).toString('hex')
+                    this.credentialSecret = credentialSecret
+                    await this.save()
+                    return {
+                        token: accessToken.token,
+                        credentialSecret
+                    }
+                }
             },
             static: {
                 byId: async (id) => {

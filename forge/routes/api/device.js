@@ -1,3 +1,5 @@
+const DeviceLive = require('./deviceLive')
+
 /**
  * Project Device api routes
  *
@@ -24,6 +26,8 @@ module.exports = async function (app) {
             }
         }
     })
+
+    app.register(DeviceLive, { prefix: '/:deviceId/live' })
 
     /**
      * Get a list of all devices
@@ -93,10 +97,10 @@ module.exports = async function (app) {
 
         const device = await app.db.models.Device.create({
             name: request.body.name,
-            type: request.body.type
+            type: request.body.type,
+            credentialSecret: ''
         })
-        const accessToken = await app.db.controllers.AccessToken.createTokenForDevice(device)
-
+        const credentials = await device.refreshAuthTokens()
         await team.addDevice(device)
 
         await device.reload({
@@ -105,7 +109,7 @@ module.exports = async function (app) {
             ]
         })
         const response = app.db.views.Device.device(device)
-        response.credentials = accessToken
+        response.credentials = credentials
         reply.send(response)
     })
 
@@ -191,7 +195,7 @@ module.exports = async function (app) {
     app.post('/:deviceId/generate_credentials', {
         preHandler: app.needsPermission('device:edit')
     }, async (request, reply) => {
-        const accessToken = await app.db.controllers.AccessToken.createTokenForDevice(request.device)
-        reply.send(accessToken)
+        const credentials = await request.device.refreshAuthTokens()
+        reply.send(credentials)
     })
 }

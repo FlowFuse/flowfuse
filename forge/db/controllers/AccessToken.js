@@ -47,7 +47,7 @@ module.exports = {
         const token = generateToken(32, 'ffd')
         await app.db.models.AccessToken.create({
             token,
-            expiresAt: 0,
+            expiresAt: null,
             scope: 'device',
             ownerId: device.id,
             ownerType: 'device'
