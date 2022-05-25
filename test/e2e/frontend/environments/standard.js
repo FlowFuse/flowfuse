@@ -25,7 +25,7 @@ module.exports = async function (settings = {}, config = {}) {
 
     const forge = await Forge({ config })
 
-    await forge.db.models.PlatformSettings.upsert({ key: 'setup:initialised', value: true })
+    await forge.settings.set('setup:initialised', true)
     const userAlice = await forge.db.models.User.create({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
     const team1 = await forge.db.models.Team.create({ name: 'ATeam' })
     await team1.addUser(userAlice, { through: { role: Roles.Owner } })

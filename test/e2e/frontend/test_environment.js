@@ -1,3 +1,6 @@
+#!/usr/bin/env node
+'use strict'
+
 const app = require('./environments/standard')
 
 ;(async function () {

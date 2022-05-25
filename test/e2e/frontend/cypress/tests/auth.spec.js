@@ -1,4 +1,9 @@
 describe('FlowForge', () => {
+    before(() => {
+        // reset and seed the database prior to every test
+        cy.exec('node ./test/e2e/frontend/test_environment.js')
+    })
+
     it('successfully loads', () => {
         cy.visit('/')
     })
