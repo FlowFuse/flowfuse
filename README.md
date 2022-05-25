@@ -25,11 +25,11 @@ npm run build
 npm start
 ```
 
-If you're actively developing for the FlowForge core, then use `npm run serve` to run the application
+If you are actively developing the FlowForge core, then use `npm run serve` to run the application
 with automatic rebuilds of the front-end, and restarts of the application when
 it is modified.
 
-If you intend on developing for the additional repositories, please refer to [the docs](https://github.com/flowforge/flowforge/tree/dev-docs#readme) 
+If you intend on developing the additional repositories, please refer to [the docs](https://flowforge.com/docs/contribute/) 
 for detailed developer setup instructions.
 
 
@@ -41,7 +41,7 @@ for detailed developer setup instructions.
 ├── bin
 ├── config               - build config files
 ├── docs
-├── etc                  - FlowForge platofrom configuration files
+├── etc                  - FlowForge platform configuration files
 ├── forge
 │   ├── config
 │   ├── containers

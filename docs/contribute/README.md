@@ -64,7 +64,7 @@ want to begin.
 
 ### Clone the `flowforge/flowforge` repository
 
-```console
+```
 git clone https://github.com/flowforge/flowforge
 ```
 
@@ -77,7 +77,7 @@ There are 2 options here...
 
 > **NOTE:**  
 > If running on MacOS 12.3 or newer you may get an error around `node-gyp` 
-> being unable to build sqllite3. This is because MacOS no longer includes
+> being unable to build sqlite3. This is because MacOS no longer includes
 > python2.7. The solution is to run the command `npm config set python python3`
 > to alias to python3 and then run `npm install` again
 
@@ -87,9 +87,9 @@ There are 2 options here...
 
 
 After cloning the core repository, you will need to install 
-`flowforge/flowforge` dependancies
+`flowforge/flowforge` dependencies
 
-```console
+```
 cd flowforge
 npm install
 ```
@@ -101,12 +101,12 @@ components.
 #### OPTION 2 Source Code
 
 After cloning the core repository, you will need to install 
-`flowforge/flowforge` dependancies
+`flowforge/flowforge` dependencies
 
 Instead of using NPM, you can instead run from the latest source code.
 You can check out all the required projects in the same directory
 
-```console
+```
 cd flowforge
 git clone https://github.com/flowforge/flowforge-driver-localfs.git
 git clone https://github.com/flowforge/flowforge-nr-launcher.git
@@ -118,10 +118,10 @@ npm run dev:local
 npm run build
 ```
 
-This will install all the dependancies from source code, create all the required symlinks to the relevent projects and install the necessary npm dependancies.
+This will install all the dependencies from source code, create all the required symlinks to the relevant projects and install the necessary npm dependencies.
 
 > **Note**
-> The `npm run dev:local` script will modifiy `package.json` in the 
+> The `npm run dev:local` script will modify `package.json` in the 
 `flowforge`, `flowforge-nr-launcher` and `flowforge-driver-localfs` projects. 
 > DO NOT check modifications into git.
 
@@ -130,7 +130,7 @@ You will need to setup the version(s) of Node-RED you want to use in your stacks
 
 From the flowforge directory run
 
-```console
+```
 npm run install-stack --vers=2.2.2
 ```
 Where `2.2.2` is the version of Node-RED you want to use in the stack
@@ -139,7 +139,7 @@ Where `2.2.2` is the version of Node-RED you want to use in the stack
 
 A number of `npm` tasks are defined in the `package.json` file. To get started from the flowforge directory use:
 
-```console
+```
 npm run serve
 ```
 
@@ -213,7 +213,7 @@ tests using `nyc` to generate code coverage information.
  - `npm run cover:system` - runs the system tests with code coverage enabled. It
   does *not* generate the report.
  - `npm run cover:report` - generates a report of the code coverage. This is 
-  printed to the console and generates a browseable HTML copy under `coverage/index.html`
+  printed to the console and generates a browsable HTML copy under `coverage/index.html`
 
 ### VSCode Tips
 

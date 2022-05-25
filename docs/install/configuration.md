@@ -60,7 +60,7 @@ See [here](./email_providers.md) for example configuration with common email pro
 By default, the platform will send anonymous usage information back to us at FlowForge Inc.
 This can be disabled via the Admin Settings in the UI, or turned off in the configuration file.
 
-Additionally, you can configure your own instance of FlowForge to report back to you on how users are using FlowForge. FlowForge is designed to work with [Plausible](https://plausible.io/). You can setup your own account, and pass the releavnt domain to the `yml` in the telemetry configuration
+Additionally, you can configure your own instance of FlowForge to report back to you on how users are using FlowForge. FlowForge is designed to work with [Plausible](https://plausible.io/). You can setup your own account, and pass the relevant domain to the `yml` in the telemetry configuration
 
 For more information about this feature, see [here](/docs/admin/telemetry.md)
 
