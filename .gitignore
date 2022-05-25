@@ -12,5 +12,5 @@ docs/jsdoc
 *.env.local
 package-lock.json
 coverage
-test/e2e/frontend/cypress
+test/e2e/frontend/cypress/tests/examples
 .nyc_output

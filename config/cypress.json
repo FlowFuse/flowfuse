@@ -1,7 +1,8 @@
 {
+    "baseUrl": "http://localhost:3000",
     "downloadsFolder": "test/e2e/frontend/cypress/downloads",
     "fixturesFolder": "test/e2e/frontend/cypress/fixtures",
-    "integrationFolder": "test/e2e/frontend/cypress/integration/",
+    "integrationFolder": "test/e2e/frontend/cypress/tests",
     "pluginsFile": "test/e2e/frontend/cypress/plugins/index.js",
     "screenshotsFolder": "test/e2e/frontend/cypress/screenshots",
     "supportFile": "test/e2e/frontend/cypress/support/index.js",
