@@ -70,7 +70,7 @@ git clone https://github.com/flowforge/flowforge
 
 ### Install `flowforge/flowforge` dependencies
 
-Once the core project is cloned, you will need to install its depenedancies.
+Once the core project is cloned, you will need to install its dependencies.
 There are 2 options here...
 * [OPTION 1](#option-1-npm) - Install `flowforge/flowforge` dependencies from NPM
 * [OPTION 2](#option-2-source-code) - Install `flowforge/flowforge` dependencies from GitHub
