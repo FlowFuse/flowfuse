@@ -17,6 +17,8 @@
         "test:unit:frontend": "vitest run --config ./config/vitest.config.ts test/unit/frontend/**/*.spec.js",
         "test:unit:frontend-watch": "vitest --config ./config/vitest.config.ts test/unit/frontend/**/*.spec.js",
         "test:system": "mocha test/system/**/*_spec.js",
+        "test:e2e": "mocha test/system/**/*_spec.js",
+        "cypress:open": "cypress open --config-file ./config/cypress.json",
         "cover": "npm run cover:unit && npm run cover:system && npm run cover:report",
         "cover:unit": "npm run cover:unit:forge && npm run cover:unit:frontend",
         "cover:unit:forge": "nyc --silent npm run test:unit:forge",
