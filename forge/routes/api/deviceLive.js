@@ -12,14 +12,13 @@ const crypto = require('crypto')
  * @memberof forge.routes.api
  */
 module.exports = async function (app) {
-    // app.addHook('preHandler', (request, reply, done) => {
-    //     // check accessToken is device scope
-    //     if (request.session.ownerType !== 'device') {
-    //         reply.code(401).send({ error: 'unauthorised' })
-    //     } else {
-    //         done()
-    //     }
-    // })
+    app.addHook('preHandler', (request, reply, done) => {
+        if (request.session.ownerType !== 'device' || request.session.ownerId !== ('' + request.device.id)) {
+            reply.code(401).send({ error: 'unauthorised' })
+        } else {
+            done()
+        }
+    })
 
     /**
      * Devices post to /state at regular intervals. This acts as a heartbeat.
