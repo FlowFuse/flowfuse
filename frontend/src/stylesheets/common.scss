@@ -17,6 +17,32 @@
     border-radius: 4px;
 }
 
+.ff-bg-dark {
+    background-color: $ff-grey-800;
+    .ff-btn.ff-btn--primary {
+        background-color: $ff-teal-600;
+        &:hover {
+            background-color: $ff-teal-700;
+        }
+    }
+}
+
+.ff-loading {
+    width: 100%;
+    height: 100%;
+    h4 {
+        font-size: 1.5rem;
+        margin-top: 1rem;
+        font-weight: 600;
+    }
+    &.theme-light {
+        color: $ff-grey-900;
+    }
+    &.theme-dark {
+        color: white;
+    }
+}
+
 label {
     cursor: inherit;
 }

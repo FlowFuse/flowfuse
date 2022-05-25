@@ -23,6 +23,8 @@ const defaultPermissions = {
     // Project Editor
     'project:flows:view': { description: 'View Project Flows', role: Roles.Member },
     'project:flows:edit': { description: 'Edit Project Flows', role: Roles.Member },
+    'project:snapshot:create': { description: 'Create Project Snapshot', role: Roles.Owner },
+    'project:snapshot:delete': { description: 'Delete Project Snapshot', role: Roles.Owner },
     // Templates
     'template:create': { description: 'Create a Template', role: Roles.Admin },
     'template:delete': { description: 'Delete a Template', role: Roles.Admin },

@@ -8,6 +8,9 @@ module.exports = {
                 type: result.type,
                 createdAt: result.createdAt,
                 updatedAt: result.updatedAt,
+                lastSeenAt: result.lastSeenAt,
+                activeSnapshot: app.db.views.ProjectSnapshot.snapshot(device.activeSnapshot),
+                targetSnapshot: app.db.views.ProjectSnapshot.snapshot(device.targetSnapshot),
                 links: result.links,
                 status: 'offline'
             }
@@ -32,6 +35,10 @@ module.exports = {
                 type: result.type,
                 createdAt: result.createdAt,
                 updatedAt: result.updatedAt,
+                lastSeenAt: result.lastSeenAt,
+                activeSnapshot: app.db.views.ProjectSnapshot.snapshot(device.activeSnapshot),
+                targetSnapshot: app.db.views.ProjectSnapshot.snapshot(device.targetSnapshot),
+                links: result.links,
                 status: 'offline'
             }
             if (device.Team) {
