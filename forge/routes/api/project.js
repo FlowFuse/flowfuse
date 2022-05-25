@@ -81,7 +81,7 @@ module.exports = async function (app) {
                 state: 'suspended'
             }
         } else {
-            result.meta = await app.containers.details(request.project) || { state: 'unknownn' }
+            result.meta = await app.containers.details(request.project) || { state: 'unknown' }
         }
         // result.team = await app.db.views.Team.team(request.project.Team)
         reply.send(result)

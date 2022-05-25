@@ -1,7 +1,7 @@
 /**
  * Stub Container driver
  *
- * Handles the creation and deletation of containers to back Projects
+ * Handles the creation and delegation of containers to back Projects
  *
  * This Stub driver doesn't start any real containers, just keeps state in memory
  *
@@ -209,7 +209,7 @@ module.exports = {
      * @return {forge.Status}
      */
     restartFlows: async (project, options) => {
-        this._app.log.info(`[stub driver] Restaring flows ${project.id}`)
+        this._app.log.info(`[stub driver] Restarting flows ${project.id}`)
     },
 
     /**
