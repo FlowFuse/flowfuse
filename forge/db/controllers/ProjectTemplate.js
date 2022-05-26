@@ -61,8 +61,8 @@ module.exports = {
                 }
             }
         })
-        result.env = []
         if (settings.env) {
+            result.env = []
             const templateEnvPolicyMap = {}
             const templateEnv = template?.settings.env
             if (templateEnv) {
@@ -71,10 +71,7 @@ module.exports = {
                 })
             }
             settings.env.forEach((envVar) => {
-                if (
-                    templateEnvPolicyMap[envVar.name] !== false &&
-          !/ /.test(envVar.name)
-                ) {
+                if (templateEnvPolicyMap[envVar.name] !== false && !/ /.test(envVar.name)) {
                     result.env.push(envVar)
                 }
             })
