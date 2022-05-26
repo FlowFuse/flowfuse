@@ -13,21 +13,27 @@
         </SideNavigation>
     </Teleport>
     <main>
-        <div class="flex flex-col sm:flex-row mb-2">
-            <div class="flex-grow space-x-6 items-center inline-flex">
-                <router-link :to="navigation[0]?navigation[0].path:''" class="inline-flex items-center">
-                    <div class="text-gray-800 text-xl font-bold">{{ project.name }}</div>
-                </router-link>
-                <ProjectStatusBadge :status="project.meta.state" :pendingStateChange="project.pendingStateChange" v-if="project.meta" />
-            </div>
-            <div class="text-right space-x-4">
-                <a v-if="editorAvailable" :href="project.url" target="_blank" class="forge-button-secondary">
-                    Editor <ExternalLinkIcon class="w-5 ml-1 py-1" />
-                </a>
-                <DropdownMenu buttonClass="forge-button" alt="Open actions menu" :options="options">Actions</DropdownMenu>
-            </div>
-        </div>
-        <hr />
+        <SectionTopMenu>
+            <template #hero>
+                <div class="flex-grow space-x-6 items-center inline-flex">
+                    <router-link :to="navigation[0]?navigation[0].path:''" class="inline-flex items-center">
+                        <div class="text-gray-800 text-xl font-bold">{{project.name}}</div>
+                    </router-link>
+                    <ProjectStatusBadge :status="project.meta.state" :pendingStateChange="project.pendingStateChange" v-if="project.meta" />
+                </div>
+            </template>
+            <template v-slot:tools>
+                <div class="space-x-2 flex">
+                    <a v-if="editorAvailable" :href="project.url" target="_blank" class="ff-btn ff-btn--secondary">
+                        Open Editor
+                        <span class="ff-btn--icon ff-btn--icon-right">
+                            <ExternalLinkIcon />
+                        </span>
+                    </a>
+                    <DropdownMenu buttonClass="ff-btn ff-btn--primary" alt="Open actions menu" :options="options">Actions</DropdownMenu>
+                </div>
+            </template>
+        </SectionTopMenu>
         <div class="text-sm sm:px-6 mt-4 sm:mt-8">
             <router-view :project="project" @projectUpdated="updateProject"></router-view>
         </div>
@@ -42,6 +48,7 @@ import SideNavigation from '@/components/SideNavigation'
 import SideTeamSelection from '@/components/SideTeamSelection'
 import DropdownMenu from '@/components/DropdownMenu'
 import ProjectStatusBadge from './components/ProjectStatusBadge'
+import SectionTopMenu from '@/components/SectionTopMenu'
 
 import { mapState } from 'vuex'
 import { Roles } from '@core/lib/roles'
@@ -171,7 +178,8 @@ export default {
         ExternalLinkIcon,
         DropdownMenu,
         ProjectStatusBadge,
-        'ff-team-selection': SideTeamSelection
+        'ff-team-selection': SideTeamSelection,
+        SectionTopMenu
     }
 }
 </script>
