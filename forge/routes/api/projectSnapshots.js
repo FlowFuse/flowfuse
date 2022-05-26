@@ -66,7 +66,8 @@ module.exports = async function (app) {
             request.project,
             request.session.User,
             {
-                name: request.body.name || ''
+                name: request.body.name || '',
+                description: request.body.description || ''
             }
         )
         snapShot.User = request.session.User

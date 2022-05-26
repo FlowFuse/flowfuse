@@ -8,6 +8,7 @@ module.exports = {
         const projectExport = await app.db.controllers.Project.exportProject(project)
         const snapshot = await app.db.models.ProjectSnapshot.create({
             name: options.name || '',
+            description: options.description || '',
             settings: {
                 settings: projectExport.settings || {},
                 env: projectExport.env || {},

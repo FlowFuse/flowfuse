@@ -43,6 +43,7 @@ export default [
                 ]
             },
             {
+                name: 'ProjectDevices',
                 path: 'devices',
                 component: ProjectDevices,
                 meta: {
