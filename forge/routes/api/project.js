@@ -231,7 +231,7 @@ module.exports = async function (app) {
                         // There are existing credentials to copy
                         const srcCredentials = JSON.parse(origCredentials.credentials)
                         const srcCredentialSecret = await sourceProject.getSetting('credentialSecret') || sourceSettings._credentialSecret
-                        const newCredentials = recryptCreds(srcCredentials, srcCredentialSecret, newCredentialSecret)
+                        const newCredentials = app.db.controllers.Project.exportCredentials(srcCredentials, srcCredentialSecret, newCredentialSecret)
                         const credentials = await app.db.models.StorageCredentials.create({
                             credentials: JSON.stringify(newCredentials),
                             ProjectId: project.id
@@ -479,11 +479,11 @@ module.exports = async function (app) {
                     const srcCredentialSecret = await sourceProject.getSetting('credentialSecret') || sourceSettings._credentialSecret
                     let targetCreds = await app.db.models.StorageCredentials.byProject(request.project.id)
                     if (targetCreds && srcCredentials) {
-                        targetCreds.credentials = JSON.stringify(recryptCreds(srcCredentials, srcCredentialSecret, trgCredentialSecret))
+                        targetCreds.credentials = JSON.stringify(app.db.controllers.Project.exportCredentials(srcCredentials, srcCredentialSecret, trgCredentialSecret))
                         await targetCreds.save()
                     } else if (srcCredentials) {
                         targetCreds = await app.db.models.StorageCredentials.create({
-                            credentials: JSON.stringify(recryptCreds(srcCredentials, srcCredentialSecret, trgCredentialSecret)),
+                            credentials: JSON.stringify(app.db.controllers.Project.exportCredentials(srcCredentials, srcCredentialSecret, trgCredentialSecret)),
                             ProjectId: request.project.id
                         })
                         await targetCreds.save()
@@ -710,26 +710,5 @@ module.exports = async function (app) {
 
     function generateCredentialSecret () {
         return crypto.randomBytes(32).toString('hex')
-    }
-
-    function recryptCreds (original, oldKey, newKey) {
-        const newHash = crypto.createHash('sha256').update(newKey).digest()
-        const oldHash = crypto.createHash('sha256').update(oldKey).digest()
-        return encryptCreds(newHash, decryptCreds(oldHash, original))
-    }
-
-    function decryptCreds (key, cipher) {
-        let flows = cipher.$
-        const initVector = Buffer.from(flows.substring(0, 32), 'hex')
-        flows = flows.substring(32)
-        const decipher = crypto.createDecipheriv('aes-256-ctr', key, initVector)
-        const decrypted = decipher.update(flows, 'base64', 'utf8') + decipher.final('utf8')
-        return JSON.parse(decrypted)
-    }
-
-    function encryptCreds (key, plain) {
-        const initVector = crypto.randomBytes(16)
-        const cipher = crypto.createCipheriv('aes-256-ctr', key, initVector)
-        return { $: initVector.toString('hex') + cipher.update(JSON.stringify(plain), 'utf8', 'base64') + cipher.final('base64') }
     }
 }

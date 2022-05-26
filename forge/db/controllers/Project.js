@@ -88,9 +88,14 @@ module.exports = {
                 if (origCredentials) {
                     const encryptedCreds = JSON.parse(origCredentials.credentials)
                     if (components.credentialSecret) {
-                        const settings = JSON.parse((await app.db.models.StorageSettings.byProject(project.id))?.settings || '{}')
-                        // const newCredentialSecrect = components.credentialSecret || crypto.randomBytes(32).toString('hex')
-                        projectExport.credentials = recryptCreds(encryptedCreds, settings._credentialSecret, components.credentialSecret)
+                        // This code path is currently unused. It is here
+                        // for a future item where a user wants to export a project
+                        // out of the plaform. They will provide their own
+                        // credentialSecret value - which we will used to re-encrypt
+                        // the project credentials
+                        const projectSecret = await project.getCredentialSecret()
+                        const exportSecret = components.credentialSecret
+                        projectExport.credentials = app.db.controllers.Project.exportCredentials(encryptedCreds, projectSecret, exportSecret)
                     } else {
                         projectExport.credentials = encryptedCreds
                     }
@@ -119,13 +124,16 @@ module.exports = {
             } catch (err) {}
         }
         return projectExport
-    }
-}
+    },
 
-function recryptCreds (original, oldKey, newKey) {
-    const newHash = crypto.createHash('sha256').update(newKey).digest()
-    const oldHash = crypto.createHash('sha256').update(oldKey).digest()
-    return encryptCreds(newHash, decryptCreds(oldHash, original))
+    /**
+     * Takes a credentials object and re-encrypts it with a new key
+     */
+    exportCredentials: function (app, original, oldKey, newKey) {
+        const newHash = crypto.createHash('sha256').update(newKey).digest()
+        const oldHash = crypto.createHash('sha256').update(oldKey).digest()
+        return encryptCreds(newHash, decryptCreds(oldHash, original))
+    }
 }
 
 function decryptCreds (key, cipher) {
