@@ -35,10 +35,12 @@ module.exports = async function (settings = {}, config = {}) {
         active: true,
         description: '',
         settings: {
-            httpAdminRoot: ''
+            httpAdminRoot: '',
+            codeEditor: ''
         },
         policy: {
-            httpAdminRoot: true
+            httpAdminRoot: true,
+            codeEditor: true
         }
     }
     const template = await forge.db.models.ProjectTemplate.create(templateProperties)

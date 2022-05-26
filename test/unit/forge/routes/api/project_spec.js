@@ -662,6 +662,83 @@ describe('Project API', function () {
             response.statusCode.should.equal(200)
             JSON.parse(response.payload).should.have.property('name', 'new project name')
         })
+        it('Change 1 project setting', async function () {
+            // Setup some flows/credentials
+            await addFlowsToProject(TestObjects.project1.id,
+                TestObjects.tokens.project,
+                [{ id: 'node1' }],
+                { testCreds: 'abc' },
+                'key1',
+                {
+                    httpAdminRoot: '/test-red',
+                    codeEditor: 'monaco',
+                    env: [
+                        { name: 'one', value: 'a' },
+                        { name: 'two', value: 'b' }
+                    ]
+                }
+            )
+            // call "Update a project" with new httpAdminRoot
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/projects/${TestObjects.project1.id}`,
+                payload: {
+                    settings: {
+                        codeEditor: 'ace'
+                    }
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            await sleep(850) // "Update a project" returns early so it is necessary to wait at least 250ms+500ms (stop/start time as set in stub driver)
+            const newSettings = await TestObjects.project1.getSetting('settings')
+            newSettings.should.have.property('codeEditor', 'ace') // should be changed
+            newSettings.should.have.property('httpAdminRoot', '/test-red') // should be unchanged
+            newSettings.should.have.property('env', [
+                { name: 'one', value: 'a' },
+                { name: 'two', value: 'b' }
+            ]) // should be unchanged
+        })
+        it('Change project env vars', async function () {
+            // Setup some flows/credentials
+            await addFlowsToProject(TestObjects.project1.id,
+                TestObjects.tokens.project,
+                [{ id: 'node1' }],
+                { testCreds: 'abc' },
+                'key1',
+                {
+                    httpAdminRoot: '/test-red',
+                    codeEditor: 'monaco',
+                    env: [
+                        { name: 'one', value: 'a' },
+                        { name: 'two', value: 'b' }
+                    ]
+                }
+            )
+            // call "Update a project" with new httpAdminRoot
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/projects/${TestObjects.project1.id}`,
+                payload: {
+                    settings: {
+                        env: [
+                            { name: 'one', value: '1' },
+                            { name: 'two', value: '2' }
+                        ]
+                    }
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            await sleep(850) // "Update a project" returns early so it is necessary to wait at least 250ms+500ms (stop/start time as set in stub driver)
+            const newSettings = await TestObjects.project1.getSetting('settings')
+            newSettings.should.have.property('codeEditor', 'monaco') // should be unchanged
+            newSettings.should.have.property('httpAdminRoot', '/test-red') // should be unchanged
+            newSettings.should.have.property('env', [
+                { name: 'one', value: '1' },
+                { name: 'two', value: '2' }
+            ]) // should be unchanged
+        })
         it('Export to another project - includes everything ', async function () {
             // Setup some flows/credentials
             await addFlowsToProject(TestObjects.project1.id,
