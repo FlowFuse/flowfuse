@@ -1,6 +1,6 @@
 /**
  * A Project's Library
- * @namespce forge.db.models.StorageLibrary
+ * @namespace forge.db.models.StorageLibrary
  */
 const { DataTypes } = require('sequelize')
 

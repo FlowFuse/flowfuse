@@ -1,6 +1,6 @@
 /**
  * A Project's Session
- * @namespce forge.db.models.StorageSession
+ * @namespace forge.db.models.StorageSession
  */
 const { DataTypes } = require('sequelize')
 

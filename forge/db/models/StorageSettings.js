@@ -1,6 +1,6 @@
 /**
  * A Project's Settings
- * @namespce forge.db.models.StorageSettings
+ * @namespace forge.db.models.StorageSettings
  */
 const { DataTypes } = require('sequelize')
 
