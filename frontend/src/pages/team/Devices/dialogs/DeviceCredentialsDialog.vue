@@ -83,8 +83,6 @@ export default {
         },
         credentials: function () {
             if (this.device) {
-                console.log(this)
-                console.log(this.settings)
                 return `deviceId: ${this.device.id}
 token: ${this.device.credentials.token}
 credentialSecret: ${this.device.credentials.credentialSecret}
