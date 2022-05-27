@@ -40,8 +40,8 @@
 // import devicesApi from '@/api/devices'
 
 import { ref } from 'vue'
+import { mapState } from 'vuex'
 import deviceApi from '@/api/devices'
-import settings from '@/api/settings'
 
 import FormRow from '@/components/FormRow'
 import { DocumentDownloadIcon } from '@heroicons/vue/outline'
@@ -56,9 +56,6 @@ export default {
         return {
             device: null
         }
-    },
-    async mounted () {
-        this.base_url = (await settings.getSettings()).base_url
     },
     methods: {
         downloadCredentials () {
@@ -80,15 +77,18 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['settings']),
         hasCredentials: function () {
             return this.device && this.device.credentials
         },
         credentials: function () {
             if (this.device) {
+                console.log(this)
+                console.log(this.settings)
                 return `deviceId: ${this.device.id}
 token: ${this.device.credentials.token}
 credentialSecret: ${this.device.credentials.credentialSecret}
-forgeURL: ${this.base_url}
+forgeURL: ${this.settings.base_url}
 `
             } else {
                 return ''
