@@ -17,7 +17,8 @@ module.exports = async function (app) {
                 'team:create': app.settings.get('team:create'),
                 email: app.postoffice.enabled(),
                 stacks: app.containers.properties().stack || {},
-                features: app.config.features.getAllFeatures()
+                features: app.config.features.getAllFeatures(),
+                base_url: app.config.base_url
             }
 
             if (request.session.User.admin) {

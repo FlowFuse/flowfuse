@@ -41,6 +41,7 @@
 
 import { ref } from 'vue'
 import deviceApi from '@/api/devices'
+import settings from '@/api/settings'
 
 import FormRow from '@/components/FormRow'
 import { DocumentDownloadIcon } from '@heroicons/vue/outline'
@@ -55,6 +56,9 @@ export default {
         return {
             device: null
         }
+    },
+    async mounted () {
+        this.base_url = (await settings.getSettings()).base_url
     },
     methods: {
         downloadCredentials () {
@@ -84,6 +88,7 @@ export default {
                 return `deviceId: ${this.device.id}
 token: ${this.device.credentials.token}
 credentialSecret: ${this.device.credentials.credentialSecret}
+forgeURL: ${this.base_url}
 `
             } else {
                 return ''
