@@ -40,6 +40,7 @@
 // import devicesApi from '@/api/devices'
 
 import { ref } from 'vue'
+import { mapState } from 'vuex'
 import deviceApi from '@/api/devices'
 
 import FormRow from '@/components/FormRow'
@@ -76,6 +77,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['settings']),
         hasCredentials: function () {
             return this.device && this.device.credentials
         },
@@ -84,6 +86,7 @@ export default {
                 return `deviceId: ${this.device.id}
 token: ${this.device.credentials.token}
 credentialSecret: ${this.device.credentials.credentialSecret}
+forgeURL: ${this.settings.base_url}
 `
             } else {
                 return ''
