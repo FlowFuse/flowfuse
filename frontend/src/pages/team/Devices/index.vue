@@ -53,8 +53,9 @@ import { Roles } from '@core/lib/roles'
 import teamApi from '@/api/team'
 import deviceApi from '@/api/devices'
 import projectApi from '@/api/project'
+import daysSince from '@/utils/daysSince'
 import ItemTable from '@/components/tables/ItemTable'
-import { PlusSmIcon, ClockIcon } from '@heroicons/vue/outline'
+import { CheckCircleIcon, ChipIcon, PlusSmIcon, ClockIcon, ExclamationIcon } from '@heroicons/vue/outline'
 import TeamDeviceCreateDialog from './dialogs/TeamDeviceCreateDialog'
 import ConfirmDeviceDeleteDialog from './dialogs/ConfirmDeviceDeleteDialog'
 import ConfirmDeviceUnassignDialog from './dialogs/ConfirmDeviceUnassignDialog'
@@ -65,24 +66,32 @@ import SectionTopMenu from '@/components/SectionTopMenu'
 
 import DeviceEditButton from './components/DeviceEditButton.vue'
 
+const DeviceLink = {
+    template: `<div class="flex">
+        <ChipIcon class="w-6 mr-2 text-gray-500" />
+        <div class="flex flex-col space-y-1">
+            <span class="text-lg">{{name}}</span>
+            <span class="text-xs text-gray-500">id: {{id}}</span>
+        </div>
+    </div>`,
+    props: ['id', 'name', 'type'],
+    components: { ChipIcon }
+}
 const ProjectLink = {
     template: `<template v-if="project">
-    <router-link :to="{ name: 'Project', params: { id: project.id }}">{{project.name}}</router-link>
-</template>
-<template v-else>
-    <span class="italic text-gray-400">unassigned</span>
-</template>`,
+        <router-link :to="{ name: 'ProjectDevices', params: { id: project.id }}">{{project.name}}</router-link>
+        </template>
+        <template v-else><span class="italic text-gray-500">unassigned</span></template>`,
     props: ['project']
 }
-
-const SnapshotComponent = {
-    template: `<template v-if="id">
-    <router-link to='./snapshots'>{{id}}</router-link>
-</template>
-<template v-else>
-    <span class="italic text-gray-400">none</span>
-</template>`,
-    props: ['id', 'name']
+const LastSeen = {
+    template: '<span><span v-if="lastSeenAt">{{since}}</span><span v-else class="italic text-gray-500">never</span></span>',
+    props: ['lastSeenAt'],
+    computed: {
+        since: function () {
+            return this.lastSeenAt ? daysSince(this.lastSeenAt) : ''
+        }
+    }
 }
 
 export default {
@@ -177,13 +186,41 @@ export default {
             return !this.isProjectDeviceView && this.teamMembership.role === Roles.Owner
         },
         columns: function () {
+            const targetSnapshot = this.project?.deviceSettings.targetSnapshot
+
+            // Because of the limitations of the `ItemTable` component, we need
+            // this SnapshotComponent to know what the Project TargetSnapshot is.
+            // That information is not attached to the devices. So by defining
+            // the component inline here, we have `targetSnapshot` in scope.
+            // This is not good Vue. All of these inline components should be
+            // pulled out - but without a means to attach additional props to
+            // individual cells, we don't have that option right now.
+            const SnapshotComponent = {
+                template: `<span class="flex space-x-4">
+    
+    <span v-if="id || updateNeeded" class="flex items-center space-x-2 text-gray-500 italic">
+        <ExclamationIcon class="text-yellow-600 w-4" v-if="updateNeeded" />
+        <CheckCircleIcon class="text-green-700 w-4" v-else-if="id" />
+    </span>
+    <template v-if="id"><div class="flex flex-col"><span>{{name}}</span><span class="text-xs text-gray-500">{{id}}</span></div></template>
+    <template v-else><span class="italic text-gray-500">none</span></template>
+</span>`,
+                props: ['id', 'name'],
+                computed: {
+                    updateNeeded: function () {
+                        return this.id !== targetSnapshot
+                    }
+                },
+                components: {
+                    ExclamationIcon,
+                    CheckCircleIcon
+                }
+            }
+
             const cols = [
-                { name: 'ID', class: ['w-16'], property: 'id' },
-                { name: 'Device Name', class: ['w-64'], property: 'name' },
-                { name: 'Status', class: ['w-64'], component: { is: markRaw(ProjectStatusBadge) } },
-                { name: 'Type', class: ['w-64'], property: 'type' },
-                { name: 'Last Seen', class: ['w-64'], property: 'lastSeenAt' },
-                { name: 'Type', class: ['w-64'], property: 'type' }
+                { name: 'Device', class: ['w-64'], component: { is: markRaw(DeviceLink) } },
+                { name: 'Status', class: ['w-20'], component: { is: markRaw(ProjectStatusBadge) } },
+                { name: 'Last Seen', class: ['w-64'], component: { is: markRaw(LastSeen) } }
             ]
             if (!this.isProjectDeviceView) {
                 cols.push({
@@ -191,8 +228,8 @@ export default {
                 })
             } else {
                 cols.push(
-                    { name: 'Current', class: ['w-64'], property: 'activeSnapshot', component: { is: markRaw(SnapshotComponent) } },
-                    { name: 'Target', class: ['w-64'], property: 'targetSnapshot', component: { is: markRaw(SnapshotComponent) } }
+                    { name: 'Deployed Snapshot', class: ['w-64'], property: 'activeSnapshot', component: { is: markRaw(SnapshotComponent) } }
+                    // { name: 'Target', class: ['w-64'], property: 'targetSnapshot', component: { is: markRaw(SnapshotComponent) } }
                 )
             }
             cols.push(
