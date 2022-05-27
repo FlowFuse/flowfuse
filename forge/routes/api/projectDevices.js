@@ -62,6 +62,12 @@ module.exports = async function (app) {
                     ProjectId: request.project.id
                 }
             })
+            await app.db.controllers.AuditLog.projectLog(
+                request.project.id,
+                request.session.User.id,
+                'project.snapshot.deviceTarget',
+                { id: request.body.targetSnapshot }
+            )
             reply.send({ status: 'okay' })
         }
     })
