@@ -1,6 +1,5 @@
 # Administering FlowForge
 
-
 ## Getting started
 
  - [Understanding the FlowForge Architecture](../contribute/architecture.md)
@@ -9,6 +8,7 @@
  - [First Run Setup](../install/first-run.md) - create your admin user
  - [FlowForge Concepts](../user/concepts.md)
  - [Usage Telemetry](/docs/admin/telemetry.md)
+ - [User management](/docs/admin/user_management.md)
 
 ## Administering FlowForge
 
