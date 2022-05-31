@@ -2,6 +2,9 @@ const { literal } = require('sequelize')
 
 module.exports = {
     updateState: async function (app, device, state) {
+        if (state.state) {
+            device.set('state', state.state)
+        }
         device.set('lastSeenAt', literal('CURRENT_TIMESTAMP'))
         if (!state.snapshot) {
             if (device.currentSnapshot !== null) {

@@ -53,7 +53,6 @@ import { Roles } from '@core/lib/roles'
 import teamApi from '@/api/team'
 import deviceApi from '@/api/devices'
 import projectApi from '@/api/project'
-import daysSince from '@/utils/daysSince'
 import ItemTable from '@/components/tables/ItemTable'
 import { CheckCircleIcon, ChipIcon, PlusSmIcon, ClockIcon, ExclamationIcon } from '@heroicons/vue/outline'
 import TeamDeviceCreateDialog from './dialogs/TeamDeviceCreateDialog'
@@ -85,20 +84,16 @@ const ProjectLink = {
     props: ['project']
 }
 const LastSeen = {
-    template: '<span><span v-if="lastSeenAt">{{since}}</span><span v-else class="italic text-gray-500">never</span></span>',
-    props: ['lastSeenAt'],
-    computed: {
-        since: function () {
-            return this.lastSeenAt ? daysSince(this.lastSeenAt) : ''
-        }
-    }
+    template: '<span><span v-if="lastSeenSince">{{lastSeenSince}}</span><span v-else class="italic text-gray-500">never</span></span>',
+    props: ['lastSeenSince']
 }
 
 export default {
     name: 'TeamDevices',
     data () {
         return {
-            devices: []
+            devices: [],
+            checkInterval: null
         }
     },
     watch: {
@@ -106,22 +101,27 @@ export default {
         project: 'fetchData'
     },
     mounted () {
-        this.checkAccess()
+        if (!this.features.devices) {
+            useRouter().push({ path: `/team/${useRoute().params.team_slug}` })
+        } else {
+            this.fetchData()
+            this.checkInterval = setInterval(() => {
+                this.fetchData()
+            }, 10000)
+        }
+    },
+    unmounted () {
+        clearInterval(this.checkInterval)
     },
     methods: {
-        checkAccess: async function () {
-            if (!this.features.devices) {
-                useRouter().push({ path: `/team/${useRoute().params.team_slug}` })
-            } else {
-                this.fetchData()
-            }
-        },
         fetchData: async function (newVal) {
             if (this.team.id && !this.project) {
                 const data = await teamApi.getTeamDevices(this.team.id)
+                this.devices.length = 0
                 this.devices = data.devices
             } else if (this.project.id) {
                 const data = await projectApi.getProjectDevices(this.project.id)
+                this.devices.length = 0
                 this.devices = data.devices
             }
         },
