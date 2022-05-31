@@ -51,7 +51,14 @@ module.exports = async function (app) {
     app.delete('/:snapshotId', {
         preHandler: app.needsPermission('project:snapshot:delete')
     }, async (request, reply) => {
+        const id = request.snapshot.hashid
         await request.snapshot.destroy()
+        await app.db.controllers.AuditLog.projectLog(
+            request.project.id,
+            request.session.User.id,
+            'project.snapshot.deleted',
+            { id }
+        )
         reply.send({ status: 'okay' })
     })
 
@@ -71,6 +78,12 @@ module.exports = async function (app) {
             }
         )
         snapShot.User = request.session.User
+        await app.db.controllers.AuditLog.projectLog(
+            request.project.id,
+            request.session.User.id,
+            'project.snapshot.created',
+            { id: snapShot.hashid }
+        )
         reply.send(app.db.views.ProjectSnapshot.snapshot(snapShot))
     })
 }
