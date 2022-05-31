@@ -38,6 +38,9 @@
             <div class="w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.theme" :type="(editTemplate||editable.policy.theme)?'select':'uneditable'" :options="themes">
                     Editor Theme
+                    <template #description>
+                        The FlowForge Theme must be installed to use this.
+                    </template>
                     <template #append><ChangeIndicator :value="editable.changed.settings.theme"></ChangeIndicator></template>
                 </FormRow>
             </div>
