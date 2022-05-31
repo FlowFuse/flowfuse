@@ -2,7 +2,7 @@
  * A Project's Session
  * @namespace forge.db.models.StorageSession
  */
-const { DataTypes } = require('sequelize')
+const { DataTypes, Op } = require('sequelize')
 
 module.exports = {
     name: 'StorageSession',
@@ -22,7 +22,14 @@ module.exports = {
                     })
                 },
                 byUsername: async (username) => {
-                    const allStorageSessions = await this.findAll({ attributes: ['sessions', 'ProjectId'] })
+                    const allStorageSessions = await this.findAll({
+                        where: {
+                            sessions: {
+                                [Op.like]: '%"' + username + '"%'
+                            }
+                        },
+                        attributes: ['sessions', 'ProjectId']
+                    })
                     return allStorageSessions.map(m => {
                         const session = m.sessions ? JSON.parse(m.sessions) : {}
                         const sessions = Object.values(session) || []
