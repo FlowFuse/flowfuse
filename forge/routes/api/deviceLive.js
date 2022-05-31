@@ -31,7 +31,7 @@ module.exports = async function (app) {
      */
     app.post('/state', async (request, reply) => {
         await app.db.controllers.Device.updateState(request.device, request.body)
-        if (request.body.snapshot !== request.device.targetSnapshot?.hashid) {
+        if (request.body.snapshot !== (request.device.targetSnapshot?.hashid || null)) {
             reply.code(409).send({
                 error: 'incorrect-snapshot',
                 snapshot: request.device.targetSnapshot?.hashid || null
