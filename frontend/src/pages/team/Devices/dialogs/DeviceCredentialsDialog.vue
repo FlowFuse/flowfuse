@@ -19,6 +19,7 @@
                     </p>
                     <FormRow v-model="device.id" type="uneditable">Device ID</FormRow>
                     <FormRow v-model="device.credentials.token" type="uneditable">Access Token</FormRow>
+                    <FormRow v-model="device.credentials.credentialSecret" type="uneditable">Credential Secret</FormRow>
                 </template>
             </form>
         </template>
@@ -39,6 +40,7 @@
 // import devicesApi from '@/api/devices'
 
 import { ref } from 'vue'
+import { mapState } from 'vuex'
 import deviceApi from '@/api/devices'
 
 import FormRow from '@/components/FormRow'
@@ -75,6 +77,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['settings']),
         hasCredentials: function () {
             return this.device && this.device.credentials
         },
@@ -82,6 +85,8 @@ export default {
             if (this.device) {
                 return `deviceId: ${this.device.id}
 token: ${this.device.credentials.token}
+credentialSecret: ${this.device.credentials.credentialSecret}
+forgeURL: ${this.settings.base_url}
 `
             } else {
                 return ''

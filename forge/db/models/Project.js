@@ -63,6 +63,7 @@ module.exports = {
         this.hasMany(M.ProjectSettings)
         this.belongsTo(M.ProjectStack)
         this.belongsTo(M.ProjectTemplate)
+        this.hasMany(M.ProjectSnapshot)
     },
     hooks: function (M) {
         return {
@@ -147,6 +148,23 @@ module.exports = {
                         return result.value
                     }
                     return undefined
+                },
+
+                async getCredentialSecret () {
+                    let credentialSecret = await this.getSetting('credentialSecret')
+                    if (!credentialSecret) {
+                        // Older project - check the StorageSettings to see if
+                        // the runtime has generated one
+                        const storageSettings = await M.StorageSettings.byProject(this.id)
+                        if (storageSettings && storageSettings.settings) {
+                            try {
+                                const projectSettings = JSON.parse(storageSettings.settings)
+                                credentialSecret = projectSettings._credentialSecret
+                            } catch (err) {
+                            }
+                        }
+                    }
+                    return credentialSecret
                 }
             },
             static: {
