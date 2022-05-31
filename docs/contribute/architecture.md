@@ -72,7 +72,7 @@ This is a small application that handles downloading the Project specific settin
 
 The launcher presents a HTTP API (it defaults to the Node-RED port + 1000) that allows the FlowForge Management Application to start/stop/restart the Node-RED instance as well as query it's current state and retrieve the console logs.
 
-The launcher projet can be found [here](https://github.com/flowforge/flowforge-nr-launcher)
+The launcher project can be found [here](https://github.com/flowforge/flowforge-nr-launcher)
 
 ### Node-RED Instance
 

@@ -11,7 +11,7 @@ Before changing a stack you should ensure that you have a backup of your data fr
 
 - From the project page  select the `Settings` tab then  the `Danger` section.
 - Click the `Change Project Stack` Button
-- When prompted select your new stack from the availble list 
+- When prompted select your new stack from the available list 
 - Click `Change Stack`
 
 Your project will now restart on the new stack
