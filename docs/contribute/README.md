@@ -104,16 +104,18 @@ After cloning the core repository, you will need to install
 `flowforge/flowforge` dependencies
 
 Instead of using NPM, you can instead run from the latest source code.
-You can check out all the required projects in the same directory
+You can check out all the required projects in the same directory along 
+side the newly cloned `flowforge` directory. The following commands will
+setup everything for you...
 
 ```
-cd flowforge
 git clone https://github.com/flowforge/flowforge-driver-localfs.git
 git clone https://github.com/flowforge/flowforge-nr-launcher.git
 git clone https://github.com/flowforge/flowforge-nr-storage.git
 git clone https://github.com/flowforge/flowforge-nr-auth.git
 git clone https://github.com/flowforge/flowforge-nr-audit-logger.git
 git clone https://github.com/flowforge/forge-ui-components.git
+cd flowforge
 npm run dev:local
 npm run build
 ```
@@ -123,12 +125,12 @@ This will install all the dependencies from source code, create all the required
 > **Note**
 > The `npm run dev:local` script will modify `package.json` in the 
 `flowforge`, `flowforge-nr-launcher` and `flowforge-driver-localfs` projects. 
-> DO NOT check modifications into git.
+> DO NOT check these modifications into git.
 
 ### Create a Stack
 You will need to setup the version(s) of Node-RED you want to use in your stacks.
 
-From the flowforge directory run
+From the `flowforge` directory run
 
 ```
 npm run install-stack --vers=2.2.2
