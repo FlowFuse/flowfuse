@@ -79,7 +79,6 @@ module.exports = fp(async function (app, opts, done) {
                 await verifyToken(request, reply)
             } else if (!request.context.config.allowAnonymous) {
                 reply.code(401).send({ error: 'unauthorized' })
-                throw new Error()
             }
         } catch (err) {
             reply.code(401).send({ error: 'unauthorized' })
