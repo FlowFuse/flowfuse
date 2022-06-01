@@ -10,7 +10,8 @@
                 </ff-button>
             </template>
         </FormHeading>
-        <ItemTable :items="stacks" :columns="columns" />
+        <ff-loading v-if="loading" message="Loading Stacks..." />
+        <ItemTable v-if="!loading" :items="stacks" :columns="columns" />
         <div v-if="nextCursor">
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
         </div>
@@ -96,6 +97,7 @@ export default {
                 v.ondelete = (data) => { this.showConfirmStackDeleteDialog(v) }
                 this.stacks.push(v)
             })
+            this.loading = false
         }
     },
     components: {

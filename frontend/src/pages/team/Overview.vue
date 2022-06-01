@@ -1,5 +1,6 @@
 <template>
-    <div class="block md:flex">
+    <ff-loading v-if="loading" />
+    <div v-else class="block md:flex">
         <div v-if="!showingMessage" class="flex-grow">
             <SectionTopMenu hero="Projects">
                 <template v-if="createProjectEnabled" v-slot:tools>
@@ -44,6 +45,7 @@ export default {
     props: ['team', 'teamMembership'],
     data: function () {
         return {
+            loading: false,
             userCount: 0,
             users: null,
             projectCount: 0,
@@ -71,6 +73,7 @@ export default {
     },
     methods: {
         fetchData: async function (newVal, oldVal) {
+            this.loading = true
             if (this.team.slug) {
                 // Team Data
                 const data = await teamApi.getTeamProjects(this.team.id)
@@ -80,6 +83,8 @@ export default {
                 const members = await teamApi.getTeamMembers(this.team.id)
                 this.userCount = members.count
                 this.users = members.members
+
+                this.loading = false
             }
         },
         // has the user navigated here directly from Stripe, having just completed payment details

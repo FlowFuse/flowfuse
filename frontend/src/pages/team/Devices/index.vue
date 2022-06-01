@@ -24,7 +24,7 @@
                 </ff-button>
             </div>
         </template>
-        <template v-if="devices.length === 0">
+        <template v-if="devices.length === 0 && !loading">
             <div class="flex text-gray-500 justify-center italic mb-4 p-8">
                 <template v-if="isProjectDeviceView">
                     <div class="text-center">
@@ -37,6 +37,7 @@
                 </template>
             </div>
         </template>
+        <ff-loading v-else message="Loading Devices..." />
     </form>
     <TeamDeviceCreateDialog :team="team" @deviceCreated="deviceCreated" @deviceUpdated="deviceUpdated" ref="teamDeviceCreateDialog"/>
     <ConfirmDeviceDeleteDialog @deleteDevice="deleteDevice" ref="confirmDeviceDeleteDialog" />
@@ -92,6 +93,7 @@ export default {
     name: 'TeamDevices',
     data () {
         return {
+            loading: false,
             devices: [],
             checkInterval: null
         }

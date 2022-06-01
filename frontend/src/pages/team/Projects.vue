@@ -18,11 +18,12 @@
                 </ff-button>
             </div>
         </template>
-        <template v-else>
+        <template v-else-if="!loading">
             <div class="flex text-gray-500 justify-center italic mb-4 p-8">
                 You don't have any projects yet
             </div>
         </template>
+        <ff-loading v-else message="Loading Projects..." />
     </form>
 </template>
 
@@ -40,6 +41,7 @@ export default {
     name: 'TeamProjects',
     data () {
         return {
+            loading: false,
             projects: [],
             columns: [
                 { name: 'Name', class: ['flex-grow'], property: 'name', link: 'link' },
@@ -56,10 +58,12 @@ export default {
     },
     methods: {
         fetchData: async function (newVal) {
+            this.loading = true
             if (this.team.id) {
                 const data = await teamApi.getTeamProjects(this.team.id)
                 this.projects = data.projects
             }
+            this.loading = false
         }
     },
     computed: {
