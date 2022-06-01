@@ -183,7 +183,7 @@ module.exports = {
     },
     revokeUserToken: async (project, token) => { // logout:nodered(step-2)
         if (this._driver.logoutNodeRED) {
-            await this._driver.logoutNodeRED(project, token) // logout:nodered(step-3)
+            await this._driver.revokeUserToken(project, token) // logout:nodered(step-3)
         }
     },
     logs: async (project) => {
