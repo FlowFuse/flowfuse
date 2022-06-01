@@ -1,5 +1,7 @@
 <template>
-    <div class="space-y-6">
+    <ff-loading v-if="loading.updating" message="Updating License..." />
+    <ff-loading v-if="loading.checking" message="Checking License..." />
+    <div v-else-if="!isLoading" class="space-y-6">
         <template v-if="!editing.license">
             <FormHeading>License</FormHeading>
             <template v-if="license">
@@ -60,6 +62,10 @@ export default {
     },
     data () {
         return {
+            loading: {
+                updating: false,
+                checking: false
+            },
             license: null,
             inspectedLicense: null,
             errors: {
@@ -79,6 +85,9 @@ export default {
     computed: {
         formValid () {
             return this.input.license.length > 0
+        },
+        isLoading () {
+            return this.loading.updating || this.loading.checking
         }
     },
     watch: {
@@ -95,20 +104,24 @@ export default {
             }, 0)
         },
         async inspectLicense () {
+            this.loading.checking = true
             try {
                 this.inspectedLicense = await adminApi.updateLicense({
                     license: this.input.license,
                     action: 'inspect'
                 })
+                this.loading.checking = false
             } catch (err) {
                 if (err.response && err.response.data && err.response.data.error) {
                     this.errors.license = err.response.data.error
                 } else {
                     this.errors.license = 'Error inspecting license'
                 }
+                this.loading.checking = false
             }
         },
         async applyLicense () {
+            this.loading.updating = true
             try {
                 this.license = await adminApi.updateLicense({
                     license: this.input.license,
@@ -116,6 +129,7 @@ export default {
                 })
                 this.$store.dispatch('account/refreshSettings')
                 this.cancelEditLicense()
+                this.loading.updating = false
             } catch (err) {
                 console.log(err)
                 if (err.response && err.response.data && err.response.data.error) {
@@ -123,6 +137,7 @@ export default {
                 } else {
                     this.errors.license = 'Error applying license'
                 }
+                this.loading.updating = false
             }
         },
         cancelEditLicense () {

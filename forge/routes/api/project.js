@@ -265,7 +265,11 @@ module.exports = async function (app) {
             await project.updateSetting('credentialSecret', generateCredentialSecret())
         }
 
+        console.log('starting container')
+
         await app.containers.start(project)
+
+        console.log('started container')
 
         await app.db.controllers.AuditLog.projectLog(
             project.id,

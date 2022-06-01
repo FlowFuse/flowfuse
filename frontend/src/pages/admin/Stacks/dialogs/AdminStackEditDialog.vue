@@ -1,7 +1,8 @@
 <template>
     <ff-dialog :open="isOpen" :header="(stack ? 'Update' : 'Create') + ' Stack'" @confirm="isOpen = false">
         <template v-slot:default>
-            <form class="space-y-6">
+            <ff-loading v-if="loading" message="Creating Stack..."/>
+            <form v-else class="space-y-6">
                 <FormRow v-if="!stack" :options="options" v-model="input.baseStack">
                     Optionally, use an existing Stack as a starting point:
                 </FormRow>
@@ -18,7 +19,7 @@
         </template>
         <template v-slot:actions>
             <ff-button kind="secondary" @click="close()">Cancel</ff-button>
-            <ff-button kind="primary" @click="confirm()" :disabled="!formValid">{{ (stack ? 'Save' : 'Create') }}</ff-button>
+            <ff-button kind="primary" @click="confirm()" :disabled="!formValid || !loading">{{ (stack ? 'Save' : 'Create') }}</ff-button>
         </template>
     </ff-dialog>
 </template>
@@ -42,6 +43,7 @@ export default {
             stack: null,
             stacks: [],
             options: [],
+            loading: false,
             input: {
                 name: '',
                 active: true,
@@ -130,6 +132,7 @@ export default {
     },
     methods: {
         confirm () {
+            this.loading = true
             const opts = {
                 name: this.input.name,
                 active: this.input.active,
@@ -151,6 +154,8 @@ export default {
                             this.errors.name = 'Name unavailable'
                         }
                     }
+                }).finally(() => {
+                    this.loading = false
                 })
             } else {
                 stacksApi.create(opts).then((response) => {
@@ -163,6 +168,8 @@ export default {
                             this.errors.name = 'Name unavailable'
                         }
                     }
+                }).finally(() => {
+                    this.loading = false
                 })
             }
         }

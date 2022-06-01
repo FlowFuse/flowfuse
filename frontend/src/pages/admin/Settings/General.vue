@@ -1,5 +1,6 @@
 <template>
-    <div class="space-y-4">
+    <ff-loading v-if="loading" message="Saving Settings..."/>
+    <div v-else class="space-y-4">
         <FormHeading>Users</FormHeading>
         <FormRow v-model="input['user:signup']" type="checkbox"  :error="errors.requiresEmail" :disabled="errors.requiresEmail">
             Allow new users to register on the login screen
@@ -93,6 +94,7 @@ export default {
     name: 'AdminSettingsGeneral',
     data () {
         return {
+            loading: false,
             input: {
             },
             errors: {
@@ -138,6 +140,7 @@ export default {
             }
         },
         async saveChanges () {
+            this.loading = true
             const options = {}
             validSettings.forEach(s => {
                 if (this.input[s] !== this.settings[s]) {
@@ -148,12 +151,16 @@ export default {
             // don't save the T&C's URL if no requirement for T&Cs
             options['user:tcs-url'] = this.input['user:tcs-required'] ? options['user:tcs-url'] : null
 
-            try {
-                await settingsApi.updateSettings(options)
-                this.$store.dispatch('account/refreshSettings')
-            } catch (err) {
-                console.warn(err)
-            }
+            settingsApi.updateSettings(options)
+                .then(() => {
+                    this.$store.dispatch('account/refreshSettings')
+                })
+                .catch((err) => {
+                    console.warn(err)
+                })
+                .finally(() => {
+                    this.loading = false
+                })
         }
     },
     components: {
