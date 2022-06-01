@@ -1,12 +1,13 @@
 <template>
     <form class="space-y-6">
+        <ff-loading v-if="loading" message="Loading Snapshots..." />
         <template v-if="snapshots.length > 0">
             <template v-if="createSnapshotEnabled">
                 <ff-button kind="primary" size="small" @click="showCreateSnapshotDialog"><template v-slot:icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
             </template>
             <ItemTable :items="snapshots" :columns="columns" @snapshotAction="snapshotAction"/>
         </template>
-        <template v-else>
+        <template v-else-if="!loading">
             <div class="flex flex-col text-gray-500 items-center italic mb-4 p-8 space-y-6">
                 <div>You have not created any snapshots yet</div>
                 <template v-if="createSnapshotEnabled">
@@ -56,6 +57,7 @@ export default {
     name: 'ProjectSnapshots',
     data () {
         return {
+            loading: false,
             snapshots: []
         }
     },
@@ -68,10 +70,12 @@ export default {
     },
     methods: {
         fetchData: async function (newVal) {
+            this.loading = true
             if (this.project.id) {
                 const data = await snapshotApi.getProjectSnapshots(this.project.id)
                 this.snapshots = data.snapshots
             }
+            this.loading = false
         },
         snapshotAction (action, snapshotId) {
             const snapshot = this.snapshots.find(d => d.id === snapshotId)
