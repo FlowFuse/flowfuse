@@ -60,7 +60,7 @@ export default {
             },
             errors: {
                 email: '',
-                password: 'Password must be at least 8 characters'
+                password: ''
             }
         }
     },
