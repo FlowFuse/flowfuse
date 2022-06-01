@@ -2,7 +2,7 @@
 
 This version of the FlowForge platform is intended for running in the Docker Container management system. Typically suited for small/medium on premise deployments.
 
-### Prerequistes
+### Prerequisites
 
 #### Docker Compose
 
@@ -49,7 +49,7 @@ This container holds the FlowForge App and the Docker Driver
 
 ##### flowforge/node-red
 
-This is a basic Node-RED image with the FlowForge Lanucher and the required Node-RED plugins to talk to the FlowForge Platform.
+This is a basic Node-RED image with the FlowForge Launcher and the required Node-RED plugins to talk to the FlowForge Platform.
 
 This is the container you can customise for your deployment.
 

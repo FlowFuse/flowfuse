@@ -38,7 +38,7 @@ comes to create a new project, they chose from the available stacks.
 
 A Project Template describes properties of Node-RED itself. It is how many of the
 settings a user familiar with Node-RED would be used to modifying in their settings
-file. But it can also be used to customise the palette of nodes that are preinstalled,
+file. But it can also be used to customise the palette of nodes that are pre-installed,
 provide a set of default flows and change the look and feel of the editor.
 
 A template can also specify [Environment Variables](envvar) which can then have their values as editable for each project or locked.
