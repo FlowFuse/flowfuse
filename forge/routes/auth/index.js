@@ -217,7 +217,7 @@ module.exports = fp(async function (app, opts, done) {
                     }
                 }
             } catch (error) {
-                app.log.warn(`Failed to revoke nodered token(s): ${error.toString()}`) // log error but continue to delete session
+                app.log.warn(`Failed to revoke Node-RED token(s): ${error.toString()}`) // log error but continue to delete session
             }
             await app.db.controllers.Session.deleteSession(request.sid)
         }
