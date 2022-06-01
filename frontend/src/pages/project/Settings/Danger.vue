@@ -1,5 +1,8 @@
 <template>
-    <form class="space-y-6">
+    <ff-loading v-if="loading.deleting" message="Deleting Project..." />
+    <ff-loading v-if="loading.duplicating" message="Copying Project..." />
+    <ff-loading v-if="loading.changingStack" message="Changing Stack..." />
+    <form v-if="!isLoading" class="space-y-6">
         <FormHeading>Change Project Stack</FormHeading>
         <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
             <div class="flex-grow">
@@ -75,8 +78,21 @@ import { mapState } from 'vuex'
 export default {
     name: 'ProjectSettingsDanger',
     props: ['project'],
+    emits: ['projectUpdated'],
     computed: {
-        ...mapState('account', ['team'])
+        ...mapState('account', ['team']),
+        isLoading: function () {
+            return this.loading.deleting || this.loading.changingStack || this.loading.duplicating
+        }
+    },
+    data () {
+        return {
+            loading: {
+                deleting: false,
+                changingStack: false,
+                duplicating: false
+            }
+        }
     },
     methods: {
         showConfirmDeleteDialog () {
@@ -103,10 +119,13 @@ export default {
             projectApi.exportProject(this.project.id, parts)
         },
         duplicateProject (parts) {
+            this.loading.duplicating = true
             projectApi.create(parts).then(result => {
                 this.$router.push({ name: 'Project', params: { id: result.id } })
             }).catch(err => {
                 console.log(err)
+            }).finally(() => {
+                this.loading.duplicating = false
             })
         },
         exportToProject (parts) {
@@ -116,19 +135,25 @@ export default {
             projectApi.updateProject(parts.target, options)
         },
         deleteProject () {
+            this.loading.deleting = true
             projectApi.deleteProject(this.project.id).then(() => {
                 this.$router.push({ name: 'Home' })
             }).catch(err => {
                 console.warn(err)
+            }).finally(() => {
+                this.loading.deleting = false
             })
         },
         changeStack (selectedStack) {
             if (this.project.stack.id !== selectedStack) {
+                this.loading.changingStack = true
                 projectApi.changeStack(this.project.id, selectedStack).then(() => {
                     this.$router.push({ name: 'Project', params: { id: this.project.id } })
                     this.$emit('projectUpdated')
                 }).catch(err => {
                     console.warn(err)
+                }).finally(() => {
+                    this.loading.changingStack = false
                 })
             }
         }

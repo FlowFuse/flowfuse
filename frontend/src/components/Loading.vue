@@ -10,7 +10,7 @@
 <script>
 
 export default {
-    name: 'LoadingMessage',
+    name: 'ff-loading',
     props: {
         color: {
             default: 'black', // 'white', 'black'

@@ -13,7 +13,8 @@
     </Teleport>
     <main>
         <div class="max-w-2xl m-auto">
-            <form class="space-y-6">
+            <ff-loading v-if="loading" message="Creating Project..."/>
+            <form v-else class="space-y-6">
                 <SectionTopMenu hero="Create a new project"></SectionTopMenu>
                 <div class="mb-8 text-sm text-gray-500">
                     <template v-if="!isCopyProject">Let's get your new Node-RED project setup in no time.</template>
@@ -81,6 +82,7 @@ export default {
     props: ['sourceProjectId'],
     data () {
         return {
+            loading: false,
             sourceProject: null,
             mounted: false,
             icons: {
@@ -187,6 +189,7 @@ export default {
     },
     methods: {
         createProject () {
+            this.loading = true
             const createPayload = { ...this.input }
             if (this.isCopyProject) {
                 createPayload.sourceProject = {
@@ -198,7 +201,8 @@ export default {
                 this.$router.push({ name: 'Project', params: { id: result.id } })
             }).catch(err => {
                 console.log(err)
-                if (err.response.status === 409) {
+                this.loading = false
+                if (err.response?.status === 409) {
                     this.errors.name = err.response.data.error
                 }
             })
