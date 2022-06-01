@@ -35,7 +35,6 @@
 
 <script>
 import { mapState } from 'vuex'
-import Breadcrumbs from '@/mixins/Breadcrumbs'
 import SideNavigation from '@/components/SideNavigation'
 import NavItem from '@/components/NavItem'
 
@@ -49,14 +48,8 @@ const navigation = [
 
 export default {
     name: 'UserSettings',
-    mixins: [Breadcrumbs],
     computed: {
         ...mapState('account', ['user', 'team'])
-    },
-    created () {
-        this.setBreadcrumbs([
-            { label: 'User Settings', to: { name: 'User Settings' } }
-        ])
     },
     components: {
         SideNavigation,

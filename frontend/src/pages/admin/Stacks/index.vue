@@ -25,7 +25,6 @@ import stacksApi from '@/api/stacks'
 
 import ItemTable from '@/components/tables/ItemTable'
 import FormHeading from '@/components/FormHeading'
-import Breadcrumbs from '@/mixins/Breadcrumbs'
 
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
@@ -40,7 +39,6 @@ import { PlusSmIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'AdminStacks',
-    mixins: [Breadcrumbs],
     data () {
         return {
             stacks: [],
@@ -56,10 +54,6 @@ export default {
         }
     },
     async created () {
-        this.setBreadcrumbs([
-            { label: 'Admin', to: { name: 'Admin Settings' } },
-            { label: 'Stacks' }
-        ])
         await this.loadItems()
     },
     computed: {

@@ -18,11 +18,9 @@ import { mapState } from 'vuex'
 import FlowForgeLogo from '@/components/Logo'
 import NoTeamsUser from './account/NoTeamsUser'
 import NoVerifiedEmail from './account/NoVerifiedEmail'
-import Breadcrumbs from '@/mixins/Breadcrumbs'
 
 export default {
     name: 'HomePage',
-    mixins: [Breadcrumbs],
     computed: {
         ...mapState('account', ['pending', 'user', 'team', 'teams'])
     },
@@ -36,7 +34,6 @@ export default {
         teams: 'redirectOnLoad'
     },
     created () {
-        this.clearBreadcrumbs()
         this.redirectOnLoad()
     },
     methods: {
