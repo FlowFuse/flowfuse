@@ -1,5 +1,5 @@
 <template>
-    <ff-loading v-if="loading" message="Chaning Password..." />
+    <ff-loading v-if="loading" message="Changing Password..." />
     <form v-else class="space-y-6">
         <FormHeading>Change password</FormHeading>
         <FormRow type="password" :error="errors.old_password" v-model="input.old_password" id="old_password">Old Password</FormRow>
