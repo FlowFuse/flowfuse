@@ -5,7 +5,8 @@ import { expect, vi } from 'vitest'
 */
 const mockGet = vi.fn().mockImplementation().mockReturnValue(Promise.resolve({
     data: {
-        teams: []
+        teams: [],
+        devices: []
     }
 }))
 const mockPost = vi.fn().mockImplementation().mockReturnValue(Promise.resolve({ data: {} }))
