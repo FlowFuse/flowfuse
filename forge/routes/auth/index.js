@@ -72,13 +72,16 @@ module.exports = fp(async function (app, opts, done) {
 
     app.decorate('verifyTokenOrSession', async function (request, reply) {
         // Order is important, other way round breaks nr-auth plugin
-        if (request.sid) {
-            await verifySession(request, reply)
-        } else if (request.headers && request.headers.authorization) {
-            await verifyToken(request, reply)
-        } else if (!request.context.config.allowAnonymous) {
+        try {
+            if (request.sid) {
+                await verifySession(request, reply)
+            } else if (request.headers && request.headers.authorization) {
+                await verifyToken(request, reply)
+            } else if (!request.context.config.allowAnonymous) {
+                reply.code(401).send({ error: 'unauthorized' })
+            }
+        } catch (err) {
             reply.code(401).send({ error: 'unauthorized' })
-            throw new Error()
         }
     })
 
