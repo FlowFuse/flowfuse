@@ -212,7 +212,7 @@ module.exports = fp(async function (app, opts, done) {
                         const project = await app.db.models.Project.byId(ProjectId)
                         for (let index = 0; index < session.sessions.length; index++) {
                             const token = session.sessions[index].accessToken
-                            await app.containers.logoutNodeRED(project, token) // logout:nodered(step-2)
+                            await app.containers.revokeUserToken(project, token) // logout:nodered(step-2)
                         }
                     }
                 }
