@@ -64,6 +64,9 @@ module.exports = async function (app) {
         })
     })
 
+    app.get('/db-migrations', async (request, reply) => {
+        reply.send((await app.db.sequelize.query('select * from "MetaVersions"'))[0])
+    })
     app.get('/db-schema', async (request, reply) => {
         const result = {}
         let tables
