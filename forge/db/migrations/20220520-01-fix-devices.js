@@ -19,14 +19,14 @@ module.exports = {
             TeamId: {
                 type: DataTypes.INTEGER,
                 allowNull: true,
-                references: { model: 'Team', key: 'id' },
+                references: { model: 'Teams', key: 'id' },
                 onDelete: 'SET NULL',
                 onUpdate: 'CASCADE'
             },
             ProjectId: {
                 type: DataTypes.UUID,
                 allowNull: true,
-                references: { model: 'Project', key: 'id' },
+                references: { model: 'Projects', key: 'id' },
                 onDelete: 'SET NULL',
                 onUpdate: 'CASCADE'
             }
