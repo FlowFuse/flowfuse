@@ -196,28 +196,28 @@ module.exports = fp(async function (app, opts, done) {
      */
     app.post('/account/logout', { logLevel: 'warn' }, async (request, reply) => {
         if (request.sid) {
-            try {
-                // logout:nodered(step-1)
-                const thisSession = await app.db.models.Session.findOne({
-                    where: { sid: request.sid },
-                    include: app.db.models.User
-                })
-                const userId = thisSession?.UserId
-                if (userId != null) {
-                    const user = await app.db.models.User.byId(userId)
-                    const sessions = await app.db.models.StorageSession.byUsername(user.username)
-                    for (let index = 0; index < sessions.length; index++) {
-                        const session = sessions[index]
-                        const ProjectId = session.ProjectId
-                        const project = await app.db.models.Project.byId(ProjectId)
-                        for (let index = 0; index < session.sessions.length; index++) {
-                            const token = session.sessions[index].accessToken
+            // logout:nodered(step-1)
+            const thisSession = await app.db.models.Session.findOne({
+                where: { sid: request.sid },
+                include: app.db.models.User
+            })
+            const userId = thisSession?.UserId
+            if (userId != null) {
+                const user = await app.db.models.User.byId(userId)
+                const sessions = await app.db.models.StorageSession.byUsername(user.username)
+                for (let index = 0; index < sessions.length; index++) {
+                    const session = sessions[index]
+                    const ProjectId = session.ProjectId
+                    const project = await app.db.models.Project.byId(ProjectId)
+                    for (let index = 0; index < session.sessions.length; index++) {
+                        const token = session.sessions[index].accessToken
+                        try {
                             await app.containers.revokeUserToken(project, token) // logout:nodered(step-2)
+                        } catch (error) {
+                            app.log.warn(`Failed to revoke token for Project ${ProjectId}: ${error.toString()}`) // log error but continue to delete session
                         }
                     }
                 }
-            } catch (error) {
-                app.log.warn(`Failed to revoke Node-RED token(s): ${error.toString()}`) // log error but continue to delete session
             }
             await app.db.controllers.Session.deleteSession(request.sid)
         }
