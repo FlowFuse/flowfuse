@@ -181,6 +181,11 @@ module.exports = {
             this._driver.restartFlows(project, options)
         }
     },
+    revokeUserToken: async (project, token) => { // logout:nodered(step-2)
+        if (this._driver.revokeUserToken) {
+            await this._driver.revokeUserToken(project, token) // logout:nodered(step-3)
+        }
+    },
     logs: async (project) => {
         let value = []
         if (this._driver.logs) {
