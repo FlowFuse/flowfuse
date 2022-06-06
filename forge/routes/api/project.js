@@ -326,9 +326,7 @@ module.exports = async function (app) {
             )
             reply.send({ status: 'okay' })
         } catch (err) {
-            console.log('missing', err)
-            console.log(err)
-            reply.code(500).send({})
+            reply.code(500).send({ error: err.toString() })
         }
     })
 
