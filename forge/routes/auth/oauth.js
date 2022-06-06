@@ -5,7 +5,8 @@ const LRU = require('lru-cache') // https://www.npmjs.com/package/lru-cache
 const crypto = require('crypto')
 
 const requestCache = new LRU({
-    maxAge: 1000 * 60 * 10 // 10 minutes
+    ttl: 1000 * 60 * 10, // 10 minutes,
+    max: 100
 })
 
 function badRequest (reply, error, description) {
