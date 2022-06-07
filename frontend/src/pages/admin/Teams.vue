@@ -1,7 +1,8 @@
 <template>
     <form>
         <SectionTopMenu hero="Teams" />
-        <ItemTable :items="teams" :columns="columns" />
+        <ff-loading v-if="loading" message="Loading Teams..." />
+        <ItemTable v-if="!loading" :items="teams" :columns="columns" />
         <div v-if="nextCursor">
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
         </div>

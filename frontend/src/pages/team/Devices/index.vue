@@ -5,7 +5,8 @@
         </template>
     </SectionTopMenu>
     <form class="space-y-6">
-        <template v-if="devices.length > 0">
+        <ff-loading v-if="loading" message="Loading Devices..." />
+        <template v-else-if="devices.length > 0">
             <template v-if="isProjectDeviceView">
                 <div class="flex space-x-8">
                     <ff-button kind="primary" size="small" @click="showCreateDeviceDialog"><template v-slot:icon-left><PlusSmIcon /></template>Register Device</ff-button>
@@ -14,7 +15,7 @@
             </template>
             <ItemTable :items="devices" :columns="columns" @deviceAction="deviceAction"/>
         </template>
-        <template v-else-if="addDeviceEnabled">
+        <template v-else-if="addDeviceEnabled && !loading">
             <div class="flex justify-center mb-4 p-8">
                 <ff-button @click="showCreateDeviceDialog">
                     <template v-slot:icon-right>
@@ -24,7 +25,7 @@
                 </ff-button>
             </div>
         </template>
-        <template v-if="devices.length === 0">
+        <template v-if="devices.length === 0 && !loading">
             <div class="flex text-gray-500 justify-center italic mb-4 p-8">
                 <template v-if="isProjectDeviceView">
                     <div class="text-center">
@@ -92,6 +93,7 @@ export default {
     name: 'TeamDevices',
     data () {
         return {
+            loading: false,
             devices: [],
             checkInterval: null
         }
@@ -115,6 +117,7 @@ export default {
     },
     methods: {
         fetchData: async function (newVal) {
+            this.loading = true
             if (this.team.id && !this.project) {
                 const data = await teamApi.getTeamDevices(this.team.id)
                 this.devices.length = 0
@@ -124,6 +127,7 @@ export default {
                 this.devices.length = 0
                 this.devices = data.devices
             }
+            this.loading = false
         },
         showCreateDeviceDialog () {
             this.$refs.teamDeviceCreateDialog.show(null, this.project)
