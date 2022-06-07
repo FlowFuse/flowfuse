@@ -117,6 +117,7 @@ export default {
     },
     methods: {
         fetchData: async function (newVal) {
+            this.loading = true
             if (this.team.id && !this.project) {
                 const data = await teamApi.getTeamDevices(this.team.id)
                 this.devices.length = 0
@@ -126,6 +127,7 @@ export default {
                 this.devices.length = 0
                 this.devices = data.devices
             }
+            this.loading = false
         },
         showCreateDeviceDialog () {
             this.$refs.teamDeviceCreateDialog.show(null, this.project)
