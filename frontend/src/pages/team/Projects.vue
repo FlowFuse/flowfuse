@@ -5,7 +5,8 @@
         </template>
     </SectionTopMenu>
     <form class="space-y-6">
-        <template v-if="projects.length > 0">
+        <ff-loading v-if="loading" message="Loading Projects..." />
+        <template v-else-if="projects.length > 0">
             <ItemTable :items="projects" :columns="columns" />
         </template>
         <template v-else-if="createProjectEnabled">
@@ -18,12 +19,11 @@
                 </ff-button>
             </div>
         </template>
-        <template v-else-if="!loading">
+        <template v-else>
             <div class="flex text-gray-500 justify-center italic mb-4 p-8">
                 You don't have any projects yet
             </div>
         </template>
-        <ff-loading v-else message="Loading Projects..." />
     </form>
 </template>
 
