@@ -4,8 +4,12 @@
 
 * {
     box-sizing: border-box;
-    transition: 0.3s color, 0.3s background-color;
-    -webkit-transition: 0.3s color, 0.3s background-color;
+}
+
+.transition-fade--color {
+    --time: 0.3s;
+    transition: var(--time) color, var(--time) background-color, var(--time) fill, var(--time) stroke, var(--time) border-color;
+    -webkit-transition: var(--time) color, var(--time) background-color, var(--time) fill, var(--time) stroke, var(--time) border-color;
 }
 
 html {
@@ -44,4 +48,8 @@ code {
     border-radius: $ff-unit-sm;
     border: 1px solid $ff-grey-200;
     padding: $ff-unit-md;
+}
+
+p code {
+    padding: 0 $ff-unit-xs;
 }

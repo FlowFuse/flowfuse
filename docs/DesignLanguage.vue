@@ -59,7 +59,7 @@
                         <code>{{ groups['button'].components[0].examples[5].code }}</code>
                     </div>
                     <div class="example">
-                        <ff-button kind="primary">
+                        <ff-button kind="secondary">
                             <template v-slot:icon-right><PlusSmIcon /></template>
                             Hello World
                         </ff-button>
