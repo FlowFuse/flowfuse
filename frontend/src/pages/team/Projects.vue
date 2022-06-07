@@ -9,7 +9,7 @@
         <template v-else-if="projects.length > 0">
             <ItemTable :items="projects" :columns="columns" />
         </template>
-        <template v-else-if="createProjectEnabled">
+        <template v-else-if="createProjectEnabled && !loading">
             <div class="flex justify-center mb-4 p-8">
                 <ff-button to="./projects/create">
                     <template v-slot:icon-right>

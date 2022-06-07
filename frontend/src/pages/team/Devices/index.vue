@@ -5,7 +5,8 @@
         </template>
     </SectionTopMenu>
     <form class="space-y-6">
-        <template v-if="devices.length > 0">
+        <ff-loading v-if="loading" message="Loading Devices..." />
+        <template v-else-if="devices.length > 0">
             <template v-if="isProjectDeviceView">
                 <div class="flex space-x-8">
                     <ff-button kind="primary" size="small" @click="showCreateDeviceDialog"><template v-slot:icon-left><PlusSmIcon /></template>Register Device</ff-button>
@@ -14,7 +15,7 @@
             </template>
             <ItemTable :items="devices" :columns="columns" @deviceAction="deviceAction"/>
         </template>
-        <template v-else-if="addDeviceEnabled">
+        <template v-else-if="addDeviceEnabled && !loading">
             <div class="flex justify-center mb-4 p-8">
                 <ff-button @click="showCreateDeviceDialog">
                     <template v-slot:icon-right>
@@ -37,7 +38,6 @@
                 </template>
             </div>
         </template>
-        <ff-loading v-else message="Loading Devices..." />
     </form>
     <TeamDeviceCreateDialog :team="team" @deviceCreated="deviceCreated" @deviceUpdated="deviceUpdated" ref="teamDeviceCreateDialog"/>
     <ConfirmDeviceDeleteDialog @deleteDevice="deleteDevice" ref="confirmDeviceDeleteDialog" />
