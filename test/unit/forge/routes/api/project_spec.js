@@ -640,6 +640,71 @@ describe('Project API', function () {
             })).json()
             runtimeSettings.should.have.property('stack', { nodered: '999.998.997' })
         })
+
+        it('Change project stack - legacy project', async function () {
+            // Check a 0.2.0 project that does not have a Stack can have its
+            // stack set.
+
+            // Setup some flows/credentials
+            await addFlowsToProject(TestObjects.project1.id,
+                TestObjects.tokens.project,
+                [{ id: 'node1' }],
+                { testCreds: 'abc' },
+                'key1',
+                {
+                    httpAdminRoot: '/test-red',
+                    env: [
+                        { name: 'one', value: 'a' },
+                        { name: 'two', value: 'b' }
+                    ]
+                }
+            )
+            // Duplicate project then update its stack
+            // NOTE: Cannot change stack on TestObjects.project1 as it errors
+            // when being stopped at `await app.containers.stop(request.project)`
+            const newProject = await duplicateProject(
+                TestObjects.project1.id,
+                TestObjects.ATeam.hashid,
+                TestObjects.template1.hashid,
+                TestObjects.stack1.hashid,
+                { flows: false, credentials: false, envVars: false },
+                TestObjects.tokens.alice
+            )
+
+            // Delete the stack from the project
+            newProject.ProjectStackId = null
+            await newProject.save()
+
+            // create another stack
+            const stackProperties = {
+                name: 'stack2',
+                active: true,
+                properties: { nodered: '999.998.997' }
+            }
+            const stack2 = await app.db.models.ProjectStack.create(stackProperties)
+
+            // call "Update a project" with a different stack id
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/projects/${newProject.id}`,
+                payload: {
+                    stack: stack2.id
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            await sleep(850) // "Update a project" returns early so it is necessary to wait at least 250ms+500ms (stop/start time as set in stub driver)
+            const newAccessToken = (await newProject.refreshAuthTokens()).token
+            const runtimeSettings = (await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${newProject.id}/settings`,
+                headers: {
+                    authorization: `Bearer ${newAccessToken}`
+                }
+            })).json()
+            runtimeSettings.should.have.property('stack', { nodered: '999.998.997' })
+        })
+
         it('Change project name', async function () {
             // Setup some flows/credentials
             await addFlowsToProject(TestObjects.project1.id,
