@@ -16,7 +16,7 @@
         }, {
             "code": "<ff-button kind=\"primary\">\n\t<template v-slot:icon-left><PlusSmIcon /></template>\n\tHello World\n</ff-button>"
         }, {
-            "code": "<ff-button kind=\"primary\">\n\t<template v-slot:icon-right><PlusSmIcon /></template>\n\tHello World\n</ff-button>"
+            "code": "<ff-button kind=\"secondary\">\n\t<template v-slot:icon-right><PlusSmIcon /></template>\n\tHello World\n</ff-button>"
         }, {
             "code": "<ff-button kind=\"primary\" size=\"small\">\n\t<template v-slot:icon-left><PlusSmIcon /></template>\n\tHello World\n</ff-button>"
         }, {
