@@ -145,7 +145,7 @@ export default {
             })
         },
         changeStack (selectedStack) {
-            if (this.project.stack.id !== selectedStack) {
+            if (this.project.stack?.id !== selectedStack) {
                 this.loading.changingStack = true
                 projectApi.changeStack(this.project.id, selectedStack).then(() => {
                     this.$router.push({ name: 'Project', params: { id: this.project.id } })

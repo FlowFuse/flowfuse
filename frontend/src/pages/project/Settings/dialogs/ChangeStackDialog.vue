@@ -52,15 +52,15 @@ export default {
             },
             async show (project) {
                 this.project = project
-                this.input.stack = this.project.stack.id
+                this.input.stack = this.project.stack?.id
                 isOpen.value = true
                 const stackList = await stacksApi.getStacks()
                 this.stacks = stackList.stacks
-                    .filter(stack => (stack.active || stack.id === this.project.stack.id))
+                    .filter(stack => (stack.active || stack.id === this.project.stack?.id))
                     .map(stack => {
                         return {
                             value: stack.id,
-                            label: stack.name + (stack.id === this.project.stack.id ? ' (current)' : '')
+                            label: stack.name + (stack.id === this.project.stack?.id ? ' (current)' : '')
                         }
                     })
             }

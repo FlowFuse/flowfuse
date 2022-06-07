@@ -338,7 +338,7 @@ module.exports = async function (app) {
     app.put('/:projectId', { preHandler: app.needsPermission('project:edit') }, async (request, reply) => {
         let changed = false
         if (request.body.stack) {
-            if (request.body.stack !== request.project.ProjectStack.id) {
+            if (request.body.stack !== request.project.ProjectStack?.id) {
                 const stack = await app.db.models.ProjectStack.byId(request.body.stack)
                 if (!stack) {
                     reply.code(400).send({ error: 'Invalid stack' })
