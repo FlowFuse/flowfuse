@@ -79,7 +79,7 @@
     background-color: $ff-color--danger;
     border: 1px solid $ff-color--danger;
     &:hover {
-      background-color: $ff-color--danger;
+      background-color: $ff-color--danger--dark;
       color: $ff-white;
     }
   }
@@ -194,6 +194,7 @@ li.ff-list-item {
     height: 32px;
     width: 100%;
     &:focus {
+      border-color: $ff-blue-600;
       outline: none;
     }
   }
