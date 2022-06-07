@@ -45,3 +45,7 @@ code {
     border: 1px solid $ff-grey-200;
     padding: $ff-unit-md;
 }
+
+p code {
+    padding: 0 $ff-unit-xs;
+}
