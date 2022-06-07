@@ -19,7 +19,7 @@
         </template>
         <template v-slot:actions>
             <ff-button kind="secondary" @click="close()">Cancel</ff-button>
-            <ff-button kind="primary" @click="confirm()" :disabled="!formValid || !loading">{{ (stack ? 'Save' : 'Create') }}</ff-button>
+            <ff-button kind="primary" @click="confirm()" :disabled="!formValid || loading">{{ (stack ? 'Save' : 'Create') }}</ff-button>
         </template>
     </ff-dialog>
 </template>
