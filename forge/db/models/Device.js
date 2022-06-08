@@ -52,6 +52,11 @@ module.exports = {
                         token: accessToken.token,
                         credentialSecret
                     }
+                },
+                async getAccessToken () {
+                    return M.AccessToken.findOne({
+                        where: { ownerId: '' + this.id }
+                    })
                 }
             },
             static: {
