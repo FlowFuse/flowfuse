@@ -106,8 +106,11 @@ export default {
         if (!this.features.devices) {
             useRouter().push({ path: `/team/${useRoute().params.team_slug}` })
         } else {
+            // Set loading flag to true for initial page load
+            this.loading = true
             this.fetchData()
             this.checkInterval = setInterval(() => {
+                // Do not set loading flag so the refresh happens in the background
                 this.fetchData()
             }, 10000)
         }
@@ -117,7 +120,6 @@ export default {
     },
     methods: {
         fetchData: async function (newVal) {
-            this.loading = true
             if (this.team.id && !this.project) {
                 const data = await teamApi.getTeamDevices(this.team.id)
                 this.devices.length = 0
