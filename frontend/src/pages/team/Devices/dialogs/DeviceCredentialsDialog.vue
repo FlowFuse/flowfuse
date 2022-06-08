@@ -17,9 +17,11 @@
                         credentials. Make a note of them as this is the only
                         time you will see them.
                     </p>
+                    <pre class="overflow-auto text-sm p-4 border rounded bg-gray-800 text-gray-200">{{ this.credentials }}</pre>
+                    <!--
                     <FormRow v-model="device.id" type="uneditable">Device ID</FormRow>
                     <FormRow v-model="device.credentials.token" type="uneditable">Access Token</FormRow>
-                    <FormRow v-model="device.credentials.credentialSecret" type="uneditable">Credential Secret</FormRow>
+                    <FormRow v-model="device.credentials.credentialSecret" type="uneditable">Credential Secret</FormRow> -->
                 </template>
             </form>
         </template>
@@ -29,7 +31,7 @@
                 <ff-button kind="danger" class="ml-4" @click="regenerateCredentials()">Regenerate credentials</ff-button>
             </template>
             <template v-else>
-                <ff-button kind="secondary" @click="downloadCredentials()"><template v-slot:icon-left><DocumentDownloadIcon /></template>Download credentials file</ff-button>
+                <ff-button kind="secondary" @click="downloadCredentials()"><template v-slot:icon-left><DocumentDownloadIcon /></template>Download device-{{ this.device.id }}.yml</ff-button>
                 <ff-button class="ml-4" @click="close()">Done</ff-button>
             </template>
         </template>
@@ -61,7 +63,7 @@ export default {
         downloadCredentials () {
             const element = document.createElement('a')
             element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(this.credentials))
-            element.setAttribute('download', `ff-credentials-${this.device.id}.yml`)
+            element.setAttribute('download', `device-${this.device.id}.yml`)
             element.style.display = 'none'
             document.body.appendChild(element)
             element.click()
