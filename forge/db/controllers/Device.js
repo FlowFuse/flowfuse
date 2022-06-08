@@ -11,8 +11,12 @@ module.exports = {
                 device.set('activeSnapshotId', null)
             }
         } else {
+            // Check the snapshot is one we recognise
             const snapshotId = app.db.models.ProjectSnapshot.decodeHashid(state.snapshot)
-            device.set('activeSnapshotId', snapshotId)
+            // hashid.decode returns an array of values, not the raw value.
+            if (snapshotId.length > 0) {
+                device.set('activeSnapshotId', snapshotId)
+            }
         }
         await device.save()
     }
