@@ -1,3 +1,6 @@
+#### 0.6.0: Release
+
+
 #### v0.5.0: Release
 
  - Fix stack installer (#571) @hardillb
