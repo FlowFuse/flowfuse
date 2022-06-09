@@ -8,7 +8,7 @@ Within the project view the logs tab displays the Node-RED log. This will contai
 
 The log information is kept back to the last time the container was restarted, you can view older information on the `Load earlier...` link at the top of the log.
 
-<img src="images/projectlog.png" width=300 />
+<img src="images/projectlog.png" width="500" />
 
 ## Project Activity
 
@@ -16,7 +16,7 @@ The activity tab on the project view shows key actions relating to the project, 
 
 This log will contain all data since the project was created, you can view older data using the `Load More...` link at the bottom of the log.
 
-<img src="images/projectactivity.png" width=300 />
+<img src="images/projectactivity.png" width="500" />
 
 ## Team Audit Log
 
@@ -25,4 +25,4 @@ Users being invited to the team, accepting the invite, along with user's being g
 
 This log will contain all data since the team was created, you can view older data using the `Load More...` link at the bottom of the log.
 
-<img src="images/teamauditlog.png" width=300 />
+<img src="images/teamauditlog.png" width="500" />
