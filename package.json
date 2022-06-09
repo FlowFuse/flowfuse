@@ -1,6 +1,6 @@
 {
     "name": "@flowforge/flowforge",
-    "version": "0.5.0",
+    "version": "0.6.0",
     "description": "An open source low-code development platform",
     "scripts": {
         "start": "node forge/app.js",
@@ -50,7 +50,7 @@
         "@fastify/csrf-protection": "^4.0.1",
         "@fastify/static": "^5.0.2",
         "@flowforge/forge-ui-components": "^0.2.3",
-        "@flowforge/localfs": "^0.5.0",
+        "@flowforge/localfs": "^0.6.0",
         "@headlessui/vue": "1.6.3",
         "@heroicons/vue": "1.0.6",
         "axios": "^0.27.2",

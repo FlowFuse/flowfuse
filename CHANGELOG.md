@@ -1,3 +1,60 @@
+#### 0.6.0: Release
+
+ - Add admin endpoint to list db migrations
+ - Add devices and snapshots to concepts docs (#664) @knolleary
+ - Improve Device Credentials dialog ux (#678) @knolleary
+ - Only show Device Loading on initial page load (#675) @knolleary
+ - Handle a device that reports an invalid snapshot id (#679) @knolleary
+ - Override default Device.getAccessToken to pass id as string (#677) @knolleary
+ - Fix axios network error detection (#676) @knolleary
+ - Fix device queries for postgres (#672) @knolleary
+ - Allow a stack-less project have a stack applied (#671) @knolleary
+ - Update the min required version of forge-ui-components (#668) @joepavitt
+ - Loading component displayed when loading data from API (#656) @joepavitt
+ - Increase default api timeout to 30s (#670) @knolleary
+ - Enable device feature by default (#667) @knolleary
+ - Update dependencies and fix test runners (#665) @knolleary
+ - Fix loading logic on stack create dialog (#659) @knolleary
+ - Map FlowForge logout to nodered auth/revoke (#643) @Steve-Mcl
+ - Better handle billing errors whilst deleting projects (#663) @knolleary
+ - Fix db migrations (#661) @knolleary
+ - Add admin-only endpoint to dump database schema (#660) @knolleary
+ - Remove default error for password field & restyle disabled primary btn for box layout (#652) @joepavitt
+ - Show loading graphic when button actions taking place. (#650) @joepavitt
+ - Remove image on server-offline page (#651) @joepavitt
+ - Fix frontend team api test (#645) @knolleary
+ - Improve docs for first time developer setup (#623) @Steve-Mcl
+ - Frontend Unit Testing (#627) @joepavitt
+ - Standardise on SectionTopMenu for project header element (#637) @knolleary
+ - Fix device live endpoint to handle null snapshot (#644) @knolleary
+ - Add audit log events for snapshots and devices (#639) @knolleary
+ - Add device state in dashboard with periodic refresh (#640) @knolleary
+ - Add devices/projectSnapshots/stacks/templates counts to telemetry ping (#641) @knolleary
+ - Add project version info to Project overview (#642) @knolleary
+ - docs: Start admin user management documentation (#628) @ZJvandeWeg
+ - Add description to snapshots and improve UX (#634) @knolleary
+ - Add forgeURL to downloaded credentials file (#638) @hardillb
+ - Add exportCredentials function on Project controller to handle re-encryption (#630) @knolleary
+ - Correct minor typos (#631) @Steve-Mcl
+ - Dont clear env vars when setting a regular setting (#635) @Steve-Mcl
+ - Ensure deviceLive endpoints are accessed by valid Device Token (#629) @knolleary
+ - Fix merge error in device model (#624) @knolleary
+ - Add live device endpoints (#618) @knolleary
+ - Add ProjectSnapshots (#603) @knolleary
+ - Auto generate credential secret for NR project to remove warnings in log (#604) @Steve-Mcl
+ - Revert debugging line (v-if="offline") (#620) @joepavitt
+ - Change input type to "password" for signup (#619) @joepavitt
+ - docs: Link to change stack docs (#617) @ZJvandeWeg
+ - Rebrand 404 (#611) @joepavitt
+ - Rebrand offline (#610) @joepavitt
+ - Add support for Lottie animations & add white/black loading animations (#609) @joepavitt
+ - Add missing steps to dev:local (#588) @Steve-Mcl
+ - fix start-watch npm script (#605) @Steve-Mcl
+ - Add Shebang to install-stack.js (#581) @hardillb
+ - Add recomended minimum memory to localfs stack doc (#584) @hardillb
+ - Add cross-env to support development in other OS (#585) @Steve-Mcl
+ - docs: Update codeblock names (#582) @ZJvandeWeg
+
 #### v0.5.0: Release
 
  - Fix stack installer (#571) @hardillb
