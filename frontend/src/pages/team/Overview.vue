@@ -1,12 +1,12 @@
 <template>
-    <div class="block md:flex">
-        <div v-if="!showingMessage" class="flex-grow p-2">
-            <FormHeading>
-                <router-link to="./projects">Projects</router-link>
+    <ff-loading v-if="loading" />
+    <div v-else class="block md:flex">
+        <div v-if="!showingMessage" class="flex-grow">
+            <SectionTopMenu hero="Projects">
                 <template v-if="createProjectEnabled" v-slot:tools>
                     <ff-button kind="primary" size="small" to="./projects/create"><template v-slot:icon-left><PlusSmIcon /></template>Create Project</ff-button>
                 </template>
-            </FormHeading>
+            </SectionTopMenu>
             <template v-if="projectCount > 0">
                 <ProjectSummaryList :projects="projects" :team="team" />
             </template>
@@ -16,16 +16,14 @@
                 </div>
             </template>
         </div>
-        <div v-else class="flex-grow p-2">
+        <div v-else class="flex-grow">
             <p>
                 Thank you for signing up to FlowForge. You are now able to create projects and use the platform.
             </p>
             <ff-button kind="primary" size="small" to="./projects/create"><template v-slot:icon-left><PlusSmIcon /></template>Create Project</ff-button>
         </div>
-        <div class="md:w-48 p-2 md:ml-8">
-            <FormHeading>
-                <router-link to="./members">Members</router-link>
-            </FormHeading>
+        <div class="md:w-48 md:ml-8 mt-8 md:mt-0">
+            <SectionTopMenu hero="Members" />
             <MemberSummaryList :users="users" />
         </div>
     </div>
@@ -37,7 +35,7 @@ import { Roles } from '@core/lib/roles'
 
 import teamApi from '@/api/team'
 
-import FormHeading from '@/components/FormHeading'
+import SectionTopMenu from '@/components/SectionTopMenu'
 import MemberSummaryList from './components/MemberSummaryList'
 import ProjectSummaryList from './components/ProjectSummaryList'
 import { PlusSmIcon } from '@heroicons/vue/outline'
@@ -47,6 +45,7 @@ export default {
     props: ['team', 'teamMembership'],
     data: function () {
         return {
+            loading: false,
             userCount: 0,
             users: null,
             projectCount: 0,
@@ -74,6 +73,7 @@ export default {
     },
     methods: {
         fetchData: async function (newVal, oldVal) {
+            this.loading = true
             if (this.team.slug) {
                 // Team Data
                 const data = await teamApi.getTeamProjects(this.team.id)
@@ -83,6 +83,8 @@ export default {
                 const members = await teamApi.getTeamMembers(this.team.id)
                 this.userCount = members.count
                 this.users = members.members
+
+                this.loading = false
             }
         },
         // has the user navigated here directly from Stripe, having just completed payment details
@@ -91,7 +93,7 @@ export default {
         }
     },
     components: {
-        FormHeading,
+        SectionTopMenu,
         MemberSummaryList,
         ProjectSummaryList,
         PlusSmIcon

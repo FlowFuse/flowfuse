@@ -5,7 +5,8 @@
         </template>
     </SectionTopMenu>
     <form class="space-y-6">
-        <template v-if="devices.length > 0">
+        <ff-loading v-if="loading" message="Loading Devices..." />
+        <template v-else-if="devices.length > 0">
             <template v-if="isProjectDeviceView">
                 <div class="flex space-x-8">
                     <ff-button kind="primary" size="small" @click="showCreateDeviceDialog"><template v-slot:icon-left><PlusSmIcon /></template>Register Device</ff-button>
@@ -14,7 +15,7 @@
             </template>
             <ItemTable :items="devices" :columns="columns" @deviceAction="deviceAction"/>
         </template>
-        <template v-else-if="addDeviceEnabled">
+        <template v-else-if="addDeviceEnabled && !loading">
             <div class="flex justify-center mb-4 p-8">
                 <ff-button @click="showCreateDeviceDialog">
                     <template v-slot:icon-right>
@@ -24,7 +25,7 @@
                 </ff-button>
             </div>
         </template>
-        <template v-if="devices.length === 0">
+        <template v-if="devices.length === 0 && !loading">
             <div class="flex text-gray-500 justify-center italic mb-4 p-8">
                 <template v-if="isProjectDeviceView">
                     <div class="text-center">
@@ -53,7 +54,6 @@ import { Roles } from '@core/lib/roles'
 import teamApi from '@/api/team'
 import deviceApi from '@/api/devices'
 import projectApi from '@/api/project'
-import daysSince from '@/utils/daysSince'
 import ItemTable from '@/components/tables/ItemTable'
 import { CheckCircleIcon, ChipIcon, PlusSmIcon, ClockIcon, ExclamationIcon } from '@heroicons/vue/outline'
 import TeamDeviceCreateDialog from './dialogs/TeamDeviceCreateDialog'
@@ -85,20 +85,17 @@ const ProjectLink = {
     props: ['project']
 }
 const LastSeen = {
-    template: '<span><span v-if="lastSeenAt">{{since}}</span><span v-else class="italic text-gray-500">never</span></span>',
-    props: ['lastSeenAt'],
-    computed: {
-        since: function () {
-            return this.lastSeenAt ? daysSince(this.lastSeenAt) : ''
-        }
-    }
+    template: '<span><span v-if="lastSeenSince">{{lastSeenSince}}</span><span v-else class="italic text-gray-500">never</span></span>',
+    props: ['lastSeenSince']
 }
 
 export default {
     name: 'TeamDevices',
     data () {
         return {
-            devices: []
+            loading: false,
+            devices: [],
+            checkInterval: null
         }
     },
     watch: {
@@ -106,24 +103,33 @@ export default {
         project: 'fetchData'
     },
     mounted () {
-        this.checkAccess()
+        if (!this.features.devices) {
+            useRouter().push({ path: `/team/${useRoute().params.team_slug}` })
+        } else {
+            // Set loading flag to true for initial page load
+            this.loading = true
+            this.fetchData()
+            this.checkInterval = setInterval(() => {
+                // Do not set loading flag so the refresh happens in the background
+                this.fetchData()
+            }, 10000)
+        }
+    },
+    unmounted () {
+        clearInterval(this.checkInterval)
     },
     methods: {
-        checkAccess: async function () {
-            if (!this.features.devices) {
-                useRouter().push({ path: `/team/${useRoute().params.team_slug}` })
-            } else {
-                this.fetchData()
-            }
-        },
         fetchData: async function (newVal) {
             if (this.team.id && !this.project) {
                 const data = await teamApi.getTeamDevices(this.team.id)
+                this.devices.length = 0
                 this.devices = data.devices
             } else if (this.project.id) {
                 const data = await projectApi.getProjectDevices(this.project.id)
+                this.devices.length = 0
                 this.devices = data.devices
             }
+            this.loading = false
         },
         showCreateDeviceDialog () {
             this.$refs.teamDeviceCreateDialog.show(null, this.project)

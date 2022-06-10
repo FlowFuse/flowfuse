@@ -1,5 +1,6 @@
 <template>
-    <form class="space-y-6">
+    <ff-loading v-if="loading" message="" />
+    <form v-else class="space-y-6">
         <FormRow v-model="input.username" :error="errors.username">Username</FormRow>
         <FormRow v-model="input.name" :placeholder="input.username">Name</FormRow>
         <FormRow v-model="input.email" :error="errors.email">Email</FormRow>
@@ -20,6 +21,7 @@ export default {
     data () {
         const currentUser = this.$store.getters['account/user']
         return {
+            loading: false,
             user: currentUser,
             errors: {},
             input: {
@@ -53,6 +55,7 @@ export default {
     },
     methods: {
         confirm () {
+            this.loading = true
             const opts = {}
             let changed = false
             if (this.input.username !== this.user.username) {
@@ -90,6 +93,8 @@ export default {
                             this.errors.email = 'Email already registered'
                         }
                     }
+                }).finally(() => {
+                    this.loading = false
                 })
             }
         }

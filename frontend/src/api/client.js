@@ -5,7 +5,7 @@ const client = axios.create({
     headers: {
         'Content-Type': 'application/json'
     },
-    timeout: 5000
+    timeout: 30000
 })
 
 client.interceptors.response.use(function (response) {
@@ -15,7 +15,7 @@ client.interceptors.response.use(function (response) {
         // 401 when !pending && !loginInflight means the session has expired
         store.dispatch('account/logout')
         return Promise.reject(error)
-    } else if (!error.response) {
+    } else if (error.code === 'ERR_NETWORK') {
         // network error
         store.dispatch('account/setOffline', true)
     }

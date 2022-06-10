@@ -1,6 +1,28 @@
 # Using FlowForge
 
- - [FlowForge Concepts](concepts.md) - Understand the core concepts of the FlowForge platform
+This guide will help you learn how to use the FlowForge platform to quickly create
+new Node-RED projects.
+
+## Concepts
+
+Within FlowForge, each Node-RED instance is called a _Project_. The Project is owned
+by a _Team_ that provides all the necessary access control.
+
+The Project is created from a _Template_ that provides its default settings and runs
+on a _Stack_ that determines the Node-RED version, memory and CPU usage.
+
+For more details on these and other core concepts, you can learn about them [here](concepts.md).
+
+## Working with Projects
+
+ - [Snapshots](snapshots.md) - Create point-in-time backups of your project
  - [Environment Variables](envvar.md) - How to manage Environment Variables in your projects
  - [Change Project Stack](changestack.md) - How to change a projects stack, for example to upgrade Node-RED
- - [Logs](logs.md) - The Logs avaible in the FlowForge application.
+ - [Logs](logs.md) - The Logs available in the FlowForge application.
+
+## Working with Devices
+
+FlowForge supports deploying projects to remote _Devices_. They run a software agent
+that connects back to the platform to receive updates.
+
+ - [Working with Devices](devices.md)

@@ -59,7 +59,7 @@ module.exports = async function (app) {
     })
 
     // Setup static file serving for the UI assets.
-    app.register(require('fastify-static'), {
+    app.register(require('@fastify/static'), {
         index: false,
         wildcard: false, // This option is needed so we can redirect 404s back to index.html
         root: frontendAssetsDir

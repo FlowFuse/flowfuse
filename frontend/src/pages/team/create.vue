@@ -9,7 +9,8 @@
         </SideNavigation>
     </Teleport>
     <main>
-        <div v-if="!needsBilling" class="max-w-2xl m-auto">
+        <ff-loading v-if="loading" message="Creating Team..." />
+        <div v-if="!loading && !needsBilling" class="max-w-2xl m-auto">
             <form class="space-y-6" >
                 <FormHeading>Create a new team</FormHeading>
                 <div class="mb-8 text-sm text-gray-500">Teams are how you organize who collaborates on your projects.</div>
@@ -32,7 +33,7 @@
                 </ff-button>
             </form>
         </div>
-        <div v-else>
+        <div v-else-if="!loading">
             <div class="flex">
                 <img class="w-64 mr-12" src="@/images/pictograms/node_catalog_red.png">
                 <form class="pl-12 border-l">
@@ -81,6 +82,7 @@ export default {
     data () {
         return {
             mounted: false,
+            loading: false,
             icons: {
                 chevronLeft: ChevronLeftIcon
             },
@@ -137,6 +139,8 @@ export default {
     },
     methods: {
         createTeam () {
+            this.loading = true
+
             const opts = {
                 name: this.input.name,
                 slug: this.input.slug || this.input.defaultSlug
@@ -159,6 +163,8 @@ export default {
                         this.input.slugError = 'Slug already in use'
                     }
                 }
+            }).finally(() => {
+                this.loading = false
             })
         },
         goToNewTeam (slug) {

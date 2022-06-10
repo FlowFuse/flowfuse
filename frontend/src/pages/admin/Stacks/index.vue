@@ -10,7 +10,8 @@
                 </ff-button>
             </template>
         </FormHeading>
-        <ItemTable :items="stacks" :columns="columns" />
+        <ff-loading v-if="loading" message="Loading Stacks..." />
+        <ItemTable v-if="!loading" :items="stacks" :columns="columns" />
         <div v-if="nextCursor">
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
         </div>
@@ -25,7 +26,6 @@ import stacksApi from '@/api/stacks'
 
 import ItemTable from '@/components/tables/ItemTable'
 import FormHeading from '@/components/FormHeading'
-import Breadcrumbs from '@/mixins/Breadcrumbs'
 
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
@@ -40,7 +40,6 @@ import { PlusSmIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'AdminStacks',
-    mixins: [Breadcrumbs],
     data () {
         return {
             stacks: [],
@@ -56,10 +55,6 @@ export default {
         }
     },
     async created () {
-        this.setBreadcrumbs([
-            { label: 'Admin', to: { name: 'Admin Settings' } },
-            { label: 'Stacks' }
-        ])
         await this.loadItems()
     },
     computed: {
@@ -102,6 +97,7 @@ export default {
                 v.ondelete = (data) => { this.showConfirmStackDeleteDialog(v) }
                 this.stacks.push(v)
             })
+            this.loading = false
         }
     },
     components: {

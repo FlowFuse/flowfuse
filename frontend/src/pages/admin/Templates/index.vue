@@ -10,7 +10,8 @@
                 </ff-button>
             </template>
         </FormHeading>
-        <ItemTable :items="templates" :columns="columns" />
+        <ff-loading v-if="loading" message="Loading Templates..." />
+        <ItemTable v-if="!loading" :items="templates" :columns="columns" />
         <div v-if="nextCursor">
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
         </div>
@@ -24,7 +25,6 @@ import templatesApi from '@/api/templates'
 
 import ItemTable from '@/components/tables/ItemTable'
 import FormHeading from '@/components/FormHeading'
-import Breadcrumbs from '@/mixins/Breadcrumbs'
 
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
@@ -37,7 +37,6 @@ import { PlusSmIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'AdminTemplates',
-    mixins: [Breadcrumbs],
     data () {
         return {
             templates: [],
@@ -54,10 +53,6 @@ export default {
         }
     },
     async created () {
-        this.setBreadcrumbs([
-            { label: 'Admin', to: { name: 'Admin Settings' } },
-            { label: 'Templates' }
-        ])
         await this.loadItems()
     },
     computed: {
@@ -73,6 +68,7 @@ export default {
                 v.ondelete = (data) => { this.showConfirmTemplateDeleteDialog(v) }
                 this.templates.push(v)
             })
+            this.loading = false
         },
         showConfirmTemplateDeleteDialog (stack) {
             this.$refs.adminTemplateDeleteDialog.show(stack)

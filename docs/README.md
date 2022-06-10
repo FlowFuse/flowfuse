@@ -14,7 +14,7 @@ in your own environment.
 ## Overview
 
  - [FlowForge Concepts](./user/concepts.md) - understanding the platform
- - [FlowForge Cloud](./cloud) - details specific to the hosted service
+ - [FlowForge Cloud](./cloud/) - details specific to the hosted service
  - [Installing FlowForge](./install/) - how to install the platform
  - [Administrator documentation](./admin/) - how to administer the platform
  - [User documentation](./user/) - how to use the platform

@@ -8,7 +8,8 @@
             </ff-button>
         </template>
     </FormHeading>
-    <form class="space-y-6 mb-8">
+    <ff-loading v-if="loading" message="Loading Team..." />
+    <form v-else class="space-y-6 mb-8">
         <div class="text-right"></div>
         <ItemTable :items="users" :columns="userColumns" />
     </form>
@@ -38,6 +39,7 @@ export default {
     name: 'TeamUsersGeneral',
     data () {
         return {
+            loading: false,
             users: [],
             userCount: 0,
             userColumns: [],
@@ -72,6 +74,7 @@ export default {
             this.fetchData()
         },
         async fetchData () {
+            this.loading = true
             const members = await teamApi.getTeamMembers(this.team.id)
             this.userCount = members.count
             this.users = members.members
@@ -96,6 +99,7 @@ export default {
                     this.userColumns.push({ name: '', class: ['w-16'], component: { is: markRaw(TeamUserEditButton) } })
                 }
             }
+            this.loading = false
         }
     },
     props: ['team', 'teamMembership'],

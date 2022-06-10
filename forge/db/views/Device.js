@@ -12,7 +12,7 @@ module.exports = {
                 activeSnapshot: app.db.views.ProjectSnapshot.snapshot(device.activeSnapshot),
                 targetSnapshot: app.db.views.ProjectSnapshot.snapshot(device.targetSnapshot),
                 links: result.links,
-                status: 'offline'
+                status: result.state || 'offline'
             }
             if (device.Team) {
                 filtered.team = app.db.views.Team.teamSummary(device.Team)
@@ -39,7 +39,7 @@ module.exports = {
                 activeSnapshot: app.db.views.ProjectSnapshot.snapshot(device.activeSnapshot),
                 targetSnapshot: app.db.views.ProjectSnapshot.snapshot(device.targetSnapshot),
                 links: result.links,
-                status: 'offline'
+                status: result.state || 'offline'
             }
             if (device.Team) {
                 filtered.team = app.db.views.Team.teamSummary(device.Team)

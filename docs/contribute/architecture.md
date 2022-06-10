@@ -11,7 +11,7 @@ These can be deployed in one of 2 ways
 
    ![LocalFS Architecture](./images/ff-localfs.png)
 
- - Using a Container Orchestation platform (Kubernetes/Docker Compose)
+ - Using a Container Orchestration platform (Kubernetes/Docker Compose)
 
    ![Container Architecture](./images/ff-containers.png)
 
@@ -41,15 +41,15 @@ This driver runs Projects in separate containers and each instance is accessed b
 
 State is stored in a provided PostgreSQL database.
 
-Project containers are segragrated into their own namespace (currently hardcoded to `flowforge`)
+Project containers are segregated into their own namespace (currently hardcoded to `flowforge`)
 
 The driver uses the [@kubernetes/client-node](https://www.npmjs.com/package/@kubernetes/client-node) to interact with the cluster.
 
-The driver will create the required Service and Ingres Kubernetes resources to expose each instance via what ever Ingress Controller the underlying Kubernetes cluster provideds.
+The driver will create the required Service and Ingres Kubernetes resources to expose each instance via what ever Ingress Controller the underlying Kubernetes cluster provides.
 
 #### Docker-Compose
 
-This driver runs Projects in seperate containers and each instance is accessed by a dedicated hostname via a HTTP Ingres proxy.
+This driver runs Projects in separate containers and each instance is accessed by a dedicated hostname via a HTTP Ingres proxy.
 
 State is stored in a provided PostgreSQL database.
 
@@ -72,7 +72,7 @@ This is a small application that handles downloading the Project specific settin
 
 The launcher presents a HTTP API (it defaults to the Node-RED port + 1000) that allows the FlowForge Management Application to start/stop/restart the Node-RED instance as well as query it's current state and retrieve the console logs.
 
-The launcher projet can be found [here](https://github.com/flowforge/flowforge-nr-launcher)
+The launcher project can be found [here](https://github.com/flowforge/flowforge-nr-launcher)
 
 ### Node-RED Instance
 

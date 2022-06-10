@@ -1,5 +1,6 @@
 <template>
-    <form class="space-y-6">
+    <ff-loading v-if="loading" message="Changing Password..." />
+    <form v-else class="space-y-6">
         <FormHeading>Change password</FormHeading>
         <FormRow type="password" :error="errors.old_password" v-model="input.old_password" id="old_password">Old Password</FormRow>
         <FormRow type="password" :error="errors.password" v-model="input.password" id="password">New Password</FormRow>
@@ -22,6 +23,7 @@ export default {
 
     data () {
         return {
+            loading: false,
             changeComplete: false,
             errors: {
                 old_password: '',
@@ -38,6 +40,7 @@ export default {
     },
     methods: {
         changePassword () {
+            this.loading = true
             this.errors.old_password = ''
             this.errors.password = ''
             this.errors.password_confirm = ''
@@ -68,6 +71,8 @@ export default {
                 this.changeComplete = false
                 this.errors.password_change = 'Password change failed'
                 console.log(e)
+            }).finally(() => {
+                this.loading = false
             })
         }
     },

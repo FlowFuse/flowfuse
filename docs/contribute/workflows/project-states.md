@@ -5,7 +5,7 @@ direction TB
 ConStarting: Container Starting
 ConRunning: Container Running
 ConStopped: Container Stopped
-ConRemoved: Contianer Removed
+ConRemoved: Container Removed
 ProjStateSus: project.state = suspended
 NRStopped: Node-RED Stopped
 NRStarted: Node-RED Started
