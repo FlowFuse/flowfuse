@@ -267,7 +267,7 @@ describe('Device API', async function () {
                     body: {
                         project: TestObjects.deviceProject.id
                     },
-                    cookies: { sid: TestObjects.tokens.alice }
+                    cookies: { sid: TestObjects.tokens.bob }
                 })
                 const result = response.json()
                 result.should.have.property('project')
