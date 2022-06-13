@@ -1,3 +1,7 @@
+#### 0.6.1: Maintence Release
+
+ -  Ensure request has teamMembership attached for device api reqs (#688) @knolleary 
+
 #### 0.6.0: Release
 
  - Add admin endpoint to list db migrations
