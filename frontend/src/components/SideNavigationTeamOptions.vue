@@ -5,6 +5,7 @@
             <!-- Team Options: General -->
             <ul class="ff-side-navigation--options">
                 <router-link v-for="route in routes.general" :key="route.label"
+                             :class="{'router-link-active': atNestedRoute(route)}"
                              :to="'/team/' + team.slug + route.to" @click="$emit('option-selected')">
                     <nav-item :label="route.label" :icon="route.icon"></nav-item>
                 </router-link>
@@ -85,6 +86,15 @@ export default {
         this.checkFeatures()
     },
     methods: {
+        // to prevent messy vue-router children hierarchy,
+        // check manually for when we are viewing a project in order to highlight the "parent" Projects view
+        atNestedRoute (route) {
+            if (route.to === '/projects') {
+                if (this.$route.path.indexOf('/project') === 0) {
+                    return true
+                }
+            }
+        },
         checkFeatures () {
             if (this.features.billing) {
                 // insert billing in second slot of admin
