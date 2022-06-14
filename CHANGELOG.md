@@ -1,3 +1,7 @@
+#### 0.6.2: Maintence Release
+
+ - Fix for Device unable to checkin (#696) @hardillb
+
 #### 0.6.1: Maintence Release
 
  -  Ensure request has teamMembership attached for device api reqs (#688) @knolleary 
