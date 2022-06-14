@@ -390,6 +390,10 @@ describe('Device API', async function () {
     })
 
     describe('Device Actions', async function () {
+        // POST /api/v1/devices/:deviceId/actions/:action
+    })
+
+    describe('Device Checkin', async function () {
         async function setupProjectWithSnapshot (setActive) {
             TestObjects.deviceProject = await app.db.models.Project.create({ name: 'deviceProject', type: '', url: '' })
             TestObjects.deviceProject.setTeam(TestObjects.ATeam)
@@ -407,7 +411,6 @@ describe('Device API', async function () {
                 })
             }
         }
-        // POST /api/v1/devices/:deviceId/actions/:action
         it('device checks in with no snapshot', async function () {
             const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
             const response = await app.inject({
