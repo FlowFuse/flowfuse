@@ -1,6 +1,9 @@
 @import '~@flowforge/forge-ui-components/dist/scss/forge-colors.scss';
 @import '~@flowforge/forge-ui-components/dist/scss/forge-variables.scss';
 
+$sidenav_width: 275px;
+$transition_time: .3s;
+
 /*
     Layout - Box
         used in login/setup/signup screens
@@ -199,7 +202,7 @@
         display: none;
         height: 100%;
         color: white;
-        min-width: 250px;
+        min-width: $sidenav_width;
         position: relative;
         top: 0;
         margin-top: 0;
@@ -235,15 +238,112 @@
     background-color: $ff-grey-700;
     border-right: 2px solid $ff-grey-800;
     position: fixed;
-    left: -250px;
+    left: -$sidenav_width;
     height: 100%;
     z-index: 10;
     transition: 0.3s left, 0.3s right;
     -webkit-transition: 0.3s left, 0.3s right;
-    width: 250px;
+    width: $sidenav_width;
+    // left side menu for team/project/device options
+    .ff-side-navigation {
+        display: flex;
+        height: 100%;
+        .ff-team-selection {
+            height: 54px;
+        }
+        .ff-side-navigation--primary {
+            width: 100%;
+            transition: $transition_time width;
+            -webkit-transition: $transition_time width;
+            .router-link-active {
+                li {
+                    background-color: $ff-grey-600;
+                    label {
+                        color: $ff-teal-300;
+                    }
+                    svg {
+                        fill: $ff-teal-300;
+                    }
+                }
+            }
+        }
+
+        .ff-team-selection, .ff-nav-item {
+            transition: $transition_time padding, $transition_time background-color;
+            -webkit-transition: $transition_time padding, $transition_time background-color;
+        }
+        // nested menu options
+        .ff-side-navigation--nested {
+            width: 0;
+            background-color: $ff-grey-600;
+            overflow: hidden;
+            .ff-nested-title {
+                color: $ff-teal-300;
+                font-weight: bold;
+                padding: 12px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .ff-nav-item {
+                padding: 12px 16px;
+                background-color: $ff-grey-600;
+            }
+            a:not(.router-link-active) {
+                .ff-nav-item {
+                    &:hover {
+                        label {
+                            color: white;
+                        }
+                    }
+                }
+            }
+            .router-link-active {
+                li {
+                    background-color: $ff-grey-600;
+                }
+                label {
+                    color: $ff-teal-300;
+                }
+                svg {
+                    fill: $ff-teal-300;
+                }
+            }
+        }
+        // showing a nested menu
+        &.minimised {
+            .ff-team-selection {
+                padding: 16px 14px;
+                svg, .ff-team-selection-name {
+                    display: none;
+                }
+            }
+            .ff-navigation-divider {
+                label {
+                    display: none;
+                }
+            }
+            .ff-side-navigation--primary {
+                width: 54px;
+                .ff-nav-item {
+                    padding: 16px;
+                    label {
+                        opacity: 0;
+                        display: none;
+                    }
+                }
+            }
+            // nested menu options
+            .ff-side-navigation--nested {
+                width: calc(100% - 54px);
+                flex-grow: 1;
+            }
+        }
+    }
+    // navigation-right = the admin/user settings
     &.ff-navigation-right {
         left: initial;
-        right: -250px;
+        right: -$sidenav_width;
         .ff-nav-item:last-child {
             border-top: 2px solid $ff-red-600;
         }
@@ -259,6 +359,7 @@
         background-color: $ff-grey-900;
         color: white;
         padding: 6px 12px;
+        height: 32px;
         display: block;
         font-size: 0.85rem;
         border-bottom: 1px solid $ff-grey-600;
@@ -272,8 +373,9 @@
     .ff-nav-item, .ff-team-selection {
         border-bottom: 1px solid $ff-grey-600;
         padding: 16px 16px 16px 24px;
-        display: flex;
-        align-items: center;
+        display: grid;
+        grid-template-columns: 20px 1fr;
+        overflow: hidden;
         svg {
             fill: $ff-white;
             width: 20px;
@@ -281,6 +383,7 @@
         label {
             margin-left: 12px;
             color: $ff-white;
+            white-space: nowrap;
             pointer-events: none;
         }
     }
@@ -322,7 +425,7 @@
             position: absolute;
             left: 100%;
             top: 0;
-            min-width: 250px;
+            min-width: $sidenav_width;
             margin-left: 2px;
             display: none;
             z-index: 10;
@@ -350,6 +453,7 @@
         }
         h5 {
             color: white;
+            white-space: nowrap;
         }
     }
     .ff-team-selection > div {
@@ -361,11 +465,6 @@
             label, h5 {
                 color: $ff-teal-200;
             }
-        }
-    }
-    .router-link-active {
-        li {
-            background-color: $ff-grey-600;
         }
     }
 }
@@ -383,7 +482,7 @@
     }
     /* Platform */
     .ff-layout--platform--wrapper {
-        grid-template-columns: 250px 1fr;
+        grid-template-columns: $sidenav_width 1fr;
         main {
             margin: 24px;
             padding: 32px;

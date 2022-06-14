@@ -25,7 +25,7 @@ export default {
     name: 'ProjectSettings',
     props: ['project'],
     computed: {
-        ...mapState('account', ['teamMembership'])
+        ...mapState('account', ['team', 'teamMembership'])
     },
     setup () {
         return {
@@ -44,7 +44,7 @@ export default {
     methods: {
         checkAccess: async function () {
             if (this.teamMembership && this.teamMembership.role !== Roles.Owner) {
-                useRouter().push({ path: `/project/${useRoute().params.id}/overview` })
+                useRouter().push({ path: `team/${this.team.slug}/projects/${useRoute().params.id}/overview` })
             }
         }
     }

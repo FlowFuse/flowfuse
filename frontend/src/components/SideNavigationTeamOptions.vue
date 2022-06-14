@@ -1,20 +1,27 @@
 <template>
-    <div v-if="team">
-        <ff-team-selection></ff-team-selection>
-        <!-- Team Options: General -->
-        <ul class="ff-side-navigation--options">
-            <router-link v-for="route in routes.general" :key="route.label"
-                         :to="'/team/' + team.slug + route.to" @click="$emit('option-selected')">
-                <nav-item :label="route.label" :icon="route.icon"></nav-item>
-            </router-link>
-        </ul>
-        <span v-if="showAdmin" class="ff-navigation-divider">Team Admin Zone</span>
-        <!-- Team Options: Admin -->
-        <ul v-if="showAdmin" class="ff-side-navigation--admin">
-            <router-link v-for="route in routes.admin" :key="route.label" :to="'/team/' + team.slug + route.to">
-                <nav-item :icon="route.icon" :label="route.label"></nav-item>
-            </router-link>
-        </ul>
+    <div v-if="team" class="ff-side-navigation" :class="{'minimised': nested}">
+        <div class="ff-side-navigation--primary">
+            <ff-team-selection></ff-team-selection>
+            <!-- Team Options: General -->
+            <ul class="ff-side-navigation--options">
+                <router-link v-for="route in routes.general" :key="route.label"
+                             :to="'/team/' + team.slug + route.to" @click="$emit('option-selected')">
+                    <nav-item :label="route.label" :icon="route.icon"></nav-item>
+                </router-link>
+            </ul>
+            <span v-if="showAdmin" class="ff-navigation-divider">
+                <label>Team Admin Zone</label>
+            </span>
+            <!-- Team Options: Admin -->
+            <ul v-if="showAdmin" class="ff-side-navigation--admin">
+                <router-link v-for="route in routes.admin" :key="route.label" :to="'/team/' + team.slug + route.to">
+                    <nav-item :icon="route.icon" :label="route.label"></nav-item>
+                </router-link>
+            </ul>
+        </div>
+        <div class="ff-side-navigation--nested">
+            <slot name="nested-menu"></slot>
+        </div>
     </div>
 </template>
 
@@ -39,6 +46,9 @@ export default {
         ...mapState('account', ['user', 'team', 'teamMembership', 'features']),
         showAdmin: function () {
             return this.teamMembership.role === Roles.Admin || this.teamMembership.role === Roles.Owner
+        },
+        nested: function () {
+            return this.$slots['nested-menu']
         }
     },
     data () {
