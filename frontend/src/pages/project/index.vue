@@ -173,12 +173,10 @@ export default {
     },
     components: {
         NavItem,
-        // SideNavigation,
         ExternalLinkIcon,
         DropdownMenu,
         ProjectStatusBadge,
         SideNavigationTeamOptions,
-        // 'ff-team-selection': SideTeamSelection,
         SectionTopMenu
     }
 }
