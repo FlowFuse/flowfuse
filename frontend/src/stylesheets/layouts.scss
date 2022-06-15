@@ -280,7 +280,8 @@ $transition_time: .3s;
             .ff-nested-title {
                 color: $ff-teal-300;
                 font-weight: bold;
-                padding: 12px;
+                font-size: 1.1rem;
+                padding: 12px 16px;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -288,15 +289,6 @@ $transition_time: .3s;
             .ff-nav-item {
                 padding: 12px 16px;
                 background-color: $ff-grey-600;
-            }
-            a:not(.router-link-active) {
-                .ff-nav-item {
-                    &:hover {
-                        label {
-                            color: white;
-                        }
-                    }
-                }
             }
             .router-link-active {
                 li {
@@ -375,7 +367,6 @@ $transition_time: .3s;
         padding: 16px 16px 16px 24px;
         display: grid;
         grid-template-columns: 20px 1fr;
-        overflow: hidden;
         svg {
             fill: $ff-white;
             width: 20px;
@@ -393,10 +384,10 @@ $transition_time: .3s;
         &:hover {
             cursor: pointer;
             svg {
-                fill: $ff-teal-300;
+                fill: $ff-teal-100;
             }
             label {
-                color: $ff-teal-300;
+                color: $ff-teal-100;
             }
         }
     }

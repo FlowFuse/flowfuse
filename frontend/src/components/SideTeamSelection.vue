@@ -1,6 +1,6 @@
 <template>
     <div class="ff-team-selection">
-        <div @click="selectTeam(team)">
+        <div @click="toggleList()">
             <img :src="team.avatar" class="ff-avatar"/>
             <div class="ff-team-selection-name">
                 <label>TEAM:</label>

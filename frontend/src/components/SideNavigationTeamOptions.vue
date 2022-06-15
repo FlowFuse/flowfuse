@@ -49,7 +49,7 @@ export default {
             return this.teamMembership.role === Roles.Admin || this.teamMembership.role === Roles.Owner
         },
         nested: function () {
-            return this.$slots['nested-menu'] && this.loaded
+            return (this.$slots['nested-menu'] && this.loaded) || this.closeNested
         }
     },
     data () {
@@ -79,6 +79,7 @@ export default {
         }
 
         return {
+            closeNested: false,
             loaded: false,
             routes: routes
         }
@@ -86,9 +87,20 @@ export default {
     mounted () {
         this.checkFeatures()
         window.setTimeout(() => {
-            console.log('loaded true')
             this.loaded = true
         }, 0)
+    },
+    beforeMount () {
+        const lastUrl = this.$router.options.history.state.back
+        if (lastUrl.indexOf('/project') === 0) {
+            this.closeNested = true
+            setTimeout(() => {
+                this.closeNested = false
+            }, 50)
+        }
+    },
+    beforeUnmount () {
+        this.loaded = false
     },
     methods: {
         // to prevent messy vue-router children hierarchy,
