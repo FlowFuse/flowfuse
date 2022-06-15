@@ -13,6 +13,12 @@ import TemplateSettingsEnvironment from '../../admin/Template/sections/Environme
 
 export default {
     name: 'DeviceSettingsEnvironment',
+    props: ['device'],
+    emits: ['device-updated'],
+    watch: { },
+    components: {
+        TemplateSettingsEnvironment
+    },
     data () {
         return {
             unsavedChanges: false,
@@ -31,11 +37,6 @@ export default {
             original: {},
             templateEnvValues: {}
         }
-    },
-    props: ['device'],
-    watch: { },
-    components: {
-        TemplateSettingsEnvironment
     }
 }
 </script>

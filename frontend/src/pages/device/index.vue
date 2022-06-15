@@ -64,10 +64,8 @@ export default {
     },
     methods: {
         loadDevice: async function () {
-            console.log('load device')
             const device = await deviceApi.getDevice(this.$route.params.id)
             this.device = device
-            console.log(device)
         }
     }
 }

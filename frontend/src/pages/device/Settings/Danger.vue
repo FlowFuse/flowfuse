@@ -1,9 +1,58 @@
 <template>
-    Danger Settings
+    <ff-loading v-if="loading.deleting" message="Deleting Device..."></ff-loading>
+    <FormHeading v-if="!loading.deleting" class="text-red-700">Delete Device</FormHeading>
+    <div v-if="!loading.deleting" class="flex flex-col lg:flex-row max-w-2xl space-y-4">
+        <div class="flex-grow">
+            <div class="max-w-sm pt-2">
+                Once deleted, your device is removed. This cannot be undone.
+            </div>
+        </div>
+        <div class="min-w-fit flex-shrink-0">
+            <ff-button kind="danger" @click="showConfirmDeleteDialog()">Delete Device</ff-button>
+            <ConfirmDeviceDeleteDialog @delete-device="deleteDevice()" ref="confirmDeviceDeleteDialog"/>
+        </div>
+    </div>
 </template>
 <script>
+import { mapState } from 'vuex'
+
+import deviceApi from '@/api/devices'
+
+import FormHeading from '@/components/FormHeading'
+import ConfirmDeviceDeleteDialog from './dialogs/ConfirmDeviceDeleteDialog'
+
 export default {
-    name: 'DeveiceSettingsDanger',
-    props: ['device']
+    name: 'DeviceSettingsDanger',
+    props: ['device'],
+    emits: ['device-updated'],
+    components: {
+        ConfirmDeviceDeleteDialog,
+        FormHeading
+    },
+    computed: {
+        ...mapState('account', ['team'])
+    },
+    data () {
+        return {
+            loading: {
+                deleting: false
+            }
+        }
+    },
+    methods: {
+        showConfirmDeleteDialog () {
+            this.$refs.confirmDeviceDeleteDialog.show(this.device)
+        },
+        deleteDevice () {
+            this.loading.deleting = true
+            deviceApi.deleteDevice(this.device.id).then(() => {
+                this.$router.push({ name: 'TeamDevices', params: { team_slug: this.team.slug } })
+            }).catch(err => {
+                console.warn(err)
+            }).finally(() => {
+                this.loading.deleting = false
+            })
+        }
+    }
 }
 </script>
