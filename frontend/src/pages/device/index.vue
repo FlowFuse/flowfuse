@@ -16,17 +16,13 @@
                 <div class="flex-grow space-x-6 items-center inline-flex">
                     <router-link :to="navigation[0]?navigation[0].path:''" class="inline-flex items-center">
                         <div class="text-gray-800 text-xl font-bold">{{ device?.name }}</div>
+                        <div class="text-gray-400 text-md font-bold ml-3">{{ device?.type }}</div>
                     </router-link>
-                </div>
-            </template>
-            <template v-slot:tools>
-                <div class="space-x-2 flex">
-                    <DropdownMenu buttonClass="ff-btn ff-btn--primary" alt="Open actions menu" :options="options">Actions</DropdownMenu>
                 </div>
             </template>
         </SectionTopMenu>
         <div class="text-sm sm:px-6 mt-4 sm:mt-8">
-            <router-view :device="device"></router-view>
+            <router-view :device="device" @device-updated="loadDevice()"></router-view>
         </div>
     </main>
 </template>
@@ -68,8 +64,10 @@ export default {
     },
     methods: {
         loadDevice: async function () {
+            console.log('load device')
             const device = await deviceApi.getDevice(this.$route.params.id)
             this.device = device
+            console.log(device)
         }
     }
 }

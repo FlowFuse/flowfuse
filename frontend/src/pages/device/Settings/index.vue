@@ -2,7 +2,7 @@
     <div class="flex flex-col sm:flex-row">
         <SectionSideMenu :options="sideNavigation" />
         <div class="flex-grow">
-            <router-view :device="device"></router-view>
+            <router-view :device="device" @deviceUpdated="$emit('device-updated')"></router-view>
         </div>
     </div>
 </template>
@@ -19,6 +19,7 @@ const sideNavigation = [
 export default {
     name: 'DeviceSettins',
     props: ['device'],
+    emits: ['device-updated'],
     setup () {
         return {
             sideNavigation
