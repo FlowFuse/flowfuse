@@ -33,9 +33,23 @@ https://github.com/flowforge/helm/
 
 #### Building Containers
 
+At a minimum there are 2 container required.
+
+ - flowforge/forge-k8s
+ - flowforge/node-red
+
+These can be built usinth the `./build-containers.sh` script in the root of the `helm` project. This script takes the hostname of the Docker Container Registry as it's only argument. This will be pre-pended to the constainer names.
+
 ##### flowforge/forge-k8s
 
+This container includes the FlowForge App and the Kubernetes Drivers
+
 ##### flowforge/node-red
+
+This is a basic Node-RED image with the FlowForge Launcher and the required Node-RED plugins to talk to the FlowForge Platform. This is the basis for the initial Stack.
+
+This is the container you can customise for your deployment.
+
 
 ### Configure FlowForge
 
