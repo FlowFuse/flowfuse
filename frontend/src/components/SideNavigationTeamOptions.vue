@@ -92,7 +92,7 @@ export default {
     },
     beforeMount () {
         const lastUrl = this.$router.options.history.state.back
-        if (lastUrl.indexOf('/project') === 0) {
+        if (lastUrl?.indexOf('/project') === 0) {
             this.closeNested = true
             setTimeout(() => {
                 this.closeNested = false
