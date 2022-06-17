@@ -417,6 +417,58 @@ li.ff-list-item {
 }
 
 /*
+  Notifications
+*/
+
+.ff-notification-pill {
+  background-color: $ff-red-600;
+  color: $ff-white;
+  padding: $ff-unit-xs $ff-unit-md;
+  font-weight: 600;
+  border-radius: $ff-unit-sm;
+  font-size: $ff-funit-sm;
+}
+
+.ff-notification-toast {
+  background-color: $ff-white;
+  border: 1px solid $ff-grey-300;
+  border-left-width: $ff-unit-md;
+  padding: $ff-unit-md $ff-unit-lg;
+  box-shadow: -$ff-unit-xs $ff-unit-xs $ff-unit-sm $ff-grey-400;
+  border-radius: 0 $ff-unit-sm $ff-unit-sm 0;
+  max-width: 475px;
+  &--info {
+    border-left-color: $ff-grey-400;
+  }
+  &--warning {
+    border-left-color: $ff-red-400;
+  }
+  &--confirmation {
+    border-left-color: $ff-green-400;
+  }
+
+  &--message {
+    display: grid;
+    grid-template-columns: 1fr 20px;
+    gap: $ff-unit-lg;
+  }
+
+  &--close {
+    cursor: pointer;
+    &:hover {
+      color: $ff-indigo-600;
+    }
+  }
+
+  &--actions {
+    margin-top: $ff-unit-md;
+    // margin-right: $ff-unit-xl;
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+/*
   FF Tabs
 */
 .ff-tabs {

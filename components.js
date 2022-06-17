@@ -13,6 +13,10 @@ import FFCheckbox from './components/form/Checkbox.vue'
 import FFRadioGroup from './components/form/RadioGroup.vue'
 import FFRadioButton from './components/form/RadioButton.vue'
 
+// Notifications
+import FFNotificationPill from './components/NotificationPill.vue'
+import FFNotificationToast from './components/NotificationToast.vue'
+
 // Tabs
 import FFTabs from './components/tabs/Tabs.vue'
 import FFTab from './components/tabs/Tab.vue'
@@ -29,6 +33,9 @@ export default {
     FFCheckbox,
     FFRadioGroup,
     FFRadioButton,
+    // Notifications
+    FFNotificationPill,
+    FFNotificationToast,
     // Tabs
     FFTabs,
     FFTab
