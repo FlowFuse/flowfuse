@@ -1,5 +1,5 @@
 <template>
-    <nav>
+    <nav :class="{'ff-bg-light': theme === 'light', 'ff-bg-dark': theme === 'dark'}">
         <h2 class="">Components</h2>
         <ul id="grouplist">
             <li v-for="g in groups" :key="g.name">

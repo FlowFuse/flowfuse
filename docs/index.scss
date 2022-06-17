@@ -27,10 +27,24 @@ main {
 }
 
 nav {
-    background-color: $ff-grey-800;
-    color: $ff-white;
     position: absolute;
     width: 300px;
+}
+
+nav.ff-bg-light {
+    background-color: $ff-grey-800;
+    color: $ff-white;
+    h2, h3 {
+        color: $ff-white;
+    }
+}
+
+nav.ff-bg-dark {
+    background-color: $ff-grey-900;
+    color: $ff-white;
+    h2, h3 {
+        color: $ff-white;
+    }
 }
 
 p {
