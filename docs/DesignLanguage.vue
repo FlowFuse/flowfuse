@@ -1,6 +1,6 @@
 <template>
     <nav>
-        <h1 class="">Components</h1>
+        <h2 class="">Components</h2>
         <ul id="grouplist">
             <li v-for="g in groups" :key="g.name">
                 <h3>{{ g.name }}</h3>
