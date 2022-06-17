@@ -5,6 +5,7 @@ const config = require('./config')
 const settings = require('./settings')
 const license = require('./licensing')
 const containers = require('./containers')
+const comms = require('./comms')
 const cookie = require('@fastify/cookie')
 const csrf = require('@fastify/csrf-protection')
 const postoffice = require('./postoffice')
@@ -62,6 +63,8 @@ module.exports = async (options = {}) => {
         await server.register(routes, { logLevel: 'warn' })
         // Post Office : handles email
         await server.register(postoffice)
+        // Comms : real-time communication broker
+        await server.register(comms)
         // Containers:
         await server.register(containers)
 

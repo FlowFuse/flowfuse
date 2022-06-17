@@ -154,6 +154,12 @@ module.exports = {
                 },
 
                 async getCredentialSecret () {
+                    // If this project was created at 0.6+ but then started with a <0.6 launcher
+                    // (for example, in k8s with an old stack) then the project will have both
+                    // StorageSettings._credentialSecret *AND* ProjectSettings.credentialSecret
+                    // If both are present, we *must* use _credentialSecret as that is what
+                    // the runtime is using
+
                     let credentialSecret = await this.getSetting('credentialSecret')
                     if (!credentialSecret) {
                         // Older project - check the StorageSettings to see if
