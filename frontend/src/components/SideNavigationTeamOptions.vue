@@ -1,7 +1,7 @@
 <template>
     <div v-if="team" class="ff-side-navigation" :class="{'minimised': nested}">
         <div class="ff-side-navigation--primary">
-            <ff-team-selection></ff-team-selection>
+            <ff-team-selection :list-enabled="!nested" @click="teamSelectClick()"></ff-team-selection>
             <!-- Team Options: General -->
             <ul class="ff-side-navigation--options">
                 <router-link v-for="route in routes.general" :key="route.label"
@@ -148,6 +148,16 @@ export default {
                 name: 'CreateTeam'
             })
             this.switchTeam()
+        },
+        teamSelectClick () {
+            if (this.nested) {
+                this.$router.push({
+                    name: 'Team',
+                    params: {
+                        team_slug: this.team.slug
+                    }
+                })
+            }
         }
     }
 }
