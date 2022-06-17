@@ -1,0 +1,44 @@
+{
+    "name": "Notifications",
+    "id": "notifications",
+    "description": "Used to display informative updates to the user. Note that behaviour to position and open/close the notification toast component should be managed in the application where this component is used.",
+    "components": [{
+        "name": "ff-notification-pill",
+        "examples": [{
+            "code": "<ff-notification-pill count=\"4\" />"
+        }],
+        "props": [{
+            "key": "count",
+            "default": "null",
+            "description": "The value to show int he pill, traditionally a number to show a number of notifications"
+        }]
+    }, {
+        "name": "ff-notification-toast",
+        "examples": [{
+            "code": "<ff-notification-pill message=\"Hello World\"></ff-notification-pill>"
+        }, {
+            "code": "<ff-notification-pill type=\"warning\" message=\"Lorem ipsum dolor sit amet, consectetur adipiscing elit ut aliquam, purus sit amet luctus venenatis, lectus magna fringilla urna\"></ff-notification-pill>"
+        }, {
+            "code": "<ff-notification-pill type=\"confirmation\" message=\"Hello World\"></ff-notification-pill>"
+        }, {
+            "code": "<ff-notification-pill type=\"info\">\n\t<template v-slot:message>\n\t\tWe can also define content using a slot instead,\n\t\tand use the actions slot to add our own buttons\n\t</template>\n\t<template v-slot:actions>\n\t\t<ff-button @click=\"doSomething()\">Example</ff-button>\n\t</template>\n</ff-notification-pill>"
+        }],
+        "props": [{
+            "key": "message",
+            "default": "null",
+            "description": "The text to show in the toast notification when it is shown."
+        }],
+        "emits": [{
+            "event": "close",
+            "example": null,
+            "description": "When the close icon is clicked, this event emits."
+        }],
+        "slots": [{
+            "name": "message",
+            "description": "In place of using the message property, you can instead provide full HTML content via the message slot."
+        }, {
+            "name": "actions",
+            "description": "If the button has no text, and only shows an icon, use this slot to render the icon"
+        }]
+    }]
+}
