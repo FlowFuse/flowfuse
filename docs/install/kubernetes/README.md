@@ -21,6 +21,8 @@ FlowForge uses a Helm Chart to manage deployment
 
 FlowForge on Kubernetes will require a Docker Container Registry to host the both the core platform container and the containers that back any Stacks you wish to deploy.
 
+### Postgresql Database 
+
 #### DNS
 
 ### Installing FlowForge
@@ -53,7 +55,17 @@ This is the container you can customise for your deployment.
 
 ### Configure FlowForge
 
-### SSL (optional)
+All the initial configuration is handled by the Helm chart. This is done by creating a `values.yml` file that will be passed to the helm along with the chart.
+
+```
+forge:
+  entryPoint: forge.example.com
+  domain: example.com
+  https: false
+  registry: containers.example.com
+  registrySecret: password
+  localPostgresql: true
+```
 
 ### Running FlowForge
 
