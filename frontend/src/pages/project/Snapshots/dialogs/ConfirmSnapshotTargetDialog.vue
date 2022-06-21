@@ -14,6 +14,8 @@
 <script>
 import { ref } from 'vue'
 
+import alerts from '@/services/alerts'
+
 export default {
     name: 'ConfirmSnapshotTargetDialog',
     data () {
@@ -24,6 +26,7 @@ export default {
     methods: {
         confirm () {
             this.$emit('targetSnapshot', this.snapshot)
+            alerts.emit('Successfully set snapshot as device target.', 'confirmation')
             this.isOpen = false
         }
     },
