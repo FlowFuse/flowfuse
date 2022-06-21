@@ -21,6 +21,8 @@
         }, {
             "code": "<ff-notification-toast type=\"confirmation\" message=\"Hello World\"></ff-notification-toast>"
         }, {
+            "code": "<ff-notification-toast type=\"confirmation\" message=\"Hello World\" :countdown=\"3000\"></ff-notification-toast>"
+        }, {
             "code": "<ff-notification-toast type=\"info\">\n\t<template v-slot:message>\n\t\tWe can also define content using a slot instead,\n\t\tand use the actions slot to add our own buttons\n\t</template>\n\t<template v-slot:actions>\n\t\t<ff-button @click=\"doSomething()\">Example</ff-button>\n\t</template>\n</ff-notification-toast>"
         }],
         "props": [{

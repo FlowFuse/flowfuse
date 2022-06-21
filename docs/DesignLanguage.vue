@@ -262,6 +262,10 @@
                         <code>{{ groups['notifications'].components[1].examples[2].code }}</code>
                     </div>
                     <div class="example">
+                        <ff-notification-toast type="confirmation" message="Hello World" :countdown="3000"></ff-notification-toast>
+                        <code>{{ groups['notifications'].components[1].examples[3].code }}</code>
+                    </div>
+                    <div class="example">
                         <ff-notification-toast type="info" :show-close="false">
                             <template v-slot:message>
                                 We can also define content using a slot instead, and use the actions slot to add our own buttons
@@ -270,7 +274,7 @@
                                 <ff-button @click="doSomething()">Example</ff-button>
                             </template>
                         </ff-notification-toast>
-                        <code>{{ groups['notifications'].components[1].examples[3].code }}</code>
+                        <code>{{ groups['notifications'].components[1].examples[4].code }}</code>
                     </div>
                 </div>
             </div>
