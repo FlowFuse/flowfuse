@@ -41,7 +41,7 @@
                 <tr><td class="font-medium p-2 pr-4 align-top">Forge Application</td><td class="p-2">{{settings['version:forge']}}</td></tr>
                 <tr><td class="font-medium p-2 pr-4 align-top">NodeJS</td><td class="p-2">{{settings['version:node']}}</td></tr>
             </table>
-            </div>
+        </div>
     </div>
 
 </template>

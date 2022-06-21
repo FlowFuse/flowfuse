@@ -13,24 +13,23 @@ module.exports = fp(async function (app, _opts, next) {
     loadedSettings.forEach(setting => {
         settings[setting.key] = setting.value
     })
-    
+
     // Versions of Node and Forge App
-    settings["version:node"] = process.version
+    settings['version:node'] = process.version
 
     if (process.env.npm_package_version) {
-        settings["version:forge"] = "v"+process.env.npm_package_version
+        settings['version:forge'] = "v" + process.env.npm_package_version
     } else {
         const { version } = require(path.join(module.parent.path, '..', 'package.json'))
-        settings["version:forge"] = "v"+version
+        settings['version:forge'] = 'v' + version
     }
     // if .git
     try {
-        fs.statSync(path.join(__dirname,"..","..",".git"));
-        settings["version:forge"] += "-git";
-    } catch(err) {
+        fs.statSync(path.join(__dirname, '..', '..', '.git'))
+        settings["version:forge"] += "-git"
+    } catch (err) {
         // No git directory
     }
-    
 
     const settingsApi = {
         get: (key) => {

@@ -54,13 +54,12 @@ module.exports = fp(async function (app, opts, next) {
         ffVersion = version
     }
     try {
-        fs.statSync(path.join(__dirname,"..","..",".git"));
-        ffVersion += "-git";
-    } catch(err) {
+        fs.statSync(path.join(__dirname,'..', '..', '.git'))
+        ffVersion += '-git'
+    } catch (err) {
         // No git directory
     }
     app.log.info(`FlowForge v${ffVersion}`)
-
 
     app.log.info(`FlowForge running with NodeJS ${process.version}`)
 
