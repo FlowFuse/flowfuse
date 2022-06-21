@@ -430,21 +430,41 @@ li.ff-list-item {
 }
 
 .ff-notification-toast {
+  position: relative;
   background-color: $ff-white;
   border: 1px solid $ff-grey-300;
-  border-left-width: $ff-unit-md;
-  padding: $ff-unit-md $ff-unit-lg;
+  padding: $ff-unit-md $ff-unit-lg $ff-unit-md $ff-unit-xl ;
   box-shadow: -$ff-unit-xs $ff-unit-xs $ff-unit-sm $ff-grey-400;
   border-radius: 0 $ff-unit-sm $ff-unit-sm 0;
   max-width: 475px;
+
+  &--bar {
+    height: 100%;
+    width: $ff-unit-md;
+    background-color: black;
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
   &--info {
     border-left-color: $ff-grey-400;
+    .ff-notification-toast--bar {
+      background-color: $ff-grey-400;
+    }
   }
   &--warning {
     border-left-color: $ff-red-400;
+    .ff-notification-toast--bar {
+      background-color: $ff-red-400;
+    }
   }
   &--confirmation {
     border-left-color: $ff-green-400;
+    .ff-notification-toast--bar {
+      background-color: $ff-green-400;
+    }
   }
 
   &--message {
