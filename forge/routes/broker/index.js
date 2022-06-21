@@ -173,11 +173,11 @@ module.exports = async function (app) {
         }
     })
 
-    app.get('/test', async (request, response) => {
-        const project = await app.db.models.Project.byId('ac8e4995-cb47-42ec-a9a4-71c42366c7f3')
-        const creds = await app.db.controllers.BrokerClient.createClientForProject(project)
-        // const device = await app.db.models.Device.byId(1)
-        // const creds = await app.db.controllers.BrokerClient.createClientForDevice(device)
-        response.send(creds)
-    })
+    // app.get('/test', async (request, response) => {
+    //     const project = await app.db.models.Project.byId('ac8e4995-cb47-42ec-a9a4-71c42366c7f3')
+    //     const creds = await app.db.controllers.BrokerClient.createClientForProject(project)
+    //     // const device = await app.db.models.Device.byId(1)
+    //     // const creds = await app.db.controllers.BrokerClient.createClientForDevice(device)
+    //     response.send(creds)
+    // })
 }
