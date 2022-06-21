@@ -7,7 +7,7 @@
                     {{ message }}
                 </slot>
             </div>
-            <XIcon v-if="showClose" class="ff-icon ff-notification-toast--close"/>
+            <XIcon v-if="showClose" @click="$emit('close')" class="ff-icon ff-notification-toast--close"/>
         </div>
         <div v-if="showActions" class="ff-notification-toast--actions">
             <slot name="actions"></slot>
