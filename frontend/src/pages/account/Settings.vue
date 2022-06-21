@@ -13,6 +13,8 @@
 <script>
 import userApi from '@/api/user'
 
+import alerts from '@/services/alerts'
+
 import FormRow from '@/components/FormRow'
 
 export default {
@@ -78,6 +80,7 @@ export default {
             if (changed) {
                 userApi.updateUser(opts).then((response) => {
                     this.$store.dispatch('account/setUser', response)
+                    alerts.emit('User successfully updated.', 'confirmation')
                     this.user = response
                     this.changed = {}
                 }).catch(err => {
