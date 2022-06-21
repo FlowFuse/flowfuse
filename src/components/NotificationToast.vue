@@ -7,7 +7,7 @@
                     {{ message }}
                 </slot>
             </div>
-            <XIcon v-if="showClose" @click="$emit('close')" class="ff-icon ff-notification-toast--close"/>
+            <XIcon v-if="showClose" @click="close()" class="ff-icon ff-notification-toast--close"/>
         </div>
         <div v-if="showActions" class="ff-notification-toast--actions">
             <slot name="actions"></slot>
@@ -31,6 +31,10 @@ export default {
             default: 'info',
             type: String
         },
+        countdown: {
+            default: null,
+            type: Number
+        },
         showClose: {
             default: true,
             type: Boolean
@@ -42,6 +46,19 @@ export default {
     computed: {
         showActions: function () {
             return this.$slots.actions
+        }
+    },
+    mounted () {
+        if (this.countdown) {
+            // if a countdown is set, emit the "close" event after the countdown timer expires
+            setTimeout(() => {
+                this.close()
+            }, this.countdown)
+        }
+    },
+    methods: {
+        close: function () {
+            this.$emit('close')
         }
     }
 }

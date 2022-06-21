@@ -27,6 +27,18 @@
             "key": "message",
             "default": "null",
             "description": "The text to show in the toast notification when it is shown."
+        }, {
+            "key": "type",
+            "default": "info",
+            "description": "'info' | 'confirmation' | 'warning'"
+        }, {
+            "key": "countdown",
+            "default": "null",
+            "description": "Value (in milliseconds) that defines a countdown timer, started as the component is mounted, which will then emit the 'close' event when finished."
+        }, {
+            "key": "showClose",
+            "default": "true",
+            "description": "Whether or not to show the close button"
         }],
         "emits": [{
             "event": "close",
