@@ -433,7 +433,7 @@ li.ff-list-item {
   position: relative;
   background-color: $ff-white;
   border: 1px solid $ff-grey-400;
-  padding: $ff-unit-md $ff-unit-lg $ff-unit-md $ff-unit-xl;
+  padding: $ff-unit-md $ff-unit-md $ff-unit-md $ff-unit-lg;
   box-shadow: -$ff-unit-sm $ff-unit-sm $ff-unit-sm #0000008c;
   border-radius: 0 $ff-unit-sm $ff-unit-sm 0;
   max-width: 475px;
@@ -471,6 +471,9 @@ li.ff-list-item {
     display: grid;
     grid-template-columns: 1fr 20px;
     gap: $ff-unit-lg;
+    >div {
+      padding-top: 2px;
+    }
   }
 
   &--close {
