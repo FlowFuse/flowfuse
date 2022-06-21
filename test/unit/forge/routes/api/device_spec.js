@@ -267,7 +267,7 @@ describe('Device API', async function () {
                     body: {
                         project: TestObjects.deviceProject.id
                     },
-                    cookies: { sid: TestObjects.tokens.alice }
+                    cookies: { sid: TestObjects.tokens.bob }
                 })
                 const result = response.json()
                 result.should.have.property('project')
@@ -390,8 +390,72 @@ describe('Device API', async function () {
     })
 
     describe('Device Actions', async function () {
-
         // POST /api/v1/devices/:deviceId/actions/:action
+    })
+
+    describe('Device Checkin', async function () {
+        async function setupProjectWithSnapshot (setActive) {
+            TestObjects.deviceProject = await app.db.models.Project.create({ name: 'deviceProject', type: '', url: '' })
+            TestObjects.deviceProject.setTeam(TestObjects.ATeam)
+            // Create a snapshot
+            TestObjects.deviceProjectSnapshot = (await createSnapshot(TestObjects.deviceProject.id, 'test-snapshot', TestObjects.tokens.alice)).json()
+            if (setActive) {
+                // Set snapshot as active
+                await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/projects/${TestObjects.deviceProject.id}/devices/settings`,
+                    body: {
+                        targetSnapshot: TestObjects.deviceProjectSnapshot.id
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+            }
+        }
+        it('device checks in with no snapshot', async function () {
+            const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.id}/live/state`,
+                headers: {
+                    authorization: `Bearer ${device.credentials.token}`
+                },
+                payload: {
+                    state: 'running',
+                    health: {
+                        uptime: 1,
+                        snapshotRestartCount: 0
+                    }
+                }
+            })
+            response.statusCode.should.equal(409)
+        })
+        it('device checks in with a valid snapshot', async function () {
+            await setupProjectWithSnapshot(true)
+
+            const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const dbDevice = await app.db.models.Device.byId(device.id)
+            dbDevice.setProject(TestObjects.deviceProject)
+            const deviceSettings = await TestObjects.deviceProject.getSetting('deviceSettings')
+            dbDevice.targetSnapshotId = deviceSettings?.targetSnapshot
+            await dbDevice.save()
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.id}/live/state`,
+                headers: {
+                    authorization: `Bearer ${device.credentials.token}`
+                },
+                payload: {
+                    snapshot: TestObjects.deviceProjectSnapshot.id,
+                    state: 'running',
+                    health: {
+                        uptime: 1,
+                        snapshotRestartCount: 0
+                    }
+                }
+            })
+            response.statusCode.should.equal(200)
+        })
     })
 
     describe('Get list of a teams devices', async function () {

@@ -18,6 +18,9 @@ module.exports = async function (app) {
                         reply.code(404).type('text/html').send('Not Found')
                         return
                     }
+                    if (request.session.User) {
+                        request.teamMembership = await request.session.User.getTeamMembership(request.device.Team.id)
+                    }
                 } catch (err) {
                     reply.code(404).type('text/html').send('Not Found')
                 }

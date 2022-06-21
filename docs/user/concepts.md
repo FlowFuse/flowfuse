@@ -74,14 +74,12 @@ Each user in a team can have one of two roles:
 
 ### Device
 
-The FlowForge platform can be used to manage projects running on remote Devices.
+The FlowForge platform can be used to manage projects running on remote devices.
 A Device runs a software agent that connects back to the platform to receive updates.
+Users must [install the agent](devices) on the devices.
 
 Devices are registered to a Team, and then assigned to a Project withing that team.
 A user can create a [project snapshot](#project-snapshot) can mark it as the
 *target* snapshot for devices. The platform will then deploy that snapshot to
 all of the devices assigned to the project.
-
-
-
 
