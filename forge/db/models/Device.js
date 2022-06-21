@@ -48,6 +48,12 @@ module.exports = {
                         DeviceId: device.id
                     }
                 })
+                await M.BrokerClient.destroy({
+                    where: {
+                        ownerType: 'device',
+                        ownerId: '' + device.id
+                    }
+                })
             }
         }
     },
@@ -180,8 +186,6 @@ module.exports = {
                     }
                 },
                 getDeviceProjectId: async (id) => {
-                    console.log(M.Device.encodeHashid(2))
-                    console.log(id, M.Device.decodeHashid(id))
                     if (typeof id === 'string') {
                         id = M.Device.decodeHashid(id)
                     }
@@ -191,7 +195,6 @@ module.exports = {
                             'ProjectId'
                         ]
                     })
-                    console.log(device)
                     if (device) {
                         return device.ProjectId
                     }

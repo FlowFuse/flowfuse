@@ -81,6 +81,12 @@ module.exports = {
                         ownerId: project.id
                     }
                 })
+                await M.BrokerClient.destroy({
+                    where: {
+                        ownerType: 'project',
+                        ownerId: project.id
+                    }
+                })
                 await M.ProjectSettings.destroy({
                     where: {
                         ProjectId: project.id
