@@ -9,8 +9,9 @@
                 <slot></slot>
             </div>
             <TransitionGroup class="ff-notifications" name="notifictions-list" tag="div">
-                <ff-notification-toast v-for="(a, $index) in alertsReceived" :key="a.timestamp"
-                                       :type="a.type" :message="a.message" @close="clear($index)"></ff-notification-toast>
+                <ff-notification-toast v-for="(a, $index) in alertsReversed" :key="a.timestamp"
+                                       :type="a.type" :message="a.message"
+                                       :countdown="3000" @close="clear($index)"></ff-notification-toast>
             </TransitionGroup>
         </div>
     </div>
@@ -60,7 +61,7 @@ export default {
                 }
             }
         },
-        notificationReceived (msg, type) {
+        alertReceived (msg, type) {
             this.alerts.push({
                 message: msg,
                 type: type,
@@ -68,7 +69,7 @@ export default {
             })
         },
         clear (i) {
-            this.alerts.splice(this.notifications.length - 1 - i, 1)
+            this.alerts.splice(this.alerts.length - 1 - i, 1)
         }
     }
 }
