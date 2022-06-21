@@ -417,6 +417,150 @@ li.ff-list-item {
 }
 
 /*
+  Notifications
+*/
+
+.ff-notification-pill {
+  background-color: $ff-red-600;
+  color: $ff-white;
+  padding: $ff-unit-xs $ff-unit-md;
+  font-weight: 600;
+  border-radius: $ff-unit-sm;
+  font-size: $ff-funit-sm;
+}
+
+.ff-notification-toast {
+  position: relative;
+  background-color: $ff-white;
+  border: 1px solid $ff-grey-400;
+  padding: $ff-unit-md $ff-unit-md $ff-unit-md $ff-unit-lg;
+  box-shadow: -$ff-unit-sm $ff-unit-sm $ff-unit-sm #0000008c;
+  border-radius: 0 $ff-unit-sm $ff-unit-sm 0;
+  max-width: 475px;
+
+  &--bar {
+    height: 100%;
+    width: $ff-unit-md;
+    background-color: black;
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  &--info {
+    border-color: $ff-grey-400;
+    .ff-notification-toast--bar {
+      background-color: $ff-grey-400;
+    }
+  }
+  &--warning {
+    border-color: $ff-red-400;
+    .ff-notification-toast--bar {
+      background-color: $ff-red-400;
+    }
+  }
+  &--confirmation {
+    border-color: $ff-green-400;
+    .ff-notification-toast--bar {
+      background-color: $ff-green-400;
+    }
+  }
+
+  &--message {
+    display: grid;
+    grid-template-columns: 1fr 20px;
+    gap: $ff-unit-lg;
+    >div {
+      padding-top: 2px;
+    }
+  }
+
+  &--close {
+    cursor: pointer;
+    position: relative;
+    svg {
+      position: relative;
+      z-index: 2;
+      padding: 4px;
+    }
+    .countdown-wrapper {
+      z-index: 1;
+    }
+    &:hover {
+      color: $ff-indigo-600;
+    }
+  }
+
+  &--actions {
+    margin-top: $ff-unit-md;
+    // margin-right: $ff-unit-xl;
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+/* Countdown Pie */
+$countdown_size: 20px;
+
+.countdown-wrapper {
+  width: $countdown_size;
+  height: $countdown_size;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: white;
+}
+
+.countdown-pie {
+  width: 50%;
+  height: 100%;
+  position: absolute;
+  background: $ff-white;
+  border: 2px solid $ff-grey-300;
+}
+
+.countdown-spinner {
+  transform-origin: 100% 50%;
+  border-radius: ($countdown_size/2) 0 0 ($countdown_size/2);
+  z-index: 200;
+  border-right: none;
+}
+
+.countdown-filler {
+  border-radius: 0 ($countdown_size/2) ($countdown_size/2) 0;
+  z-index: 100;
+  border-left: none;
+  left: 50%;
+  opacity: 0;
+}
+
+.countdown-mask {
+  width: 50%;
+  height: 100%;
+  position: absolute;
+  z-index: 300;
+  opacity: 1;
+  background: inherit;
+}
+
+@keyframes rota {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fill {
+  0%        { opacity: 0; }
+  50%, 100% { opacity: 1; }
+}
+
+@keyframes mask {
+  0%        { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+
+/*
   FF Tabs
 */
 .ff-tabs {

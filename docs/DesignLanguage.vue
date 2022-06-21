@@ -227,6 +227,58 @@
                 </div>
             </div>
             <div class="section">
+                <!-- Notifications -->
+                <h1>Notifications</h1>
+                <markdown-viewer class="description" :content="groups['notifications'].description"/>
+                <h2 ref="ff-notification-pill"><pre>ff-notification-pill</pre></h2>
+                <h3>Properties:</h3>
+                <props-table :rows="groups['notifications'].components[0].props"></props-table>
+                <h3>Examples:</h3>
+                <div class="examples">
+                    <div class="example">
+                        <ff-notification-pill count="4" />
+                        <code>{{ groups['notifications'].components[0].examples[0].code }}</code>
+                    </div>
+                </div>
+                <h2 ref="ff-notification-toast"><pre>ff-notification-toast</pre></h2>
+                <h3>Properties:</h3>
+                <props-table :rows="groups['notifications'].components[1].props"></props-table>
+                <h3>Slots:</h3>
+                <slots-table :rows="groups['notifications'].components[1].slots"></slots-table>
+                <h3>Emits:</h3>
+                <events-table :rows="groups['notifications'].components[1].emits"></events-table>
+                <h3>Examples:</h3>
+                <div class="examples">
+                    <div class="example">
+                        <ff-notification-toast type="info" message="Hello World"></ff-notification-toast>
+                        <code>{{ groups['notifications'].components[1].examples[0].code }}</code>
+                    </div>
+                    <div class="example">
+                        <ff-notification-toast type="warning" message="Lorem ipsum dolor sit amet, consectetur adipiscing elit ut aliquam, purus sit amet luctus venenatis, lectus magna fringilla urna"></ff-notification-toast>
+                        <code>{{ groups['notifications'].components[1].examples[1].code }}</code>
+                    </div>
+                    <div class="example">
+                        <ff-notification-toast type="confirmation" message="Hello World"></ff-notification-toast>
+                        <code>{{ groups['notifications'].components[1].examples[2].code }}</code>
+                    </div>
+                    <div class="example">
+                        <ff-notification-toast type="confirmation" message="Hello World" :countdown="3000"></ff-notification-toast>
+                        <code>{{ groups['notifications'].components[1].examples[3].code }}</code>
+                    </div>
+                    <div class="example">
+                        <ff-notification-toast type="info" :show-close="false">
+                            <template v-slot:message>
+                                We can also define content using a slot instead, and use the actions slot to add our own buttons
+                            </template>
+                            <template v-slot:actions>
+                                <ff-button @click="doSomething()">Example</ff-button>
+                            </template>
+                        </ff-notification-toast>
+                        <code>{{ groups['notifications'].components[1].examples[4].code }}</code>
+                    </div>
+                </div>
+            </div>
+            <div class="section">
                 <!-- Tabs -->
                 <h1>Tabs</h1>
                 <markdown-viewer class="description" :content="groups['tabs'].description"/>
@@ -270,6 +322,7 @@ import SlotsTable from './components/SlotsTable.vue'
 import buttonDocs from './data/button.docs.json'
 import dialogDocs from './data/dialog.docs.json'
 import inputDocs from './data/input.docs.json'
+import notificationsDocs from './data/notifications.docs.json'
 import tabsDocs from './data/tabs.docs.json'
 
 import MarkdownViewer from './components/Markdown.vue'
@@ -304,6 +357,7 @@ export default {
                 button: buttonDocs,
                 dialog: dialogDocs,
                 input: inputDocs,
+                notifications: notificationsDocs,
                 tabs: tabsDocs
             }
         }
