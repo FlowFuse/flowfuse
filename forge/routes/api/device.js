@@ -103,7 +103,7 @@ module.exports = async function (app) {
             type: request.body.type,
             credentialSecret: ''
         })
-        const credentials = await device.refreshAuthTokens()
+
         await team.addDevice(device)
 
         await device.reload({
@@ -111,6 +111,8 @@ module.exports = async function (app) {
                 { model: app.db.models.Team }
             ]
         })
+
+        const credentials = await device.refreshAuthTokens()
 
         await app.db.controllers.AuditLog.teamLog(
             team.id,
