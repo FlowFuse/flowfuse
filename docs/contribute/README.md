@@ -41,17 +41,44 @@ The `flowforge/flowforge` repository is the core of the platform and where you'l
 want to begin.
 
 ### FlowForge Code Structure
-
 ```
-/
-├── config   - developer tools configuration files  
-├── docs     - documentation
-├── etc      - runtime configuration files
-├── forge    - the core platform application
-├── frontend - the frontend source code
-└── test     - test material
+.
+├── bin
+├── config               - build config files
+├── docs
+├── etc                  - FlowForge platform configuration files
+├── forge
+│   ├── config
+│   ├── containers
+│   │   └── node_modules
+│   │        └── @flowforge
+│   ├── db
+│   │   ├── controllers
+│   │   ├── models
+│   │   └── views
+│   ├── licensing
+│   ├── postoffice
+│   ├── routes
+│   │   ├── api
+│   │   ├── auth
+│   │   ├── logging
+│   │   ├── setup
+│   │   ├── storage
+│   │   └── ui
+│   └── settings
+├── frontend             - the forge frontend
+│   ├── dist             - build output - created by `npm run build`
+│   ├── public           - static assets
+│   └── src              - vue src
+│       ├── api
+│       ├── components
+│       ├── pages
+│       │   └── account
+│       ├── routes
+│       └── store
+├── test                 - tests for FlowForge
+└── var                  - where the database and localfs project directories are created
 ```
-
 ### Instructions
 1. [Clone the repository](#clone-the-flowforgeflowforge-repository)
 1. [Install dependencies](#install-flowforgeflowforge-dependencies)
