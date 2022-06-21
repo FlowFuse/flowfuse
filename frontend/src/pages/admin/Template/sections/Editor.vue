@@ -36,18 +36,6 @@
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
-                <FormRow v-model="editable.settings.theme" :type="(editTemplate||editable.policy.theme)?'select':'uneditable'" :options="themes">
-                    Editor Theme
-                    <template #description>
-                        The FlowForge Theme must be installed to use this.
-                    </template>
-                    <template #append><ChangeIndicator :value="editable.changed.settings.theme"></ChangeIndicator></template>
-                </FormRow>
-            </div>
-            <LockSetting :editTemplate="editTemplate" v-model="editable.policy.theme" :changed="editable.changed.policy.theme"></LockSetting>
-        </div>
-        <div class="flex flex-col sm:flex-row">
-            <div class="w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.header_title" :error="editable.errors.header_title" :type="(editTemplate||editable.policy.header_title)?'text':'uneditable'">
                     Editor Title
                     <template #description>
