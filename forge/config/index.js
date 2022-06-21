@@ -54,7 +54,7 @@ module.exports = fp(async function (app, opts, next) {
         ffVersion = version
     }
     try {
-        fs.statSync(path.join(__dirname,'..', '..', '.git'))
+        fs.statSync(path.join(__dirname, '..', '..', '.git'))
         ffVersion += '-git'
     } catch (err) {
         // No git directory

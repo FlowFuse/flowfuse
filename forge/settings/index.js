@@ -18,7 +18,7 @@ module.exports = fp(async function (app, _opts, next) {
     settings['version:node'] = process.version
 
     if (process.env.npm_package_version) {
-        settings['version:forge'] = "v" + process.env.npm_package_version
+        settings['version:forge'] = 'v' + process.env.npm_package_version
     } else {
         const { version } = require(path.join(module.parent.path, '..', 'package.json'))
         settings['version:forge'] = 'v' + version
@@ -26,7 +26,7 @@ module.exports = fp(async function (app, _opts, next) {
     // if .git
     try {
         fs.statSync(path.join(__dirname, '..', '..', '.git'))
-        settings["version:forge"] += "-git"
+        settings['version:forge'] += '-git'
     } catch (err) {
         // No git directory
     }
