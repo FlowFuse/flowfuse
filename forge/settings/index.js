@@ -18,10 +18,10 @@ module.exports = fp(async function (app, _opts, next) {
     settings["version:node"] = process.version
 
     if (process.env.npm_package_version) {
-        settings["version:forge"] = process.env.npm_package_version
+        settings["version:forge"] = "v"+process.env.npm_package_version
     } else {
         const { version } = require(path.join(module.parent.path, '..', 'package.json'))
-        settings["version:forge"] = version
+        settings["version:forge"] = "v"+version
     }
     // if .git
     try {
