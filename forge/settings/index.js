@@ -1,5 +1,7 @@
 const { v4: uuidv4 } = require('uuid')
 const fp = require('fastify-plugin')
+const path = require('path')
+const fs = require('fs')
 
 const defaultSettings = require('./defaults')
 
@@ -11,6 +13,24 @@ module.exports = fp(async function (app, _opts, next) {
     loadedSettings.forEach(setting => {
         settings[setting.key] = setting.value
     })
+    
+    // Versions of Node and Forge App
+    settings["version:node"] = process.version
+
+    if (process.env.npm_package_version) {
+        settings["version:forge"] = process.env.npm_package_version
+    } else {
+        const { version } = require(path.join(module.parent.path, '..', 'package.json'))
+        settings["version:forge"] = version
+    }
+    // if .git
+    try {
+        fs.statSync(path.join(__dirname,"..","..",".git"));
+        settings["version:forge"] += "-git";
+    } catch(err) {
+        // No git directory
+    }
+    
 
     const settingsApi = {
         get: (key) => {

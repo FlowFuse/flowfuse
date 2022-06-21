@@ -30,6 +30,9 @@ module.exports = async function (app) {
                 response['user:reset-password'] = app.settings.get('user:reset-password')
                 response['user:team:auto-create'] = app.settings.get('user:team:auto-create')
                 response.email = app.postoffice.exportSettings(true)
+                response['version:forge'] = app.settings.get('version:forge')
+                response['version:node'] = app.settings.get('version:node')
+
             }
             reply.send(response)
         } else {
