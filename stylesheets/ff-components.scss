@@ -478,6 +478,15 @@ li.ff-list-item {
 
   &--close {
     cursor: pointer;
+    position: relative;
+    svg {
+      position: relative;
+      z-index: 2;
+      padding: 4px;
+    }
+    .countdown-wrapper {
+      z-index: 1;
+    }
     &:hover {
       color: $ff-indigo-600;
     }
@@ -490,6 +499,66 @@ li.ff-list-item {
     justify-content: flex-end;
   }
 }
+
+/* Countdown Pie */
+$countdown_size: 20px;
+
+.countdown-wrapper {
+  width: $countdown_size;
+  height: $countdown_size;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: white;
+}
+
+.countdown-pie {
+  width: 50%;
+  height: 100%;
+  position: absolute;
+  background: $ff-white;
+  border: 2px solid $ff-grey-300;
+}
+
+.countdown-spinner {
+  transform-origin: 100% 50%;
+  border-radius: ($countdown_size/2) 0 0 ($countdown_size/2);
+  z-index: 200;
+  border-right: none;
+}
+
+.countdown-filler {
+  border-radius: 0 ($countdown_size/2) ($countdown_size/2) 0;
+  z-index: 100;
+  border-left: none;
+  left: 50%;
+  opacity: 0;
+}
+
+.countdown-mask {
+  width: 50%;
+  height: 100%;
+  position: absolute;
+  z-index: 300;
+  opacity: 1;
+  background: inherit;
+}
+
+@keyframes rota {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fill {
+  0%        { opacity: 0; }
+  50%, 100% { opacity: 1; }
+}
+
+@keyframes mask {
+  0%        { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
 
 /*
   FF Tabs
