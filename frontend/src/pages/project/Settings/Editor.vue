@@ -8,6 +8,8 @@
 </template>
 
 <script>
+import alerts from '@/services/alerts'
+
 import projectApi from '@/api/project'
 import TemplateSettingsEditor from '../../admin/Template/sections/Editor'
 import {
@@ -97,6 +99,7 @@ export default {
             })
             await projectApi.updateProject(this.project.id, { settings })
             this.$emit('projectUpdated')
+            alerts.emit('Project successfully updated.', 'confirmation')
         }
     },
     components: {

@@ -68,6 +68,9 @@
 
 <script>
 import projectApi from '@/api/project'
+
+import alerts from '@/services/alerts'
+
 import FormHeading from '@/components/FormHeading'
 import ConfirmProjectDeleteDialog from './dialogs/ConfirmProjectDeleteDialog'
 import ChangeStackDialog from './dialogs/ChangeStackDialog'
@@ -122,8 +125,10 @@ export default {
             this.loading.duplicating = true
             projectApi.create(parts).then(result => {
                 this.$router.push({ name: 'Project', params: { id: result.id } })
+                alerts.emit('Project successfully duplicated.', 'confirmation')
             }).catch(err => {
                 console.log(err)
+                alerts.emit('Project failed to duplicate.', 'warning')
             }).finally(() => {
                 this.loading.duplicating = false
             })
@@ -138,8 +143,10 @@ export default {
             this.loading.deleting = true
             projectApi.deleteProject(this.project.id).then(() => {
                 this.$router.push({ name: 'Home' })
+                alerts.emit('Project successfully deleted.', 'confirmation')
             }).catch(err => {
                 console.warn(err)
+                alerts.emit('Project failed to delete.', 'warning')
             }).finally(() => {
                 this.loading.deleting = false
             })
@@ -150,8 +157,10 @@ export default {
                 projectApi.changeStack(this.project.id, selectedStack).then(() => {
                     this.$router.push({ name: 'Project', params: { id: this.project.id } })
                     this.$emit('projectUpdated')
+                    alerts.emit('Project stack successfuly updated.', 'confirmation')
                 }).catch(err => {
                     console.warn(err)
+                    alerts.emit('Project stack was not updated due to an error.', 'warning')
                 }).finally(() => {
                     this.loading.changingStack = false
                 })
