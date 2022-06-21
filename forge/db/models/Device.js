@@ -59,9 +59,11 @@ module.exports = {
                     const credentialSecret = crypto.randomBytes(32).toString('hex')
                     this.credentialSecret = credentialSecret
                     await this.save()
+                    const deviceBrokerCredentials = await Controllers.BrokerClient.createClientForDevice(this)
                     return {
                         token: accessToken.token,
-                        credentialSecret
+                        credentialSecret,
+                        broker: deviceBrokerCredentials
                     }
                 },
                 async getAccessToken () {

@@ -83,6 +83,8 @@ export default {
 token: ${this.device.credentials.token}
 credentialSecret: ${this.device.credentials.credentialSecret}
 forgeURL: ${this.settings.base_url}
+brokerUsername: ${this.device.credentials.broker.username}
+brokerPassword: ${this.device.credentials.broker.password}
 `
             } else {
                 return ''
