@@ -28,7 +28,9 @@ const bannedNameList = [
     'accounts',
     'account',
     'status',
-    'billing'
+    'billing',
+    'mqtt',
+    'broker'
 ]
 
 module.exports = async function (app) {
