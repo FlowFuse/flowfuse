@@ -2,6 +2,7 @@
     <div class="ff-notification-toast" :class="'ff-notification-toast--' + type">
         <div class="ff-notification-toast--message">
             <div>
+                <span class="ff-notification-toast--bar"></span>
                 <slot name="message">
                     {{ message }}
                 </slot>
