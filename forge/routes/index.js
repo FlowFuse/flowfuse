@@ -18,5 +18,6 @@ module.exports = fp(async function (app, opts, done) {
     await app.register(require('./setup'), { logLevel: 'warn' })
     await app.register(require('./storage'), { prefix: '/storage', logLevel: 'warn' })
     await app.register(require('./logging'), { prefix: '/logging', logLevel: 'warn' })
+    await app.register(require('./broker'), { prefix: '/api/broker', logLevel: 'warn' })
     done()
 })

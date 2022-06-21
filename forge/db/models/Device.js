@@ -176,6 +176,23 @@ module.exports = {
                         count: count,
                         devices: rows
                     }
+                },
+                getDeviceProjectId: async (id) => {
+                    console.log(M.Device.encodeHashid(2))
+                    console.log(id, M.Device.decodeHashid(id))
+                    if (typeof id === 'string') {
+                        id = M.Device.decodeHashid(id)
+                    }
+                    const device = await this.findOne({
+                        where: { id: id },
+                        attributes: [
+                            'ProjectId'
+                        ]
+                    })
+                    console.log(device)
+                    if (device) {
+                        return device.ProjectId
+                    }
                 }
             }
         }
