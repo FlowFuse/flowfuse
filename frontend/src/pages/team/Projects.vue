@@ -25,6 +25,7 @@
             </div>
         </template>
     </form>
+    <router-view></router-view>
 </template>
 
 <script>
