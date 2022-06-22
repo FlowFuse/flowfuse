@@ -262,6 +262,17 @@ module.exports = {
                             }
                         ]
                     })
+                },
+                getProjectTeamId: async (id) => {
+                    const project = await this.findOne({
+                        where: { id: id },
+                        attributes: [
+                            'TeamId'
+                        ]
+                    })
+                    if (project) {
+                        return project.TeamId
+                    }
                 }
             }
         }

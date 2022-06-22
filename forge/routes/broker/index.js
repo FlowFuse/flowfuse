@@ -18,7 +18,7 @@ module.exports = async function (app) {
         return match[1] === ids[1]
     }
 
-    async function checkDeviceInProject (match, ids) {
+    async function checkDeviceAssignedToProject (match, ids) {
         // match = [ _ , <teamid>, <projectid> ]
         // ids = [ 'device', <teamid>, <deviceid> ]
 
@@ -30,6 +30,30 @@ module.exports = async function (app) {
         const assignedProject = await app.db.models.Device.getDeviceProjectId(ids[2])
         return assignedProject && assignedProject === match[2]
     }
+
+    async function checkDeviceCanAccessProject (match, ids) {
+        // match = [ _ , <teamid>, <projectid> ]
+        // ids = [ 'device', <teamid>, <deviceid> ]
+
+        // Do the simple team id check
+        if (match[1] !== ids[1]) {
+            return false
+        }
+        // Get the project this device is assigned to
+        const assignedProject = await app.db.models.Device.getDeviceProjectId(ids[2])
+        if (!assignedProject) {
+            return false
+        }
+        if (assignedProject === match[2]) {
+            // Access the project we're assigned to - all good
+            return true
+        }
+
+        // Need to check if this project is in the same team.
+        const projectTeamId = await app.db.models.Project.getProjectTeamId(match[2])
+        return projectTeamId && app.db.models.Team.encodeHashid(projectTeamId) === match[1]
+    }
+
     const ACLS = {
         forge_platform: {
             sub: [
@@ -70,7 +94,7 @@ module.exports = async function (app) {
                 { topic: /^ff\/v1\/([^/]+)\/p\/[^/]+\/in\/[^/]+($|\/.*$)/, verify: checkTeamId },
                 // Send broadcast messages
                 // - ff/v1/<team>/p/<project>/out/+/#
-                { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/out\/+\/#$/, verify: checkTeamAndObjectIds }
+                { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/out\/[^/]+($|\/.*$)/, verify: checkTeamAndObjectIds }
             ]
         },
         device: {
@@ -80,10 +104,10 @@ module.exports = async function (app) {
                 { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/command$/, verify: checkTeamAndObjectIds },
                 // Receive broadcasts from other projects in the team
                 // - ff/v1/<team>/p/+/out/+/#
-                { topic: /^ff\/v1\/([^/]+)\/p\/[^/]+\/out\/[^/]+($|\/.*$)/, verify: checkTeamId },
+                { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/out\/[^/]+($|\/.*$)/, verify: checkDeviceCanAccessProject },
                 // Receive messages sent to this project
                 // - ff/v1/<team>/p/<project>/in/+/#
-                { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/in\/[^/]+($|\/.*$)$/, verify: checkDeviceInProject }
+                { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/in\/[^/]+($|\/.*$)$/, verify: checkDeviceAssignedToProject }
             ],
             pub: [
                 // Send status to the platform
@@ -91,10 +115,10 @@ module.exports = async function (app) {
                 { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/status$/, verify: checkTeamAndObjectIds },
                 // Send message to other project
                 // - ff/v1/<team>/p/+/in/+/#
-                { topic: /^ff\/v1\/([^/]+)\/p\/[^/]+\/in\/[^/]+($|\/.*$)/, verify: checkTeamId },
+                { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/in\/[^/]+($|\/.*$)/, verify: checkDeviceCanAccessProject },
                 // Send broadcast messages
                 // - ff/v1/<team>/p/<project>/out/+/#
-                { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/out\/+\/#$/, verify: checkDeviceInProject }
+                { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/out\/[^/]+($|\/.*$)/, verify: checkDeviceAssignedToProject }
             ]
         }
     }
@@ -112,7 +136,6 @@ module.exports = async function (app) {
             }
         }
     }, async (request, response) => {
-        console.log(request.body.username, request.body.password)
         const isValid = await app.db.controllers.BrokerClient.authenticateCredentials(
             request.body.username,
             request.body.password
@@ -157,7 +180,6 @@ module.exports = async function (app) {
         for (let i = 0; i < l; i++) {
             const m = aclList[i].topic.exec(request.body.topic)
             if (m) {
-                console.log(request.body.topic, m)
                 if (aclList[i].verify) {
                     allowed = await aclList[i].verify(m, request.body.username.split(':'))
                 } else {
