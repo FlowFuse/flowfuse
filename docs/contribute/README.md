@@ -230,6 +230,29 @@ To run the tests for the project, you can use the following npm tasks:
  - `npm run test:unit` - runs the unit tests
  - `npm run test:system` - runs the system tests
 
+##### Testing against PostgreSQL
+
+By default, the tests use an in-memory sqlite database to test against. This is
+the most self-contained way of testing the platform. But it is also necessary to
+test against PostgreSQL. To enable the use of PostgreSQL in the tests:
+
+1. Ensure you have an instance of PostgreSQL running locally. For example, via
+   docker:
+
+        docker run -it -p 5432:5432 --name ff-postgres -e POSTGRES_PASSWORD=secret postgres
+
+2. Enable PostgrSQL mode by setting the following environment variable:
+
+        export FF_TEST_DB_POSTGRES=true
+
+   The database connection can be set using the following env vars (default values shown)
+
+        export FF_TEST_DB_POSTGRES_HOST=localhost
+        export FF_TEST_DB_POSTGRES_PORT=5432
+        export FF_TEST_DB_POSTGRES_USER=postgres
+        export FF_TEST_DB_POSTGRES_PASSWORD=secret
+        export FF_TEST_DB_POSTGRES_DATABASE=flowforge_test
+
 #### Reporting code coverage
 
 The `test:*` tasks have corresponding code coverage tasks. These tasks run the 

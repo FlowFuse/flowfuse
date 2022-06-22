@@ -569,7 +569,7 @@ describe('Project API', function () {
                     template: TestObjects.template1.hashid,
                     stack: TestObjects.stack1.hashid,
                     sourceProject: {
-                        id: 'does-not-exist',
+                        id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
                         options: {
                             flows: true,
                             credentials: true,

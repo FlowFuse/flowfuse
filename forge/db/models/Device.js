@@ -34,7 +34,7 @@ module.exports = {
                 await M.AccessToken.destroy({
                     where: {
                         ownerType: 'device',
-                        ownerId: device.id
+                        ownerId: '' + device.id
                     }
                 })
             }
