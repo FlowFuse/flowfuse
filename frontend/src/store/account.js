@@ -217,7 +217,7 @@ const actions = {
             state.commit('setTeam', team)
             state.commit('setTeamMembership', teamMembership)
             if (currentSlug !== team.slug) {
-                router.replace({ name: router.currentRoute.value.name, params: { id: team.slug } })
+                router.replace({ name: router.currentRoute.value.name, params: { team_slug: team.slug } })
             }
         }
     },
