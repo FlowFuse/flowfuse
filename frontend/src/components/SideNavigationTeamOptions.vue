@@ -36,7 +36,7 @@ export default {
         'ff-team-selection': SideTeamSelection
     },
     computed: {
-        ...mapState('account', ['user', 'team', 'teamMembership', 'features']),
+        ...mapState('account', ['user', 'team', 'teamMembership', 'features', 'notifications']),
         showAdmin: function () {
             return this.teamMembership.role === Roles.Admin || this.teamMembership.role === Roles.Owner
         }
