@@ -46,7 +46,7 @@ module.exports = fp(async function (app, _opts, next) {
         dbOptions.port = app.config.db.port || 5432
         dbOptions.username = app.config.db.user
         dbOptions.password = /* app.secrets.dbPassword || */ app.config.db.password
-        dbOptions.database = 'flowforge'
+        dbOptions.database = app.config.db.database || 'flowforge'
     }
 
     dbOptions.logging = !!app.config.db.logging
@@ -63,6 +63,10 @@ module.exports = fp(async function (app, _opts, next) {
         utils
     }
     app.decorate('db', db)
+
+    app.addHook('onClose', async (_) => {
+        await sequelize.close()
+    })
 
     await sequelize.authenticate()
 
