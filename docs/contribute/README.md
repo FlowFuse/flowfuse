@@ -236,16 +236,12 @@ By default, the tests use an in-memory sqlite database to test against. This is
 the most self-contained way of testing the platform. But it is also necessary to
 test against PostgreSQL. To enable the use of PostgreSQL in the tests:
 
-1. Install the `pg` module
-
-        npm install pg
-
-2. Ensure you have an instance of PostgreSQL running locally. For example, via
+1. Ensure you have an instance of PostgreSQL running locally. For example, via
    docker:
 
         docker run -it -p 5432:5432 --name ff-postgres -e POSTGRES_PASSWORD=secret postgres
 
-3. Enable PostgrSQL mode by setting the following environment variable:
+2. Enable PostgrSQL mode by setting the following environment variable:
 
         export FF_TEST_DB_POSTGRES=true
 
