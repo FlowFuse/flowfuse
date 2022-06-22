@@ -40,10 +40,6 @@ import NavItem from '@/components/NavItem'
 
 import { ChevronLeftIcon, CogIcon, UserGroupIcon, LockClosedIcon } from '@heroicons/vue/solid'
 
-const navigation = [
-
-]
-
 export default {
     name: 'UserSettings',
     computed: {
