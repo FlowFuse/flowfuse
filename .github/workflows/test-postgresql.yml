@@ -1,0 +1,47 @@
+name: Test Postgress
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  runner-job:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: secret
+          POSTGRES_USER: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
+    strategy:
+      matrix:
+        node-version: [16.x]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup NodeJS ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install Dependencies
+        run: npm install
+      - name: Build the forge
+        run: npm run Build
+      - name: Test the forge (with PostgreSQL)
+        env:
+          FF_TEST_DB_POSTGRES: true
+          FF_TEST_DB_POSTGRES_HOST: localhost
+          FF_TEST_DB_POSTGRES_PORT: 5432
+          FF_TEST_DB_POSTGRES_USER: postgres
+          FF_TEST_DB_POSTGRES_PASSWORD: secret
+          FF_TEST_DB_POSTGRES_DATABASE: flowforge
+        run: npm run test
