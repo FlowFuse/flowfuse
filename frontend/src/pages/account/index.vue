@@ -4,7 +4,7 @@
             <template v-slot:options>
                 <li class="ff-navigation-divider">User Settings</li>
                 <router-link v-for="route in navigation" :key="route.label" :to="route.path">
-                    <nav-item :icon="route.icon" :label="route.name"></nav-item>
+                    <nav-item :icon="route.icon" :label="route.name" :notifications="route.notifications"></nav-item>
                 </router-link>
             </template>
             <template v-slot:back v-if="team">
@@ -34,22 +34,21 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 import SideNavigation from '@/components/SideNavigation'
 import NavItem from '@/components/NavItem'
 
 import { ChevronLeftIcon, CogIcon, UserGroupIcon, LockClosedIcon } from '@heroicons/vue/solid'
 
 const navigation = [
-    { name: 'Settings', path: '/account/settings', icon: CogIcon },
-    { name: 'Teams', path: '/account/teams', icon: UserGroupIcon },
-    { name: 'Security', path: '/account/security', icon: LockClosedIcon }
+
 ]
 
 export default {
     name: 'UserSettings',
     computed: {
-        ...mapState('account', ['user', 'team'])
+        ...mapState('account', ['user', 'team']),
+        ...mapGetters('account', ['notifications'])
     },
     components: {
         SideNavigation,
@@ -58,18 +57,32 @@ export default {
     data () {
         return {
             mounted: false,
+            navigation: [
+                { name: 'Settings', path: '/account/settings', icon: CogIcon },
+                { name: 'Teams', path: '/account/teams', icon: UserGroupIcon },
+                { name: 'Security', path: '/account/security', icon: LockClosedIcon }
+            ],
             icons: {
                 chevronLeft: ChevronLeftIcon
             }
         }
     },
-    setup () {
-        return {
-            navigation
+    watch: {
+        notifications: {
+            handler: function () {
+                this.updateNotifications()
+            },
+            deep: true
         }
     },
     mounted () {
         this.mounted = true
+        this.updateNotifications()
+    },
+    methods: {
+        updateNotifications () {
+            this.navigation[1].notifications = this.notifications.invitations
+        }
     }
 }
 </script>

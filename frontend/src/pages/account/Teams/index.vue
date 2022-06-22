@@ -14,7 +14,7 @@
 
 <script>
 import SectionSideMenu from '@/components/SectionSideMenu'
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 
 export default {
     name: 'AccountTeams',
@@ -22,14 +22,36 @@ export default {
         SectionSideMenu
     },
     computed: {
-        ...mapState('account', ['user', 'teams'])
+        ...mapState('account', ['user', 'teams']),
+        ...mapGetters('account', ['notifications'])
     },
     data () {
         return {
-            sideNavigation: [
-                { name: 'Teams', path: '/account/teams' },
-                { name: 'Invitations', path: '/account/teams/invitations' }
-            ]
+            sideNavigation: []
+        }
+    },
+    watch: {
+        notifications: {
+            handler: function () {
+                this.updateNotifications()
+            },
+            deep: true
+        }
+    },
+    async mounted () {
+        this.sideNavigation = [
+            { name: 'Teams', path: '/account/teams' }
+        ]
+        this.sideNavigation.push({ name: 'Invitations', path: '/account/teams/invitations' })
+        this.updateNotifications()
+    },
+    methods: {
+        updateNotifications () {
+            if (this.notifications.invitations > 0) {
+                this.sideNavigation[1].name = `Invitations (${this.notifications.invitations})`
+            } else {
+                this.sideNavigation[1].name = 'Invitations'
+            }
         }
     }
 }

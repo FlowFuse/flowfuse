@@ -317,6 +317,8 @@ $nav_height: 60px;
         }
     }
     .ff-nav-item {
+        display: flex;
+        justify-content: space-between;
         background-color: $ff-grey-700;
         border-bottom: 1px solid $ff-grey-600;
         &:hover {
@@ -328,6 +330,11 @@ $nav_height: 60px;
                 color: $ff-teal-300;
             }
         }
+    }
+    .ff-notification-pill {
+        padding: 2px 12px;
+        background-color: $ff-red-600;
+        border: 1px solid $ff-red-700;
     }
     .ff-side-navigation--options-back {
         // width: 100%;

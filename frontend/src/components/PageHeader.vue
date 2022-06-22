@@ -13,7 +13,7 @@
         <!-- Mobile: User Options -->
         <div class="ff-navigation ff-navigation-right" :class="{'open': mobileUserOptionsOpen}">
             <nav-item v-for="option in options" :key="option.label"
-                      :label="option.label" :icon="option.icon"
+                      :label="option.label" :icon="option.icon" :notifications="option.notifications"
                       @click="mobileUserOptionsOpen = false; option.onclick(option.onclickparams)"></nav-item>
         </div>
         <!-- Desktop: User Options -->
@@ -22,11 +22,12 @@
                 <div class="ff-user">
                     <img :src="user.avatar" class="ff-avatar"/>
                     <label>{{ user.name }}</label>
+                    <ff-notification-pill v-if="notifications.total > 0" class="ml-3" :count="notifications.total"/>
                 </div>
             </template>
             <template v-slot:default>
                 <ff-dropdown-option v-for="option in options" :key="option.label" @click="option.onclick(option.onclickparams)">
-                    <nav-item :label="option.label" :icon="option.icon"></nav-item>
+                    <nav-item :label="option.label" :icon="option.icon" :notifications="option.notifications"></nav-item>
                 </ff-dropdown-option>
             </template>
         </ff-dropdown>
@@ -34,7 +35,7 @@
 </template>
 <script>
 import { ref } from 'vue'
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 import router from '@/routes'
 
 import { MenuIcon, QuestionMarkCircleIcon, AdjustmentsIcon, CogIcon, LogoutIcon } from '@heroicons/vue/solid'
@@ -59,7 +60,16 @@ export default {
             })
             return profileLinks
         },
-        ...mapState('account', ['user', 'team'])
+        ...mapState('account', ['user', 'team']),
+        ...mapGetters('account', ['notifications'])
+    },
+    watch: {
+        notifications: {
+            handler: function () {
+                this.options[0].notifications = this.notifications.invitations
+            },
+            deep: true
+        }
     },
     components: {
         NavItem,
@@ -100,6 +110,7 @@ export default {
                 onclickparams: { name: 'Admin Settings' }
             })
         }
+        this.options[0].notifications = this.notifications.invitations
     },
     methods: {
         home () {
