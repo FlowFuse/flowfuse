@@ -54,7 +54,7 @@ import { Roles } from '@core/lib/roles'
 
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
 import ProjectsIcon from '@/components/icons/Projects'
-import { ChevronLeftIcon, TemplateIcon, CogIcon, ClockIcon, ChipIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
+import { ChevronLeftIcon, CogIcon, ClockIcon, ChipIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
 
 const projectTransitionStates = [
     'starting',
