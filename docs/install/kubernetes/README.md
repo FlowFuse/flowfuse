@@ -104,7 +104,7 @@ forge:
       region: eu-west-1
 ```
 
-*Detailed walk through for AWS in internal Cloud Project docs. Will add extra page with sanitised version*
+TODO: *Detailed walk through for AWS in internal Cloud Project docs. Will add extra page with sanitised version* [AWS setup notes](aws.md)
 
 A full list of all the configable values can be found in the Helm Chart README.md [here](https://github.com/flowforge/helm/blob/main/helm/flowforge/README.md)
 
