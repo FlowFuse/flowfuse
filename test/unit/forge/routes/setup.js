@@ -101,6 +101,12 @@ module.exports = async function (settings = {}, config = {}) {
     await project1.setProjectTemplate(template)
     await project1.setProjectType(forge.projectType)
 
+    await project1.reload({
+        include: [
+            { model: forge.db.models.Team }
+        ]
+    })
+
     forge.project = project1
     forge.template = template
     forge.stack = stack
