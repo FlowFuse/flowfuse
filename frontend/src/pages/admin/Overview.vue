@@ -35,6 +35,13 @@
                 </table>
             </div>
         </div>
+        <div class="border rounded p-4 col-span-3">
+            <div class="text-xl mb-1 border-b">Version</div>
+            <table>
+                <tr><td class="font-medium p-2 pr-4 align-top">Forge Application</td><td class="p-2">{{settings['version:forge']}}</td></tr>
+                <tr><td class="font-medium p-2 pr-4 align-top">NodeJS</td><td class="p-2">{{settings['version:node']}}</td></tr>
+            </table>
+        </div>
     </div>
 
 </template>
@@ -42,18 +49,21 @@
 <script>
 import adminApi from '@/api/admin'
 import SectionTopMenu from '@/components/SectionTopMenu'
+import Settings from '@/api/settings'
 
 export default {
     name: 'AdminSettingsGeneral',
     data: function () {
         return {
             license: {},
-            stats: {}
+            stats: {},
+            settings: {}
         }
     },
     async mounted () {
         this.stats = await adminApi.getStats()
         this.license = await adminApi.getLicenseDetails()
+        this.settings = await Settings.getSettings()
     },
     components: {
         SectionTopMenu
