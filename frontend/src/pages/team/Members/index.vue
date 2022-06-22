@@ -2,7 +2,7 @@
     <div class="">
         <SectionTopMenu hero="Members" :options="sideNavigation" />
         <div class="flex-grow">
-            <router-view :team="team" :teamMembership="teamMembership"></router-view>
+            <router-view :team="team" :teamMembership="teamMembership" @invites-updated="checkAccess()"></router-view>
         </div>
     </div>
 </template>
