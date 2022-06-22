@@ -238,24 +238,24 @@ test against PostgreSQL. To enable the use of PostgreSQL in the tests:
 
 1. Install the `pg` module
 
-      npm install pg
+        npm install pg
 
 2. Ensure you have an instance of PostgreSQL running locally. For example, via
    docker:
 
-      docker run -it -p 5432:5432 --name ff-postgres -e POSTGRES_PASSWORD=secret postgres
+        docker run -it -p 5432:5432 --name ff-postgres -e POSTGRES_PASSWORD=secret postgres
 
 3. Enable PostgrSQL mode by setting the following environment variable:
 
-      export FF_TEST_DB_POSTGRES=true
+        export FF_TEST_DB_POSTGRES=true
 
-  The database connection can be set using the following env vars (default values shown)
+   The database connection can be set using the following env vars (default values shown)
 
-      export FF_TEST_DB_POSTGRES_HOST=localhost
-      export FF_TEST_DB_POSTGRES_PORT=5432
-      export FF_TEST_DB_POSTGRES_USER=postgres
-      export FF_TEST_DB_POSTGRES_PASSWORD=secret
-      export FF_TEST_DB_POSTGRES_DATABASE=flowforge_test
+        export FF_TEST_DB_POSTGRES_HOST=localhost
+        export FF_TEST_DB_POSTGRES_PORT=5432
+        export FF_TEST_DB_POSTGRES_USER=postgres
+        export FF_TEST_DB_POSTGRES_PASSWORD=secret
+        export FF_TEST_DB_POSTGRES_DATABASE=flowforge_test
 
 #### Reporting code coverage
 
