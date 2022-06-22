@@ -20,7 +20,7 @@
 <script>
 import PageHeader from '@/components/PageHeader.vue'
 
-import Alerts from '@/services/alerts.js'
+import alerts from '@/services/alerts.js'
 
 export default {
     name: 'ff-layout-platform',
@@ -46,7 +46,7 @@ export default {
     },
     mounted () {
         this.checkRouteMeta()
-        Alerts.subscribe(this.alertReceived)
+        alerts.subscribe(this.alertReceived)
     },
     methods: {
         toggleMenu () {

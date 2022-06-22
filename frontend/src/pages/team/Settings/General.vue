@@ -107,7 +107,6 @@ export default {
                 this.editing.teamName = false
                 await this.$store.dispatch('account/refreshTeams')
                 await this.$store.dispatch('account/refreshTeam')
-                console.log('update')
                 alerts.emit('Team Settings updated.', 'confirmation')
             }).catch(err => {
                 if (err.response.data) {
