@@ -15,7 +15,19 @@ module.exports = async function (app) {
      */
     app.get('/', async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
-        const stacks = await app.db.models.ProjectStack.getAll(paginationOptions)
+        let filter = { active: true }
+        if (request.query.filter === 'all') {
+            filter = {}
+        } else if (request.query.filter === 'active') {
+            // Default behaviour
+            filter = { active: true }
+        } else if (request.query.filter === 'inactive') {
+            filter = { active: false }
+        } else if (/^replacedBy:/.test(request.query.filter)) {
+            const filterStack = app.db.models.ProjectStack.decodeHashid(request.query.filter.substring(11))
+            filter = { replacedBy: filterStack || 0 }
+        }
+        const stacks = await app.db.models.ProjectStack.getAll(paginationOptions, filter)
         stacks.stacks = stacks.stacks.map(s => app.db.views.ProjectStack.stack(s, request.session.User.admin))
         reply.send(stacks)
     })
@@ -50,7 +62,8 @@ module.exports = async function (app) {
                 properties: {
                     name: { type: 'string' },
                     active: { type: 'boolean' },
-                    properties: { type: 'object' }
+                    properties: { type: 'object' },
+                    replaces: { type: 'string' }
                 }
             }
         }
@@ -62,7 +75,29 @@ module.exports = async function (app) {
             properties: request.body.properties
         }
         try {
+            let replacedStack
+            if (request.body.replace) {
+                replacedStack = await app.db.models.ProjectStack.byId(request.body.replace)
+                if (!replacedStack) {
+                    reply.code(400).send({ error: 'unknown replace stack' })
+                    return
+                } else if (replacedStack.getDataValue('replacedBy')) {
+                    reply.code(400).send({ error: 'stack already replaced' })
+                    return
+                }
+            }
             const stack = await app.db.models.ProjectStack.create(stackProperties)
+            if (replacedStack) {
+                // Update all previous stacks to point to the latest in the chain
+                await app.db.models.ProjectStack.update({ replacedBy: stack.id }, {
+                    where: {
+                        replacedBy: replacedStack.id
+                    }
+                })
+                replacedStack.active = false
+                replacedStack.replacedBy = stack.id
+                await replacedStack.save()
+            }
             const response = app.db.views.ProjectStack.stack(stack)
             response.projectCount = 0
             reply.send(response)
@@ -88,7 +123,7 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const stack = await app.db.models.ProjectStack.byId(request.params.stackId)
         // The `beforeDestroy` hook of the ProjectStack model ensures
-        // we don't delete an in-use stack
+        // we don't delete an in-use stack or one that is flagged as a replacedBy stack
         try {
             await stack.destroy()
             reply.send({ status: 'okay' })
@@ -107,20 +142,22 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('stack:edit')
     }, async (request, reply) => {
         const stack = await app.db.models.ProjectStack.byId(request.params.stackId)
-        if (stack.projectCount > 0) {
-            reply.code(400).send({ error: 'Cannot edit in-use stack' })
-        } else {
-            if (request.body.name !== undefined) {
-                stack.name = request.body.name
+        if (request.body.name !== undefined || request.body.properties !== undefined) {
+            if (stack.getDataValue('projectCount') > 0) {
+                reply.code(400).send({ error: 'Cannot edit in-use stack' })
+                return
             }
-            if (request.body.active !== undefined) {
-                stack.active = request.body.active
-            }
-            if (request.body.properties !== undefined) {
-                stack.properties = request.body.properties
-            }
-            await stack.save()
-            reply.send(app.db.views.ProjectStack.stack(stack, request.session.User.admin))
         }
+        if (request.body.name !== undefined) {
+            stack.name = request.body.name
+        }
+        if (request.body.active !== undefined) {
+            stack.active = request.body.active
+        }
+        if (request.body.properties !== undefined) {
+            stack.properties = request.body.properties
+        }
+        await stack.save()
+        reply.send(app.db.views.ProjectStack.stack(stack, request.session.User.admin))
     })
 }
