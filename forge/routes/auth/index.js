@@ -30,7 +30,7 @@ const SESSION_COOKIE_OPTIONS = {
 }
 
 module.exports = fp(async function (app, opts, done) {
-    await app.register(require('./oauth'),{ logLevel: 'warn' })
+    await app.register(require('./oauth'), { logLevel: 'warn' })
     await app.register(require('./permissions'))
 
     // WIP:
