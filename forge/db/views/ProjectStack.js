@@ -11,7 +11,7 @@ module.exports = {
                 createdAt: result.createdAt
             }
             if (includeCount) {
-                filtered.projectCount = result.projectCount
+                filtered.projectCount = parseInt(result.projectCount) || 0
             }
             return filtered
         } else {
