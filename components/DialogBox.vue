@@ -2,16 +2,14 @@
     <div class="ff-dialog-container" :class="'ff-dialog-container--' + (open ? 'open' : 'closed')">
         <div class="ff-dialog-box">
             <div class="ff-dialog-header">{{ header }}</div>
-            <div class="ff-dialog-body" ref="body">
-                <div class="ff-dialog-content">
-                    <slot></slot>
-                </div>
-                <div class="ff-dialog-actions">
-                    <slot name="actions">
-                        <ff-button @click="$emit('cancel')" kind="secondary">Cancel</ff-button>
-                        <ff-button @click="$emit('confirm')">Confirm</ff-button>
-                    </slot>
-                </div>
+            <div class="ff-dialog-content" ref="content">
+                <slot></slot>
+            </div>
+            <div class="ff-dialog-actions">
+                <slot name="actions">
+                    <ff-button @click="$emit('cancel')" kind="secondary">Cancel</ff-button>
+                    <ff-button @click="$emit('confirm')">Confirm</ff-button>
+                </slot>
             </div>
         </div>
         <div class="ff-dialog-backdrop">
@@ -35,7 +33,7 @@ export default {
     },
     watch: {
         open: function () {
-            this.$refs.body.scrollTop = 0
+            this.$refs.content.scrollTop = 0
         }
     },
     emits: ['cancel', 'confirm']

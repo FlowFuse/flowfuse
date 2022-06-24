@@ -383,7 +383,8 @@ li.ff-list-item {
   z-index: 2;
   width: 100%;
   max-width: 42rem;
-  max-height: 100%;
+  margin-top: 60px;
+  max-height: calc(100% - 84px);
   display: flex;
   flex-direction: column;
   background-color: $ff-white;
@@ -397,16 +398,14 @@ li.ff-list-item {
       color: $ff-white;
       font-weight: 600;
     }
-    &-body {
-      overflow-y: auto;
-    }
     &-content {
       padding: $ff-funit-lg;
+      overflow-y: auto;
     }
     &-actions {
       display: flex;
       justify-content: flex-end;
-      padding: 0 $ff-unit-lg $ff-unit-lg $ff-unit-lg;
+      padding: $ff-unit-md $ff-unit-lg $ff-unit-lg $ff-unit-lg;
       .ff-btn {
         margin-left: $ff-funit-md;
       }
