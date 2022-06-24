@@ -2,7 +2,7 @@
     <div class="ff-dialog-container" :class="'ff-dialog-container--' + (open ? 'open' : 'closed')">
         <div class="ff-dialog-box">
             <div class="ff-dialog-header">{{ header }}</div>
-            <div class="ff-dialog-body" ref='body'>
+            <div class="ff-dialog-body" ref="body">
                 <div class="ff-dialog-content">
                     <slot></slot>
                 </div>
