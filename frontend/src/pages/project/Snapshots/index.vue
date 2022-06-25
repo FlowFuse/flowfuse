@@ -17,6 +17,7 @@
         </template>
         <ConfirmSnapshotDeleteDialog @deleteSnapshot="deleteSnapshot" ref="confirmSnapshotDeleteDialog" />
         <ConfirmSnapshotTargetDialog @targetSnapshot="targetSnapshot" ref="confirmSnapshotTargetDialog" />
+        <ConfirmSnapshotRollbackDialog @rollbackSnapshot="rollbackSnapshot" ref="confirmSnapshotRollbackDialog" />
         <SnapshotCreateDialog :project="project"  @snapshotCreated="snapshotCreated" ref="snapshotCreateDialog" />
     </form>
 </template>
@@ -34,6 +35,7 @@ import UserCell from '@/components/tables/cells/UserCell'
 import SnapshotEditButton from './components/SnapshotEditButton'
 import ConfirmSnapshotDeleteDialog from './dialogs/ConfirmSnapshotDeleteDialog'
 import ConfirmSnapshotTargetDialog from './dialogs/ConfirmSnapshotTargetDialog'
+import ConfirmSnapshotRollbackDialog from './dialogs/ConfirmSnapshotRollbackDialog'
 import SnapshotCreateDialog from './dialogs/SnapshotCreateDialog'
 
 const SnapshotMetaInformation = {
@@ -81,6 +83,8 @@ export default {
             const snapshot = this.snapshots.find(d => d.id === snapshotId)
             if (action === 'delete') {
                 this.$refs.confirmSnapshotDeleteDialog.show(snapshot)
+            } else if (action === 'rollback') {
+                this.$refs.confirmSnapshotRollbackDialog.show(snapshot)
             } else if (this.features.devices) {
                 if (action === 'setDeviceTarget') {
                     this.$refs.confirmSnapshotTargetDialog.show(snapshot)
@@ -97,6 +101,9 @@ export default {
             await snapshotApi.deleteSnapshot(this.project.id, snapshot.id)
             const index = this.snapshots.indexOf(snapshot)
             this.snapshots.splice(index, 1)
+        },
+        async rollbackSnapshot (snapshot) {
+            await snapshotApi.rollbackSnapshot(this.project.id, snapshot.id)
         },
         async targetSnapshot (snapshot) {
             await projectApi.updateProjectDeviceSettings(this.project.id, {
@@ -156,6 +163,7 @@ export default {
         SnapshotCreateDialog,
         ConfirmSnapshotDeleteDialog,
         ConfirmSnapshotTargetDialog,
+        ConfirmSnapshotRollbackDialog,
         ItemTable,
         PlusSmIcon
     }

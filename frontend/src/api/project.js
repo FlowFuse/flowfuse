@@ -59,6 +59,12 @@ const updateProject = async (projectId, options) => {
         return res.data
     })
 }
+const rollbackProject = async (projectId, snapshotId) => {
+    const data = {
+        snapshotId: snapshotId
+    }
+    return client.post(`/api/v1/projects/${projectId}/actions/rollback`, data).then(res => res.data)
+}
 const changeStack = async (projectId, stackId) => {
     return client.put(`/api/v1/projects/${projectId}`, { stack: stackId }).then(res => {
         return res.data
@@ -108,6 +114,7 @@ export default {
     restartProject,
     suspendProject,
     updateProject,
+    rollbackProject,
     changeStack,
     getProjectDevices,
     getProjectDeviceSettings,
