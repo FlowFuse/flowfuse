@@ -2,7 +2,7 @@
     <div class="ff-dialog-container" :class="'ff-dialog-container--' + (open ? 'open' : 'closed')">
         <div class="ff-dialog-box">
             <div class="ff-dialog-header">{{ header }}</div>
-            <div class="ff-dialog-content">
+            <div class="ff-dialog-content" ref="content">
                 <slot></slot>
             </div>
             <div class="ff-dialog-actions">
@@ -29,6 +29,11 @@ export default {
         header: {
             type: String,
             default: 'Dialog Box'
+        }
+    },
+    watch: {
+        open: function () {
+            this.$refs.content.scrollTop = 0
         }
     },
     emits: ['cancel', 'confirm']
