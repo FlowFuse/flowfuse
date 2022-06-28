@@ -74,6 +74,9 @@ export default {
                 entries.log.forEach(l => {
                     const d = new Date(parseInt(l.ts.substring(0, l.ts.length - 4)))
                     l.date = `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`
+                    if (typeof l.msg === 'object') {
+                        l.msg = JSON.stringify(l.msg)
+                    }
                     l.msg = l.msg.replace(/^[\n]*/, '')
                     if (!cursor || cursor[0] !== '-') {
                         this.logEntries.push(l)
