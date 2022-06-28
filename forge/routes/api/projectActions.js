@@ -113,7 +113,7 @@ module.exports = async function (app) {
         let restartProject = false
         try {
             // get (and check) snapshot is valid / owned by project before any actions
-            const snapshot = await app.db.models.ProjectSnapshot.byId(request.body.snapshotId)
+            const snapshot = await app.db.models.ProjectSnapshot.byId(request.body.snapshot)
             if (!snapshot) {
                 throw new Error(`snapshot '${request.body.snapshotId}' not found for project '${request.body.snapshotId}'`)
             }
