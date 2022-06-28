@@ -1,6 +1,6 @@
 // Injects some test data into the database
 
-const { Roles } = require('../lib/roles')
+// const { Roles } = require('../lib/roles')
 
 async function inject (app) {
     try {

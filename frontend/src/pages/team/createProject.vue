@@ -28,7 +28,8 @@
                     </FormRow>
                     <span class="block text-xs ml-4 italic text-gray-500 m-0 max-w-sm">Please note, currently, project names cannot be changed once a project is created</span>
                 </div>
-                <ul class="flex flex-wrap gap-1 items-stretch">
+                <div v-if="this.errors.projectTypes" class="text-red-400 text-xs">{{errors.projectTypes}}</div>
+                <ul v-else class="flex flex-wrap gap-1 items-stretch">
                     <li v-for="(projType, index) in projectTypes" :key="index">
                         <ProjectTypeSummary :projectType="projType">
                             <template v-slot:header>
@@ -51,7 +52,7 @@
                 <FormRow v-if="this.features.billing" type="checkbox" v-model="input.billingConfirmation" id="billing-confirmation">
                     Confirm additional charges
                     <template v-slot:description>
-                        You will be charged US$15/month for this project.
+                        {{ billingDescription }}
                     </template>
                 </FormRow>
 
@@ -103,12 +104,14 @@ export default {
             stacks: [],
             templates: [],
             projectTypes: [],
+            billingDescription: '',
             input: {
                 name: NameGenerator(),
                 team: '',
                 stack: '',
                 template: '',
-                billingConfirmation: false
+                billingConfirmation: false,
+                projectType: ''
             },
             errors: {
                 stack: '',
@@ -143,6 +146,7 @@ export default {
         'input.projectType': async function (value, oldValue) {
             if (value) {
                 const projectType = this.projectTypes.find(pt => pt.id === value)
+                this.billingDescription = projectType.properties?.billingDescription || ''
                 const stackList = await stacksApi.getStacks(null, null, null, value)
                 this.stacks = stackList.stacks.filter(stack => stack.active).map(stack => { return { value: stack.id, label: stack.name } })
                 if (this.stacks.length === 0) {
@@ -189,6 +193,11 @@ export default {
             // There must be a better Vue way of doing this, but I can't find it.
             // Without the setTimeout, the select box doesn't update
             this.input.team = this.currentTeam
+
+            if (this.projectTypes.length === 0) {
+                this.errors.projectTypes = 'No project types available. Ask an Administrator to create a new project type'
+            }
+
             if (!this.sourceProjectId) {
                 this.input.stack = this.stacks.length > 0 ? this.stacks[0].value : ''
                 this.input.template = this.templates.length > 0 ? this.templates[0].value : ''
