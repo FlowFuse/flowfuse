@@ -31,7 +31,8 @@ import { mapState } from 'vuex'
 
 import { Roles } from '@core/lib/roles'
 
-import { ChipIcon, CollectionIcon, UsersIcon, DatabaseIcon, CurrencyDollarIcon, CogIcon } from '@heroicons/vue/solid'
+import ProjectsIcon from '@/components/icons/Projects'
+import { ChipIcon, UsersIcon, DatabaseIcon, TemplateIcon, CurrencyDollarIcon, CogIcon } from '@heroicons/vue/solid'
 import NavItem from '@/components/NavItem'
 import SideTeamSelection from '@/components/SideTeamSelection'
 
@@ -57,11 +58,11 @@ export default {
             general: [{
                 label: 'Overview',
                 to: '/overview',
-                icon: CollectionIcon
+                icon: TemplateIcon
             }, {
                 label: 'Projects',
                 to: '/projects',
-                icon: CollectionIcon
+                icon: ProjectsIcon
             }, {
                 label: 'Members',
                 to: '/members',
