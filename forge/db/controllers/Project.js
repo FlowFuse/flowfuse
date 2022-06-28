@@ -126,6 +126,43 @@ module.exports = {
         return projectExport
     },
 
+    importProjectSnapshot: async function restoreSnapshot (app, project, snapshot) {
+        const t = await app.db.sequelize.transaction() // start a transaction
+        try {
+            if (snapshot?.flows?.flows) {
+                const currentProjectFlows = await app.db.models.StorageFlow.byProject(project.id)
+                currentProjectFlows.flow = JSON.stringify(!snapshot.flows.flows ? [] : snapshot.flows.flows)
+                if (snapshot.flows.credentials) {
+                    const origCredentials = await app.db.models.StorageCredentials.byProject(project.id)
+                    origCredentials.credentials = JSON.stringify(snapshot.flows.credentials)
+                    await origCredentials.save({ transaction: t })
+                }
+                await currentProjectFlows.save({ transaction: t })
+            }
+            if (snapshot?.settings?.settings || snapshot?.settings?.env) {
+                const snapshotSettings = JSON.parse(JSON.stringify(snapshot.settings.settings || {}))
+                snapshotSettings.env = []
+                const envVarKeys = Object.keys(snapshot.settings.env || {})
+                if (envVarKeys?.length) {
+                    envVarKeys.forEach(key => {
+                        snapshotSettings.env.push({
+                            name: key,
+                            value: snapshot.settings.env[key]
+                        })
+                    })
+                }
+                const newSettings = app.db.controllers.ProjectTemplate.validateSettings(snapshotSettings, project.ProjectTemplate)
+                const currentProjectSettings = await project.getSetting('settings') || {} // necessary?
+                const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings) // necessary?
+                await project.updateSetting('settings', updatedSettings, { transaction: t }) // necessary?
+            }
+            await t.commit() // all good, commit the transaction
+        } catch (error) {
+            await t.rollback() // rollback the transaction.
+            throw error
+        }
+    },
+
     /**
      * Takes a credentials object and re-encrypts it with a new key
      */
