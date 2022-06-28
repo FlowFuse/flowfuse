@@ -61,7 +61,7 @@ const updateProject = async (projectId, options) => {
 }
 const rollbackProject = async (projectId, snapshotId) => {
     const data = {
-        snapshotId: snapshotId
+        snapshot: snapshotId
     }
     return client.post(`/api/v1/projects/${projectId}/actions/rollback`, data).then(res => res.data)
 }
