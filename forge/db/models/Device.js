@@ -13,7 +13,8 @@ module.exports = {
         type: { type: DataTypes.STRING, allowNull: false },
         credentialSecret: { type: DataTypes.STRING, allowNull: false },
         state: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
-        lastSeenAt: { type: DataTypes.DATE, allowNull: true }
+        lastSeenAt: { type: DataTypes.DATE, allowNull: true },
+        settingsHash: { type: DataTypes.STRING, allowNull: true }
     },
     associations: function (M) {
         this.belongsTo(M.Team)
@@ -27,6 +28,7 @@ module.exports = {
         })
         this.belongsTo(M.ProjectSnapshot, { as: 'targetSnapshot' })
         this.belongsTo(M.ProjectSnapshot, { as: 'activeSnapshot' })
+        this.hasMany(M.DeviceSettings)
     },
     hooks: function (M) {
         return {
@@ -34,7 +36,12 @@ module.exports = {
                 await M.AccessToken.destroy({
                     where: {
                         ownerType: 'device',
-                        ownerId: device.id
+                        ownerId: '' + device.id
+                    }
+                })
+                await M.DeviceSettings.destroy({
+                    where: {
+                        DeviceId: device.id
                     }
                 })
             }
@@ -57,6 +64,37 @@ module.exports = {
                     return M.AccessToken.findOne({
                         where: { ownerId: '' + this.id }
                     })
+                },
+                async getAllSettings () {
+                    const result = {}
+                    const settings = await this.getDeviceSettings()
+                    settings.forEach(setting => {
+                        result[setting.key] = setting.value
+                    })
+                    return result
+                },
+                async updateSettings (obj) {
+                    const updates = []
+                    for (const [key, value] of Object.entries(obj)) {
+                        updates.push({ DeviceId: this.id, key, value })
+                    }
+                    await M.DeviceSettings.bulkCreate(updates, { updateOnDuplicate: ['value'] })
+                    const settings = this.getAllSettings()
+                    this.settingsHash = hashSettings(settings)
+                    await this.save()
+                },
+                async updateSetting (key, value) {
+                    const result = await M.ProjectSettings.upsert({ DeviceId: this.id, key, value })
+                    const settings = this.getAllSettings()
+                    this.settingsHash = hashSettings(settings)
+                    return result
+                },
+                async getSetting (key) {
+                    const result = await M.DeviceSettings.findOne({ where: { DeviceId: this.id, key } })
+                    if (result) {
+                        return result.value
+                    }
+                    return undefined
                 }
             },
             static: {
@@ -131,4 +169,10 @@ module.exports = {
             }
         }
     }
+}
+
+function hashSettings (settings) {
+    const hash = crypto.createHash('sha256')
+    hash.update(JSON.stringify(settings))
+    return hash.digest('hex')
 }

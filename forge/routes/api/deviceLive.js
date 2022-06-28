@@ -38,6 +38,13 @@ module.exports = async function (app) {
             })
             return
         }
+        if (request.body.settingsHash !== (request.device.settingsHash)) {
+            reply.code(409).send({
+                error: 'incorrect-settings',
+                settingsHash: request.device.settingsHash
+            })
+            return
+        }
         reply.code(200).send({})
     })
 
@@ -70,5 +77,17 @@ module.exports = async function (app) {
                 reply.send({})
             }
         }
+    })
+
+    app.get('/settings', async (request, reply) => {
+        const response = {
+            hash: request.device.settingsHash,
+            env: {}
+        }
+        const settings = await request.device.getAllSettings()
+        settings.settings.env.forEach(envVar => {
+            response.env[envVar.name] = envVar.value
+        })
+        reply.send(response)
     })
 }

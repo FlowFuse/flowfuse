@@ -18,7 +18,9 @@ module.exports = async function (app) {
                         reply.code(404).type('text/html').send('Not Found')
                         return
                     }
-                    request.teamMembership = await request.session.User.getTeamMembership(request.device.Team.id)
+                    if (request.session.User) {
+                        request.teamMembership = await request.session.User.getTeamMembership(request.device.Team.id)
+                    }
                 } catch (err) {
                     reply.code(404).type('text/html').send('Not Found')
                 }
@@ -250,5 +252,18 @@ module.exports = async function (app) {
             { id: request.device.hashid }
         )
         reply.send(credentials)
+    })
+
+    app.post('/:deviceId/settings', {
+        preHandler: app.needsPermission('device:edit')
+    }, async (request, reply) => {
+        reply.send(request.device.updateSettings(request.body))
+    })
+
+    app.get('/:deviceId/settings', {
+        preHandler: app.needsPermission('device:edit')
+    }, async (request, reply) => {
+        const settings = await request.device.getAllSettings()
+        reply.send(settings)
     })
 }
