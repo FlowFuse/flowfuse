@@ -3,7 +3,7 @@
         <template v-slot:default>
             <p>This rollback will overwrite the current project.</p>
             <p>All changes to the flows, settings and environment variables made since
-                   the last snapshot will be lost.</p>
+                the last snapshot will be lost.</p>
             <p>Are you sure you want to rollback to this snapshot?</p>
         </template>
         <template v-slot:actions>
