@@ -16,6 +16,10 @@
                         <td class="font-medium">Status</td>
                         <td><div class="py-2"><ProjectStatusBadge :status="project.meta.state" :pendingStateChange="project.pendingStateChange" /></div></td>
                     </tr>
+                    <tr class="border-b">
+                        <td class="font-medium">Type</td>
+                        <td><div class="py-2">{{project.projectType?.name || 'none'}} / {{project.stack?.name || 'none'}}</div></td>
+                    </tr>
                     <template v-if="project.meta.versions">
                         <tr class="border-b">
                             <td class="font-medium">Node-RED Version</td>

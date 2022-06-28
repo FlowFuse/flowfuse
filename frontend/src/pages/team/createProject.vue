@@ -19,9 +19,6 @@
                 <div class="mb-8 text-sm text-gray-500">
                     <template v-if="!isCopyProject">Let's get your new Node-RED project setup in no time.</template>
                 </div>
-
-                <!-- <FormRow :options="teams" :error="(init && (teams.length === 0))?'You do not have permission to create a project in any team':''" v-model="input.team" id="team">Team</FormRow> -->
-
                 <div>
                     <FormRow :error="errors.name" v-model="input.name">
                         <template v-slot:default>Project Name</template>
@@ -31,7 +28,17 @@
                     </FormRow>
                     <span class="block text-xs ml-4 italic text-gray-500 m-0 max-w-sm">Please note, currently, project names cannot be changed once a project is created</span>
                 </div>
-
+                <ul class="flex flex-wrap gap-1 items-stretch">
+                    <li v-for="(projType, index) in projectTypes" :key="index">
+                        <ProjectTypeSummary :projectType="projType">
+                            <template v-slot:header>
+                                <div class="absolute">
+                                    <input type="radio" name="project-type" :value="projType.id" v-model="input.projectType">
+                                </div>
+                            </template>
+                        </ProjectTypeSummary>
+                    </li>
+                </ul>
                 <FormRow :options="stacks" :error="errors.stack" v-model="input.stack" id="stack">Stack</FormRow>
                 <FormRow :options="templates" :disabled="isCopyProject" :error="errors.template" v-model="input.template" id="template">Template</FormRow>
                 <template v-if="isCopyProject">
@@ -59,6 +66,7 @@ import { mapState } from 'vuex'
 
 import teamApi from '@/api/team'
 import projectApi from '@/api/project'
+import projectTypesApi from '@/api/projectTypes'
 import stacksApi from '@/api/stacks'
 import templatesApi from '@/api/templates'
 
@@ -74,6 +82,7 @@ import { RefreshIcon } from '@heroicons/vue/outline'
 import { Roles } from '@core/lib/roles'
 
 import ExportProjectComponents from '../project/components/ExportProjectComponents'
+import ProjectTypeSummary from './components/ProjectTypeSummary'
 
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
 
@@ -93,6 +102,7 @@ export default {
             teams: [],
             stacks: [],
             templates: [],
+            projectTypes: [],
             input: {
                 name: NameGenerator(),
                 team: '',
@@ -129,6 +139,23 @@ export default {
             } else {
                 this.errors.name = 'Names can include a-z, 0-9 & - with no spaces'
             }
+        },
+        'input.projectType': async function (value, oldValue) {
+            if (value) {
+                const projectType = this.projectTypes.find(pt => pt.id === value)
+                const stackList = await stacksApi.getStacks(null, null, null, value)
+                this.stacks = stackList.stacks.filter(stack => stack.active).map(stack => { return { value: stack.id, label: stack.name } })
+                if (this.stacks.length === 0) {
+                    this.errors.stack = 'No stacks available. Ask an Administator to create a new stack definition'
+                } else {
+                    this.errors.stack = ''
+                    if (projectType.defaultStack) {
+                        this.input.stack = projectType.defaultStack
+                    } else {
+                        this.input.stack = this.stacks[0].value
+                    }
+                }
+            }
         }
     },
     async created () {
@@ -150,8 +177,8 @@ export default {
         }
         this.teams = filteredTeams
 
-        const stackList = await stacksApi.getStacks()
-        this.stacks = stackList.stacks.filter(stack => stack.active).map(stack => { return { value: stack.id, label: stack.name } })
+        const projectTypes = await projectTypesApi.getProjectTypes()
+        this.projectTypes = projectTypes.types
 
         const templateList = await templatesApi.getTemplates()
         this.templates = templateList.templates.filter(template => template.active).map(template => { return { value: template.id, label: template.name } })
@@ -167,9 +194,6 @@ export default {
                 this.input.template = this.templates.length > 0 ? this.templates[0].value : ''
             }
 
-            if (this.stacks.length === 0) {
-                this.errors.stack = 'No stacks available. Ask an Administator to create a new stack definition'
-            }
             if (this.templates.length === 0) {
                 this.errors.template = 'No templates available. Ask an Administator to create a new template definition'
             }
@@ -215,6 +239,7 @@ export default {
         FormRow,
         RefreshIcon,
         ExportProjectComponents,
+        ProjectTypeSummary,
         SectionTopMenu,
         NavItem,
         SideNavigation,

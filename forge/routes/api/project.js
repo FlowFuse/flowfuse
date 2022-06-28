@@ -109,10 +109,11 @@ module.exports = async function (app) {
         schema: {
             body: {
                 type: 'object',
-                required: ['name', 'team', 'stack', 'template'],
+                required: ['name', 'team', 'projectType', 'stack', 'template'],
                 properties: {
                     name: { type: 'string' },
                     team: { type: ['string', 'number'] },
+                    projectType: { type: 'string' },
                     stack: { type: 'string' },
                     template: { type: 'string' },
                     sourceProject: {
@@ -149,9 +150,15 @@ module.exports = async function (app) {
             }
         }
 
+        const projectType = await app.db.models.ProjectType.byId(request.body.projectType)
+        if (!projectType) {
+            reply.code(400).send({ error: 'Invalid project type' })
+            return
+        }
+
         const stack = await app.db.models.ProjectStack.byId(request.body.stack)
 
-        if (!stack) {
+        if (!stack || stack.ProjectTypeId !== projectType.id) {
             reply.code(400).send({ error: 'Invalid stack' })
             return
         }
@@ -192,9 +199,11 @@ module.exports = async function (app) {
         await team.addProject(project)
         await project.setProjectStack(stack)
         await project.setProjectTemplate(template)
+        await project.setProjectType(projectType)
         await project.reload({
             include: [
                 { model: app.db.models.Team },
+                { model: app.db.models.ProjectType },
                 { model: app.db.models.ProjectStack },
                 { model: app.db.models.ProjectTemplate }
             ]

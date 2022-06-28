@@ -9,7 +9,7 @@
 module.exports = async function (app) {
     /**
      * Get a list of all stacks
-     * @name /api/v1/stacks/:id
+     * @name /api/v1/stacks/
      * @static
      * @memberof forge.routes.api.stacks
      */
@@ -26,6 +26,12 @@ module.exports = async function (app) {
         } else if (/^replacedBy:/.test(request.query.filter)) {
             const filterStack = app.db.models.ProjectStack.decodeHashid(request.query.filter.substring(11))
             filter = { replacedBy: filterStack || 0 }
+        }
+        if (request.query.projectType) {
+            const projectTypeId = app.db.models.ProjectType.decodeHashid(request.query.projectType)[0]
+            if (projectTypeId) {
+                filter.ProjectTypeId = projectTypeId
+            }
         }
         const stacks = await app.db.models.ProjectStack.getAll(paginationOptions, filter)
         stacks.stacks = stacks.stacks.map(s => app.db.views.ProjectStack.stack(s, request.session.User.admin))
@@ -62,6 +68,7 @@ module.exports = async function (app) {
                 properties: {
                     name: { type: 'string' },
                     active: { type: 'boolean' },
+                    projectType: { type: 'string' },
                     properties: { type: 'object' },
                     replaces: { type: 'string' }
                 }
@@ -72,7 +79,8 @@ module.exports = async function (app) {
         const stackProperties = {
             name: request.body.name,
             active: request.body.active !== undefined ? request.body.active : undefined,
-            properties: request.body.properties
+            properties: request.body.properties,
+            ProjectTypeId: app.db.models.ProjectType.decodeHashid(request.body.projectType)[0] || undefined
         }
         try {
             let replacedStack
@@ -83,6 +91,9 @@ module.exports = async function (app) {
                     return
                 } else if (replacedStack.getDataValue('replacedBy')) {
                     reply.code(400).send({ error: 'stack already replaced' })
+                    return
+                } else if (replacedStack.ProjectTypeId !== stackProperties.ProjectTypeId) {
+                    reply.code(400).send({ error: 'cannot replace stack with different project type' })
                     return
                 }
             }
@@ -148,6 +159,19 @@ module.exports = async function (app) {
                 return
             }
         }
+        if (request.body.projectType) {
+            if (stack.ProjectTypeId) {
+                reply.code(400).send({ error: 'Cannot change stack project type' })
+                return
+            }
+            // This is assigning the stack to a project type for the first time
+            // We'll allow that as part of the migration of legacy stacks
+            const projectTypeId = app.db.models.ProjectType.decodeHashid(request.body.projectType)[0]
+            if (projectTypeId) {
+                stack.ProjectTypeId = projectTypeId
+            }
+        }
+
         if (request.body.name !== undefined) {
             stack.name = request.body.name
         }
@@ -157,6 +181,7 @@ module.exports = async function (app) {
         if (request.body.properties !== undefined) {
             stack.properties = request.body.properties
         }
+
         await stack.save()
         reply.send(app.db.views.ProjectStack.stack(stack, request.session.User.admin))
     })

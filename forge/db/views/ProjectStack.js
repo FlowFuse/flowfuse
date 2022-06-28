@@ -6,6 +6,7 @@ module.exports = {
                 id: result.hashid,
                 name: result.name,
                 active: result.active,
+                projectType: app.db.models.ProjectType.encodeHashid(result.ProjectTypeId) || undefined,
                 properties: result.properties || {},
                 replacedBy: app.db.models.ProjectStack.encodeHashid(result.replacedBy) || undefined,
                 createdAt: result.createdAt

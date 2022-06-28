@@ -29,6 +29,7 @@
 
 <script>
 import stacksApi from '@/api/stacks'
+import projectTypesApi from '@/api/projectTypes'
 
 import ItemTable from '@/components/tables/ItemTable'
 import FormHeading from '@/components/FormHeading'
@@ -50,9 +51,10 @@ const StackName = {
         <div class="flex flex-grow flex-col space-y-1">
             <span class="text-lg">{{name}}</span>
             <span class="text-xs text-gray-500">id: {{id}}</span>
+            <span v-if="projectTypeName" class="text-xs text-gray-500">type: {{projectTypeName}}</span>
         </div>
     </div>`,
-    props: ['id', 'name', 'description'],
+    props: ['id', 'name', 'description', 'projectTypeName'],
     components: { DesktopComputerIcon }
 }
 export default {
@@ -62,6 +64,7 @@ export default {
             allStacks: {},
             activeStacks: [],
             inactiveStacks: [],
+            projectTypes: [],
             loadingActive: false,
             loadingInactive: false,
             nextActiveCursor: null,
@@ -82,6 +85,10 @@ export default {
         }
     },
     async created () {
+        const result = await projectTypesApi.getProjectTypes(null, 100, 'all')
+        result.types.forEach(pt => {
+            this.projectTypes[pt.id] = pt
+        })
         await this.loadInactiveItems()
         await this.loadActiveItems()
     },
@@ -115,10 +122,15 @@ export default {
             } else {
                 this.inactiveStacks.push(stack)
             }
+            if (stack.projectType) {
+                stack.projectTypeName = this.projectTypes[stack.projectType]?.name
+            }
             this.allStacks[stack.id] = stack
             if (replaced) {
                 this.stackUpdated(replaced)
             }
+            this.sortStacks(this.activeStacks)
+            this.sortStacks(this.inactiveStacks)
         },
         async stackUpdated (stack) {
             // This stack might have moved between the active/inactive lists.
@@ -145,6 +157,12 @@ export default {
                     }
                 } // else - not found anywhere..!
             }
+            if (stack.projectType) {
+                stack.projectTypeName = this.projectTypes[stack.projectType]?.name
+            }
+
+            this.sortStacks(this.activeStacks)
+            this.sortStacks(this.inactiveStacks)
         },
         async deleteStack (stack) {
             await stacksApi.deleteStack(stack.id)
@@ -162,9 +180,13 @@ export default {
             const result = await stacksApi.getStacks(this.nextCursor, 30, 'active')
             this.nextActiveCursor = result.meta.next_cursor
             result.stacks.forEach(v => {
+                if (v.projectType) {
+                    v.projectTypeName = this.projectTypes[v.projectType]?.name
+                }
                 this.activeStacks.push(v)
                 this.allStacks[v.id] = v
             })
+            this.sortStacks(this.activeStacks)
             this.loadingActive = false
         },
         loadInactiveItems: async function () {
@@ -172,10 +194,29 @@ export default {
             const result = await stacksApi.getStacks(this.nextCursor, 30, 'inactive')
             this.nextInactiveCursor = result.meta.next_cursor
             result.stacks.forEach(v => {
+                if (v.projectType) {
+                    v.projectTypeName = this.projectTypes[v.projectType]?.name
+                }
                 this.inactiveStacks.push(v)
                 this.allStacks[v.id] = v
             })
+            this.sortStacks(this.inactiveStacks)
             this.loadingInactive = false
+        },
+        sortStacks: function (stacks) {
+            stacks.sort((A, B) => {
+                if (A.projectType === B.projectType) {
+                    return A.createdAt.localeCompare(B.createdAt)
+                } else {
+                    if (!A.projectType) {
+                        return -1
+                    }
+                    if (!B.projectType) {
+                        return 1
+                    }
+                    return this.projectTypes[A.projectType].order - this.projectTypes[B.projectType].order
+                }
+            })
         }
     },
     components: {

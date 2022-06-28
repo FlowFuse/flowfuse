@@ -15,6 +15,7 @@ describe('Stack API', function () {
         TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
         TestObjects.stack1 = await app.db.models.ProjectStack.byId(app.stack.id)
         TestObjects.tokens = {}
+        TestObjects.projectType1 = app.projectType
         await login('alice', 'aaPassword')
         await login('bob', 'bbPassword')
     })
@@ -45,6 +46,7 @@ describe('Stack API', function () {
                 payload: {
                     name: 'stack2',
                     active: true,
+                    projectType: TestObjects.projectType1.hashid,
                     properties: {
                         foo: 'bar'
                     }
@@ -54,6 +56,7 @@ describe('Stack API', function () {
             result.should.have.property('id')
             result.should.have.property('name', 'stack2')
             result.should.have.property('active', true)
+            result.should.have.property('projectType', TestObjects.projectType1.hashid)
             result.should.have.property('projectCount', 0)
             result.should.have.property('properties')
             result.properties.should.have.property('foo', 'bar')
@@ -79,6 +82,7 @@ describe('Stack API', function () {
                 payload: {
                     name: 'stack2',
                     active: true,
+                    projectType: TestObjects.projectType1.hashid,
                     replace: TestObjects.stack1.hashid,
                     properties: {
                         foo: 'bar'
@@ -123,6 +127,7 @@ describe('Stack API', function () {
                 payload: {
                     name: 'stack2',
                     active: true,
+                    projectType: TestObjects.projectType1.hashid,
                     replace: TestObjects.stack1.hashid,
                     properties: {
                         foo: 'bar'
@@ -139,6 +144,7 @@ describe('Stack API', function () {
                 payload: {
                     name: 'stack3',
                     active: true,
+                    projectType: TestObjects.projectType1.hashid,
                     replace: TestObjects.stack1.hashid,
                     properties: {
                         foo: 'bar'
@@ -158,6 +164,7 @@ describe('Stack API', function () {
                 payload: {
                     name: 'stack2',
                     active: true,
+                    projectType: TestObjects.projectType1.hashid,
                     replace: TestObjects.stack1.hashid,
                     properties: {
                         foo: 'bar'
@@ -180,6 +187,7 @@ describe('Stack API', function () {
                 payload: {
                     name: 'stack3',
                     active: true,
+                    projectType: TestObjects.projectType1.hashid,
                     replace: stack2.id,
                     properties: {
                         foo: 'bar'
@@ -209,10 +217,7 @@ describe('Stack API', function () {
             const response = await app.inject({
                 method: 'GET',
                 url: `/api/v1/stacks/${TestObjects.stack1.hashid}`,
-                cookies: { sid: TestObjects.tokens.alice },
-                payload: {
-                    name: 'stack1' // stack1 created in setup
-                }
+                cookies: { sid: TestObjects.tokens.alice }
             })
             const result = response.json()
             result.should.have.property('id')
@@ -224,10 +229,7 @@ describe('Stack API', function () {
             const response = await app.inject({
                 method: 'GET',
                 url: `/api/v1/stacks/${TestObjects.stack1.hashid}`,
-                cookies: { sid: TestObjects.tokens.bob },
-                payload: {
-                    name: 'stack1' // stack1 created in setup
-                }
+                cookies: { sid: TestObjects.tokens.bob }
             })
             const result = response.json()
             result.should.have.property('id')
@@ -278,6 +280,46 @@ describe('Stack API', function () {
             result.should.have.property('name', 'stack1')
             result.should.have.property('active', false)
             result.should.have.property('projectCount', 1)
+        })
+        it('Cannot change projectType for stack that already has one', async function () {
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/stacks/${TestObjects.stack1.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    projectType: TestObjects.projectType1.hashid
+                }
+            })
+            response.statusCode.should.equal(400)
+            const result = response.json()
+            result.should.have.property('error', 'Cannot change stack project type')
+        })
+        it('Can set projectType for legacy stack that does not have one', async function () {
+            // Need to create a legacy stack
+            const legacyStack = await app.db.models.ProjectStack.create({
+                name: 'legacyStack',
+                active: true,
+                properties: {}
+            })
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/stacks/${legacyStack.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    projectType: TestObjects.projectType1.hashid
+                }
+            })
+            response.statusCode.should.equal(200)
+            const getResponse = await app.inject({
+                method: 'GET',
+                url: `/api/v1/stacks/${legacyStack.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            const result = getResponse.json()
+            result.should.have.property('id')
+            result.should.have.property('name', 'legacyStack')
+            result.should.have.property('active', true)
+            result.should.have.property('projectType', TestObjects.projectType1.hashid)
         })
     })
 

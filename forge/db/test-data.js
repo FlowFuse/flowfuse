@@ -7,24 +7,35 @@ async function inject (app) {
         if (!process.env.TEST_DATA) {
             return
         }
-        await app.db.models.PlatformSettings.upsert({ key: 'setup:initialised', value: true })
+        console.log('Applying test data')
+        // await app.db.models.ProjectType.create({
+        //     name: 'Hobby Project',
+        //     active: true,
+        //     description: 'A hobbyist project',
+        //     properties: {
+        //         billingId: '123',
+        //         billingDescription: '$15/month'
+        //     }
+        // })
 
-        const userAlice = await app.db.models.User.create({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
-        const userBob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
-        // const userChris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', password: 'ccPassword' })
+        // await app.db.models.PlatformSettings.upsert({ key: 'setup:initialised', value: true })
 
-        const team1 = await app.db.models.Team.create({ name: 'ATeam' })
-        const team2 = await app.db.models.Team.create({ name: 'BTeam' })
-        const team3 = await app.db.models.Team.create({ name: 'CTeam' })
+        // const userAlice = await app.db.models.User.create({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
+        // const userBob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
+        // // const userChris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', password: 'ccPassword' })
 
-        await team1.addUser(userAlice, { through: { role: Roles.Owner } })
-        await team1.addUser(userBob, { through: { role: Roles.Member } })
-        // await team1.addUser(userChris, { through: { role:Roles.Member } });
+        // const team1 = await app.db.models.Team.create({ name: 'ATeam' })
+        // const team2 = await app.db.models.Team.create({ name: 'BTeam' })
+        // const team3 = await app.db.models.Team.create({ name: 'CTeam' })
 
-        await team2.addUser(userBob, { through: { role: Roles.Owner } })
-        await team2.addUser(userAlice, { through: { role: Roles.Member } })
+        // await team1.addUser(userAlice, { through: { role: Roles.Owner } })
+        // await team1.addUser(userBob, { through: { role: Roles.Member } })
+        // // await team1.addUser(userChris, { through: { role:Roles.Member } });
 
-        await team3.addUser(userAlice, { through: { role: Roles.Owner } })
+        // await team2.addUser(userBob, { through: { role: Roles.Owner } })
+        // await team2.addUser(userAlice, { through: { role: Roles.Member } })
+
+        // await team3.addUser(userAlice, { through: { role: Roles.Owner } })
         // await team3.addUser(userChris, { through: { role:Roles.Member } });
 
         // const project1 = await app.db.models.Project.create({name: "project1", type: "basic", url: "http://instance1.example.com"});
