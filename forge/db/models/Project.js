@@ -209,7 +209,8 @@ module.exports = {
                                 attributes: ['hashid', 'id', 'name']
                             },
                             {
-                                model: M.ProjectStack
+                                model: M.ProjectStack,
+                                attributes: ['hashid', 'id', 'name', 'links', 'properties', 'replacedBy', 'ProjectTypeId']
                             },
                             {
                                 model: M.ProjectTemplate,
