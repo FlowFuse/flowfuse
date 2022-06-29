@@ -10,7 +10,7 @@ module.exports = {
                 order: result.order,
                 properties: result.properties || {},
                 createdAt: result.createdAt,
-                defaultStack: app.db.models.ProjectStack.encodeHashid(result.defaultStackId) || undefined
+                defaultStack: app.db.models.ProjectStack.encodeHashid(result.defaultStackId) || null
             }
             if (includeCount) {
                 filtered.projectCount = parseInt(result.projectCount) || 0

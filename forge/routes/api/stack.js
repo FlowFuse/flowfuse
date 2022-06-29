@@ -135,11 +135,15 @@ module.exports = async function (app) {
         const stack = await app.db.models.ProjectStack.byId(request.params.stackId)
         // The `beforeDestroy` hook of the ProjectStack model ensures
         // we don't delete an in-use stack or one that is flagged as a replacedBy stack
-        try {
-            await stack.destroy()
-            reply.send({ status: 'okay' })
-        } catch (err) {
-            reply.code(400).send({ error: err.toString() })
+        if (stack) {
+            try {
+                await stack.destroy()
+                reply.send({ status: 'okay' })
+            } catch (err) {
+                reply.code(400).send({ error: err.toString() })
+            }
+        } else {
+            reply.code(404).send({ status: 'Not Found' })
         }
     })
 

@@ -64,7 +64,7 @@ module.exports = async function (settings = {}, config = {}) {
         name: 'projectType1',
         description: 'default project type',
         active: true,
-        properties: { },
+        properties: { foo: 'bar' },
         order: 1
     }
     forge.projectType = await forge.db.models.ProjectType.create(projectType)
@@ -99,6 +99,7 @@ module.exports = async function (settings = {}, config = {}) {
     await team1.addProject(project1)
     await project1.setProjectStack(stack)
     await project1.setProjectTemplate(template)
+    await project1.setProjectType(forge.projectType)
 
     forge.project = project1
     forge.template = template

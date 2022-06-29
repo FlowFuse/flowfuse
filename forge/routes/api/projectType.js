@@ -61,8 +61,7 @@ module.exports = async function (app) {
                     description: { type: 'string' },
                     active: { type: 'boolean' },
                     properties: { type: 'object' },
-                    order: { type: 'number' },
-                    defaultStack: { type: 'string' }
+                    order: { type: 'number' }
                 }
             }
         }
@@ -75,16 +74,9 @@ module.exports = async function (app) {
             properties: request.body.properties,
             order: request.body.order
         }
-        if (request.body.defaultStack) {
-            const defaultStack = app.db.models.ProjectStack.decodeHashid(request.body.defaultStack)
-            if (defaultStack) {
-                properties.defaultStackId = defaultStack
-            }
-        }
         try {
             const projectType = await app.db.models.ProjectType.create(properties)
-            const response = app.db.views.ProjectType.projectType(projectType)
-            response.projectCount = 0
+            const response = app.db.views.ProjectType.projectType(projectType, true)
             reply.send(response)
         } catch (err) {
             let responseMessage
@@ -107,33 +99,38 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('project-type:edit')
     }, async (request, reply) => {
         const projectType = await app.db.models.ProjectType.byId(request.params.projectTypeId)
-        if (projectType.projectCount > 0) {
+
+        const inUse = projectType.getDataValue('projectCount') > 0
+
+        if (inUse && request.body.properties) {
+            // Don't allow the properties to be edited - this contains the billing
+            // information and we don't want to have to update live projects
             reply.code(400).send({ error: 'Cannot edit in-use ProjectType' })
-        } else {
-            if (request.body.name !== undefined) {
-                projectType.name = request.body.name
-            }
-            if (request.body.description !== undefined) {
-                projectType.description = request.body.description
-            }
-            if (request.body.active !== undefined) {
-                projectType.active = request.body.active
-            }
-            if (request.body.properties !== undefined) {
-                projectType.properties = request.body.properties
-            }
-            if (request.body.order !== undefined) {
-                projectType.order = request.body.order
-            }
-            if (request.body.defaultStack) {
-                const defaultStack = app.db.models.ProjectStack.decodeHashid(request.body.defaultStack)
-                if (defaultStack) {
-                    projectType.defaultStackId = defaultStack
-                }
-            }
-            await projectType.save()
-            reply.send(app.db.views.ProjectType.projectType(projectType, request.session.User.admin))
+            return
         }
+        if (request.body.name !== undefined) {
+            projectType.name = request.body.name
+        }
+        if (request.body.description !== undefined) {
+            projectType.description = request.body.description
+        }
+        if (request.body.active !== undefined) {
+            projectType.active = request.body.active
+        }
+        if (request.body.properties !== undefined) {
+            projectType.properties = request.body.properties
+        }
+        if (request.body.order !== undefined) {
+            projectType.order = request.body.order
+        }
+        if (request.body.defaultStack) {
+            const defaultStack = app.db.models.ProjectStack.decodeHashid(request.body.defaultStack)
+            if (defaultStack) {
+                projectType.defaultStackId = defaultStack
+            }
+        }
+        await projectType.save()
+        reply.send(app.db.views.ProjectType.projectType(projectType, request.session.User.admin))
     })
 
     /**
@@ -145,14 +142,18 @@ module.exports = async function (app) {
     app.delete('/:projectTypeId', {
         preHandler: app.needsPermission('project-type:delete')
     }, async (request, reply) => {
-        // const stack = await app.db.models.ProjectStack.byId(request.params.projectTypeId)
-        // // The `beforeDestroy` hook of the ProjectStack model ensures
-        // // we don't delete an in-use stack
-        // try {
-        //     await stack.destroy()
-        //     reply.send({ status: 'okay' })
-        // } catch (err) {
-        //     reply.code(400).send({ error: err.toString() })
-        // }
+        const projectType = await app.db.models.ProjectType.byId(request.params.projectTypeId)
+        // The `beforeDestroy` hook of the ProjectType model ensures
+        // we don't delete an in-use stack
+        if (projectType) {
+            try {
+                await projectType.destroy()
+                reply.send({ status: 'okay' })
+            } catch (err) {
+                reply.code(400).send({ error: err.toString() })
+            }
+        } else {
+            reply.code(404).send({ status: 'Not Found' })
+        }
     })
 }
