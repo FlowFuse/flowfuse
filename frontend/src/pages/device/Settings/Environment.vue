@@ -21,13 +21,13 @@ export default {
             deep: true,
             handler (v) {
                 let changed = true
-                let originalCount = 0
+                // let originalCount = 0
 
                 this.editable.settings.env.forEach(field => {
                     if (/^add/.test(field.index)) {
                         changed = true
                     } else {
-                        originalCount++
+                        // originalCount++
                         console.log(this.original.settings)
                         // if (this.original.settings.envMap[field.name]) {
                         //     const original = this.original.settings.envMap[field.name]
