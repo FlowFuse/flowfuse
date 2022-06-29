@@ -1,8 +1,21 @@
 import client from './client'
 import paginateUrl from '@/utils/paginateUrl'
 
-const getStacks = async (cursor, limit) => {
-    const url = paginateUrl('/api/v1/stacks', cursor, limit)
+const getStacks = async (cursor, limit, filter) => {
+    let url = paginateUrl('/api/v1/stacks', cursor, limit)
+
+    if (filter) {
+        const queryString = new URLSearchParams()
+        queryString.append('filter', filter)
+        const qs = queryString.toString()
+        if (!/\?/.test(url)) {
+            url += '?'
+        } else {
+            url += '&'
+        }
+        url += qs
+    }
+
     return client.get(url).then(res => {
         return res.data
     })

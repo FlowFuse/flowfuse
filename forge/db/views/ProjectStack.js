@@ -1,5 +1,5 @@
 module.exports = {
-    stack: function (app, stack, count) {
+    stack: function (app, stack, includeCount) {
         if (stack) {
             const result = stack.toJSON()
             const filtered = {
@@ -7,10 +7,11 @@ module.exports = {
                 name: result.name,
                 active: result.active,
                 properties: result.properties || {},
+                replacedBy: app.db.models.ProjectStack.encodeHashid(result.replacedBy) || undefined,
                 createdAt: result.createdAt
             }
-            if (count) {
-                filtered.projectCount = result.projectCount
+            if (includeCount) {
+                filtered.projectCount = parseInt(result.projectCount) || 0
             }
             return filtered
         } else {

@@ -25,12 +25,19 @@ module.exports = {
     },
     associations: function (M) {
         this.hasMany(M.Project)
+        this.hasOne(this, { foreignKey: 'replacedBy' })
     },
-    hooks: {
-        beforeDestroy: async (stack, opts) => {
-            const projectCount = await stack.projectCount()
-            if (projectCount > 0) {
-                throw new Error('Cannot delete stack that is used by projects')
+    hooks: function (M) {
+        return {
+            beforeDestroy: async (stack, opts) => {
+                const projectCount = await stack.projectCount()
+                if (projectCount > 0) {
+                    throw new Error('Cannot delete stack that is used by projects')
+                }
+                const replacedByCount = await M.ProjectStack.count({ where: { replacedBy: stack.id } })
+                if (replacedByCount > 0) {
+                    throw new Error('Cannot delete stack is active replacing another stack')
+                }
             }
         }
     },
@@ -59,9 +66,8 @@ module.exports = {
                         }
                     })
                 },
-                getAll: async (pagination = {}) => {
+                getAll: async (pagination = {}, where = {}) => {
                     const limit = parseInt(pagination.limit) || 30
-                    const where = {}
                     if (pagination.cursor) {
                         where.id = { [Op.gt]: M.ProjectStack.decodeHashid(pagination.cursor) }
                     }
