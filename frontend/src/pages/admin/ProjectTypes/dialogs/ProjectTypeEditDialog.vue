@@ -30,7 +30,7 @@
             </form>
         </template>
         <template v-slot:actions>
-            <ff-button @click="close()">Cancel</ff-button>
+            <ff-button kind="secondary" @click="close()">Cancel</ff-button>
             <ff-button :disabled="!formValid" class="ml-4" @click="confirm()">
                 <span v-if="projectType">Update</span>
                 <span v-else>Create</span>

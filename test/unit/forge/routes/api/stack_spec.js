@@ -13,6 +13,7 @@ describe('Stack API', function () {
         // Alice create in setup()
         TestObjects.alice = await app.db.models.User.byUsername('alice')
         TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
+        TestObjects.ATeam = await app.db.models.Team.byName('ATeam')
         TestObjects.stack1 = await app.db.models.ProjectStack.byId(app.stack.id)
         TestObjects.tokens = {}
         TestObjects.projectType1 = app.projectType
@@ -301,6 +302,10 @@ describe('Stack API', function () {
                 active: true,
                 properties: {}
             })
+            const legacyProject = await app.db.models.Project.create({ name: 'project2', type: '', url: '' })
+            await TestObjects.ATeam.addProject(legacyProject)
+            await legacyProject.setProjectStack(legacyStack)
+
             const response = await app.inject({
                 method: 'PUT',
                 url: `/api/v1/stacks/${legacyStack.hashid}`,
@@ -320,6 +325,16 @@ describe('Stack API', function () {
             result.should.have.property('name', 'legacyStack')
             result.should.have.property('active', true)
             result.should.have.property('projectType', TestObjects.projectType1.hashid)
+
+            const projectResponse = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${legacyProject.id}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            const projectResult = projectResponse.json()
+            projectResult.should.have.property('projectType')
+            projectResult.projectType.should.have.property('id', TestObjects.projectType1.hashid)
+            projectResult.projectType.should.have.property('name', TestObjects.projectType1.name)
         })
     })
 

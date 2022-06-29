@@ -173,6 +173,12 @@ module.exports = async function (app) {
             const projectTypeId = app.db.models.ProjectType.decodeHashid(request.body.projectType)
             if (projectTypeId) {
                 stack.ProjectTypeId = projectTypeId[0]
+                // We can also assign any projects using this stack to the same project-type
+                await app.db.models.Project.update({ ProjectTypeId: projectTypeId[0] }, {
+                    where: {
+                        ProjectStackId: stack.id
+                    }
+                })
             }
         }
 
