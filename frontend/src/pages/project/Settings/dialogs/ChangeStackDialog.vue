@@ -54,7 +54,7 @@ export default {
                 this.project = project
                 this.input.stack = this.project.stack?.id
                 isOpen.value = true
-                const stackList = await stacksApi.getStacks()
+                const stackList = await stacksApi.getStacks(null, null, 'all', this.project.projectType?.id)
                 this.stacks = stackList.stacks
                     .filter(stack => (stack.active || stack.id === this.project.stack?.id))
                     .map(stack => {

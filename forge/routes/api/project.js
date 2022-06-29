@@ -546,6 +546,25 @@ module.exports = async function (app) {
             } else {
                 app.db.controllers.Project.clearInflightState(request.project)
             }
+        } else if (request.body.projectType) {
+            if (request.project.ProjectType) {
+                reply.code(400).send({ error: 'Cannot change project type' })
+                return
+            }
+            const existingStackProjectType = request.project.ProjectStack.ProjectTypeId
+            const newProjectType = await app.db.models.ProjectType.byId(request.body.projectType)
+            if (!newProjectType) {
+                reply.code(400).send({ error: 'Invalid project type' })
+                return
+            }
+            if (existingStackProjectType && newProjectType.id !== existingStackProjectType) {
+                reply.code(400).send({ error: 'Mismatch between stack project type and new project type' })
+                return
+            }
+
+            await request.project.setProjectType(newProjectType)
+
+            reply.code(200).send({})
         } else {
             if (request.body.name && request.project.name !== request.body.name) {
                 request.project.name = request.body.name

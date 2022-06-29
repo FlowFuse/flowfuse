@@ -161,6 +161,9 @@ export default {
             if (this.stack) {
                 if (this.editDisabled) {
                     opts = { active: this.input.active }
+                    if (!this.editTypeDisabled && this.input.projectType) {
+                        opts.projectType = this.input.projectType
+                    }
                 }
                 // Update
                 stacksApi.updateStack(this.stack.id, opts).then((response) => {

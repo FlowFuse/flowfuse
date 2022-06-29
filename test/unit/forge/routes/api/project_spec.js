@@ -619,6 +619,67 @@ describe('Project API', function () {
     })
 
     describe('Update Project', function () {
+        it('Cannot change project-type if already set', async function () {
+            const projectType = {
+                name: 'projectType2',
+                description: 'default project type',
+                active: true,
+                properties: { foo: 'bar' },
+                order: 2
+            }
+            const projectType2 = await app.db.models.ProjectType.create(projectType)
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/projects/${TestObjects.project1.id}`,
+                payload: {
+                    projectType: projectType2.hashid
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(400)
+        })
+        it('Cannot set to project-type that does not match existing stack', async function () {
+            const project2 = await app.db.models.Project.create({ name: 'project2', type: '', url: '' })
+            await TestObjects.ATeam.addProject(project2)
+            await project2.setProjectStack(TestObjects.stack1)
+            await project2.setProjectTemplate(TestObjects.template1)
+
+            const projectType = {
+                name: 'projectType2',
+                description: 'default project type',
+                active: true,
+                properties: { foo: 'bar' },
+                order: 2
+            }
+            const projectType2 = await app.db.models.ProjectType.create(projectType)
+
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/projects/${project2.id}`,
+                payload: {
+                    projectType: projectType2.hashid
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(400)
+        })
+        it('Can change project-type if not set', async function () {
+            const project2 = await app.db.models.Project.create({ name: 'project2', type: '', url: '' })
+            await TestObjects.ATeam.addProject(project2)
+            await project2.setProjectStack(TestObjects.stack1)
+            await project2.setProjectTemplate(TestObjects.template1)
+
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/projects/${project2.id}`,
+                payload: {
+                    projectType: TestObjects.projectType1.hashid
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+        })
+
         it('Change project stack', async function () {
             // Setup some flows/credentials
             await addFlowsToProject(TestObjects.project1.id,

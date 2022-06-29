@@ -28,9 +28,9 @@ module.exports = async function (app) {
             filter = { replacedBy: filterStack || 0 }
         }
         if (request.query.projectType) {
-            const projectTypeId = app.db.models.ProjectType.decodeHashid(request.query.projectType)[0]
+            const projectTypeId = app.db.models.ProjectType.decodeHashid(request.query.projectType)
             if (projectTypeId) {
-                filter.ProjectTypeId = projectTypeId
+                filter.ProjectTypeId = projectTypeId[0]
             }
         }
         const stacks = await app.db.models.ProjectStack.getAll(paginationOptions, filter)
@@ -170,9 +170,9 @@ module.exports = async function (app) {
             }
             // This is assigning the stack to a project type for the first time
             // We'll allow that as part of the migration of legacy stacks
-            const projectTypeId = app.db.models.ProjectType.decodeHashid(request.body.projectType)[0]
+            const projectTypeId = app.db.models.ProjectType.decodeHashid(request.body.projectType)
             if (projectTypeId) {
-                stack.ProjectTypeId = projectTypeId
+                stack.ProjectTypeId = projectTypeId[0]
             }
         }
 
