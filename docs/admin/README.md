@@ -20,9 +20,8 @@ The Admin Settings can be accessed from the main menu:
 
 ### Admin Settings
 
-The Admin Settings view lets you manage the platform and its users.
-
-With the 0.3.0 release, the following settings are available:
+The Admin Settings view lets you manage the platform and its users. The
+following settings are available:
 
  - **Allow new users to register on the login screen** (default: `false`)
 
