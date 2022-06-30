@@ -21,8 +21,8 @@ user which expires in 7 days. Once accepted the user is added as "Member".
 
 ### Removing team members
 
-Owners can select the dropdown menu and select "Remove from team" on the members
-tab of a team. The team member will no longer have access to any team data.
+Owners can remove a member from a team by clicking the dropdown menu next to the username and selecting 
+`Remove from team`. The team member will no longer have access to any team data.
 
 ## Role based access control
 
