@@ -50,21 +50,25 @@
 import { mapState } from 'vuex'
 import { useRoute, useRouter } from 'vue-router'
 import { markRaw } from 'vue'
+
 import { Roles } from '@core/lib/roles'
+
 import teamApi from '@/api/team'
 import deviceApi from '@/api/devices'
 import projectApi from '@/api/project'
+
+import DeviceEditButton from './components/DeviceEditButton.vue'
 import ItemTable from '@/components/tables/ItemTable'
+import SectionTopMenu from '@/components/SectionTopMenu'
+import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
+
 import { CheckCircleIcon, ChipIcon, PlusSmIcon, ClockIcon, ExclamationIcon } from '@heroicons/vue/outline'
+
 import TeamDeviceCreateDialog from './dialogs/TeamDeviceCreateDialog'
 import ConfirmDeviceDeleteDialog from './dialogs/ConfirmDeviceDeleteDialog'
 import ConfirmDeviceUnassignDialog from './dialogs/ConfirmDeviceUnassignDialog'
 import DeviceCredentialsDialog from './dialogs/DeviceCredentialsDialog'
 import DeviceAssignProjectDialog from './dialogs/DeviceAssignProjectDialog'
-import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
-import SectionTopMenu from '@/components/SectionTopMenu'
-
-import DeviceEditButton from './components/DeviceEditButton.vue'
 
 const DeviceLink = {
     template: `<div class="flex">

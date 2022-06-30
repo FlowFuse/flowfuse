@@ -21,6 +21,8 @@
 
 import snapshotApi from '@/api/projectSnapshots'
 
+import alerts from '@/services/alerts'
+
 import { ref } from 'vue'
 
 import FormRow from '@/components/FormRow'
@@ -59,6 +61,7 @@ export default {
             snapshotApi.create(this.project.id, opts).then((response) => {
                 this.isOpen = false
                 this.$emit('snapshotCreated', response)
+                alerts.emit('Successfully created snapshot of project.', 'confirmation')
             }).catch(err => {
                 console.log(err.response.data)
                 if (err.response.data) {
