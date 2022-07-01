@@ -20,34 +20,32 @@ export default {
         'editable.settings.env': {
             deep: true,
             handler (v) {
-                let changed = true
-                // let originalCount = 0
+                let changed = false
+                let error = false
 
-                this.editable.settings.env.forEach(field => {
-                    if (/^add/.test(field.index)) {
+                this.editable.settings?.env.forEach(field => {
+                    // if we do not recognise the env var name from our original settings,
+                    // or if we do recongise it, but the value is different
+                    if (!this.original.settings.envMap[field.name] || field.value !== this.original.settings.envMap[field.name].value) {
                         changed = true
-                    } else {
-                        // originalCount++
-                        console.log(this.original.settings)
-                        // if (this.original.settings.envMap[field.name]) {
-                        //     const original = this.original.settings.envMap[field.name]
-                        //     if (original.index !== field.index) {
-                        //         changed = true
-                        //     } else if (original.name !== field.name) {
-                        //         changed = true
-                        //     } else if (original.value !== field.value) {
-                        //         changed = true
-                        //     }
-                        // } else {
-                        //     changed = true
-                        // }
+                    }
+                    // there is an issue witht he key/value
+                    if (field.error) {
+                        error = true
                     }
                 })
-                // if (originalCount !== this.original.settings.env.length) {
-                //     changed = true
-                // }
 
-                this.unsavedChanges = changed
+                // some env vars have been deleted
+                if (this.editable.settings.env.length !== Object.keys(this.original.settings.envMap).length) {
+                    changed = true
+                }
+
+                // if we have an error in one of the keys/values, forbid saving
+                if (error) {
+                    this.unsavedChanges = false
+                } else {
+                    this.unsavedChanges = changed
+                }
             }
         }
     },
@@ -69,7 +67,11 @@ export default {
                 },
                 errors: {}
             },
-            original: {},
+            original: {
+                settings: {
+                    envMap: {}
+                }
+            },
             templateEnvValues: {}
         }
     },
@@ -79,17 +81,17 @@ export default {
     methods: {
         getSettings: async function () {
             if (this.device) {
+                this.original.settings.envMap = {}
+                this.editable.settings.env = []
                 const settings = await deviceApi.getSettings(this.device.id)
-                console.log(settings)
-                settings.settings.env.forEach(envVar => {
+                settings.settings?.env.forEach(envVar => {
                     this.editable.settings.env.push(Object.assign({}, envVar))
-                    this.original.settings.env.push(Object.assign({}, envVar))
+                    // make a map of the key:value so it's easier to check for changes
                     this.original.settings.envMap[envVar.name] = envVar
                 })
             }
         },
         saveSettings: async function () {
-            console.log('save settings')
             const settings = {
                 env: []
             }
@@ -100,7 +102,7 @@ export default {
                 })
             })
             deviceApi.updateSettings(this.device.id, { settings })
-            this.$emit('deviceUpdated')
+            this.$emit('device-updated')
         }
     }
 }

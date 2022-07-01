@@ -48,21 +48,31 @@
                         <LockSetting :editTemplate="editTemplate" v-model="item.policy"></LockSetting>
                     </td>
                 </tr>
-                <tr v-if="editable.settings.env && editable.settings.env.length > 0"><td :colspan="editTemplate?4:3" class="p-4"></td></tr>
+                <tr v-if="editable.settings.env?.length === 0">
+                    <td class="px-4 py-4 border w-auto align-top text-center text-gray-400" colspan="3">
+                        No Environment Variables Defined
+                    </td>
+                </tr>
+                <!-- Empty row to differentiate between the existing env vars, and the iput form row-->
+                <tr>
+                    <td :colspan="editTemplate?4:3" class="p-4 bg-gray-50"></td>
+                </tr>
                 <tr class="">
                     <td class="px-4 pt-4 border w-auto align-top">
-                        <FormRow class="font-mono" v-model="input.name" :error="input.error"></FormRow>
+                        <FormRow class="font-mono" v-model="input.name" :error="input.error" placeholder="Name"></FormRow>
                     </td>
                     <td class="px-4 pt-4 pb-3 border w-auto align-top space-y-3">
-                        <FormRow class="font-mono" v-model="input.value"></FormRow>
+                        <FormRow class="font-mono" v-model="input.value" placeholder="Value"></FormRow>
                         <!-- <FormRow id="encrypt-env-var" v-model="input.encrypt" type="checkbox"> <span class="text-gray-500"><LockClosedIcon class="inline w-4" /> encrypt</span></FormRow> -->
                     </td>
-                    <td class="pb-2 pt-4 border w-16 text-center align-top">
-                        <ff-button kind="primary" @click="addEnv()" :disabled="!addEnabled" size="small">
-                            <template v-slot:icon>
-                                <PlusSmIcon />
-                            </template>
-                        </ff-button>
+                    <td class="border w-16">
+                        <div class="flex align-center justify-center">
+                            <ff-button kind="primary" @click="addEnv()" :disabled="!addEnabled" size="small">
+                                <template v-slot:icon>
+                                    <PlusSmIcon />
+                                </template>
+                            </ff-button>
+                        </div>
                     </td>
                     <td class="p-2" v-if="editTemplate"></td>
                 </tr>
@@ -97,14 +107,14 @@ export default {
             set (localValue) { this.$emit('update:modelValue', localValue) }
         },
         addEnabled () {
-            return this.input.name !== undefined && !this.input.error
+            return this.input.name && this.input.value !== undefined && !this.input.error
         }
     },
     watch: {
         'input.name' () {
             if (/ /.test(this.input.name)) {
                 this.input.error = 'Invalid name'
-            } else if (this.envVarNames[this.input.name]) {
+            } else if (this.envVarNames[this.input.name] !== undefined) {
                 this.input.error = 'Duplicate name'
             } else {
                 this.input.error = ''
@@ -120,11 +130,16 @@ export default {
         'editable.settings.env': {
             deep: true,
             handler (v) {
-                v.forEach(field => {
-                    if (/ /.test(field.name)) {
+                this.envVarNames = {}
+                v.forEach((field, i) => {
+                    if (this.envVarNames[field.name] === undefined) {
+                        this.envVarNames[field.name] = i
+                    }
+
+                    if (field.policy === undefined && this.envVarNames[field.name] !== i) {
+                        field.error = 'Field has duplicate name'
+                    } else if (/ /.test(field.name)) {
                         field.error = 'Invalid name'
-                    } else if (field.policy === undefined && (this.envVarNames[field.name] && field.index !== this.envVarNames[field.name].index)) {
-                        field.error = 'Duplicate name'
                     } else {
                         field.error = ''
                     }
@@ -141,7 +156,7 @@ export default {
                 encrypted: this.input.encrypt,
                 policy: this.editTemplate ? false : undefined
             }
-            this.envVarNames[field.name] = field
+            this.envVarNames[field.name] = this.editable.settings.env.length
             this.editable.settings.env.push(field)
             this.input.name = ''
             this.input.encrypt = false
@@ -152,6 +167,11 @@ export default {
             delete this.envVarNames[field.name]
             this.editable.settings.env.splice(index, 1)
         }
+    },
+    mounted () {
+        this.editable.settings.env.forEach(field => {
+            this.envVarNames[field.name] = field
+        })
     },
     components: {
         FormRow,
