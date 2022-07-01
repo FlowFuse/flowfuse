@@ -99,6 +99,7 @@ export default {
         this.loading = true
         try {
             const billingSubscription = await billingApi.getSubscriptionInfo(this.team.id)
+            billingSubscription.next_billing_date = billingSubscription.next_billing_date*1000 //API returns Seconds, JS expects miliseconds
             this.subscription = billingSubscription
             this.loading = false
         } catch (err) {
