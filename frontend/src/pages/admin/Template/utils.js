@@ -6,7 +6,8 @@ const templateFields = [
     'palette_allowInstall',
     'palette_nodesExcludes',
     'palette_denyList',
-    'modules_allowInstall'
+    'modules_allowInstall',
+    'modules_denyList'
 ]
 const defaultTemplateValues = {
     disableEditor: false,
@@ -16,7 +17,8 @@ const defaultTemplateValues = {
     palette_allowInstall: true,
     palette_nodesExcludes: '',
     palette_denyList: '',
-    modules_allowInstall: true
+    modules_allowInstall: true,
+    modules_denyList: ''
 }
 
 // Functions to map template values to a string for editing
@@ -26,6 +28,30 @@ const defaultTemplateValues = {
 // edited as a single string (comma-separated list of values)
 const templateEncoders = {
     palette_denyList: {
+        decode: (v) => {
+            // this is reused for the policy object, so let booleans pass through
+            if (typeof v === 'boolean') {
+                return v
+            }
+            if (typeof v === 'string') {
+                return v
+            } else if (Array.isArray(v)) {
+                return v.join(', ')
+            } else {
+                return ''
+            }
+        },
+        encode: (v) => {
+            // this is reused for the policy object, so let booleans pass through
+            if (typeof v === 'boolean') {
+                return v
+            }
+            return v.split(',')
+                .map((fn) => fn.trim())
+                .filter((fn) => fn.length > 0)
+        }
+    },
+    modules_denyList: {
         decode: (v) => {
             // this is reused for the policy object, so let booleans pass through
             if (typeof v === 'boolean') {
@@ -73,6 +99,21 @@ const templateValidators = {
         }
     },
     palette_denyList: (v) => {
+        if (v.trim() === '') {
+            return
+        }
+        const parts = v
+            .split(',')
+            .map((fn) => fn.trim())
+            .filter((fn) => fn.length > 0)
+        for (let i = 0; i < parts.length; i++) {
+            const fn = parts[i]
+            if (!/^((@[a-z0-9-~][a-z0-9-._~]*\/)?([a-z0-9-~][a-z0-9-._~]*|\*))(@([~^><]|<=|>=)?((0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?))?$/i.test(fn)) {
+                return 'Must be a comma-seperated list of nodes[@version]'
+            }
+        }
+    },
+    modules_denyList: (v) => {
         if (v.trim() === '') {
             return
         }
