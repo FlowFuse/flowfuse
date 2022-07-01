@@ -7,23 +7,36 @@
         <!-- FlowForge Logo -->
         <img class="ff-logo" src="@/images/ff-logo--wordmark-caps--dark.png" @click="home()"/>
         <!-- Mobile: Toggle(User Options) -->
-        <i class="ff-header--mobile-usertoggle" :class="{'active': mobileUserOptionsOpen}">
-            <img :src="user.avatar" class="ff-avatar" @click="mobileUserOptionsOpen = !mobileUserOptionsOpen" />
-        </i>
+        <div class="flex">
+            <i class="ff-header--mobile-usertoggle" :class="{'active': mobileTeamSelectionOpen}">
+                <img :src="team.avatar" class="ff-avatar" @click="mobileTeamSelectionOpen = !mobileTeamSelectionOpen" />
+            </i>
+            <i class="ff-header--mobile-usertoggle" :class="{'active': mobileUserOptionsOpen}">
+                <img :src="user.avatar" class="ff-avatar" @click="mobileUserOptionsOpen = !mobileUserOptionsOpen" />
+            </i>
+        </div>
         <!-- Mobile: User Options -->
         <div class="ff-navigation ff-navigation-right" :class="{'open': mobileUserOptionsOpen}">
             <nav-item v-for="option in options" :key="option.label"
                       :label="option.label" :icon="option.icon"
                       @click="mobileUserOptionsOpen = false; option.onclick(option.onclickparams)"></nav-item>
         </div>
-        <div class="flex">
+        <!-- Mobile: Team Selection -->
+        <div class="ff-navigation ff-navigation-right" :class="{'open': mobileTeamSelectionOpen}">
+            <nav-item v-for="team in teams" :key="team.name"
+                      :label="team.name" :avatar="team.avatar"
+                      @click="mobileTeamSelectionOpen = false; $router.push({name: 'Team', params: {team_slug: team.slug}})"></nav-item>
+            <nav-item label="Create New Team" :icon="plusIcon"
+                      @click="mobileTeamSelectionOpen = false; $router.push({name: 'CreateTeam'})"></nav-item>
+        </div>
+        <div class="hidden sm:flex">
             <ff-team-selection />
             <!-- Desktop: User Options -->
-            <ff-dropdown class="ff-navigation ff-user-options">
+            <ff-dropdown class="ff-navigation ff-user-options" options-align="right">
                 <template v-slot:placeholder>
                     <div class="ff-user">
                         <img :src="user.avatar" class="ff-avatar"/>
-                        <label>{{ user.name }}</label>
+                        <!-- <label>{{ user.name }}</label> -->
                     </div>
                 </template>
                 <template v-slot:default>
@@ -40,7 +53,7 @@ import { ref } from 'vue'
 import { mapState } from 'vuex'
 import router from '@/routes'
 
-import { MenuIcon, QuestionMarkCircleIcon, AdjustmentsIcon, CogIcon, LogoutIcon } from '@heroicons/vue/solid'
+import { MenuIcon, PlusIcon, QuestionMarkCircleIcon, AdjustmentsIcon, CogIcon, LogoutIcon } from '@heroicons/vue/solid'
 
 import NavItem from '@/components/NavItem'
 import TeamSelection from '@/components/TeamSelection'
@@ -63,7 +76,7 @@ export default {
             })
             return profileLinks
         },
-        ...mapState('account', ['user', 'team'])
+        ...mapState('account', ['user', 'team', 'teams'])
     },
     components: {
         NavItem,
@@ -72,6 +85,7 @@ export default {
     },
     data () {
         return {
+            mobileTeamSelectionOpen: false,
             mobileUserOptionsOpen: false,
             options: [{
                 label: 'User Settings',
@@ -93,7 +107,8 @@ export default {
     setup () {
         const open = ref(false)
         return {
-            open
+            open,
+            plusIcon: PlusIcon
         }
     },
     mounted () {

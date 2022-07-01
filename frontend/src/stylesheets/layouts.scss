@@ -206,6 +206,10 @@ $nav_height: 60px;
 }
 .ff-team-selection-name {
     margin-left: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
     label {
         font-size: 0.7rem;
         line-height: 0.7rem;
@@ -284,24 +288,6 @@ $nav_height: 60px;
     .ff-navigation-right {
         height: 100%;
     }
-    .ff-team-selection {
-        ul {
-            top: 100%;
-            left: 0;
-        }
-        .ff-dropdown-option {
-            padding: 0;
-            .ff-nav-item {
-                background-color: $ff-grey-700;
-            }
-            &:last-child {
-                border-top: inherit;
-                .ff-nav-item {
-                    background-color: $ff-grey-600;
-                }
-            }
-        }
-    }
     .ff-dropdown {
         display: none;
         height: calc(#{$nav_height} - 2px);
@@ -324,11 +310,39 @@ $nav_height: 60px;
                 background-color: $ff-grey-700;
             }
         }
+        &.ff-dropdown--open .ff-dropdown-selected {
+            background-color: $ff-grey-700;
+        }
         .ff-dropdown-options {
             width: 100%;
             margin-top: 2px;
             border-color: $ff-grey-500;
             border-right: 0;
+        }
+    }
+    .ff-team-selection {
+        ul {
+            top: 100%;
+            left: 0;
+        }
+        .ff-dropdown-option {
+            padding: 0;
+            .ff-nav-item {
+                background-color: $ff-grey-700;
+            }
+            &:last-child {
+                border-top: inherit;
+                .ff-nav-item {
+                    background-color: $ff-grey-800;
+                }
+            }
+        }
+    }
+    .ff-user-options {
+        width: auto;
+        min-width: $nav_height;
+        .ff-dropdown-options {
+            width: $sidenav_width;
         }
     }
 }
@@ -393,7 +407,6 @@ $nav_height: 60px;
 
 .ff-navigation {
     background-color: $ff-grey-700;
-    border-right: 2px solid $ff-grey-800;
     position: fixed;
     left: -$sidenav_width;
     height: 100%;
