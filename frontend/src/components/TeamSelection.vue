@@ -7,9 +7,8 @@
                 <h5>{{ team.name }}</h5>
             </div>
         </div>
-        <SwitchHorizontalIcon :class="{'active': teamSelectionOpen }" @click="toggleList()" />
-        <ul v-if="teamSelectionOpen" :class="{'active': teamSelectionOpen }" v-click-outside="close" >
-            <li class="ff-nav-item"><label>Team Selection</label></li>
+        <!-- <SwitchHorizontalIcon :class="{'active': teamSelectionOpen }" @click="toggleList()" /> -->
+        <ul v-if="teamSelectionOpen" :class="{'active': teamSelectionOpen }" v-click-outside="close">
             <nav-item v-for="t in teams" :key="t.id" :label="t.name" :avatar="t?.avatar" @click="selectTeam(t);toggleList()"></nav-item>
             <nav-item label="Create Team" :icon="plusIcon" @click="createTeam"></nav-item>
         </ul>
@@ -23,7 +22,7 @@ import { SwitchHorizontalIcon, PlusIcon } from '@heroicons/vue/solid'
 import NavItem from '@/components/NavItem'
 
 export default {
-    name: 'FFSideTeamSelection',
+    name: 'FFTeamSelection',
     props: {
         listEnabled: {
             type: Boolean, // defines whether or not we are in a nested sidebar, and therefore cannot show the team selection option
