@@ -19,7 +19,7 @@
         <div class="flex">
             <ff-team-selection />
             <!-- Desktop: User Options -->
-            <ff-dropdown class="ff-navigation">
+            <ff-dropdown class="ff-navigation ff-user-options">
                 <template v-slot:placeholder>
                     <div class="ff-user">
                         <img :src="user.avatar" class="ff-avatar"/>

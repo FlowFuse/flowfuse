@@ -1,24 +1,31 @@
 <template>
-    <div class="ff-team-selection">
-        <div @click="toggleList()">
-            <img :src="team.avatar" class="ff-avatar"/>
-            <div class="ff-team-selection-name">
-                <label>TEAM:</label>
-                <h5>{{ team.name }}</h5>
+    <ff-dropdown v-if="team" class="ff-team-selection">
+        <template v-slot:placeholder>
+            <div class="flex grow items-center">
+                <img :src="team.avatar" class="ff-avatar"/>
+                <div class="ff-team-selection-name">
+                    <label>TEAM:</label>
+                    <h5>{{ team.name }}</h5>
+                </div>
             </div>
-        </div>
-        <!-- <SwitchHorizontalIcon :class="{'active': teamSelectionOpen }" @click="toggleList()" /> -->
-        <ul v-if="teamSelectionOpen" :class="{'active': teamSelectionOpen }" v-click-outside="close">
-            <nav-item v-for="t in teams" :key="t.id" :label="t.name" :avatar="t?.avatar" @click="selectTeam(t);toggleList()"></nav-item>
-            <nav-item label="Create Team" :icon="plusIcon" @click="createTeam"></nav-item>
-        </ul>
-    </div>
+        </template>
+        <template v-slot:default>
+            <ul>
+                <ff-dropdown-option>
+                    <nav-item v-for="t in teams" :key="t.id" :label="t.name" :avatar="t?.avatar" @click="selectTeam(t)"></nav-item>
+                </ff-dropdown-option>
+                <ff-dropdown-option>
+                    <nav-item label="Create New Team" :icon="plusIcon" @click="createTeam(t);"> </nav-item>
+                </ff-dropdown-option>
+            </ul>
+        </template>
+    </ff-dropdown>
 </template>
 
 <script>
 import { mapState } from 'vuex'
 
-import { SwitchHorizontalIcon, PlusIcon } from '@heroicons/vue/solid'
+import { PlusIcon } from '@heroicons/vue/solid'
 import NavItem from '@/components/NavItem'
 
 export default {
@@ -31,24 +38,17 @@ export default {
     },
     emits: ['option-selected'],
     components: {
-        NavItem,
-        SwitchHorizontalIcon
+        NavItem
     },
     computed: {
         ...mapState('account', ['team', 'teams'])
     },
     data () {
         return {
-            teamSelectionOpen: false,
             plusIcon: PlusIcon
         }
     },
     methods: {
-        toggleList () {
-            if (this.listEnabled) {
-                this.teamSelectionOpen = !this.teamSelectionOpen
-            }
-        },
         selectTeam (team) {
             if (team) {
                 this.$router.push({
@@ -63,10 +63,6 @@ export default {
             this.$router.push({
                 name: 'CreateTeam'
             })
-            this.toggleList()
-        },
-        close () {
-            this.teamSelectionOpen = false
         }
     }
 }
