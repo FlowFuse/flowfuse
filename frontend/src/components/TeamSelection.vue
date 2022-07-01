@@ -30,12 +30,6 @@ import NavItem from '@/components/NavItem'
 
 export default {
     name: 'FFTeamSelection',
-    props: {
-        listEnabled: {
-            type: Boolean, // defines whether or not we are in a nested sidebar, and therefore cannot show the team selection option
-            default: true
-        }
-    },
     emits: ['option-selected'],
     components: {
         NavItem
