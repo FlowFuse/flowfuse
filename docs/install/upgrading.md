@@ -9,7 +9,7 @@ has been performed.
 
 ### Upgrading to 0.7
 
-The 0.7 release introduces the [ProjectType concept](../user/concepts#project-type).
+The 0.7 release introduces the [ProjectType concept](../user/concepts.md#project-type).
 
 After upgrading to 0.7, an administrator must perform the following tasks before
 users will be able to create new projects:
