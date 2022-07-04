@@ -8,6 +8,10 @@ to upgrade Node-RED.
 **Note:** Stacks are created by Administrators and made available to the teams
 and users of the platform.
 
+With the 0.7 release of FlowForge, when an Administrator creates a new version
+of a Stack your project is using, the platform will notify you that there is a
+new version available.
+
 
 To change a project's stack:
 

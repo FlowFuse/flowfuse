@@ -3,7 +3,7 @@
 ## Getting started
 
  - [Understanding the FlowForge Architecture](../contribute/architecture.md)
- - [Install](../install) - requirements, deployment models, installation methods
+ - [Install/Upgrade](../install) - requirements, deployment models, installation methods and upgrading
  - [`flowforge.yml` configuration](../install/configuration.md) - base platform configuration, done before you run.
  - [First Run Setup](../install/first-run.md) - create your admin user
  - [FlowForge Concepts](../user/concepts.md)
@@ -86,11 +86,28 @@ With the 0.1.0 release, the Teams page just lists the teams on the platform.
 
 Further team management options will come in later releases.
 
+### Managing Project Types
+
+The Project Types page can be used to manage the Project Types on the platform.
+
+When billing is enabled, a project type can be associated with a particular
+Stripe Product/Price - allowing each type to have a different monthly price
+associated with it.
+
+The Project Types page shows what types are current active, how many stacks
+each type has assigned to it, and how many projects have been created of that
+type.
+
 ### Managing Stacks
 
 The Stacks page can be used to manage the Project Stacks on the platform.
 
 It can be used to create and edit the stacks on the platform.
+
+With the 0.7 release, you can create a new version of an existing stack via the
+drop-down menu in the stack table. This allows the platform to notify users
+that an update is available for their project, allowing them to upgrade the stack
+at their convenience.
 
 It is *not* possible to edit a stack that is being used by Projects.
 
