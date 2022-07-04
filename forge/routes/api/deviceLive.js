@@ -38,7 +38,7 @@ module.exports = async function (app) {
             })
             return
         }
-        if (request.body.settingsHash !== (request.device.settingsHash)) {
+        if (request.body.settingsHash && request.body.settingsHash !== (request.device.settingsHash)) {
             reply.code(409).send({
                 error: 'incorrect-settings',
                 settingsHash: request.device.settingsHash
@@ -85,8 +85,14 @@ module.exports = async function (app) {
             env: {}
         }
         const settings = await request.device.getAllSettings()
-        settings.settings.env.forEach(envVar => {
-            response.env[envVar.name] = envVar.value
+        Object.keys(settings).forEach(key => {
+            if (key === 'env') {
+                settings.env.forEach(envVar => {
+                    response.env[envVar.name] = envVar.value
+                })
+            } else {
+                response[key] = settings[key]
+            }
         })
         reply.send(response)
     })

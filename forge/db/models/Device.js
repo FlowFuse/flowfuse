@@ -87,6 +87,7 @@ module.exports = {
                     const result = await M.ProjectSettings.upsert({ DeviceId: this.id, key, value })
                     const settings = this.getAllSettings()
                     this.settingsHash = hashSettings(settings)
+                    await this.save()
                     return result
                 },
                 async getSetting (key) {

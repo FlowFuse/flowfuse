@@ -464,7 +464,7 @@ describe('Device API', async function () {
 
             const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
             const dbDevice = await app.db.models.Device.byId(device.id)
-            dbDevice.updateSettings({ settings: { env: [{ name: 'FOO', value: 'BAR' }] } })
+            dbDevice.updateSettings({ env: [{ name: 'FOO', value: 'BAR' }] })
             dbDevice.setProject(TestObjects.deviceProject)
             const deviceSettings = await TestObjects.deviceProject.getSetting('deviceSettings')
             dbDevice.targetSnapshotId = deviceSettings?.targetSnapshot
@@ -513,7 +513,7 @@ describe('Device API', async function () {
 
             const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
             const dbDevice = await app.db.models.Device.byId(device.id)
-            dbDevice.updateSettings({ settings: { env: [{ name: 'FOO', value: 'BAR' }] } })
+            dbDevice.updateSettings({ env: [{ name: 'FOO', value: 'BAR' }] })
             dbDevice.setProject(TestObjects.deviceProject)
             const deviceSettings = await TestObjects.deviceProject.getSetting('deviceSettings')
             dbDevice.targetSnapshotId = deviceSettings?.targetSnapshot
@@ -527,6 +527,7 @@ describe('Device API', async function () {
                     'content-type': 'application/json'
                 }
             })
+            console.log(response.body)
             const body = JSON.parse(response.body)
             response.statusCode.should.equal(200)
             body.should.have.property('hash').which.equal(dbDevice.settingsHash)
