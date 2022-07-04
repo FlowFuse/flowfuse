@@ -34,14 +34,16 @@ module.exports = async function (app) {
         if (request.body.snapshot !== (request.device.targetSnapshot?.hashid || null)) {
             reply.code(409).send({
                 error: 'incorrect-snapshot',
-                snapshot: request.device.targetSnapshot?.hashid || null
+                snapshot: request.device.targetSnapshot?.hashid || null,
+                settings: request.device.settingsHash || null
             })
             return
         }
-        if (request.body.settingsHash && request.body.settingsHash !== (request.device.settingsHash)) {
+        if (request.body.settings !== (request.device.settingsHash || null)) {
             reply.code(409).send({
                 error: 'incorrect-settings',
-                settingsHash: request.device.settingsHash
+                settings: request.device.settingsHash || null,
+                snapshot: request.device.targetSnapshot?.hashid || null
             })
             return
         }

@@ -84,7 +84,7 @@ export default {
                 this.original.settings.envMap = {}
                 this.editable.settings.env = []
                 const settings = await deviceApi.getSettings(this.device.id)
-                settings.env.forEach(envVar => {
+                settings.env?.forEach(envVar => {
                     this.editable.settings.env.push(Object.assign({}, envVar))
                     // make a map of the key:value so it's easier to check for changes
                     this.original.settings.envMap[envVar.name] = envVar

@@ -79,13 +79,13 @@ module.exports = {
                         updates.push({ DeviceId: this.id, key, value })
                     }
                     await M.DeviceSettings.bulkCreate(updates, { updateOnDuplicate: ['value'] })
-                    const settings = this.getAllSettings()
+                    const settings = await this.getAllSettings()
                     this.settingsHash = hashSettings(settings)
                     await this.save()
                 },
                 async updateSetting (key, value) {
                     const result = await M.ProjectSettings.upsert({ DeviceId: this.id, key, value })
-                    const settings = this.getAllSettings()
+                    const settings = await this.getAllSettings()
                     this.settingsHash = hashSettings(settings)
                     await this.save()
                     return result
