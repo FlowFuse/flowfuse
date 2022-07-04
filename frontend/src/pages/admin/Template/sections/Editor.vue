@@ -57,7 +57,7 @@
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
                 <FormRow :disabled="!editable.settings.modules_allowInstall" v-model="editable.settings.modules_denyList" :error="editable.errors.modules_denyList" :type="(editTemplate||editable.policy.modules_denyList)?'text':'uneditable'">
-                    Prevent Install of External nodes
+                    Prevent Install of External modules
                     <template #description>
                         This can be used to prevent the installation of modules in Function nodes. A comma-seperated list of the form e.g. <pre>'package-name@semVer, foo@^0.1.0, @scope/*'</pre>
                     </template>
