@@ -48,6 +48,7 @@
         </div>
     </form>
     <ProjectTypeEditDialog @projectTypeCreated="projectTypeCreated" @projectTypeUpdated="projectTypeUpdated" ref="adminProjectTypeEditDialog"/>
+    <ProjectTypeDeleteDialog @deleteProjectType="deleteProjectType" ref="adminProjectTypeDeleteDialog" />
 </template>
 
 <script>
@@ -58,6 +59,7 @@ import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 import ProjectTypeEditButton from './components/ProjectTypeEditButton'
 import ProjectTypeEditDialog from './dialogs/ProjectTypeEditDialog'
+import ProjectTypeDeleteDialog from './dialogs/ProjectTypeDeleteDialog'
 import ProjectTypeDescriptionCell from './components/ProjectTypeDescriptionCell'
 import ProjectTypeSummary from '../../team/components/ProjectTypeSummary'
 import { PlusSmIcon } from '@heroicons/vue/outline'
@@ -116,7 +118,7 @@ export default {
                 this.showEditProjectTypeDialog(projectType)
                 break
             case 'delete':
-                // this.showEditProjectTypeDialog(projectType)
+                this.showConfirmProjectTypeDeleteDialog(projectType)
                 break
             }
         },
@@ -127,7 +129,12 @@ export default {
             this.$refs.adminProjectTypeEditDialog.show(projectType)
         },
         showConfirmProjectTypeDeleteDialog (projectType) {
-            // this.$refs.adminStackDeleteDialog.show(stack)
+            this.$refs.adminProjectTypeDeleteDialog.show(projectType)
+        },
+        async deleteProjectType (projectType) {
+            await projectTypesApi.deleteProjectType(projectType.id)
+            const index = this.projectTypes.findIndex(pt => pt.id === projectType.id)
+            this.projectTypes.splice(index, 1)
         },
         async projectTypeCreated (projectType) {
             this.projectTypes.push(projectType)
@@ -169,6 +176,7 @@ export default {
         ItemTable,
         PlusSmIcon,
         ProjectTypeEditDialog,
+        ProjectTypeDeleteDialog,
         ProjectTypeSummary,
         ProjectTypeEditButton
     }
