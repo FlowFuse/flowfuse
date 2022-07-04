@@ -15,7 +15,10 @@ module.exports = {
             const snapshotId = app.db.models.ProjectSnapshot.decodeHashid(state.snapshot)
             // hashid.decode returns an array of values, not the raw value.
             if (snapshotId.length > 0) {
-                device.set('activeSnapshotId', snapshotId)
+                // check to see if snapshot still exists
+                if (await app.db.models.ProjectSnapshot.byId(state.snapshot)) {
+                    device.set('activeSnapshotId', snapshotId)
+                }
             }
         }
         await device.save()
