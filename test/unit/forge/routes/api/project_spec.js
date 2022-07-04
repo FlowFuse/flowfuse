@@ -57,6 +57,7 @@ describe('Project API', function () {
         // TestObjects.tokens.alice = (await app.db.controllers.AccessToken.createTokenForPasswordReset(TestObjects.alice)).token
         TestObjects.tokens.project = (await app.project.refreshAuthTokens()).token
 
+        TestObjects.projectType1 = app.projectType
         TestObjects.template1 = app.template
         TestObjects.stack1 = app.stack
     })
@@ -118,6 +119,7 @@ describe('Project API', function () {
             payload: {
                 name: name || 'project2',
                 team: team,
+                projectType: TestObjects.projectType1.hashid,
                 template: template,
                 stack: stack,
                 sourceProject: {
@@ -148,6 +150,7 @@ describe('Project API', function () {
                 payload: {
                     name: 'test-project',
                     team: TestObjects.ATeam.hashid,
+                    projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
                     stack: TestObjects.stack1.hashid
                 },
@@ -164,6 +167,7 @@ describe('Project API', function () {
                 payload: {
                     name: 'test-project',
                     team: TestObjects.CTeam.hashid,
+                    projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
                     stack: TestObjects.stack1.hashid
                 },
@@ -179,6 +183,7 @@ describe('Project API', function () {
                 payload: {
                     name: 'test-project',
                     team: TestObjects.ATeam.hashid,
+                    projectType: TestObjects.projectType1.hashid,
                     template: 'doesnotexist',
                     stack: TestObjects.stack1.hashid
                 },
@@ -196,6 +201,7 @@ describe('Project API', function () {
                 payload: {
                     name: 'test-project',
                     team: TestObjects.ATeam.hashid,
+                    projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
                     stack: 'doesnotexist'
                 },
@@ -206,6 +212,24 @@ describe('Project API', function () {
             result.should.have.property('error', 'Invalid stack')
         })
 
+        it('Fails for unknown project type', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/projects',
+                payload: {
+                    name: 'test-project',
+                    team: TestObjects.ATeam.hashid,
+                    projectType: 'doesnotexist',
+                    template: TestObjects.template1.hashid,
+                    stack: TestObjects.stack1.hashid
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(400)
+            const result = response.json()
+            result.should.have.property('error', 'Invalid project type')
+        })
+
         it('Fails for duplicate project name', async function () {
             const response = await app.inject({
                 method: 'POST',
@@ -213,6 +237,7 @@ describe('Project API', function () {
                 payload: {
                     name: TestObjects.project1.name,
                     team: TestObjects.ATeam.hashid,
+                    projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
                     stack: TestObjects.stack1.hashid
                 },
@@ -230,6 +255,7 @@ describe('Project API', function () {
                 payload: {
                     name: 'test-project',
                     team: TestObjects.ATeam.hashid,
+                    projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
                     stack: TestObjects.stack1.hashid
                 },
@@ -240,6 +266,8 @@ describe('Project API', function () {
             result.should.have.property('id')
             result.should.have.property('name', 'test-project')
             result.should.have.property('team')
+            result.should.have.property('projectType')
+            result.projectType.should.have.property('id', TestObjects.projectType1.hashid)
             result.should.have.property('template')
             result.template.should.have.property('id', TestObjects.template1.hashid)
             result.should.have.property('stack')
@@ -267,6 +295,7 @@ describe('Project API', function () {
                 payload: {
                     name: 'test-project',
                     team: TestObjects.ATeam.hashid,
+                    projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
                     stack: TestObjects.stack1.hashid,
                     sourceProject: {
@@ -337,6 +366,7 @@ describe('Project API', function () {
                 url: '/api/v1/projects',
                 payload: {
                     name: 'test-project',
+                    projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
                     stack: TestObjects.stack1.hashid,
                     team: TestObjects.ATeam.hashid,
@@ -393,6 +423,7 @@ describe('Project API', function () {
                 url: '/api/v1/projects',
                 payload: {
                     name: 'test-project',
+                    projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
                     stack: TestObjects.stack1.hashid,
                     team: TestObjects.ATeam.hashid,
@@ -449,6 +480,7 @@ describe('Project API', function () {
                 url: '/api/v1/projects',
                 payload: {
                     name: 'test-project',
+                    projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
                     stack: TestObjects.stack1.hashid,
                     team: TestObjects.ATeam.hashid,
@@ -494,6 +526,7 @@ describe('Project API', function () {
                 url: '/api/v1/projects',
                 payload: {
                     name: 'test-project',
+                    projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
                     stack: TestObjects.stack1.hashid,
                     team: TestObjects.ATeam.hashid,
@@ -543,6 +576,7 @@ describe('Project API', function () {
                 payload: {
                     name: 'test-project',
                     team: TestObjects.BTeam.hashid,
+                    projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
                     stack: TestObjects.stack1.hashid,
                     sourceProject: {
@@ -566,6 +600,7 @@ describe('Project API', function () {
                 payload: {
                     name: 'test-project',
                     team: TestObjects.ATeam.hashid,
+                    projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
                     stack: TestObjects.stack1.hashid,
                     sourceProject: {
@@ -584,6 +619,67 @@ describe('Project API', function () {
     })
 
     describe('Update Project', function () {
+        it('Cannot change project-type if already set', async function () {
+            const projectType = {
+                name: 'projectType2',
+                description: 'default project type',
+                active: true,
+                properties: { foo: 'bar' },
+                order: 2
+            }
+            const projectType2 = await app.db.models.ProjectType.create(projectType)
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/projects/${TestObjects.project1.id}`,
+                payload: {
+                    projectType: projectType2.hashid
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(400)
+        })
+        it('Cannot set to project-type that does not match existing stack', async function () {
+            const project2 = await app.db.models.Project.create({ name: 'project2', type: '', url: '' })
+            await TestObjects.ATeam.addProject(project2)
+            await project2.setProjectStack(TestObjects.stack1)
+            await project2.setProjectTemplate(TestObjects.template1)
+
+            const projectType = {
+                name: 'projectType2',
+                description: 'default project type',
+                active: true,
+                properties: { foo: 'bar' },
+                order: 2
+            }
+            const projectType2 = await app.db.models.ProjectType.create(projectType)
+
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/projects/${project2.id}`,
+                payload: {
+                    projectType: projectType2.hashid
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(400)
+        })
+        it('Can change project-type if not set', async function () {
+            const project2 = await app.db.models.Project.create({ name: 'project2', type: '', url: '' })
+            await TestObjects.ATeam.addProject(project2)
+            await project2.setProjectStack(TestObjects.stack1)
+            await project2.setProjectTemplate(TestObjects.template1)
+
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/projects/${project2.id}`,
+                payload: {
+                    projectType: TestObjects.projectType1.hashid
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+        })
+
         it('Change project stack', async function () {
             // Setup some flows/credentials
             await addFlowsToProject(TestObjects.project1.id,
@@ -825,6 +921,7 @@ describe('Project API', function () {
                 payload: {
                     name: 'project2',
                     team: TestObjects.ATeam.hashid,
+                    projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
                     stack: TestObjects.stack1.hashid,
                     sourceProject: {

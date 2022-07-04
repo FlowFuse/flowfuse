@@ -60,6 +60,15 @@ module.exports = async function (settings = {}, config = {}) {
     const team1 = await forge.db.models.Team.create({ name: 'ATeam' })
     await team1.addUser(userAlice, { through: { role: Roles.Owner } })
 
+    const projectType = {
+        name: 'projectType1',
+        description: 'default project type',
+        active: true,
+        properties: { foo: 'bar' },
+        order: 1
+    }
+    forge.projectType = await forge.db.models.ProjectType.create(projectType)
+
     const templateProperties = {
         name: 'template1',
         active: true,
@@ -76,16 +85,21 @@ module.exports = async function (settings = {}, config = {}) {
     const template = await forge.db.models.ProjectTemplate.create(templateProperties)
     template.setOwner(userAlice)
     await template.save()
+
     const stackProperties = {
         name: 'stack1',
         active: true,
         properties: { nodered: '2.2.2' }
     }
     const stack = await forge.db.models.ProjectStack.create(stackProperties)
+
+    await stack.setProjectType(forge.projectType)
+
     const project1 = await forge.db.models.Project.create({ name: 'project1', type: '', url: '' })
     await team1.addProject(project1)
     await project1.setProjectStack(stack)
     await project1.setProjectTemplate(template)
+    await project1.setProjectType(forge.projectType)
 
     forge.project = project1
     forge.template = template

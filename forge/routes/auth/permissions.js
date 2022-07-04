@@ -37,7 +37,12 @@ const defaultPermissions = {
     'device:list': { description: 'List Devices', role: Roles.Admin },
     'device:create': { description: 'Create a Device', role: Roles.Owner },
     'device:delete': { description: 'Delete a Device', role: Roles.Owner },
-    'device:edit': { description: 'Edit a Stack', role: Roles.Owner }
+    'device:edit': { description: 'Edit a Stack', role: Roles.Owner },
+    // Project Types
+    'project-type:create': { description: 'Create a ProjectType', role: Roles.Admin },
+    'project-type:delete': { description: 'Delete a ProjectType', role: Roles.Admin },
+    'project-type:edit': { description: 'Edit a ProjectType', role: Roles.Admin }
+
 }
 
 module.exports = fp(async function (app, opts, done) {

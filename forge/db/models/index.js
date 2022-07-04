@@ -51,6 +51,7 @@ const modelTypes = [
     'Session',
     'Project',
     'ProjectSettings',
+    'ProjectType',
     'ProjectStack',
     'ProjectTemplate',
     'ProjectSnapshot',

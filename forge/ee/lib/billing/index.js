@@ -36,6 +36,18 @@ module.exports.init = function (app) {
             return session
         },
         addProject: async (team, project) => {
+            let projectProduct = app.config.billing.stripe.project_product
+            let projectPrice = app.config.billing.stripe.project_price
+            const projectType = await project.getProjectType()
+            if (projectType) {
+                if (projectType.properties.billingProductId) {
+                    projectProduct = projectType.properties.billingProductId
+                }
+                if (projectType.properties.billingPriceId) {
+                    projectPrice = projectType.properties.billingPriceId
+                }
+            }
+
             const subscription = await app.db.models.Subscription.byTeam(team.id)
 
             const existingSub = await stripe.subscriptions.retrieve(subscription.subscription)
@@ -43,7 +55,7 @@ module.exports.init = function (app) {
 
             let projectItem = false
             subItems.data.forEach(item => {
-                if (item.plan.product === app.config.billing.stripe.project_product) {
+                if (item.plan.product === projectProduct) {
                     projectItem = item
                 }
             })
@@ -74,7 +86,7 @@ module.exports.init = function (app) {
                 // metadata[team] = team.hashid
                 const update = {
                     items: [{
-                        price: app.config.billing.stripe.project_price,
+                        price: projectPrice,
                         quantity: 1
                     }],
                     metadata: metadata
@@ -88,6 +100,14 @@ module.exports.init = function (app) {
             }
         },
         removeProject: async (team, project) => {
+            let projectProduct = app.config.billing.stripe.project_product
+            const projectType = await project.getProjectType()
+            if (projectType) {
+                if (projectType.properties.billingProductId) {
+                    projectProduct = projectType.properties.billingProductId
+                }
+            }
+
             const subscription = await app.db.models.Subscription.byTeam(team.id)
 
             const existingSub = await stripe.subscriptions.retrieve(subscription.subscription)
@@ -95,7 +115,7 @@ module.exports.init = function (app) {
 
             let projectItem = false
             subItems.data.forEach(item => {
-                if (item.plan.product === app.config.billing.stripe.project_product) {
+                if (item.plan.product === projectProduct) {
                     projectItem = item
                 }
             })

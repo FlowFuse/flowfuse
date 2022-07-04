@@ -26,6 +26,7 @@ module.exports = {
     associations: function (M) {
         this.hasMany(M.Project)
         this.hasOne(this, { foreignKey: 'replacedBy' })
+        this.belongsTo(M.ProjectType)
     },
     hooks: function (M) {
         return {

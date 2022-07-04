@@ -14,6 +14,12 @@
                 </div>
                 <FormRow v-model="input.name" :error="errors.name" :disabled="editDisabled">Name</FormRow>
                 <FormRow v-model="input.active" type="checkbox">Active</FormRow>
+                <FormRow :options="projectTypes" :disabled="editTypeDisabled" :error="errors.projectType" v-model="input.projectType" id="projectType">Project Type
+                    <template v-slot:description>
+                        <div v-if="editTypeDisabled">Stacks cannot be moved to a different project type</div>
+                        <div v-else-if="stack && !stack.projectType">You can assign this stack to a project type as a one-time action. Once assigned you cannot move it.</div>
+                    </template>
+                </FormRow>
                 <template v-for="(prop) in stackProperties" :key="prop.name">
                     <FormRow v-model="input.properties[prop.name]" :error="errors[prop.name]" :disabled="editDisabled">
                         {{prop.label}}
@@ -31,6 +37,7 @@
 
 <script>
 import stacksApi from '@/api/stacks'
+import projectTypesApi from '@/api/projectTypes'
 
 import { ref } from 'vue'
 
@@ -47,6 +54,7 @@ export default {
         return {
             stack: null,
             stacks: [],
+            projectTypes: [],
             loading: false,
             input: {
                 name: '',
@@ -55,7 +63,8 @@ export default {
                 replaces: null
             },
             errors: {},
-            editDisabled: false
+            editDisabled: false,
+            editTypeDisabled: false
         }
     },
     watch: {
@@ -98,7 +107,7 @@ export default {
                     propError = true
                 }
             })
-            return !propError && this.input.name && !this.errors.name
+            return !propError && this.input.name && !this.errors.name && this.input.projectType
         },
         stackProperties () {
             return Object.entries(this.settings.stacks.properties).map(([key, value]) => {
@@ -112,12 +121,34 @@ export default {
             })
         }
     },
+    mounted () {
+        this.loadTypes()
+    },
     methods: {
+        async loadTypes () {
+            const result = await projectTypesApi.getProjectTypes(null, 100, 'all')
+            this.projectTypes = result.types.map(pt => {
+                if (!pt.active) {
+                    pt.label = pt.label + ' (inactive)'
+                }
+                return pt
+            })
+            this.projectTypes.sort(function (A, B) {
+                if (A.active !== B.active) {
+                    return A.active ? -1 : 1
+                } else if (A.order !== B.order) {
+                    return A.order - B.order
+                } else {
+                    return A.name.localeCompare(B.name)
+                }
+            })
+        },
         confirm () {
             this.loading = true
             let opts = {
                 name: this.input.name,
                 active: this.input.active,
+                projectType: this.input.projectType,
                 properties: {}
             }
             if (this.input.replaces) {
@@ -130,6 +161,9 @@ export default {
             if (this.stack) {
                 if (this.editDisabled) {
                     opts = { active: this.input.active }
+                    if (!this.editTypeDisabled && this.input.projectType) {
+                        opts.projectType = this.input.projectType
+                    }
                 }
                 // Update
                 stacksApi.updateStack(this.stack.id, opts).then((response) => {
@@ -176,18 +210,24 @@ export default {
             showCreate () {
                 this.stack = null
                 this.editDisabled = false
+                this.editTypeDisabled = false
                 this.input = { active: true, name: '', properties: {}, replaces: null }
                 this.errors = {}
+                if (this.projectTypes.length === 0) {
+                    this.errors.projectType = 'No project types available. Ask an Administator to create a new project type definition'
+                }
                 isOpen.value = true
             },
             showEdit (stack) {
                 this.stack = stack
                 this.editDisabled = stack.projectCount > 0
+                this.editTypeDisabled = !!stack.projectType
                 this.input = {
                     name: stack.name,
                     active: stack.active,
                     properties: stack.properties,
-                    replaces: null
+                    replaces: null,
+                    projectType: stack.projectType
                 }
                 this.errors = {}
                 isOpen.value = true
@@ -195,10 +235,12 @@ export default {
             showCreateVersion (stack) {
                 this.stack = null
                 this.editDisabled = false
+                this.editTypeDisabled = true
                 this.input = {
                     active: true,
                     name: stack.name + '-copy',
                     properties: { },
+                    projectType: stack.projectType,
                     replaces: stack
                 }
                 if (stack.properties) {

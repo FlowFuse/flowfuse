@@ -21,6 +21,12 @@ module.exports = {
                 links: proj.Team.links
             }
         }
+        if (proj.ProjectType) {
+            result.projectType = {
+                id: proj.ProjectType.hashid,
+                name: proj.ProjectType.name
+            }
+        }
         if (proj.ProjectTemplate) {
             result.template = {
                 id: proj.ProjectTemplate.hashid,

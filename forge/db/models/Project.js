@@ -61,6 +61,7 @@ module.exports = {
             }
         })
         this.hasMany(M.ProjectSettings)
+        this.belongsTo(M.ProjectType)
         this.belongsTo(M.ProjectStack)
         this.belongsTo(M.ProjectTemplate)
         this.hasMany(M.ProjectSnapshot)
@@ -182,6 +183,10 @@ module.exports = {
                                     }
                                 },
                                 {
+                                    model: M.ProjectType,
+                                    attributes: ['hashid', 'id', 'name']
+                                },
+                                {
                                     model: M.ProjectStack
                                 },
                                 {
@@ -200,6 +205,10 @@ module.exports = {
                             {
                                 model: M.Team,
                                 attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                            },
+                            {
+                                model: M.ProjectType,
+                                attributes: ['hashid', 'id', 'name']
                             },
                             {
                                 model: M.ProjectStack
@@ -224,6 +233,10 @@ module.exports = {
                                 model: M.Team,
                                 where: { id: teamId },
                                 attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                            },
+                            {
+                                model: M.ProjectType,
+                                attributes: ['hashid', 'id', 'name']
                             },
                             {
                                 model: M.ProjectStack

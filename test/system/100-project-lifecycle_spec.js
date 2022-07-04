@@ -53,11 +53,19 @@ describe('Project Lifecycle', function () {
         TestObjects.userAlice = await forge.db.models.User.create({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
         TestObjects.ATeam = await forge.db.models.Team.create({ name: 'ATeam' })
         await TestObjects.ATeam.addUser(TestObjects.userAlice, { through: { role: Roles.Owner } })
+        TestObjects.ProjectType1 = await forge.db.models.ProjectType.create({
+            name: 'projectType1',
+            active: true,
+            properties: {}
+        })
         TestObjects.Stack1 = await forge.db.models.ProjectStack.create({
             name: 'stack1',
             active: true,
             properties: { foo: 'bar' }
         })
+
+        await TestObjects.Stack1.setProjectType(TestObjects.ProjectType1)
+
         TestObjects.Stack2 = await forge.db.models.ProjectStack.create({
             name: 'stack2',
             active: true,
@@ -94,6 +102,7 @@ describe('Project Lifecycle', function () {
             payload: {
                 name: 'test-project',
                 team: TestObjects.ATeam.hashid,
+                projectType: TestObjects.ProjectType1.hashid,
                 stack: TestObjects.Stack1.hashid,
                 template: TestObjects.Template1.hashid
             }
