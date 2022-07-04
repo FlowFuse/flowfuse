@@ -175,6 +175,64 @@ $nav_height: 60px;
     position: absolute;
 }
 
+.ff-team-selection {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    background-color: $ff-grey-800;
+    min-width: $sidenav_width;
+    svg {
+        &:hover {
+            fill: $ff-teal-300;
+            cursor: pointer;
+        }
+        &.active {
+            fill: $ff-teal-300;
+        }
+    }
+    .ff-dropdown-options {
+        position: absolute;
+        min-width: $sidenav_width;
+        display: none;
+        z-index: 10;
+        border-bottom: 0;
+        &.active {
+            display: block;
+        }
+    }
+    .ff-dropdown-option {
+        padding: 0;
+    }
+}
+.ff-team-selection-name {
+    margin-left: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    label {
+        font-size: 0.7rem;
+        line-height: 0.7rem;
+        color: $ff-grey-300;
+        margin-left: 0;
+    }
+    h5 {
+        color: white;
+        white-space: nowrap;
+    }
+}
+.ff-team-selection > div {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    &:hover {
+        label, h5 {
+            color: $ff-teal-200;
+        }
+    }
+}
+
 .ff-header {
     z-index: 10;
     background-color: $ff-grey-800;
@@ -185,7 +243,7 @@ $nav_height: 60px;
     justify-content: space-between;
     position: fixed;
     width: 100%;
-    img {
+    img.ff-logo {
         padding: 20px;
         height: 100%;
         &:hover {
@@ -232,7 +290,7 @@ $nav_height: 60px;
     }
     .ff-dropdown {
         display: none;
-        height: 100%;
+        height: calc(#{$nav_height} - 2px);
         color: white;
         min-width: $sidenav_width;
         position: relative;
@@ -252,23 +310,103 @@ $nav_height: 60px;
                 background-color: $ff-grey-700;
             }
         }
+        &.ff-dropdown--open .ff-dropdown-selected {
+            background-color: $ff-grey-700;
+        }
         .ff-dropdown-options {
             width: 100%;
             margin-top: 2px;
             border-color: $ff-grey-500;
             border-right: 0;
         }
+    }
+    .ff-team-selection {
+        ul {
+            top: 100%;
+            left: 0;
+        }
         .ff-dropdown-option {
+            padding: 0;
+            .ff-nav-item {
+                background-color: $ff-grey-700;
+            }
             &:last-child {
-                border-top: 2px solid $ff-red-600;
+                border-top: inherit;
+                .ff-nav-item {
+                    background-color: $ff-grey-800;
+                }
+            }
+        }
+    }
+    .ff-user-options {
+        width: auto;
+        min-width: $nav_height;
+        .ff-dropdown-options {
+            width: $sidenav_width;
+        }
+    }
+}
+
+.ff-user-options {
+    .ff-dropdown-option:last-child {
+        border-top: 2px solid $ff-red-600;
+    }
+}
+
+
+.ff-navigation,
+.ff-team-selection ul {
+    .ff-nav-item {
+        &:hover {
+            cursor: pointer;
+            svg {
+                fill: $ff-teal-100;
+            }
+            label {
+                color: $ff-teal-100;
             }
         }
     }
 }
 
+.ff-navigation .ff-nav-item {
+    border-bottom: 1px solid $ff-grey-600;
+    padding: 16px 16px 16px 24px;
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    svg {
+        fill: $ff-white;
+        width: 20px;
+    }
+    label {
+        margin-left: 12px;
+        color: $ff-white;
+        white-space: nowrap;
+        pointer-events: none;
+    }
+}
+
+.ff-team-selection ul .ff-nav-item {
+    border-bottom: 1px solid $ff-grey-600;
+    padding: 16px 16px 16px 22px;
+    display: grid;
+    align-items: center;
+    grid-template-columns: 24px 1fr;
+    height: $nav_height;
+    svg {
+        fill: $ff-white;
+        width: 20px;
+    }
+    label {
+        margin-left: 12px;
+        color: $ff-white;
+        white-space: nowrap;
+        pointer-events: none;
+    }
+}
+
 .ff-navigation {
     background-color: $ff-grey-700;
-    border-right: 2px solid $ff-grey-800;
     position: fixed;
     left: -$sidenav_width;
     height: 100%;
@@ -394,100 +532,14 @@ $nav_height: 60px;
     .ff-dropdown-options .ff-dropdown-option {
         padding: 0;
     }
-    .ff-nav-item, .ff-team-selection {
-        border-bottom: 1px solid $ff-grey-600;
-        padding: 16px 16px 16px 24px;
-        display: grid;
-        grid-template-columns: 20px 1fr;
-        svg {
-            fill: $ff-white;
-            width: 20px;
-        }
-        label {
-            margin-left: 12px;
-            color: $ff-white;
-            white-space: nowrap;
-            pointer-events: none;
-        }
-    }
     .ff-nav-item {
         background-color: $ff-grey-700;
         border-bottom: 1px solid $ff-grey-600;
-        &:hover {
-            cursor: pointer;
-            svg {
-                fill: $ff-teal-100;
-            }
-            label {
-                color: $ff-teal-100;
-            }
-        }
     }
     .ff-side-navigation--options-back {
         // width: 100%;
         li {
             border-top: 1px solid $ff-grey-600;
-        }
-    }
-    .ff-team-selection {
-        position: relative;
-        display: flex;
-        justify-content: space-between;
-        background-color: $ff-grey-800;
-        padding: 12px 22px;
-        svg {
-            &:hover {
-                fill: $ff-teal-300;
-                cursor: pointer;
-            }
-            &.active {
-                fill: $ff-teal-300;
-            }
-        }
-        ul {
-            position: absolute;
-            left: 100%;
-            top: 0;
-            min-width: $sidenav_width;
-            margin-left: 2px;
-            display: none;
-            z-index: 10;
-            border-bottom: 0;
-            li:first-child {
-                height: $nav_height;
-                pointer-events: none;
-                background-color: $ff-grey-700;
-            }
-            li {
-                background-color: $ff-grey-500;
-            }
-            &.active {
-                display: block;
-            }
-        }
-    }
-    .ff-team-selection-name {
-        margin-left: 10px;
-        label {
-            font-size: 0.7rem;
-            line-height: 0.7rem;
-            color: $ff-grey-300;
-            margin-left: 0;
-        }
-        h5 {
-            color: white;
-            white-space: nowrap;
-        }
-    }
-    .ff-team-selection > div {
-        flex-grow: 1;
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-        &:hover {
-            label, h5 {
-                color: $ff-teal-200;
-            }
         }
     }
 }
@@ -522,7 +574,7 @@ $nav_height: 60px;
         .ff-header--mobile-usertoggle {
             display: none;
         }
-        img {
+        img.ff-logo {
             padding: 16px;
         }
         .ff-dropdown {

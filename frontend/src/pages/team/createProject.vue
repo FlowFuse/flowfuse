@@ -6,9 +6,9 @@
                     <nav-item :icon="icons.chevronLeft" label="Back"></nav-item>
                 </a>
             </template>
-            <template v-slot:back>
+            <!-- <template v-slot:back>
                 <ff-team-selection></ff-team-selection>
-            </template>
+            </template> -->
         </SideNavigation>
     </Teleport>
     <main>
@@ -62,7 +62,6 @@ import projectApi from '@/api/project'
 import stacksApi from '@/api/stacks'
 import templatesApi from '@/api/templates'
 
-import SideTeamSelection from '@/components/SideTeamSelection'
 import NavItem from '@/components/NavItem'
 import SectionTopMenu from '@/components/SectionTopMenu'
 
@@ -217,8 +216,7 @@ export default {
         ExportProjectComponents,
         SectionTopMenu,
         NavItem,
-        SideNavigation,
-        'ff-team-selection': SideTeamSelection
+        SideNavigation
     }
 }
 </script>
