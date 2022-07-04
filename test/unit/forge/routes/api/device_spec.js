@@ -449,7 +449,7 @@ describe('Device API', async function () {
                 },
                 payload: {
                     snapshot: TestObjects.deviceProjectSnapshot.id,
-                    settingsHash: settingsHash,
+                    settings: settingsHash,
                     state: 'running',
                     health: {
                         uptime: 1,
@@ -478,7 +478,7 @@ describe('Device API', async function () {
                 },
                 payload: {
                     snapshot: TestObjects.deviceProjectSnapshot.id,
-                    settingsHash: 'fooBar',
+                    settings: 'fooBar',
                     state: 'running',
                     health: {
                         uptime: 1,
