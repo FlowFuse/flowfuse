@@ -1,7 +1,7 @@
 <template>
     <div v-if="team" class="ff-side-navigation" :class="{'minimised': nested}">
         <div class="ff-side-navigation--primary">
-            <ff-team-selection></ff-team-selection>
+            <ff-team-selection :list-enabled="!nested" @click="teamSelectClick()"></ff-team-selection>
             <!-- Team Options: General -->
             <ul class="ff-side-navigation--options">
                 <router-link v-for="route in routes.general" :key="route.label"
@@ -31,7 +31,8 @@ import { mapState } from 'vuex'
 
 import { Roles } from '@core/lib/roles'
 
-import { ChipIcon, CollectionIcon, UsersIcon, DatabaseIcon, CurrencyDollarIcon, CogIcon } from '@heroicons/vue/solid'
+import ProjectsIcon from '@/components/icons/Projects'
+import { ChipIcon, UsersIcon, DatabaseIcon, TemplateIcon, CurrencyDollarIcon, CogIcon } from '@heroicons/vue/solid'
 import NavItem from '@/components/NavItem'
 import SideTeamSelection from '@/components/SideTeamSelection'
 
@@ -57,11 +58,11 @@ export default {
             general: [{
                 label: 'Overview',
                 to: '/overview',
-                icon: CollectionIcon
+                icon: TemplateIcon
             }, {
                 label: 'Projects',
                 to: '/projects',
-                icon: CollectionIcon
+                icon: ProjectsIcon
             }, {
                 label: 'Members',
                 to: '/members',
@@ -159,6 +160,16 @@ export default {
                 name: 'CreateTeam'
             })
             this.switchTeam()
+        },
+        teamSelectClick () {
+            if (this.nested) {
+                this.$router.push({
+                    name: 'Team',
+                    params: {
+                        team_slug: this.team.slug
+                    }
+                })
+            }
         }
     }
 }

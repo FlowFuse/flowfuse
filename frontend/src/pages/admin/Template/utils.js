@@ -2,6 +2,11 @@ const templateFields = [
     'disableEditor',
     'httpAdminRoot',
     'codeEditor',
+    'theme',
+    'page_title',
+    'page_favicon',
+    'header_title',
+    'header_url',
     'timeZone',
     'palette_allowInstall',
     'palette_nodesExcludes',
@@ -12,6 +17,11 @@ const defaultTemplateValues = {
     disableEditor: false,
     httpAdminRoot: '',
     codeEditor: 'monaco',
+    theme: 'forge-light',
+    page_title: 'FlowForge',
+    page_favicon: '',
+    header_title: 'FlowForge',
+    header_url: '',
     timeZone: 'UTC',
     palette_allowInstall: true,
     palette_nodesExcludes: '',
@@ -83,7 +93,7 @@ const templateValidators = {
         for (let i = 0; i < parts.length; i++) {
             const fn = parts[i]
             if (!/^((@[a-z0-9-~][a-z0-9-._~]*\/)?([a-z0-9-~][a-z0-9-._~]*|\*))(@([~^><]|<=|>=)?((0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?))?$/i.test(fn)) {
-                return 'Must be a comma-seperated list of nodes[@version]'
+                return 'Must be a comma-separated list of nodes[@version]'
             }
         }
     }

@@ -1,12 +1,14 @@
 <template>
-    <ff-dialog :open="isOpen" header="Set Device Target Snapshot">
+    <ff-dialog :open="isOpen" header="Rollback Snapshot">
         <template v-slot:default>
-            <p>Are you sure you want to set this snapshot as the device target?</p>
-            <p>All devices in this team will be restarted on this snapshot.</p>
+            <p>This rollback will overwrite the current project.</p>
+            <p>All changes to the flows, settings and environment variables made since
+                the last snapshot will be lost.</p>
+            <p>Are you sure you want to rollback to this snapshot?</p>
         </template>
         <template v-slot:actions>
-            <ff-button kind="secondary" @click="close()">Cancel</ff-button>
-            <ff-button kind="primary" class="ml-4" @click="confirm()">Set Target</ff-button>
+            <ff-button ref="cancel" kind="secondary" @click="close()">Cancel</ff-button>
+            <ff-button kind="primary" class="ml-4" @click="confirm()">Confirm Rollback</ff-button>
         </template>
     </ff-dialog>
 </template>
@@ -14,10 +16,8 @@
 <script>
 import { ref } from 'vue'
 
-import alerts from '@/services/alerts'
-
 export default {
-    name: 'ConfirmSnapshotTargetDialog',
+    name: 'ConfirmSnapshotRollbackDialog',
     data () {
         return {
             snapshot: null
@@ -25,8 +25,7 @@ export default {
     },
     methods: {
         confirm () {
-            this.$emit('targetSnapshot', this.snapshot)
-            alerts.emit('Successfully set snapshot as device target.', 'confirmation')
+            this.$emit('rollbackSnapshot', this.snapshot)
             this.isOpen = false
         }
     },
@@ -40,6 +39,7 @@ export default {
             show (snapshot) {
                 this.snapshot = snapshot
                 isOpen.value = true
+                this.$refs.cancel.$el.focus()
             }
         }
     }

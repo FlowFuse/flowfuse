@@ -28,7 +28,7 @@ The FlowForge Application will be hosted on `http://forge.example.com`
 
 Download the latest release tar.gz from the docker-compose project:
 
-[https://github.com/flowforge/docker-compose/releases/latest] (https://github.com/flowforge/docker-compose/releases/latest)
+[https://github.com/flowforge/docker-compose/releases/latest](https://github.com/flowforge/docker-compose/releases/latest)
 
 Unpack this and cd into the created directory.	
 

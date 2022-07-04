@@ -34,6 +34,7 @@ export default {
                 menu.unshift(null)
                 menu.unshift({ name: 'Set as Device Target', action: () => { this.$parent.$emit('snapshotAction', 'setDeviceTarget', this.id) } })
             }
+            menu.unshift({ name: 'Rollback', action: () => { this.$parent.$emit('snapshotAction', 'rollback', this.id) } })
 
             return menu
         }

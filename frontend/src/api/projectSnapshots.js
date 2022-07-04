@@ -1,6 +1,7 @@
 import client from './client'
 import daysSince from '@/utils/daysSince'
 import paginateUrl from '@/utils/paginateUrl'
+import projectApi from '@/api/project'
 
 const create = async (projectId, options) => {
     return client.post(`/api/v1/projects/${projectId}/snapshots`, options).then(res => {
@@ -10,11 +11,16 @@ const create = async (projectId, options) => {
     })
 }
 
+const rollbackSnapshot = async (projectId, snapshotId) => {
+    return projectApi.rollbackProject(projectId, snapshotId)
+}
+
 const deleteSnapshot = async (projectId, snapshotId) => {
     return client.delete(`/api/v1/projects/${projectId}/snapshots/${snapshotId}`).then(res => {
         return res.data
     })
 }
+
 const getSnapshot = (projectId, snapshotId) => {
     return client.get(`/api/v1/projects/${projectId}/snapshots/${snapshotId}`).then(res => {
         res.data.createdSince = daysSince(res.data.createdAt)
@@ -37,6 +43,7 @@ const getProjectSnapshots = (projectId, cursor, limit) => {
 export default {
     create,
     deleteSnapshot,
+    rollbackSnapshot,
     getSnapshot,
     getProjectSnapshots
 }

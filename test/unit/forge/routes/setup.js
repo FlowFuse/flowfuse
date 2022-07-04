@@ -23,6 +23,36 @@ module.exports = async function (settings = {}, config = {}) {
         }
     }
 
+    if (process.env.FF_TEST_DB_POSTGRES) {
+        config.db.type = 'postgres'
+        config.db.host = process.env.FF_TEST_DB_POSTGRES_HOST || 'localhost'
+        config.db.port = process.env.FF_TEST_DB_POSTGRES_PORT || 5432
+        config.db.user = process.env.FF_TEST_DB_POSTGRES_USER || 'postgres'
+        config.db.password = process.env.FF_TEST_DB_POSTGRES_PASSWORD || 'secret'
+        config.db.database = process.env.FF_TEST_DB_POSTGRES_DATABASE || 'flowforge_test'
+
+        try {
+            const { Client } = require('pg')
+            const client = new Client({
+                host: config.db.host,
+                port: config.db.port,
+                user: config.db.user,
+                password: config.db.password
+            })
+            await client.connect()
+            try {
+                await client.query(`DROP DATABASE ${config.db.database}`)
+            } catch (err) {
+                // Don't mind if it doesn't exist
+            }
+            await client.query(`CREATE DATABASE ${config.db.database}`)
+            await client.end()
+        } catch (err) {
+            console.log(err.toString())
+            process.exit(1)
+        }
+    }
+
     const forge = await Forge({ config })
 
     await forge.db.models.PlatformSettings.upsert({ key: 'setup:initialised', value: true })
@@ -60,5 +90,6 @@ module.exports = async function (settings = {}, config = {}) {
     forge.project = project1
     forge.template = template
     forge.stack = stack
+
     return forge
 }

@@ -20,6 +20,7 @@
 
 import { ref } from 'vue'
 import teamApi from '@/api/team'
+import alerts from '@/services/alerts'
 import FormRow from '@/components/FormRow'
 export default {
     name: 'DeviceAssignProjectDialog',
@@ -39,6 +40,7 @@ export default {
     methods: {
         assignDevice () {
             this.$emit('assignDevice', this.device, this.input.project)
+            alerts.emit('Device successfully assigned to project.', 'confirmation')
             this.close()
         }
     },

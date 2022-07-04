@@ -108,4 +108,36 @@ module.exports = async function (app) {
             reply.code(500).send({ error: err.toString() })
         }
     })
+
+    app.post('/rollback', async (request, reply) => {
+        let restartProject = false
+        try {
+            // get (and check) snapshot is valid / owned by project before any actions
+            const snapshot = await app.db.models.ProjectSnapshot.byId(request.body.snapshot)
+            if (!snapshot) {
+                throw new Error(`snapshot '${request.body.snapshotId}' not found for project '${request.body.snapshotId}'`)
+            }
+            if (snapshot.ProjectId !== request.project.id) {
+                throw new Error(`snapshot '${request.body.snapshotId}' is only valid for project ${snapshot.ProjectId}`)
+            }
+            if (request.project.state === 'running') {
+                restartProject = true
+            }
+            app.db.controllers.Project.setInflightState(request.project, 'rollback')
+            await app.db.controllers.Project.importProjectSnapshot(request.project, snapshot)
+            app.db.controllers.Project.clearInflightState(request.project)
+            await app.db.controllers.AuditLog.projectLog(
+                request.project.id,
+                request.session.User.id,
+                'project.snapshot.rollback',
+                { id: snapshot.hashid }
+            )
+            if (restartProject) {
+                await app.containers.restartFlows(request.project)
+            }
+            reply.send({ status: 'okay' })
+        } catch (err) {
+            reply.code(500).send({ error: err.toString() })
+        }
+    })
 }

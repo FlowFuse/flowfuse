@@ -20,6 +20,8 @@
 
 import devicesApi from '@/api/devices'
 
+import alerts from '@/services/alerts'
+
 import { ref } from 'vue'
 
 import FormRow from '@/components/FormRow'
@@ -62,6 +64,7 @@ export default {
                 devicesApi.updateDevice(this.device.id, opts).then((response) => {
                     this.isOpen = false
                     this.$emit('deviceUpdated', response)
+                    alerts.emit('Device successfully updated.', 'confirmation')
                 }).catch(err => {
                     console.log(err.response.data)
                     if (err.response.data) {
@@ -76,6 +79,7 @@ export default {
                     if (!this.project) {
                         this.isOpen = false
                         this.$emit('deviceCreated', response)
+                        alerts.emit('Device successfully created.', 'confirmation')
                     } else {
                         const creds = response.credentials
                         // TODO: should the create allow a device to be created
@@ -87,6 +91,7 @@ export default {
                             // so they can be displayed to the user
                             response.credentials = creds
                             this.$emit('deviceCreated', response)
+                            alerts.emit('Device successfully created.', 'confirmation')
                         })
                     }
                 }).catch(err => {

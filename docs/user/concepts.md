@@ -33,7 +33,6 @@ on how and where FlowForge is running.
 Project Stacks are created and owned by the platform Administrator. When a User
 comes to create a new project, they chose from the available stacks.
 
-
 #### Project Template
 
 A Project Template describes properties of Node-RED itself. It is how many of the
@@ -64,24 +63,17 @@ snapshot. The 0.6 release introduces snapshots as part of the Device feature.
 ### Team
 
 Each project is owned by a Team. Only members of that team have access to the
-Node-RED editor for the project.
-
-Each user in a team can have one of two roles:
-
- - **Owner** - with full administrative access to the team and its projects
- - **Member** - can access the projects, but limited access to changing Team and
-   project settings.
+Node-RED editor for the project. Members have different roles assigned to them
+and their [roles determine their authorization level](./team/#role-based-access-control).
 
 ### Device
 
-The FlowForge platform can be used to manage projects running on remote Devices.
+The FlowForge platform can be used to manage projects running on remote devices.
 A Device runs a software agent that connects back to the platform to receive updates.
+Users must [install the agent](devices) on the devices.
 
 Devices are registered to a Team, and then assigned to a Project withing that team.
 A user can create a [project snapshot](#project-snapshot) can mark it as the
 *target* snapshot for devices. The platform will then deploy that snapshot to
 all of the devices assigned to the project.
-
-
-
 

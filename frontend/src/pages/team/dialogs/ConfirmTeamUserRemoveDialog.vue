@@ -25,6 +25,7 @@
 <script>
 import { ref } from 'vue'
 
+import alerts from '@/services/alerts'
 import teamApi from '@/api/team'
 
 export default {
@@ -41,6 +42,7 @@ export default {
             try {
                 await teamApi.removeTeamMember(this.team.id, this.user.id)
                 this.$emit('userRemoved', this.user)
+                alerts.emit(`User <${this.user.id}> successfully removed`, 'confirmation')
             } catch (err) {
                 console.warn(err)
             }

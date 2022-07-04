@@ -14,6 +14,8 @@
 <script>
 import { ref } from 'vue'
 
+import alerts from '@/services/alerts'
+
 export default {
     name: 'ConfirmDeviceUnassignDialog',
     data () {
@@ -24,6 +26,7 @@ export default {
     methods: {
         confirm () {
             this.$emit('unassignDevice', this.device)
+            alerts.emit('Successfully unassigned the project from this device.', 'confirmation')
             this.isOpen = false
         }
     },

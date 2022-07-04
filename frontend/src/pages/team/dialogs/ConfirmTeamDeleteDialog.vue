@@ -23,6 +23,8 @@
 <script>
 import { ref } from 'vue'
 
+import alerts from '@/services/alerts.js'
+
 import FormRow from '@/components/FormRow'
 
 export default {
@@ -47,6 +49,7 @@ export default {
     methods: {
         confirm () {
             this.$emit('deleteTeam')
+            alerts.emit('Team successfully deleted', 'confirmation')
             this.isOpen = false
         }
     },

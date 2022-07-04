@@ -31,6 +31,8 @@
 <script>
 import { ref } from 'vue'
 
+import alerts from '@/services/alerts'
+
 import FormRow from '@/components/FormRow'
 import teamApi from '@/api/team'
 import { Roles, RoleNames } from '@core/lib/roles'
@@ -59,6 +61,7 @@ export default {
                 await teamApi.changeTeamMemberRole(this.team.id, this.user.id, this.input.role)
                 this.user.role = this.input.role
                 this.$emit('roleUpdated', this.user)
+                alerts.emit("User's role successfully updated", 'confirmation')
             } catch (err) {
                 console.warn(err)
             }

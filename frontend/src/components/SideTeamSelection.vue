@@ -24,6 +24,12 @@ import NavItem from '@/components/NavItem'
 
 export default {
     name: 'FFSideTeamSelection',
+    props: {
+        listEnabled: {
+            type: Boolean, // defines whether or not we are in a nested sidebar, and therefore cannot show the team selection option
+            default: true
+        }
+    },
     emits: ['option-selected'],
     components: {
         NavItem,
@@ -40,7 +46,9 @@ export default {
     },
     methods: {
         toggleList () {
-            this.teamSelectionOpen = !this.teamSelectionOpen
+            if (this.listEnabled) {
+                this.teamSelectionOpen = !this.teamSelectionOpen
+            }
         },
         selectTeam (team) {
             if (team) {

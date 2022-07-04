@@ -1,12 +1,17 @@
 <template>
-    <ff-dialog :open="isOpen" :header="(stack ? 'Update' : 'Create') + ' Stack'" @confirm="isOpen = false">
+    <ff-dialog :open="isOpen" :header="dialogTitle" @confirm="isOpen = false">
         <template v-slot:default>
             <ff-loading v-if="loading" message="Creating Stack..."/>
             <form v-else class="space-y-6">
-                <FormRow v-if="!stack" :options="options" v-model="input.baseStack">
-                    Optionally, use an existing Stack as a starting point:
-                </FormRow>
-                <hr v-if="!stack" />
+                <div v-if="this.input.replaces">
+                    This will create a new stack to replace '{{input.replaces.name}}'.
+                    The existing stack will be marked inactive and will not be
+                    available for use by new projects.
+                </div>
+                <div v-if="this.editDisabled">
+                    This stack is being used by projects. Its properties cannot
+                    be modified, other than to change its active state.
+                </div>
                 <FormRow v-model="input.name" :error="errors.name" :disabled="editDisabled">Name</FormRow>
                 <FormRow v-model="input.active" type="checkbox">Active</FormRow>
                 <template v-for="(prop) in stackProperties" :key="prop.name">
@@ -42,13 +47,12 @@ export default {
         return {
             stack: null,
             stacks: [],
-            options: [],
             loading: false,
             input: {
                 name: '',
                 active: true,
                 properties: {},
-                baseStack: null
+                replaces: null
             },
             errors: {},
             editDisabled: false
@@ -73,27 +77,19 @@ export default {
             } else {
                 this.errors.name = ''
             }
-        },
-        'input.baseStack': function (v) {
-            if (v) {
-                let baseStack = null
-                for (const s in this.stacks) {
-                    const stack = this.stacks[s]
-                    if (stack.id === v) {
-                        baseStack = stack
-                        break
-                    }
-                }
-                this.input.baseStack = null
-                // loop through and assign explicitely to prevent two-way binding
-                for (const prop in baseStack.properties) {
-                    this.input.properties[prop] = baseStack.properties[prop]
-                }
-            }
         }
     },
     computed: {
         ...mapState('account', ['settings']),
+        dialogTitle () {
+            if (this.stack) {
+                return 'Update stack'
+            } else if (this.input.replaces) {
+                return 'Create new stack version'
+            } else {
+                return 'Create stack'
+            }
+        },
         formValid () {
             let propError = false
             // check for validation errors:
@@ -116,33 +112,25 @@ export default {
             })
         }
     },
-    mounted () {
-        if (!this.stack) {
-            // we are creating a stack, not editing one
-            stacksApi.getStacks().then((data) => {
-                this.stacks = data.stacks
-                this.options = data.stacks.map((stack) => {
-                    return {
-                        value: stack.id,
-                        label: stack.name
-                    }
-                })
-            })
-        }
-    },
     methods: {
         confirm () {
             this.loading = true
-            const opts = {
+            let opts = {
                 name: this.input.name,
                 active: this.input.active,
                 properties: {}
+            }
+            if (this.input.replaces) {
+                opts.replace = this.input.replaces.id
             }
             this.stackProperties.forEach(prop => {
                 opts.properties[prop.name] = this.input.properties[prop.name]
             })
 
             if (this.stack) {
+                if (this.editDisabled) {
+                    opts = { active: this.input.active }
+                }
                 // Update
                 stacksApi.updateStack(this.stack.id, opts).then((response) => {
                     this.isOpen = false
@@ -160,7 +148,11 @@ export default {
             } else {
                 stacksApi.create(opts).then((response) => {
                     this.isOpen = false
-                    this.$emit('stackCreated', response)
+                    if (this.input.replaces) {
+                        this.input.replaces.active = false
+                        this.input.replaces.replacedBy = response.id
+                    }
+                    this.$emit('stackCreated', response, this.input.replaces)
                 }).catch(err => {
                     console.log(err.response.data)
                     if (err.response.data) {
@@ -181,18 +173,38 @@ export default {
             close () {
                 isOpen.value = false
             },
-            show (stack) {
+            showCreate () {
+                this.stack = null
+                this.editDisabled = false
+                this.input = { active: true, name: '', properties: {}, replaces: null }
+                this.errors = {}
+                isOpen.value = true
+            },
+            showEdit (stack) {
                 this.stack = stack
-                if (stack) {
-                    this.editDisabled = stack.projectCount > 0
-                    this.input = {
-                        name: stack.name,
-                        active: stack.active,
-                        properties: stack.properties
-                    }
-                } else {
-                    this.editDisabled = false
-                    this.input = { active: true, name: '', properties: {} }
+                this.editDisabled = stack.projectCount > 0
+                this.input = {
+                    name: stack.name,
+                    active: stack.active,
+                    properties: stack.properties,
+                    replaces: null
+                }
+                this.errors = {}
+                isOpen.value = true
+            },
+            showCreateVersion (stack) {
+                this.stack = null
+                this.editDisabled = false
+                this.input = {
+                    active: true,
+                    name: stack.name + '-copy',
+                    properties: { },
+                    replaces: stack
+                }
+                if (stack.properties) {
+                    Object.entries(stack.properties).forEach(([key, value]) => {
+                        this.input.properties[key] = value
+                    })
                 }
                 this.errors = {}
                 isOpen.value = true
