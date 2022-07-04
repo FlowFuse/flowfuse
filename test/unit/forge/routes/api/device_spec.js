@@ -508,6 +508,30 @@ describe('Device API', async function () {
             })
             response.statusCode.should.equal(401)
         })
+        it('device downloads settings', async function () {
+            await setupProjectWithSnapshot(true)
+
+            const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const dbDevice = await app.db.models.Device.byId(device.id)
+            dbDevice.updateSettings({ settings: { env: [{ name: 'FOO', value: 'BAR' }] } })
+            dbDevice.setProject(TestObjects.deviceProject)
+            const deviceSettings = await TestObjects.deviceProject.getSetting('deviceSettings')
+            dbDevice.targetSnapshotId = deviceSettings?.targetSnapshot
+            await dbDevice.save()
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/devices/${device.id}/live/settings`,
+                headers: {
+                    authorization: `Bearer ${device.credentials.token}`,
+                    'content-type': 'application/json'
+                }
+            })
+            const body = JSON.parse(response.body)
+            response.statusCode.should.equal(200)
+            body.should.have.property('hash').which.equal(dbDevice.settingsHash)
+            body.should.have.property('env').which.have.property('FOO')
+        })
     })
 
     describe('Get list of a teams devices', async function () {
