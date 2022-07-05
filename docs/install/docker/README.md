@@ -49,7 +49,7 @@ This container holds the FlowForge App and the Docker Driver
 
 ##### flowforge/node-red
 
-This is a basic Node-RED image with the FlowForge Launcher and the required Node-RED plugins to talk to the FlowForge Platform.
+This is a basic Node-RED image with the FlowForge Launcher and the required Node-RED plugins to talk to the FlowForge Platform. This is the basis for the initial Stack.
 
 This is the container you can customise for your deployment.
 
