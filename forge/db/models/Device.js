@@ -6,6 +6,10 @@ const { DataTypes, Op } = require('sequelize')
 const crypto = require('crypto')
 const Controllers = require('../controllers')
 
+const ALLOWED_SETTINGS = {
+    env: 1
+}
+
 module.exports = {
     name: 'Device',
     schema: {
@@ -76,7 +80,9 @@ module.exports = {
                 async updateSettings (obj) {
                     const updates = []
                     for (const [key, value] of Object.entries(obj)) {
-                        updates.push({ DeviceId: this.id, key, value })
+                        if (ALLOWED_SETTINGS[key]) {
+                            updates.push({ DeviceId: this.id, key, value })
+                        }
                     }
                     await M.DeviceSettings.bulkCreate(updates, { updateOnDuplicate: ['value'] })
                     const settings = await this.getAllSettings()
@@ -84,11 +90,15 @@ module.exports = {
                     await this.save()
                 },
                 async updateSetting (key, value) {
-                    const result = await M.ProjectSettings.upsert({ DeviceId: this.id, key, value })
-                    const settings = await this.getAllSettings()
-                    this.settingsHash = hashSettings(settings)
-                    await this.save()
-                    return result
+                    if (ALLOWED_SETTINGS[key]) {
+                        const result = await M.ProjectSettings.upsert({ DeviceId: this.id, key, value })
+                        const settings = await this.getAllSettings()
+                        this.settingsHash = hashSettings(settings)
+                        await this.save()
+                        return result
+                    } else {
+                        throw new Error(`Invalid device setting ${key}`)
+                    }
                 },
                 async getSetting (key) {
                     const result = await M.DeviceSettings.findOne({ where: { DeviceId: this.id, key } })

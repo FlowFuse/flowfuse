@@ -358,6 +358,37 @@ describe('Device API', async function () {
                 response.statusCode.should.equal(400)
             })
         })
+
+        describe('edit device settings', function () {
+            it('can set env vars for the device', async function () {
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}/settings`,
+                    body: {
+                        env: [{ name: 'a', value: 'foo' }],
+                        invalid: 'do-not-set'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                response.json().should.have.property('status', 'okay')
+
+                const settingsResponse = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/devices/${device.id}/settings`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                const settings = settingsResponse.json()
+                settings.should.have.property('env')
+                settings.env.should.have.length(1)
+                settings.env[0].should.have.property('name', 'a')
+                settings.env[0].should.have.property('value', 'foo')
+
+                settings.should.not.have.property('invalid')
+            })
+        })
     })
 
     describe('Delete device', async function () {
@@ -527,7 +558,6 @@ describe('Device API', async function () {
                     'content-type': 'application/json'
                 }
             })
-            console.log(response.body)
             const body = JSON.parse(response.body)
             response.statusCode.should.equal(200)
             body.should.have.property('hash').which.equal(dbDevice.settingsHash)

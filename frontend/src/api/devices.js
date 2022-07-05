@@ -44,7 +44,7 @@ const getSettings = async (deviceId) => {
 }
 
 const updateSettings = async (deviceId, settings) => {
-    return client.post(`/api/v1/devices/${deviceId}/settings`, settings).then(res => {
+    return client.put(`/api/v1/devices/${deviceId}/settings`, settings).then(res => {
         return res.data
     })
 }
