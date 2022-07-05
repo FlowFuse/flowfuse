@@ -39,24 +39,40 @@
                     <td class="w-1/4 font-medium">Active Snapshot</td>
                     <td class="py-2 flex">
                         <span class="flex space-x-4 pr-2">
-                            <span v-if="updateNeeded" class="flex items-center space-x-2 text-gray-500 italic">
-                                <ExclamationIcon class="text-yellow-600 w-4" v-if="updateNeeded" />
+                            <span class="flex items-center space-x-2 text-gray-500 italic">
+                                <ExclamationIcon class="text-yellow-600 w-4" v-if="!device.activeSnapshot || !targetSnapshotDeployed" />
                                 <CheckCircleIcon class="text-green-700 w-4" v-else />
                             </span>
                         </span>
-                        {{ device.activeSnapshot || "No Snapshot Deployed" }}
+                        <template v-if="device.activeSnapshot">
+                            <div class="flex flex-col">
+                                <span>{{ device.activeSnapshot.name }}</span>
+                                <span class="text-xs text-gray-500">{{ device.activeSnapshot.id }}</span>
+                            </div>
+                        </template>
+                        <template v-else>
+                            No Snapshot Deployed
+                        </template>
                     </td>
                 </tr>
                 <tr class="border-b">
                     <td class="w-1/4 font-medium">Target Snapshot</td>
                     <td class="py-2 flex">
                         <span class="flex space-x-4 pr-2">
-                            <span v-if="updateNeeded" class="flex items-center space-x-2 text-gray-500 italic">
+                            <span class="flex items-center space-x-2 text-gray-500 italic">
                                 <ExclamationIcon class="text-yellow-600 w-4" v-if="!device.targetSnapshot" />
                                 <CheckCircleIcon class="text-green-700 w-4" v-else />
                             </span>
                         </span>
-                        {{ device.targetSnapshot || "No Target Snapshot Set" }}
+                        <template v-if="device.targetSnapshot">
+                            <div class="flex flex-col">
+                                <span>{{ device.targetSnapshot.name }}</span>
+                                <span class="text-xs text-gray-500">{{ device.targetSnapshot.id }}</span>
+                            </div>
+                        </template>
+                        <template v-else>
+                            No Target Snapshot Set
+                        </template>
                     </td>
                 </tr>
             </table>
@@ -88,8 +104,8 @@ export default {
         WifiIcon
     },
     computed: {
-        updateNeeded: function () {
-            return this.device.activeSnaphot !== this.device.targetSnapshot
+        targetSnapshotDeployed: function () {
+            return this.device.activeSnapshot?.id === this.device.targetSnapshot?.id
         },
         lastSeen: function () {
             if (this.device?.lastSeenAt) {
