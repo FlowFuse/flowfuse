@@ -14,8 +14,12 @@
 
         <FormRow v-model="input.stackDescription" type="uneditable">
             Stack
+            <template v-slot:append>
+                <div v-if="project.stack && project.stack.replacedBy">
+                    <ff-button size="small" to="./danger">Update</ff-button>
+                </div>
+            </template>
         </FormRow>
-
         <FormRow v-model="input.templateName" type="uneditable">
             Template
         </FormRow>

@@ -18,7 +18,12 @@
                     </tr>
                     <tr class="border-b">
                         <td class="font-medium">Type</td>
-                        <td><div class="py-2">{{project.projectType?.name || 'none'}} / {{project.stack?.name || 'none'}}</div></td>
+                        <td class="flex items-center">
+                            <div class="py-2 flex-grow">{{project.projectType?.name || 'none'}} / {{project.stack?.name || 'none'}}</div>
+                            <div v-if="project.stack.replacedBy">
+                                <ff-button size="small" to="./settings/danger">Update</ff-button>
+                            </div>
+                        </td>
                     </tr>
                     <template v-if="project.meta.versions">
                         <tr class="border-b">

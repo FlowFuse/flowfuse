@@ -21,6 +21,16 @@
             </div>
         </template>
         <FormHeading>Change Project Stack</FormHeading>
+        <div v-if="project.stack && project.stack.replacedBy" class="flex flex-col lg:flex-row max-w-2xl space-y-4">
+            <div class="flex-grow">
+                <div class="max-w-sm pt-2">There is a new version of the current stack available.
+                    Updating the stack will restart the project.
+                </div>
+            </div>
+            <div class="min-w-fit flex-shrink-0">
+                <ff-button :disabled="!project.projectType" kind="secondary" @click="upgradeStack()">Update Stack</ff-button>
+            </div>
+        </div>
         <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
             <div class="flex-grow">
                 <div class="max-w-sm pt-2">Changing the project stack requires the
@@ -29,7 +39,7 @@
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button :disabled="!project.projectType" kind="secondary" @click="showChangeStackDialog()">Change Project Stack</ff-button>
+                <ff-button :disabled="!project.projectType" kind="secondary" @click="showChangeStackDialog()">Change Stack</ff-button>
                 <ChangeStackDialog @changeStack="changeStack" ref="changeStackDialog"/>
             </div>
         </div>
@@ -138,6 +148,9 @@ export default {
         },
         showExportToProjectDialog () {
             this.$refs.exportToProjectDialog.show(this.project)
+        },
+        upgradeStack () {
+            this.changeStack(this.project.stack.replacedBy)
         },
         exportProject (parts) {
             // call projectApi to generate zipped json
