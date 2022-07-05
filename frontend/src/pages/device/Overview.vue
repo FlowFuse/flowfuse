@@ -15,7 +15,7 @@
                 </tr>
                 <tr class="border-b">
                     <td class="w-1/4 font-medium">Last Seen</td>
-                    <td class="py-2">{{ device.lastSeenAt || "Not Available" }}</td>
+                    <td class="py-2">{{ lastSeen || "Not Available" }}</td>
                 </tr>
             </table>
         </div>
@@ -66,9 +66,14 @@
 
 <script>
 
+// utilities
+import daysSince from '@/utils/daysSince'
+
+// components
 import FormHeading from '@/components/FormHeading'
 import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
 
+// icons
 import { CheckCircleIcon, ExclamationIcon, TemplateIcon, WifiIcon } from '@heroicons/vue/outline'
 
 export default {
@@ -85,6 +90,13 @@ export default {
     computed: {
         updateNeeded: function () {
             return this.device.activeSnaphot !== this.device.targetSnapshot
+        },
+        lastSeen: function () {
+            if (this.device?.lastSeenAt) {
+                return daysSince(this.device.lastSeenAt)
+            } else {
+                return 'Not Available'
+            }
         }
     }
 }
