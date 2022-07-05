@@ -4,6 +4,7 @@ FlowForge makes it easy to create and manage Node-RED instances. To do that, the
 are a few concepts the platform introduces to help organise things.
 
  - [Project](#project)
+   - [Type](#project-type)
    - [Stack](#project-stack)
    - [Template](#project-template)
    - [Snapshot](#project-snapshot)
@@ -24,6 +25,16 @@ and allowed in the [Project Template](#project-template). These can be access
 from the Settings page of the project and there is a description of each one in
 the settings.
 
+#### Project Type
+
+When you create a project, you can pick its type from the list the platform
+Administrator has made available. For example, each type could provide a different
+amount of memory or CPU allocation. In the future, they will also enable different
+feature sets.
+
+If the platform has billing enabled, each type may have a different monthly price
+associated with it.
+
 #### Project Stack
 
 A Project Stack describes properties of the Project runtime. This can include the
@@ -31,7 +42,8 @@ version of Node-RED, memory and CPU allocation. The specific details will depend
 on how and where FlowForge is running.
 
 Project Stacks are created and owned by the platform Administrator. When a User
-comes to create a new project, they chose from the available stacks.
+comes to create a new project, they chose from the available stacks associated
+with the chosen Project Type.
 
 #### Project Template
 
