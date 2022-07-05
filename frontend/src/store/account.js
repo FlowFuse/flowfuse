@@ -23,6 +23,8 @@ const state = () => ({
     teamMembership: null,
     // The user's teams
     teams: [],
+    // stores active notifications that require user attention, key'd by notification type (e.g. invites)
+    notifications: {},
     // An error during login
     loginError: null,
     //
@@ -48,6 +50,17 @@ const getters = {
     },
     teamMembership (state) {
         return state.teamMembership
+    },
+    notifications (state) {
+        const n = state.notifications
+        let sum = 0
+        for (const type of Object.keys(n)) {
+            if (type !== 'total') {
+                sum += n[type]
+            }
+        }
+        n.total = sum
+        return n
     },
     redirectUrlAfterLogin (state) {
         return state.redirectUrlAfterLogin
@@ -98,6 +111,9 @@ const mutations = {
     setTeams (state, teams) {
         state.teams = teams
     },
+    setNotificationsCount (state, payload) {
+        state.notifications[payload.type] = payload.count
+    },
     sessionExpired (state) {
         state.user = null
     },
@@ -127,6 +143,9 @@ const actions = {
             state.commit('setSettings', settings)
 
             state.commit('setOffline', false)
+
+            // check notifications count
+            state.dispatch('countNotifications')
 
             const user = await userApi.getUser()
             state.commit('login', user)
@@ -272,6 +291,13 @@ const actions = {
     async refreshSettings (state) {
         const settings = await settingsApi.getSettings()
         state.commit('setSettings', settings)
+    },
+    async countNotifications (state) {
+        const invitations = await userApi.getTeamInvitations()
+        state.commit('setNotificationsCount', {
+            type: 'invitations',
+            count: invitations.count
+        })
     },
     setOffline (state, value) {
         state.commit('setOffline', value)

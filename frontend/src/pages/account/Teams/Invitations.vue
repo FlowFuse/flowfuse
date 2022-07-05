@@ -16,6 +16,7 @@ import UserInviteActions from '../components/UserInviteActions'
 export default {
     name: 'UserInviteTable',
     props: ['user'],
+    emits: ['invites-updated'],
     data () {
         return {
             invitations: [],
@@ -42,12 +43,12 @@ export default {
         },
         async fetchData () {
             const invitations = await userApi.getTeamInvitations()
+            await this.$store.dispatch('account/countNotifications')
             this.invitations = invitations.invitations.map(invite => {
                 invite.onaccept = (inviteId) => { this.acceptInvite(inviteId) }
                 invite.onreject = (inviteId) => { this.rejectInvite(inviteId) }
                 return invite
             })
-            this.invitationCount = invitations.count
         }
     },
     components: {

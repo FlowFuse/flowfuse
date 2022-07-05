@@ -24,6 +24,7 @@ import MemberInviteRemoveButton from '../../admin/Users/components/MemberInviteR
 export default {
     name: 'MemberInviteTable',
     props: ['team', 'teamMembership'],
+    emits: ['updated'],
     data () {
         return {
             loading: false,
@@ -46,6 +47,7 @@ export default {
         async removeInvite (teamId, inviteId) {
             await teamApi.removeTeamInvitation(teamId, inviteId)
             await this.fetchData()
+            this.$emit('invites-updated')
         },
         async fetchData () {
             this.loading = true
@@ -56,7 +58,9 @@ export default {
                 }
                 const invitations = await teamApi.getTeamInvitations(this.team.id)
                 this.invitations = invitations.invitations.map(invite => {
-                    invite.onremove = (teamId, inviteId) => { this.removeInvite(teamId, inviteId) }
+                    invite.onremove = (teamId, inviteId) => {
+                        this.removeInvite(teamId, inviteId)
+                    }
                     return invite
                 })
 

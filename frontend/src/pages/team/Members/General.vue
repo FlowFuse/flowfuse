@@ -16,7 +16,7 @@
 
     <ChangeTeamRoleDialog @roleUpdated="roleUpdated" ref="changeTeamRoleDialog" />
     <ConfirmTeamUserRemoveDialog @userRemoved="userRemoved" ref="confirmTeamUserRemoveDialog" />
-    <InviteMemberDialog :team="team" v-if="canModifyMembers" ref="inviteMemberDialog" />
+    <InviteMemberDialog @invitationSent="$emit('invites-updated')" :team="team" v-if="canModifyMembers" ref="inviteMemberDialog" />
 </template>
 
 <script>
@@ -37,6 +37,7 @@ import { Roles } from '@core/lib/roles'
 
 export default {
     name: 'TeamUsersGeneral',
+    emits: ['invites-updated'],
     data () {
         return {
             loading: false,

@@ -34,6 +34,7 @@ import alerts from '@/services/alerts'
 
 export default {
     name: 'InviteMemberDialog',
+    emits: ['invitationSent'],
     components: {
         FormRow
     },

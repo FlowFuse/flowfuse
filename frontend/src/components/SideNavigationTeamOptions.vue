@@ -42,7 +42,7 @@ export default {
         NavItem
     },
     computed: {
-        ...mapState('account', ['user', 'team', 'teamMembership', 'features']),
+        ...mapState('account', ['user', 'team', 'teamMembership', 'features', 'notifications']),
         showAdmin: function () {
             return this.teamMembership.role === Roles.Admin || this.teamMembership.role === Roles.Owner
         },
