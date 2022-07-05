@@ -11,13 +11,13 @@
                 <FormRow :options="stacks" v-model="input.defaultStack" id="stack">Default Stack</FormRow>
                 <template v-if="this.features.billing">
                     <FormHeading>Billing</FormHeading>
-                    <FormRow v-model="input.properties.billingProductId">
+                    <FormRow v-model="input.properties.billingProductId" :type="editDisabled?'uneditable':''">
                         Stripe Product Id
                     </FormRow>
-                    <FormRow v-model="input.properties.billingPriceId">
+                    <FormRow v-model="input.properties.billingPriceId" :type="editDisabled?'uneditable':''">
                         Stripe Price Id
                     </FormRow>
-                    <FormRow v-model="input.properties.billingDescription">
+                    <FormRow v-model="input.properties.billingDescription" :type="editDisabled?'uneditable':''">
                         Pricing description
                         <template #description>
                             How should the pricing be displayed to the user? eg '$10/month'
@@ -71,27 +71,6 @@ export default {
             editDisabled: false
         }
     },
-    watch: {
-        // 'input.properties': {
-        //     deep: true,
-        //     handler (v) {
-        //         this.stackProperties.forEach(prop => {
-        //             if (v[prop.name] && !prop.validator.test(v[prop.name])) {
-        //                 this.errors[prop.name] = prop.invalidMessage
-        //             } else {
-        //                 this.errors[prop.name] = ''
-        //             }
-        //         })
-        //     }
-        // },
-        // 'input.name': function (v) {
-        //     if (v && !/^[a-z0-9-_/@.]+$/i.test(v)) {
-        //         this.errors.name = 'Must only contain a-z 0-9 - _ / @ .'
-        //     } else {
-        //         this.errors.name = ''
-        //     }
-        // }
-    },
     computed: {
         ...mapState('account', ['features']),
         formValid () {
@@ -122,6 +101,8 @@ export default {
             }
 
             if (this.projectType) {
+                // For edits, we cannot touch the properties
+                delete opts.properties
                 // Update
                 projectTypesApi.updateProjectType(this.projectType.id, opts).then((response) => {
                     this.isOpen = false
