@@ -73,10 +73,12 @@ export default {
         return {
             nextCursor: null,
             logEntries: [],
-            loading: false
+            loading: false,
+            initialLoad: true
         }
     },
     mounted () {
+        this.initialLoad = true
         this.fetchData()
     },
     methods: {
@@ -108,12 +110,15 @@ export default {
             })
         },
         fetchData: async function (newVal) {
-            this.loading = true
+            if (this.initialLoad) {
+                this.loading = true
+            }
             if (this.entity && this.entity.id) {
                 const result = await this.loadItems(this.entity.id)
                 this.logEntries = this.formatResults(result.log)
                 this.nextCursor = result.meta.next_cursor
             }
+            this.initialLoad = false
             this.loading = false
         }
     },
