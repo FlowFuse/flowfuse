@@ -58,6 +58,7 @@ const modelTypes = [
     'AccessToken',
     'AuthClient',
     'Device',
+    'DeviceSettings',
     'StorageFlow',
     'StorageCredentials',
     'StorageSettings',

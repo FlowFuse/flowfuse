@@ -32,6 +32,7 @@ export default {
         FormRow
     },
     props: ['team'],
+    emits: ['deviceUpdated', 'deviceCreated'],
     data () {
         return {
             device: null,

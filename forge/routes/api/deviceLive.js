@@ -34,6 +34,15 @@ module.exports = async function (app) {
         if (request.body.snapshot !== (request.device.targetSnapshot?.hashid || null)) {
             reply.code(409).send({
                 error: 'incorrect-snapshot',
+                snapshot: request.device.targetSnapshot?.hashid || null,
+                settings: request.device.settingsHash || null
+            })
+            return
+        }
+        if (request.body.settings && request.body.settings !== (request.device.settingsHash || null)) {
+            reply.code(409).send({
+                error: 'incorrect-settings',
+                settings: request.device.settingsHash || null,
                 snapshot: request.device.targetSnapshot?.hashid || null
             })
             return
@@ -70,5 +79,23 @@ module.exports = async function (app) {
                 reply.send({})
             }
         }
+    })
+
+    app.get('/settings', async (request, reply) => {
+        const response = {
+            hash: request.device.settingsHash,
+            env: {}
+        }
+        const settings = await request.device.getAllSettings()
+        Object.keys(settings).forEach(key => {
+            if (key === 'env') {
+                settings.env.forEach(envVar => {
+                    response.env[envVar.name] = envVar.value
+                })
+            } else {
+                response[key] = settings[key]
+            }
+        })
+        reply.send(response)
     })
 }

@@ -253,4 +253,18 @@ module.exports = async function (app) {
         )
         reply.send(credentials)
     })
+
+    app.put('/:deviceId/settings', {
+        preHandler: app.needsPermission('device:edit')
+    }, async (request, reply) => {
+        await request.device.updateSettings(request.body)
+        reply.send({ status: 'okay' })
+    })
+
+    app.get('/:deviceId/settings', {
+        preHandler: app.needsPermission('device:edit')
+    }, async (request, reply) => {
+        const settings = await request.device.getAllSettings()
+        reply.send(settings)
+    })
 }

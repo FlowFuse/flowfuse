@@ -37,11 +37,25 @@ const generateCredentials = async (deviceId) => {
     })
 }
 
+const getSettings = async (deviceId) => {
+    return client.get(`/api/v1/devices/${deviceId}/settings`).then(res => {
+        return res.data
+    })
+}
+
+const updateSettings = async (deviceId, settings) => {
+    return client.put(`/api/v1/devices/${deviceId}/settings`, settings).then(res => {
+        return res.data
+    })
+}
+
 export default {
     create,
     getDevice,
     deleteDevice,
     getDevices,
     updateDevice,
-    generateCredentials
+    generateCredentials,
+    getSettings,
+    updateSettings
 }

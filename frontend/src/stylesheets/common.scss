@@ -46,3 +46,8 @@
 label {
     cursor: inherit;
 }
+
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: $ff-grey-400 !important;
+    opacity: 1; /* Firefox */
+}
