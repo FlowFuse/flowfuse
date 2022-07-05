@@ -108,29 +108,39 @@ module.exports = async function (app) {
             reply.code(400).send({ error: 'Cannot edit in-use ProjectType' })
             return
         }
-        if (request.body.name !== undefined) {
-            projectType.name = request.body.name
-        }
-        if (request.body.description !== undefined) {
-            projectType.description = request.body.description
-        }
-        if (request.body.active !== undefined) {
-            projectType.active = request.body.active
-        }
-        if (request.body.properties !== undefined) {
-            projectType.properties = request.body.properties
-        }
-        if (request.body.order !== undefined) {
-            projectType.order = request.body.order
-        }
-        if (request.body.defaultStack) {
-            const defaultStack = app.db.models.ProjectStack.decodeHashid(request.body.defaultStack)
-            if (defaultStack) {
-                projectType.defaultStackId = defaultStack
+        try {
+            if (request.body.name !== undefined) {
+                projectType.name = request.body.name
             }
+            if (request.body.description !== undefined) {
+                projectType.description = request.body.description
+            }
+            if (request.body.active !== undefined) {
+                projectType.active = request.body.active
+            }
+            if (request.body.properties !== undefined) {
+                projectType.properties = request.body.properties
+            }
+            if (request.body.order !== undefined) {
+                projectType.order = request.body.order
+            }
+            if (request.body.defaultStack) {
+                const defaultStack = app.db.models.ProjectStack.decodeHashid(request.body.defaultStack)
+                if (defaultStack) {
+                    projectType.defaultStackId = defaultStack
+                }
+            }
+            await projectType.save()
+            reply.send(app.db.views.ProjectType.projectType(projectType, request.session.User.admin))
+        } catch (err) {
+            let responseMessage
+            if (err.errors) {
+                responseMessage = err.errors.map(err => err.message).join(',')
+            } else {
+                responseMessage = err.toString()
+            }
+            reply.code(400).send({ error: responseMessage })
         }
-        await projectType.save()
-        reply.send(app.db.views.ProjectType.projectType(projectType, request.session.User.admin))
     })
 
     /**

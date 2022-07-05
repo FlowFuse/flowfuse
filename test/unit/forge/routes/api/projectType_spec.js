@@ -89,6 +89,7 @@ describe('Project Type API', function () {
             response.statusCode.should.equal(expectedStatus)
             const result = response.json()
             result.should.have.property('error')
+            return result
         }
         async function allowUpdate (id, payload) {
             const response = await updateProjectType(id, payload)
@@ -156,6 +157,29 @@ describe('Project Type API', function () {
             await denyUpdate(TestObjects.projectType1.hashid, {
                 name: 'not-allowed'
             }, TestObjects.tokens.bob, 403)
+        })
+
+        it('Prevents duplicate project-type name', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/project-types',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    name: 'project-type-2',
+                    description: 'another-project-type',
+                    active: true,
+                    order: 2,
+                    properties: {
+                        foo: 'bar'
+                    }
+                }
+            })
+            const unusedProjectType = response.json()
+            const errorResponse = await denyUpdate(unusedProjectType.id, {
+                name: 'projectType1'
+            })
+
+            errorResponse.should.have.property('error', 'name must be unique')
         })
     })
 
