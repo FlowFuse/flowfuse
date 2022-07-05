@@ -9,7 +9,7 @@ Within FlowForge, each Node-RED instance is called a _Project_. The Project is o
 by a _Team_ that provides all the necessary access control.
 
 The Project is created from a _Template_ that provides its default settings and runs
-on a _Stack_ that determines the Node-RED version, memory and CPU usage.
+on a _Stack_ that determines the Node-RED version, memory, and CPU usage.
 
 For more details on these and other core concepts, you can learn about them [here](concepts.md).
 
@@ -19,6 +19,11 @@ For more details on these and other core concepts, you can learn about them [her
  - [Environment Variables](envvar.md) - How to manage Environment Variables in your projects
  - [Change Project Stack](changestack.md) - How to change a projects stack, for example to upgrade Node-RED
  - [Logs](logs.md) - The Logs available in the FlowForge application.
+
+## Working with Teams
+
+ - [Team management](./team/) - How to add and remove users from a team
+ - [Role based access control](./team/#role-based-access-control) - Which privileges are granted to different roles
 
 ## Working with Devices
 

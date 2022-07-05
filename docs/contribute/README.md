@@ -41,17 +41,44 @@ The `flowforge/flowforge` repository is the core of the platform and where you'l
 want to begin.
 
 ### FlowForge Code Structure
-
 ```
-/
-├── config   - developer tools configuration files  
-├── docs     - documentation
-├── etc      - runtime configuration files
-├── forge    - the core platform application
-├── frontend - the frontend source code
-└── test     - test material
+.
+├── bin
+├── config               - build config files
+├── docs
+├── etc                  - FlowForge platform configuration files
+├── forge
+│   ├── config
+│   ├── containers
+│   │   └── node_modules
+│   │        └── @flowforge
+│   ├── db
+│   │   ├── controllers
+│   │   ├── models
+│   │   └── views
+│   ├── licensing
+│   ├── postoffice
+│   ├── routes
+│   │   ├── api
+│   │   ├── auth
+│   │   ├── logging
+│   │   ├── setup
+│   │   ├── storage
+│   │   └── ui
+│   └── settings
+├── frontend             - the forge frontend
+│   ├── dist             - build output - created by `npm run build`
+│   ├── public           - static assets
+│   └── src              - vue src
+│       ├── api
+│       ├── components
+│       ├── pages
+│       │   └── account
+│       ├── routes
+│       └── store
+├── test                 - tests for FlowForge
+└── var                  - where the database and localfs project directories are created
 ```
-
 ### Instructions
 1. [Clone the repository](#clone-the-flowforgeflowforge-repository)
 1. [Install dependencies](#install-flowforgeflowforge-dependencies)
@@ -202,6 +229,29 @@ To run the tests for the project, you can use the following npm tasks:
  - `npm run lint` - runs the linting tests
  - `npm run test:unit` - runs the unit tests
  - `npm run test:system` - runs the system tests
+
+##### Testing against PostgreSQL
+
+By default, the tests use an in-memory sqlite database to test against. This is
+the most self-contained way of testing the platform. But it is also necessary to
+test against PostgreSQL. To enable the use of PostgreSQL in the tests:
+
+1. Ensure you have an instance of PostgreSQL running locally. For example, via
+   docker:
+
+        docker run -it -p 5432:5432 --name ff-postgres -e POSTGRES_PASSWORD=secret postgres
+
+2. Enable PostgrSQL mode by setting the following environment variable:
+
+        export FF_TEST_DB_POSTGRES=true
+
+   The database connection can be set using the following env vars (default values shown)
+
+        export FF_TEST_DB_POSTGRES_HOST=localhost
+        export FF_TEST_DB_POSTGRES_PORT=5432
+        export FF_TEST_DB_POSTGRES_USER=postgres
+        export FF_TEST_DB_POSTGRES_PASSWORD=secret
+        export FF_TEST_DB_POSTGRES_DATABASE=flowforge_test
 
 #### Reporting code coverage
 

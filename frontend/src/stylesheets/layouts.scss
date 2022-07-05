@@ -1,6 +1,9 @@
 @import '~@flowforge/forge-ui-components/dist/scss/forge-colors.scss';
 @import '~@flowforge/forge-ui-components/dist/scss/forge-variables.scss';
 
+$sidenav_width: 275px;
+$transition_time: .3s;
+
 /*
     Layout - Box
         used in login/setup/signup screens
@@ -172,6 +175,64 @@ $nav_height: 60px;
     position: absolute;
 }
 
+.ff-team-selection {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    background-color: $ff-grey-800;
+    min-width: $sidenav_width;
+    svg {
+        &:hover {
+            fill: $ff-teal-300;
+            cursor: pointer;
+        }
+        &.active {
+            fill: $ff-teal-300;
+        }
+    }
+    .ff-dropdown-options {
+        position: absolute;
+        min-width: $sidenav_width;
+        display: none;
+        z-index: 10;
+        border-bottom: 0;
+        &.active {
+            display: block;
+        }
+    }
+    .ff-dropdown-option {
+        padding: 0;
+    }
+}
+.ff-team-selection-name {
+    margin-left: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    label {
+        font-size: 0.7rem;
+        line-height: 0.7rem;
+        color: $ff-grey-300;
+        margin-left: 0;
+    }
+    h5 {
+        color: white;
+        white-space: nowrap;
+    }
+}
+.ff-team-selection > div {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    &:hover {
+        label, h5 {
+            color: $ff-teal-200;
+        }
+    }
+}
+
 .ff-header {
     z-index: 10;
     background-color: $ff-grey-800;
@@ -182,7 +243,7 @@ $nav_height: 60px;
     justify-content: space-between;
     position: fixed;
     width: 100%;
-    img {
+    img.ff-logo {
         padding: 20px;
         height: 100%;
         &:hover {
@@ -229,9 +290,9 @@ $nav_height: 60px;
     }
     .ff-dropdown {
         display: none;
-        height: 100%;
+        height: calc(#{$nav_height} - 2px);
         color: white;
-        min-width: 250px;
+        min-width: $sidenav_width;
         position: relative;
         top: 0;
         margin-top: 0;
@@ -249,33 +310,202 @@ $nav_height: 60px;
                 background-color: $ff-grey-700;
             }
         }
+        &.ff-dropdown--open .ff-dropdown-selected {
+            background-color: $ff-grey-700;
+        }
         .ff-dropdown-options {
             width: 100%;
             margin-top: 2px;
             border-color: $ff-grey-500;
             border-right: 0;
         }
+    }
+    .ff-team-selection {
+        ul {
+            top: 100%;
+            left: 0;
+        }
         .ff-dropdown-option {
+            padding: 0;
+            .ff-nav-item {
+                background-color: $ff-grey-700;
+            }
             &:last-child {
-                border-top: 2px solid $ff-red-600;
+                border-top: inherit;
+                .ff-nav-item {
+                    background-color: $ff-grey-800;
+                }
+            }
+        }
+    }
+    .ff-user-options {
+        width: auto;
+        min-width: $nav_height;
+        .ff-dropdown-options {
+            width: $sidenav_width;
+        }
+    }
+}
+
+.ff-user-options {
+    .ff-dropdown-option:last-child {
+        border-top: 2px solid $ff-red-600;
+    }
+}
+
+
+.ff-navigation,
+.ff-team-selection ul {
+    .ff-nav-item {
+        &:hover {
+            cursor: pointer;
+            svg {
+                fill: $ff-teal-100;
+            }
+            label {
+                color: $ff-teal-100;
             }
         }
     }
 }
 
+.ff-navigation .ff-nav-item {
+    border-bottom: 1px solid $ff-grey-600;
+    padding: 16px 16px 16px 24px;
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    svg {
+        fill: $ff-white;
+        width: 20px;
+    }
+    label {
+        margin-left: 12px;
+        color: $ff-white;
+        white-space: nowrap;
+        pointer-events: none;
+    }
+}
+
+.ff-team-selection ul .ff-nav-item {
+    border-bottom: 1px solid $ff-grey-600;
+    padding: 16px 16px 16px 22px;
+    display: grid;
+    align-items: center;
+    grid-template-columns: 24px 1fr;
+    height: $nav_height;
+    svg {
+        fill: $ff-white;
+        width: 20px;
+    }
+    label {
+        margin-left: 12px;
+        color: $ff-white;
+        white-space: nowrap;
+        pointer-events: none;
+    }
+}
+
 .ff-navigation {
     background-color: $ff-grey-700;
-    border-right: 2px solid $ff-grey-800;
     position: fixed;
-    left: -250px;
+    left: -$sidenav_width;
     height: 100%;
     z-index: 10;
     transition: 0.3s left, 0.3s right;
     -webkit-transition: 0.3s left, 0.3s right;
-    width: 250px;
+    width: $sidenav_width;
+    // left side menu for team/project/device options
+    .ff-side-navigation {
+        display: flex;
+        height: 100%;
+        .ff-team-selection {
+            height: 54px;
+        }
+        .ff-side-navigation--primary {
+            width: 100%;
+            transition: $transition_time width;
+            -webkit-transition: $transition_time width;
+            .router-link-active {
+                li {
+                    background-color: $ff-grey-600;
+                    label {
+                        color: $ff-teal-300;
+                    }
+                    svg {
+                        fill: $ff-teal-300;
+                    }
+                }
+            }
+        }
+
+        .ff-team-selection, .ff-nav-item {
+            transition: $transition_time padding, $transition_time background-color;
+            -webkit-transition: $transition_time padding, $transition_time background-color;
+        }
+        // nested menu options
+        .ff-side-navigation--nested {
+            width: 0;
+            background-color: $ff-grey-600;
+            overflow: hidden;
+            .ff-nested-title {
+                color: $ff-teal-300;
+                font-weight: bold;
+                font-size: 1.1rem;
+                padding: 12px 16px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .ff-nav-item {
+                padding: 12px 16px;
+                background-color: $ff-grey-600;
+            }
+            .router-link-active {
+                li {
+                    background-color: $ff-grey-600;
+                }
+                label {
+                    color: $ff-teal-300;
+                }
+                svg {
+                    fill: $ff-teal-300;
+                }
+            }
+        }
+        // showing a nested menu
+        &.minimised {
+            .ff-team-selection {
+                padding: 16px 14px;
+                svg, .ff-team-selection-name {
+                    display: none;
+                }
+            }
+            .ff-navigation-divider {
+                label {
+                    display: none;
+                }
+            }
+            .ff-side-navigation--primary {
+                width: 54px;
+                .ff-nav-item {
+                    padding: 16px;
+                    label {
+                        opacity: 0;
+                        display: none;
+                    }
+                }
+            }
+            // nested menu options
+            .ff-side-navigation--nested {
+                width: calc(100% - 54px);
+                flex-grow: 1;
+            }
+        }
+    }
+    // navigation-right = the admin/user settings
     &.ff-navigation-right {
         left: initial;
-        right: -250px;
+        right: -$sidenav_width;
         .ff-nav-item:last-child {
             border-top: 2px solid $ff-red-600;
         }
@@ -291,6 +521,7 @@ $nav_height: 60px;
         background-color: $ff-grey-900;
         color: white;
         padding: 6px 12px;
+        height: 32px;
         display: block;
         font-size: 0.85rem;
         border-bottom: 1px solid $ff-grey-600;
@@ -301,35 +532,11 @@ $nav_height: 60px;
     .ff-dropdown-options .ff-dropdown-option {
         padding: 0;
     }
-    .ff-nav-item, .ff-team-selection {
-        border-bottom: 1px solid $ff-grey-600;
-        padding: 16px 16px 16px 24px;
-        display: flex;
-        align-items: center;
-        svg {
-            fill: $ff-white;
-            width: 20px;
-        }
-        label {
-            margin-left: 12px;
-            color: $ff-white;
-            pointer-events: none;
-        }
-    }
     .ff-nav-item {
         display: flex;
         justify-content: space-between;
         background-color: $ff-grey-700;
         border-bottom: 1px solid $ff-grey-600;
-        &:hover {
-            cursor: pointer;
-            svg {
-                fill: $ff-teal-300;
-            }
-            label {
-                color: $ff-teal-300;
-            }
-        }
     }
     .ff-notification-pill {
         padding: 2px 12px;
@@ -340,71 +547,6 @@ $nav_height: 60px;
         // width: 100%;
         li {
             border-top: 1px solid $ff-grey-600;
-        }
-    }
-    .ff-team-selection {
-        position: relative;
-        display: flex;
-        justify-content: space-between;
-        background-color: $ff-grey-800;
-        padding: 12px 22px;
-        svg {
-            &:hover {
-                fill: $ff-teal-300;
-                cursor: pointer;
-            }
-            &.active {
-                fill: $ff-teal-300;
-            }
-        }
-        ul {
-            position: absolute;
-            left: 100%;
-            top: 0;
-            min-width: 250px;
-            margin-left: 2px;
-            display: none;
-            z-index: 10;
-            border-bottom: 0;
-            li:first-child {
-                height: $nav_height;
-                pointer-events: none;
-                background-color: $ff-grey-700;
-            }
-            li {
-                background-color: $ff-grey-500;
-            }
-            &.active {
-                display: block;
-            }
-        }
-    }
-    .ff-team-selection-name {
-        margin-left: 10px;
-        label {
-            font-size: 0.7rem;
-            line-height: 0.7rem;
-            color: $ff-grey-300;
-            margin-left: 0;
-        }
-        h5 {
-            color: white;
-        }
-    }
-    .ff-team-selection > div {
-        flex-grow: 1;
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-        &:hover {
-            label, h5 {
-                color: $ff-teal-200;
-            }
-        }
-    }
-    .router-link-active {
-        li {
-            background-color: $ff-grey-600;
         }
     }
 }
@@ -422,7 +564,7 @@ $nav_height: 60px;
     }
     /* Platform */
     .ff-layout--platform--wrapper {
-        grid-template-columns: 250px 1fr;
+        grid-template-columns: $sidenav_width 1fr;
         main {
             margin: 24px;
             padding: 32px;
@@ -439,7 +581,7 @@ $nav_height: 60px;
         .ff-header--mobile-usertoggle {
             display: none;
         }
-        img {
+        img.ff-logo {
             padding: 16px;
         }
         .ff-dropdown {

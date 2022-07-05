@@ -31,12 +31,13 @@ import { mapState } from 'vuex'
 import NavItem from '@/components/NavItem'
 import SideNavigation from '@/components/SideNavigation'
 
-import { ChevronLeftIcon, CollectionIcon, CogIcon, UsersIcon, UserGroupIcon, DesktopComputerIcon, TemplateIcon } from '@heroicons/vue/solid'
+import { ChevronLeftIcon, CollectionIcon, CogIcon, UsersIcon, UserGroupIcon, DesktopComputerIcon, TemplateIcon, ColorSwatchIcon } from '@heroicons/vue/solid'
 
 const navigation = [
     { name: 'Overview', path: '/admin/overview', icon: CollectionIcon },
     { name: 'Users', path: '/admin/users', icon: UsersIcon },
     { name: 'Teams', path: '/admin/teams', icon: UserGroupIcon },
+    { name: 'Project Types', path: '/admin/project-types', icon: ColorSwatchIcon },
     { name: 'Stacks', path: '/admin/stacks', icon: DesktopComputerIcon },
     { name: 'Templates', path: '/admin/templates', icon: TemplateIcon },
     { name: 'Settings', path: '/admin/settings', icon: CogIcon }

@@ -36,6 +36,18 @@
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
+                <FormRow v-model="editable.settings.header_title" :error="editable.errors.header_title" :type="(editTemplate||editable.policy.header_title)?'text':'uneditable'">
+                    Editor Title
+                    <template #description>
+                        The title to show in the header
+                    </template>
+                    <template #append><ChangeIndicator :value="editable.changed.settings.header_title"></ChangeIndicator></template>
+                </FormRow>
+            </div>
+            <LockSetting :editTemplate="editTemplate" v-model="editable.policy.header_title" :changed="editable.changed.policy.header_title"></LockSetting>
+        </div>
+        <div class="flex flex-col sm:flex-row">
+            <div class="w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.timeZone" :type="(editTemplate||editable.policy.timeZone)?'select':'uneditable'" :options="timezones">
                     Time Zone
                     <template #append><ChangeIndicator :value="editable.changed.settings.timeZone"></ChangeIndicator></template>
@@ -77,7 +89,12 @@ export default {
     },
     data () {
         return {
-            timezones: timezonesData.timezones
+            timezones: timezonesData.timezones,
+            themes: [
+                { label: 'Node-RED', value: '' },
+                { label: 'FlowForge Light', value: 'forge-light' },
+                { label: 'FlowForge Dark', value: 'forge-dark' }
+            ] // FUTURE: Get from theme plugins
         }
     },
     components: {

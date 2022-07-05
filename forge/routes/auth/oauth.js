@@ -128,7 +128,7 @@ module.exports = async function (app) {
     app.get('/account/complete/:code', async function (request, reply) {
         const requestId = request.params.code
         const requestObject = requestCache.get(requestId)
-        requestCache.del(requestId)
+        requestCache.delete(requestId)
 
         if (!requestObject) {
             return badRequest(reply, 'invalid_request', 'Invalid request')

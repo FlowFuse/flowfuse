@@ -9,6 +9,7 @@ import AdminUsers from '@/pages/admin/Users/index.vue'
 import AdminUsersGeneral from '@/pages/admin/Users/General.vue'
 import AdminUsersInvitations from '@/pages/admin/Users/Invitations.vue'
 import AdminTeams from '@/pages/admin/Teams.vue'
+import AdminProjectTypes from '@/pages/admin/ProjectTypes/index.vue'
 import AdminStacks from '@/pages/admin/Stacks/index.vue'
 import AdminTemplates from '@/pages/admin/Templates/index.vue'
 import AdminTemplate from '@/pages/admin/Template/index.vue'
@@ -76,6 +77,13 @@ export default [
                 component: AdminTeams,
                 meta: {
                     title: 'Admin - Teams'
+                }
+            },
+            {
+                path: 'project-types',
+                component: AdminProjectTypes,
+                meta: {
+                    title: 'Admin - Project Types'
                 }
             },
             {

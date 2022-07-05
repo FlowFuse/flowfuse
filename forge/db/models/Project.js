@@ -61,6 +61,7 @@ module.exports = {
             }
         })
         this.hasMany(M.ProjectSettings)
+        this.belongsTo(M.ProjectType)
         this.belongsTo(M.ProjectStack)
         this.belongsTo(M.ProjectTemplate)
         this.hasMany(M.ProjectSnapshot)
@@ -132,15 +133,17 @@ module.exports = {
                     })
                     return result
                 },
-                async updateSettings (obj) {
+                async updateSettings (obj, options) {
                     const updates = []
                     for (const [key, value] of Object.entries(obj)) {
                         updates.push({ ProjectId: this.id, key, value })
                     }
-                    await M.ProjectSettings.bulkCreate(updates, { updateOnDuplicate: ['value'] })
+                    options = options || {}
+                    options.updateOnDuplicate = ['value']
+                    await M.ProjectSettings.bulkCreate(updates, options)
                 },
-                async updateSetting (key, value) {
-                    return await M.ProjectSettings.upsert({ ProjectId: this.id, key, value })
+                async updateSetting (key, value, options) {
+                    return await M.ProjectSettings.upsert({ ProjectId: this.id, key, value }, options)
                 },
                 async getSetting (key) {
                     const result = await M.ProjectSettings.findOne({ where: { ProjectId: this.id, key } })
@@ -180,6 +183,10 @@ module.exports = {
                                     }
                                 },
                                 {
+                                    model: M.ProjectType,
+                                    attributes: ['hashid', 'id', 'name']
+                                },
+                                {
                                     model: M.ProjectStack
                                 },
                                 {
@@ -198,6 +205,10 @@ module.exports = {
                             {
                                 model: M.Team,
                                 attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                            },
+                            {
+                                model: M.ProjectType,
+                                attributes: ['hashid', 'id', 'name']
                             },
                             {
                                 model: M.ProjectStack
@@ -222,6 +233,10 @@ module.exports = {
                                 model: M.Team,
                                 where: { id: teamId },
                                 attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                            },
+                            {
+                                model: M.ProjectType,
+                                attributes: ['hashid', 'id', 'name']
                             },
                             {
                                 model: M.ProjectStack

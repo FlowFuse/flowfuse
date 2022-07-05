@@ -8,6 +8,10 @@
             Name
         </FormRow>
 
+        <FormRow v-model="input.projectTypeName" type="uneditable">
+            Project Type
+        </FormRow>
+
         <FormRow v-model="input.stackDescription" type="uneditable">
             Stack
         </FormRow>
@@ -35,6 +39,7 @@ export default {
             input: {
                 projectId: '',
                 projectName: '',
+                projectTypeName: '',
                 stackDescription: '',
                 templateName: ''
             },
@@ -83,6 +88,11 @@ export default {
                 this.input.stackDescription = this.project.stack.name
             } else {
                 this.input.stackDescription = 'none'
+            }
+            if (this.project.projectType) {
+                this.input.projectTypeName = this.project.projectType.name
+            } else {
+                this.input.projectTypeName = 'none'
             }
 
             if (this.project.template) {

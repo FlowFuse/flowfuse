@@ -2,7 +2,24 @@
     <ff-loading v-if="loading.deleting" message="Deleting Project..." />
     <ff-loading v-if="loading.duplicating" message="Copying Project..." />
     <ff-loading v-if="loading.changingStack" message="Changing Stack..." />
+    <ff-loading v-if="loading.settingType" message="Setting Type..." />
     <form v-if="!isLoading" class="space-y-6">
+        <template v-if="!project.projectType">
+            <FormHeading>Set Project Type</FormHeading>
+            <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
+                <div class="flex-grow">
+                    <div class="max-w-sm pt-2 space-y-1">
+                        <p>You need to pick a type for this
+                            project before you can make any changes to its stack.</p>
+                        <p>This is a one-time action - you cannot change the project type once it has been set.</p>
+                    </div>
+                </div>
+                <div class="min-w-fit flex-shrink-0">
+                    <ff-button kind="secondary" @click="showChangeTypeDialog()">Set Project Type</ff-button>
+                    <ChangeTypeDialog @changeType="changeType" ref="changeTypeDialog"/>
+                </div>
+            </div>
+        </template>
         <FormHeading>Change Project Stack</FormHeading>
         <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
             <div class="flex-grow">
@@ -12,7 +29,7 @@
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="secondary" @click="showChangeStackDialog()">Change Project Stack</ff-button>
+                <ff-button :disabled="!project.projectType" kind="secondary" @click="showChangeStackDialog()">Change Project Stack</ff-button>
                 <ChangeStackDialog @changeStack="changeStack" ref="changeStackDialog"/>
             </div>
         </div>
@@ -74,6 +91,7 @@ import alerts from '@/services/alerts'
 import FormHeading from '@/components/FormHeading'
 import ConfirmProjectDeleteDialog from './dialogs/ConfirmProjectDeleteDialog'
 import ChangeStackDialog from './dialogs/ChangeStackDialog'
+import ChangeTypeDialog from './dialogs/ChangeTypeDialog'
 // import ExportProjectDialog from './dialogs/ExportProjectDialog'
 import ExportToProjectDialog from './dialogs/ExportToProjectDialog'
 import { mapState } from 'vuex'
@@ -85,12 +103,13 @@ export default {
     computed: {
         ...mapState('account', ['team']),
         isLoading: function () {
-            return this.loading.deleting || this.loading.changingStack || this.loading.duplicating
+            return this.loading.deleting || this.loading.changingStack || this.loading.duplicating || this.loading.settingType
         }
     },
     data () {
         return {
             loading: {
+                settingType: false,
                 deleting: false,
                 changingStack: false,
                 duplicating: false
@@ -100,6 +119,9 @@ export default {
     methods: {
         showConfirmDeleteDialog () {
             this.$refs.confirmProjectDeleteDialog.show(this.project)
+        },
+        showChangeTypeDialog () {
+            this.$refs.changeTypeDialog.show(this.project)
         },
         showChangeStackDialog () {
             this.$refs.changeStackDialog.show(this.project)
@@ -151,6 +173,19 @@ export default {
                 this.loading.deleting = false
             })
         },
+        changeType (selectedType) {
+            if (!this.project.projectType && selectedType) {
+                this.loading.settingType = true
+                projectApi.updateProject(this.project.id, {
+                    projectType: selectedType
+                }).catch(err => {
+                    console.warn(err)
+                }).finally(() => {
+                    this.$emit('projectUpdated')
+                    this.loading.settingType = false
+                })
+            }
+        },
         changeStack (selectedStack) {
             if (this.project.stack?.id !== selectedStack) {
                 this.loading.changingStack = true
@@ -171,6 +206,7 @@ export default {
         FormHeading,
         ConfirmProjectDeleteDialog,
         ChangeStackDialog,
+        ChangeTypeDialog,
         // ExportProjectDialog,
         ExportToProjectDialog
     }
