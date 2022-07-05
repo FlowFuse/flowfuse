@@ -1,6 +1,6 @@
 <template>
     <li class="ff-nav-item">
-        <div class="flex">
+        <div class="flex items-center">
             <component v-if="icon" :is="icon" />
             <img v-if="avatar" :src="avatar" class="ff-avatar"/>
             <label>{{ label }}</label>
