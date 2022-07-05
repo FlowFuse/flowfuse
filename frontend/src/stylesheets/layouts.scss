@@ -283,7 +283,18 @@ $nav_height: 60px;
             display: flex;
             align-items: center;
             margin-left: -2px;
-        }
+            position: relative;
+            .ff-notification-pill {
+                font-size: 0.65rem;
+                padding: 0px 6px;
+                background-color: $ff-red-600;
+                border: 1px solid $ff-grey-800;
+                position: absolute;
+                bottom: -9px;
+                line-height: 0.85rem;
+                right: 0;
+            }
+        }        
     }
     .ff-navigation-right {
         height: 100%;

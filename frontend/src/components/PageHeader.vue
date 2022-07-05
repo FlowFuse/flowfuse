@@ -7,7 +7,7 @@
         <!-- FlowForge Logo -->
         <img class="ff-logo" src="@/images/ff-logo--wordmark-caps--dark.png" @click="home()"/>
         <!-- Mobile: Toggle(User Options) -->
-        <div class="flex">
+        <div class="flex" v-if="team">
             <i class="ff-header--mobile-usertoggle" :class="{'active': mobileTeamSelectionOpen}">
                 <img :src="team.avatar" class="ff-avatar" @click="mobileTeamSelectionOpen = !mobileTeamSelectionOpen" />
             </i>
@@ -32,7 +32,7 @@
         <div class="hidden sm:flex">
             <ff-team-selection />
             <!-- Desktop: User Options -->
-            <ff-dropdown class="ff-navigation ff-user-options" options-align="right">
+            <ff-dropdown v-if="user" class="ff-navigation ff-user-options" options-align="right">
                 <template v-slot:placeholder>
                     <div class="ff-user">
                         <img :src="user.avatar" class="ff-avatar"/>
@@ -42,7 +42,7 @@
                 </template>
                 <template v-slot:default>
                     <ff-dropdown-option v-for="option in options" :key="option.label" @click="option.onclick(option.onclickparams)">
-                        <nav-item :label="option.label" :icon="option.icon"></nav-item>
+                        <nav-item :label="option.label" :icon="option.icon" :notifications="option.notifications"></nav-item>
                     </ff-dropdown-option>
                 </template>
             </ff-dropdown>
