@@ -6,8 +6,8 @@ in your own environment.
 
 ## Links
 
-- [Documentation](./docs/README.md)
-- [Contributing](./CONTRIBUTING.md)
-- [Code of Conduct](./CODE_OF_CONDUCT.md)
-- [Security](./SECURITY.md)
-- [License](./LICENSE)
+- [Documentation](https://github.com/flowforge/flowforge/blob/add-readme-back/docs/README.md)
+- [Contributing](https://github.com/flowforge/flowforge/blob/add-readme-back/CONTRIBUTING.md)
+- [Code of Conduct](https://github.com/flowforge/flowforge/blob/add-readme-back/CODE_OF_CONDUCT.md)
+- [Security](https://github.com/flowforge/flowforge/blob/add-readme-back/SECURITY.md)
+- [License](https://github.com/flowforge/flowforge/blob/add-readme-back/LICENSE)
