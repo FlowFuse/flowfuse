@@ -19,8 +19,8 @@ This guide assumes you have a working development environment including:
 
 ### Project Repositories
 
-There are a number of repositories under the [flowforge GitHub organisation](https://github.com/flowforge)
-that make up the platform:
+There are a number of repositories under the [FlowForge GitHub organisation](https://github.com/flowforge)
+that make up the platform.
 
 Repository    | Description
 --------------|---------------------
@@ -34,127 +34,91 @@ Repository    | Description
 [flowforge-nr-audit-logger](https://github.com/flowforge/flowforge-nr-audit-logger) | A Node-RED logging plugin that captures audit log events and sends them back to the FlowForge platform.
 [flowforge-nr-auth](https://github.com/flowforge/flowforge-nr-auth) | A Node-RED authentication plugin that controls access to a Node-RED instance based on FlowForge access controls.
 [flowforge-nr-storage](https://github.com/flowforge/flowforge-nr-storage) | A Node-RED storage plugin that stores Node-RED state in the FlowForge platform
+[flowforge-nr-theme](https://github.com/flowforge/flowforge-nr-theme) | A custom Node-RED theme
 
+### Setting Up A Development Environment
 
+With the project split across multiple repositories, setting up a development
+environment manually takes quite a lot of steps to ensure everything is checked
+out and configured properly.
 
-The `flowforge/flowforge` repository is the core of the platform and where you'll likely
-want to begin.
+To make it easier, you can use the [FlowForge Development Environment](https://github.com/flowforge/flowforge-dev-env) project to get set up.
+
+The following steps will get your development environment setup in no time:
+
+       git clone https://github.com/flowforge/flowforge-dev-env.git
+       cd flowforge-dev-env
+       npm install
+       npm run init
+
+This clones all of the main project repositories, installs their dependencies and builds
+the repositories that need it.
+
+All of the repositories are cloned under the `packages` directory:
+
+```
+flowforge-dev-env
+└── packages
+    ├── flowforge
+    ├── flowforge-driver-localfs
+    ├── flowforge-nr-audit-logger
+    ├── flowforge-nr-auth
+    ├── flowforge-nr-launcher
+    ├── flowforge-nr-storage
+    ├── flowforge-nr-theme
+    └── forge-ui-components
+```
+
+More details on using the FlowForge Development Environment are available in its
+[documentation](https://github.com/flowforge/flowforge-dev-env).
 
 ### FlowForge Code Structure
+
+The `flowforge/flowforge` repository is the core of the platform and where you'll 
+likely want to begin.
+
 ```
 .
 ├── bin
 ├── config               - build config files
 ├── docs
 ├── etc                  - FlowForge platform configuration files
-├── forge
+├── forge                - Platform core code
 │   ├── config
 │   ├── containers
-│   │   └── node_modules
-│   │        └── @flowforge
 │   ├── db
-│   │   ├── controllers
-│   │   ├── models
-│   │   └── views
+│   ├── ee
+│   ├── lib
 │   ├── licensing
+│   ├── monitor
 │   ├── postoffice
 │   ├── routes
-│   │   ├── api
-│   │   ├── auth
-│   │   ├── logging
-│   │   ├── setup
-│   │   ├── storage
-│   │   └── ui
 │   └── settings
-├── frontend             - the forge frontend
+├── frontend             - Frontend code
 │   ├── dist             - build output - created by `npm run build`
 │   ├── public           - static assets
 │   └── src              - vue src
 │       ├── api
 │       ├── components
 │       ├── pages
-│       │   └── account
 │       ├── routes
 │       └── store
 ├── test                 - tests for FlowForge
 └── var                  - where the database and localfs project directories are created
 ```
-### Instructions
-1. [Clone the repository](#clone-the-flowforgeflowforge-repository)
-1. [Install dependencies](#install-flowforgeflowforge-dependencies)
-1. [Running FlowForge](#running-flowforge)
+
+## Development Setup
+
 1. [Create a Stack](#create-a-stack)
+1. [Running FlowForge](#running-flowforge)
 1. [Configuring FlowForge](#configuring-flowforge)
 1. [Mocking email](#mocking-email)
 1. [Testing](#testing)
 1. [VSCode Tips](#vscode-tips)
 
-### Clone the `flowforge/flowforge` repository
-
-```
-git clone https://github.com/flowforge/flowforge
-```
-
-### Install `flowforge/flowforge` dependencies
-
-Once the core project is cloned, you will need to install its dependencies.
-There are 2 options here...
-* [OPTION 1](#option-1-npm) - Install `flowforge/flowforge` dependencies from NPM
-* [OPTION 2](#option-2-source-code) - Install `flowforge/flowforge` dependencies from GitHub
-
-> **NOTE:**  
-> If running on MacOS 12.3 or newer you may get an error around `node-gyp` 
-> being unable to build sqlite3. This is because MacOS no longer includes
-> python2.7. The solution is to run the command `npm config set python python3`
-> to alias to python3 and then run `npm install` again
-
-
-
-#### OPTION 1 NPM
-
-
-After cloning the core repository, you will need to install 
-`flowforge/flowforge` dependencies
-
-```
-cd flowforge
-npm install
-```
-
-By default this will install the latest released versions of the FlowForge
-components. 
-
-
-#### OPTION 2 Source Code
-
-After cloning the core repository, you will need to install 
-`flowforge/flowforge` dependencies
-
-Instead of using NPM, you can instead run from the latest source code.
-You can check out all the required projects in the same directory along 
-side the newly cloned `flowforge` directory. The following commands will
-setup everything for you...
-
-```
-git clone https://github.com/flowforge/flowforge-driver-localfs.git
-git clone https://github.com/flowforge/flowforge-nr-launcher.git
-git clone https://github.com/flowforge/flowforge-nr-storage.git
-git clone https://github.com/flowforge/flowforge-nr-auth.git
-git clone https://github.com/flowforge/flowforge-nr-audit-logger.git
-git clone https://github.com/flowforge/forge-ui-components.git
-cd flowforge
-npm run dev:local
-npm run build
-```
-
-This will install all the dependencies from source code, create all the required symlinks to the relevant projects and install the necessary npm dependencies.
-
-> **Note**
-> The `npm run dev:local` script will modify `package.json` in the 
-`flowforge`, `flowforge-nr-launcher` and `flowforge-driver-localfs` projects. 
-> DO NOT check these modifications into git.
 
 ### Create a Stack
+
 You will need to setup the version(s) of Node-RED you want to use in your stacks.
 
 From the `flowforge` directory run
@@ -162,11 +126,13 @@ From the `flowforge` directory run
 ```
 npm run install-stack --vers=2.2.2
 ```
-Where `2.2.2` is the version of Node-RED you want to use in the stack
+
+Where `2.2.2` is the version of Node-RED you want to use in the stack.
 
 ### Running FlowForge
 
-A number of `npm` tasks are defined in the `package.json` file. To get started from the flowforge directory use:
+A number of `npm` tasks are defined in the `package.json` file of this repository.
+To get started from the `flowforge` directory use:
 
 ```
 npm run serve
@@ -181,9 +147,14 @@ This does a couple things in parallel:
 
 When running like this, the `NODE_ENV` environment variable gets set to `development`.
 
+
+*Note*: if you have not used the [FlowForge Development Environment](#setting-up-a-development-environment), then you will need to run `npm run build`
+to build the platform before you can use `npm run serve`.
+
+
 ### Configuring FlowForge
 
-When running in this mode, the core app will use `etc/flowforge.yml` for its configuration.
+When running in development mode, the core app will use `etc/flowforge.yml` for its configuration.
 As you may want to have local configuration that you don't want to commit back to git,
 you can create a file called `etc/flowforge.local.yml` and it will use that instead.
 That filename is setup to be ignored by git so it won't be accidentally committed.
@@ -217,9 +188,6 @@ overall quality of the system.
 
 Unit tests should provide sufficient coverage to give us confidence that a 
 component's behaviour does not unexpectedly change.
-
-We do not *currently* have automated testing capability for the front-end. That
-relies on manual verification.
 
 #### Running tests
 
