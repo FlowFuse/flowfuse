@@ -2,7 +2,7 @@ const should = require('should') // eslint-disable-line
 const setup = require('../setup')
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
-const db_utils = FF_UTIL.require('forge/db/utils')
+const dbUtils = FF_UTIL.require('forge/db/utils')
 
 describe('Device API', async function () {
     let app
@@ -538,7 +538,7 @@ describe('Device API', async function () {
                     authorization: `Bearer ${device.credentials.token}`
                 },
                 payload: {
-                    snapshot: db_utils.getHashId('Device').encode(999),
+                    snapshot: dbUtils.getHashId('Device').encode(999),
                     settings: dbDevice.settingsHash,
                     state: 'running',
                     health: {
