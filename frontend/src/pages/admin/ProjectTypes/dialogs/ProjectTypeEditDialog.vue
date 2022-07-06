@@ -8,7 +8,10 @@
                     <template #description>Use markdown for formatting</template>
                     <template #input><textarea class="w-full" rows="6" v-model="input.description"></textarea></template>
                 </FormRow>
-                <FormRow :options="stacks" v-model="input.defaultStack" id="stack">Default Stack</FormRow>
+                <FormRow :options="stacks" v-model="input.defaultStack" :disabled="stacks.length === 0" id="stack">
+                    Default Stack
+                    <template #description><div v-if="stacks.length === 0">There no stacks defined for this Project Type yet.</div></template>
+                </FormRow>
                 <template v-if="this.features.billing">
                     <FormHeading>Billing</FormHeading>
                     <FormRow v-model="input.properties.billingProductId" :type="editDisabled?'uneditable':''">
@@ -139,6 +142,7 @@ export default {
             },
             show (projectType) {
                 this.projectType = projectType
+                this.stacks = []
                 if (projectType) {
                     this.editDisabled = projectType.projectCount > 0
                     this.input = {
@@ -152,7 +156,6 @@ export default {
                         // this is good enough for now
                         order: '' + projectType.order
                     }
-                    this.stacks = []
                     stacksApi.getStacks(null, null, null, projectType.id).then(stackList => {
                         this.stacks = stackList.stacks.filter(stack => stack.active).map(stack => { return { value: stack.id, label: stack.name } })
                         this.input.defaultStack = projectType.defaultStack
