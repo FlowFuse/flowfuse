@@ -2,6 +2,7 @@ const should = require('should') // eslint-disable-line
 const setup = require('../setup')
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
+const db_utils = FF_UTIL.require('forge/db/utils')
 
 describe('Device API', async function () {
     let app
@@ -510,6 +511,35 @@ describe('Device API', async function () {
                 payload: {
                     snapshot: TestObjects.deviceProjectSnapshot.id,
                     settings: 'fooBar',
+                    state: 'running',
+                    health: {
+                        uptime: 1,
+                        snapshotRestartCount: 0
+                    }
+                }
+            })
+            response.statusCode.should.equal(409)
+        })
+        it('device checks in with a invalid snapshot id', async function () {
+            await setupProjectWithSnapshot(true)
+
+            const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const dbDevice = await app.db.models.Device.byId(device.id)
+            dbDevice.updateSettings({ env: [{ name: 'FOO', value: 'BAR' }] })
+            dbDevice.setProject(TestObjects.deviceProject)
+            const deviceSettings = await TestObjects.deviceProject.getSetting('deviceSettings')
+            dbDevice.targetSnapshotId = deviceSettings?.targetSnapshot
+            await dbDevice.save()
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.id}/live/state`,
+                headers: {
+                    authorization: `Bearer ${device.credentials.token}`
+                },
+                payload: {
+                    snapshot: db_utils.getHashId('Device').encode(999),
+                    settings: dbDevice.settingsHash,
                     state: 'running',
                     health: {
                         uptime: 1,
