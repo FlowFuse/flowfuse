@@ -158,6 +158,7 @@ export default {
             },
             show (projectType) {
                 this.projectType = projectType
+                this.stacks = []
                 if (projectType) {
                     this.editDisabled = projectType.projectCount > 0
                     this.input = {
@@ -171,7 +172,6 @@ export default {
                         // this is good enough for now
                         order: '' + projectType.order
                     }
-                    this.stacks = []
                     stacksApi.getStacks(null, null, null, projectType.id).then(stackList => {
                         this.stacks = stackList.stacks.filter(stack => stack.active).map(stack => { return { value: stack.id, label: stack.name } })
                         this.input.defaultStack = projectType.defaultStack
