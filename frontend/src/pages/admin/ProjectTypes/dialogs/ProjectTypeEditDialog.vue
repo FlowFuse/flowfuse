@@ -8,7 +8,10 @@
                     <template #description>Use markdown for formatting</template>
                     <template #input><textarea class="w-full" rows="6" v-model="input.description"></textarea></template>
                 </FormRow>
-                <FormRow :options="stacks" v-model="input.defaultStack" id="stack">Default Stack</FormRow>
+                <FormRow :options="stacks" v-model="input.defaultStack" :disabled="stacks.length === 0" id="stack">
+                    Default Stack
+                    <template #description><div v-if="stacks.length === 0">There no stacks defined for this Project Type yet.</div></template>
+                </FormRow>
                 <template v-if="this.features.billing">
                     <FormHeading>Billing</FormHeading>
                     <FormRow v-model="input.properties.billingProductId">
