@@ -1,3 +1,44 @@
+#### 0.7.0: Release
+
+ - Update contributing guide to point at dev-env (#768) @knolleary
+ - Add basic README.md back to root of project (#767) @hardillb
+ - Ensure stacks list is cleared when showing ProjectType dialog (#765) @knolleary
+ - Ensure that history is present before checking last URL (#762) @joepavitt
+ - Add test for handling invalid snapshot id in device checkin (#763) @hardillb
+ - Do not include projectType properties when editing projectType (#761) @knolleary
+ - Fix CSS alignment in team selection (#753) @joepavitt
+ - Start of K8s install instructions (#702) @hardillb
+ - Avoid flicker of auditlog loading placeholder when refreshing project (#752) @knolleary
+ - Add Project Types, Stack Versioning and Upgrading to docs (#750) @knolleary
+ - Device page backend (#734) @hardillb
+ - Add Function node exteral modules list (#749) @hardillb
+ - Notify user if a new stack version is available (#744) @knolleary
+ - Notifications (#720) @joepavitt
+ - Add ProjectType (#739) @knolleary
+ - Update language about `domain` and `base_url` (#740) @hardillb
+ - 616 team selection (#748) @joepavitt
+ - Fix next bill date (#747) @sammachin
+ - Initial theming support (#613) @Steve-Mcl
+ - docs: Initial copy around teams and their members (#741) @ZJvandeWeg
+ - Toast Alerts (#713) @joepavitt
+ - if log msg is object then stringify it first (#737) @sammachin
+ - Add stack versioning apis and admin ui (#725) @knolleary
+ - initial rollback support (#730) @Steve-Mcl
+ - Add custom-built Projects icon (#715) @joepavitt
+ - Fix link (#728) @sammachin
+ - docs: Cannot update base_url (#726) @sammachin
+ - Stop execes oauth logging (#724) @hardillb
+ - Ensure the team_slug is set correctly when routing after settings update (#721) @joepavitt
+ - Add optional support for running tests against postgres (#719) @knolleary
+ - Use require.resolve to find vue in webpack config (#717) @knolleary
+ - Admin version (#711) @sammachin
+ - Docs readme (#709) @sammachin
+ - Add `mqtt` and `broker` to banned project names (#712) @hardillb
+ - Nested Sidebar (#701) @joepavitt
+ - docs: Add more links to install devices (#708) @ZJvandeWeg
+ - Fix for Device unable to checkin (#696) @hardillb
+ - Ensure request has teamMembership attached for device api reqs (#688) @knolleary
+
 #### 0.6.0: Release
 
  - Add admin endpoint to list db migrations
