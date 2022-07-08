@@ -75,5 +75,34 @@
             "default": "horizontal",
             "description": "(optional) The direction that the radio group renders."
         }]
+    }, {
+        "name": "ff-tile-selection",
+        "description": "This requires a pairing of components. The container, `ff-tile-selection`, and the options, `ff-tile-selection-options`. The following properties are available to the options.",
+        "examples": [{
+            "code": "<ff-tile-selection v-model=\"models.tiles0\">\n\t<ff-tile-selection-option value=\"1\" label=\"Option 1\" :description=\"'Markdown supported in the description, consectetur adipiscing elit ut aliquam'\" price=\"$15.00\" price-interval=\"/month\"/>\n\t<ff-tile-selection-option value=\"2\" label=\"Option 2\" :description=\"'\\n * So we can offer bullet point lists\\n* That help summarise the selection option'\" price=\"$50.00\" price-interval=\"/month\"/>\n</ff-tile-selection>"
+        }, {
+            "code": "<ff-tile-selection v-model=\"models.tiles0\">\n\t<ff-tile-selection-option value=\"1\" label=\"Option 1\" :description=\"'Markdown supported in the description, consectetur adipiscing elit ut aliquam'\"/>\n\t<ff-tile-selection-option value=\"2\" label=\"Option 2\" :description=\"'\\n * So we can offer bullet point lists\\n* That help summarise the selection option'\"/>\n</ff-tile-selection>"
+        }],
+        "props": [{
+            "key": "value",
+            "default": "null",
+            "description": "The value bound to v-model and emitted when selected"
+        }, {
+            "key": "label",
+            "default": "''",
+            "description": "The primary title of the option"
+        }, {
+            "key": "description",
+            "default": "''",
+            "description": "Content, that can be formatted as Markdown, to be rendered as the main description in the tile"
+        }, {
+            "key": "price",
+            "default": "null",
+            "description": "(optional) Price to display in the top-right. This is just the currency and numerical value, e.g. $15.00"
+        }, {
+            "key": "price-interval",
+            "default": "null",
+            "description": "The frequency of the pricing charges, e.g. /month"
+        }]
     }]
 }

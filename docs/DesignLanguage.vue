@@ -209,7 +209,7 @@
                     </div>
                 </div>
                 <!-- Radio -->
-                <h2 ref="ff-radio"><pre>ff-radio</pre></h2>
+                <h2 ref="ff-radio-group"><pre>ff-radio</pre></h2>
                 <h3>Properties:</h3>
                 <props-table :rows="groups['input'].components[3].props"></props-table>
                 <h3>Examples:</h3>
@@ -225,6 +225,30 @@
                         <code>{{ groups['input'].components[3].examples[1].code }}</code>
                     </div>
                 </div>
+                <!-- Tile Selection -->
+                <h2 ref="ff-tile-selection"><pre>ff-tile-selection</pre></h2>
+                <markdown-viewer class="description" :content="groups['input'].components[4].description"/>
+                <h3>Properties:</h3>
+                <props-table :rows="groups['input'].components[4].props"></props-table>
+                <h3>Examples:</h3>
+                <div class="examples">
+                    <div class="example">
+                        <ff-tile-selection v-model="models.tiles0">
+                            <ff-tile-selection-option value="1" label="Option 1" :description="'Markdown supported in the description, consectetur adipiscing elit ut aliquam'" price="$15.00" price-interval="/month"/>
+                            <ff-tile-selection-option value="2" label="Option 2" :description="'\n * So we can offer bullet point lists\n* That help summarise the selection option'" price="$50.00" price-interval="/month"/>
+                        </ff-tile-selection>
+                        {{ models.tiles0 }}
+                        <code>{{ groups['input'].components[4].examples[0].code }}</code>
+                    </div>
+                    <div class="example">
+                        <ff-tile-selection v-model="models.tiles1">
+                            <ff-tile-selection-option value="1" label="Option 1" :description="'Markdown supported in the description, consectetur adipiscing elit ut aliquam'"/>
+                            <ff-tile-selection-option value="2" label="Option 2" :description="'\n * So we can offer bullet point lists\n* That help summarise the selection option'"/>
+                        </ff-tile-selection>
+                        {{ models.tiles1 }}
+                        <code>{{ groups['input'].components[4].examples[1].code }}</code>
+                    </div>
+                </div>
             </div>
             <div class="section">
                 <!-- Notifications -->
@@ -236,7 +260,7 @@
                 <h3>Examples:</h3>
                 <div class="examples">
                     <div class="example">
-                        <ff-notification-pill count="4" />
+                        <ff-notification-pill :count="4" />
                         <code>{{ groups['notifications'].components[0].examples[0].code }}</code>
                     </div>
                 </div>
@@ -319,13 +343,13 @@ import PropsTable from './components/PropsTable.vue'
 import EventsTable from './components/EventsTable.vue'
 import SlotsTable from './components/SlotsTable.vue'
 
+import MarkdownViewer from '@/components/Markdown.vue'
+
 import buttonDocs from './data/button.docs.json'
 import dialogDocs from './data/dialog.docs.json'
 import inputDocs from './data/input.docs.json'
 import notificationsDocs from './data/notifications.docs.json'
 import tabsDocs from './data/tabs.docs.json'
-
-import MarkdownViewer from './components/Markdown.vue'
 
 // icons
 import { PlusSmIcon } from '@heroicons/vue/outline'
@@ -333,10 +357,10 @@ import { PlusSmIcon } from '@heroicons/vue/outline'
 export default {
     name: 'DesignLanguage',
     components: {
-        MarkdownViewer,
         PropsTable,
         EventsTable,
         SlotsTable,
+        MarkdownViewer,
         // icons
         PlusSmIcon
     },
@@ -351,7 +375,9 @@ export default {
                 dropdown1: null,
                 checkbox0: false,
                 radio0: null,
-                radio1: null
+                radio1: null,
+                tiles0: null,
+                tiles1: null
             },
             groups: {
                 button: buttonDocs,
