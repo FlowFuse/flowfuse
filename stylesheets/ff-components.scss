@@ -408,7 +408,21 @@ li.ff-list-item {
         font-size: $ff-funit-sm;
       }
     }
-    &:hover {
+    &--meta {
+      margin-top: $ff-unit-md;
+      padding-top: $ff-unit-md;
+      border-top: 1px solid $ff-grey-400;
+      >div {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        margin-bottom: $ff-unit-sm;
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+    &.selectable:hover {
       cursor: pointer;
       border: 2px solid $ff-blue-700;
     }

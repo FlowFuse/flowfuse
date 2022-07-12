@@ -1,8 +1,8 @@
 <template>
-    <div class="ff-tile-selection-option" :class="{'active': selected}" @click="select()">
+    <div class="ff-tile-selection-option" :class="{'selectable': selectable, 'active': selected}" @click="select()">
         <div class="ff-tile-selection-option--header">
             <h2>
-                <CheckCircleIcon />
+                <CheckCircleIcon v-if="selectable" />
                 {{ label }}
             </h2>
             <div class="ff-tile-selection-option--price">
@@ -12,6 +12,12 @@
         </div>
         <div>
             <MarkdownViewer :content="description"></MarkdownViewer>
+        </div>
+        <div v-if="meta" class="ff-tile-selection-option--meta">
+            <div v-for="(row, $index) in meta" :key="$index">
+                <span>{{ row.key }}</span>
+                <span>{{ row.value }}</span>
+            </div>
         </div>
     </div>
 </template>
@@ -28,6 +34,10 @@ export default {
     name: 'ff-tile-selection-option',
     props: {
         value: null,
+        selectable: {
+            default: true,
+            type: Boolean
+        },
         label: {
             default: '',
             type: String
@@ -43,6 +53,10 @@ export default {
         priceInterval: {
             default: '',
             type: String
+        },
+        meta: {
+            default: null,
+            type: Array
         }
     },
     components: {
@@ -59,13 +73,15 @@ export default {
     },
     methods: {
         select () {
-            this.$parent.value = {
-                value: this.value,
-                label: this.label,
-                description: this.description,
-                price: this.price
+            if (this.selectable) {
+                this.$parent.value = {
+                    value: this.value,
+                    label: this.label,
+                    description: this.description,
+                    price: this.price
+                }
+                this.selected = !this.selected
             }
-            this.selected = !this.selected
         }
     }
 }
