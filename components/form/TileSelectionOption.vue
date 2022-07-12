@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-tile-selection-option" :class="{'selectable': selectable, 'active': selected}" @click="select()">
+    <div class="ff-tile-selection-option" :class="{'selectable': selectable, 'disabled': disabled, 'active': selected}" @click="select()">
         <div class="ff-tile-selection-option--header">
             <h2>
                 <CheckCircleIcon v-if="selectable" />
@@ -36,6 +36,10 @@ export default {
         value: null,
         selectable: {
             default: true,
+            type: Boolean
+        },
+        disabled: {
+            default: false,
             type: Boolean
         },
         label: {
