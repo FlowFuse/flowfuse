@@ -249,12 +249,20 @@
                         <code>{{ groups['input'].components[4].examples[1].code }}</code>
                     </div>
                     <div class="example">
-                        <ff-tile-selection v-model="models.tiles1">
+                        <ff-tile-selection>
                             <ff-tile-selection-option :selectable="false" value="1" label="Option 1" :description="'Markdown supported in the description, consectetur adipiscing elit ut aliquam'" price="$15.00" price-interval="/month" :meta="[{key: 'a', value: 1}, {key: 'b', value: 2}]"/>
                             <ff-tile-selection-option :selectable="false" value="2" label="Option 2" :description="'\n * So we can offer bullet point lists\n* That help summarise the selection option'" price="$50.00" price-interval="/month" :meta="[{key: 'c', value: 3}, {key: 'd', value: 4}]"/>
                         </ff-tile-selection>
-                        {{ models.tiles1 }}
                         <code>{{ groups['input'].components[4].examples[2].code }}</code>
+                    </div>
+                    <div class="example">
+                        <ff-tile-selection v-model="models.tiles3">
+                            <ff-tile-selection-option value="1" label="Option 1" :description="'Markdown supported in the description, consectetur adipiscing elit ut aliquam'" price="$15.00" price-interval="/month"/>
+                            <ff-tile-selection-option :disabled="true" value="2" label="Option 2" :description="'The second option is disabled.'" price="$50.00" price-interval="/month"/>
+                            <ff-tile-selection-option value="3" label="Option 3" :description="'The third option.'" price="$50.00" price-interval="/month"/>
+                        </ff-tile-selection>
+                        {{ models.titles3 }}
+                        <code>{{ groups['input'].components[4].examples[3].code }}</code>
                     </div>
                 </div>
             </div>
@@ -385,7 +393,8 @@ export default {
                 radio0: null,
                 radio1: null,
                 tiles0: null,
-                tiles1: null
+                tiles1: null,
+                tiles3: null
             },
             groups: {
                 button: buttonDocs,
