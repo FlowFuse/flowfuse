@@ -432,56 +432,9 @@ $nav_height: 60px;
         .ff-team-selection {
             height: 54px;
         }
-        .ff-side-navigation--primary {
-            width: 100%;
-            transition: $transition_time width;
-            -webkit-transition: $transition_time width;
-            .router-link-active {
-                li {
-                    background-color: $ff-grey-600;
-                    label {
-                        color: $ff-teal-300;
-                    }
-                    svg {
-                        fill: $ff-teal-300;
-                    }
-                }
-            }
-        }
-
         .ff-team-selection, .ff-nav-item {
             transition: $transition_time padding, $transition_time background-color;
             -webkit-transition: $transition_time padding, $transition_time background-color;
-        }
-        // nested menu options
-        .ff-side-navigation--nested {
-            width: 0;
-            background-color: $ff-grey-600;
-            overflow: hidden;
-            .ff-nested-title {
-                color: $ff-teal-300;
-                font-weight: bold;
-                font-size: 1.1rem;
-                padding: 12px 16px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-            .ff-nav-item {
-                padding: 12px 16px;
-                background-color: $ff-grey-600;
-            }
-            .router-link-active {
-                li {
-                    background-color: $ff-grey-600;
-                }
-                label {
-                    color: $ff-teal-300;
-                }
-                svg {
-                    fill: $ff-teal-300;
-                }
-            }
         }
         // showing a nested menu
         &.minimised {
@@ -510,6 +463,56 @@ $nav_height: 60px;
             .ff-side-navigation--nested {
                 width: calc(100% - 54px);
                 flex-grow: 1;
+            }
+        }
+    }
+    .ff-side-navigation--options {
+        width: 100%;
+    }
+    // handle route-r;ink active styling for primary options
+    .ff-side-navigation--primary {
+        width: 100%;
+        transition: $transition_time width;
+        -webkit-transition: $transition_time width;
+        .router-link-active {
+            li {
+                background-color: $ff-grey-600;
+                label {
+                    color: $ff-teal-300;
+                }
+                svg {
+                    fill: $ff-teal-300;
+                }
+            }
+        }
+    }
+    // nested menu options, including router-link highlighting
+    .ff-side-navigation--nested {
+        width: 0;
+        background-color: $ff-grey-600;
+        overflow: hidden;
+        .ff-nested-title {
+            color: $ff-teal-300;
+            font-weight: bold;
+            font-size: 1.1rem;
+            padding: 12px 16px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .ff-nav-item {
+            padding: 12px 16px;
+            background-color: $ff-grey-600;
+        }
+        .router-link-active {
+            li {
+                background-color: $ff-grey-600;
+            }
+            label {
+                color: $ff-teal-300;
+            }
+            svg {
+                fill: $ff-teal-300;
             }
         }
     }

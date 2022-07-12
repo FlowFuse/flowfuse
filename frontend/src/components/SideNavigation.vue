@@ -1,10 +1,12 @@
 <template>
-    <ul class="ff-side-navigation--options">
-        <div class="ff-side-navigation--options-back">
-            <slot name="back"></slot>
-        </div>
-        <slot name="options"></slot>
-    </ul>
+    <div class="ff-side-navigation ff-side-navigation--primary">
+        <ul class="ff-side-navigation--options">
+            <div class="ff-side-navigation--options-back">
+                <slot name="back"></slot>
+            </div>
+            <slot name="options"></slot>
+        </ul>
+    </div>
 </template>
 
 <script>
