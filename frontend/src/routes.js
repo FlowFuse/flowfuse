@@ -66,7 +66,13 @@ router.beforeEach((to, from, next) => {
     Array.from(document.querySelectorAll('[data-vue-router-controlled]')).map(el => el.parentNode.removeChild(el))
 
     // Skip rendering meta tags if there are none.
-    if (!nearestWithMeta) return next()
+    if (!nearestWithMeta) {
+        // format our page title into a plausible-friendly URL structure for page tracking
+        window.plausible('pageview', {
+            u: 'app://' + window.location.hostname + '/' + document.title.replace(' - FlowForge', '').toLowerCase().replace(/ - /g, '/').replace(' ', '-')
+        })
+        return next()
+    }
 
     // Turn the meta tag definitions into actual elements in the head.
     nearestWithMeta.meta.metaTags.map(tagDef => {

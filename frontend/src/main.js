@@ -20,6 +20,12 @@ const app = createApp(App)
 
 app.component('ff-loading', Loading)
 
+// make plausible available across the application
+window.plausible = window.plausible || function () {
+    (window.plausible.q = window.plausible.q || []).push(arguments)
+}
+
+// add global filters for formatting
 app.config.globalProperties.$filters = {
     pluralize (amount, singular, plural = `${singular}s`) { return amount === 1 ? singular : plural }
 }
