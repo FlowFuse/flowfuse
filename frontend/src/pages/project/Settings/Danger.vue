@@ -205,7 +205,7 @@ export default {
                 projectApi.changeStack(this.project.id, selectedStack).then(() => {
                     this.$router.push({ name: 'Project', params: { id: this.project.id } })
                     this.$emit('projectUpdated')
-                    alerts.emit('Project stack successfuly updated.', 'confirmation')
+                    alerts.emit('Project stack successfully updated.', 'confirmation')
                 }).catch(err => {
                     console.warn(err)
                     alerts.emit('Project stack was not updated due to an error.', 'warning')
