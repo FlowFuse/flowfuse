@@ -273,7 +273,7 @@ module.exports = fp(async function (app, opts, done) {
             return
         }
         if (/(:\/\/)/.test(request.body.name)) {
-            reply.code(400).send({error: 'Name can not be a URL'})
+            reply.code(400).send({ error: 'Name can not be a URL' })
             return
         }
         try {
