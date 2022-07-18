@@ -72,7 +72,9 @@ export default {
         formValid () {
             return (this.input.email && !this.errors.email) &&
                    (this.input.username && !this.errors.username) &&
-                   this.input.password.length >= 8 && (this.settings['user:tcs-required'] ? this.input.tandcs : true)
+                   this.input.password.length >= 8 && 
+                   (this.settings['user:tcs-required'] ? this.input.tandcs : true) &&
+                   (!this.errors.name)
         }
     },
     watch: {
@@ -93,6 +95,13 @@ export default {
         'input.password': function (v) {
             if (this.errors.password && v.length >= 8) {
                 this.errors.password = ''
+            }
+        },
+        'input.name': function (v) {
+            if (v && /:\/\//i.test(v)) {
+                this.errors.name = 'Names can not be URLs'
+            } else {
+                this.errors.name = ''
             }
         }
     },

@@ -15,6 +15,10 @@ module.exports = {
                 user.email = request.body.email
             }
             if (request.body.username) {
+                if (/(:\/\/)/.test(request.body.username)) {
+                    reply.code(400).send({ error: 'Name can not be a URL' })
+                    return
+                }
                 user.username = request.body.username
             }
             if (request.session.User.admin) {
