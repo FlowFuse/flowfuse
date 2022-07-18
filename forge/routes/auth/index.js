@@ -272,10 +272,6 @@ module.exports = fp(async function (app, opts, done) {
             reply.code(400).send({ error: 'invalid username' })
             return
         }
-        if (/(:\/\/)/.test(request.body.name)) {
-            reply.code(400).send({ error: 'Name can not be a URL' })
-            return
-        }
         try {
             const newUser = await app.db.models.User.create({
                 username: request.body.username,
