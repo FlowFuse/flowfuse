@@ -72,7 +72,7 @@ export default {
         formValid () {
             return (this.input.email && !this.errors.email) &&
                    (this.input.username && !this.errors.username) &&
-                   this.input.password.length >= 8 && 
+                   this.input.password.length >= 8 &&
                    (this.settings['user:tcs-required'] ? this.input.tandcs : true) &&
                    (!this.errors.name)
         }
