@@ -358,6 +358,93 @@ li.ff-list-item {
   }
 }
 
+.ff-tile-selection {
+  display: flex;
+  .ff-tile-selection-option {
+    display: inline-block;
+    background-color: $ff-white;
+    border: 2px solid $ff-grey-300;
+    border-radius: $ff-unit-sm;
+    padding: $ff-unit-lg;
+    margin-right: $ff-unit-md;
+    width: 275px;
+    ul {
+      list-style: disc;
+      margin-top: 3px;
+      padding-left: 18px;
+      li {
+        line-height: 1.5rem;
+      }
+    }
+    &:last-child {
+      margin-right: 0;
+    }
+    &--header {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      margin-bottom: 3px;
+      h2 {
+        font-size: 16px;
+      }
+      > h2 {
+        display: flex;
+        align-items: center;
+        gap: $ff-unit-md;
+        padding-right: $ff-unit-xl;
+        svg {
+          width: 24px;
+          height: 24px;
+        }
+      }
+    }
+    &--price {
+      text-align: center;
+      h2 {
+        margin: 0;
+        line-height: 1rem;
+      }
+      label {
+        font-size: $ff-funit-sm;
+      }
+    }
+    &--edit {
+      cursor: pointer;
+      &:hover {
+        fill: $ff-blue-700;
+      }
+    }
+    &--meta {
+      margin-top: $ff-unit-md;
+      padding-top: $ff-unit-md;
+      border-top: 1px solid $ff-grey-400;
+      >div {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        margin-bottom: $ff-unit-sm;
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+    &:not(.editable):hover {
+      cursor: pointer;
+      border: 2px solid $ff-blue-700;
+    }
+    &.active {
+      border: 2px solid $ff-blue-700;
+      svg {
+        fill: $ff-blue-700;
+      }
+    }
+    &.disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+  }
+}
+
 /*
   FF Dialog Box
 */

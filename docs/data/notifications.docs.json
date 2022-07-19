@@ -5,7 +5,7 @@
     "components": [{
         "name": "ff-notification-pill",
         "examples": [{
-            "code": "<ff-notification-pill count=\"4\" />"
+            "code": "<ff-notification-pill :count=\"4\" />"
         }],
         "props": [{
             "key": "count",

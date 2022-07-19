@@ -75,5 +75,55 @@
             "default": "horizontal",
             "description": "(optional) The direction that the radio group renders."
         }]
+    }, {
+        "name": "ff-tile-selection",
+        "description": "This requires a pairing of components. The container, `ff-tile-selection`, and the options, `ff-tile-selection-options`. The following properties are available to the options.",
+        "examples": [{
+            "code": "<ff-tile-selection v-model=\"myVar\">\n\t<ff-tile-selection-option value=\"1\" label=\"Option 1\"\n\t\t:description=\"'Markdown supported in the description, consectetur adipiscing elit ut aliquam'\"\n\t\tprice=\"$15.00\" price-interval=\"/month\"/>\n\t<ff-tile-selection-option value=\"2\" label=\"Option 2\"\n\t\t:description=\"'\\n * So we can offer bullet point lists\\n*\n\t\t\tThat help summarise the selection option'\"\n\t\tprice=\"$50.00\" price-interval=\"/month\"/>\n</ff-tile-selection>"
+        }, {
+            "code": "<ff-tile-selection v-model=\"myVar\">\n\t<ff-tile-selection-option value=\"1\" label=\"Option 1\"\n\t\t:description=\"'Markdown supported in the description,\n\t\t\tconsectetur adipiscing elit ut aliquam'\"/>\n\t<ff-tile-selection-option value=\"2\" label=\"Option 2\"\n\t\t:description=\"'\\n * So we can offer bullet point lists\\n*\n\t\t\tThat help summarise the selection option'\"/>\n</ff-tile-selection>"
+        }, {
+            "code": "<ff-tile-selection v-model=\"myVar\">\n\t<ff-tile-selection-option :editable=\"true\" value=\"1\" label=\"Option 1\"\n\t\t:description=\"'Markdown supported in the description,\n\t\t\tconsectetur adipiscing elit ut aliquam'\"\n\t\tprice=\"$15.00\" price-interval=\"/month\" :meta=\"[{key: 'a', value: 1}, {key: 'b', value: 2}]\"/>\n\t<ff-tile-selection-option :editable=\"true\" value=\"2\" label=\"Option 2\"\n\t\t:description=\"'\\n * So we can offer bullet point lists\\n*\n\t\t\tThat help summarise the selection option'\"\n\t\tprice=\"$50.00\" price-interval=\"/month\" :meta=\"[{key: 'c', value: 3}, {key: 'd', value: 4}]\"/>\n</ff-tile-selection>"
+        }, {
+            "code": "<ff-tile-selection v-model=\"myVar\">\n\t<ff-tile-selection-option value=\"1\" label=\"Option 1\"\n\t\t:description=\"'Markdown supported in the description, consectetur adipiscing elit ut aliquam'\"\n\t\tprice=\"$15.00\" price-interval=\"/month\"/>\n\t<ff-tile-selection-option :disabled=\"true\" value=\"2\" label=\"Option 2\"\n\t\t:description=\"'The second option is disabled.'\" price=\"$50.00\" price-interval=\"/month\"/>\n\t<ff-tile-selection-option value=\"3\" label=\"Option 3\"\n\t\t:description=\"'The third option.'\" price=\"$50.00\" price-interval=\"/month\"/>\n</ff-tile-selection>"
+        }],
+        "emits": [{
+            "event": "edit",
+            "example": null,
+            "description": "Sent when the 'edit' button is clicked. Requires 'editable=true'."
+        }],
+        "props": [{
+            "key": "value",
+            "default": "null",
+            "description": "The value bound to v-model and emitted when selected"
+        }, {
+            "key": "editable",
+            "default": "false",
+            "description": "When true, shows an 'edit' icon in place of a 'selection' tick toggle. On clicking the 'edit' icon, an event is emitted."
+        }, {
+            "key": "disabled",
+            "default": "true",
+            "description": "Binds to selectable, and adds faded CSS appearance."
+        }, {
+            "key": "label",
+            "default": "''",
+            "description": "The primary title of the option"
+        }, {
+            "key": "description",
+            "default": "''",
+            "description": "Content, that can be formatted as Markdown, to be rendered as the main description in the tile"
+        }, {
+            "key": "price",
+            "default": "null",
+            "description": "(optional) Price to display in the top-right. This is just the currency and numerical value, e.g. $15.00"
+        }, {
+            "key": "price-interval",
+            "default": "null",
+            "description": "The frequency of the pricing charges, e.g. /month"
+        }, {
+            "key": "meta",
+            "default": "null",
+            "description": "An array of objects. Each object will be shown as a key/value pair in a table."
+        }]
     }]
 }

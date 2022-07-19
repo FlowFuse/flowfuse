@@ -12,6 +12,8 @@ import FFDropdownOption from './components/form/DropdownOption.vue'
 import FFCheckbox from './components/form/Checkbox.vue'
 import FFRadioGroup from './components/form/RadioGroup.vue'
 import FFRadioButton from './components/form/RadioButton.vue'
+import FFTileSelection from './components/form/TileSelection.vue'
+import FFTileSelectionOption from './components/form/TileSelectionOption.vue'
 
 // Notifications
 import FFNotificationPill from './components/NotificationPill.vue'
@@ -33,6 +35,8 @@ export default {
     FFCheckbox,
     FFRadioGroup,
     FFRadioButton,
+    FFTileSelection,
+    FFTileSelectionOption,
     // Notifications
     FFNotificationPill,
     FFNotificationToast,
