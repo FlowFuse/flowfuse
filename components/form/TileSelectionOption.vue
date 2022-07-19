@@ -1,8 +1,9 @@
 <template>
-    <div class="ff-tile-selection-option" :class="{'selectable': selectable, 'disabled': disabled, 'active': selected}" @click="select()">
+    <div class="ff-tile-selection-option" :class="{'editable': editable, 'disabled': disabled, 'active': selected}" @click="select()">
         <div class="ff-tile-selection-option--header">
             <h2>
-                <CheckCircleIcon v-if="selectable" />
+                <PencilAltIcon class="ff-tile-selection-option--edit" v-if="editable" @click="$emit('edit')"/>
+                <CheckCircleIcon v-else />
                 {{ label }}
             </h2>
             <div class="ff-tile-selection-option--price">
@@ -28,14 +29,15 @@
 import MarkdownViewer from '@/components/Markdown.vue'
 
 // icons
-import { CheckCircleIcon } from '@heroicons/vue/solid'
+import { CheckCircleIcon, PencilAltIcon } from '@heroicons/vue/solid'
 
 export default {
     name: 'ff-tile-selection-option',
+    emits: ['edit'],
     props: {
         value: null,
-        selectable: {
-            default: true,
+        editable: {
+            default: false,
             type: Boolean
         },
         disabled: {
@@ -65,6 +67,7 @@ export default {
     },
     components: {
         CheckCircleIcon,
+        PencilAltIcon,
         MarkdownViewer
     },
     data () {
@@ -77,7 +80,7 @@ export default {
     },
     methods: {
         select () {
-            if (this.selectable) {
+            if (!this.editable) {
                 this.$parent.value = {
                     value: this.value,
                     label: this.label,

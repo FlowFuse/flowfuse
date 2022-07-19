@@ -408,6 +408,12 @@ li.ff-list-item {
         font-size: $ff-funit-sm;
       }
     }
+    &--edit {
+      cursor: pointer;
+      &:hover {
+        fill: $ff-blue-700;
+      }
+    }
     &--meta {
       margin-top: $ff-unit-md;
       padding-top: $ff-unit-md;
@@ -422,7 +428,7 @@ li.ff-list-item {
         }
       }
     }
-    &.selectable:hover {
+    &:not(.editable):hover {
       cursor: pointer;
       border: 2px solid $ff-blue-700;
     }
