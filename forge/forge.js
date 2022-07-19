@@ -10,6 +10,7 @@ const csrf = require('@fastify/csrf-protection')
 const postoffice = require('./postoffice')
 const monitor = require('./monitor')
 const ee = require('./ee')
+const helmet = require('@fastify/helmet')
 
 module.exports = async (options = {}) => {
     // TODO: Defer logger configuration until after `config` module is registered
@@ -57,6 +58,10 @@ module.exports = async (options = {}) => {
             secret: server.settings.get('cookieSecret')
         })
         await server.register(csrf, { cookieOpts: { _signed: true, _httpOnly: true } })
+        await server.register(helmet, {
+            global: true,
+            contentSecurityPolicy: false
+        })
 
         // Routes : the HTTP routes
         await server.register(routes, { logLevel: 'warn' })
