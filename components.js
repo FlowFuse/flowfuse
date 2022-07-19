@@ -1,6 +1,11 @@
 import FFButton from './components/Button.vue'
 import FFKebabMenu from './components/KebabMenu.vue'
 
+// Data Table
+import FFDataTable from './components/data-table/DataTable.vue'
+import FFDataTableRow from './components/data-table/DataTableRow.vue'
+import FFDataTableCell from './components/data-table/DataTableCell.vue'
+
 import FFDialogBox from './components/DialogBox.vue'
 
 import FFListItem from './components/ListItem.vue'
@@ -26,6 +31,10 @@ export default {
     FFKebabMenu,
     FFDialogBox,
     FFListItem,
+    // Data Table
+    FFDataTable,
+    FFDataTableRow,
+    FFDataTableCell,
     // Form Elements
     FFTextInput,
     FFDropdown,
