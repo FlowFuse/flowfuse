@@ -102,6 +102,29 @@
                 </div>
             </div>
             <div class="section">
+                <!-- Data Table -->
+                <h1>Data Table</h1>
+                <h2 ref="ff-data-table"><pre>ff-data-table</pre></h2>
+                <h3>Properties:</h3>
+                <props-table :rows="groups['data-table'].components[0].props"></props-table>
+                <h3>Emits:</h3>
+                <events-table :rows="groups['data-table'].components[0].emits"></events-table>
+                <h3>Examples:</h3>
+                <div class="examples">
+                    <div class="example">
+                        <ff-data-table :columns="data.table0.columns" :rows="data.table0.rows"></ff-data-table>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[0].html }}</code>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[0].js }}</code>
+                    </div>
+                    <div class="example">
+                        <ff-data-table :columns="data.table1.columns" :rows="table1Filtered"
+                            :show-search="true" search-placeholder="Search here..." v-model:search="data.table1.search">
+                        </ff-data-table>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[1].html }}</code>
+                    </div>
+                </div>
+            </div>
+            <div class="section">
                 <!-- Dialog Box -->
                 <h1>Dialog Box</h1>
                 <h2 ref="ff-dialog"><pre>ff-dialog</pre></h2>
@@ -236,7 +259,7 @@
                 <h3>Examples:</h3>
                 <div class="examples">
                     <div class="example">
-                        <ff-notification-pill count="4" />
+                        <ff-notification-pill :count="4" />
                         <code>{{ groups['notifications'].components[0].examples[0].code }}</code>
                     </div>
                 </div>
@@ -320,6 +343,7 @@ import EventsTable from './components/EventsTable.vue'
 import SlotsTable from './components/SlotsTable.vue'
 
 import buttonDocs from './data/button.docs.json'
+import tableDocs from './data/table.docs.json'
 import dialogDocs from './data/dialog.docs.json'
 import inputDocs from './data/input.docs.json'
 import notificationsDocs from './data/notifications.docs.json'
@@ -355,16 +379,94 @@ export default {
             },
             groups: {
                 button: buttonDocs,
+                'data-table': tableDocs,
                 dialog: dialogDocs,
                 input: inputDocs,
                 notifications: notificationsDocs,
                 tabs: tabsDocs
+            },
+            data: {
+                table0: {
+                    columns: [{
+                        key: 'colA',
+                        label: 'Column A',
+                        sortable: false
+                    }, {
+                        key: 'colB',
+                        label: 'Column B',
+                        sortable: false
+                    }, {
+                        key: 'colC',
+                        label: 'Column C',
+                        sortable: false
+                    }],
+                    rows: [{
+                        colA: 'This is Row 1, Column A',
+                        colB: 2,
+                        colC: 34
+                    }, {
+                        colA: 'This is Row 2, Column A',
+                        colB: 17,
+                        colC: 12.3
+                    }]
+                },
+                table1: {
+                    search: '',
+                    columns: [{
+                        key: 'fName',
+                        label: 'First Name',
+                        sortable: false
+                    }, {
+                        key: 'sName',
+                        label: 'Last Name',
+                        sortable: false
+                    }, {
+                        key: 'number',
+                        label: 'Number',
+                        sortable: false
+                    }],
+                    rows: [{
+                        fName: 'Alice',
+                        sName: 'Skywalker',
+                        number: 123
+                    }, {
+                        fName: 'Bob',
+                        sName: 'Palpatine',
+                        number: 456
+                    }, {
+                        fName: 'Freddie',
+                        sName: 'Solo',
+                        number: 789
+                    }]
+                }
             }
         }
     },
     computed: {
         groups_ordered: function () {
             return _.sortedBy(this.groups, 'name')
+        },
+        table1Filtered: function () {
+            const search = this.data.table1.search
+            if (search) {
+                return this.data.table1.rows.filter(function (cell, index) {
+                    const vals = Object.values(cell)
+                    for (let i = 0; i < vals.length; i++) {
+                        let value = vals[i]
+                        if (typeof value === 'number') {
+                            value = value.toString()
+                        }
+                        if (typeof value === 'string') {
+                            if (value.toLowerCase().indexOf(search.toLowerCase()) > -1) {
+                                return true
+                            }
+                        }
+                    }
+                    return false
+                })
+            } else {
+                return this.data.table1.rows
+            }
         }
     },
     async mounted () {

@@ -1,0 +1,43 @@
+{
+    "name": "Data Table",
+    "id": "data-table",
+    "description": "",
+    "components": [{
+        "name": "ff-data-table",
+        "examples": [{
+            "html": "<ff-data-table :columns=\"cols\" :rows=\"rows\"></ff-data-table>"
+        }, {
+            "html": "<ff-data-table :columns=\"cols\" :rows=\"rows\" :show-search=\"true\"\n\tsearch-placeholder=\"Search here...\" v-model:search=\"search\"></ff-data-table>"
+        }],
+        "props": [{
+            "key": "columns",
+            "default": "null",
+            "description": "An array of objects that define the column headers and assocated keys in the `rows` data. e.g. [{key: 'colA', label: 'Column A'}]"
+        }, {
+            "key": "rows",
+            "default": "null",
+            "description": "An array of objects defining each row of data. Each object should contains the relevant key defined in the columns array. e.g. [{colA: 1}]"
+        }, {
+            "key": "rows-selectable",
+            "default": false,
+            "description": "Defines whether or not the full row can be clicked, in order to emit a 'row-selected' event."
+        },{
+            "key": "show-search",
+            "default": "false",
+            "description": "Whether or not to display the ff-text-input to filter the table content"
+        }, {
+            "key": "search-placeholder",
+            "default": "null",
+            "description": "If `show-search` is true, then this proeprty will set the placeholder of the search bar."
+        }],
+        "slot": [{
+            "name": "",
+            "description": ""
+        }],
+        "emits": [{
+            "event": "row-selected",
+            "example": "{colA: 1}",
+            "description": "The object associated with the row clicked."
+        }]
+    }]
+}
