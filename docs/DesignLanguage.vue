@@ -250,8 +250,8 @@
                     </div>
                     <div class="example">
                         <ff-tile-selection>
-                            <ff-tile-selection-option :selectable="false" value="1" label="Option 1" :description="'Markdown supported in the description, consectetur adipiscing elit ut aliquam'" price="$15.00" price-interval="/month" :meta="[{key: 'a', value: 1}, {key: 'b', value: 2}]"/>
-                            <ff-tile-selection-option :selectable="false" value="2" label="Option 2" :description="'\n * So we can offer bullet point lists\n* That help summarise the selection option'" price="$50.00" price-interval="/month" :meta="[{key: 'c', value: 3}, {key: 'd', value: 4}]"/>
+                            <ff-tile-selection-option :editable="true" value="1" label="Option 1" :description="'Markdown supported in the description, consectetur adipiscing elit ut aliquam'" price="$15.00" price-interval="/month" :meta="[{key: 'a', value: 1}, {key: 'b', value: 2}]"/>
+                            <ff-tile-selection-option :editable="true" value="2" label="Option 2" :description="'\n * So we can offer bullet point lists\n* That help summarise the selection option'" price="$50.00" price-interval="/month" :meta="[{key: 'c', value: 3}, {key: 'd', value: 4}]"/>
                         </ff-tile-selection>
                         <code>{{ groups['input'].components[4].examples[2].code }}</code>
                     </div>

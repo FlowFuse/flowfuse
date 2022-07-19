@@ -79,22 +79,27 @@
         "name": "ff-tile-selection",
         "description": "This requires a pairing of components. The container, `ff-tile-selection`, and the options, `ff-tile-selection-options`. The following properties are available to the options.",
         "examples": [{
-            "code": "<ff-tile-selection v-model=\"myVar\">\n\t<ff-tile-selection-option value=\"1\" label=\"Option 1\" :description=\"'Markdown supported in the description, consectetur adipiscing elit ut aliquam'\" price=\"$15.00\" price-interval=\"/month\"/>\n\t<ff-tile-selection-option value=\"2\" label=\"Option 2\" :description=\"'\\n * So we can offer bullet point lists\\n* That help summarise the selection option'\" price=\"$50.00\" price-interval=\"/month\"/>\n</ff-tile-selection>"
+            "code": "<ff-tile-selection v-model=\"myVar\">\n\t<ff-tile-selection-option value=\"1\" label=\"Option 1\"\n\t\t:description=\"'Markdown supported in the description, consectetur adipiscing elit ut aliquam'\"\n\t\tprice=\"$15.00\" price-interval=\"/month\"/>\n\t<ff-tile-selection-option value=\"2\" label=\"Option 2\"\n\t\t:description=\"'\\n * So we can offer bullet point lists\\n*\n\t\t\tThat help summarise the selection option'\"\n\t\tprice=\"$50.00\" price-interval=\"/month\"/>\n</ff-tile-selection>"
         }, {
-            "code": "<ff-tile-selection v-model=\"myVar\">\n\t<ff-tile-selection-option value=\"1\" label=\"Option 1\" :description=\"'Markdown supported in the description, consectetur adipiscing elit ut aliquam'\"/>\n\t<ff-tile-selection-option value=\"2\" label=\"Option 2\" :description=\"'\\n * So we can offer bullet point lists\\n* That help summarise the selection option'\"/>\n</ff-tile-selection>"
+            "code": "<ff-tile-selection v-model=\"myVar\">\n\t<ff-tile-selection-option value=\"1\" label=\"Option 1\"\n\t\t:description=\"'Markdown supported in the description,\n\t\t\tconsectetur adipiscing elit ut aliquam'\"/>\n\t<ff-tile-selection-option value=\"2\" label=\"Option 2\"\n\t\t:description=\"'\\n * So we can offer bullet point lists\\n*\n\t\t\tThat help summarise the selection option'\"/>\n</ff-tile-selection>"
         }, {
-            "code": "<ff-tile-selection v-model=\"myVar\">\n\t<ff-tile-selection-option :selectable=\"false\" value=\"1\" label=\"Option 1\" :description=\"'Markdown supported in the description, consectetur adipiscing elit ut aliquam'\" price=\"$15.00\" price-interval=\"/month\" :meta=\"[{key: 'a', value: 1}, {key: 'b', value: 2}]\"/>\n\t<ff-tile-selection-option :selectable=\"false\" value=\"2\" label=\"Option 2\" :description=\"'\\n * So we can offer bullet point lists\\n* That help summarise the selection option'\" price=\"$50.00\" price-interval=\"/month\" :meta=\"[{key: 'c', value: 3}, {key: 'd', value: 4}]\"/>\n</ff-tile-selection>"
+            "code": "<ff-tile-selection v-model=\"myVar\">\n\t<ff-tile-selection-option :editable=\"true\" value=\"1\" label=\"Option 1\"\n\t\t:description=\"'Markdown supported in the description,\n\t\t\tconsectetur adipiscing elit ut aliquam'\"\n\t\tprice=\"$15.00\" price-interval=\"/month\" :meta=\"[{key: 'a', value: 1}, {key: 'b', value: 2}]\"/>\n\t<ff-tile-selection-option :editable=\"true\" value=\"2\" label=\"Option 2\"\n\t\t:description=\"'\\n * So we can offer bullet point lists\\n*\n\t\t\tThat help summarise the selection option'\"\n\t\tprice=\"$50.00\" price-interval=\"/month\" :meta=\"[{key: 'c', value: 3}, {key: 'd', value: 4}]\"/>\n</ff-tile-selection>"
         }, {
-            "code": "<ff-tile-selection v-model=\"myVar\">\n\t<ff-tile-selection-option value=\"1\" label=\"Option 1\" :description=\"'Markdown supported in the description, consectetur adipiscing elit ut aliquam'\" price=\"$15.00\" price-interval=\"/month\"/>\n\t<ff-tile-selection-option :disabled=\"true\" value=\"2\" label=\"Option 2\" :description=\"'The second option is disabled.'\" price=\"$50.00\" price-interval=\"/month\"/>\n\t<ff-tile-selection-option value=\"3\" label=\"Option 3\" :description=\"'The third option.'\" price=\"$50.00\" price-interval=\"/month\"/>\n</ff-tile-selection>"
+            "code": "<ff-tile-selection v-model=\"myVar\">\n\t<ff-tile-selection-option value=\"1\" label=\"Option 1\"\n\t\t:description=\"'Markdown supported in the description, consectetur adipiscing elit ut aliquam'\"\n\t\tprice=\"$15.00\" price-interval=\"/month\"/>\n\t<ff-tile-selection-option :disabled=\"true\" value=\"2\" label=\"Option 2\"\n\t\t:description=\"'The second option is disabled.'\" price=\"$50.00\" price-interval=\"/month\"/>\n\t<ff-tile-selection-option value=\"3\" label=\"Option 3\"\n\t\t:description=\"'The third option.'\" price=\"$50.00\" price-interval=\"/month\"/>\n</ff-tile-selection>"
+        }],
+        "emits": [{
+            "event": "edit",
+            "example": null,
+            "description": "Sent when the 'edit' button is clicked. Requires 'editable=true'."
         }],
         "props": [{
             "key": "value",
             "default": "null",
             "description": "The value bound to v-model and emitted when selected"
         }, {
-            "key": "selectable",
-            "default": "true",
-            "description": "Enables/Disables the selectable nature of the tile."
+            "key": "editable",
+            "default": "false",
+            "description": "When true, shows an 'edit' icon in place of a 'selection' tick toggle. On clicking the 'edit' icon, an event is emitted."
         }, {
             "key": "disabled",
             "default": "true",
