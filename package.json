@@ -47,6 +47,7 @@
         "@fastify/autoload": "^4.0.1",
         "@fastify/cookie": "^6.0.0",
         "@fastify/csrf-protection": "^4.0.1",
+        "@fastify/helmet": "^8.1.0",
         "@fastify/static": "^5.0.2",
         "@flowforge/forge-ui-components": "^0.2.4",
         "@flowforge/localfs": "^0.7.0",
