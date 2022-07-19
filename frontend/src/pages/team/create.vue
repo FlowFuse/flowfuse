@@ -15,7 +15,7 @@
                 <FormHeading>Create a new team</FormHeading>
                 <div class="mb-8 text-sm text-gray-500">Teams are how you organize who collaborates on your projects.</div>
 
-                <FormRow v-model="input.name" id="team">Team Name
+                <FormRow v-model="input.name" id="team" :error="errors.name">Team Name
                     <template v-slot:description>
                         eg. 'Development'
                     </template>
@@ -113,11 +113,17 @@ export default {
             }, {
                 question: 'Who are FlowForge?',
                 answer: '<p>FlowForge is a US company registered in Delaware, we were founded in April 2021 and are backed by <a class="text-blue-500" href="https://opencoreventures.com/" target="_blank">Open Core Ventures</a></p><p class="mt-3">The team are all remote, located around the world, you can see more about the individuals on our <a class="text-blue-500" href="https://flowforge.com/team/">Team page</a></p>'
-            }]
+            }],
+            errors: {}
         }
     },
     watch: {
-        'input.name': function () {
+        'input.name': function (v) {
+            if (v && /:\/\//.test(v)) {
+                this.errors.name = 'Team name can not contain URL'
+            } else {
+                this.errors.name = ''
+            }
             this.input.slug = slugify(this.input.name)
         },
         'input.slug': function (v) {
@@ -131,7 +137,7 @@ export default {
     computed: {
         ...mapState('account', ['team']),
         formValid () {
-            return this.input.name && !this.input.slugError
+            return this.input.name && !this.input.slugError && !this.errors.name
         }
     },
     mounted () {

@@ -2,7 +2,7 @@
     <ff-loading v-if="loading" message="" />
     <form v-else class="space-y-6">
         <FormRow v-model="input.username" :error="errors.username">Username</FormRow>
-        <FormRow v-model="input.name" :placeholder="input.username">Name</FormRow>
+        <FormRow v-model="input.name" :placeholder="input.username" :error="errors.name">Name</FormRow>
         <FormRow v-model="input.email" :error="errors.email">Email</FormRow>
 
         <ff-button :disabled="!formValid" @click="confirm">Save Changes</ff-button>
@@ -52,6 +52,11 @@ export default {
             this.changed.email = (this.user.email !== v)
         },
         'input.name': function (v) {
+            if (v && /:\/\//i.test(v)) {
+                this.errors.name = 'Names can not be URLs'
+            } else {
+                this.errors.name = ''
+            }
             this.changed.name = (this.user.name !== v)
         }
     },
@@ -106,7 +111,8 @@ export default {
         formValid () {
             return (this.changed.name || this.changed.username || this.changed.email) &&
                    (this.input.email && !this.errors.email) &&
-                   (this.input.username && !this.errors.username)
+                   (this.input.username && !this.errors.username) &&
+                   (this.input.name && !this.errors.name)
         }
     },
     components: {

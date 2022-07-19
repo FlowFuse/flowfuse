@@ -69,11 +69,18 @@ export default {
             } else {
                 this.errors.slug = ''
             }
+        },
+        'input.teamName': function (v) {
+            if (v && /:\/\//.test(v)) {
+                this.errors.teamName = 'Team name can not contain URL'
+            } else {
+                this.errors.teamName = ''
+            }
         }
     },
     computed: {
         formValid () {
-            return this.input.teamName && !this.errors.slug
+            return this.input.teamName && !this.errors.slug && !this.errors.teamName
         }
     },
     mounted () {
