@@ -239,20 +239,34 @@
                 <h2 ref="ff-text-input"><pre>ff-text-input</pre></h2>
                 <h3>Properties:</h3>
                 <props-table :rows="groups['input'].components[0].props"></props-table>
+                <h3>Slots:</h3>
+                <slots-table :rows="groups['input'].components[0].slots"></slots-table>
                 <h3>Examples:</h3>
                 <div class="examples">
                     <div class="example">
+                        <h5>Simple Text Input</h5>
                         <ff-text-input placeholder="Insert something here..." v-model="models.textInput0"/>
                         {{ models.textInput0 }}
                         <code>{{ groups['input'].components[0].examples[0].code }}</code>
                     </div>
                     <div class="example">
+                        <h5>Type: Password</h5>
                         <ff-text-input type="password" placeholder="Password goes here..."/>
                         <code>{{ groups['input'].components[0].examples[1].code }}</code>
                     </div>
                     <div class="example">
+                        <h5>Type: E-Mail</h5>
                         <ff-text-input type="email"/>
                         <code>{{ groups['input'].components[0].examples[2].code }}</code>
+                    </div>
+                    <div class="example">
+                        <h5>Text Input with Icon (e.g. Search)</h5>
+                        <ff-text-input type="email">
+                            <template v-slot:icon>
+                                <SearchIcon />
+                            </template>
+                        </ff-text-input>
+                        <code>{{ groups['input'].components[0].examples[3].code }}</code>
                     </div>
                 </div>
                 <!-- Dropdown -->
@@ -422,7 +436,7 @@ import tabsDocs from './data/tabs.docs.json'
 import MarkdownViewer from './components/Markdown.vue'
 
 // icons
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { PlusSmIcon, SearchIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'DesignLanguage',
@@ -432,7 +446,8 @@ export default {
         EventsTable,
         SlotsTable,
         // icons
-        PlusSmIcon
+        PlusSmIcon,
+        SearchIcon
     },
     data () {
         return {
