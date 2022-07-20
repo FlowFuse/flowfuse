@@ -62,7 +62,15 @@ module.exports = async (options = {}) => {
         await server.register(csrf, { cookieOpts: { _signed: true, _httpOnly: true } })
         await server.register(helmet, {
             global: true,
-            contentSecurityPolicy: false
+            contentSecurityPolicy: false,
+            crossOriginEmbedderPolicy: false,
+            crossOriginOpenerPolicy: false,
+            crossOriginResourcePolicy: false,
+            hidePoweredBy: false,
+            hsts: false,
+            frameguard: {
+                action: 'deny'
+            }
         })
 
         // Routes : the HTTP routes
