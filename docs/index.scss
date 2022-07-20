@@ -124,6 +124,10 @@ ul#grouplist {
             &:not(:first-child) {
                 border-top-width: 0;
             }
+            h5 {
+                font-weight: bold;
+                margin-bottom: $ff-unit-lg;
+            }
             code {
                 display: block;
                 margin-top: $ff-unit-md;

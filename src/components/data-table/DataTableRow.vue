@@ -1,17 +1,13 @@
 <template>
-    <tr class="ff-data-table--row" @click="$emit('selected')">
+    <tr class="ff-data-table--row" :class="{'selectable': selectable}" @click="$emit('selected')">
         <slot>
             <ff-data-table-cell v-for="col in columns" :key="col.label">
                 {{ data[col.key] }}
             </ff-data-table-cell>
         </slot>
-        <ff-data-table-cell v-if="hasContextMenu">
+        <ff-data-table-cell v-if="hasContextMenu" style="width: 50px">
             <ff-kebab-menu menu-align="right">
-                <slot name="context-menu">
-                    <ff-list-item label="Option 1" @click="doSomething()"/>
-                    <ff-list-item label="Option 2" @click="doSomething()"/>
-                    <ff-list-item label="Option 3" @click="doSomething()"/>
-                </slot>
+                <slot name="context-menu"></slot>
             </ff-kebab-menu>
         </ff-data-table-cell>
     </tr>
@@ -28,6 +24,10 @@ export default {
         data: {
             type: Object,
             default: null
+        },
+        selectable: {
+            type: Boolean,
+            default: false
         }
     },
     computed: {

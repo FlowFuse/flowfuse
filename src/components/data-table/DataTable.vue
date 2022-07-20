@@ -1,7 +1,7 @@
 <template>
     <div class="ff-data-table">
         <div v-if="showOptions" class="ff-data-table--options">
-            <ff-text-input class="ff-data-table--search" :placeholder="searchPlaceholder" v-model="filterTerm"/>
+            <ff-text-input v-if="showSearch" class="ff-data-table--search" :placeholder="searchPlaceholder" v-model="filterTerm"/>
             <div class="ff-data-table--actions">
                 <slot name="actions"></slot>
             </div>
@@ -9,18 +9,23 @@
         <table class="ff-data-table--data">
             <slot name="table">
                 <thead>
-                    <slot name="thead">
+                    <slot name="header">
                         <ff-data-table-row>
                             <ff-data-table-cell v-for="(col, $index) in columns" :key="$index">
                                 {{ col.label }}
                             </ff-data-table-cell>
+                            <ff-data-table-cell v-if="hasContextMenu"></ff-data-table-cell>
                         </ff-data-table-row>
                     </slot>
                 </thead>
                 <tbody>
-                    <slot name="tbody">
+                    <slot name="rows">
                         <ff-data-table-row v-for="(r, $index) in rows" :key="$index" :data="r" :columns="columns"
-                            :class="{'selectable': rowsSelectable}" @click="rowClick(r)"></ff-data-table-row>
+                            :selectable="rowsSelectable" @click="rowClick(r)">
+                            <template v-if="hasContextMenu" v-slot:context-menu>
+                                <slot name="context-menu"></slot>
+                            </template>
+                        </ff-data-table-row>
                     </slot>
                 </tbody>
             </slot>
@@ -70,6 +75,9 @@ export default {
             set (value) {
                 this.$emit('update:search', value)
             }
+        },
+        hasContextMenu: function () {
+            return this.$slots['context-menu']
         }
     },
     methods: {

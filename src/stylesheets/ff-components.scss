@@ -365,9 +365,19 @@ li.ff-list-item {
   width: 100%;
   &--options {
     margin-bottom: 6px;
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+  }
+  &--search.ff-text-input {
+    flex-grow: 1;
+    width: auto;
+    height: 34px;
+    border-radius: 6px;
   }
   &--actions {
-
+    display: flex;
+    gap: 6px;
   }
   &--data {
     border-collapse: separate;
