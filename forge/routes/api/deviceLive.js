@@ -39,7 +39,7 @@ module.exports = async function (app) {
             })
             return
         }
-        if (request.body.settings && request.body.settings !== (request.device.settingsHash || null)) {
+        if (request.body.settings !== undefined && request.body.settings !== (request.device.settingsHash || null)) {
             reply.code(409).send({
                 error: 'incorrect-settings',
                 settings: request.device.settingsHash || null,

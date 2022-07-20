@@ -155,6 +155,25 @@ module.exports = {
                         ]
                     })
                 },
+                byProject: async (projectId) => {
+                    return this.findAll({
+                        include: [
+                            {
+                                model: M.Team,
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                            },
+                            {
+                                model: M.Project,
+                                where: {
+                                    id: projectId
+                                },
+                                attributes: ['id', 'name', 'links']
+                            },
+                            { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
+                            { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
+                        ]
+                    })
+                },
                 getAll: async (pagination = {}, where = {}) => {
                     const limit = parseInt(pagination.limit) || 30
                     if (pagination.cursor) {
@@ -184,6 +203,30 @@ module.exports = {
                         count: count,
                         devices: rows
                     }
+                },
+                byTargetSnapshot: async (snapshotHashId) => {
+                    const snapshotId = M.ProjectSnapshot.decodeHashid(snapshotHashId)
+                    return this.findAll({
+                        include: [
+                            {
+                                model: M.Team,
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                            },
+                            {
+                                model: M.Project,
+                                attributes: ['id', 'name', 'links']
+                            },
+                            {
+                                model: M.ProjectSnapshot,
+                                as: 'targetSnapshot',
+                                attributes: ['id', 'hashid', 'name'],
+                                where: {
+                                    id: snapshotId
+                                }
+                            },
+                            { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
+                        ]
+                    })
                 },
                 getDeviceProjectId: async (id) => {
                     if (typeof id === 'string') {

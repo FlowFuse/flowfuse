@@ -154,6 +154,7 @@ module.exports = async function (app) {
     app.put('/:deviceId', {
         preHandler: app.needsPermission('device:edit')
     }, async (request, reply) => {
+        let sendDeviceUpdate = false
         if (request.body.project !== undefined) {
             if (request.body.project === null) {
                 // Remove device from project if it is currently assigned
@@ -164,6 +165,7 @@ module.exports = async function (app) {
                     // Clear its target snapshot, so the next time it calls home
                     // it will stop the current snapshot
                     await request.device.setTargetSnapshot(null)
+                    sendDeviceUpdate = true
 
                     await app.db.controllers.AuditLog.teamLog(
                         request.device.Team.id,
@@ -200,7 +202,8 @@ module.exports = async function (app) {
                     // Set the target snapshot to match the project's one
                     const deviceSettings = await project.getSetting('deviceSettings')
                     request.device.targetSnapshotId = deviceSettings?.targetSnapshot
-                    // if (project.team.id)
+
+                    sendDeviceUpdate = true
 
                     await app.db.controllers.AuditLog.teamLog(
                         request.device.Team.id,
@@ -239,7 +242,12 @@ module.exports = async function (app) {
         await request.device.save()
 
         const updatedDevice = await app.db.models.Device.byId(request.device.id)
-
+        if (app.comms && sendDeviceUpdate) {
+            app.comms.devices.sendCommand(updatedDevice.Team.hashid, updatedDevice.hashid, 'update', {
+                snapshot: updatedDevice.targetSnapshot?.hashid || null,
+                settings: updatedDevice.settingsHash || null
+            })
+        }
         reply.send(app.db.views.Device.device(updatedDevice))
     })
 
@@ -260,6 +268,12 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('device:edit')
     }, async (request, reply) => {
         await request.device.updateSettings(request.body)
+        if (app.comms) {
+            app.comms.devices.sendCommand(request.device.Team.hashid, request.device.hashid, 'update', {
+                snapshot: request.device.targetSnapshot?.hashid || null,
+                settings: request.device.settingsHash || null
+            })
+        }
         reply.send({ status: 'okay' })
     })
 

@@ -68,6 +68,15 @@ module.exports = async function (app) {
                 'project.snapshot.deviceTarget',
                 { id: request.body.targetSnapshot }
             )
+            if (app.comms) {
+                const devices = await app.db.models.Device.byProject(request.project.id)
+                devices.forEach(device => {
+                    app.comms.devices.sendCommand(device.Team.hashid, device.hashid, 'update', {
+                        snapshot: device.targetSnapshot?.hashid || null,
+                        settings: device.settingsHash || null
+                    })
+                })
+            }
             reply.send({ status: 'okay' })
         }
     })

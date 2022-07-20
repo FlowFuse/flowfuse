@@ -52,6 +52,15 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('project:snapshot:delete')
     }, async (request, reply) => {
         const id = request.snapshot.hashid
+        if (app.comms) {
+            const devices = await app.db.models.Device.byTargetSnapshot(id)
+            devices.forEach(device => {
+                app.comms.devices.sendCommand(device.Team.hashid, device.hashid, 'update', {
+                    snapshot: null,
+                    settings: device.settingsHash || null
+                })
+            })
+        }
         await request.snapshot.destroy()
         await app.db.controllers.AuditLog.projectLog(
             request.project.id,
