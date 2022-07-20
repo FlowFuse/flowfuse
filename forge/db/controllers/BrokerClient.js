@@ -52,6 +52,17 @@ module.exports = {
         if (existingClient) {
             await existingClient.destroy()
         }
+        if (!project.Team) {
+            // When restarting the platform, the container drivers get a minimal list
+            // of projects to restart. They don't necessarily include the Team in their
+            // query - so we need to ensure its available.
+            await project.reload({
+                include: [{
+                    model: app.db.models.Team,
+                    attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                }]
+            })
+        }
         const username = `project:${project.Team.hashid}:${project.id}`
         const password = generateToken(32, 'ffbp')
         await app.db.models.BrokerClient.create({
