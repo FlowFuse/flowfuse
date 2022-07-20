@@ -14,8 +14,13 @@
                 <thead>
                     <slot name="header">
                         <ff-data-table-row>
-                            <ff-data-table-cell v-for="(col, $index) in columns" :key="$index">
-                                {{ col.label }}
+                            <ff-data-table-cell v-for="(col, $index) in columns" :key="$index" :class="{'sorted': sort.key === col.key ,'sortable': col.sortable}" @click="sortBy(col)">
+                                <div>
+                                    {{ col.label }}
+                                    <SwitchVerticalIcon class="ff-icon" v-if="col.sortable && col.key !== sort.key"/>
+                                    <SortAscendingIcon class="ff-icon icon-sorted" v-if="col.sortable && col.key === sort.key && sort.order === 'asc'"/>
+                                    <SortDescendingIcon class="ff-icon icon-sorted" v-if="col.sortable && col.key === sort.key && sort.order === 'desc'"/>
+                                </div>
                             </ff-data-table-cell>
                             <ff-data-table-cell v-if="hasContextMenu"></ff-data-table-cell>
                         </ff-data-table-row>
@@ -23,7 +28,7 @@
                 </thead>
                 <tbody>
                     <slot name="rows">
-                        <ff-data-table-row v-for="(r, $index) in rows" :key="$index" :data="r" :columns="columns"
+                        <ff-data-table-row v-for="(r, $index) in sortedRows" :key="$index" :data="r" :columns="columns"
                             :selectable="rowsSelectable" @click="rowClick(r)">
                             <template v-if="hasContextMenu" v-slot:context-menu>
                                 <slot name="context-menu"></slot>
@@ -39,7 +44,7 @@
 <script>
 
 // icons
-import { SearchIcon } from '@heroicons/vue/outline'
+import { SearchIcon, SwitchVerticalIcon, SortAscendingIcon, SortDescendingIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'ff-data-table',
@@ -84,6 +89,29 @@ export default {
         },
         hasContextMenu: function () {
             return this.$slots['context-menu']
+        },
+        sortedRows: function () {
+            if (this.sort.key) {
+                const rows = this.rows
+                return rows.sort((a, b) => {
+                    if (this.sort.order === 'asc') {
+                        return a[this.sort.key] - b[this.sort.key]
+                    } else {
+                        return b[this.sort.key] - a[this.sort.key]
+                    }
+                })
+            } else {
+                return this.rows
+            }
+        }
+    },
+    data () {
+        return {
+            sort: {
+                key: '',
+                order: 'desc'
+            },
+            orders: ['desc', 'asc']
         }
     },
     methods: {
@@ -91,10 +119,34 @@ export default {
             if (this.rowsSelectable) {
                 this.$emit('row-selected')
             }
+        },
+        sortBy (col) {
+            if (col.sortable) {
+                if (this.sort.key === col.key) {
+                    this.cycleOrder()
+                } else {
+                    this.sort.key = col.key
+                    this.resetOrder()
+                }
+            }
+        },
+        cycleOrder () {
+            if (this.sort.order === 'desc') {
+                this.sort.order = 'asc'
+            } else {
+                this.sort.key = null
+                this.sort.order = 'desc'
+            }
+        },
+        resetOrder () {
+            this.sort.order = this.orders[0]
         }
     },
     components: {
-        SearchIcon
+        SearchIcon,
+        SwitchVerticalIcon,
+        SortAscendingIcon,
+        SortDescendingIcon
     }
 }
 </script>

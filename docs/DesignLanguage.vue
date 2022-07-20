@@ -120,7 +120,13 @@
                         <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[0].js }}</code>
                     </div>
                     <div class="example">
-                        <h5>Example 2: Context Menu</h5>
+                        <h5>Example 2: Sortable Columns</h5>
+                        <ff-data-table :columns="data.table1.columns" :rows="data.table1.rows"></ff-data-table>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[1].html }}</code>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[1].js }}</code>
+                    </div>
+                    <div class="example">
+                        <h5>Example 3: Context Menu</h5>
                         <ff-data-table :columns="data.table0.columns" :rows="data.table0.rows">
                             <template v-slot:context-menu>
                                 <ff-list-item label="Option 1" @click="doSomething"/>
@@ -128,22 +134,22 @@
                                 <ff-list-item label="Option 3" @click="doSomething"/>
                             </template>
                         </ff-data-table>
-                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[1].html }}</code>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[2].html }}</code>
                     </div>
                     <div class="example">
-                        <h5>Example 3: Filtering via Search &amp; Actions</h5>
-                        <ff-data-table :columns="data.table1.columns" :rows="table1Filtered"
-                            :show-search="true" search-placeholder="Search here..." v-model:search="data.table1.search">
+                        <h5>Example 4: Filtering via Search &amp; Actions</h5>
+                        <ff-data-table :columns="data.table3.columns" :rows="table3Filtered"
+                            :show-search="true" search-placeholder="Search here..." v-model:search="data.table3.search">
                             <template v-slot:actions>
                                 <ff-button>Press Me!</ff-button>
                                 <ff-button>Click Me!</ff-button>
                             </template>
                         </ff-data-table>
-                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[2].html }}</code>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[3].html }}</code>
                     </div>
                     <div class="example">
-                        <h5>Example 4: Custom Row Content</h5>
-                        <ff-data-table :columns="data.table1.columns">
+                        <h5>Example 5: Custom Row Content</h5>
+                        <ff-data-table :columns="data.table2.columns">
                             <template v-slot:rows>
                                 <ff-data-table-row>
                                     <ff-data-table-cell>
@@ -158,10 +164,10 @@
                                 </ff-data-table-row>
                             </template>
                         </ff-data-table>
-                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[3].html }}</code>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[4].html }}</code>
                     </div>
                     <div class="example">
-                        <h5>Example 5: Selectable Row Content &amp; Custom Headers</h5>
+                        <h5>Example 6: Selectable Row Content &amp; Custom Headers</h5>
                         <ff-data-table>
                             <template v-slot:header>
                                 <ff-data-table-row>
@@ -190,7 +196,7 @@
                                 </ff-data-table-row>
                             </template>
                         </ff-data-table>
-                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[4].html }}</code>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[5].html }}</code>
                     </div>
                 </div>
             </div>
@@ -496,6 +502,30 @@ export default {
                     }]
                 },
                 table1: {
+                    columns: [{
+                        key: 'colA',
+                        label: 'Column A',
+                        sortable: true
+                    }, {
+                        key: 'colB',
+                        label: 'Column B',
+                        sortable: true
+                    }, {
+                        key: 'colC',
+                        label: 'Column C',
+                        sortable: true
+                    }],
+                    rows: [{
+                        colA: 'This is Row 1, Column A',
+                        colB: 2,
+                        colC: 34
+                    }, {
+                        colA: 'This is Row 2, Column A',
+                        colB: 17,
+                        colC: 12.3
+                    }]
+                },
+                table2: {
                     search: '',
                     columns: [{
                         key: 'fName',
@@ -524,7 +554,7 @@ export default {
                         number: 789
                     }]
                 },
-                table2: {
+                table3: {
                     search: '',
                     columns: [{
                         key: 'fName',
@@ -560,10 +590,10 @@ export default {
         groups_ordered: function () {
             return _.sortedBy(this.groups, 'name')
         },
-        table1Filtered: function () {
-            const search = this.data.table1.search
+        table3Filtered: function () {
+            const search = this.data.table3.search
             if (search) {
-                return this.data.table1.rows.filter(function (cell, index) {
+                return this.data.table3.rows.filter(function (cell, index) {
                     const vals = Object.values(cell)
                     for (let i = 0; i < vals.length; i++) {
                         let value = vals[i]
@@ -579,7 +609,7 @@ export default {
                     return false
                 })
             } else {
-                return this.data.table1.rows
+                return this.data.table3.rows
             }
         }
     },

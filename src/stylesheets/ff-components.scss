@@ -426,6 +426,28 @@ li.ff-list-item {
         padding: 9px 12px;
         background-color: $ff-grey-100;
         font-weight: 600;
+        >div {
+          display: flex;
+          justify-content: space-between;
+        }
+        &.sortable {
+          .ff-icon {
+            opacity: 0;
+          }
+          &:hover {
+            background-color: $ff-grey-200;
+            cursor: pointer;
+            .ff-icon {
+              opacity: 0.5;
+            }
+          }
+        }
+        &.sorted {
+          background-color: $ff-grey-200;
+          .ff-icon.icon-sorted {
+            opacity: 1;
+          }
+        }
       }
     }
     tbody {

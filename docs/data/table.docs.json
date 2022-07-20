@@ -7,6 +7,8 @@
         "examples": [{
             "html": "<ff-data-table :columns=\"cols\" :rows=\"rows\" :rows-selectable=\"true\" @row-selected=\"doSomething\"></ff-data-table>"
         }, {
+            "html": "<ff-data-table :columns=\"cols\" :rows=\"rows\" :rows-selectable=\"true\" @row-selected=\"doSomething\"></ff-data-table>"
+        }, {
             "html": "<ff-data-table :columns=\"cols\" :rows=\"rows\">\n\t<template v-slot:context-menu>\n\t\t<ff-list-item label=\"Option 1\" @click=\"doSomething\"/>\n\t\t<ff-list-item label=\"Option 2\" @click=\"doSomething\"/>\n\t\t<ff-list-item label=\"Option 3\" @click=\"doSomething\"/>\n\t</template>\n</ff-data-table>"
         }, {
             "html": "<ff-data-table :columns=\"cols\" :rows=\"rows\" :show-search=\"true\"\n\tsearch-placeholder=\"Search here...\" v-model:search=\"search\">\n\t<template v-slot:actions>\n\t\t<ff-button>Press Me!</ff-button>\n\t\t<ff-button>Click Me!</ff-button>\n\t</template>\n</ff-data-table>"
