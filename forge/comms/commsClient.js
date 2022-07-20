@@ -16,13 +16,13 @@ class CommsClient extends EventEmitter {
         }
         this.client = mqtt.connect(this.app.config.broker.url, brokerConfig)
         this.client.on('connect', () => {
-            console.log('connected')
+            this.app.log.info('Connected to comms broker')
         })
         this.client.on('reconnect', () => {
-            console.log('reconnect')
+            this.app.log.info('Reconnecting to comms broker')
         })
         this.client.on('error', (err) => {
-            console.log('error', err)
+            this.app.log.info(`Connection error to comms broker: ${err.toString()}`)
         })
         this.client.on('message', (topic, message) => {
             const topicParts = topic.split('/')
@@ -44,6 +44,10 @@ class CommsClient extends EventEmitter {
             'ff/v1/+/p/+/status',
             'ff/v1/+/d/+/status'
         ])
+    }
+
+    publish (topic, payload) {
+        this.client.publish(topic, payload)
     }
 
     async disconnect () {
