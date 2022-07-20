@@ -1,7 +1,10 @@
 <template>
     <div class="ff-data-table">
         <div v-if="showOptions" class="ff-data-table--options">
-            <ff-text-input v-if="showSearch" class="ff-data-table--search" :placeholder="searchPlaceholder" v-model="filterTerm"/>
+            <ff-text-input v-if="showSearch" class="ff-data-table--search"
+                :placeholder="searchPlaceholder" v-model="filterTerm">
+                <template v-slot:icon><SearchIcon /></template>
+            </ff-text-input>
             <div class="ff-data-table--actions">
                 <slot name="actions"></slot>
             </div>
@@ -34,6 +37,9 @@
 </template>
 
 <script>
+
+// icons
+import { SearchIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'ff-data-table',
@@ -86,6 +92,9 @@ export default {
                 this.$emit('row-selected')
             }
         }
+    },
+    components: {
+        SearchIcon
     }
 }
 </script>
