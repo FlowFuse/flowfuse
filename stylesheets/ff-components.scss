@@ -189,13 +189,35 @@ li.ff-list-item {
 .ff-input {
   &.ff-text-input {
     border: 1px solid $ff-grey-300;
-    border-radius: $ff-unit-xs;
-    padding: $ff-unit-sm $ff-unit-md;
+    border-radius: $ff-unit-sm;
     height: 32px;
     width: 100%;
-    &:focus {
+    display: flex;
+    gap: 0px;
+    align-items: center;
+    svg {
+      width: 20px;
+      height: 20px;
+      margin-left: $ff-unit-sm;
+    }
+    input {
+      flex-grow: 1;
+      padding: $ff-unit-sm $ff-unit-md;
+      border-radius: $ff-unit-xs;
+      background: none;
+      height: 100%;
+      &:focus-visible {
+        border: none;
+        outline: none;
+      }
+    }
+    &:focus-within {
       border-color: $ff-blue-600;
+      border-width: 2px;
       outline: none;
+      svg {
+        margin-left: $ff-unit-sm - 1px;
+      }
     }
   }
 }
