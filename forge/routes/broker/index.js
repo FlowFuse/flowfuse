@@ -58,26 +58,29 @@ module.exports = async function (app) {
         forge_platform: {
             sub: [
                 // Receive status events from project launchers
-                // - ff/v1/+/p/+/status
-                { topic: /^ff\/v1\/[^/]+\/p\/[^/]+\/status$/ },
+                // - ff/v1/+/l/+/status
+                { topic: /^ff\/v1\/[^/]+\/l\/[^/]+\/status$/ },
                 // Receive status events from devices
                 // - ff/v1/+/d/+/status
                 { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/status$/ }
             ],
             pub: [
                 // Send commands to project launchers
-                // - ff/v1/+/p/+/command
-                { topic: /^ff\/v1\/[^/]+\/p\/[^/]+\/command$/ },
+                // - ff/v1/+/l/+/command
+                { topic: /^ff\/v1\/[^/]+\/l\/[^/]+\/command$/ },
                 // Send commands to devices
                 // - ff/v1/+/d/+/command
-                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/command$/ }
+                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/command$/ },
+                // Send commands to all project-assigned devices
+                // - ff/v1/+/p/+/command
+                { topic: /^ff\/v1\/[^/]+\/p\/[^/]+\/command$/ }
             ]
         },
         project: {
             sub: [
                 // Receive commands from the platform
-                // - ff/v1/<team>/p/<project>/command
-                { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/command$/, verify: checkTeamAndObjectIds },
+                // - ff/v1/<team>/l/<project>/command
+                { topic: /^ff\/v1\/([^/]+)\/l\/([^/]+)\/command$/, verify: checkTeamAndObjectIds },
                 // Receive broadcasts from other projects in the team
                 // - ff/v1/<team>/p/+/out/+/#
                 { topic: /^ff\/v1\/([^/]+)\/p\/[^/]+\/out\/[^/]+($|\/.*$)/, verify: checkTeamId },
@@ -87,8 +90,8 @@ module.exports = async function (app) {
             ],
             pub: [
                 // Send status to the platform
-                // - ff/v1/<team>/p/<project>/status
-                { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/status$/, verify: checkTeamAndObjectIds },
+                // - ff/v1/<team>/l/<project>/status
+                { topic: /^ff\/v1\/([^/]+)\/l\/([^/]+)\/status$/, verify: checkTeamAndObjectIds },
                 // Send message to other project
                 // - ff/v1/<team>/p/+/in/+/#
                 { topic: /^ff\/v1\/([^/]+)\/p\/[^/]+\/in\/[^/]+($|\/.*$)/, verify: checkTeamId },
@@ -102,6 +105,9 @@ module.exports = async function (app) {
                 // Receive commands from the platform
                 // - ff/v1/<team>/d/<device>/command
                 { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/command$/, verify: checkTeamAndObjectIds },
+                // Receive commands from the platform - broadcast
+                // - ff/v1/<team>/p/<project>/command
+                { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/command$/, verify: checkDeviceAssignedToProject },
                 // Receive broadcasts from other projects in the team
                 // - ff/v1/<team>/p/+/out/+/#
                 { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/out\/[^/]+($|\/.*$)/, verify: checkDeviceCanAccessProject },

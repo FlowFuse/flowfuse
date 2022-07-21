@@ -244,6 +244,7 @@ module.exports = async function (app) {
         const updatedDevice = await app.db.models.Device.byId(request.device.id)
         if (app.comms && sendDeviceUpdate) {
             app.comms.devices.sendCommand(updatedDevice.Team.hashid, updatedDevice.hashid, 'update', {
+                project: updatedDevice.Project?.id || null,
                 snapshot: updatedDevice.targetSnapshot?.hashid || null,
                 settings: updatedDevice.settingsHash || null
             })
@@ -270,6 +271,7 @@ module.exports = async function (app) {
         await request.device.updateSettings(request.body)
         if (app.comms) {
             app.comms.devices.sendCommand(request.device.Team.hashid, request.device.hashid, 'update', {
+                project: request.device.Project?.id || null,
                 snapshot: request.device.targetSnapshot?.hashid || null,
                 settings: request.device.settingsHash || null
             })

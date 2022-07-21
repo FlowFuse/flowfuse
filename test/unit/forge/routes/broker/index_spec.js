@@ -124,25 +124,31 @@ describe('Broker Auth API', async function () {
             response2.statusCode.should.equal(401)
         }
         describe('Platform Client', async function () {
-            it('allows project to subscribe to project status topic', async function () {
+            it('allows platform to subscribe to launcher status topic', async function () {
                 await allowRead({
                     username: 'forge_platform',
-                    topic: 'ff/v1/+/p/+/status'
+                    topic: 'ff/v1/+/l/+/status'
                 })
             })
-            it('allows project to subscribe to device status topic', async function () {
+            it('allows platform to subscribe to device status topic', async function () {
                 await allowRead({
                     username: 'forge_platform',
                     topic: 'ff/v1/+/d/+/status'
                 })
             })
-            it('allows project to publish to project command topic', async function () {
+            it('allows platform to publish to project-device command topic', async function () {
                 await allowWrite({
                     username: 'forge_platform',
                     topic: 'ff/v1/abc/p/xyz/command'
                 })
             })
-            it('allows project to publish to device command topic', async function () {
+            it('allows platform to publish to launcher command topic', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: 'ff/v1/abc/l/xyz/command'
+                })
+            })
+            it('allows platform to publish to device command topic', async function () {
                 await allowWrite({
                     username: 'forge_platform',
                     topic: 'ff/v1/abc/d/ghi/command'
@@ -152,58 +158,58 @@ describe('Broker Auth API', async function () {
 
         describe('Project', async function () {
             // Status Topic
-            it('allows project to publish to own status topic', async function () {
+            it('allows launcher to publish to own status topic', async function () {
                 await allowWrite({
                     username: 'project:abc:xyz',
-                    topic: 'ff/v1/abc/p/xyz/status'
+                    topic: 'ff/v1/abc/l/xyz/status'
                 })
             })
-            it('prevents project from publishing to other status topic', async function () {
+            it('prevents launcher from publishing to other status topic', async function () {
                 await denyWrite({
                     username: 'project:abc:xyz',
-                    topic: 'ff/v1/abc/p/other-project/status'
+                    topic: 'ff/v1/abc/l/other-project/status'
                 })
                 await denyWrite({
                     username: 'project:abc:xyz',
-                    topic: 'ff/v1/other-team/p/xyz/status'
+                    topic: 'ff/v1/other-team/l/xyz/status'
                 })
             })
-            it('prevents project from subscribing to status topic', async function () {
+            it('prevents launcher from subscribing to status topic', async function () {
                 await denyRead({
                     username: 'project:abc:xyz',
-                    topic: 'ff/v1/abc/p/xyz/status'
+                    topic: 'ff/v1/abc/l/xyz/status'
                 })
                 await denyRead({
                     username: 'project:abc:xyz',
-                    topic: 'ff/v1/abc/p/other-project/status'
+                    topic: 'ff/v1/abc/l/other-project/status'
                 })
             })
 
             // Command topic
-            it('allows project to subscribe to own command topic', async function () {
+            it('allows launcher to subscribe to own command topic', async function () {
                 allowRead({
                     username: 'project:abc:xyz',
-                    topic: 'ff/v1/abc/p/xyz/command'
+                    topic: 'ff/v1/abc/l/xyz/command'
                 })
             })
             it('prevents project from subscribing to other command topic', async function () {
                 await denyRead({
                     username: 'project:abc:xyz',
-                    topic: 'ff/v1/abc/p/other-project/command'
+                    topic: 'ff/v1/abc/l/other-project/command'
                 })
                 await denyRead({
                     username: 'project:abc:xyz',
-                    topic: 'ff/v1/other-team/p/xyz/command'
+                    topic: 'ff/v1/other-team/l/xyz/command'
                 })
             })
-            it('prevents project from publishing to command topic', async function () {
+            it('prevents launcher from publishing to command topic', async function () {
                 await denyWrite({
                     username: 'project:abc:xyz',
-                    topic: 'ff/v1/abc/p/xyz/command'
+                    topic: 'ff/v1/abc/l/xyz/command'
                 })
                 await denyWrite({
                     username: 'project:abc:xyz',
-                    topic: 'ff/v1/abc/p/other-project/command'
+                    topic: 'ff/v1/abc/l/other-project/command'
                 })
             })
 
@@ -423,6 +429,12 @@ describe('Broker Auth API', async function () {
                 })
             })
             describe('unassigned', async function () {
+                it('cannot subscribe to project command if unassigned', async function () {
+                    await denyRead({
+                        username: deviceUsername,
+                        topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectA.id}/command`
+                    })
+                })
                 it('cannot subscribe to project inbox if unassigned', async function () {
                     await denyRead({
                         username: deviceUsername,
@@ -457,6 +469,12 @@ describe('Broker Auth API', async function () {
                             project: TestObjects.ProjectA.id
                         },
                         cookies: { sid: TestObjects.tokens.alice }
+                    })
+                })
+                it('can subscribe to project command if assigned', async function () {
+                    await allowRead({
+                        username: deviceUsername,
+                        topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectA.id}/command`
                     })
                 })
                 it('can subscribe to project inbox if assigned', async function () {

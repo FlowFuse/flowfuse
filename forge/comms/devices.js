@@ -14,7 +14,10 @@ class DeviceCommsHandler {
                 return
             }
             await this.app.db.controllers.Device.updateState(device, payload)
-            let sendUpdateCommand = payload.state === 'stopped'
+            let sendUpdateCommand = payload.state === 'unknown'
+            if (Object.hasOwn(payload, 'project') && payload.project !== (device.Project?.id || null)) {
+                sendUpdateCommand = true
+            }
             if (Object.hasOwn(payload, 'snapshot') && payload.snapshot !== (device.targetSnapshot?.hashid || null)) {
                 sendUpdateCommand = true
             }
@@ -24,6 +27,7 @@ class DeviceCommsHandler {
 
             if (sendUpdateCommand) {
                 this.sendCommand(device.Team.hashid, deviceId, 'update', {
+                    project: device.Project?.id || null,
                     snapshot: device.targetSnapshot?.hashid || null,
                     settings: device.settingsHash || null
                 })
@@ -31,9 +35,17 @@ class DeviceCommsHandler {
         }
     }
 
+    sendCommandToProjectDevices (teamId, projectId, command, payload) {
+        const topic = `ff/v1/${teamId}/p/${projectId}/command`
+        this.client.publish(topic, JSON.stringify({
+            command: command,
+            ...payload
+        }))
+    }
+
     sendCommand (teamId, deviceId, command, payload) {
-        const deviceTopic = `ff/v1/${teamId}/d/${deviceId}/command`
-        this.client.publish(deviceTopic, JSON.stringify({
+        const topic = `ff/v1/${teamId}/d/${deviceId}/command`
+        this.client.publish(topic, JSON.stringify({
             command: command,
             ...payload
         }))
