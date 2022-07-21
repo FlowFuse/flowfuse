@@ -38,6 +38,9 @@
                 </tbody>
             </slot>
         </table>
+        <div v-if="showLoadMore" class="ff-loadmore">
+            <span @click="$emit('load-more')">Load More...</span>
+        </div>
     </div>
 </template>
 
@@ -48,7 +51,7 @@ import { SearchIcon, SwitchVerticalIcon, SortAscendingIcon, SortDescendingIcon }
 
 export default {
     name: 'ff-data-table',
-    emits: ['update:search'],
+    emits: ['update:search', 'load-more'],
     props: {
         columns: {
             type: Array,
@@ -73,6 +76,10 @@ export default {
         search: {
             type: String,
             default: null
+        },
+        showLoadMore: {
+            type: Boolean,
+            default: false
         }
     },
     computed: {
@@ -121,6 +128,10 @@ export default {
             sort: {
                 key: '',
                 order: 'desc'
+            },
+            pagination: {
+                active: -1,
+                max: -1
             },
             orders: ['desc', 'asc']
         }
