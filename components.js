@@ -8,8 +8,6 @@ import FFDataTableCell from './components/data-table/DataTableCell.vue'
 
 import FFDialogBox from './components/DialogBox.vue'
 
-import FFListItem from './components/ListItem.vue'
-
 // Form Elements
 import FFTextInput from './components/form/TextInput.vue'
 import FFDropdown from './components/form/Dropdown.vue'
@@ -26,11 +24,16 @@ import FFNotificationToast from './components/NotificationToast.vue'
 import FFTabs from './components/tabs/Tabs.vue'
 import FFTab from './components/tabs/Tab.vue'
 
+// Utilities
+import FFCheck from './components/Check.vue'
+import FFListItem from './components/ListItem.vue'
+
 export default {
     FFButton,
     FFKebabMenu,
     FFDialogBox,
     FFListItem,
+    FFCheck,
     // Data Table
     FFDataTable,
     FFDataTableRow,

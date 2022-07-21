@@ -1,5 +1,5 @@
 <template>
-    <tr class="ff-data-table--row" :class="{'selectable': selectable}" @click="$emit('selected')">
+    <tr class="ff-data-table--row" :class="{'selectable': selectable}" @click="$emit('selected', data)">
         <slot>
             <ff-data-table-cell v-for="col in columns" :key="col.label">
                 {{ data[col.key] }}
