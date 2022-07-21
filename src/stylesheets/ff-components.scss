@@ -499,6 +499,25 @@ li.ff-list-item {
   }
 }
 
+.ff-loadmore {
+  width: 100%;
+  text-align: center;
+  span {
+    display: inline-block;
+    margin: auto;
+    color: $ff-blue-500;
+    background-color: white;
+    padding: $ff-unit-xs $ff-unit-md 4px;
+    border: 1px solid $ff-grey-300;
+    border-top: 0;
+    border-radius: 0 0 6px 6px;
+    &:hover {
+      cursor: pointer;
+      color: $ff-blue-700;
+    }
+  }
+}
+
 /*
   FF Dialog Box
 */

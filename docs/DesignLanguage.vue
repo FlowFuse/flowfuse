@@ -114,8 +114,8 @@
                 <h3>Examples:</h3>
                 <div class="examples">
                     <div class="example">
-                        <h5>Example 1: Simple Data Table with Selectable Rows</h5>
-                        <ff-data-table :columns="data.table0.columns" :rows="data.table0.rows" :rows-selectable="true"></ff-data-table>
+                        <h5>Example 1: Selectable Rows &amp; Load More</h5>
+                        <ff-data-table :columns="data.table0.columns" :rows="data.table0.rows" :rows-selectable="true" :show-load-more="true"></ff-data-table>
                         <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[0].code }}</code>
                         <code style="margin-top: 24px;">cols = {{ pretty(data.table0.columns) }}</code>
                         <code style="margin-top: 24px;">rows = {{ pretty(data.table0.rows) }}</code>
@@ -167,7 +167,7 @@
                         <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[4].code }}</code>
                     </div>
                     <div class="example">
-                        <h5>Example 6: Selectable Row Content &amp; Custom Headers</h5>
+                        <h5>Example 6: v-for Selectable Rows &amp; Custom Headers</h5>
                         <ff-data-table>
                             <template v-slot:header>
                                 <ff-data-table-row>
@@ -183,20 +183,21 @@
                                 </ff-data-table-row>
                             </template>
                             <template v-slot:rows>
-                                <ff-data-table-row selectable>
+                                <ff-data-table-row selectable v-for="row in data.table3.rows" :key="row">
                                     <ff-data-table-cell>
-                                        Testing
+                                        {{ row.fName }}
                                     </ff-data-table-cell>
                                     <ff-data-table-cell>
-                                        We can put anything in here...
+                                        {{ row.sName }}
                                     </ff-data-table-cell>
                                     <ff-data-table-cell>
-                                        <ff-notification-pill :count="4"></ff-notification-pill>
+                                        <ff-notification-pill :count="row.number"></ff-notification-pill>
                                     </ff-data-table-cell>
                                 </ff-data-table-row>
                             </template>
                         </ff-data-table>
                         <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[5].code }}</code>
+                        <code style="margin-top: 24px;">rows = {{ pretty(data.table3.rows) }}</code>
                     </div>
                 </div>
                 <h2 ref="ff-data-table-row"><pre>ff-data-table-row</pre></h2>
@@ -667,7 +668,6 @@ export default {
             }
         },
         pretty: function (value) {
-            console.log(value)
             return JSON.stringify(value, null, 2)
         }
     }
