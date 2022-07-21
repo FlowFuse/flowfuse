@@ -5,17 +5,17 @@
     "components": [{
         "name": "ff-data-table",
         "examples": [{
-            "html": "<ff-data-table :columns=\"cols\" :rows=\"rows\" :rows-selectable=\"true\" @row-selected=\"doSomething\"></ff-data-table>"
+            "code": "<ff-data-table :columns=\"cols\" :rows=\"rows\" :rows-selectable=\"true\" @row-selected=\"doSomething\"></ff-data-table>"
         }, {
-            "html": "<ff-data-table :columns=\"cols\" :rows=\"rows\" :rows-selectable=\"true\" @row-selected=\"doSomething\"></ff-data-table>"
+            "code": "<ff-data-table :columns=\"cols\" :rows=\"rows\" :rows-selectable=\"true\" @row-selected=\"doSomething\"></ff-data-table>"
         }, {
-            "html": "<ff-data-table :columns=\"cols\" :rows=\"rows\">\n\t<template v-slot:context-menu>\n\t\t<ff-list-item label=\"Option 1\" @click=\"doSomething\"/>\n\t\t<ff-list-item label=\"Option 2\" @click=\"doSomething\"/>\n\t\t<ff-list-item label=\"Option 3\" @click=\"doSomething\"/>\n\t</template>\n</ff-data-table>"
+            "code": "<ff-data-table :columns=\"cols\" :rows=\"rows\">\n\t<template v-slot:context-menu>\n\t\t<ff-list-item label=\"Option 1\" @click=\"doSomething\"/>\n\t\t<ff-list-item label=\"Option 2\" @click=\"doSomething\"/>\n\t\t<ff-list-item label=\"Option 3\" @click=\"doSomething\"/>\n\t</template>\n</ff-data-table>"
         }, {
-            "html": "<ff-data-table :columns=\"cols\" :rows=\"rows\" :show-search=\"true\"\n\tsearch-placeholder=\"Search here...\" v-model:search=\"search\">\n\t<template v-slot:actions>\n\t\t<ff-button>Press Me!</ff-button>\n\t\t<ff-button>Click Me!</ff-button>\n\t</template>\n</ff-data-table>"
+            "code": "<ff-data-table :columns=\"cols\" :rows=\"rows\" :show-search=\"true\"\n\tsearch-placeholder=\"Search here...\" v-model:search=\"search\">\n\t<template v-slot:actions>\n\t\t<ff-button>Press Me!</ff-button>\n\t\t<ff-button>Click Me!</ff-button>\n\t</template>\n</ff-data-table>"
         }, {
-            "html": "<ff-data-table :columns=\"cols\">\n\t<template v-slot:rows>\n\t\t<ff-data-table-row>\n\t\t\t<ff-data-table-cell>Testing</ff-data-table-cell>\n\t\t\t<ff-data-table-cell>We can put anything in here...</ff-data-table-cell>\n\t\t\t<ff-data-table-cell>\n\t\t\t\t<ff-notification-pill :count=\"4\"/>\n\t\t\t</ff-data-table-cell>\n\t\t</ff-data-table-row>\n\t</template>\n</ff-data-table>"
+            "code": "<ff-data-table :columns=\"cols\">\n\t<template v-slot:rows>\n\t\t<ff-data-table-row>\n\t\t\t<ff-data-table-cell>Testing</ff-data-table-cell>\n\t\t\t<ff-data-table-cell>We can put anything in here...</ff-data-table-cell>\n\t\t\t<ff-data-table-cell>\n\t\t\t\t<ff-notification-pill :count=\"4\"/>\n\t\t\t</ff-data-table-cell>\n\t\t</ff-data-table-row>\n\t</template>\n</ff-data-table>"
         }, {
-            "html": "<ff-data-table>\n\t<template v-slot:header>\n\t\t<ff-data-table-row>\n\t\t\t<ff-data-table-cell>Custom Header</ff-data-table-cell>\n\t\t\t<ff-data-table-cell>We can put anything in here too...</ff-data-table-cell>\n\t\t\t<ff-data-table-cell>\n\t\t\t\t<ff-notification-pill :count=\"74\"/>\n\t\t\t</ff-data-table-cell>\n\t\t</ff-data-table-row>\n\t</template>\n\t<template v-slot:rows>\n\t\t<ff-data-table-row selectable @select=\"doSomething\">\n\t\t\t<ff-data-table-cell>Testing</ff-data-table-cell>\n\t\t\t<ff-data-table-cell>We can put anything in here...</ff-data-table-cell>\n\t\t\t<ff-data-table-cell>\n\t\t\t\t<ff-notification-pill :count=\"4\"/>\n\t\t\t</ff-data-table-cell>\n\t\t</ff-data-table-row>\n\t</template>\n</ff-data-table>"
+            "code": "<ff-data-table>\n\t<template v-slot:header>\n\t\t<ff-data-table-row>\n\t\t\t<ff-data-table-cell>Custom Header</ff-data-table-cell>\n\t\t\t<ff-data-table-cell>We can put anything in here too...</ff-data-table-cell>\n\t\t\t<ff-data-table-cell>\n\t\t\t\t<ff-notification-pill :count=\"74\"/>\n\t\t\t</ff-data-table-cell>\n\t\t</ff-data-table-row>\n\t</template>\n\t<template v-slot:rows>\n\t\t<ff-data-table-row selectable @select=\"doSomething\">\n\t\t\t<ff-data-table-cell>Testing</ff-data-table-cell>\n\t\t\t<ff-data-table-cell>We can put anything in here...</ff-data-table-cell>\n\t\t\t<ff-data-table-cell>\n\t\t\t\t<ff-notification-pill :count=\"4\"/>\n\t\t\t</ff-data-table-cell>\n\t\t</ff-data-table-row>\n\t</template>\n</ff-data-table>"
         }],
         "props": [{
             "key": "columns",
@@ -39,8 +39,20 @@
             "description": "If `show-search` is true, then this proeprty will set the placeholder of the search bar."
         }],
         "slots": [{
-            "name": "",
-            "description": ""
+            "name": "table",
+            "description": "Replace the full table portion of the component, this does not affect the search bar of actions slot"
+        }, {
+            "name": "actions",
+            "description": "Provide buttons and/or links to render above the table."
+        }, {
+            "name": "header",
+            "description": "Replaces the default data-table header row."
+        }, {
+            "name": "rows",
+            "description": "Replaces the default data-table rows."
+        }, {
+            "name": "context-menu",
+            "description": "Define a collection of ff-list-item components that can be rendered for each rows context-menu. For the @click for each of these, make sure no () are used, e.g. @click=\"doSomething\", by default the row's data object will get passed to any @click function provided."
         }],
         "emits": [{
             "event": "row-selected",
