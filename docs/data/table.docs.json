@@ -16,6 +16,10 @@
             "code": "<ff-data-table :columns=\"cols\">\n\t<template v-slot:rows>\n\t\t<ff-data-table-row>\n\t\t\t<ff-data-table-cell>Testing</ff-data-table-cell>\n\t\t\t<ff-data-table-cell>We can put anything in here...</ff-data-table-cell>\n\t\t\t<ff-data-table-cell>\n\t\t\t\t<ff-notification-pill :count=\"4\"/>\n\t\t\t</ff-data-table-cell>\n\t\t</ff-data-table-row>\n\t</template>\n</ff-data-table>"
         }, {
             "code": "<ff-data-table>\n\t<template v-slot:header>\n\t\t<ff-data-table-row>\n\t\t\t<ff-data-table-cell>Custom Header</ff-data-table-cell>\n\t\t\t<ff-data-table-cell>We can put anything in here too...</ff-data-table-cell>\n\t\t\t<ff-data-table-cell>\n\t\t\t\t<ff-notification-pill :count=\"74\"/>\n\t\t\t</ff-data-table-cell>\n\t\t</ff-data-table-row>\n\t</template>\n\t<template v-slot:rows>\n\t\t<ff-data-table-row v-for=\"row in rows\" :key=\"row\" selectable @select=\"doSomething\">\n\t\t\t<ff-data-table-cell>{{ row.fName }}</ff-data-table-cell>\n\t\t\t<ff-data-table-cell>{{ row.sName }}</ff-data-table-cell>\n\t\t\t<ff-data-table-cell>\n\t\t\t\t<ff-notification-pill :count=\"row.number\"/>\n\t\t\t</ff-data-table-cell>\n\t\t</ff-data-table-row>\n\t</template>\n</ff-data-table>"
+        }, {
+            "code": "<ff-data-table :columns=\"cols\" :rows=\"[]\"></ff-data-table>"
+        }, {
+            "code": "<ff-data-table :columns=\"cols\" :rows=\"[]\" :loading=\"true\" loading-message=\"Loading Projects...\"></ff-data-table>"
         }],
         "props": [{
             "key": "columns",
@@ -41,6 +45,14 @@
             "key": "show-load-more",
             "default": "false",
             "description": "Defines whether or not to show the 'Load More...' option at the bottom of the table. Clicking this button will emit a 'load-more' event. Usually used to control pagination in an API."
+        }, {
+            "key": "loading",
+            "default": "false",
+            "description": "Shows a placeholder Loading message in place of the data."
+        }, {
+            "key": "loading-message",
+            "default": "'Loading Data...'",
+            "description": "If loading=true, then this message will be shown."
         }],
         "slots": [{
             "name": "table",
@@ -90,6 +102,11 @@
         "slots": [{
             "name": "default",
             "description": "Populate the content of the cell."
+        }],
+        "props": [{
+            "key": "colspan",
+            "default": "1",
+            "description": "The number of columns this particular cell should cover."
         }]
     }]
 }

@@ -199,6 +199,16 @@
                         <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[5].code }}</code>
                         <code style="margin-top: 24px;">rows = {{ pretty(data.table3.rows) }}</code>
                     </div>
+                    <div class="example">
+                        <h5>Example 7: No Data</h5>
+                        <ff-data-table :columns="data.table1.columns" :rows="[]"></ff-data-table>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[6].code }}</code>
+                    </div>
+                    <div class="example">
+                        <h5>Example 8: Loading</h5>
+                        <ff-data-table :columns="data.table1.columns" :rows="data.table1.rows" :loading="true" loading-message="Loading Projects..."></ff-data-table>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[7].code }}</code>
+                    </div>
                 </div>
                 <h2 ref="ff-data-table-row"><pre>ff-data-table-row</pre></h2>
                 <h3>Properties:</h3>

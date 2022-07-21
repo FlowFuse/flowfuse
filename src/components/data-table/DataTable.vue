@@ -28,11 +28,19 @@
                 </thead>
                 <tbody>
                     <slot name="rows">
-                        <ff-data-table-row v-for="(r, $index) in sortedRows" :key="$index" :data="r" :columns="columns"
-                            :selectable="rowsSelectable" @click="rowClick(r)">
-                            <template v-if="hasContextMenu" v-slot:context-menu>
-                                <slot name="context-menu"></slot>
-                            </template>
+                        <ff-data-table-row v-if="loading">
+                            <ff-data-table-cell class="status-message" :colspan="columns.length">{{ loadingMessage }}</ff-data-table-cell>
+                        </ff-data-table-row>
+                        <template v-if="!loading">
+                            <ff-data-table-row v-for="(r, $index) in sortedRows" :key="$index" :data="r" :columns="columns"
+                                :selectable="rowsSelectable" @click="rowClick(r)">
+                                <template v-if="hasContextMenu" v-slot:context-menu>
+                                    <slot name="context-menu"></slot>
+                                </template>
+                            </ff-data-table-row>
+                        </template>
+                        <ff-data-table-row v-if="!loading && sortedRows.length === 0">
+                            <ff-data-table-cell class="status-message" :colspan="columns.length">No Data Found</ff-data-table-cell>
                         </ff-data-table-row>
                     </slot>
                 </tbody>
@@ -80,6 +88,14 @@ export default {
         showLoadMore: {
             type: Boolean,
             default: false
+        },
+        loading: {
+            type: Boolean,
+            default: false
+        },
+        loadingMessage: {
+            type: String,
+            default: 'Loading Data...'
         }
     },
     computed: {
