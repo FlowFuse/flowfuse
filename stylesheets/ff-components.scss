@@ -411,6 +411,12 @@ li.ff-list-item {
     border-spacing: 0;
     width: 100%;
     .ff-data-table--cell {
+      .ff-icon {
+        margin: -1px 0;
+      }
+      .ff-icon-lg {
+        margin: -3px 0;
+      }
       &:first-child {
         padding-left: 16px;
       }
