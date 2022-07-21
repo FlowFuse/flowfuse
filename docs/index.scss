@@ -55,9 +55,6 @@ p {
     max-width: 968px;
 }
 
-.section > div {
-
-}
 
 .theme-selection {
     position: fixed;
@@ -75,6 +72,10 @@ nav h2 {
     border-bottom-width: 2px;
     border-color: $ff-red-400;
     margin-bottom: $ff-unit-md;
+}
+
+.section h2 {
+    margin-top: $ff-unit-lg;
 }
 
 .description {

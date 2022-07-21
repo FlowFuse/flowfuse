@@ -38,7 +38,7 @@
             "default": "null",
             "description": "If `show-search` is true, then this proeprty will set the placeholder of the search bar."
         }],
-        "slot": [{
+        "slots": [{
             "name": "",
             "description": ""
         }],
@@ -46,6 +46,34 @@
             "event": "row-selected",
             "example": "{colA: 1}",
             "description": "The object associated with the row clicked."
+        }]
+    }, {
+        "name": "ff-data-table-row",
+        "props": [{
+            "key": "columns",
+            "default": "null",
+            "description": "An array of objects that define the column headers and assocated keys in the data. e.g. [{key: 'colA', label: 'Column A'}]"
+        }, {
+            "key": "data",
+            "default": "null",
+            "description": "<Object> Data to render in this row. The exact data that will be rendered from this object will be defined in the 'columns' property."
+        }, {
+            "key": "selectable",
+            "default": "false",
+            "description": "<Boolean> Whether or not clicking this row emits a 'selected' event with the relevant data bound to the event."
+        }],
+        "slots": [{
+            "name": "default",
+            "description": "Replace the full content of the row. Recommended to use ff-table-data-cells inside."
+        }, {
+            "name": "context-menu",
+            "description": "If included, this row will display an ff-kebab-menu at the end of each row with the provided options. It is recommended to use ff-list-items when filling this slot."
+        }]
+    }, {
+        "name": "ff-data-table-cell",
+        "slots": [{
+            "name": "default",
+            "description": "Populate the content of the cell."
         }]
     }]
 }

@@ -199,6 +199,14 @@
                         <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[5].html }}</code>
                     </div>
                 </div>
+                <h2 ref="ff-data-table-row"><pre>ff-data-table-row</pre></h2>
+                <h3>Properties:</h3>
+                <props-table :rows="groups['data-table'].components[1].props"></props-table>
+                <h3>Slots:</h3>
+                <slots-table :rows="groups['data-table'].components[1].slots"></slots-table>
+                <h2 ref="ff-data-table-cell"><pre>ff-data-table-cell</pre></h2>
+                <h3>Slots:</h3>
+                <slots-table :rows="groups['data-table'].components[2].slots"></slots-table>
             </div>
             <div class="section">
                 <!-- Dialog Box -->
@@ -403,6 +411,7 @@
                 <h3>Examples:</h3>
                 <div class="examples">
                     <div class="example">
+                        <h5>Example 1: Horizontal Tabs</h5>
                         <ff-tabs orientation="horizontal">
                             <ff-tab label="Option 1" to="" />
                             <ff-tab label="Option 2" to="" />
@@ -411,6 +420,7 @@
                         <code>{{ groups['tabs'].components[0].examples[0].code }}</code>
                     </div>
                     <div class="example">
+                        <h5>Example 2: Vertical Tabs</h5>
                         <ff-tabs orientation="vertical">
                             <ff-tab label="Option 1" to="" />
                             <ff-tab label="Option 2" to="" />
@@ -419,6 +429,24 @@
                         <code>{{ groups['tabs'].components[0].examples[1].code }}</code>
                     </div>
                 </div>
+            </div>
+            <div class="section">
+                <!-- Other -->
+                <h1>Utilities</h1>
+                <markdown-viewer class="description" :content="groups['utilities'].description"/>
+                <h2 ref="ff-check"><pre>ff-check</pre></h2>
+                <h3>Properties:</h3>
+                <props-table :rows="groups['utilities'].components[0].props"></props-table>
+                <h3>Examples:</h3>
+                <div class="examples">
+                    <div class="example">
+                        <ff-check :value="true"></ff-check>
+                        <code>{{ groups['utilities'].components[0].examples[0].code }}</code>
+                    </div>
+                </div>
+                <h2 ref="ff-list-item"><pre>ff-list-item</pre></h2>
+                <h3>Properties:</h3>
+                <props-table :rows="groups['utilities'].components[1].props"></props-table>
             </div>
         </div>
     </main>
@@ -438,6 +466,7 @@ import dialogDocs from './data/dialog.docs.json'
 import inputDocs from './data/input.docs.json'
 import notificationsDocs from './data/notifications.docs.json'
 import tabsDocs from './data/tabs.docs.json'
+import utilitiesDocs from './data/utilities.docs.json'
 
 import MarkdownViewer from './components/Markdown.vue'
 
@@ -454,6 +483,11 @@ export default {
         // icons
         PlusSmIcon,
         SearchIcon
+    },
+    setup () {
+        return {
+            iconPlus: PlusSmIcon
+        }
     },
     data () {
         return {
@@ -474,7 +508,8 @@ export default {
                 dialog: dialogDocs,
                 input: inputDocs,
                 notifications: notificationsDocs,
-                tabs: tabsDocs
+                tabs: tabsDocs,
+                utilities: utilitiesDocs
             },
             data: {
                 table0: {
