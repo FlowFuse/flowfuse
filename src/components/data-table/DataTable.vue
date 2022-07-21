@@ -92,12 +92,23 @@ export default {
         },
         sortedRows: function () {
             if (this.sort.key) {
-                const rows = this.rows
-                return rows.sort((a, b) => {
+                return [...this.rows].sort((a, b) => {
                     if (this.sort.order === 'asc') {
-                        return a[this.sort.key] - b[this.sort.key]
+                        if (a[this.sort.key] < b[this.sort.key]) {
+                            return 1
+                        } else if (a[this.sort.key] > b[this.sort.key]) {
+                            return -1
+                        } else {
+                            return 0
+                        }
                     } else {
-                        return b[this.sort.key] - a[this.sort.key]
+                        if (a[this.sort.key] < b[this.sort.key]) {
+                            return -1
+                        } else if (a[this.sort.key] > b[this.sort.key]) {
+                            return 1
+                        } else {
+                            return 0
+                        }
                     }
                 })
             } else {
