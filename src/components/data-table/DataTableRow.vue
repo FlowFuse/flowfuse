@@ -2,7 +2,12 @@
     <tr class="ff-data-table--row" :class="{'selectable': selectable}" @click="$emit('selected', data)">
         <slot>
             <ff-data-table-cell v-for="col in columns" :key="col.label">
-                {{ data[col.key] }}
+                <template v-if="!isBool(data[col.key])">
+                    {{ data[col.key] }}
+                </template>
+                <template v-else>
+                    <ff-check :value="data[col.key]" />
+                </template>
             </ff-data-table-cell>
         </slot>
         <ff-data-table-cell v-if="hasContextMenu" style="width: 50px">
@@ -33,6 +38,11 @@ export default {
     computed: {
         hasContextMenu: function () {
             return this.$slots['context-menu']
+        }
+    },
+    methods: {
+        isBool: function (value) {
+            return typeof (value) === 'boolean'
         }
     }
 }

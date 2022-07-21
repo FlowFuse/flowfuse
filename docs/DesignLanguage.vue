@@ -529,11 +529,11 @@ export default {
                     rows: [{
                         colA: 'This is Row 1, Column A',
                         colB: 2,
-                        colC: 34
+                        colC: true
                     }, {
                         colA: 'This is Row 2, Column A',
                         colB: 17,
-                        colC: 12.3
+                        colC: false
                     }]
                 },
                 table1: {
@@ -549,15 +549,21 @@ export default {
                         key: 'colC',
                         label: 'Column C',
                         sortable: true
+                    }, {
+                        key: 'colD',
+                        label: 'Column D',
+                        sortable: true
                     }],
                     rows: [{
                         colA: 'This is Row 1, Column A',
                         colB: 2,
-                        colC: 34
+                        colC: 34,
+                        colD: true
                     }, {
                         colA: 'This is Row 2, Column A',
                         colB: 17,
-                        colC: 12.3
+                        colC: 12.3,
+                        colD: false
                     }]
                 },
                 table2: {
