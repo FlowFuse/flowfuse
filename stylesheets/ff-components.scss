@@ -477,6 +477,10 @@ li.ff-list-item {
       .ff-data-table--cell {
         padding: 12px 12px;
         background-color: white;
+        &.status-message {
+          text-align: center;
+          color: $ff-grey-400;
+        }
       }
       .selectable:hover .ff-data-table--cell {
         cursor: pointer;
