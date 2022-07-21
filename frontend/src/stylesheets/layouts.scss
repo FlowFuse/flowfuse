@@ -245,7 +245,7 @@ $nav_height: 60px;
     width: 100%;
     img.ff-logo {
         padding: 20px;
-        height: 100%;
+        height: $nav_height;
         &:hover {
             cursor: pointer;
         }
