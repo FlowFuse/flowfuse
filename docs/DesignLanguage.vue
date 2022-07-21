@@ -116,14 +116,14 @@
                     <div class="example">
                         <h5>Example 1: Simple Data Table with Selectable Rows</h5>
                         <ff-data-table :columns="data.table0.columns" :rows="data.table0.rows" :rows-selectable="true"></ff-data-table>
-                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[0].html }}</code>
-                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[0].js }}</code>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[0].code }}</code>
+                        <code style="margin-top: 24px;">cols = {{ pretty(data.table0.columns) }}</code>
+                        <code style="margin-top: 24px;">rows = {{ pretty(data.table0.rows) }}</code>
                     </div>
                     <div class="example">
                         <h5>Example 2: Sortable Columns</h5>
                         <ff-data-table :columns="data.table1.columns" :rows="data.table1.rows"></ff-data-table>
-                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[1].html }}</code>
-                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[1].js }}</code>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[1].code }}</code>
                     </div>
                     <div class="example">
                         <h5>Example 3: Context Menu</h5>
@@ -134,7 +134,7 @@
                                 <ff-list-item label="Option 3" @click="doSomething"/>
                             </template>
                         </ff-data-table>
-                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[2].html }}</code>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[2].code }}</code>
                     </div>
                     <div class="example">
                         <h5>Example 4: Filtering via Search &amp; Actions</h5>
@@ -145,7 +145,7 @@
                                 <ff-button>Click Me!</ff-button>
                             </template>
                         </ff-data-table>
-                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[3].html }}</code>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[3].code }}</code>
                     </div>
                     <div class="example">
                         <h5>Example 5: Custom Row Content</h5>
@@ -164,7 +164,7 @@
                                 </ff-data-table-row>
                             </template>
                         </ff-data-table>
-                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[4].html }}</code>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[4].code }}</code>
                     </div>
                     <div class="example">
                         <h5>Example 6: Selectable Row Content &amp; Custom Headers</h5>
@@ -196,7 +196,7 @@
                                 </ff-data-table-row>
                             </template>
                         </ff-data-table>
-                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[5].html }}</code>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[5].code }}</code>
                     </div>
                 </div>
                 <h2 ref="ff-data-table-row"><pre>ff-data-table-row</pre></h2>
@@ -665,6 +665,10 @@ export default {
                 element.scrollIntoView({ behavior: 'smooth' })
                 window.location.hash = ref
             }
+        },
+        pretty: function (value) {
+            console.log(value)
+            return JSON.stringify(value, null, 2)
         }
     }
 }
