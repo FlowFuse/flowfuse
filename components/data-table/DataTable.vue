@@ -35,7 +35,7 @@
                     <!-- ROWS -->
                     <slot name="rows">
                         <ff-data-table-row v-if="loading">
-                            <ff-data-table-cell class="status-message" :colspan="columns.length">{{ loadingMessage }}</ff-data-table-cell>
+                            <ff-data-table-cell class="status-message" :colspan="messageColSpan">{{ loadingMessage }}</ff-data-table-cell>
                         </ff-data-table-row>
                         <template v-if="!loading">
                             <ff-data-table-row v-for="(r, $index) in filteredRows" :key="$index" :data="r" :columns="columns"
@@ -45,8 +45,11 @@
                                 </template>
                             </ff-data-table-row>
                         </template>
-                        <ff-data-table-row v-if="!loading && filteredRows?.length === 0">
-                            <ff-data-table-cell class="status-message" :colspan="columns.length">No Data Found</ff-data-table-cell>
+                        <ff-data-table-row v-if="!loading && rows?.length > 0 && filteredRows?.length === 0">
+                            <ff-data-table-cell class="status-message" :colspan="messageColSpan">No Data Found. Try Another Search.</ff-data-table-cell>
+                        </ff-data-table-row>
+                        <ff-data-table-row v-else-if="!loading && filteredRows?.length === 0">
+                            <ff-data-table-cell class="status-message" :colspan="messageColSpan">No Data Found</ff-data-table-cell>
                         </ff-data-table-row>
                     </slot>
                 </tbody>
@@ -91,6 +94,10 @@ export default {
             type: String,
             default: null
         },
+        searchFields: {
+            type: Array,
+            default: null
+        },
         showLoadMore: {
             type: Boolean,
             default: false
@@ -113,11 +120,15 @@ export default {
                 return this.search
             },
             set (value) {
+                this.internalSearch = value
                 this.$emit('update:search', value)
             }
         },
         hasContextMenu: function () {
             return this.$slots['context-menu']
+        },
+        messageColSpan: function () {
+            return this.hasContextMenu ? this.columns.length + 1 : this.columns.length
         },
         filteredRows: function () {
             const rows = this.filterRows([...this.rows])
@@ -148,6 +159,7 @@ export default {
     },
     data () {
         return {
+            internalSearch: '',
             sort: {
                 key: '',
                 order: 'desc'
@@ -161,18 +173,20 @@ export default {
     },
     methods: {
         filterRows (rows) {
-            const search = this.filterTerm
+            const search = this.internalSearch
             if (search) {
-                const filtered = rows.filter(function (cell, index) {
-                    const vals = Object.values(cell)
-                    for (let i = 0; i < vals.length; i++) {
-                        let value = vals[i]
-                        if (typeof value === 'number') {
-                            value = value.toString()
-                        }
-                        if (typeof value === 'string') {
-                            if (value.toLowerCase().indexOf(search.toLowerCase()) > -1) {
-                                return true
+                const filtered = rows.filter((cell, index) => {
+                    const props = Object.entries(cell)
+                    for (let i = 0; i < props.length; i++) {
+                        let [prop, value] = props[i]
+                        if (this.searchFields?.indexOf(prop) > -1) {
+                            if (typeof value === 'number') {
+                                value = value.toString()
+                            }
+                            if (typeof value === 'string') {
+                                if (value.toLowerCase().indexOf(search.toLowerCase()) > -1) {
+                                    return true
+                                }
                             }
                         }
                     }
