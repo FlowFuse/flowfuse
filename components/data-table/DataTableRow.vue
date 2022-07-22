@@ -1,8 +1,11 @@
 <template>
     <tr class="ff-data-table--row" :class="{'selectable': selectable}" @click="$emit('selected', data)">
         <slot>
-            <ff-data-table-cell v-for="col in columns" :key="col.label" :class="col.classes" :style="col.style">
-                <template v-if="!isBool(data[col.key])">
+            <ff-data-table-cell v-for="col in columns" :key="col.label" :class="col.class" :style="col.style">
+                <template v-if="col.component">
+                    <component :is="col.component.is" v-bind="getCellData(data, col)"></component>
+                </template>
+                <template v-else-if="!isBool(data[col.key])">
                     {{ data[col.key] }}
                 </template>
                 <template v-else>
@@ -43,6 +46,17 @@ export default {
     methods: {
         isBool: function (value) {
             return typeof (value) === 'boolean'
+        },
+        getCellData: function (data, col) {
+            if (col.component?.map) {
+                const dataMap = col.component?.map
+                for (const [to, from] of Object.entries(dataMap)) {
+                    data[to] = data[from]
+                }
+                return data
+            } else {
+                return data[col.key]
+            }
         }
     }
 }

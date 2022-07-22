@@ -12,7 +12,7 @@
             </div>
         </div>
         <div>
-            <MarkdownViewer :content="description"></MarkdownViewer>
+            <ff-markdown-viewer :content="description"></ff-markdown-viewer>
         </div>
         <div v-if="meta" class="ff-tile-selection-option--meta">
             <div v-for="(row, $index) in meta" :key="$index">
@@ -26,7 +26,6 @@
 <script>
 
 // components
-import MarkdownViewer from '@/components/Markdown.vue'
 
 // icons
 import { CheckCircleIcon, PencilAltIcon } from '@heroicons/vue/solid'
@@ -67,8 +66,7 @@ export default {
     },
     components: {
         CheckCircleIcon,
-        PencilAltIcon,
-        MarkdownViewer
+        PencilAltIcon
     },
     data () {
         return {
