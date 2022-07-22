@@ -23,9 +23,13 @@
             "default": "null",
             "description": "Informative text to assist the user with the information required in this input field."
         }, {
-            "key": "password",
+            "key": "type",
+            "default": "'button'",
+            "description": "Any standard HTML button 'type'"
+        }, {
+            "key": "error",
             "default": "false",
-            "description": "Hide the content of this text input as a password field."
+            "description": "Anything other than null/undefined will result in hte error state being visualised. Error message can be displayed manually with a <label class=\"ff-error-inline\">"
         }],
         "slots": [{
             "name": "icon",
