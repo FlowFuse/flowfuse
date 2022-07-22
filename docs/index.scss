@@ -55,9 +55,6 @@ p {
     max-width: 968px;
 }
 
-.section > div {
-
-}
 
 .theme-selection {
     position: fixed;
@@ -75,6 +72,10 @@ nav h2 {
     border-bottom-width: 2px;
     border-color: $ff-red-400;
     margin-bottom: $ff-unit-md;
+}
+
+.section h2 {
+    margin-top: $ff-unit-lg;
 }
 
 .description {
@@ -124,6 +125,10 @@ ul#grouplist {
             &:not(:first-child) {
                 border-top-width: 0;
             }
+            h5 {
+                font-weight: bold;
+                margin-bottom: $ff-unit-lg;
+            }
             code {
                 display: block;
                 margin-top: $ff-unit-md;
@@ -133,7 +138,7 @@ ul#grouplist {
     }
 }
 
-table {
+table.docs-table {
     margin-top: $ff-unit-md;
     margin-bottom: $ff-unit-md;
     margin-left: $ff-unit-lg;

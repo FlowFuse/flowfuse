@@ -9,6 +9,8 @@
             "code": "<ff-text-input type\"password\" v-model=\"myPassword\" placeholder=\"Password goes here...\" />"
         }, {
             "code": "<ff-text-input type\"email\" v-model=\"myEmail\" />"
+        }, {
+            "code": "<ff-text-input type\"email\" v-model=\"myEmail\">\n\t<template v-slot:icon><SearchIcon/></template>\n</ff-text-input>"
         }],
         "props": [{
             "key": "disabled",
@@ -22,6 +24,10 @@
             "key": "password",
             "default": "false",
             "description": "Hide the content of this text input as a password field."
+        }],
+        "slots": [{
+            "name": "icon",
+            "description": "Pass in an icon to this slot to render it on hte left-side of the input field"
         }]
     }, {
         "name": "ff-dropdown",

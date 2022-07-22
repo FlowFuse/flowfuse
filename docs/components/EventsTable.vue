@@ -1,5 +1,5 @@
 <template>
-    <table class="props-table">
+    <table class="docs-table props-table">
         <tbody>
             <tr>
                 <th>Event</th>

@@ -1,0 +1,28 @@
+{
+    "name": "Utilities",
+    "id": "utilities",
+    "description": "A collection of smaller components that can be used in conjuction with, or as child elements, of any of the other components in this library.",
+    "components": [{
+        "name": "ff-check",
+        "examples": [{
+            "code": "<ff-check :value=\"true\" />"
+        }],
+        "props": [{
+            "key": "value",
+            "default": "false",
+            "description": "Whether or not to show the check."
+        }]
+    }, {
+        "name": "ff-list-item",
+        "examples": [],
+        "props": [{
+            "key": "icon",
+            "default": "",
+            "description": "(optional) Pass in an icon object in order to display that icon alongside the provided label"
+        }, {
+            "key": "label",
+            "default": "",
+            "description": "A string label to display in the list item."
+        }]
+    }]
+}

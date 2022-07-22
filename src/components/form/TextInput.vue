@@ -1,14 +1,16 @@
 <template>
-    <input class="ff-input ff-text-input"
-        :class="{'ff-input--error': error}"
-        :type="type"
-        :placeholder="placeholder"
-        :disabled="disabled"
-        :value="modelValue"
-        @change="$emit('update:modelValue', $event.target.value)"
-        @input="$emit('update:modelValue', $event.target.value)"
-        @enter="$emit('enter', $event)"
-        @blur="$emit('blur')" @keyup.enter="$emit('enter', $evt)"/>
+    <div class="ff-input ff-text-input" :class="{'ff-input--error': error}">
+        <slot name="icon"></slot>
+        <input
+            :type="type"
+            :placeholder="placeholder"
+            :disabled="disabled"
+            :value="modelValue"
+            @change="$emit('update:modelValue', $event.target.value)"
+            @input="$emit('update:modelValue', $event.target.value)"
+            @enter="$emit('enter', $event)"
+            @blur="$emit('blur')" @keyup.enter="$emit('enter', $evt)"/>
+    </div>
 </template>
 
 <script>

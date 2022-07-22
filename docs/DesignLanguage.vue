@@ -102,6 +102,124 @@
                 </div>
             </div>
             <div class="section">
+                <!-- Data Table -->
+                <h1>Data Table</h1>
+                <h2 ref="ff-data-table"><pre>ff-data-table</pre></h2>
+                <h3>Properties:</h3>
+                <props-table :rows="groups['data-table'].components[0].props"></props-table>
+                <h3>Slots:</h3>
+                <slots-table :rows="groups['data-table'].components[0].slots"></slots-table>
+                <h3>Emits:</h3>
+                <events-table :rows="groups['data-table'].components[0].emits"></events-table>
+                <h3>Examples:</h3>
+                <div class="examples">
+                    <div class="example">
+                        <h5>Example 1: Selectable Rows &amp; Load More</h5>
+                        <ff-data-table :columns="data.table0.columns" :rows="data.table0.rows" :rows-selectable="true" :show-load-more="true"></ff-data-table>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[0].code }}</code>
+                        <code style="margin-top: 24px;">cols = {{ pretty(data.table0.columns) }}</code>
+                        <code style="margin-top: 24px;">rows = {{ pretty(data.table0.rows) }}</code>
+                    </div>
+                    <div class="example">
+                        <h5>Example 2: Sortable Columns</h5>
+                        <ff-data-table :columns="data.table1.columns" :rows="data.table1.rows"></ff-data-table>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[1].code }}</code>
+                    </div>
+                    <div class="example">
+                        <h5>Example 3: Context Menu</h5>
+                        <ff-data-table :columns="data.table0.columns" :rows="data.table0.rows">
+                            <template v-slot:context-menu>
+                                <ff-list-item label="Option 1" @click="doSomething"/>
+                                <ff-list-item label="Option 2" @click="doSomething"/>
+                                <ff-list-item label="Option 3" @click="doSomething"/>
+                            </template>
+                        </ff-data-table>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[2].code }}</code>
+                    </div>
+                    <div class="example">
+                        <h5>Example 4: Filtering via Search &amp; Actions</h5>
+                        <ff-data-table :columns="data.table3.columns" :rows="table3Filtered"
+                            :show-search="true" search-placeholder="Search here..." v-model:search="data.table3.search">
+                            <template v-slot:actions>
+                                <ff-button>Press Me!</ff-button>
+                                <ff-button>Click Me!</ff-button>
+                            </template>
+                        </ff-data-table>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[3].code }}</code>
+                    </div>
+                    <div class="example">
+                        <h5>Example 5: Custom Row Content</h5>
+                        <ff-data-table :columns="data.table2.columns">
+                            <template v-slot:rows>
+                                <ff-data-table-row>
+                                    <ff-data-table-cell>
+                                        Testing
+                                    </ff-data-table-cell>
+                                    <ff-data-table-cell>
+                                        We can put anything in here...
+                                    </ff-data-table-cell>
+                                    <ff-data-table-cell>
+                                        <ff-notification-pill :count="4"></ff-notification-pill>
+                                    </ff-data-table-cell>
+                                </ff-data-table-row>
+                            </template>
+                        </ff-data-table>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[4].code }}</code>
+                    </div>
+                    <div class="example">
+                        <h5>Example 6: v-for Selectable Rows &amp; Custom Headers</h5>
+                        <ff-data-table>
+                            <template v-slot:header>
+                                <ff-data-table-row>
+                                    <ff-data-table-cell>
+                                        Custom Header
+                                    </ff-data-table-cell>
+                                    <ff-data-table-cell>
+                                        We can put anything in here too
+                                    </ff-data-table-cell>
+                                    <ff-data-table-cell>
+                                        <ff-notification-pill :count="74"></ff-notification-pill>
+                                    </ff-data-table-cell>
+                                </ff-data-table-row>
+                            </template>
+                            <template v-slot:rows>
+                                <ff-data-table-row selectable v-for="row in data.table3.rows" :key="row">
+                                    <ff-data-table-cell>
+                                        {{ row.fName }}
+                                    </ff-data-table-cell>
+                                    <ff-data-table-cell>
+                                        {{ row.sName }}
+                                    </ff-data-table-cell>
+                                    <ff-data-table-cell>
+                                        <ff-notification-pill :count="row.number"></ff-notification-pill>
+                                    </ff-data-table-cell>
+                                </ff-data-table-row>
+                            </template>
+                        </ff-data-table>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[5].code }}</code>
+                        <code style="margin-top: 24px;">rows = {{ pretty(data.table3.rows) }}</code>
+                    </div>
+                    <div class="example">
+                        <h5>Example 7: No Data</h5>
+                        <ff-data-table :columns="data.table1.columns" :rows="[]"></ff-data-table>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[6].code }}</code>
+                    </div>
+                    <div class="example">
+                        <h5>Example 8: Loading</h5>
+                        <ff-data-table :columns="data.table1.columns" :rows="data.table1.rows" :loading="true" loading-message="Loading Projects..."></ff-data-table>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[7].code }}</code>
+                    </div>
+                </div>
+                <h2 ref="ff-data-table-row"><pre>ff-data-table-row</pre></h2>
+                <h3>Properties:</h3>
+                <props-table :rows="groups['data-table'].components[1].props"></props-table>
+                <h3>Slots:</h3>
+                <slots-table :rows="groups['data-table'].components[1].slots"></slots-table>
+                <h2 ref="ff-data-table-cell"><pre>ff-data-table-cell</pre></h2>
+                <h3>Slots:</h3>
+                <slots-table :rows="groups['data-table'].components[2].slots"></slots-table>
+            </div>
+            <div class="section">
                 <!-- Dialog Box -->
                 <h1>Dialog Box</h1>
                 <h2 ref="ff-dialog"><pre>ff-dialog</pre></h2>
@@ -146,20 +264,34 @@
                 <h2 ref="ff-text-input"><pre>ff-text-input</pre></h2>
                 <h3>Properties:</h3>
                 <props-table :rows="groups['input'].components[0].props"></props-table>
+                <h3>Slots:</h3>
+                <slots-table :rows="groups['input'].components[0].slots"></slots-table>
                 <h3>Examples:</h3>
                 <div class="examples">
                     <div class="example">
+                        <h5>Simple Text Input</h5>
                         <ff-text-input placeholder="Insert something here..." v-model="models.textInput0"/>
                         {{ models.textInput0 }}
                         <code>{{ groups['input'].components[0].examples[0].code }}</code>
                     </div>
                     <div class="example">
+                        <h5>Type: Password</h5>
                         <ff-text-input type="password" placeholder="Password goes here..."/>
                         <code>{{ groups['input'].components[0].examples[1].code }}</code>
                     </div>
                     <div class="example">
+                        <h5>Type: E-Mail</h5>
                         <ff-text-input type="email"/>
                         <code>{{ groups['input'].components[0].examples[2].code }}</code>
+                    </div>
+                    <div class="example">
+                        <h5>Text Input with Icon (e.g. Search)</h5>
+                        <ff-text-input type="email">
+                            <template v-slot:icon>
+                                <SearchIcon />
+                            </template>
+                        </ff-text-input>
+                        <code>{{ groups['input'].components[0].examples[3].code }}</code>
                     </div>
                 </div>
                 <!-- Dropdown -->
@@ -330,6 +462,7 @@
                 <h3>Examples:</h3>
                 <div class="examples">
                     <div class="example">
+                        <h5>Example 1: Horizontal Tabs</h5>
                         <ff-tabs orientation="horizontal">
                             <ff-tab label="Option 1" to="" />
                             <ff-tab label="Option 2" to="" />
@@ -338,6 +471,7 @@
                         <code>{{ groups['tabs'].components[0].examples[0].code }}</code>
                     </div>
                     <div class="example">
+                        <h5>Example 2: Vertical Tabs</h5>
                         <ff-tabs orientation="vertical">
                             <ff-tab label="Option 1" to="" />
                             <ff-tab label="Option 2" to="" />
@@ -346,6 +480,24 @@
                         <code>{{ groups['tabs'].components[0].examples[1].code }}</code>
                     </div>
                 </div>
+            </div>
+            <div class="section">
+                <!-- Other -->
+                <h1>Utilities</h1>
+                <markdown-viewer class="description" :content="groups['utilities'].description"/>
+                <h2 ref="ff-check"><pre>ff-check</pre></h2>
+                <h3>Properties:</h3>
+                <props-table :rows="groups['utilities'].components[0].props"></props-table>
+                <h3>Examples:</h3>
+                <div class="examples">
+                    <div class="example">
+                        <ff-check :value="true"></ff-check>
+                        <code>{{ groups['utilities'].components[0].examples[0].code }}</code>
+                    </div>
+                </div>
+                <h2 ref="ff-list-item"><pre>ff-list-item</pre></h2>
+                <h3>Properties:</h3>
+                <props-table :rows="groups['utilities'].components[1].props"></props-table>
             </div>
         </div>
     </main>
@@ -362,13 +514,15 @@ import SlotsTable from './components/SlotsTable.vue'
 import MarkdownViewer from '@/components/Markdown.vue'
 
 import buttonDocs from './data/button.docs.json'
+import tableDocs from './data/table.docs.json'
 import dialogDocs from './data/dialog.docs.json'
 import inputDocs from './data/input.docs.json'
 import notificationsDocs from './data/notifications.docs.json'
 import tabsDocs from './data/tabs.docs.json'
+import utilitiesDocs from './data/utilities.docs.json'
 
 // icons
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { PlusSmIcon, SearchIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'DesignLanguage',
@@ -378,7 +532,13 @@ export default {
         SlotsTable,
         MarkdownViewer,
         // icons
-        PlusSmIcon
+        PlusSmIcon,
+        SearchIcon
+    },
+    setup () {
+        return {
+            iconPlus: PlusSmIcon
+        }
     },
     data () {
         return {
@@ -398,16 +558,154 @@ export default {
             },
             groups: {
                 button: buttonDocs,
+                'data-table': tableDocs,
                 dialog: dialogDocs,
                 input: inputDocs,
                 notifications: notificationsDocs,
-                tabs: tabsDocs
+                tabs: tabsDocs,
+                utilities: utilitiesDocs
+            },
+            data: {
+                table0: {
+                    columns: [{
+                        key: 'colA',
+                        label: 'Column A',
+                        sortable: false
+                    }, {
+                        key: 'colB',
+                        label: 'Column B',
+                        sortable: false
+                    }, {
+                        key: 'colC',
+                        label: 'Column C',
+                        sortable: false
+                    }],
+                    rows: [{
+                        colA: 'This is Row 1, Column A',
+                        colB: 2,
+                        colC: true
+                    }, {
+                        colA: 'This is Row 2, Column A',
+                        colB: 17,
+                        colC: false
+                    }]
+                },
+                table1: {
+                    columns: [{
+                        key: 'colA',
+                        label: 'Column A',
+                        sortable: true
+                    }, {
+                        key: 'colB',
+                        label: 'Column B',
+                        sortable: true
+                    }, {
+                        key: 'colC',
+                        label: 'Column C',
+                        sortable: true
+                    }, {
+                        key: 'colD',
+                        label: 'Column D',
+                        sortable: true
+                    }],
+                    rows: [{
+                        colA: 'This is Row 1, Column A',
+                        colB: 2,
+                        colC: 34,
+                        colD: true
+                    }, {
+                        colA: 'This is Row 2, Column A',
+                        colB: 17,
+                        colC: 12.3,
+                        colD: false
+                    }]
+                },
+                table2: {
+                    search: '',
+                    columns: [{
+                        key: 'fName',
+                        label: 'First Name',
+                        sortable: false
+                    }, {
+                        key: 'sName',
+                        label: 'Last Name',
+                        sortable: false
+                    }, {
+                        key: 'number',
+                        label: 'Number',
+                        sortable: false
+                    }],
+                    rows: [{
+                        fName: 'Alice',
+                        sName: 'Skywalker',
+                        number: 123
+                    }, {
+                        fName: 'Bob',
+                        sName: 'Palpatine',
+                        number: 456
+                    }, {
+                        fName: 'Freddie',
+                        sName: 'Solo',
+                        number: 789
+                    }]
+                },
+                table3: {
+                    search: '',
+                    columns: [{
+                        key: 'fName',
+                        label: 'First Name',
+                        sortable: false
+                    }, {
+                        key: 'sName',
+                        label: 'Last Name',
+                        sortable: false
+                    }, {
+                        key: 'number',
+                        label: 'Number',
+                        sortable: false
+                    }],
+                    rows: [{
+                        fName: 'Alice',
+                        sName: 'Skywalker',
+                        number: 123
+                    }, {
+                        fName: 'Bob',
+                        sName: 'Palpatine',
+                        number: 456
+                    }, {
+                        fName: 'Freddie',
+                        sName: 'Solo',
+                        number: 789
+                    }]
+                }
             }
         }
     },
     computed: {
         groups_ordered: function () {
             return _.sortedBy(this.groups, 'name')
+        },
+        table3Filtered: function () {
+            const search = this.data.table3.search
+            if (search) {
+                return this.data.table3.rows.filter(function (cell, index) {
+                    const vals = Object.values(cell)
+                    for (let i = 0; i < vals.length; i++) {
+                        let value = vals[i]
+                        if (typeof value === 'number') {
+                            value = value.toString()
+                        }
+                        if (typeof value === 'string') {
+                            if (value.toLowerCase().indexOf(search.toLowerCase()) > -1) {
+                                return true
+                            }
+                        }
+                    }
+                    return false
+                })
+            } else {
+                return this.data.table3.rows
+            }
         }
     },
     async mounted () {
@@ -421,6 +719,9 @@ export default {
                 element.scrollIntoView({ behavior: 'smooth' })
                 window.location.hash = ref
             }
+        },
+        pretty: function (value) {
+            return JSON.stringify(value, null, 2)
         }
     }
 }

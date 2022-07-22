@@ -1,0 +1,112 @@
+{
+    "name": "Data Table",
+    "id": "data-table",
+    "description": "",
+    "components": [{
+        "name": "ff-data-table",
+        "examples": [{
+            "code": "<ff-data-table :columns=\"cols\" :rows=\"rows\" :rows-selectable=\"true\" :show-load-more=\"true\" @row-selected=\"doSomething\" @load-more=\"loadMoreData\"></ff-data-table>"
+        }, {
+            "code": "<ff-data-table :columns=\"cols\" :rows=\"rows\" :rows-selectable=\"true\" @row-selected=\"doSomething\"></ff-data-table>"
+        }, {
+            "code": "<ff-data-table :columns=\"cols\" :rows=\"rows\">\n\t<template v-slot:context-menu>\n\t\t<ff-list-item label=\"Option 1\" @click=\"doSomething\"/>\n\t\t<ff-list-item label=\"Option 2\" @click=\"doSomething\"/>\n\t\t<ff-list-item label=\"Option 3\" @click=\"doSomething\"/>\n\t</template>\n</ff-data-table>"
+        }, {
+            "code": "<ff-data-table :columns=\"cols\" :rows=\"rows\" :show-search=\"true\"\n\tsearch-placeholder=\"Search here...\" v-model:search=\"search\">\n\t<template v-slot:actions>\n\t\t<ff-button>Press Me!</ff-button>\n\t\t<ff-button>Click Me!</ff-button>\n\t</template>\n</ff-data-table>"
+        }, {
+            "code": "<ff-data-table :columns=\"cols\">\n\t<template v-slot:rows>\n\t\t<ff-data-table-row>\n\t\t\t<ff-data-table-cell>Testing</ff-data-table-cell>\n\t\t\t<ff-data-table-cell>We can put anything in here...</ff-data-table-cell>\n\t\t\t<ff-data-table-cell>\n\t\t\t\t<ff-notification-pill :count=\"4\"/>\n\t\t\t</ff-data-table-cell>\n\t\t</ff-data-table-row>\n\t</template>\n</ff-data-table>"
+        }, {
+            "code": "<ff-data-table>\n\t<template v-slot:header>\n\t\t<ff-data-table-row>\n\t\t\t<ff-data-table-cell>Custom Header</ff-data-table-cell>\n\t\t\t<ff-data-table-cell>We can put anything in here too...</ff-data-table-cell>\n\t\t\t<ff-data-table-cell>\n\t\t\t\t<ff-notification-pill :count=\"74\"/>\n\t\t\t</ff-data-table-cell>\n\t\t</ff-data-table-row>\n\t</template>\n\t<template v-slot:rows>\n\t\t<ff-data-table-row v-for=\"row in rows\" :key=\"row\" selectable @select=\"doSomething\">\n\t\t\t<ff-data-table-cell>{{ row.fName }}</ff-data-table-cell>\n\t\t\t<ff-data-table-cell>{{ row.sName }}</ff-data-table-cell>\n\t\t\t<ff-data-table-cell>\n\t\t\t\t<ff-notification-pill :count=\"row.number\"/>\n\t\t\t</ff-data-table-cell>\n\t\t</ff-data-table-row>\n\t</template>\n</ff-data-table>"
+        }, {
+            "code": "<ff-data-table :columns=\"cols\" :rows=\"[]\"></ff-data-table>"
+        }, {
+            "code": "<ff-data-table :columns=\"cols\" :rows=\"[]\" :loading=\"true\" loading-message=\"Loading Projects...\"></ff-data-table>"
+        }],
+        "props": [{
+            "key": "columns",
+            "default": "null",
+            "description": "An array of objects that define the column headers and assocated keys in the `rows` data. e.g. [{key: 'colA', label: 'Column A'}]"
+        }, {
+            "key": "rows",
+            "default": "null",
+            "description": "An array of objects defining each row of data. Each object should contains the relevant key defined in the columns array. e.g. [{colA: 1}]"
+        }, {
+            "key": "rows-selectable",
+            "default": false,
+            "description": "Defines whether or not the full row can be clicked, in order to emit a 'row-selected' event."
+        },{
+            "key": "show-search",
+            "default": "false",
+            "description": "Whether or not to display the ff-text-input to filter the table content"
+        }, {
+            "key": "search-placeholder",
+            "default": "null",
+            "description": "If `show-search` is true, then this proeprty will set the placeholder of the search bar."
+        }, {
+            "key": "show-load-more",
+            "default": "false",
+            "description": "Defines whether or not to show the 'Load More...' option at the bottom of the table. Clicking this button will emit a 'load-more' event. Usually used to control pagination in an API."
+        }, {
+            "key": "loading",
+            "default": "false",
+            "description": "Shows a placeholder Loading message in place of the data."
+        }, {
+            "key": "loading-message",
+            "default": "'Loading Data...'",
+            "description": "If loading=true, then this message will be shown."
+        }],
+        "slots": [{
+            "name": "table",
+            "description": "Replace the full table portion of the component, this does not affect the search bar of actions slot"
+        }, {
+            "name": "actions",
+            "description": "Provide buttons and/or links to render above the table."
+        }, {
+            "name": "header",
+            "description": "Replaces the default data-table header row."
+        }, {
+            "name": "rows",
+            "description": "Replaces the default data-table rows."
+        }, {
+            "name": "context-menu",
+            "description": "Define a collection of ff-list-item components that can be rendered for each rows context-menu. For the @click for each of these, make sure no () are used, e.g. @click=\"doSomething\", by default the row's data object will get passed to any @click function provided."
+        }],
+        "emits": [{
+            "event": "row-selected",
+            "example": "{colA: 1}",
+            "description": "The object associated with the row clicked."
+        }]
+    }, {
+        "name": "ff-data-table-row",
+        "props": [{
+            "key": "columns",
+            "default": "null",
+            "description": "An array of objects that define the column headers and assocated keys in the data. e.g. [{key: 'colA', label: 'Column A'}]"
+        }, {
+            "key": "data",
+            "default": "null",
+            "description": "<Object> Data to render in this row. The exact data that will be rendered from this object will be defined in the 'columns' property."
+        }, {
+            "key": "selectable",
+            "default": "false",
+            "description": "<Boolean> Whether or not clicking this row emits a 'selected' event with the relevant data bound to the event."
+        }],
+        "slots": [{
+            "name": "default",
+            "description": "Replace the full content of the row. Recommended to use ff-table-data-cells inside."
+        }, {
+            "name": "context-menu",
+            "description": "If included, this row will display an ff-kebab-menu at the end of each row with the provided options. It is recommended to use ff-list-items when filling this slot."
+        }]
+    }, {
+        "name": "ff-data-table-cell",
+        "slots": [{
+            "name": "default",
+            "description": "Populate the content of the cell."
+        }],
+        "props": [{
+            "key": "colspan",
+            "default": "1",
+            "description": "The number of columns this particular cell should cover."
+        }]
+    }]
+}
