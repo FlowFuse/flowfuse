@@ -86,6 +86,7 @@
                 <h3>Examples:</h3>
                 <div class="examples">
                     <div class="example">
+                        <h5>Left-Aligned Options</h5>
                         <ff-kebab-menu menu-align="left">
                             <ff-list-item label="Option 1" />
                             <ff-list-item label="Option 2" />
@@ -93,11 +94,20 @@
                         <code>{{ groups['button'].components[1].examples[0].code }}</code>
                     </div>
                     <div class="example">
+                        <h5>Right-Aligned Options</h5>
                         <ff-kebab-menu style="margin-left: 150px;" menu-align="right">
                             <ff-list-item label="Option 1" />
                             <ff-list-item label="Option 2" />
                         </ff-kebab-menu>
                         <code>{{ groups['button'].components[1].examples[1].code }}</code>
+                    </div>
+                    <div class="example">
+                        <h5>Danger Styling</h5>
+                        <ff-kebab-menu menu-align="left">
+                            <ff-list-item label="Option 1" />
+                            <ff-list-item label="Option 2" kind="danger" />
+                        </ff-kebab-menu>
+                        <code>{{ groups['button'].components[1].examples[2].code }}</code>
                     </div>
                 </div>
             </div>
