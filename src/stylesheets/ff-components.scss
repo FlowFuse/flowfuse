@@ -200,6 +200,8 @@ li.ff-list-item {
     display: flex;
     gap: 0px;
     align-items: center;
+    background-color: $ff-white;
+    border-color: $ff-grey-300;
     svg {
       width: 20px;
       height: 20px;
@@ -208,7 +210,7 @@ li.ff-list-item {
     input {
       flex-grow: 1;
       padding: $ff-unit-sm $ff-unit-md;
-      border-radius: $ff-unit-xs;
+      border-radius: $ff-unit-sm;
       background: none;
       height: 100%;
       &:focus-visible {
@@ -229,7 +231,9 @@ li.ff-list-item {
 
 .ff-input--error {
   &.ff-text-input {
-    border-color: $ff-red-300;
+    border-color: $ff-red-500;
+    border-width: 2px;
+    outline: none;
   }
 }
 

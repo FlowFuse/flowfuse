@@ -11,6 +11,8 @@
             "code": "<ff-text-input type\"email\" v-model=\"myEmail\" />"
         }, {
             "code": "<ff-text-input type\"email\" v-model=\"myEmail\">\n\t<template v-slot:icon><SearchIcon/></template>\n</ff-text-input>"
+        }, {
+            "code": "<ff-text-input type\"email\" v-model=\"myEmail\" :error=\"'This is the error.'\"></ff-text-input>"
         }],
         "props": [{
             "key": "disabled",

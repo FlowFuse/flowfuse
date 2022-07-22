@@ -275,6 +275,11 @@
                         <code>{{ groups['input'].components[0].examples[0].code }}</code>
                     </div>
                     <div class="example">
+                        <h5>Error State</h5>
+                        <ff-text-input placeholder="Insert something here..." v-model="models.textInput0" :error="'This is the error'"/>
+                        <code>{{ groups['input'].components[0].examples[3].code }}</code>
+                    </div>
+                    <div class="example">
                         <h5>Type: Password</h5>
                         <ff-text-input type="password" placeholder="Password goes here..."/>
                         <code>{{ groups['input'].components[0].examples[1].code }}</code>
