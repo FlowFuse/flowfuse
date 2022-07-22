@@ -23,6 +23,17 @@ body:
 
       **So that:**
 
+- type: checkboxes
+  id: pricing
+  attributes:
+    label: Which customers would this be availble to 
+    description: Based on our [pricing principles](https://flowforge.com/handbook/product/pricing/) features should be aligned between Cloud and CE/EE
+    options:
+      - label: All Users, (CE)
+      - label: Specific Project Types (EE)
+      - label: Specific Team Tiers (EE)
+      - label: Other (See comments)
+
 - type: textarea
   attributes:
     label: Acceptance Criteria
