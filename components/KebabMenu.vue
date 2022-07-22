@@ -1,5 +1,7 @@
 <template>
     <div class="ff-kebab-menu" :class="{'active': open}">
+        <!-- using this v-if hack in order to enable both
+        the button and click-outside to work when closing the menu -->
         <DotsVerticalIcon v-if="!open" @click="openOptions()"/>
         <DotsVerticalIcon v-if="open" @click="closeOptions()"/>
         <template v-if="open">
