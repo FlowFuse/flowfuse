@@ -2,11 +2,6 @@
 
 @import "./layouts.scss";
 
-* {
-    transition: 0.3s background-color, 0.3s color;
-    -webkit-transition: 0.3s background-color, 0.3s color;
-}
-
 #ff-app {
     background-color: $ff-grey-300;
 }
