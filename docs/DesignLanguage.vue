@@ -570,7 +570,9 @@ export default {
                     columns: [{
                         key: 'colA',
                         label: 'Column A',
-                        sortable: false
+                        sortable: false,
+                        classes: ['classes-can-go-here-too'],
+                        style: { width: '60%' }
                     }, {
                         key: 'colB',
                         label: 'Column B',

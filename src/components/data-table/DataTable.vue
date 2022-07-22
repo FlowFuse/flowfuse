@@ -14,7 +14,11 @@
                 <thead>
                     <slot name="header">
                         <ff-data-table-row>
-                            <ff-data-table-cell v-for="(col, $index) in columns" :key="$index" :class="{'sorted': sort.key === col.key ,'sortable': col.sortable}" @click="sortBy(col)">
+                            <ff-data-table-cell v-for="(col, $index) in columns" :key="$index"
+                                :class="[sort.key === col.key ? 'sorted' : '', col.sortable ? 'sortable' : ''].concat(col.classes)"
+                                :style="col.style"
+                                @click="sortBy(col)">
+                                <!-- Internal div required to have flex w/sorting icons -->
                                 <div>
                                     {{ col.label }}
                                     <SwitchVerticalIcon class="ff-icon" v-if="col.sortable && col.key !== sort.key"/>
