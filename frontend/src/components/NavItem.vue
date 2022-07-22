@@ -1,9 +1,9 @@
 <template>
     <li class="ff-nav-item">
         <div class="flex items-center">
-            <component v-if="icon" :is="icon" />
+            <component v-if="icon" :is="icon" class="transition-fade--color"/>
             <img v-if="avatar" :src="avatar" class="ff-avatar"/>
-            <label>{{ label }}</label>
+            <label class="transition-fade--color">{{ label }}</label>
         </div>
         <ff-notification-pill v-if="notifications > 0" :count="notifications" />
     </li>
