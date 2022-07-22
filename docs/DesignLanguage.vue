@@ -161,7 +161,8 @@
                         <h5>Example 5: Custom Row Content &amp; Components</h5>
                         <p style="margin-bottom: 12px;">Note, this method requires components to be created that can parse and render the data structure provided to the row.</p>
                         <p style="margin-bottom: 12px;">This method does still enable searching and sorting out of the box.</p>
-                        <ff-data-table :columns="data.table4.columns" :rows="data.table4.rows" :show-search="true" v-model:search="data.table4.search"></ff-data-table>
+                        <ff-data-table :columns="data.table4.columns" :rows="data.table4.rows"
+                            :show-search="true" :search-fields="['sName', 'number']" search-placeholder="search-fields limits which properties the search applies to."></ff-data-table>
                         <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[8].code }}</code>
                         <code style="margin-top: 24px;">cols = {{ pretty(data.table4DocVersion.columns) }}</code>
                     </div>

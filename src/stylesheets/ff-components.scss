@@ -216,6 +216,7 @@ li.ff-list-item {
       border-radius: $ff-unit-xs;
       background: none;
       height: 100%;
+      border-width: 0;
       &:focus-visible {
         border: none;
         outline: none;

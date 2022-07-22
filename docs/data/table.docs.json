@@ -21,7 +21,7 @@
         }, {
             "code": "<ff-data-table :columns=\"cols\" :rows=\"[]\" :loading=\"true\" loading-message=\"Loading Projects...\"></ff-data-table>"
         }, {
-            "code": "<ff-data-table :columns=\"cols\" :rows=\"rows\" :show-search=\"true\" v-model:search=\"search\"></ff-data-table>"
+            "code": "<ff-data-table :columns=\"cols\" :rows=\"rows\" :show-search=\"true\" v-model:search=\"search\" \n\t:search-fields=\"['sName', 'number']\" search-placeholder=\"search-fields limits\n\twhich properties the search applies to.\">\n</ff-data-table>"
         }],
         "props": [{
             "key": "columns",
@@ -43,6 +43,10 @@
             "key": "search-placeholder",
             "default": "null",
             "description": "If `show-search` is true, then this proeprty will set the placeholder of the search bar."
+        },{
+            "key": "search-fields",
+            "default": "null",
+            "description": "If null, the search will look through the entire data object provided, otherwise, it will only consider the fields provided in the array. Recommendation is to provide this value."
         }, {
             "key": "show-load-more",
             "default": "false",
