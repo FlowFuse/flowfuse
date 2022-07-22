@@ -12,10 +12,11 @@
         <table class="ff-data-table--data">
             <slot name="table">
                 <thead>
+                    <!-- HEADERS -->
                     <slot name="header">
                         <ff-data-table-row>
                             <ff-data-table-cell v-for="(col, $index) in columns" :key="$index"
-                                :class="[sort.key === col.key ? 'sorted' : '', col.sortable ? 'sortable' : ''].concat(col.classes)"
+                                :class="[sort.key === col.key ? 'sorted' : '', col.sortable ? 'sortable' : ''].concat(col.class)"
                                 :style="col.style"
                                 @click="sortBy(col)">
                                 <!-- Internal div required to have flex w/sorting icons -->
@@ -31,19 +32,20 @@
                     </slot>
                 </thead>
                 <tbody>
+                    <!-- ROWS -->
                     <slot name="rows">
                         <ff-data-table-row v-if="loading">
                             <ff-data-table-cell class="status-message" :colspan="columns.length">{{ loadingMessage }}</ff-data-table-cell>
                         </ff-data-table-row>
                         <template v-if="!loading">
-                            <ff-data-table-row v-for="(r, $index) in sortedRows" :key="$index" :data="r" :columns="columns"
+                            <ff-data-table-row v-for="(r, $index) in filteredRows" :key="$index" :data="r" :columns="columns"
                                 :selectable="rowsSelectable" @click="rowClick(r)">
                                 <template v-if="hasContextMenu" v-slot:context-menu>
                                     <slot name="context-menu"></slot>
                                 </template>
                             </ff-data-table-row>
                         </template>
-                        <ff-data-table-row v-if="!loading && sortedRows.length === 0">
+                        <ff-data-table-row v-if="!loading && filteredRows?.length === 0">
                             <ff-data-table-cell class="status-message" :colspan="columns.length">No Data Found</ff-data-table-cell>
                         </ff-data-table-row>
                     </slot>
@@ -117,9 +119,10 @@ export default {
         hasContextMenu: function () {
             return this.$slots['context-menu']
         },
-        sortedRows: function () {
+        filteredRows: function () {
+            const rows = this.filterRows([...this.rows])
             if (this.sort.key) {
-                return [...this.rows].sort((a, b) => {
+                return rows.sort((a, b) => {
                     if (this.sort.order === 'asc') {
                         if (a[this.sort.key] < b[this.sort.key]) {
                             return 1
@@ -139,7 +142,7 @@ export default {
                     }
                 })
             } else {
-                return this.rows
+                return rows
             }
         }
     },
@@ -157,6 +160,29 @@ export default {
         }
     },
     methods: {
+        filterRows (rows) {
+            const search = this.filterTerm
+            if (search) {
+                const filtered = rows.filter(function (cell, index) {
+                    const vals = Object.values(cell)
+                    for (let i = 0; i < vals.length; i++) {
+                        let value = vals[i]
+                        if (typeof value === 'number') {
+                            value = value.toString()
+                        }
+                        if (typeof value === 'string') {
+                            if (value.toLowerCase().indexOf(search.toLowerCase()) > -1) {
+                                return true
+                            }
+                        }
+                    }
+                    return false
+                })
+                return filtered
+            } else {
+                return rows
+            }
+        },
         rowClick () {
             if (this.rowsSelectable) {
                 this.$emit('row-selected')

@@ -138,7 +138,7 @@
                     </div>
                     <div class="example">
                         <h5>Example 4: Filtering via Search &amp; Actions</h5>
-                        <ff-data-table :columns="data.table3.columns" :rows="table3Filtered"
+                        <ff-data-table :columns="data.table3.columns" :rows="data.table3.rows"
                             :show-search="true" search-placeholder="Search here..." v-model:search="data.table3.search">
                             <template v-slot:actions>
                                 <ff-button>Press Me!</ff-button>
@@ -148,7 +148,16 @@
                         <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[3].code }}</code>
                     </div>
                     <div class="example">
-                        <h5>Example 5: Custom Row Content</h5>
+                        <h5>Example 5: Custom Row Content &amp; Components</h5>
+                        <p style="margin-bottom: 12px;">Note, this method requires components to be created that can parse and render the data structure provided to the row.</p>
+                        <p style="margin-bottom: 12px;">This method does still enable searching and sorting out of the box.</p>
+                        <ff-data-table :columns="data.table4.columns" :rows="data.table4.rows" :show-search="true" v-model:search="data.table4.search"></ff-data-table>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[8].code }}</code>
+                        <code style="margin-top: 24px;">cols = {{ pretty(data.table4DocVersion.columns) }}</code>
+                    </div>
+                    <div class="example">
+                        <h5>Example 6: Custom Row Content &amp; Components</h5>
+                        <p style="margin-bottom: 12px;">Note, this method will override the full row object inside data-table, including filtering/sorting and loading/no-data placeholder options of the table.</p>
                         <ff-data-table :columns="data.table2.columns">
                             <template v-slot:rows>
                                 <ff-data-table-row>
@@ -167,7 +176,7 @@
                         <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[4].code }}</code>
                     </div>
                     <div class="example">
-                        <h5>Example 6: v-for Selectable Rows &amp; Custom Headers</h5>
+                        <h5>Example 7: v-for Selectable Rows &amp; Custom Headers</h5>
                         <ff-data-table>
                             <template v-slot:header>
                                 <ff-data-table-row>
@@ -200,12 +209,12 @@
                         <code style="margin-top: 24px;">rows = {{ pretty(data.table3.rows) }}</code>
                     </div>
                     <div class="example">
-                        <h5>Example 7: No Data</h5>
+                        <h5>Example 8: No Data</h5>
                         <ff-data-table :columns="data.table1.columns" :rows="[]"></ff-data-table>
                         <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[6].code }}</code>
                     </div>
                     <div class="example">
-                        <h5>Example 8: Loading</h5>
+                        <h5>Example 9: Loading</h5>
                         <ff-data-table :columns="data.table1.columns" :rows="data.table1.rows" :loading="true" loading-message="Loading Projects..."></ff-data-table>
                         <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[7].code }}</code>
                     </div>
@@ -512,6 +521,7 @@ import EventsTable from './components/EventsTable.vue'
 import SlotsTable from './components/SlotsTable.vue'
 
 import MarkdownViewer from '@/components/Markdown.vue'
+import FFNotificationPill from '@/components/NotificationPill.vue'
 
 import buttonDocs from './data/button.docs.json'
 import tableDocs from './data/table.docs.json'
@@ -523,6 +533,7 @@ import utilitiesDocs from './data/utilities.docs.json'
 
 // icons
 import { PlusSmIcon, SearchIcon } from '@heroicons/vue/outline'
+import { markRaw } from '@vue/reactivity'
 
 export default {
     name: 'DesignLanguage',
@@ -571,7 +582,7 @@ export default {
                         key: 'colA',
                         label: 'Column A',
                         sortable: false,
-                        classes: ['classes-can-go-here-too'],
+                        class: ['classes-can-go-here-too'],
                         style: { width: '60%' }
                     }, {
                         key: 'colB',
@@ -679,6 +690,62 @@ export default {
                         sName: 'Solo',
                         number: 789
                     }]
+                },
+                table4: {
+                    search: '',
+                    columns: [{
+                        key: 'fName',
+                        label: 'First Name',
+                        sortable: true
+                    }, {
+                        key: 'sName',
+                        label: 'Last Name',
+                        sortable: true
+                    }, {
+                        key: 'number',
+                        label: 'Number',
+                        sortable: true,
+                        component: {
+                            is: markRaw(FFNotificationPill),
+                            map: {
+                                count: 'number'
+                            }
+                        }
+                    }],
+                    rows: [{
+                        fName: 'Alice',
+                        sName: 'Skywalker',
+                        number: 123
+                    }, {
+                        fName: 'Bob',
+                        sName: 'Palpatine',
+                        number: 456
+                    }, {
+                        fName: 'Freddie',
+                        sName: 'Solo',
+                        number: 789
+                    }]
+                },
+                table4DocVersion: {
+                    columns: [{
+                        key: 'fName',
+                        label: 'First Name',
+                        sortable: true
+                    }, {
+                        key: 'sName',
+                        label: 'Last Name',
+                        sortable: true
+                    }, {
+                        key: 'number',
+                        label: 'Number',
+                        sortable: true,
+                        component: {
+                            is: 'markRaw(FFNotificationPill)',
+                            map: {
+                                count: 'number'
+                            }
+                        }
+                    }]
                 }
             }
         }
@@ -686,28 +753,6 @@ export default {
     computed: {
         groups_ordered: function () {
             return _.sortedBy(this.groups, 'name')
-        },
-        table3Filtered: function () {
-            const search = this.data.table3.search
-            if (search) {
-                return this.data.table3.rows.filter(function (cell, index) {
-                    const vals = Object.values(cell)
-                    for (let i = 0; i < vals.length; i++) {
-                        let value = vals[i]
-                        if (typeof value === 'number') {
-                            value = value.toString()
-                        }
-                        if (typeof value === 'string') {
-                            if (value.toLowerCase().indexOf(search.toLowerCase()) > -1) {
-                                return true
-                            }
-                        }
-                    }
-                    return false
-                })
-            } else {
-                return this.data.table3.rows
-            }
         }
     },
     async mounted () {

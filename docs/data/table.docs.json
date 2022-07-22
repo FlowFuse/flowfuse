@@ -20,6 +20,8 @@
             "code": "<ff-data-table :columns=\"cols\" :rows=\"[]\"></ff-data-table>"
         }, {
             "code": "<ff-data-table :columns=\"cols\" :rows=\"[]\" :loading=\"true\" loading-message=\"Loading Projects...\"></ff-data-table>"
+        }, {
+            "code": "<ff-data-table :columns=\"cols\" :rows=\"rows\" :show-search=\"true\" v-model:search=\"search\"></ff-data-table>"
         }],
         "props": [{
             "key": "columns",
