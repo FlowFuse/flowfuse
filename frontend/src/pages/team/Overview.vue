@@ -1,7 +1,7 @@
 <template>
     <ff-loading v-if="loading" />
     <div v-else class="block md:flex">
-        <div v-if="!showingMessage" class="flex-grow">
+        <div class="flex-grow">
             <SectionTopMenu hero="Projects">
                 <template v-if="createProjectEnabled" v-slot:tools>
                     <ff-button kind="primary" size="small" to="./projects/create"><template v-slot:icon-left><PlusSmIcon /></template>Create Project</ff-button>
@@ -11,16 +11,13 @@
                 <ProjectSummaryList :projects="projects" :team="team" />
             </template>
             <template v-else>
-                <div class="flex text-gray-500 justify-center italic mb-4 p-8">
+                <div v-if="!showingMessage" class="flex text-gray-500 justify-center italic mb-4 p-8">
                     You don't have any projects yet
                 </div>
+                <div v-else class="mb-4 p-8 mx-auto text-center">
+                    <strong class="mb-2 block">Thank you for signing up to FlowForge!</strong>You are now able to create projects and use the platform.
+                </div>
             </template>
-        </div>
-        <div v-else class="flex-grow">
-            <p>
-                Thank you for signing up to FlowForge. You are now able to create projects and use the platform.
-            </p>
-            <ff-button kind="primary" size="small" to="./projects/create"><template v-slot:icon-left><PlusSmIcon /></template>Create Project</ff-button>
         </div>
         <div class="md:w-48 md:ml-8 mt-8 md:mt-0">
             <SectionTopMenu hero="Members" />
