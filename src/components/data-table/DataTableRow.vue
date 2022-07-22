@@ -55,7 +55,7 @@ export default {
                 }
                 return data
             } else {
-                return data[col.key]
+                return data
             }
         }
     }
