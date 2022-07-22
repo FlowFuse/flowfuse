@@ -1,17 +1,19 @@
 <template>
-    <FormHeading>
-        Team Members
-        <template v-slot:tools v-if="canModifyMembers">
-            <ff-button kind="secondary" size="small" @click="inviteMember">
-                <template v-slot:icon-left><PlusSmIcon class="w-4" /></template>
-                Add member
-            </ff-button>
-        </template>
-    </FormHeading>
     <ff-loading v-if="loading" message="Loading Team..." />
     <form v-else class="space-y-6 mb-8">
         <div class="text-right"></div>
-        <ItemTable :items="users" :columns="userColumns" />
+        <ff-data-table :columns="userColumns" :rows="users" :show-search="true" search-placeholder="Search Team Members..." :search-fields="['name', 'username', 'role']">
+            <template v-slot:actions>
+                <ff-button kind="secondary" @click="inviteMember">
+                    <template v-slot:icon-left><PlusSmIcon class="w-4" /></template>
+                    Add member
+                </ff-button>
+            </template>
+            <template v-slot:context-menu>
+                <ff-list-item label="Change Role" @click="changeRoleDialog" />
+                <ff-list-item label="Remove From Team" kind="danger" @click="removeUserDialog" />
+            </template>
+        </ff-data-table>
     </form>
 
     <ChangeTeamRoleDialog @roleUpdated="roleUpdated" ref="changeTeamRoleDialog" />
@@ -22,11 +24,8 @@
 <script>
 import { markRaw } from 'vue'
 
-import FormHeading from '@/components/FormHeading'
-import ItemTable from '@/components/tables/ItemTable'
 import UserCell from '@/components/tables/cells/UserCell'
 import UserRoleCell from '@/components/tables/cells/UserRoleCell'
-import TeamUserEditButton from '../components/TeamUserEditButton'
 import ChangeTeamRoleDialog from '../dialogs/ChangeTeamRoleDialog'
 import ConfirmTeamUserRemoveDialog from '../dialogs/ConfirmTeamUserRemoveDialog'
 import InviteMemberDialog from '../dialogs/InviteMemberDialog'
@@ -58,12 +57,11 @@ export default {
         inviteMember () {
             this.$refs.inviteMemberDialog.show()
         },
-        handleUserAction (user, action) {
-            if (action === 'changerole') {
-                this.$refs.changeTeamRoleDialog.show(this.team, user, this.ownerCount)
-            } else {
-                this.$refs.confirmTeamUserRemoveDialog.show(this.team, user, this.ownerCount)
-            }
+        changeRoleDialog (row) {
+            this.$refs.changeTeamRoleDialog.show(this.team, row, this.ownerCount)
+        },
+        removeUserDialog (row) {
+            this.$refs.confirmTeamUserRemoveDialog.show(this.team, row, this.ownerCount)
         },
         roleUpdated (user) {
             this.fetchData()
@@ -85,8 +83,8 @@ export default {
             this.canModifyMembers = this.$store.state.account.user.admin || (currentUser && (currentUser.role === Roles.Owner))
 
             this.userColumns = [
-                { name: 'User', class: ['flex-grow'], component: { is: markRaw(UserCell) } },
-                { name: 'Role', class: ['w-40'], component: { is: markRaw(UserRoleCell) } }
+                { label: 'User', key: 'name', sortable: true, class: ['flex-grow'], component: { is: markRaw(UserCell) } },
+                { label: 'Role', key: 'role', sortable: true, class: ['w-40'], component: { is: markRaw(UserRoleCell) } }
             ]
 
             if (this.canModifyMembers) {
@@ -95,9 +93,7 @@ export default {
                         if (u.role === Roles.Owner) {
                             this.ownerCount++
                         }
-                        u.onselect = (action) => { this.handleUserAction(u, action) }
                     })
-                    this.userColumns.push({ name: '', class: ['w-16'], component: { is: markRaw(TeamUserEditButton) } })
                 }
             }
             this.loading = false
@@ -105,8 +101,6 @@ export default {
     },
     props: ['team', 'teamMembership'],
     components: {
-        ItemTable,
-        FormHeading,
         ChangeTeamRoleDialog,
         ConfirmTeamUserRemoveDialog,
         PlusSmIcon,
