@@ -1,7 +1,7 @@
 <template>
     <tr class="ff-data-table--row" :class="{'selectable': selectable}" @click="$emit('selected', data)">
         <slot>
-            <ff-data-table-cell v-for="col in columns" :key="col.label">
+            <ff-data-table-cell v-for="col in columns" :key="col.label" :class="col.classes" :style="col.style">
                 <template v-if="!isBool(data[col.key])">
                     {{ data[col.key] }}
                 </template>
