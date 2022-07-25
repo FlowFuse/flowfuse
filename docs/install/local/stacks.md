@@ -13,8 +13,7 @@ For the Local deployment model, this covers two things:
 
 ## Upgrading Node-RED
 
-By default, FlowForge 0.3 will use Node-RED 2.2.x - which is installed when
-FlowForge is installed.
+FlowForge supports Node-RED 2.2.x and later for creating stacks.
 
 As new versions of Node-RED are released, the following steps can be used to
 make them available within FlowForge.
@@ -54,8 +53,5 @@ These scripts will automate the following steps
    1. Enter `2.2.2` under the Node-RED version - this *must* match the directory
       name created under `var/stacks`.
 
-At this point, new projects can select the new Stack in order to use the new version
+At this point, projects can select the new Stack in order to use the new version
 of Node-RED.
-
-*Note:* with the 0.3 release, it is *not* possible to change the Stack being used
-by a project. That will come in a future release.
