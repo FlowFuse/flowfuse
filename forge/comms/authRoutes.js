@@ -1,7 +1,8 @@
 /**
  * Broker authentication backend
  *
- * - /api/broker
+ * - /api/comms/auth/client - verify username/password
+ * - /api/comms/auth/acl - verify username is permitted to pub/sub to particular topic
  *
  */
 

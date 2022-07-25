@@ -1,33 +1,42 @@
+/**
+ * This module provides functions to verify whether a broker ACL request
+ * is valid or not.
+ *
+ * It includes the core (CE) ACLs for basic launcher/device command/status messages.
+ *
+ * Other components (ie EE-specific features) can register their own additional ACLs
+ */
 module.exports = function (app) {
+    // Standard set of verify functions to ensure the request meets particular criteria
     const verifyFunctions = {
-        checkTeamAndObjectIds: async function (match, ids) {
-            // match = [ _ , <teamid>, <projectid> ]
+        checkTeamAndObjectIds: async function (requestParts, ids) {
+            // requestParts = [ _ , <teamid>, <projectid> ]
             // ids = [ 'project', <teamid>, <projectid> ]
-            return match[1] === ids[1] && match[2] === ids[2]
+            return requestParts[1] === ids[1] && requestParts[2] === ids[2]
         },
-        checkTeamId: async function (match, ids) {
-            // match = [ _ , <teamid> ]
+        checkTeamId: async function (requestParts, ids) {
+            // requestParts = [ _ , <teamid> ]
             // ids = [ 'project', <teamid>, <projectid> ]
-            return match[1] === ids[1]
+            return requestParts[1] === ids[1]
         },
-        checkDeviceAssignedToProject: async function (match, ids) {
-            // match = [ _ , <teamid>, <projectid> ]
+        checkDeviceAssignedToProject: async function (requestParts, ids) {
+            // requestParts = [ _ , <teamid>, <projectid> ]
             // ids = [ 'device', <teamid>, <deviceid> ]
 
             // Do the simple team id check
-            if (match[1] !== ids[1]) {
+            if (requestParts[1] !== ids[1]) {
                 return false
             }
             // Get the project this device is assigned to and check it matches
             const assignedProject = await app.db.models.Device.getDeviceProjectId(ids[2])
-            return assignedProject && assignedProject === match[2]
+            return assignedProject && assignedProject === requestParts[2]
         },
-        checkDeviceCanAccessProject: async function (match, ids) {
-            // match = [ _ , <teamid>, <projectid> ]
+        checkDeviceCanAccessProject: async function (requestParts, ids) {
+            // requestParts = [ _ , <teamid>, <projectid> ]
             // ids = [ 'device', <teamid>, <deviceid> ]
 
             // Do the simple team id check
-            if (match[1] !== ids[1]) {
+            if (requestParts[1] !== ids[1]) {
                 return false
             }
             // Get the project this device is assigned to
@@ -35,14 +44,14 @@ module.exports = function (app) {
             if (!assignedProject) {
                 return false
             }
-            if (assignedProject === match[2]) {
+            if (assignedProject === requestParts[2]) {
                 // Access the project we're assigned to - all good
                 return true
             }
 
             // Need to check if this project is in the same team.
-            const projectTeamId = await app.db.models.Project.getProjectTeamId(match[2])
-            return projectTeamId && app.db.models.Team.encodeHashid(projectTeamId) === match[1]
+            const projectTeamId = await app.db.models.Project.getProjectTeamId(requestParts[2])
+            return projectTeamId && app.db.models.Team.encodeHashid(projectTeamId) === requestParts[1]
         }
     }
 
@@ -106,7 +115,10 @@ module.exports = function (app) {
 
             let allowed = false
             let aclList = []
+            // accessLevel 1=SUB 2=PUB 3=WRITE
+            // We do not distinguish between SUB & WRITE
             const aclType = accessLevel === 2 ? 'pub' : 'sub'
+            // Pick the appropriate ACL list based on username/accessLevel
             if (username === 'forge_platform') {
                 aclList = ACLS[username][aclType]
             } else if (/^project:/.test(username)) {

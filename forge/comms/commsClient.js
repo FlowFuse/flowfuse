@@ -1,6 +1,10 @@
 const mqtt = require('mqtt')
 const EventEmitter = require('events')
 
+/**
+ * MQTT Client wrapper. This connects to the platform broker and subscribes
+ * to the appropriate status topics.
+ */
 class CommsClient extends EventEmitter {
     constructor (app) {
         super()
@@ -8,6 +12,8 @@ class CommsClient extends EventEmitter {
     }
 
     async init () {
+        // To aid testing, we use a url of `:test:` to allow us to configure
+        // the platform with comms enabled, but no active MQTT connection
         if (this.app.config.broker.url !== ':test:') {
             const brokerConfig = {
                 clientId: 'forge_platform',
@@ -42,7 +48,9 @@ class CommsClient extends EventEmitter {
                 }
             })
             this.client.subscribe([
-                'ff/v1/+/p/+/status',
+                // Launcher status
+                'ff/v1/+/l/+/status',
+                // Device status
                 'ff/v1/+/d/+/status'
             ])
         }
