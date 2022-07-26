@@ -51,6 +51,75 @@ be done by running the following command:
 xcode-select --install
 ```
 
+#### Mosquitto
+
+The platform depends on the [Mosquitto MQTT Broker](https://mosquitto.org/) to
+provide real-time messaging between devices and the platform.
+
+We do **not** support sharing a broker with other non-FlowForge applications. If you
+already have mosquitto installed and running, you will need to run a second instance
+dedicated to FlowForge
+
+This is currently an *optional* component - the platform will work without the
+broker, but some features will not be available.
+
+You can either follow the manual install steps, which involve building the authentication
+plugin from scratch, or make use of the [Docker install](#docker-install)
+
+##### Manual install
+
+**Note**: if you are running on Windows, you will need to follow the [Docker install](#docker-install)
+instructions below due to a limitation of the authentication plugin we use.
+
+Follow the appropriate [install instructions](https://mosquitto.org/download/) for
+your operating system.
+
+Once installed, you will need to build and install the authentication plugin.
+
+1. Clone the plugin repository
+    ```
+    git clone https://github.com/iegomez/mosquitto-go-auth.git
+    ```
+
+2. Follow the instructions on [building the plugin](https://github.com/iegomez/mosquitto-go-auth#building-the-plugin)
+
+3. This should result in a file called `go-auth.so` being generated
+
+4. Run mosquitto with a configuration file with the following contents:
+    ```
+    per_listener_settings false
+    allow_anonymous false
+    listener 1883 0.0.0.0
+    listener 1884 0.0.0.0
+    protocol websockets
+    auth_plugin /mosquitto/go-auth.so
+    auth_opt_backends http
+    auth_opt_hasher bcrypt
+    auth_opt_cache true
+    auth_opt_auth_cache_seconds 30
+    auth_opt_acl_cache_seconds 90
+    auth_opt_auth_jitter_second 3
+    auth_opt_acl_jitter_seconds 5
+    auth_opt_http_host http://localhost
+    auth_opt_http_port 3000
+    auth_opt_http_getuser_uri /api/broker/auth-client
+    auth_opt_http_aclcheck_uri /api/broker/auth-acl
+    ```
+
+   You will need to customise the values to match your local configuration:
+      - `auth_plugin` - set to the path of the `go-auth.so` file built in the previous step
+      - `listener 1883/1884` - if you already have mosquitto running locally, you'll need to
+        change these ports to something else.
+      - `auth_opt_http_host` / `auth_opt_http_port` - if you plan to run the platform
+        on a different port, change these settings to match.
+
+##### Docker Install
+
+Instead of installing and building mosquitto and the authentication plugin from source,
+you can use a pre-built docker image that provides everything needed.
+
+TODO: fill out docker instructions
+
 ### Installing FlowForge
 
 1. Create a directory to be the base of your FlowForge install. For example: `/opt/flowforge` or `c:\flowforge`
