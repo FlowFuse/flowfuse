@@ -28,7 +28,7 @@ export default {
             loading: false,
             invitations: [],
             inviteColumns: [
-                { label: 'User', class: ['flex-grow'], component: { is: markRaw(InviteUserCell) }, key: 'invitee' },
+                { label: 'User', class: ['flex-grow'], component: { is: markRaw(InviteUserCell), map: { user: 'invitee' } }, key: 'invitee' },
                 { label: 'Expires In', class: ['w-40'], key: 'expires' }
             ]
         }
