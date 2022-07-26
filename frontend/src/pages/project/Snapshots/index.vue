@@ -2,10 +2,16 @@
     <form class="space-y-6">
         <ff-loading v-if="loading" message="Loading Snapshots..." />
         <template v-if="snapshots.length > 0">
-            <template v-if="createSnapshotEnabled">
-                <ff-button kind="primary" size="small" @click="showCreateSnapshotDialog"><template v-slot:icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
-            </template>
-            <ItemTable :items="snapshots" :columns="columns" @snapshotAction="snapshotAction"/>
+            <ff-data-table :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
+                <template v-slot:actions v-if="createSnapshotEnabled">
+                    <ff-button kind="primary" @click="showCreateSnapshotDialog"><template v-slot:icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
+                </template>
+                <template v-slot:context-menu="{row}">
+                    <ff-list-item label="Rollback" @click="showRollbackDialog(row)" />
+                    <ff-list-item label="Set as Device Target" @click="showDeviceTargetDialog(row)"/>
+                    <ff-list-item label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)"/>
+                </template>
+            </ff-data-table>
         </template>
         <template v-else-if="!loading">
             <div class="flex flex-col text-gray-500 items-center italic mb-4 p-8 space-y-6">
@@ -18,7 +24,7 @@
         <ConfirmSnapshotDeleteDialog @deleteSnapshot="deleteSnapshot" ref="confirmSnapshotDeleteDialog" />
         <ConfirmSnapshotTargetDialog @targetSnapshot="targetSnapshot" ref="confirmSnapshotTargetDialog" />
         <ConfirmSnapshotRollbackDialog @rollbackSnapshot="rollbackSnapshot" ref="confirmSnapshotRollbackDialog" />
-        <SnapshotCreateDialog :project="project"  @snapshotCreated="snapshotCreated" ref="snapshotCreateDialog" />
+        <SnapshotCreateDialog :project="project" @snapshotCreated="snapshotCreated" ref="snapshotCreateDialog" />
     </form>
 </template>
 
@@ -28,11 +34,9 @@ import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 import projectApi from '@/api/project'
 import snapshotApi from '@/api/projectSnapshots'
-import ItemTable from '@/components/tables/ItemTable'
 import { PlusSmIcon, ChipIcon, ClockIcon } from '@heroicons/vue/outline'
 import daysSince from '@/utils/daysSince'
 import UserCell from '@/components/tables/cells/UserCell'
-import SnapshotEditButton from './components/SnapshotEditButton'
 import ConfirmSnapshotDeleteDialog from './dialogs/ConfirmSnapshotDeleteDialog'
 import ConfirmSnapshotTargetDialog from './dialogs/ConfirmSnapshotTargetDialog'
 import ConfirmSnapshotRollbackDialog from './dialogs/ConfirmSnapshotRollbackDialog'
@@ -79,17 +83,17 @@ export default {
             }
             this.loading = false
         },
-        snapshotAction (action, snapshotId) {
-            const snapshot = this.snapshots.find(d => d.id === snapshotId)
-            if (action === 'delete') {
-                this.$refs.confirmSnapshotDeleteDialog.show(snapshot)
-            } else if (action === 'rollback') {
-                this.$refs.confirmSnapshotRollbackDialog.show(snapshot)
-            } else if (this.features.devices) {
-                if (action === 'setDeviceTarget') {
-                    this.$refs.confirmSnapshotTargetDialog.show(snapshot)
-                }
-            }
+        // snapshot actions - delete
+        showDeleteSnapshotDialog (snapshot) {
+            this.$refs.confirmSnapshotDeleteDialog.show(snapshot)
+        },
+        // snapshot actions - rollback
+        showRollbackDialog (snapshot) {
+            this.$refs.confirmSnapshotRollbackDialog.show(snapshot)
+        },
+        // snapshot actions - set as device target
+        showDeviceTargetDialog (snapshot) {
+            this.$refs.confirmSnapshotTargetDialog.show(snapshot)
         },
         showCreateSnapshotDialog () {
             this.$refs.snapshotCreateDialog.show()
@@ -103,6 +107,7 @@ export default {
             this.snapshots.splice(index, 1)
         },
         async rollbackSnapshot (snapshot) {
+            console.log(snapshot.id)
             await snapshotApi.rollbackSnapshot(this.project.id, snapshot.id)
         },
         async targetSnapshot (snapshot) {
@@ -126,7 +131,7 @@ export default {
                 template: `<div class="flex items-center">
                     <ClockIcon class="w-6 mr-2 text-gray-500" />
                     <div class="flex flex-grow flex-col space-y-1">
-                        <span class="text-lg">{{name}}</span>
+                        <span class="text-md">{{name}}</span>
                         <span class="text-xs text-gray-500">id: {{id}}</span>
                         <template v-if="description">
                         <details class="text-gray-500 float-left">
@@ -150,10 +155,9 @@ export default {
             }
 
             const cols = [
-                { name: 'Snapshots', component: { is: markRaw(SnapshotName) } },
+                { label: 'Snapshots', component: { is: markRaw(SnapshotName) } },
                 // { name: '', class: ['w-56'], property: 'user', component: { is: UserCell } },
-                { class: ['w-56'], component: { is: markRaw(SnapshotMetaInformation) } },
-                { name: '', class: ['w-16'], component: { is: markRaw(SnapshotEditButton) } }
+                { class: ['w-56'], component: { is: markRaw(SnapshotMetaInformation) } }
             ]
             return cols
         }
@@ -164,7 +168,6 @@ export default {
         ConfirmSnapshotDeleteDialog,
         ConfirmSnapshotTargetDialog,
         ConfirmSnapshotRollbackDialog,
-        ItemTable,
         PlusSmIcon
     }
 }

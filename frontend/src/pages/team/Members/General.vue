@@ -4,9 +4,9 @@
         <div class="text-right"></div>
         <ff-data-table :columns="userColumns" :rows="users" :show-search="true" search-placeholder="Search Team Members..." :search-fields="['name', 'username', 'role']">
             <template v-slot:actions>
-                <ff-button kind="secondary" @click="inviteMember">
+                <ff-button kind="primary" @click="inviteMember">
                     <template v-slot:icon-left><PlusSmIcon class="w-4" /></template>
-                    Add member
+                    Invite Member
                 </ff-button>
             </template>
             <template v-slot:context-menu>

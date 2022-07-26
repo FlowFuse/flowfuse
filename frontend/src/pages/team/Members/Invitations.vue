@@ -1,12 +1,13 @@
 <template>
     <div>
-        <FormHeading>
-            Pending Invitations
-        </FormHeading>
         <ff-loading v-if="loading" message="Loading Invitations..." />
         <form v-else class="space-y-6">
             <div class="text-right"></div>
-            <ItemTable :items="invitations" :columns="inviteColumns" />
+            <ff-data-table :columns="inviteColumns" :rows="invitations">
+                <template v-slot:context-menu="{row}">
+                    <ff-list-item label="Remove Invite" kind="danger" @click="removeInvite(row)" />
+                </template>
+            </ff-data-table>
         </form>
     </div>
 </template>
@@ -14,12 +15,9 @@
 <script>
 import teamApi from '@/api/team'
 import { markRaw } from 'vue'
-import FormHeading from '@/components/FormHeading'
-import ItemTable from '@/components/tables/ItemTable'
 import InviteUserCell from '@/components/tables/cells/InviteUserCell'
 import { useRoute, useRouter } from 'vue-router'
 import { Roles } from '@core/lib/roles'
-import MemberInviteRemoveButton from '../../admin/Users/components/MemberInviteRemoveButton.vue'
 
 export default {
     name: 'MemberInviteTable',
@@ -30,9 +28,8 @@ export default {
             loading: false,
             invitations: [],
             inviteColumns: [
-                { name: 'User', class: ['flex-grow'], component: { is: markRaw(InviteUserCell) }, property: 'invitee' },
-                { name: 'Expires In', class: ['w-40'], property: 'expires' },
-                { name: '', class: ['w-16'], component: { is: markRaw(MemberInviteRemoveButton) } }
+                { label: 'User', class: ['flex-grow'], component: { is: markRaw(InviteUserCell) }, key: 'invitee' },
+                { label: 'Expires In', class: ['w-40'], key: 'expires' }
             ]
         }
     },
@@ -44,8 +41,8 @@ export default {
         this.fetchData()
     },
     methods: {
-        async removeInvite (teamId, inviteId) {
-            await teamApi.removeTeamInvitation(teamId, inviteId)
+        async removeInvite (invite) {
+            await teamApi.removeTeamInvitation(invite.team.id, invite.id)
             await this.fetchData()
             this.$emit('invites-updated')
         },
@@ -57,21 +54,11 @@ export default {
                     return
                 }
                 const invitations = await teamApi.getTeamInvitations(this.team.id)
-                this.invitations = invitations.invitations.map(invite => {
-                    invite.onremove = (teamId, inviteId) => {
-                        this.removeInvite(teamId, inviteId)
-                    }
-                    return invite
-                })
-
+                this.invitations = invitations.invitations
                 this.invitationCount = invitations.count
             }
             this.loading = false
         }
-    },
-    components: {
-        FormHeading,
-        ItemTable
     }
 }
 
