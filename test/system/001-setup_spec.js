@@ -1,6 +1,5 @@
 const should = require('should') // eslint-disable-line
 const FF_UTIL = require('flowforge-test-utils')
-const Forge = FF_UTIL.require('forge/forge.js')
 const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localTransport.js')
 
 describe('First run setup', function () {
@@ -11,20 +10,18 @@ describe('First run setup', function () {
 
     before(async function () {
         // Create the FF application with a suitable test configuration
-        forge = await Forge({
-            config: {
-                telemetry: { enabled: false },
-                driver: {
-                    type: 'stub'
-                },
-                db: {
-                    type: 'sqlite',
-                    storage: ':memory:'
-                },
-                email: {
-                    enabled: true,
-                    transport: inbox
-                }
+        forge = await FF_UTIL.setupApp({
+            telemetry: { enabled: false },
+            driver: {
+                type: 'stub'
+            },
+            db: {
+                type: 'sqlite',
+                storage: ':memory:'
+            },
+            email: {
+                enabled: true,
+                transport: inbox
             }
         })
     })

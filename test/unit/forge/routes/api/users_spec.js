@@ -8,7 +8,7 @@ describe('Users API', async function () {
     const TestObjects = {}
 
     beforeEach(async function () {
-        app = await setup({}, { features: { devices: true } })
+        app = await setup({ features: { devices: true } })
 
         // alice : admin, team owner
         // bob : admin, team owner

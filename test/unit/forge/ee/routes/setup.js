@@ -1,26 +1,9 @@
 const FF_UTIL = require('flowforge-test-utils')
-const Forge = FF_UTIL.require('forge/forge.js')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
-const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localTransport.js')
 
-module.exports = async function (settings = {}, config = {}) {
+module.exports = async function (config = {}) {
     config = {
         ...config,
-        telemetry: { enabled: false },
-        logging: {
-            level: 'warn'
-        },
-        db: {
-            type: 'sqlite',
-            storage: ':memory:'
-        },
-        email: {
-            enabled: true,
-            transport: new LocalTransport()
-        },
-        driver: {
-            type: 'stub'
-        },
         license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkJlbiBIYXJkaWxsIiwibmJmIjoxNjQ4MTY2NDAwLCJleHAiOjE2Nzk3ODg3OTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsImRldiI6dHJ1ZSwiaWF0IjoxNjQ4MjA1MDA3fQ.2swXs50ZJgiQLA9MeoKIepN6BJGGnDqIUQ0FuKUadVjTcUzFekId5RaTpedi14f2iA7qC1w50Ym2egaBFSg1JA',
         billing: {
             stripe: {
@@ -29,7 +12,7 @@ module.exports = async function (settings = {}, config = {}) {
         }
     }
 
-    const forge = await Forge({ config })
+    const forge = await FF_UTIL.setupApp(config)
 
     await forge.db.models.PlatformSettings.upsert({ key: 'setup:initialised', value: true })
     const userAlice = await forge.db.models.User.create({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
