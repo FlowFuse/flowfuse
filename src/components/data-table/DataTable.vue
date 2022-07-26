@@ -201,9 +201,9 @@ export default {
                 return rows
             }
         },
-        rowClick () {
+        rowClick (row) {
             if (this.rowsSelectable) {
-                this.$emit('row-selected')
+                this.$emit('row-selected', row)
             }
         },
         sortBy (col) {
