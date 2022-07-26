@@ -40,8 +40,8 @@
                         <template v-if="!loading">
                             <ff-data-table-row v-for="(r, $index) in filteredRows" :key="$index" :data="r" :columns="columns"
                                 :selectable="rowsSelectable" @click="rowClick(r)">
-                                <template v-if="hasContextMenu" v-slot:context-menu>
-                                    <slot name="context-menu"></slot>
+                                <template v-if="hasContextMenu" v-slot:context-menu="{row}">
+                                    <slot name="context-menu" :row="row"></slot>
                                 </template>
                             </ff-data-table-row>
                         </template>

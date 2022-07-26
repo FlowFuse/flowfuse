@@ -15,7 +15,7 @@
         </slot>
         <ff-data-table-cell v-if="hasContextMenu" style="width: 50px">
             <ff-kebab-menu menu-align="right">
-                <slot name="context-menu"></slot>
+                <slot name="context-menu" :row="data" message="hello world"></slot>
             </ff-kebab-menu>
         </ff-data-table-cell>
     </tr>
