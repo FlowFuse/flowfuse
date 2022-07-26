@@ -78,17 +78,21 @@ export default {
             return this.device && this.device.credentials
         },
         credentials: function () {
+            let result = ''
             if (this.device) {
-                return `deviceId: ${this.device.id}
+                result = `deviceId: ${this.device.id}
 token: ${this.device.credentials.token}
 credentialSecret: ${this.device.credentials.credentialSecret}
 forgeURL: ${this.settings.base_url}
+`
+                if (this.device.credentials.broker) {
+                    result += `brokerURL: ${this.device.credentials.broker.url}
 brokerUsername: ${this.device.credentials.broker.username}
 brokerPassword: ${this.device.credentials.broker.password}
 `
-            } else {
-                return ''
+                }
             }
+            return result
         }
     },
     setup () {

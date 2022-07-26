@@ -65,12 +65,15 @@ module.exports = {
                     const credentialSecret = crypto.randomBytes(32).toString('hex')
                     this.credentialSecret = credentialSecret
                     await this.save()
-                    const deviceBrokerCredentials = await Controllers.BrokerClient.createClientForDevice(this)
-                    return {
+                    const result = {
                         token: accessToken.token,
-                        credentialSecret,
-                        broker: deviceBrokerCredentials
+                        credentialSecret
                     }
+                    const broker = await Controllers.BrokerClient.createClientForDevice(this)
+                    if (broker) {
+                        result.broker = broker
+                    }
+                    return result
                 },
                 async getAccessToken () {
                     return M.AccessToken.findOne({

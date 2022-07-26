@@ -43,61 +43,70 @@ module.exports = {
      *
      */
     createClientForProject: async function (app, project) {
-        const existingClient = await app.db.models.BrokerClient.findOne({
-            where: {
+        if (app.comms) {
+            const existingClient = await app.db.models.BrokerClient.findOne({
+                where: {
+                    ownerId: project.id,
+                    ownerType: 'project'
+                }
+            })
+            if (existingClient) {
+                await existingClient.destroy()
+            }
+            if (!project.Team) {
+                // When restarting the platform, the container drivers get a minimal list
+                // of projects to restart. They don't necessarily include the Team in their
+                // query - so we need to ensure its available.
+                await project.reload({
+                    include: [{
+                        model: app.db.models.Team,
+                        attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                    }]
+                })
+            }
+            const username = `project:${project.Team.hashid}:${project.id}`
+            const password = generateToken(32, 'ffbp')
+            await app.db.models.BrokerClient.create({
+                username,
+                password,
                 ownerId: project.id,
                 ownerType: 'project'
-            }
-        })
-        if (existingClient) {
-            await existingClient.destroy()
-        }
-        if (!project.Team) {
-            // When restarting the platform, the container drivers get a minimal list
-            // of projects to restart. They don't necessarily include the Team in their
-            // query - so we need to ensure its available.
-            await project.reload({
-                include: [{
-                    model: app.db.models.Team,
-                    attributes: ['hashid', 'id', 'name', 'slug', 'links']
-                }]
             })
+            return {
+                url: app.config.broker.url || null,
+                username,
+                password
+            }
         }
-        const username = `project:${project.Team.hashid}:${project.id}`
-        const password = generateToken(32, 'ffbp')
-        await app.db.models.BrokerClient.create({
-            username,
-            password,
-            ownerId: project.id,
-            ownerType: 'project'
-        })
-        return {
-            username,
-            password
-        }
+        return null
     },
 
     createClientForDevice: async function (app, device) {
-        const existingClient = await app.db.models.BrokerClient.findOne({
-            where: {
+        if (app.comms) {
+            const existingClient = await app.db.models.BrokerClient.findOne({
+                where: {
+                    ownerId: '' + device.id,
+                    ownerType: 'device'
+                }
+            })
+            if (existingClient) {
+                await existingClient.destroy()
+            }
+            const username = `device:${device.Team.hashid}:${device.hashid}`
+            const password = generateToken(32, 'ffbd')
+            await app.db.models.BrokerClient.create({
+                username,
+                password,
                 ownerId: '' + device.id,
                 ownerType: 'device'
+            })
+            return {
+                // Devices should default to the public url if set
+                url: app.config.broker.public_url || app.config.broker.url || null,
+                username,
+                password
             }
-        })
-        if (existingClient) {
-            await existingClient.destroy()
         }
-        const username = `device:${device.Team.hashid}:${device.hashid}`
-        const password = generateToken(32, 'ffbd')
-        await app.db.models.BrokerClient.create({
-            username,
-            password,
-            ownerId: '' + device.id,
-            ownerType: 'device'
-        })
-        return {
-            username,
-            password
-        }
+        return null
     }
 }
