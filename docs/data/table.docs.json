@@ -59,6 +59,10 @@
             "key": "loading-message",
             "default": "'Loading Data...'",
             "description": "If loading=true, then this message will be shown."
+        }, {
+            "key": "no-data-message",
+            "default": "'No Data Found'",
+            "description": "Whenan empty array is passed into rows, this message will show."
         }],
         "slots": [{
             "name": "table",

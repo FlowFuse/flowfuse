@@ -49,7 +49,7 @@
                             <ff-data-table-cell class="status-message" :colspan="messageColSpan">No Data Found. Try Another Search.</ff-data-table-cell>
                         </ff-data-table-row>
                         <ff-data-table-row v-else-if="!loading && filteredRows?.length === 0">
-                            <ff-data-table-cell class="status-message" :colspan="messageColSpan">No Data Found</ff-data-table-cell>
+                            <ff-data-table-cell class="status-message" :colspan="messageColSpan">{{ noDataMessage }}</ff-data-table-cell>
                         </ff-data-table-row>
                     </slot>
                 </tbody>
@@ -109,6 +109,10 @@ export default {
         loadingMessage: {
             type: String,
             default: 'Loading Data...'
+        },
+        noDataMessage: {
+            type: String,
+            default: 'No Data Found'
         }
     },
     computed: {
