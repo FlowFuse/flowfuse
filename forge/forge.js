@@ -25,7 +25,8 @@ module.exports = async (options = {}) => {
             level: loggerLevel,
             prettyPrint: {
                 translateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss.l'Z'",
-                ignore: 'pid,hostname'
+                ignore: 'pid,hostname',
+                singleLine: true
             }
         }
     })
@@ -60,7 +61,7 @@ module.exports = async (options = {}) => {
         await server.register(csrf, { cookieOpts: { _signed: true, _httpOnly: true } })
 
         // Routes : the HTTP routes
-        await server.register(routes, { logLevel: 'warn' })
+        await server.register(routes, { logLevel: server.config.logging.http })
         // Post Office : handles email
         await server.register(postoffice)
         // Comms : real-time communication broker
