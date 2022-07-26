@@ -4,7 +4,7 @@
 
 <script>
 export default {
-    name: 'MarkdownViewer',
+    name: 'ff-markdown-viewer',
     props: {
         content: {
             type: String
