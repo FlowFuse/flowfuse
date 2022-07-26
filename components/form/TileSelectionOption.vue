@@ -64,8 +64,7 @@ export default {
     },
     components: {
         CheckCircleIcon,
-        PencilAltIcon,
-        MarkdownViewer
+        PencilAltIcon
     },
     data () {
         return {
