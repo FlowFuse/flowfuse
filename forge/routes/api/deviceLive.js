@@ -31,17 +31,28 @@ module.exports = async function (app) {
      */
     app.post('/state', async (request, reply) => {
         await app.db.controllers.Device.updateState(request.device, request.body)
-        if (request.body.snapshot !== (request.device.targetSnapshot?.hashid || null)) {
+        if (Object.hasOwn(request.body, 'project') && request.body.project !== (request.device.Project?.id || null)) {
             reply.code(409).send({
-                error: 'incorrect-snapshot',
+                error: 'incorrect-project',
+                project: request.device.Project?.id || null,
                 snapshot: request.device.targetSnapshot?.hashid || null,
                 settings: request.device.settingsHash || null
             })
             return
         }
-        if (request.body.settings && request.body.settings !== (request.device.settingsHash || null)) {
+        if (request.body.snapshot !== (request.device.targetSnapshot?.hashid || null)) {
+            reply.code(409).send({
+                error: 'incorrect-snapshot',
+                project: request.device.Project?.id || null,
+                snapshot: request.device.targetSnapshot?.hashid || null,
+                settings: request.device.settingsHash || null
+            })
+            return
+        }
+        if (request.body.settings !== undefined && request.body.settings !== (request.device.settingsHash || null)) {
             reply.code(409).send({
                 error: 'incorrect-settings',
+                project: request.device.Project?.id || null,
                 settings: request.device.settingsHash || null,
                 snapshot: request.device.targetSnapshot?.hashid || null
             })
@@ -52,7 +63,9 @@ module.exports = async function (app) {
 
     app.get('/state', async (request, reply) => {
         reply.send({
-            snapshot: request.device.targetSnapshot?.hashid || null
+            project: request.device.Project?.id || null,
+            snapshot: request.device.targetSnapshot?.hashid || null,
+            settings: request.device.settingsHash || null
         })
     })
 

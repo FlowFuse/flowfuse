@@ -64,7 +64,8 @@ const modelTypes = [
     'StorageSettings',
     'StorageSession',
     'StorageLibrary',
-    'AuditLog'
+    'AuditLog',
+    'BrokerClient'
 ]
 
 // A local map of the known models.

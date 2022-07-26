@@ -64,6 +64,7 @@
         "lru-cache": "^7.10.1",
         "marked": "^4.0.16",
         "moment": "^2.29.2",
+        "mqtt": "^4.3.7",
         "nodemailer": "^6.7.5",
         "pino-pretty": "^5.1.3",
         "semver": "^7.3.7",

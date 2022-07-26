@@ -81,6 +81,12 @@ module.exports = {
                         ownerId: project.id
                     }
                 })
+                await M.BrokerClient.destroy({
+                    where: {
+                        ownerType: 'project',
+                        ownerId: project.id
+                    }
+                })
                 await M.ProjectSettings.destroy({
                     where: {
                         ProjectId: project.id
@@ -120,9 +126,11 @@ module.exports = {
                 async refreshAuthTokens () {
                     const authClient = await Controllers.AuthClient.createClientForProject(this)
                     const projectToken = await Controllers.AccessToken.createTokenForProject(this, null, ['project:flows:view', 'project:flows:edit'])
+                    const projectBrokerCredentials = await Controllers.BrokerClient.createClientForProject(this)
                     return {
                         token: projectToken.token,
-                        ...authClient
+                        ...authClient,
+                        broker: projectBrokerCredentials
                     }
                 },
                 async getAllSettings () {
@@ -154,6 +162,12 @@ module.exports = {
                 },
 
                 async getCredentialSecret () {
+                    // If this project was created at 0.6+ but then started with a <0.6 launcher
+                    // (for example, in k8s with an old stack) then the project will have both
+                    // StorageSettings._credentialSecret *AND* ProjectSettings.credentialSecret
+                    // If both are present, we *must* use _credentialSecret as that is what
+                    // the runtime is using
+
                     let credentialSecret = await this.getSetting('credentialSecret')
                     if (!credentialSecret) {
                         // Older project - check the StorageSettings to see if
@@ -248,6 +262,17 @@ module.exports = {
                             }
                         ]
                     })
+                },
+                getProjectTeamId: async (id) => {
+                    const project = await this.findOne({
+                        where: { id: id },
+                        attributes: [
+                            'TeamId'
+                        ]
+                    })
+                    if (project) {
+                        return project.TeamId
+                    }
                 }
             }
         }

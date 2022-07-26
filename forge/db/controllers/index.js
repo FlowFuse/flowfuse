@@ -20,7 +20,8 @@ const modelTypes = [
     'Project',
     'ProjectTemplate',
     'ProjectSnapshot',
-    'Device'
+    'Device',
+    'BrokerClient'
 ]
 
 async function init (app) {

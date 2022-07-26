@@ -68,6 +68,11 @@ module.exports = async function (app) {
                 'project.snapshot.deviceTarget',
                 { id: request.body.targetSnapshot }
             )
+            if (app.comms) {
+                app.comms.devices.sendCommandToProjectDevices(request.project.Team.hashid, request.project.id, 'update', {
+                    snapshot: targetSnapshot.hashid
+                })
+            }
             reply.send({ status: 'okay' })
         }
     })

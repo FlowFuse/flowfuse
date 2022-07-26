@@ -8,6 +8,9 @@ module.exports = {
     // Secret used to sign cookies:
     cookieSecret: null,
 
+    // Token to connect the platform client to the broker
+    commsToken: null,
+
     // Whether the intial setup has been run
     'setup:initialised': false,
 

@@ -324,6 +324,13 @@ module.exports = async function (app) {
     app.delete('/:projectId', { preHandler: app.needsPermission('project:delete') }, async (request, reply) => {
         try {
             await app.containers.remove(request.project)
+
+            if (app.comms) {
+                app.comms.devices.sendCommandToProjectDevices(request.project.Team.hashid, request.project.id, 'update', {
+                    project: null
+                })
+            }
+
             await request.project.destroy()
             await app.db.controllers.AuditLog.projectLog(
                 request.project.id,
