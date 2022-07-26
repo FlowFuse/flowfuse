@@ -5,7 +5,7 @@
                 :placeholder="searchPlaceholder" v-model="filterTerm">
                 <template v-slot:icon><SearchIcon /></template>
             </ff-text-input>
-            <div class="ff-data-table--actions">
+            <div class="ff-data-table--actions" v-if="$slots.actions">
                 <slot name="actions"></slot>
             </div>
         </div>
@@ -68,7 +68,7 @@ import { SearchIcon, SwitchVerticalIcon, SortAscendingIcon, SortDescendingIcon }
 
 export default {
     name: 'ff-data-table',
-    emits: ['update:search', 'load-more'],
+    emits: ['update:search', 'load-more', 'row-selected'],
     props: {
         columns: {
             type: Array,
@@ -183,7 +183,7 @@ export default {
                     const props = Object.entries(cell)
                     for (let i = 0; i < props.length; i++) {
                         let [prop, value] = props[i]
-                        if (this.searchFields?.indexOf(prop) > -1) {
+                        if (!this.searchFields || (this.searchFields?.indexOf(prop) > -1)) {
                             if (typeof value === 'number') {
                                 value = value.toString()
                             }
