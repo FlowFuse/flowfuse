@@ -1,7 +1,7 @@
 <template>
     <ff-dialog header="Export Project" :open="isOpen">
         <template v-slot:default>
-            <form class="space-y-6">
+            <form class="space-y-6" @submit="confirm()">
                 <div class="mt-2 space-y-2">
                     <p class="text-sm text-gray-500">
                         Select project components to export:

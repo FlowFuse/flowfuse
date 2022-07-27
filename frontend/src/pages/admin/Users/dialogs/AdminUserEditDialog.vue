@@ -1,7 +1,7 @@
 <template>
     <ff-dialog :open="isOpen" header="Edit User" @close="close">
         <template v-slot:default>
-            <form class="space-y-6">
+            <form class="space-y-6" @submit="confirm()">
                 <FormRow v-model="input.username" :error="errors.username">Username</FormRow>
                 <FormRow v-model="input.name" :placeholder="input.username">Name</FormRow>
                 <FormRow v-model="input.email" :error="errors.email">Email</FormRow>
@@ -115,45 +115,47 @@ export default {
             this.expirePassLocked = false
         },
         confirm () {
-            const opts = {}
-            let changed = false
-            if (this.input.username !== this.user.username) {
-                opts.username = this.input.username
-                changed = true
-            }
-            if (this.input.name !== this.user.name) {
-                opts.name = this.input.name
-                changed = true
-            }
-            if (this.input.email !== this.user.email) {
-                opts.email = this.input.email
-                changed = true
-            }
-            if (this.input.admin !== this.user.admin) {
-                opts.admin = this.input.admin
-                changed = true
-            }
+            if (this.formValid) {
+                const opts = {}
+                let changed = false
+                if (this.input.username !== this.user.username) {
+                    opts.username = this.input.username
+                    changed = true
+                }
+                if (this.input.name !== this.user.name) {
+                    opts.name = this.input.name
+                    changed = true
+                }
+                if (this.input.email !== this.user.email) {
+                    opts.email = this.input.email
+                    changed = true
+                }
+                if (this.input.admin !== this.user.admin) {
+                    opts.admin = this.input.admin
+                    changed = true
+                }
 
-            if (changed) {
-                usersApi.updateUser(this.user.id, opts).then((response) => {
+                if (changed) {
+                    usersApi.updateUser(this.user.id, opts).then((response) => {
+                        this.isOpen = false
+                        this.$emit('userUpdated', response)
+                    }).catch(err => {
+                        console.log(err.response.data)
+                        if (err.response.data) {
+                            if (/username/.test(err.response.data.error)) {
+                                this.errors.username = 'Username unavailable'
+                            }
+                            if (/password/.test(err.response.data.error)) {
+                                this.errors.password = 'Invalid username'
+                            }
+                            if (err.response.data.error === 'email must be unique') {
+                                this.errors.email = 'Email already registered'
+                            }
+                        }
+                    })
+                } else {
                     this.isOpen = false
-                    this.$emit('userUpdated', response)
-                }).catch(err => {
-                    console.log(err.response.data)
-                    if (err.response.data) {
-                        if (/username/.test(err.response.data.error)) {
-                            this.errors.username = 'Username unavailable'
-                        }
-                        if (/password/.test(err.response.data.error)) {
-                            this.errors.password = 'Invalid username'
-                        }
-                        if (err.response.data.error === 'email must be unique') {
-                            this.errors.email = 'Email already registered'
-                        }
-                    }
-                })
-            } else {
-                this.isOpen = false
+                }
             }
         },
         deleteUser () {

@@ -1,7 +1,7 @@
 <template>
     <ff-dialog :open="isOpen" :header="dialogTitle" @close="close">
         <template v-slot:default>
-            <form class="space-y-6 mt-2">
+            <form class="space-y-6 mt-2" @submit="confirm()">
                 <FormRow v-model="input.name" :error="errors.name">Name</FormRow>
                 <FormRow v-model="input.active" type="checkbox">Active</FormRow>
                 <FormRow v-model="input.description" :error="errors.description">Description
@@ -89,47 +89,49 @@ export default {
     },
     methods: {
         confirm () {
-            const opts = {
-                name: this.input.name,
-                active: this.input.active,
-                description: this.input.description,
-                order: parseInt(this.input.order),
-                defaultStack: this.input.defaultStack,
-                properties: {}
-            }
-            if (this.features.billing) {
-                opts.properties.billingProductId = this.input.properties.billingProductId
-                opts.properties.billingPriceId = this.input.properties.billingPriceId
-                opts.properties.billingDescription = this.input.properties.billingDescription
-            }
+            if (this.formValid) {
+                const opts = {
+                    name: this.input.name,
+                    active: this.input.active,
+                    description: this.input.description,
+                    order: parseInt(this.input.order),
+                    defaultStack: this.input.defaultStack,
+                    properties: {}
+                }
+                if (this.features.billing) {
+                    opts.properties.billingProductId = this.input.properties.billingProductId
+                    opts.properties.billingPriceId = this.input.properties.billingPriceId
+                    opts.properties.billingDescription = this.input.properties.billingDescription
+                }
 
-            if (this.projectType) {
-                // For edits, we cannot touch the properties
-                delete opts.properties
-                // Update
-                projectTypesApi.updateProjectType(this.projectType.id, opts).then((response) => {
-                    this.isOpen = false
-                    this.$emit('projectTypeUpdated', response)
-                }).catch(err => {
-                    console.log(err.response.data)
-                    if (err.response.data) {
-                        if (/name/.test(err.response.data.error)) {
-                            this.errors.name = 'Name unavailable'
+                if (this.projectType) {
+                    // For edits, we cannot touch the properties
+                    delete opts.properties
+                    // Update
+                    projectTypesApi.updateProjectType(this.projectType.id, opts).then((response) => {
+                        this.isOpen = false
+                        this.$emit('projectTypeUpdated', response)
+                    }).catch(err => {
+                        console.log(err.response.data)
+                        if (err.response.data) {
+                            if (/name/.test(err.response.data.error)) {
+                                this.errors.name = 'Name unavailable'
+                            }
                         }
-                    }
-                })
-            } else {
-                projectTypesApi.create(opts).then((response) => {
-                    this.isOpen = false
-                    this.$emit('projectTypeCreated', response)
-                }).catch(err => {
-                    console.log(err.response.data)
-                    if (err.response.data) {
-                        if (/name/.test(err.response.data.error)) {
-                            this.errors.name = 'Name unavailable'
+                    })
+                } else {
+                    projectTypesApi.create(opts).then((response) => {
+                        this.isOpen = false
+                        this.$emit('projectTypeCreated', response)
+                    }).catch(err => {
+                        console.log(err.response.data)
+                        if (err.response.data) {
+                            if (/name/.test(err.response.data.error)) {
+                                this.errors.name = 'Name unavailable'
+                            }
                         }
-                    }
-                })
+                    })
+                }
             }
         }
     },

@@ -1,7 +1,7 @@
 <template>
     <ff-dialog :open="isOpen" header="Delete Project Type" @close="close">
         <template v-slot:default>
-            <form class="space-y-6">
+            <form class="space-y-6" @submit="confirm()">
                 <div class="mt-2 space-y-2">
                     <p>
                         <span v-if="!deleteDisabled">
@@ -35,8 +35,10 @@ export default {
     },
     methods: {
         confirm () {
-            this.$emit('deleteProjectType', this.projectType)
-            this.isOpen = false
+            if (!this.deleteDisabled) {
+                this.$emit('deleteProjectType', this.projectType)
+                this.isOpen = false
+            }
         }
     },
     setup () {
