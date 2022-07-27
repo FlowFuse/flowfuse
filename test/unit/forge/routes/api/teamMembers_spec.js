@@ -34,6 +34,8 @@ describe('Team Members API', function () {
         await TestObjects.BTeam.addUser(TestObjects.chris, { through: { role: Roles.Member } })
         await TestObjects.CTeam.addUser(TestObjects.chris, { through: { role: Roles.Owner } })
 
+        await TestObjects.chris.setDefaultTeam(TestObjects.ATeam)
+
         TestObjects.tokens = {}
         await login('alice', 'aaPassword')
         await login('bob', 'bbPassword')
@@ -127,6 +129,9 @@ describe('Team Members API', function () {
 
         it('owner can remove member', async function () {
             // Alice remove Chris from ATeam
+            // - also checks that Chris's defaultTeam is cleared as they
+            //   are no longer a member of the team
+            TestObjects.chris.should.have.property('defaultTeamId', TestObjects.ATeam.id)
             const response = await app.inject({
                 method: 'DELETE',
                 url: `/api/v1/teams/${TestObjects.ATeam.hashid}/members/${TestObjects.chris.hashid}`,
@@ -134,6 +139,9 @@ describe('Team Members API', function () {
             })
             response.statusCode.should.equal(200)
 
+            await TestObjects.chris.reload()
+            // Verify Chris' defaultTeam is no longer ATeam
+            TestObjects.chris.should.have.property('defaultTeamId', null)
             const checkMemberList = await app.inject({
                 method: 'GET',
                 url: `/api/v1/teams/${TestObjects.ATeam.hashid}/members`,
