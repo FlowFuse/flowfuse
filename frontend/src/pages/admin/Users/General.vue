@@ -1,7 +1,6 @@
 <template>
 
     <form class="space-y-6">
-        <!-- <ItemTable :items="users" :columns="columns" /> -->
         <ff-data-table :columns="columns" :rows="users" :show-search="true" search-placeholder="Search Users...">
             <template v-slot:actions>
                 <ff-button to="./create">

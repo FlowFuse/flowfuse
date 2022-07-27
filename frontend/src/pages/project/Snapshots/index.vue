@@ -8,7 +8,7 @@
                 </template>
                 <template v-slot:context-menu="{row}">
                     <ff-list-item label="Rollback" @click="showRollbackDialog(row)" />
-                    <ff-list-item label="Set as Device Target" @click="showDeviceTargetDialog(row)"/>
+                    <ff-list-item v-if="features.devices" label="Set as Device Target" @click="showDeviceTargetDialog(row)"/>
                     <ff-list-item label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)"/>
                 </template>
             </ff-data-table>

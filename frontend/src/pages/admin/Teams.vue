@@ -27,10 +27,9 @@ export default {
             loading: false,
             nextCursor: null,
             columns: [
-                { label: 'Team', class: ['flex-grow'], component: { is: markRaw(TeamCell) }, link: true },
-                { label: '', class: ['font-mono', 'text-xs', 'text-gray-500'], key: 'id' },
-                { label: 'Members', class: ['w-32', 'text-center'], key: 'memberCount' },
-                { label: 'Projects', class: ['w-32', 'text-center'], key: 'projectCount' }
+                { label: 'Name', class: ['w-full'], component: { is: markRaw(TeamCell) }, sortable: true },
+                { label: 'Members', class: ['w-54', 'text-center'], key: 'memberCount', sortable: true },
+                { label: 'Projects', class: ['w-54', 'text-center'], key: 'projectCount', sortable: true }
             ]
         }
     },
