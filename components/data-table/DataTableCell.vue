@@ -1,5 +1,5 @@
 <template>
-    <td class="ff-data-table--cell" :colspan="colspan">
+    <td class="ff-data-table--cell" :class="{'highlight': highlight}" :colspan="colspan">
         <slot></slot>
     </td>
 </template>
@@ -11,6 +11,10 @@ export default {
         colspan: {
             type: Number,
             default: 1
+        },
+        highlight: {
+            type: Boolean,
+            default: false
         }
     }
 }

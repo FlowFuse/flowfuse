@@ -5,16 +5,19 @@
 .ff-icon {
   width: 20px;
   height: 20px;
+  display: inline-block;
 }
 
 .ff-icon-sm {
   width: 16px;
   height: 16px;
+  display: inline-block;
 }
 
 .ff-icon-lg {
   width: 24px;
   height: 24px;
+  display: inline-block;
 }
 
 /*
@@ -532,13 +535,16 @@ li.ff-list-item {
         padding: 9px 12px;
         background-color: $ff-grey-100;
         font-weight: 600;
-        >div {
-          display: flex;
-          justify-content: space-between;
-        }
+        transition: 0.3s background-color, 0.3s color;
+        -webkit-transition: 0.3s background-color, 0.3s color;
         &.sortable {
+          >div {
+            display: flex;
+            justify-content: space-between;
+            gap: $ff-unit-md;
+          }
           .ff-icon {
-            opacity: 0;
+            opacity: 0.2;
           }
           &:hover {
             background-color: $ff-grey-200;
@@ -572,6 +578,9 @@ li.ff-list-item {
       .ff-data-table--cell {
         padding: 12px 12px;
         background-color: white;
+        &.highlight {
+          background-color: $ff-grey-50;
+        }
         &.status-message {
           text-align: center;
           color: $ff-grey-400;

@@ -1,7 +1,7 @@
 <template>
     <tr class="ff-data-table--row" :class="{'selectable': selectable}" @click="$emit('selected', data)">
         <slot>
-            <ff-data-table-cell v-for="col in columns" :key="col.label" :class="col.class" :style="col.style">
+            <ff-data-table-cell v-for="(col, $column) in columns" :key="col.label" :class="col.class" :style="col.style" :highlight="highlightCell === $column">
                 <template v-if="col.component">
                     <component :is="col.component.is" v-bind="getCellData(data, col)"></component>
                 </template>
@@ -36,6 +36,10 @@ export default {
         selectable: {
             type: Boolean,
             default: false
+        },
+        highlightCell: {
+            type: Number,
+            default: null
         }
     },
     computed: {
@@ -49,11 +53,17 @@ export default {
         },
         getCellData: function (data, col) {
             if (col.component?.map) {
+                // create a clone of data in case we override existing proeprties
+                // this is okay, as long as it's contained within a cell.
+                // e.g. a component may look for an "id" re: a user, but the whole row
+                // may be linked to a template, which has it's own "id"
+                const cell = Object.assign({}, data)
+                // map the relevant properties in accordance to the provided map
                 const dataMap = col.component?.map
                 for (const [to, from] of Object.entries(dataMap)) {
-                    data[to] = data[from]
+                    cell[to] = cell[from]
                 }
-                return data
+                return cell
             } else {
                 return data
             }
