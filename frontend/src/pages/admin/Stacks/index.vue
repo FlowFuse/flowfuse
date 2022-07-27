@@ -45,13 +45,11 @@
 import stacksApi from '@/api/stacks'
 import projectTypesApi from '@/api/projectTypes'
 
-import ItemTable from '@/components/tables/ItemTable'
 import FormHeading from '@/components/FormHeading'
 
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import AdminStackEditButton from './components/AdminStackEditButton'
 import AdminStackEditDialog from './dialogs/AdminStackEditDialog'
 import AdminStackDeleteDialog from './dialogs/AdminStackDeleteDialog'
 
@@ -233,7 +231,6 @@ export default {
     },
     components: {
         FormHeading,
-        ItemTable,
         AdminStackEditDialog,
         AdminStackDeleteDialog,
         PlusSmIcon

@@ -11,7 +11,12 @@
             </template>
         </FormHeading>
         <ff-loading v-if="loading" message="Loading Templates..." />
-        <ItemTable v-if="!loading" :items="templates" :columns="columns" />
+        <ff-data-table v-if="!loading" :columns="columns" :rows="templates">
+            <template v-slot:context-menu="{row}">
+                <ff-list-item label="Edit Template" @click="editTemplate(row)"/>
+                <ff-list-item label="Delete Template" kind="danger" @click="showDeleteDialog(row)"/>
+            </template>
+        </ff-data-table>
         <div v-if="nextCursor">
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
         </div>
@@ -23,7 +28,6 @@
 <script>
 import templatesApi from '@/api/templates'
 
-import ItemTable from '@/components/tables/ItemTable'
 import FormHeading from '@/components/FormHeading'
 
 import { markRaw } from 'vue'
@@ -43,12 +47,25 @@ export default {
             loading: false,
             nextCursor: null,
             columns: [
-                { name: 'Active', class: ['w-16', 'text-center'], property: 'active' },
-                { name: 'Template', class: ['w-56'], property: 'name', link: true },
-                { name: 'Description', class: ['flex-grow'], property: 'description' },
-                { name: 'Created by', property: 'owner', class: ['w-56'], component: { is: markRaw(UserCell) } },
-                { name: 'Project Count', class: ['w-32', 'text-center'], property: 'projectCount' },
-                { name: '', class: ['w-16', 'text-center'], component: { is: markRaw(AdminTemplateEditButton) } }
+                { label: 'Active', key: 'active', class: ['w-16', 'text-center'], sortable: true },
+                { label: 'Template', key: 'name', class: ['w-56'], sortable: true },
+                { label: 'Description', key: 'description', class: ['w-72'], sortable: true },
+                {
+                    label: 'Created by',
+                    key: 'owner_name',
+                    class: ['w-56'],
+                    component: {
+                        is: markRaw(UserCell),
+                        map: {
+                            id: 'owner_id',
+                            name: 'owner_name',
+                            username: 'owner_username',
+                            avatar: 'owner_avatar'
+                        }
+                    }
+                },
+                { label: 'Project Count', key: 'projectCount', class: ['w-32', 'text-center'] },
+                { label: '', class: ['w-16', 'text-center'], component: { is: markRaw(AdminTemplateEditButton) } }
             ]
         }
     },
@@ -64,11 +81,25 @@ export default {
             const result = await templatesApi.getTemplates(this.nextCursor, 30)
             this.nextCursor = result.meta.next_cursor
             result.templates.forEach(v => {
-                v.onedit = (data) => { this.$router.push({ name: 'Admin Template', params: { id: v.id } }) }
-                v.ondelete = (data) => { this.showConfirmTemplateDeleteDialog(v) }
+                // map owner to top tier to show in table
+                v.owner_avatar = v.owner.avatar
+                v.owner_id = v.owner.id
+                v.owner_name = v.owner.name
+                v.owner_username = v.owner.username
+
                 this.templates.push(v)
             })
             this.loading = false
+        },
+        editTemplate (template) {
+            console.log(template)
+            this.$router.push({
+                name: 'Admin Template',
+                params: { id: template.id }
+            })
+        },
+        showDeleteDialog (template) {
+            this.showConfirmTemplateDeleteDialog(template)
         },
         showConfirmTemplateDeleteDialog (stack) {
             this.$refs.adminTemplateDeleteDialog.show(stack)
@@ -81,7 +112,6 @@ export default {
     },
     components: {
         FormHeading,
-        ItemTable,
         AdminTemplateDeleteDialog,
         PlusSmIcon
     }
