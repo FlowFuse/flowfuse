@@ -25,8 +25,6 @@
 
 <script>
 
-// components
-
 // icons
 import { CheckCircleIcon, PencilAltIcon } from '@heroicons/vue/solid'
 

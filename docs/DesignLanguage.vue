@@ -379,7 +379,7 @@
                 </div>
                 <!-- Tile Selection -->
                 <h2 ref="ff-tile-selection"><pre>ff-tile-selection</pre></h2>
-                <markdown-viewer class="description" :content="groups['input'].components[4].description"/>
+                <ff-markdown-viewer class="description" :content="groups['input'].components[4].description"/>
                 <h3>Properties:</h3>
                 <props-table :rows="groups['input'].components[4].props"></props-table>
                 <h3>Examples:</h3>
@@ -421,7 +421,7 @@
             <div class="section">
                 <!-- Notifications -->
                 <h1>Notifications</h1>
-                <markdown-viewer class="description" :content="groups['notifications'].description"/>
+                <ff-markdown-viewer class="description" :content="groups['notifications'].description"/>
                 <h2 ref="ff-notification-pill"><pre>ff-notification-pill</pre></h2>
                 <h3>Properties:</h3>
                 <props-table :rows="groups['notifications'].components[0].props"></props-table>
@@ -473,7 +473,7 @@
             <div class="section">
                 <!-- Tabs -->
                 <h1>Tabs</h1>
-                <markdown-viewer class="description" :content="groups['tabs'].description"/>
+                <ff-markdown-viewer class="description" :content="groups['tabs'].description"/>
                 <h2 ref="ff-tabs"><pre>ff-tabs</pre></h2>
                 <h3>Properties:</h3>
                 <props-table :rows="groups['tabs'].components[0].props"></props-table>
@@ -504,7 +504,7 @@
             <div class="section">
                 <!-- Other -->
                 <h1>Utilities</h1>
-                <markdown-viewer class="description" :content="groups['utilities'].description"/>
+                <ff-markdown-viewer class="description" :content="groups['utilities'].description"/>
                 <h2 ref="ff-check"><pre>ff-check</pre></h2>
                 <h3>Properties:</h3>
                 <props-table :rows="groups['utilities'].components[0].props"></props-table>
@@ -531,9 +531,6 @@ import PropsTable from './components/PropsTable.vue'
 import EventsTable from './components/EventsTable.vue'
 import SlotsTable from './components/SlotsTable.vue'
 
-import MarkdownViewer from '@/components/Markdown.vue'
-import FFNotificationPill from '@/components/NotificationPill.vue'
-
 import buttonDocs from './data/button.docs.json'
 import tableDocs from './data/table.docs.json'
 import dialogDocs from './data/dialog.docs.json'
@@ -552,7 +549,6 @@ export default {
         PropsTable,
         EventsTable,
         SlotsTable,
-        MarkdownViewer,
         // icons
         PlusSmIcon,
         SearchIcon
