@@ -110,7 +110,17 @@ A full list of all the configable values can be found in the Helm Chart README.m
 
 
 ```
-helm install flowforge flowforge -f values.yml
+helm upgrade --install flowforge flowforge -f values.yml
+```
+
+#### Enabling the MQTT broker
+
+To enable the MQTT broker with Kubernetes install you need to add the following to the `values.yml` file
+
+```
+forge:
+  broker:
+    url: mqtt://forge:1883
 ```
 
 ### Running FlowForge

@@ -100,7 +100,7 @@ Once installed, you will need to build and install the authentication plugin.
     auth_opt_acl_cache_seconds 90
     auth_opt_auth_jitter_second 3
     auth_opt_acl_jitter_seconds 5
-    auth_opt_http_host http://localhost
+    auth_opt_http_host localhost
     auth_opt_http_port 3000
     auth_opt_http_getuser_uri /api/broker/auth-client
     auth_opt_http_aclcheck_uri /api/broker/auth-acl
@@ -118,7 +118,43 @@ Once installed, you will need to build and install the authentication plugin.
 Instead of installing and building mosquitto and the authentication plugin from source,
 you can use a pre-built docker image that provides everything needed.
 
-TODO: fill out docker instructions
+1. First pull the latest version of the pre-built container
+    ```
+    docker pull iegomez/mosquitto-go-auth
+    ```
+
+2. Create a mosquitto.conf file with the following values:
+    ```
+    per_listener_settings false
+    allow_anonymous false
+    listener 1883 0.0.0.0
+    listener 1884 0.0.0.0
+    protocol websockets
+    auth_plugin /mosquitto/go-auth.so
+    auth_opt_backends http
+    auth_opt_hasher bcrypt
+    auth_opt_cache true
+    auth_opt_auth_cache_seconds 30
+    auth_opt_acl_cache_seconds 90
+    auth_opt_auth_jitter_second 3
+    auth_opt_acl_jitter_seconds 5
+    auth_opt_http_host 172.17.0.1
+    auth_opt_http_port 3000
+    auth_opt_http_getuser_uri /api/broker/auth-client
+    auth_opt_http_aclcheck_uri /api/broker/auth-acl
+    ```
+
+    You will need to customise the values to match your local configuration:
+     - `auth_opt_http_host` value to match the IP address of either the docker0 interface or the external IP address of the host machine
+     - `auth_opt_http_port` if you have changed the port the forge platform is running on
+
+3. Start the container with the following command
+    ```
+    docker run -d -v /full/path/to/mosquitto.conf:/etc/mosquitto/mosquitto.conf -p 1883:1883 -p 1884:1884 -n flowforge-broker iegomez/mosquitto-go-auth
+    ```
+
+    This will map the `1883`/`1884` ports to the host machine so they can be accessed by the 
+
 
 ### Installing FlowForge
 
