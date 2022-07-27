@@ -34,7 +34,6 @@ import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 import UserCell from '@/components/tables/cells/UserCell'
 
-import AdminTemplateEditButton from './components/AdminTemplateEditButton'
 import AdminTemplateDeleteDialog from './dialogs/AdminTemplateDeleteDialog'
 
 import { PlusSmIcon } from '@heroicons/vue/outline'
@@ -52,20 +51,19 @@ export default {
                 { label: 'Description', key: 'description', class: ['w-72'], sortable: true },
                 {
                     label: 'Created by',
-                    key: 'owner_name',
+                    key: 'owner_username',
                     class: ['w-56'],
+                    sortable: true,
                     component: {
                         is: markRaw(UserCell),
                         map: {
                             id: 'owner_id',
-                            name: 'owner_name',
                             username: 'owner_username',
                             avatar: 'owner_avatar'
                         }
                     }
                 },
-                { label: 'Project Count', key: 'projectCount', class: ['w-32', 'text-center'] },
-                { label: '', class: ['w-16', 'text-center'], component: { is: markRaw(AdminTemplateEditButton) } }
+                { label: 'Project Count', key: 'projectCount', class: ['w-32'], sortable: true }
             ]
         }
     },
@@ -84,7 +82,6 @@ export default {
                 // map owner to top tier to show in table
                 v.owner_avatar = v.owner.avatar
                 v.owner_id = v.owner.id
-                v.owner_name = v.owner.name
                 v.owner_username = v.owner.username
 
                 this.templates.push(v)
