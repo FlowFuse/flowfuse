@@ -28,6 +28,16 @@ module.exports = {
                     user.password_expired = true
                 }
             }
+            if (request.body.defaultTeam !== undefined) {
+                // verify user is a member of request.body.defaultTeam
+                const membership = await app.db.models.TeamMember.getTeamMembership(user.id, request.body.defaultTeam)
+                if (membership) {
+                    user.defaultTeamId = membership.TeamId
+                } else {
+                    reply.code(400).send({ error: 'invalid team' })
+                    return
+                }
+            }
             await user.save()
             reply.send(app.db.views.User.userProfile(user))
         } catch (err) {

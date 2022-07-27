@@ -60,6 +60,69 @@ describe('Users API', async function () {
     afterEach(async function () {
         await app.close()
     })
+
+    describe('Update user settings', async function () {
+        describe('Default Team', async function () {
+            // PUT /api/v1/users/:userId
+            it('can set defaultTeam to a team the user is in', async function () {
+                // Alice can set bobs default team to ATeam
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/users/${TestObjects.bob.hashid}`,
+                    payload: {
+                        defaultTeam: TestObjects.ATeam.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('defaultTeam', TestObjects.ATeam.hashid)
+            })
+            it('cannot set defaultTeam to a team the user is not in', async function () {
+                // Alice cannot set bobs default team to CTeam
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/users/${TestObjects.bob.hashid}`,
+                    payload: {
+                        defaultTeam: TestObjects.CTeam.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(400)
+                const result = response.json()
+                result.should.have.property('error')
+            })
+            it('cannot set defaultTeam to null', async function () {
+                // Alice cannot set bobs default team to null
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/users/${TestObjects.bob.hashid}`,
+                    payload: {
+                        defaultTeam: null
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(400)
+                const result = response.json()
+                result.should.have.property('error')
+            })
+            it('cannot set defaultTeam to invalid value', async function () {
+                // Alice cannot set bobs default team to 'abc'
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/users/${TestObjects.bob.hashid}`,
+                    payload: {
+                        defaultTeam: 'abc'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(400)
+                const result = response.json()
+                result.should.have.property('error')
+            })
+        })
+    })
+
     describe('Delete a user', async function () {
         // DELETE /api/v1/users/:userId
 
