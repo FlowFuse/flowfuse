@@ -6,6 +6,7 @@
             <FormHeading v-if="subscription" class="mb-6">Next Bill: <span class="font-normal">{{ formatDate(subscription.next_billing_date) }}</span></FormHeading>
             <FormHeading>Active Subscriptions</FormHeading>
             <div v-if="subscription">
+                <ff-data-table :columns="columns" :rows="subscription.items"/>
                 <ItemTable :items="subscription.items" :columns="columns" />
             </div>
             <FormHeading class="mt-6">View/Update Payment Details</FormHeading>
@@ -76,18 +77,18 @@ export default {
             loading: false,
             subscription: null,
             columns: [{
-                name: 'Name',
-                property: 'name'
+                name: 'label',
+                key: 'name'
             }, {
-                name: 'Quantity',
-                property: 'quantity'
+                label: 'Quantity',
+                key: 'quantity'
             }, {
-                name: 'Unit Price (US$)',
+                label: 'Unit Price (US$)',
                 component: {
                     is: markRaw(unitPriceCell)
                 }
             }, {
-                name: 'Total Price (US$)',
+                label: 'Total Price (US$)',
                 component: {
                     is: markRaw(totalPriceCell)
                 }
