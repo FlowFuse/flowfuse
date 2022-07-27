@@ -70,3 +70,14 @@ Option        | Description
 `telemetry.enabled` | Enables the anonymous usage telemetry of the platform. Default: `true`
 `telemetry.frontend.plausible.domain` | The `data-domain` of your site (see [Plausible docs](https://plausible.io/docs/plausible-script)). Default: `null`
 `telemetry.frontend.plausible.extension` | By default, Plausible only detects events running in a production environment, it is possible to enhance measurements with [script extensions](https://plausible.io/docs/script-extensions). You can, for example, detect localhost events using `local`. Default: `null`
+
+## Logging configuration
+
+By default the forge app is set to `info` level logging, with the HTTP routes logged at `warn`
+
+Option        | Description
+--------------|------------
+`logging.level` | Change the default logging level. Default: `info`
+`logging.http`  | Change the default HTTP route logging level. Default: `warn`
+
+Setting `logging.http` to `info` will log every HTTP request and response details.
