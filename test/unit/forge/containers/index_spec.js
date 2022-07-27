@@ -148,7 +148,7 @@ describe('Container Wrapper', function () {
         }
 
         beforeEach(async function () {
-            app = await setup({}, {
+            app = await setup({
                 license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjM5NzUxMTc1LCJleHAiOjcyNTgxMTg0MDAsIm5vdGUiOiJGb3IgZGV2ZWxvcG1lbnQgb25seSIsInRpZXIiOiJ0ZWFtcyIsInVzZXJzIjoiMTAwIiwidGVhbXMiOiIxMDAiLCJwcm9qZWN0cyI6IjEwMCIsImlhdCI6MTYzOTc1MTE3NX0.CZwIbUV9-vC1dPHaJqVJx1YchK_4JgRMBCd5UEQfNYblXNJKiaR9BFY7T-Qvzg1HsR3rbDhmraiiVMfGuR75gw',
                 billing: {
                     stripe: {}

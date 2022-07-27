@@ -1,33 +1,11 @@
 const FF_UTIL = require('flowforge-test-utils')
-const Forge = FF_UTIL.require('forge/forge.js')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
-const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localTransport.js')
 
 // Lots of dupication between the different unit test setup.js files
 // Should pull out the common bits to one place
 
-module.exports = async function (settings = {}, config = {}) {
-    config = {
-        ...config,
-        telemetry: { enabled: false },
-        logging: {
-            level: 'warn'
-        },
-        db: {
-            type: 'sqlite',
-            storage: ':memory:'
-        },
-        email: {
-            enabled: true,
-            transport: new LocalTransport()
-        },
-        driver: {
-            type: 'stub'
-        }
-    }
-
-    const forge = await Forge({ config })
-
+module.exports = async function (config = {}) {
+    const forge = await FF_UTIL.setupApp(config)
     /*
         alice (admin)
         bob

@@ -29,7 +29,7 @@ describe('Project model', function () {
             const reloadedProject = await app.db.models.Project.byId(project.id)
             const pt = await reloadedProject.getProjectType()
 
-            console.log(pt.name)
+            pt.name.should.equal('default-project-type')
         })
     })
     describe('Project Settings', function () {

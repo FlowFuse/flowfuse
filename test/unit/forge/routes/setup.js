@@ -1,59 +1,8 @@
 const FF_UTIL = require('flowforge-test-utils')
-const Forge = FF_UTIL.require('forge/forge.js')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
-const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localTransport.js')
 
-module.exports = async function (settings = {}, config = {}) {
-    config = {
-        ...config,
-        telemetry: { enabled: false },
-        logging: {
-            level: 'warn'
-        },
-        db: {
-            type: 'sqlite',
-            storage: ':memory:'
-        },
-        email: {
-            enabled: true,
-            transport: new LocalTransport()
-        },
-        driver: {
-            type: 'stub'
-        }
-    }
-
-    if (process.env.FF_TEST_DB_POSTGRES) {
-        config.db.type = 'postgres'
-        config.db.host = process.env.FF_TEST_DB_POSTGRES_HOST || 'localhost'
-        config.db.port = process.env.FF_TEST_DB_POSTGRES_PORT || 5432
-        config.db.user = process.env.FF_TEST_DB_POSTGRES_USER || 'postgres'
-        config.db.password = process.env.FF_TEST_DB_POSTGRES_PASSWORD || 'secret'
-        config.db.database = process.env.FF_TEST_DB_POSTGRES_DATABASE || 'flowforge_test'
-
-        try {
-            const { Client } = require('pg')
-            const client = new Client({
-                host: config.db.host,
-                port: config.db.port,
-                user: config.db.user,
-                password: config.db.password
-            })
-            await client.connect()
-            try {
-                await client.query(`DROP DATABASE ${config.db.database}`)
-            } catch (err) {
-                // Don't mind if it doesn't exist
-            }
-            await client.query(`CREATE DATABASE ${config.db.database}`)
-            await client.end()
-        } catch (err) {
-            console.log(err.toString())
-            process.exit(1)
-        }
-    }
-
-    const forge = await Forge({ config })
+module.exports = async function (config = {}) {
+    const forge = await FF_UTIL.setupApp(config)
 
     await forge.db.models.PlatformSettings.upsert({ key: 'setup:initialised', value: true })
     const userAlice = await forge.db.models.User.create({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })

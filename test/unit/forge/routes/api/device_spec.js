@@ -23,7 +23,7 @@ describe('Device API', async function () {
     }
 
     beforeEach(async function () {
-        app = await setup({}, { features: { devices: true } })
+        app = await setup({ features: { devices: true } })
 
         // alice : admin
         // bob
