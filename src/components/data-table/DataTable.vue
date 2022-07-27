@@ -18,7 +18,7 @@
                             <ff-data-table-cell v-for="(col, $index) in columns" :key="$index"
                                 :class="[sort.key === col.key ? 'sorted' : '', col.sortable ? 'sortable' : ''].concat(col.class)"
                                 :style="col.style"
-                                @click="sortBy(col)">
+                                @click="sortBy(col, $index)">
                                 <!-- Internal div required to have flex w/sorting icons -->
                                 <div>
                                     {{ col.label }}
@@ -39,7 +39,7 @@
                         </ff-data-table-row>
                         <template v-if="!loading">
                             <ff-data-table-row v-for="(r, $index) in filteredRows" :key="$index" :data="r" :columns="columns"
-                                :selectable="rowsSelectable" @click="rowClick(r)">
+                                :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn" @click="rowClick(r)">
                                 <template v-if="hasContextMenu" v-slot:context-menu="{row}">
                                     <slot name="context-menu" :row="row"></slot>
                                 </template>
@@ -165,6 +165,7 @@ export default {
         return {
             internalSearch: '',
             sort: {
+                highlightColumn: null,
                 key: '',
                 order: 'desc'
             },
@@ -206,13 +207,18 @@ export default {
                 this.$emit('row-selected', row)
             }
         },
-        sortBy (col) {
+        sortBy (col, colIndex) {
             if (col.sortable) {
                 if (this.sort.key === col.key) {
                     this.cycleOrder()
                 } else {
                     this.sort.key = col.key
                     this.resetOrder()
+                }
+                if (this.sort.key) {
+                    this.sort.highlightColumn = colIndex
+                } else {
+                    this.sort.highlightColumn = null
                 }
             }
         },
