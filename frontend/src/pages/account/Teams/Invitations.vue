@@ -1,17 +1,19 @@
 <template>
     <form class="space-y-6">
-        <ItemTable :items="invitations" :columns="inviteColumns" />
+        <ff-data-table :columns="inviteColumns" :rows="invitations">
+            <template v-slot:context-menu="{row}">
+                <ff-list-item label="Accept" @click="acceptInvite(row.id)"/>
+                <ff-list-item label="Reject" kind="danger" @click="rejectInvite(row.id)"/>
+            </template>
+        </ff-data-table>
     </form>
 </template>
 
 <script>
 import userApi from '@/api/user'
 import { markRaw } from 'vue'
-import ItemTable from '@/components/tables/ItemTable'
 import InviteUserCell from '@/components/tables/cells/InviteUserCell'
 import TeamCell from '@/components/tables/cells/TeamCell'
-
-import UserInviteActions from '../components/UserInviteActions'
 
 export default {
     name: 'UserInviteTable',
@@ -21,10 +23,9 @@ export default {
         return {
             invitations: [],
             inviteColumns: [
-                { name: 'Team', class: ['w-auto'], component: { is: markRaw(TeamCell) }, property: 'team' },
-                { name: 'Sent by', class: ['w-auto'], component: { is: markRaw(InviteUserCell) }, property: 'invitor' },
-                { name: 'Expires In', class: ['w-auto'], property: 'expires' },
-                { name: '', class: ['w-48'], component: { is: markRaw(UserInviteActions) } }
+                { label: 'Team', key: 'team', class: ['w-auto'], component: { is: markRaw(TeamCell) } },
+                { label: 'Sent by', key: 'invitor', class: ['w-auto'], component: { is: markRaw(InviteUserCell) } },
+                { label: 'Expires In', key: 'expires', class: ['w-auto'] }
             ]
         }
     },
@@ -44,15 +45,8 @@ export default {
         async fetchData () {
             const invitations = await userApi.getTeamInvitations()
             await this.$store.dispatch('account/countNotifications')
-            this.invitations = invitations.invitations.map(invite => {
-                invite.onaccept = (inviteId) => { this.acceptInvite(inviteId) }
-                invite.onreject = (inviteId) => { this.rejectInvite(inviteId) }
-                return invite
-            })
+            this.invitations = invitations.invitations
         }
-    },
-    components: {
-        ItemTable
     }
 }
 </script>
