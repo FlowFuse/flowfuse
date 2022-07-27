@@ -153,7 +153,7 @@ you can use a pre-built docker image that provides everything needed.
     docker run -d -v /full/path/to/mosquitto.conf:/etc/mosquitto/mosquitto.conf -p 1883:1883 -p 1884:1884 -n flowforge-broker iegomez/mosquitto-go-auth
     ```
 
-    This will map the `1883`/`1884` ports to the host machine so they can be accessed by the 
+    This will map the `1883`/`1884` ports to the host machine so they can be accessed outside of the container. If you already have an MQTT broker running on port 1883, then you'll need to modify the `-p` options to use a different set of ports. For example: `-p 9883:1883 -p 9884:1884`.
 
 
 ### Installing FlowForge
