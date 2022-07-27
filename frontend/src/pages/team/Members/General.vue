@@ -9,9 +9,9 @@
                     Invite Member
                 </ff-button>
             </template>
-            <template v-slot:context-menu>
-                <ff-list-item label="Change Role" @click="changeRoleDialog" />
-                <ff-list-item label="Remove From Team" kind="danger" @click="removeUserDialog" />
+            <template v-slot:context-menu="{row}">
+                <ff-list-item label="Change Role" @click="changeRoleDialog(row)" />
+                <ff-list-item label="Remove From Team" kind="danger" @click="removeUserDialog(row)" />
             </template>
         </ff-data-table>
     </form>

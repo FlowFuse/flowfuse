@@ -7,7 +7,6 @@
             <FormHeading>Active Subscriptions</FormHeading>
             <div v-if="subscription">
                 <ff-data-table :columns="columns" :rows="subscription.items"/>
-                <ItemTable :items="subscription.items" :columns="columns" />
             </div>
             <FormHeading class="mt-6">View/Update Payment Details</FormHeading>
             <div>
@@ -36,7 +35,6 @@ import { markRaw } from 'vue'
 import billingApi from '@/api/billing.js'
 import Loading from '@/components/Loading'
 import FormHeading from '@/components/FormHeading'
-import ItemTable from '@/components/tables/ItemTable'
 
 import formatDateMixin from '@/mixins/DateTime.js'
 import formatCurrency from '@/mixins/Currency.js'
@@ -45,19 +43,8 @@ import { ExternalLinkIcon } from '@heroicons/vue/outline'
 
 import SectionTopMenu from '@/components/SectionTopMenu'
 
-const totalPriceCell = {
-    name: 'TotalPriceCell',
-    props: ['price', 'quantity'],
-    mixins: [formatCurrency],
-    computed: {
-        formattedPrice: function () {
-            return this.formatCurrency(this.price * this.quantity)
-        }
-    },
-    template: '<div>{{ formattedPrice }}</div>'
-}
-const unitPriceCell = {
-    name: 'UnitPriceCell',
+const priceCell = {
+    name: 'PriceCell',
     props: ['price'],
     mixins: [formatCurrency],
     computed: {
@@ -78,19 +65,25 @@ export default {
             subscription: null,
             columns: [{
                 name: 'label',
-                key: 'name'
+                key: 'name',
+                sortable: true
             }, {
                 label: 'Quantity',
-                key: 'quantity'
+                key: 'quantity',
+                sortable: true
             }, {
                 label: 'Unit Price (US$)',
+                key: 'price',
+                sortable: true,
                 component: {
-                    is: markRaw(unitPriceCell)
+                    is: markRaw(priceCell)
                 }
             }, {
                 label: 'Total Price (US$)',
+                key: 'total_price',
+                sortable: true,
                 component: {
-                    is: markRaw(totalPriceCell)
+                    is: markRaw(priceCell)
                 }
             }]
         }
@@ -102,6 +95,10 @@ export default {
             const billingSubscription = await billingApi.getSubscriptionInfo(this.team.id)
             billingSubscription.next_billing_date = billingSubscription.next_billing_date * 1000 // API returns Seconds, JS expects miliseconds
             this.subscription = billingSubscription
+            this.subscription.items.map((item) => {
+                item.total_price = item.unit_price * item.quantity
+                return item
+            })
             this.loading = false
         } catch (err) {
             // check for 404 and redirect if 404 returned
@@ -131,7 +128,6 @@ export default {
     components: {
         Loading,
         FormHeading,
-        ItemTable,
         ExternalLinkIcon,
         SectionTopMenu
     }
