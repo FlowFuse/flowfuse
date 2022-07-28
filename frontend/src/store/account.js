@@ -168,36 +168,22 @@ const actions = {
                 state.commit('clearPending')
                 if (/^\/team\//.test(router.currentRoute.value.path)) {
                     router.push({ name: 'Home' })
-                    // router.push({
-                    //     name: "PageNotFound",
-                    //     params: { pathMatch: router.currentRoute.value.path.substring(1).split('/') },
-                    //     // preserve existing query and hash if any
-                    //     query: router.currentRoute.value.query,
-                    //     hash: router.currentRoute.value.hash,
-                    // })
                 }
 
                 return
             }
 
-            // Default to first in list - TODO: let the user pick their default
-            let teamSlug = teams.teams[0].slug
+            let teamId = user.defaultTeam || teams.teams[0].id
+            let teamSlug = null
             //
             const teamIdMatch = /^\/team\/([^/]+)($|\/)/.exec(redirectUrlAfterLogin || router.currentRoute.value.path)
             if (teamIdMatch && teamIdMatch[1] !== 'create') {
+                teamId = null
                 teamSlug = teamIdMatch[1]
-            // } else {
-            //     let projectIdMatch = /^\/projects\/([^\/]+)($|\/)/.exec(redirectUrlAfterLogin || router.currentRoute.value.path)
-            //     if (projectIdMatch) {
-            //         let projectId = projectIdMatch[1]
-            //
-            //     }
-            //
-            //
             }
 
             try {
-                const team = await teamApi.getTeam({ slug: teamSlug })
+                const team = await teamApi.getTeam(teamId || { slug: teamSlug })
                 const teamMembership = await teamApi.getTeamUserMembership(team.id)
                 state.commit('setTeam', team)
                 state.commit('setTeamMembership', teamMembership)

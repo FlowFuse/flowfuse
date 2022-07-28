@@ -83,6 +83,7 @@ module.exports = {
         this.hasMany(M.Session)
         this.hasMany(M.Invitation, { foreignKey: 'invitorId' })
         this.hasMany(M.Invitation, { foreignKey: 'inviteeId' })
+        this.belongsTo(M.Team, { as: 'defaultTeam' })
     },
     finders: function (M) {
         return {
