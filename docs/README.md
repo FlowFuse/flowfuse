@@ -23,4 +23,4 @@ in your own environment.
 ## Installing FlowForge
 
 - [Installing FlowForge](./install/) - how to install the platform
-- [Install the Device Agent](./user/devices) - deploy flows to remote devices
+- [Install the Device Agent](./user/devices.md) - deploy flows to remote devices
