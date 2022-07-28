@@ -1,6 +1,6 @@
 # Adding Template Settings
 
-Withing FlowForge, each Project is created from a Template. The Template defines
+Within FlowForge, each Project is created from a Template. The Template defines
 a set of preconfigured options for the Project. This includes runtime settings - 
 values that you would normally expect to set in your Node-RED settings.js file.
 
@@ -90,5 +90,3 @@ In the `flowforge-nr-launcher` repo...
 1. Edit `lib/runtimeSettings.js` to include the new setting in the generate settings.js
    file. Note that you must handle the case where the new setting is not present - 
    either by applying a sensible default, or omitting the value.
-
-

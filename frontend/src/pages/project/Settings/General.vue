@@ -8,10 +8,18 @@
             Name
         </FormRow>
 
-        <FormRow v-model="input.stackDescription" type="uneditable">
-            Stack
+        <FormRow v-model="input.projectTypeName" type="uneditable">
+            Project Type
         </FormRow>
 
+        <FormRow v-model="input.stackDescription" type="uneditable">
+            Stack
+            <template v-slot:append>
+                <div v-if="project.stack && project.stack.replacedBy">
+                    <ff-button size="small" to="./danger">Update</ff-button>
+                </div>
+            </template>
+        </FormRow>
         <FormRow v-model="input.templateName" type="uneditable">
             Template
         </FormRow>
@@ -35,6 +43,7 @@ export default {
             input: {
                 projectId: '',
                 projectName: '',
+                projectTypeName: '',
                 stackDescription: '',
                 templateName: ''
             },
@@ -83,6 +92,11 @@ export default {
                 this.input.stackDescription = this.project.stack.name
             } else {
                 this.input.stackDescription = 'none'
+            }
+            if (this.project.projectType) {
+                this.input.projectTypeName = this.project.projectType.name
+            } else {
+                this.input.projectTypeName = 'none'
             }
 
             if (this.project.template) {

@@ -36,6 +36,8 @@
 </template>
 
 <script>
+import alerts from '@/services/alerts'
+
 import teamApi from '@/api/team'
 import FormRow from '@/components/FormRow'
 
@@ -67,11 +69,18 @@ export default {
             } else {
                 this.errors.slug = ''
             }
+        },
+        'input.teamName': function (v) {
+            if (v && /:\/\//.test(v)) {
+                this.errors.teamName = 'Team name can not contain URL'
+            } else {
+                this.errors.teamName = ''
+            }
         }
     },
     computed: {
         formValid () {
-            return this.input.teamName && !this.errors.slug
+            return this.input.teamName && !this.errors.slug && !this.errors.teamName
         }
     },
     mounted () {
@@ -105,6 +114,7 @@ export default {
                 this.editing.teamName = false
                 await this.$store.dispatch('account/refreshTeams')
                 await this.$store.dispatch('account/refreshTeam')
+                alerts.emit('Team Settings updated.', 'confirmation')
             }).catch(err => {
                 if (err.response.data) {
                     if (/slug/.test(err.response.data.error)) {

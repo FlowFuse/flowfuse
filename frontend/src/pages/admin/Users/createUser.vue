@@ -13,7 +13,7 @@
             <form class="space-y-6">
                 <FormHeading>Create a new user</FormHeading>
                 <FormRow v-model="input.username" :error="errors.username">Username</FormRow>
-                <FormRow v-model="input.name" :placeholder="input.username">Full Name</FormRow>
+                <FormRow v-model="input.name" :placeholder="input.username" :error="errors.name">Full Name</FormRow>
                 <FormRow v-model="input.email" :error="errors.email">Email</FormRow>
                 <FormRow type="password" :error="errors.password" v-model="input.password" id="password" :onBlur="checkPassword" >Password</FormRow>
                 <FormRow type="password" :error="errors.password_confirm" v-model="input.password_confirm" id="password_confirm">Confirm Password</FormRow>
@@ -67,7 +67,8 @@ export default {
         formValid () {
             return this.input.email &&
                    (this.input.username && !this.errors.username) &&
-                   this.input.password === this.input.password_confirm
+                   (this.input.password === this.input.password_confirm) &&
+                   (!this.errors.name)
         }
     },
     mounted () {
@@ -91,6 +92,13 @@ export default {
         'input.password': function (v) {
             if (this.errors.password && v.length >= 8) {
                 this.errors.password = ''
+            }
+        },
+        'input.name': function (v) {
+            if (v && /:\/\//i.test(v)) {
+                this.errors.name = 'Names can not be URLs'
+            } else {
+                this.errors.name = ''
             }
         }
     },

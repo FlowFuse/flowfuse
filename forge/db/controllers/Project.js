@@ -88,9 +88,14 @@ module.exports = {
                 if (origCredentials) {
                     const encryptedCreds = JSON.parse(origCredentials.credentials)
                     if (components.credentialSecret) {
-                        const settings = JSON.parse((await app.db.models.StorageSettings.byProject(project.id))?.settings || '{}')
-                        // const newCredentialSecrect = components.credentialSecret || crypto.randomBytes(32).toString('hex')
-                        projectExport.credentials = recryptCreds(encryptedCreds, settings._credentialSecret, components.credentialSecret)
+                        // This code path is currently unused. It is here
+                        // for a future item where a user wants to export a project
+                        // out of the plaform. They will provide their own
+                        // credentialSecret value - which we will used to re-encrypt
+                        // the project credentials
+                        const projectSecret = await project.getCredentialSecret()
+                        const exportSecret = components.credentialSecret
+                        projectExport.credentials = app.db.controllers.Project.exportCredentials(encryptedCreds, projectSecret, exportSecret)
                     } else {
                         projectExport.credentials = encryptedCreds
                     }
@@ -119,13 +124,53 @@ module.exports = {
             } catch (err) {}
         }
         return projectExport
-    }
-}
+    },
 
-function recryptCreds (original, oldKey, newKey) {
-    const newHash = crypto.createHash('sha256').update(newKey).digest()
-    const oldHash = crypto.createHash('sha256').update(oldKey).digest()
-    return encryptCreds(newHash, decryptCreds(oldHash, original))
+    importProjectSnapshot: async function restoreSnapshot (app, project, snapshot) {
+        const t = await app.db.sequelize.transaction() // start a transaction
+        try {
+            if (snapshot?.flows?.flows) {
+                const currentProjectFlows = await app.db.models.StorageFlow.byProject(project.id)
+                currentProjectFlows.flow = JSON.stringify(!snapshot.flows.flows ? [] : snapshot.flows.flows)
+                if (snapshot.flows.credentials) {
+                    const origCredentials = await app.db.models.StorageCredentials.byProject(project.id)
+                    origCredentials.credentials = JSON.stringify(snapshot.flows.credentials)
+                    await origCredentials.save({ transaction: t })
+                }
+                await currentProjectFlows.save({ transaction: t })
+            }
+            if (snapshot?.settings?.settings || snapshot?.settings?.env) {
+                const snapshotSettings = JSON.parse(JSON.stringify(snapshot.settings.settings || {}))
+                snapshotSettings.env = []
+                const envVarKeys = Object.keys(snapshot.settings.env || {})
+                if (envVarKeys?.length) {
+                    envVarKeys.forEach(key => {
+                        snapshotSettings.env.push({
+                            name: key,
+                            value: snapshot.settings.env[key]
+                        })
+                    })
+                }
+                const newSettings = app.db.controllers.ProjectTemplate.validateSettings(snapshotSettings, project.ProjectTemplate)
+                const currentProjectSettings = await project.getSetting('settings') || {} // necessary?
+                const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings) // necessary?
+                await project.updateSetting('settings', updatedSettings, { transaction: t }) // necessary?
+            }
+            await t.commit() // all good, commit the transaction
+        } catch (error) {
+            await t.rollback() // rollback the transaction.
+            throw error
+        }
+    },
+
+    /**
+     * Takes a credentials object and re-encrypts it with a new key
+     */
+    exportCredentials: function (app, original, oldKey, newKey) {
+        const newHash = crypto.createHash('sha256').update(newKey).digest()
+        const oldHash = crypto.createHash('sha256').update(oldKey).digest()
+        return encryptCreds(newHash, decryptCreds(oldHash, original))
+    }
 }
 
 function decryptCreds (key, cipher) {

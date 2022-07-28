@@ -13,6 +13,8 @@
 <script>
 import { ref } from 'vue'
 
+import alerts from '@/services/alerts'
+
 export default {
     name: 'ConfirmSnapshotDeleteDialog',
     data () {
@@ -23,6 +25,7 @@ export default {
     methods: {
         confirm () {
             this.$emit('deleteSnapshot', this.snapshot)
+            alerts.emit('Successfully deleted snapshot.', 'confirmation')
             this.isOpen = false
         }
     },

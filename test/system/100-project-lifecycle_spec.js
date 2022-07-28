@@ -1,6 +1,5 @@
 const should = require('should') // eslint-disable-line
 const FF_UTIL = require('flowforge-test-utils')
-const Forge = FF_UTIL.require('forge/forge.js')
 const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localTransport.js')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 
@@ -27,23 +26,21 @@ describe('Project Lifecycle', function () {
 
     before(async function () {
         // Create the FF application with a suitable test configuration
-        forge = await Forge({
-            config: {
-                telemetry: { enabled: false },
-                logging: {
-                    level: 'warn'
-                },
-                driver: {
-                    type: 'stub'
-                },
-                db: {
-                    type: 'sqlite',
-                    storage: ':memory:'
-                },
-                email: {
-                    enabled: true,
-                    transport: inbox
-                }
+        forge = await FF_UTIL.setupApp({
+            telemetry: { enabled: false },
+            logging: {
+                level: 'warn'
+            },
+            driver: {
+                type: 'stub'
+            },
+            db: {
+                type: 'sqlite',
+                storage: ':memory:'
+            },
+            email: {
+                enabled: true,
+                transport: inbox
             }
         })
 
@@ -53,11 +50,19 @@ describe('Project Lifecycle', function () {
         TestObjects.userAlice = await forge.db.models.User.create({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
         TestObjects.ATeam = await forge.db.models.Team.create({ name: 'ATeam' })
         await TestObjects.ATeam.addUser(TestObjects.userAlice, { through: { role: Roles.Owner } })
+        TestObjects.ProjectType1 = await forge.db.models.ProjectType.create({
+            name: 'projectType1',
+            active: true,
+            properties: {}
+        })
         TestObjects.Stack1 = await forge.db.models.ProjectStack.create({
             name: 'stack1',
             active: true,
             properties: { foo: 'bar' }
         })
+
+        await TestObjects.Stack1.setProjectType(TestObjects.ProjectType1)
+
         TestObjects.Stack2 = await forge.db.models.ProjectStack.create({
             name: 'stack2',
             active: true,
@@ -94,6 +99,7 @@ describe('Project Lifecycle', function () {
             payload: {
                 name: 'test-project',
                 team: TestObjects.ATeam.hashid,
+                projectType: TestObjects.ProjectType1.hashid,
                 stack: TestObjects.Stack1.hashid,
                 template: TestObjects.Template1.hashid
             }

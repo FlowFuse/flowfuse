@@ -2,6 +2,7 @@ const should = require('should') // eslint-disable-line
 const setup = require('../setup')
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
+const dbUtils = FF_UTIL.require('forge/db/utils')
 
 describe('Device API', async function () {
     let app
@@ -22,7 +23,7 @@ describe('Device API', async function () {
     }
 
     beforeEach(async function () {
-        app = await setup({}, { features: { devices: true } })
+        app = await setup({ features: { devices: true } })
 
         // alice : admin
         // bob
@@ -267,7 +268,7 @@ describe('Device API', async function () {
                     body: {
                         project: TestObjects.deviceProject.id
                     },
-                    cookies: { sid: TestObjects.tokens.alice }
+                    cookies: { sid: TestObjects.tokens.bob }
                 })
                 const result = response.json()
                 result.should.have.property('project')
@@ -358,6 +359,37 @@ describe('Device API', async function () {
                 response.statusCode.should.equal(400)
             })
         })
+
+        describe('edit device settings', function () {
+            it('can set env vars for the device', async function () {
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}/settings`,
+                    body: {
+                        env: [{ name: 'a', value: 'foo' }],
+                        invalid: 'do-not-set'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                response.json().should.have.property('status', 'okay')
+
+                const settingsResponse = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/devices/${device.id}/settings`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                const settings = settingsResponse.json()
+                settings.should.have.property('env')
+                settings.env.should.have.length(1)
+                settings.env[0].should.have.property('name', 'a')
+                settings.env[0].should.have.property('value', 'foo')
+
+                settings.should.not.have.property('invalid')
+            })
+        })
     })
 
     describe('Delete device', async function () {
@@ -390,8 +422,177 @@ describe('Device API', async function () {
     })
 
     describe('Device Actions', async function () {
-
         // POST /api/v1/devices/:deviceId/actions/:action
+    })
+
+    describe('Device Checkin', async function () {
+        async function setupProjectWithSnapshot (setActive) {
+            TestObjects.deviceProject = await app.db.models.Project.create({ name: 'deviceProject', type: '', url: '' })
+            TestObjects.deviceProject.setTeam(TestObjects.ATeam)
+            // Create a snapshot
+            TestObjects.deviceProjectSnapshot = (await createSnapshot(TestObjects.deviceProject.id, 'test-snapshot', TestObjects.tokens.alice)).json()
+            if (setActive) {
+                // Set snapshot as active
+                await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/projects/${TestObjects.deviceProject.id}/devices/settings`,
+                    body: {
+                        targetSnapshot: TestObjects.deviceProjectSnapshot.id
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+            }
+        }
+        it('device checks in with no snapshot', async function () {
+            const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.id}/live/state`,
+                headers: {
+                    authorization: `Bearer ${device.credentials.token}`
+                },
+                payload: {
+                    state: 'running',
+                    health: {
+                        uptime: 1,
+                        snapshotRestartCount: 0
+                    }
+                }
+            })
+            response.statusCode.should.equal(409)
+        })
+        it('device checks in with a valid snapshot and settingsHash', async function () {
+            await setupProjectWithSnapshot(true)
+
+            const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const dbDevice = await app.db.models.Device.byId(device.id)
+            dbDevice.updateSettings({ settings: { env: [{ name: 'FOO', value: 'BAR' }] } })
+            dbDevice.setProject(TestObjects.deviceProject)
+            const deviceSettings = await TestObjects.deviceProject.getSetting('deviceSettings')
+            dbDevice.targetSnapshotId = deviceSettings?.targetSnapshot
+            await dbDevice.save()
+            const settingsHash = dbDevice.settingsHash
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.id}/live/state`,
+                headers: {
+                    authorization: `Bearer ${device.credentials.token}`
+                },
+                payload: {
+                    snapshot: TestObjects.deviceProjectSnapshot.id,
+                    settings: settingsHash,
+                    state: 'running',
+                    health: {
+                        uptime: 1,
+                        snapshotRestartCount: 0
+                    }
+                }
+            })
+            response.statusCode.should.equal(200)
+        })
+        it('device checks in with a invalid settingsHash', async function () {
+            await setupProjectWithSnapshot(true)
+
+            const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const dbDevice = await app.db.models.Device.byId(device.id)
+            dbDevice.updateSettings({ env: [{ name: 'FOO', value: 'BAR' }] })
+            dbDevice.setProject(TestObjects.deviceProject)
+            const deviceSettings = await TestObjects.deviceProject.getSetting('deviceSettings')
+            dbDevice.targetSnapshotId = deviceSettings?.targetSnapshot
+            await dbDevice.save()
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.id}/live/state`,
+                headers: {
+                    authorization: `Bearer ${device.credentials.token}`
+                },
+                payload: {
+                    snapshot: TestObjects.deviceProjectSnapshot.id,
+                    settings: 'fooBar',
+                    state: 'running',
+                    health: {
+                        uptime: 1,
+                        snapshotRestartCount: 0
+                    }
+                }
+            })
+            response.statusCode.should.equal(409)
+        })
+        it('device checks in with a invalid snapshot id', async function () {
+            await setupProjectWithSnapshot(true)
+
+            const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const dbDevice = await app.db.models.Device.byId(device.id)
+            dbDevice.updateSettings({ env: [{ name: 'FOO', value: 'BAR' }] })
+            dbDevice.setProject(TestObjects.deviceProject)
+            const deviceSettings = await TestObjects.deviceProject.getSetting('deviceSettings')
+            dbDevice.targetSnapshotId = deviceSettings?.targetSnapshot
+            await dbDevice.save()
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.id}/live/state`,
+                headers: {
+                    authorization: `Bearer ${device.credentials.token}`
+                },
+                payload: {
+                    snapshot: dbUtils.getHashId('Device').encode(999),
+                    settings: dbDevice.settingsHash,
+                    state: 'running',
+                    health: {
+                        uptime: 1,
+                        snapshotRestartCount: 0
+                    }
+                }
+            })
+            response.statusCode.should.equal(409)
+        })
+        it('device checks in with invalid token', async function () {
+            await setupProjectWithSnapshot(true)
+
+            const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.id}/live/state`,
+                headers: {
+                    authorization: 'Bearer NotAValidToken'
+                },
+                payload: {
+                    state: 'running',
+                    health: {
+                        uptime: 1,
+                        snapshotRestartCount: 0
+                    }
+                }
+            })
+            response.statusCode.should.equal(401)
+        })
+        it('device downloads settings', async function () {
+            await setupProjectWithSnapshot(true)
+
+            const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const dbDevice = await app.db.models.Device.byId(device.id)
+            dbDevice.updateSettings({ env: [{ name: 'FOO', value: 'BAR' }] })
+            dbDevice.setProject(TestObjects.deviceProject)
+            const deviceSettings = await TestObjects.deviceProject.getSetting('deviceSettings')
+            dbDevice.targetSnapshotId = deviceSettings?.targetSnapshot
+            await dbDevice.save()
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/devices/${device.id}/live/settings`,
+                headers: {
+                    authorization: `Bearer ${device.credentials.token}`,
+                    'content-type': 'application/json'
+                }
+            })
+            const body = JSON.parse(response.body)
+            response.statusCode.should.equal(200)
+            body.should.have.property('hash').which.equal(dbDevice.settingsHash)
+            body.should.have.property('env').which.have.property('FOO')
+        })
     })
 
     describe('Get list of a teams devices', async function () {

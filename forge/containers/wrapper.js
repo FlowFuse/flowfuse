@@ -132,9 +132,6 @@ module.exports = {
      * @returns {Promise} Resolves when the project has been stopped
      */
     remove: async (project) => {
-        if (this._driver.remove) {
-            await this._driver.remove(project)
-        }
         if (project.state !== 'suspended') {
             // Only updated billing if the project isn't already suspended
             if (this._app.license.active() && this._app.billing) {
@@ -150,6 +147,9 @@ module.exports = {
                     throw new Error('No Subscription for this team')
                 }
             }
+        }
+        if (this._driver.remove) {
+            await this._driver.remove(project)
         }
     },
     details: async (project) => {
@@ -179,6 +179,11 @@ module.exports = {
     restartFlows: async (project, options) => {
         if (this._driver.restartFlows) {
             this._driver.restartFlows(project, options)
+        }
+    },
+    revokeUserToken: async (project, token) => { // logout:nodered(step-2)
+        if (this._driver.revokeUserToken) {
+            await this._driver.revokeUserToken(project, token) // logout:nodered(step-3)
         }
     },
     logs: async (project) => {

@@ -5,7 +5,8 @@ const LRU = require('lru-cache') // https://www.npmjs.com/package/lru-cache
 const crypto = require('crypto')
 
 const requestCache = new LRU({
-    maxAge: 1000 * 60 * 10 // 10 minutes
+    ttl: 1000 * 60 * 10, // 10 minutes,
+    max: 100
 })
 
 function badRequest (reply, error, description) {
@@ -127,7 +128,7 @@ module.exports = async function (app) {
     app.get('/account/complete/:code', async function (request, reply) {
         const requestId = request.params.code
         const requestObject = requestCache.get(requestId)
-        requestCache.del(requestId)
+        requestCache.delete(requestId)
 
         if (!requestObject) {
             return badRequest(reply, 'invalid_request', 'Invalid request')

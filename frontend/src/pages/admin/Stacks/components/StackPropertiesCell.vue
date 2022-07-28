@@ -1,10 +1,10 @@
 <template>
-    <table class="table-auto">
-        <tr v-for="(value, key) in settings.stacks.properties" :key="key">
-            <td class="pr-8">{{value.label}}</td>
-            <td>{{properties[key]}}</td>
-        </tr>
-    </table>
+    <div>
+        <div v-for="(value, key) in settings.stacks.properties" :key="key">
+            <div class="font-medium">{{value.label}}</div>
+            <div class="pl-2">{{properties[key]}}</div>
+        </div>
+    </div>
 </template>
 <script>
 

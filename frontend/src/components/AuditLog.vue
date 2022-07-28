@@ -1,5 +1,6 @@
 <template>
-    <template v-if="logEntries.length > 0">
+    <ff-loading v-if="loading" message="Loading Activity..." />
+    <template v-else-if="logEntries.length > 0">
         <ul class="mx-auto max-w-4xl">
             <li v-for="item in logEntries" :key="item.id">
                 <div v-if="item.date" class="font-medium mt-2 mb-1">{{item.date}}</div>
@@ -72,10 +73,12 @@ export default {
         return {
             nextCursor: null,
             logEntries: [],
-            loading: false
+            loading: false,
+            initialLoad: true
         }
     },
     mounted () {
+        this.initialLoad = true
         this.fetchData()
     },
     methods: {
@@ -107,11 +110,16 @@ export default {
             })
         },
         fetchData: async function (newVal) {
+            if (this.initialLoad) {
+                this.loading = true
+            }
             if (this.entity && this.entity.id) {
                 const result = await this.loadItems(this.entity.id)
                 this.logEntries = this.formatResults(result.log)
                 this.nextCursor = result.meta.next_cursor
             }
+            this.initialLoad = false
+            this.loading = false
         }
     },
     components: {

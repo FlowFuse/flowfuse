@@ -8,6 +8,7 @@ module.exports = {
     name: 'ProjectSnapshot',
     schema: {
         name: { type: DataTypes.STRING, allowNull: false },
+        description: { type: DataTypes.TEXT, allowNull: true, default: '' },
         settings: {
             type: DataTypes.TEXT,
             set (value) {
@@ -64,7 +65,7 @@ module.exports = {
                         where,
                         order: [['id', 'DESC']],
                         limit,
-                        attributes: ['hashid', 'id', 'name', 'createdAt', 'updatedAt'],
+                        attributes: ['hashid', 'id', 'name', 'description', 'createdAt', 'updatedAt'],
                         include: {
                             model: M.User,
                             attributes: ['hashid', 'id', 'username', 'avatar']

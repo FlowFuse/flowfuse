@@ -9,7 +9,7 @@ module.exports = {
     name: 'User',
     schema: {
         username: { type: DataTypes.STRING, allowNull: false, unique: true },
-        name: { type: DataTypes.STRING },
+        name: { type: DataTypes.STRING, validate: { not: /:\/\// } },
         email: { type: DataTypes.STRING, unique: true, validate: { isEmail: true } },
         email_verified: { type: DataTypes.BOOLEAN, defaultValue: false },
         password: {
@@ -83,6 +83,7 @@ module.exports = {
         this.hasMany(M.Session)
         this.hasMany(M.Invitation, { foreignKey: 'invitorId' })
         this.hasMany(M.Invitation, { foreignKey: 'inviteeId' })
+        this.belongsTo(M.Team, { as: 'defaultTeam' })
     },
     finders: function (M) {
         return {

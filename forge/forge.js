@@ -5,8 +5,9 @@ const config = require('./config')
 const settings = require('./settings')
 const license = require('./licensing')
 const containers = require('./containers')
-const cookie = require('fastify-cookie')
-const csrf = require('fastify-csrf')
+const comms = require('./comms')
+const cookie = require('@fastify/cookie')
+const csrf = require('@fastify/csrf-protection')
 const postoffice = require('./postoffice')
 const monitor = require('./monitor')
 const ee = require('./ee')
@@ -24,7 +25,8 @@ module.exports = async (options = {}) => {
             level: loggerLevel,
             prettyPrint: {
                 translateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss.l'Z'",
-                ignore: 'pid,hostname'
+                ignore: 'pid,hostname',
+                singleLine: true
             }
         }
     })
@@ -59,9 +61,11 @@ module.exports = async (options = {}) => {
         await server.register(csrf, { cookieOpts: { _signed: true, _httpOnly: true } })
 
         // Routes : the HTTP routes
-        await server.register(routes, { logLevel: 'warn' })
+        await server.register(routes, { logLevel: server.config.logging.http })
         // Post Office : handles email
         await server.register(postoffice)
+        // Comms : real-time communication broker
+        await server.register(comms)
         // Containers:
         await server.register(containers)
 

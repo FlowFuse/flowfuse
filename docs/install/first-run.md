@@ -47,10 +47,28 @@ you created in the first step.
 
 ## Next Steps
 
-Once logged in, there are two remaining tasks the Administrator must complete
+Once logged in, there are three remaining tasks the Administrator must complete
 before projects can be created
 
-### 1. Create a Project Stack
+### 1. Create a Project Type
+
+The Project Type provides a way to have different collections of Project Stacks
+the user can choose from when creating a project.
+
+They are managed on the `Project Types` section of Admin Settings.
+
+When creating a Project Type you give it a name and description. If you have
+billing enabled, you can associate a Stripe Product and Price ID with the type.
+
+The `default stack` property lets you pick which stack should be used by default
+for this project type. If you haven't created any stacks yet, this will be an
+empty list, but you can update it later.
+
+The `order` property controls how the project types are sorted when shown to the
+user.
+
+
+### 2. Create a Project Stack
 
 The Project Stack defines a set of platform configuration options that will get
 applied to each project when it is created.
@@ -71,6 +89,6 @@ chosen deployment model.
 A Project Template provides a default set of Node-RED settings, such as the path
 the editor is served from and whether users can install new nodes.
 
-In 0.3, the template provides a minimal set of options, but this will be
+The template currently provides a minimal set of options, but this will be
 expanded in future releases.
 

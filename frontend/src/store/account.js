@@ -23,6 +23,8 @@ const state = () => ({
     teamMembership: null,
     // The user's teams
     teams: [],
+    // stores active notifications that require user attention, key'd by notification type (e.g. invites)
+    notifications: {},
     // An error during login
     loginError: null,
     //
@@ -48,6 +50,17 @@ const getters = {
     },
     teamMembership (state) {
         return state.teamMembership
+    },
+    notifications (state) {
+        const n = state.notifications
+        let sum = 0
+        for (const type of Object.keys(n)) {
+            if (type !== 'total') {
+                sum += n[type]
+            }
+        }
+        n.total = sum
+        return n
     },
     redirectUrlAfterLogin (state) {
         return state.redirectUrlAfterLogin
@@ -98,6 +111,9 @@ const mutations = {
     setTeams (state, teams) {
         state.teams = teams
     },
+    setNotificationsCount (state, payload) {
+        state.notifications[payload.type] = payload.count
+    },
     sessionExpired (state) {
         state.user = null
     },
@@ -128,6 +144,9 @@ const actions = {
 
             state.commit('setOffline', false)
 
+            // check notifications count
+            state.dispatch('countNotifications')
+
             const user = await userApi.getUser()
             state.commit('login', user)
 
@@ -149,36 +168,22 @@ const actions = {
                 state.commit('clearPending')
                 if (/^\/team\//.test(router.currentRoute.value.path)) {
                     router.push({ name: 'Home' })
-                    // router.push({
-                    //     name: "PageNotFound",
-                    //     params: { pathMatch: router.currentRoute.value.path.substring(1).split('/') },
-                    //     // preserve existing query and hash if any
-                    //     query: router.currentRoute.value.query,
-                    //     hash: router.currentRoute.value.hash,
-                    // })
                 }
 
                 return
             }
 
-            // Default to first in list - TODO: let the user pick their default
-            let teamSlug = teams.teams[0].slug
+            let teamId = user.defaultTeam || teams.teams[0].id
+            let teamSlug = null
             //
             const teamIdMatch = /^\/team\/([^/]+)($|\/)/.exec(redirectUrlAfterLogin || router.currentRoute.value.path)
             if (teamIdMatch && teamIdMatch[1] !== 'create') {
+                teamId = null
                 teamSlug = teamIdMatch[1]
-            // } else {
-            //     let projectIdMatch = /^\/projects\/([^\/]+)($|\/)/.exec(redirectUrlAfterLogin || router.currentRoute.value.path)
-            //     if (projectIdMatch) {
-            //         let projectId = projectIdMatch[1]
-            //
-            //     }
-            //
-            //
             }
 
             try {
-                const team = await teamApi.getTeam({ slug: teamSlug })
+                const team = await teamApi.getTeam(teamId || { slug: teamSlug })
                 const teamMembership = await teamApi.getTeamUserMembership(team.id)
                 state.commit('setTeam', team)
                 state.commit('setTeamMembership', teamMembership)
@@ -217,7 +222,7 @@ const actions = {
             state.commit('setTeam', team)
             state.commit('setTeamMembership', teamMembership)
             if (currentSlug !== team.slug) {
-                router.replace({ name: router.currentRoute.value.name, params: { id: team.slug } })
+                router.replace({ name: router.currentRoute.value.name, params: { team_slug: team.slug } })
             }
         }
     },
@@ -272,6 +277,13 @@ const actions = {
     async refreshSettings (state) {
         const settings = await settingsApi.getSettings()
         state.commit('setSettings', settings)
+    },
+    async countNotifications (state) {
+        const invitations = await userApi.getTeamInvitations()
+        state.commit('setNotificationsCount', {
+            type: 'invitations',
+            count: invitations.count
+        })
     },
     setOffline (state, value) {
         state.commit('setOffline', value)

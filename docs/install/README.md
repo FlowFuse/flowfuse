@@ -17,3 +17,8 @@ Kubernetes | Run the platform in a full Kubernetes based environment.
 
 If you are just getting started with FlowForge and want to evaluate what it can do,
 we recommend starting with the [Local model](./local/README.md).
+
+## Upgrading FlowForge
+
+If you are upgrading FlowForge, please refer to the [Upgrade Guide](./upgrading.md)
+for any specific actions required.

@@ -13,6 +13,8 @@
 <script>
 import { ref } from 'vue'
 
+import alerts from '@/services/alerts'
+
 export default {
     name: 'ConfirmDeviceDeleteDialog',
     data () {
@@ -23,6 +25,7 @@ export default {
     methods: {
         confirm () {
             this.$emit('deleteDevice', this.device)
+            alerts.emit('Successfully deleted the device.', 'confirmation')
             this.isOpen = false
         }
     },

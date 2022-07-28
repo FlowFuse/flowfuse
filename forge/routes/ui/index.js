@@ -59,16 +59,15 @@ module.exports = async function (app) {
     })
 
     // Setup static file serving for the UI assets.
-    app.register(require('fastify-static'), {
+    app.register(require('@fastify/static'), {
         index: false,
-        wildcard: false, // This option is needed so we can redirect 404s back to index.html
         root: frontendAssetsDir
     })
 
     // Any requests not handled by this time get served `index.html`.
     // This allows the frontend vue router to change the browser URL and we cope
     // if the user then hits reload
-    app.get('*', async (request, reply) => {
+    app.setNotFoundHandler(async (request, reply) => {
         // check if we need to inject plausible
         if (app.config.telemetry.frontend?.plausible?.domain) {
             const injectedContent = await injectPlausible(app.config.telemetry.frontend.plausible.domain, app.config.telemetry.frontend.plausible.extension)

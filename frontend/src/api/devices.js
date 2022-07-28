@@ -1,9 +1,13 @@
 import client from './client'
 import paginateUrl from '@/utils/paginateUrl'
+import daysSince from '@/utils/daysSince'
 
 const getDevices = async (cursor, limit) => {
     const url = paginateUrl('/api/v1/devices', cursor, limit)
     return client.get(url).then(res => {
+        res.data.devices.forEach(device => {
+            device.lastSeenSince = device.lastSeenAt ? daysSince(device.lastSeenAt) : ''
+        })
         return res.data
     })
 }
@@ -33,11 +37,25 @@ const generateCredentials = async (deviceId) => {
     })
 }
 
+const getSettings = async (deviceId) => {
+    return client.get(`/api/v1/devices/${deviceId}/settings`).then(res => {
+        return res.data
+    })
+}
+
+const updateSettings = async (deviceId, settings) => {
+    return client.put(`/api/v1/devices/${deviceId}/settings`, settings).then(res => {
+        return res.data
+    })
+}
+
 export default {
     create,
     getDevice,
     deleteDevice,
     getDevices,
     updateDevice,
-    generateCredentials
+    generateCredentials,
+    getSettings,
+    updateSettings
 }

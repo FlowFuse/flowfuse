@@ -9,11 +9,16 @@ import store from '@/store'
 import App from '@/App.vue'
 import '@/index.css'
 
+// Globally available FF Components
+import Loading from '@/components/Loading'
+
 const app = createApp(App)
     .use(ForgeUIComponents)
     .use(LottieAnimation)
     .use(store)
     .use(router)
+
+app.component('ff-loading', Loading)
 
 app.config.globalProperties.$filters = {
     pluralize (amount, singular, plural = `${singular}s`) { return amount === 1 ? singular : plural }

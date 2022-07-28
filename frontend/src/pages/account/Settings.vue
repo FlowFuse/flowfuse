@@ -1,16 +1,33 @@
 <template>
-    <form class="space-y-6">
-        <FormRow v-model="input.username" :error="errors.username">Username</FormRow>
-        <FormRow v-model="input.name" :placeholder="input.username">Name</FormRow>
-        <FormRow v-model="input.email" :error="errors.email">Email</FormRow>
+    <ff-loading v-if="loading" message="" />
+    <form v-else class="space-y-6" @submit.enter.prevent="">
+        <FormRow v-model="input.username" :type="editing?'text':'uneditable'" :error="errors.username">Username</FormRow>
+        <FormRow v-model="input.name" :type="editing?'text':'uneditable'" :placeholder="input.username" :error="errors.name">Name</FormRow>
+        <FormRow v-model="input.email" :type="editing?'text':'uneditable'" :error="errors.email">Email</FormRow>
+        <FormRow v-if="!editing" v-model="defaultTeamName" :options="teams" type="uneditable">
+            Default Team
+        </FormRow>
+        <FormRow v-else v-model="input.defaultTeam" :options="teams" :error="errors.defaultTeam">
+            Default Team
+            <template #description>The team you'll see when you log in</template>
+        </FormRow>
 
-        <ff-button :disabled="!formValid" @click="confirm">Save Changes</ff-button>
-
+        <template v-if="editing">
+            <div class="flex space-x-4">
+                <ff-button :disabled="!formValid" @click="confirm">Save Changes</ff-button>
+                <ff-button kind="secondary" @click="cancelEdit">Cancel</ff-button>
+            </div>
+        </template>
+        <template v-else>
+            <ff-button @click="startEdit">Edit</ff-button>
+        </template>
     </form>
 </template>
 
 <script>
 import userApi from '@/api/user'
+
+import alerts from '@/services/alerts'
 
 import FormRow from '@/components/FormRow'
 
@@ -19,15 +36,31 @@ export default {
 
     data () {
         const currentUser = this.$store.getters['account/user']
+        const teams = this.$store.getters['account/teams']
+        let defaultTeamName = 'none'
+        const teamOptions = teams.map(team => {
+            if (team.id === currentUser.defaultTeam) {
+                defaultTeamName = team.name
+            }
+            return {
+                value: team.id,
+                label: team.name
+            }
+        })
         return {
+            loading: false,
+            editing: false,
             user: currentUser,
             errors: {},
             input: {
                 username: currentUser.username,
                 name: currentUser.name,
-                email: currentUser.email
+                email: currentUser.email,
+                defaultTeam: currentUser.defaultTeam
             },
-            changed: {}
+            defaultTeamName: defaultTeamName,
+            changed: {},
+            teams: teamOptions
         }
     },
     watch: {
@@ -48,11 +81,31 @@ export default {
             this.changed.email = (this.user.email !== v)
         },
         'input.name': function (v) {
+            if (v && /:\/\//i.test(v)) {
+                this.errors.name = 'Names can not be URLs'
+            } else {
+                this.errors.name = ''
+            }
             this.changed.name = (this.user.name !== v)
+        },
+        'input.defaultTeam': function (v) {
+            this.changed.defaultTeam = (this.user.defaultTeam !== v)
         }
     },
     methods: {
+        startEdit () {
+            this.editing = true
+        },
+        cancelEdit () {
+            this.input.username = this.user.username
+            this.input.name = this.user.name
+            this.input.email = this.user.email
+            this.input.defaultTeam = this.user.defaultTeam
+            this.editing = false
+        },
         confirm () {
+            this.loading = true
+            this.editing = false
             const opts = {}
             let changed = false
             if (this.input.username !== this.user.username) {
@@ -71,11 +124,20 @@ export default {
                 opts.admin = this.input.admin
                 changed = true
             }
-
+            if (this.input.defaultTeam !== this.defaultTeam) {
+                opts.defaultTeam = this.input.defaultTeam
+                changed = true
+            }
             if (changed) {
                 userApi.updateUser(opts).then((response) => {
                     this.$store.dispatch('account/setUser', response)
+                    alerts.emit('User successfully updated.', 'confirmation')
                     this.user = response
+                    this.teams.forEach(team => {
+                        if (team.value === this.user.defaultTeam) {
+                            this.defaultTeamName = team.label
+                        }
+                    })
                     this.changed = {}
                 }).catch(err => {
                     console.log(err.response.data)
@@ -90,15 +152,18 @@ export default {
                             this.errors.email = 'Email already registered'
                         }
                     }
+                }).finally(() => {
+                    this.loading = false
                 })
             }
         }
     },
     computed: {
         formValid () {
-            return (this.changed.name || this.changed.username || this.changed.email) &&
+            return (this.changed.name || this.changed.username || this.changed.email || this.changed.defaultTeam) &&
                    (this.input.email && !this.errors.email) &&
-                   (this.input.username && !this.errors.username)
+                   (this.input.username && !this.errors.username) &&
+                   (this.input.name && !this.errors.name)
         }
     },
     components: {

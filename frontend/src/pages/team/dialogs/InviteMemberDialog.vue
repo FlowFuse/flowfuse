@@ -30,8 +30,11 @@ import { mapState } from 'vuex'
 import FormRow from '@/components/FormRow'
 import teamApi from '@/api/team'
 
+import alerts from '@/services/alerts'
+
 export default {
     name: 'InviteMemberDialog',
+    emits: ['invitationSent'],
     components: {
         FormRow
     },
@@ -70,7 +73,9 @@ export default {
                 const result = await teamApi.createTeamInvitation(this.team.id, this.input.userInfo)
                 if (result.status === 'error') {
                     this.responseErrors = result.message
+                    alerts.emit('Unable to invite ' + this.input.userInfo, 'warning')
                 } else {
+                    alerts.emit('Invite sent to ' + this.input.userInfo, 'confirmation')
                     this.$emit('invitationSent')
                     this.isOpen = false
                 }

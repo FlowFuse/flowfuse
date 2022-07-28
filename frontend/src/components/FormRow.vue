@@ -58,6 +58,7 @@
                     <ff-text-input
                         ref="text_input"
                         v-model="localModelValue"
+                        :placeholder="placeholder"
                         :disabled="disabled"
                         :type="type"
                         @keyup.enter.prevent="$emit('enter')"

@@ -9,6 +9,8 @@ For container based deployment models, this covers three things:
  - `cpu` - a value between 1 and 100 that is the % of a CPU core the container should be allowed to consume.
  - `container` - this is the fully qualified name of the container to use. The default container built when following the install instructions is named `flowforge/node-red:latest`
 
+FlowForge supports Node-RED 2.2.x and later.
+
 ## Creating Containers
 
 There is an example `Dockerfile` and `package.json` in the [node-red-container](https://github.com/flowforge/docker-compose/tree/main/node-red-container) 
@@ -34,12 +36,12 @@ side the FlowForge plugins
 {
     "name": "node-red-project",
     "description": "A Node-RED Project",
-    "version": "0.3.0",
+    "version": "0.7.0",
     "private": true,
     "dependencies":{
-        "@flowforge/nr-storage": "^0.2.0",
-        "@flowforge/nr-auth": "^0.2.0",
-        "@flowforge/nr-audit-logger": "^0.2.0",
+        "@flowforge/nr-storage": "^0.7.0",
+        "@flowforge/nr-auth": "^0.7.0",
+        "@flowforge/nr-audit-logger": "^0.7.0",
         "node-red-dashboard": "^3.1.6"
     }
 }

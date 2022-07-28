@@ -3,7 +3,8 @@
         <FormHeading>
             Pending Invitations
         </FormHeading>
-        <form class="space-y-6">
+        <ff-loading v-if="loading" message="Loading Invitations..." />
+        <form v-else class="space-y-6">
             <div class="text-right"></div>
             <ItemTable :items="invitations" :columns="inviteColumns" />
         </form>
@@ -23,8 +24,10 @@ import MemberInviteRemoveButton from '../../admin/Users/components/MemberInviteR
 export default {
     name: 'MemberInviteTable',
     props: ['team', 'teamMembership'],
+    emits: ['updated'],
     data () {
         return {
+            loading: false,
             invitations: [],
             inviteColumns: [
                 { name: 'User', class: ['flex-grow'], component: { is: markRaw(InviteUserCell) }, property: 'invitee' },
@@ -44,8 +47,10 @@ export default {
         async removeInvite (teamId, inviteId) {
             await teamApi.removeTeamInvitation(teamId, inviteId)
             await this.fetchData()
+            this.$emit('invites-updated')
         },
         async fetchData () {
+            this.loading = true
             if (this.team && this.teamMembership) {
                 if (this.teamMembership.role !== Roles.Owner && this.teamMembership.role !== Roles.Admin) {
                     useRouter().push({ path: `/team/${useRoute().params.team_slug}/members/general` })
@@ -53,12 +58,15 @@ export default {
                 }
                 const invitations = await teamApi.getTeamInvitations(this.team.id)
                 this.invitations = invitations.invitations.map(invite => {
-                    invite.onremove = (teamId, inviteId) => { this.removeInvite(teamId, inviteId) }
+                    invite.onremove = (teamId, inviteId) => {
+                        this.removeInvite(teamId, inviteId)
+                    }
                     return invite
                 })
 
                 this.invitationCount = invitations.count
             }
+            this.loading = false
         }
     },
     components: {

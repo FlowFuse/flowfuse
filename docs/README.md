@@ -14,9 +14,13 @@ in your own environment.
 ## Overview
 
  - [FlowForge Concepts](./user/concepts.md) - understanding the platform
- - [FlowForge Cloud](./cloud) - details specific to the hosted service
- - [Installing FlowForge](./install/) - how to install the platform
+ - [FlowForge Cloud](./cloud/) - details specific to the hosted service
  - [Administrator documentation](./admin/) - how to administer the platform
  - [User documentation](./user/) - how to use the platform
- - [Contributing to FlowForge](./contribute/) - how to contribute to the Open Source project
  - [API Documentation](./api/) - Developer API documentation
+ - [Contributing to FlowForge](./contribute/) - how to contribute to the Open Source project
+
+## Installing FlowForge
+
+- [Installing FlowForge](./install/) - how to install the platform
+- [Install the Device Agent](./user/devices.md) - deploy flows to remote devices

@@ -14,12 +14,13 @@ This guide assumes you have a working development environment including:
    - Linux: `apt-get install build-essential`
    - MacOS: `xcode-select --install`
    - Windows: installed as part of the official node.js installer
+     - ☑️ Automatically install the necessary tools must be checked
  - Git
 
 ### Project Repositories
 
-There are a number of repositories under the [flowforge GitHub organisation](https://github.com/flowforge)
-that make up the platform:
+There are a number of repositories under the [FlowForge GitHub organisation](https://github.com/flowforge)
+that make up the platform.
 
 Repository    | Description
 --------------|---------------------
@@ -33,91 +34,105 @@ Repository    | Description
 [flowforge-nr-audit-logger](https://github.com/flowforge/flowforge-nr-audit-logger) | A Node-RED logging plugin that captures audit log events and sends them back to the FlowForge platform.
 [flowforge-nr-auth](https://github.com/flowforge/flowforge-nr-auth) | A Node-RED authentication plugin that controls access to a Node-RED instance based on FlowForge access controls.
 [flowforge-nr-storage](https://github.com/flowforge/flowforge-nr-storage) | A Node-RED storage plugin that stores Node-RED state in the FlowForge platform
+[flowforge-nr-theme](https://github.com/flowforge/flowforge-nr-theme) | A custom Node-RED theme
 
+### Setting Up A Development Environment
 
+With the project split across multiple repositories, setting up a development
+environment manually takes quite a lot of steps to ensure everything is checked
+out and configured properly.
 
-The `flowforge/flowforge` repository is the core of the platform and where you'll likely
-want to begin.
+To make it easier, you can use the [FlowForge Development Environment](https://github.com/flowforge/flowforge-dev-env) project to get set up.
+
+The following steps will get your development environment setup in no time:
+
+       git clone https://github.com/flowforge/flowforge-dev-env.git
+       cd flowforge-dev-env
+       npm install
+       npm run init
+
+This clones all of the main project repositories, installs their dependencies and builds
+the repositories that need it.
+
+All of the repositories are cloned under the `packages` directory:
+
+```
+flowforge-dev-env
+└── packages
+    ├── flowforge
+    ├── flowforge-driver-localfs
+    ├── flowforge-nr-audit-logger
+    ├── flowforge-nr-auth
+    ├── flowforge-nr-launcher
+    ├── flowforge-nr-storage
+    ├── flowforge-nr-theme
+    └── forge-ui-components
+```
+
+More details on using the FlowForge Development Environment are available in its
+[documentation](https://github.com/flowforge/flowforge-dev-env).
 
 ### FlowForge Code Structure
 
+The `flowforge/flowforge` repository is the core of the platform and where you'll 
+likely want to begin.
+
 ```
-/
-├── config   - developer tools configuration files  
-├── docs     - documentation
-├── etc      - runtime configuration files
-├── forge    - the core platform application
-├── frontend - the frontend source code
-└── test     - test material
+.
+├── bin
+├── config               - build config files
+├── docs
+├── etc                  - FlowForge platform configuration files
+├── forge                - Platform core code
+│   ├── config
+│   ├── containers
+│   ├── db
+│   ├── ee
+│   ├── lib
+│   ├── licensing
+│   ├── monitor
+│   ├── postoffice
+│   ├── routes
+│   └── settings
+├── frontend             - Frontend code
+│   ├── dist             - build output - created by `npm run build`
+│   ├── public           - static assets
+│   └── src              - vue src
+│       ├── api
+│       ├── components
+│       ├── pages
+│       ├── routes
+│       └── store
+├── test                 - tests for FlowForge
+└── var                  - where the database and localfs project directories are created
 ```
 
-### Installing code dependencies
+## Development Setup
 
+1. [Create a Stack](#create-a-stack)
+1. [Running FlowForge](#running-flowforge)
+1. [Configuring FlowForge](#configuring-flowforge)
+1. [Mocking email](#mocking-email)
+1. [Testing](#testing)
+1. [VSCode Tips](#vscode-tips)
 
-After cloning the core repository, you will need to install the dependencies by running
-```
-npm install
-```
-
-**Note** If running on MacOS 12.3 or newer you may get an error around node-gyp being unable to build sqllite3.
-This is because MacOS no longer includes python2.7.
-The solution is to run the command `npm config set python python3` to alias to python3 and then run `npm install` again
-
-By default this will install the latest released versions of the FlowForge components. If
-you want to run from the latest source code then you can check out all the required 
-projects in the same directory
-
-- flowforge/flowforge
-- flowforge/forge-ui-components
-- flowforge/flowforge-driver-localfs
-- flowforge/flowforge-nr-launcher
-- flowforge/flowforge-nr-storage
-- flowforge/flowforge-nr-auth
-- flowforge/flowforge-nr-audit-logger
-
-Then in the flowforge directory run
-```
-npm run dev:local
-```
-This will create all the required symlinks to the relevent projects.
-
-Next in the `forge-ui-components`  directory run
-```
-npm install
-npm run build
-```
-
-In the `flowforge-nr-auth` directory run
-```
-npm install
-```
-
-In the `flowforge-nr-audit-logger` directory run
-```
-npm install
-```
-
-In the `flowforge-nr-storage` directory run
-```
-npm install
-```
-
-**Note**: do not check in the modified `package.json` that will be created in the 
-`flowforge`, `flowforge-nr-launcher` or `flowforge-driver-localfs` projects.
 
 ### Create a Stack
+
 You will need to setup the version(s) of Node-RED you want to use in your stacks.
 
-From the flowforge directory run
+From the `flowforge` directory run
 
 ```
 npm run install-stack --vers=2.2.2
 ```
-Where `2.2.2` is the version of Node-RED you want to use in the stack
+
+Where `2.2.2` is the version of Node-RED you want to use in the stack.
 
 ### Running FlowForge
 
-A number of `npm` tasks are defined in the `package.json` file. To get started from the flowforge directory use:
+A number of `npm` tasks are defined in the `package.json` file of this repository.
+To get started from the `flowforge` directory use:
 
 ```
 npm run serve
@@ -132,9 +147,14 @@ This does a couple things in parallel:
 
 When running like this, the `NODE_ENV` environment variable gets set to `development`.
 
+
+*Note*: if you have not used the [FlowForge Development Environment](#setting-up-a-development-environment), then you will need to run `npm run build`
+to build the platform before you can use `npm run serve`.
+
+
 ### Configuring FlowForge
 
-When running in this mode, the core app will use `etc/flowforge.yml` for its configuration.
+When running in development mode, the core app will use `etc/flowforge.yml` for its configuration.
 As you may want to have local configuration that you don't want to commit back to git,
 you can create a file called `etc/flowforge.local.yml` and it will use that instead.
 That filename is setup to be ignored by git so it won't be accidentally committed.
@@ -169,9 +189,6 @@ overall quality of the system.
 Unit tests should provide sufficient coverage to give us confidence that a 
 component's behaviour does not unexpectedly change.
 
-We do not *currently* have automated testing capability for the front-end. That
-relies on manual verification.
-
 #### Running tests
 
 To run the tests for the project, you can use the following npm tasks:
@@ -180,6 +197,29 @@ To run the tests for the project, you can use the following npm tasks:
  - `npm run lint` - runs the linting tests
  - `npm run test:unit` - runs the unit tests
  - `npm run test:system` - runs the system tests
+
+##### Testing against PostgreSQL
+
+By default, the tests use an in-memory sqlite database to test against. This is
+the most self-contained way of testing the platform. But it is also necessary to
+test against PostgreSQL. To enable the use of PostgreSQL in the tests:
+
+1. Ensure you have an instance of PostgreSQL running locally. For example, via
+   docker:
+
+        docker run -it -p 5432:5432 --name ff-postgres -e POSTGRES_PASSWORD=secret postgres
+
+2. Enable PostgrSQL mode by setting the following environment variable:
+
+        export FF_TEST_DB_POSTGRES=true
+
+   The database connection can be set using the following env vars (default values shown)
+
+        export FF_TEST_DB_POSTGRES_HOST=localhost
+        export FF_TEST_DB_POSTGRES_PORT=5432
+        export FF_TEST_DB_POSTGRES_USER=postgres
+        export FF_TEST_DB_POSTGRES_PASSWORD=secret
+        export FF_TEST_DB_POSTGRES_DATABASE=flowforge_test
 
 #### Reporting code coverage
 
@@ -193,4 +233,64 @@ tests using `nyc` to generate code coverage information.
  - `npm run cover:system` - runs the system tests with code coverage enabled. It
   does *not* generate the report.
  - `npm run cover:report` - generates a report of the code coverage. This is 
-  printed to the console and generates a browseable HTML copy under `coverage/index.html`
+  printed to the console and generates a browsable HTML copy under `coverage/index.html`
+
+### VSCode Tips
+
+To step debug in VSCode
+1. Open `launch.json` config and enter the JavaScript below
+2. Choose `Start-Watch` from the "Run and Debug" menu
+3. Press ▶️ or <kbd>F5</kbd> to start debugging
+
+There are 2 other "Run and Debug" entries in the menu...
+* "Attach by Process ID" - this will allow you to attach to a launched driver
+* "Debug Current Test" - this will enable you to step debug a test (starts debugging the currently open test file)
+
+#### 
+```javascript
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "command": "npm run start-watch",
+            "name": "Start-Watch",
+            "request": "launch",
+            "type": "node-terminal",
+            "env": {
+                "NODE_ENV": "development"
+            }
+        },
+        {
+            "name": "Attach by Process ID",
+            "processId": "${command:PickProcess}",
+            "request": "attach",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Current Test",
+            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+            "args": [
+              "--no-warnings",
+              "-u",
+              "bdd",// set to bdd, not tdd
+              "--timeout",
+              "999999",
+              "--colors",
+              "${file}"
+            ],
+            "env": {
+                "NODE_ENV": "development"
+            },
+            "internalConsoleOptions": "openOnSessionStart"
+        }
+    ]
+}
+```

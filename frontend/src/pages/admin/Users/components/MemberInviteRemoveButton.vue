@@ -5,6 +5,8 @@
 </template>
 <script>
 
+import alerts from '@/services/alerts'
+
 import { TrashIcon } from '@heroicons/vue/outline'
 
 export default {
@@ -15,6 +17,7 @@ export default {
     methods: {
         async removeInvite () {
             await this.onremove(this.team.id, this.id)
+            alerts.emit('Invite successfully removed', 'confirmation')
         }
     }
 }

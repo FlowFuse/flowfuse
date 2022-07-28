@@ -79,6 +79,22 @@ describe('User model', function () {
         should.not.exist(membership3)
     })
 
+    it('User Real Name with URL', async function () {
+        let user
+        try {
+            user = await app.db.models.User.create({
+                username: 'foo',
+                password: '123456abc',
+                email: 'foo@example.com',
+                name: 'http://example.com'
+            })
+        } catch (err) {
+            // console.log(err)
+        }
+
+        should.not.exist(user)
+    })
+
     // it("random", async function() {
     //     const user = await app.db.models.User.byEmail("chris@example.com");
     //     const proj = await app.db.models.Project.findOne({where:{name:"project2"}});

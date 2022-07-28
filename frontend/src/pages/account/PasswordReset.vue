@@ -18,6 +18,7 @@
 
 <script>
 import { mapState } from 'vuex'
+import alerts from '@/services/alerts'
 import FormRow from '@/components/FormRow'
 import userApi from '@/api/user'
 
@@ -59,6 +60,7 @@ export default {
                 password: this.input.password
             }).then((res) => {
                 this.complete = true
+                alerts.emit('Password successfully updated.', 'confirmation')
             }).catch(e => {
                 console.log(e)
             })

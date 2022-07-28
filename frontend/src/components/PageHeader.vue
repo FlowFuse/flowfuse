@@ -5,41 +5,59 @@
             <MenuIcon class="ff-avatar" @click="$emit('menu-toggle')"/>
         </i>
         <!-- FlowForge Logo -->
-        <img src="@/images/ff-logo--wordmark-caps--dark.png" @click="home()"/>
+        <img class="ff-logo" src="@/images/ff-logo--wordmark-caps--dark.png" @click="home()"/>
         <!-- Mobile: Toggle(User Options) -->
-        <i class="ff-header--mobile-usertoggle" :class="{'active': mobileUserOptionsOpen}">
-            <img :src="user.avatar" class="ff-avatar" @click="mobileUserOptionsOpen = !mobileUserOptionsOpen" />
-        </i>
+        <div class="flex" v-if="team">
+            <i class="ff-header--mobile-usertoggle" :class="{'active': mobileTeamSelectionOpen}">
+                <img :src="team.avatar" class="ff-avatar" @click="mobileTeamSelectionOpen = !mobileTeamSelectionOpen" />
+            </i>
+            <i class="ff-header--mobile-usertoggle" :class="{'active': mobileUserOptionsOpen}">
+                <img :src="user.avatar" class="ff-avatar" @click="mobileUserOptionsOpen = !mobileUserOptionsOpen" />
+            </i>
+        </div>
         <!-- Mobile: User Options -->
         <div class="ff-navigation ff-navigation-right" :class="{'open': mobileUserOptionsOpen}">
             <nav-item v-for="option in options" :key="option.label"
-                      :label="option.label" :icon="option.icon"
+                      :label="option.label" :icon="option.icon" :notifications="option.notifications"
                       @click="mobileUserOptionsOpen = false; option.onclick(option.onclickparams)"></nav-item>
         </div>
-        <!-- Desktop: User Options -->
-        <ff-dropdown class="ff-navigation">
-            <template v-slot:placeholder>
-                <div class="ff-user">
-                    <img :src="user.avatar" class="ff-avatar"/>
-                    <label>{{ user.name }}</label>
-                </div>
-            </template>
-            <template v-slot:default>
-                <ff-dropdown-option v-for="option in options" :key="option.label" @click="option.onclick(option.onclickparams)">
-                    <nav-item :label="option.label" :icon="option.icon"></nav-item>
-                </ff-dropdown-option>
-            </template>
-        </ff-dropdown>
+        <!-- Mobile: Team Selection -->
+        <div class="ff-navigation ff-navigation-right" :class="{'open': mobileTeamSelectionOpen}">
+            <nav-item v-for="team in teams" :key="team.name"
+                      :label="team.name" :avatar="team.avatar"
+                      @click="mobileTeamSelectionOpen = false; $router.push({name: 'Team', params: {team_slug: team.slug}})"></nav-item>
+            <nav-item label="Create New Team" :icon="plusIcon"
+                      @click="mobileTeamSelectionOpen = false; $router.push({name: 'CreateTeam'})"></nav-item>
+        </div>
+        <div class="hidden sm:flex">
+            <ff-team-selection />
+            <!-- Desktop: User Options -->
+            <ff-dropdown v-if="user" class="ff-navigation ff-user-options" options-align="right">
+                <template v-slot:placeholder>
+                    <div class="ff-user">
+                        <img :src="user.avatar" class="ff-avatar"/>
+                        <ff-notification-pill v-if="notifications.total > 0" class="ml-3" :count="notifications.total"/>
+                        <!-- <label>{{ user.name }}</label> -->
+                    </div>
+                </template>
+                <template v-slot:default>
+                    <ff-dropdown-option v-for="option in options" :key="option.label" @click="option.onclick(option.onclickparams)">
+                        <nav-item :label="option.label" :icon="option.icon" :notifications="option.notifications"></nav-item>
+                    </ff-dropdown-option>
+                </template>
+            </ff-dropdown>
+        </div>
     </div>
 </template>
 <script>
 import { ref } from 'vue'
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 import router from '@/routes'
 
-import { MenuIcon, QuestionMarkCircleIcon, AdjustmentsIcon, CogIcon, LogoutIcon } from '@heroicons/vue/solid'
+import { MenuIcon, PlusIcon, QuestionMarkCircleIcon, AdjustmentsIcon, CogIcon, LogoutIcon } from '@heroicons/vue/solid'
 
 import NavItem from '@/components/NavItem'
+import TeamSelection from '@/components/TeamSelection'
 
 export default {
     name: 'NavBar',
@@ -59,14 +77,25 @@ export default {
             })
             return profileLinks
         },
-        ...mapState('account', ['user', 'team'])
+        ...mapState('account', ['user', 'team', 'teams']),
+        ...mapGetters('account', ['notifications'])
+    },
+    watch: {
+        notifications: {
+            handler: function () {
+                this.options[0].notifications = this.notifications.invitations
+            },
+            deep: true
+        }
     },
     components: {
         NavItem,
+        'ff-team-selection': TeamSelection,
         MenuIcon
     },
     data () {
         return {
+            mobileTeamSelectionOpen: false,
             mobileUserOptionsOpen: false,
             options: [{
                 label: 'User Settings',
@@ -88,7 +117,8 @@ export default {
     setup () {
         const open = ref(false)
         return {
-            open
+            open,
+            plusIcon: PlusIcon
         }
     },
     mounted () {
@@ -100,6 +130,7 @@ export default {
                 onclickparams: { name: 'Admin Settings' }
             })
         }
+        this.options[0].notifications = this.notifications.invitations
     },
     methods: {
         home () {

@@ -22,7 +22,7 @@
 /**
  * This needs work
  *
- * @typedef {Object} forge.containers.ProjectArguemnts
+ * @typedef {Object} forge.containers.ProjectArguments
  *
  */
 

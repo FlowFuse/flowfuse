@@ -1,6 +1,6 @@
 /**
  * A Project's Credentials
- * @namespce forge.db.models.StorageCredentials
+ * @namespace forge.db.models.StorageCredentials
  */
 const { DataTypes } = require('sequelize')
 

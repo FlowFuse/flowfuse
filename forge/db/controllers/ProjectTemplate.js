@@ -2,6 +2,11 @@ const validSettings = [
     'disableEditor',
     'httpAdminRoot',
     'codeEditor',
+    'theme',
+    'page_title',
+    'page_favicon',
+    'header_title',
+    'header_url',
     'timeZone',
     'palette_allowInstall',
     'palette_nodesExcludes',
@@ -61,8 +66,8 @@ module.exports = {
                 }
             }
         })
-        result.env = []
         if (settings.env) {
+            result.env = []
             const templateEnvPolicyMap = {}
             const templateEnv = template?.settings.env
             if (templateEnv) {
@@ -71,10 +76,7 @@ module.exports = {
                 })
             }
             settings.env.forEach((envVar) => {
-                if (
-                    templateEnvPolicyMap[envVar.name] !== false &&
-          !/ /.test(envVar.name)
-                ) {
+                if (templateEnvPolicyMap[envVar.name] !== false && !/ /.test(envVar.name)) {
                     result.env.push(envVar)
                 }
             })

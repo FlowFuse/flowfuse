@@ -1,5 +1,6 @@
 <template>
-    <div v-if="project.meta && project.meta.state !== 'suspended'" class="mx-auto text-xs border bg-gray-800 text-gray-200 rounded p-2 font-mono">
+    <ff-loading v-if="loading" message="Loading Logs..." />
+    <div v-else-if="project.meta && project.meta.state !== 'suspended'" class="mx-auto text-xs border bg-gray-800 text-gray-200 rounded p-2 font-mono">
         <div v-if="prevCursor" class="flex">
             <a @click="loadPrevious" class=" text-center w-full hover:text-blue-400 cursor-pointer pb-1">Load earlier...</a>
         </div>
@@ -22,8 +23,8 @@ export default {
     props: ['project'],
     data () {
         return {
+            loading: true,
             logEntries: [],
-            loading: false,
             prevCursor: null,
             nextCursor: null,
             checkInterval: null
@@ -50,7 +51,7 @@ export default {
             if (this.project.id) {
                 if (this.project.meta.state !== 'suspended') {
                     this.loading = true
-                    this.loadItems(this.project.id)
+                    await this.loadItems(this.project.id)
                     this.loading = false
                 } else {
                     clearInterval(this.checkInterval)
@@ -73,6 +74,9 @@ export default {
                 entries.log.forEach(l => {
                     const d = new Date(parseInt(l.ts.substring(0, l.ts.length - 4)))
                     l.date = `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`
+                    if (typeof l.msg === 'object') {
+                        l.msg = JSON.stringify(l.msg)
+                    }
                     l.msg = l.msg.replace(/^[\n]*/, '')
                     if (!cursor || cursor[0] !== '-') {
                         this.logEntries.push(l)

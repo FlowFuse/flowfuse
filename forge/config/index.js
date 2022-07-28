@@ -48,13 +48,18 @@ module.exports = fp(async function (app, opts, next) {
     if (process.env.npm_package_version) {
         ffVersion = process.env.npm_package_version
         // npm start
-        app.log.info(`FlowForge v${process.env.npm_package_version}`)
     } else {
         // everything else
         const { version } = require(path.join(module.parent.path, '..', 'package.json'))
         ffVersion = version
-        app.log.info(`FlowForge v${version}`)
     }
+    try {
+        fs.statSync(path.join(__dirname, '..', '..', '.git'))
+        ffVersion += '-git'
+    } catch (err) {
+        // No git directory
+    }
+    app.log.info(`FlowForge v${ffVersion}`)
 
     app.log.info(`FlowForge running with NodeJS ${process.version}`)
 
@@ -99,6 +104,17 @@ module.exports = fp(async function (app, opts, next) {
                 plausible: {
                     domain: null
                 }
+            }
+        }
+
+        if (!config.logging) {
+            config.logging = {
+                level: 'info',
+                http: 'warn'
+            }
+        } else {
+            if (!config.logging.http) {
+                config.logging.http = 'warn'
             }
         }
 

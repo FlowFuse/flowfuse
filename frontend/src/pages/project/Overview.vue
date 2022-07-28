@@ -6,16 +6,39 @@
 
                 <table class="table-fixed w-full">
                     <tr class="border-b">
-                        <td class="w-1/4">Editor</td>
+                        <td class="w-1/4 font-medium">Editor</td>
                         <td>
-                            <a v-if="editorAvailable" :href="project.url" target="_blank" class="forge-button-inline py-2 -mx-3"><span class="ml-r">{{project.url}}</span><ExternalLinkIcon class="w-4 ml-3" /></a>
+                            <a v-if="editorAvailable" :href="project.url" target="_blank" class="forge-button-secondary py-1 mb-1"><span class="ml-r">{{project.url}}</span><ExternalLinkIcon class="w-4 ml-3" /></a>
                             <div v-else class="my-2">Unavailable</div>
                         </td>
                     </tr>
                     <tr class="border-b">
-                        <td class="">Status</td>
+                        <td class="font-medium">Status</td>
                         <td><div class="py-2"><ProjectStatusBadge :status="project.meta.state" :pendingStateChange="project.pendingStateChange" /></div></td>
                     </tr>
+                    <tr class="border-b">
+                        <td class="font-medium">Type</td>
+                        <td class="flex items-center">
+                            <div class="py-2 flex-grow">{{project.projectType?.name || 'none'}} / {{project.stack?.name || 'none'}}</div>
+                            <div v-if="project.stack.replacedBy">
+                                <ff-button size="small" to="./settings/danger">Update</ff-button>
+                            </div>
+                        </td>
+                    </tr>
+                    <template v-if="project.meta.versions">
+                        <tr class="border-b">
+                            <td class="font-medium">Node-RED Version</td>
+                            <td><div class="py-2">{{project.meta.versions['node-red']}}</div></td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-medium">Launcher Version</td>
+                            <td><div class="py-2">{{project.meta.versions.launcher}}</div></td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-medium">Node.js Version</td>
+                            <td><div class="py-2">{{project.meta.versions.node}}</div></td>
+                        </tr>
+                    </template>
                 </table>
             </div>
             <div class="border rounded p-4">

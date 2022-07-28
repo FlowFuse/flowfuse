@@ -2,11 +2,6 @@
 
 @import "./layouts.scss";
 
-* {
-    transition: 0.3s background-color, 0.3s color;
-    -webkit-transition: 0.3s background-color, 0.3s color;
-}
-
 #ff-app {
     background-color: $ff-grey-300;
 }
@@ -45,4 +40,9 @@
 
 label {
     cursor: inherit;
+}
+
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: $ff-grey-400 !important;
+    opacity: 1; /* Firefox */
 }

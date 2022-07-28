@@ -9,12 +9,13 @@
         </SideNavigation>
     </Teleport>
     <main>
-        <div v-if="!needsBilling" class="max-w-2xl m-auto">
+        <ff-loading v-if="loading" message="Creating Team..." />
+        <div v-if="!loading && !needsBilling" class="max-w-2xl m-auto">
             <form class="space-y-6" >
                 <FormHeading>Create a new team</FormHeading>
                 <div class="mb-8 text-sm text-gray-500">Teams are how you organize who collaborates on your projects.</div>
 
-                <FormRow v-model="input.name" id="team">Team Name
+                <FormRow v-model="input.name" id="team" :error="errors.name">Team Name
                     <template v-slot:description>
                         eg. 'Development'
                     </template>
@@ -32,7 +33,7 @@
                 </ff-button>
             </form>
         </div>
-        <div v-else>
+        <div v-else-if="!loading">
             <div class="flex">
                 <img class="w-64 mr-12" src="@/images/pictograms/node_catalog_red.png">
                 <form class="pl-12 border-l">
@@ -81,6 +82,7 @@ export default {
     data () {
         return {
             mounted: false,
+            loading: false,
             icons: {
                 chevronLeft: ChevronLeftIcon
             },
@@ -111,11 +113,17 @@ export default {
             }, {
                 question: 'Who are FlowForge?',
                 answer: '<p>FlowForge is a US company registered in Delaware, we were founded in April 2021 and are backed by <a class="text-blue-500" href="https://opencoreventures.com/" target="_blank">Open Core Ventures</a></p><p class="mt-3">The team are all remote, located around the world, you can see more about the individuals on our <a class="text-blue-500" href="https://flowforge.com/team/">Team page</a></p>'
-            }]
+            }],
+            errors: {}
         }
     },
     watch: {
-        'input.name': function () {
+        'input.name': function (v) {
+            if (v && /:\/\//.test(v)) {
+                this.errors.name = 'Team name can not contain URL'
+            } else {
+                this.errors.name = ''
+            }
             this.input.slug = slugify(this.input.name)
         },
         'input.slug': function (v) {
@@ -129,7 +137,7 @@ export default {
     computed: {
         ...mapState('account', ['team']),
         formValid () {
-            return this.input.name && !this.input.slugError
+            return this.input.name && !this.input.slugError && !this.errors.name
         }
     },
     mounted () {
@@ -137,6 +145,8 @@ export default {
     },
     methods: {
         createTeam () {
+            this.loading = true
+
             const opts = {
                 name: this.input.name,
                 slug: this.input.slug || this.input.defaultSlug
@@ -159,6 +169,8 @@ export default {
                         this.input.slugError = 'Slug already in use'
                     }
                 }
+            }).finally(() => {
+                this.loading = false
             })
         },
         goToNewTeam (slug) {

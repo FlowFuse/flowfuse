@@ -5,6 +5,7 @@ module.exports = {
             const filtered = {
                 id: result.hashid,
                 name: result.name,
+                description: result.description || '',
                 createdAt: result.createdAt,
                 updatedAt: result.updatedAt
             }

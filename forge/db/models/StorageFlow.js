@@ -1,6 +1,6 @@
 /**
  * A Project's Flow
- * @namespce forge.db.models.StorageFlow
+ * @namespace forge.db.models.StorageFlow
  */
 const { DataTypes } = require('sequelize')
 

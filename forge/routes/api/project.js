@@ -28,7 +28,9 @@ const bannedNameList = [
     'accounts',
     'account',
     'status',
-    'billing'
+    'billing',
+    'mqtt',
+    'broker'
 ]
 
 module.exports = async function (app) {
@@ -84,7 +86,7 @@ module.exports = async function (app) {
                 state: 'suspended'
             }
         } else {
-            result.meta = await app.containers.details(request.project) || { state: 'unknownn' }
+            result.meta = await app.containers.details(request.project) || { state: 'unknown' }
         }
         // result.team = await app.db.views.Team.team(request.project.Team)
         reply.send(result)
@@ -107,10 +109,11 @@ module.exports = async function (app) {
         schema: {
             body: {
                 type: 'object',
-                required: ['name', 'team', 'stack', 'template'],
+                required: ['name', 'team', 'projectType', 'stack', 'template'],
                 properties: {
                     name: { type: 'string' },
                     team: { type: ['string', 'number'] },
+                    projectType: { type: 'string' },
                     stack: { type: 'string' },
                     template: { type: 'string' },
                     sourceProject: {
@@ -147,9 +150,15 @@ module.exports = async function (app) {
             }
         }
 
+        const projectType = await app.db.models.ProjectType.byId(request.body.projectType)
+        if (!projectType) {
+            reply.code(400).send({ error: 'Invalid project type' })
+            return
+        }
+
         const stack = await app.db.models.ProjectStack.byId(request.body.stack)
 
-        if (!stack) {
+        if (!stack || stack.ProjectTypeId !== projectType.id) {
             reply.code(400).send({ error: 'Invalid stack' })
             return
         }
@@ -190,9 +199,11 @@ module.exports = async function (app) {
         await team.addProject(project)
         await project.setProjectStack(stack)
         await project.setProjectTemplate(template)
+        await project.setProjectType(projectType)
         await project.reload({
             include: [
                 { model: app.db.models.Team },
+                { model: app.db.models.ProjectType },
                 { model: app.db.models.ProjectStack },
                 { model: app.db.models.ProjectTemplate }
             ]
@@ -231,7 +242,7 @@ module.exports = async function (app) {
                         // There are existing credentials to copy
                         const srcCredentials = JSON.parse(origCredentials.credentials)
                         const srcCredentialSecret = await sourceProject.getSetting('credentialSecret') || sourceSettings._credentialSecret
-                        const newCredentials = recryptCreds(srcCredentials, srcCredentialSecret, newCredentialSecret)
+                        const newCredentials = app.db.controllers.Project.exportCredentials(srcCredentials, srcCredentialSecret, newCredentialSecret)
                         const credentials = await app.db.models.StorageCredentials.create({
                             credentials: JSON.stringify(newCredentials),
                             ProjectId: project.id
@@ -313,6 +324,13 @@ module.exports = async function (app) {
     app.delete('/:projectId', { preHandler: app.needsPermission('project:delete') }, async (request, reply) => {
         try {
             await app.containers.remove(request.project)
+
+            if (app.comms) {
+                app.comms.devices.sendCommandToProjectDevices(request.project.Team.hashid, request.project.id, 'update', {
+                    project: null
+                })
+            }
+
             await request.project.destroy()
             await app.db.controllers.AuditLog.projectLog(
                 request.project.id,
@@ -326,9 +344,7 @@ module.exports = async function (app) {
             )
             reply.send({ status: 'okay' })
         } catch (err) {
-            console.log('missing', err)
-            console.log(err)
-            reply.code(500).send({})
+            reply.code(500).send({ error: err.toString() })
         }
     })
 
@@ -340,7 +356,7 @@ module.exports = async function (app) {
     app.put('/:projectId', { preHandler: app.needsPermission('project:edit') }, async (request, reply) => {
         let changed = false
         if (request.body.stack) {
-            if (request.body.stack !== request.project.ProjectStack.id) {
+            if (request.body.stack !== request.project.ProjectStack?.id) {
                 const stack = await app.db.models.ProjectStack.byId(request.body.stack)
                 if (!stack) {
                     reply.code(400).send({ error: 'Invalid stack' })
@@ -479,11 +495,11 @@ module.exports = async function (app) {
                     const srcCredentialSecret = await sourceProject.getSetting('credentialSecret') || sourceSettings._credentialSecret
                     let targetCreds = await app.db.models.StorageCredentials.byProject(request.project.id)
                     if (targetCreds && srcCredentials) {
-                        targetCreds.credentials = JSON.stringify(recryptCreds(srcCredentials, srcCredentialSecret, trgCredentialSecret))
+                        targetCreds.credentials = JSON.stringify(app.db.controllers.Project.exportCredentials(srcCredentials, srcCredentialSecret, trgCredentialSecret))
                         await targetCreds.save()
                     } else if (srcCredentials) {
                         targetCreds = await app.db.models.StorageCredentials.create({
-                            credentials: JSON.stringify(recryptCreds(srcCredentials, srcCredentialSecret, trgCredentialSecret)),
+                            credentials: JSON.stringify(app.db.controllers.Project.exportCredentials(srcCredentials, srcCredentialSecret, trgCredentialSecret)),
                             ProjectId: request.project.id
                         })
                         await targetCreds.save()
@@ -537,6 +553,25 @@ module.exports = async function (app) {
             } else {
                 app.db.controllers.Project.clearInflightState(request.project)
             }
+        } else if (request.body.projectType) {
+            if (request.project.ProjectType) {
+                reply.code(400).send({ error: 'Cannot change project type' })
+                return
+            }
+            const existingStackProjectType = request.project.ProjectStack.ProjectTypeId
+            const newProjectType = await app.db.models.ProjectType.byId(request.body.projectType)
+            if (!newProjectType) {
+                reply.code(400).send({ error: 'Invalid project type' })
+                return
+            }
+            if (existingStackProjectType && newProjectType.id !== existingStackProjectType) {
+                reply.code(400).send({ error: 'Mismatch between stack project type and new project type' })
+                return
+            }
+
+            await request.project.setProjectType(newProjectType)
+
+            reply.code(200).send({})
         } else {
             if (request.body.name && request.project.name !== request.body.name) {
                 request.project.name = request.body.name
@@ -710,26 +745,5 @@ module.exports = async function (app) {
 
     function generateCredentialSecret () {
         return crypto.randomBytes(32).toString('hex')
-    }
-
-    function recryptCreds (original, oldKey, newKey) {
-        const newHash = crypto.createHash('sha256').update(newKey).digest()
-        const oldHash = crypto.createHash('sha256').update(oldKey).digest()
-        return encryptCreds(newHash, decryptCreds(oldHash, original))
-    }
-
-    function decryptCreds (key, cipher) {
-        let flows = cipher.$
-        const initVector = Buffer.from(flows.substring(0, 32), 'hex')
-        flows = flows.substring(32)
-        const decipher = crypto.createDecipheriv('aes-256-ctr', key, initVector)
-        const decrypted = decipher.update(flows, 'base64', 'utf8') + decipher.final('utf8')
-        return JSON.parse(decrypted)
-    }
-
-    function encryptCreds (key, plain) {
-        const initVector = crypto.randomBytes(16)
-        const cipher = crypto.createCipheriv('aes-256-ctr', key, initVector)
-        return { $: initVector.toString('hex') + cipher.update(JSON.stringify(plain), 'utf8', 'base64') + cipher.final('base64') }
     }
 }

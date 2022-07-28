@@ -1,4 +1,3 @@
-const crypto = require('crypto')
 /**
  * Device Live api routes
  *
@@ -12,14 +11,13 @@ const crypto = require('crypto')
  * @memberof forge.routes.api
  */
 module.exports = async function (app) {
-    // app.addHook('preHandler', (request, reply, done) => {
-    //     // check accessToken is device scope
-    //     if (request.session.ownerType !== 'device') {
-    //         reply.code(401).send({ error: 'unauthorised' })
-    //     } else {
-    //         done()
-    //     }
-    // })
+    app.addHook('preHandler', (request, reply, done) => {
+        if (request.session.ownerType !== 'device' || request.session.ownerId !== ('' + request.device.id)) {
+            reply.code(401).send({ error: 'unauthorised' })
+        } else {
+            done()
+        }
+    })
 
     /**
      * Devices post to /state at regular intervals. This acts as a heartbeat.
@@ -33,9 +31,29 @@ module.exports = async function (app) {
      */
     app.post('/state', async (request, reply) => {
         await app.db.controllers.Device.updateState(request.device, request.body)
-        if (request.body.snapshot !== request.device.targetSnapshot?.hashid) {
+        if (Object.hasOwn(request.body, 'project') && request.body.project !== (request.device.Project?.id || null)) {
+            reply.code(409).send({
+                error: 'incorrect-project',
+                project: request.device.Project?.id || null,
+                snapshot: request.device.targetSnapshot?.hashid || null,
+                settings: request.device.settingsHash || null
+            })
+            return
+        }
+        if (request.body.snapshot !== (request.device.targetSnapshot?.hashid || null)) {
             reply.code(409).send({
                 error: 'incorrect-snapshot',
+                project: request.device.Project?.id || null,
+                snapshot: request.device.targetSnapshot?.hashid || null,
+                settings: request.device.settingsHash || null
+            })
+            return
+        }
+        if (request.body.settings !== undefined && request.body.settings !== (request.device.settingsHash || null)) {
+            reply.code(409).send({
+                error: 'incorrect-settings',
+                project: request.device.Project?.id || null,
+                settings: request.device.settingsHash || null,
                 snapshot: request.device.targetSnapshot?.hashid || null
             })
             return
@@ -45,7 +63,9 @@ module.exports = async function (app) {
 
     app.get('/state', async (request, reply) => {
         reply.send({
-            snapshot: request.device.targetSnapshot?.hashid || null
+            project: request.device.Project?.id || null,
+            snapshot: request.device.targetSnapshot?.hashid || null,
+            settings: request.device.settingsHash || null
         })
     })
 
@@ -65,7 +85,7 @@ module.exports = async function (app) {
                     // to the Device secret
                     const projectSecret = await (await snapshot.getProject()).getCredentialSecret()
                     const deviceSecret = request.device.credentialSecret
-                    result.credentials = recryptCreds(result.credentials, projectSecret, deviceSecret)
+                    result.credentials = app.db.controllers.Project.exportCredentials(result.credentials, projectSecret, deviceSecret)
                 }
                 reply.send(result)
             } else {
@@ -73,26 +93,22 @@ module.exports = async function (app) {
             }
         }
     })
-}
 
-// TODO: These are getting copied around way too much. Need to be centralised.
-function recryptCreds (original, oldKey, newKey) {
-    const newHash = crypto.createHash('sha256').update(newKey).digest()
-    const oldHash = crypto.createHash('sha256').update(oldKey).digest()
-    return encryptCreds(newHash, decryptCreds(oldHash, original))
-}
-
-function decryptCreds (key, cipher) {
-    let flows = cipher.$
-    const initVector = Buffer.from(flows.substring(0, 32), 'hex')
-    flows = flows.substring(32)
-    const decipher = crypto.createDecipheriv('aes-256-ctr', key, initVector)
-    const decrypted = decipher.update(flows, 'base64', 'utf8') + decipher.final('utf8')
-    return JSON.parse(decrypted)
-}
-
-function encryptCreds (key, plain) {
-    const initVector = crypto.randomBytes(16)
-    const cipher = crypto.createCipheriv('aes-256-ctr', key, initVector)
-    return { $: initVector.toString('hex') + cipher.update(JSON.stringify(plain), 'utf8', 'base64') + cipher.final('base64') }
+    app.get('/settings', async (request, reply) => {
+        const response = {
+            hash: request.device.settingsHash,
+            env: {}
+        }
+        const settings = await request.device.getAllSettings()
+        Object.keys(settings).forEach(key => {
+            if (key === 'env') {
+                settings.env.forEach(envVar => {
+                    response.env[envVar.name] = envVar.value
+                })
+            } else {
+                response[key] = settings[key]
+            }
+        })
+        reply.send(response)
+    })
 }

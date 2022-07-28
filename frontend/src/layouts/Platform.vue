@@ -8,12 +8,19 @@
             <div class="ff-view">
                 <slot></slot>
             </div>
+            <TransitionGroup class="ff-notifications" name="notifictions-list" tag="div">
+                <ff-notification-toast v-for="(a, $index) in alertsReversed" :key="a.timestamp"
+                                       :type="a.type" :message="a.message"
+                                       :countdown="3000" @close="clear($index)"></ff-notification-toast>
+            </TransitionGroup>
         </div>
     </div>
 </template>
 
 <script>
 import PageHeader from '@/components/PageHeader.vue'
+
+import alerts from '@/services/alerts.js'
 
 export default {
     name: 'ff-layout-platform',
@@ -22,7 +29,13 @@ export default {
     },
     data () {
         return {
-            mobileMenuOpen: false
+            mobileMenuOpen: false,
+            alerts: []
+        }
+    },
+    computed: {
+        alertsReversed: function () {
+            return [...this.alerts].reverse()
         }
     },
     watch: {
@@ -33,6 +46,7 @@ export default {
     },
     mounted () {
         this.checkRouteMeta()
+        alerts.subscribe(this.alertReceived)
     },
     methods: {
         toggleMenu () {
@@ -46,6 +60,16 @@ export default {
                     break
                 }
             }
+        },
+        alertReceived (msg, type) {
+            this.alerts.push({
+                message: msg,
+                type: type,
+                timestamp: Date.now()
+            })
+        },
+        clear (i) {
+            this.alerts.splice(this.alerts.length - 1 - i, 1)
         }
     }
 }

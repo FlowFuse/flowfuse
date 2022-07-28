@@ -14,7 +14,8 @@ Option | Description
 -------|------------
 `host` | The address to serve the web ui on. This defaults to `localhost` which means the ui will only be available when browsing from the same server that is running the platform. To make it accessible to other devices on the network, set it to `0.0.0.0`
 `port` | The TCP port the platform serves its web ui. Default: `3000`
-`base_url` | The url to access the platform. This defaults to `http://localhost:3000` which means a number of internally generated URLs will only work when browsing on the same device as is running the platform. To be able to access the platform remotely, replace `localhost` with the ip address of the device running FlowForge.
+`base_url` | The url to access the platform. This defaults to `http://localhost:3000` which means a number of internally generated URLs will only work when browsing on the same device as is running the platform. To be able to access the platform remotely, replace `localhost` with the ip address of the device running FlowForge. IMPORTANT: This should not be changed after starting projects as it is used by the projects to find the core platform.
+
 
 
 ## Database configuration
@@ -60,7 +61,7 @@ See [here](./email_providers.md) for example configuration with common email pro
 By default, the platform will send anonymous usage information back to us at FlowForge Inc.
 This can be disabled via the Admin Settings in the UI, or turned off in the configuration file.
 
-Additionally, you can configure your own instance of FlowForge to report back to you on how users are using FlowForge. FlowForge is designed to work with [Plausible](https://plausible.io/). You can setup your own account, and pass the releavnt domain to the `yml` in the telemetry configuration
+Additionally, you can configure your own instance of FlowForge to report back to you on how users are using FlowForge. FlowForge is designed to work with [Plausible](https://plausible.io/). You can setup your own account, and pass the relevant domain to the `yml` in the telemetry configuration
 
 For more information about this feature, see [here](/docs/admin/telemetry.md)
 
@@ -69,3 +70,14 @@ Option        | Description
 `telemetry.enabled` | Enables the anonymous usage telemetry of the platform. Default: `true`
 `telemetry.frontend.plausible.domain` | The `data-domain` of your site (see [Plausible docs](https://plausible.io/docs/plausible-script)). Default: `null`
 `telemetry.frontend.plausible.extension` | By default, Plausible only detects events running in a production environment, it is possible to enhance measurements with [script extensions](https://plausible.io/docs/script-extensions). You can, for example, detect localhost events using `local`. Default: `null`
+
+## Logging configuration
+
+By default the forge app is set to `info` level logging, with the HTTP routes logged at `warn`
+
+Option        | Description
+--------------|------------
+`logging.level` | Change the default logging level. Default: `info`
+`logging.http`  | Change the default HTTP route logging level. Default: `warn`
+
+Setting `logging.http` to `info` will log every HTTP request and response details.

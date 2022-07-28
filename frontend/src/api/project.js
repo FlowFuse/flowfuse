@@ -59,6 +59,12 @@ const updateProject = async (projectId, options) => {
         return res.data
     })
 }
+const rollbackProject = async (projectId, snapshotId) => {
+    const data = {
+        snapshot: snapshotId
+    }
+    return client.post(`/api/v1/projects/${projectId}/actions/rollback`, data).then(res => res.data)
+}
 const changeStack = async (projectId, stackId) => {
     return client.put(`/api/v1/projects/${projectId}`, { stack: stackId }).then(res => {
         return res.data
@@ -83,6 +89,9 @@ const changeStack = async (projectId, stackId) => {
 const getProjectDevices = async (projectId, cursor, limit) => {
     const url = paginateUrl(`/api/v1/projects/${projectId}/devices`, cursor, limit)
     const res = await client.get(url)
+    res.data.devices.forEach(device => {
+        device.lastSeenSince = device.lastSeenAt ? daysSince(device.lastSeenAt) : ''
+    })
     return res.data
 }
 
@@ -105,6 +114,7 @@ export default {
     restartProject,
     suspendProject,
     updateProject,
+    rollbackProject,
     changeStack,
     getProjectDevices,
     getProjectDeviceSettings,

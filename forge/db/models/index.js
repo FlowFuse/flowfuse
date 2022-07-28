@@ -51,18 +51,21 @@ const modelTypes = [
     'Session',
     'Project',
     'ProjectSettings',
+    'ProjectType',
     'ProjectStack',
     'ProjectTemplate',
     'ProjectSnapshot',
     'AccessToken',
     'AuthClient',
     'Device',
+    'DeviceSettings',
     'StorageFlow',
     'StorageCredentials',
     'StorageSettings',
     'StorageSession',
     'StorageLibrary',
-    'AuditLog'
+    'AuditLog',
+    'BrokerClient'
 ]
 
 // A local map of the known models.

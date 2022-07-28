@@ -5,7 +5,7 @@ module.exports = {
             customer: customer,
             subscription: subscription
         })
-        newSubscription.setTeam(team)
+        await newSubscription.setTeam(team)
 
         return newSubscription
     },

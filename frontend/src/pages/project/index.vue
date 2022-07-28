@@ -1,33 +1,37 @@
 <template>
     <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigation>
-            <template v-slot:options>
-                <li class="ff-navigation-divider">{{ project.name }}</li>
+        <SideNavigationTeamOptions>
+            <template v-slot:nested-menu>
+                <div class="ff-nested-title">Project</div>
+                <!-- <div class="ff-nested-title">{{ project.name }}</div> -->
                 <router-link v-for="route in navigation" :key="route.label" :to="route.path">
-                    <nav-item :icon="route.icon" :label="route.name"></nav-item>
+                    <nav-item :icon="route.icon" :label="route.label"></nav-item>
                 </router-link>
             </template>
-            <template v-slot:back>
-                <ff-team-selection></ff-team-selection>
-            </template>
-        </SideNavigation>
+        </SideNavigationTeamOptions>
     </Teleport>
     <main>
-        <div class="flex flex-col sm:flex-row mb-2">
-            <div class="flex-grow space-x-6 items-center inline-flex">
-                <router-link :to="navigation[0]?navigation[0].path:''" class="inline-flex items-center">
-                    <div class="text-gray-800 text-xl font-bold">{{ project.name }}</div>
-                </router-link>
-                <ProjectStatusBadge :status="project.meta.state" :pendingStateChange="project.pendingStateChange" v-if="project.meta" />
-            </div>
-            <div class="text-right space-x-4">
-                <a v-if="editorAvailable" :href="project.url" target="_blank" class="forge-button-secondary">
-                    Editor <ExternalLinkIcon class="w-5 ml-1 py-1" />
-                </a>
-                <DropdownMenu buttonClass="forge-button" alt="Open actions menu" :options="options">Actions</DropdownMenu>
-            </div>
-        </div>
-        <hr />
+        <SectionTopMenu>
+            <template #hero>
+                <div class="flex-grow space-x-6 items-center inline-flex">
+                    <router-link :to="navigation[0]?navigation[0].path:''" class="inline-flex items-center">
+                        <div class="text-gray-800 text-xl font-bold">{{project.name}}</div>
+                    </router-link>
+                    <ProjectStatusBadge :status="project.meta.state" :pendingStateChange="project.pendingStateChange" v-if="project.meta" />
+                </div>
+            </template>
+            <template v-slot:tools>
+                <div class="space-x-2 flex">
+                    <a v-if="editorAvailable" :href="project.url" target="_blank" class="ff-btn ff-btn--secondary">
+                        Open Editor
+                        <span class="ff-btn--icon ff-btn--icon-right">
+                            <ExternalLinkIcon />
+                        </span>
+                    </a>
+                    <DropdownMenu buttonClass="ff-btn ff-btn--primary" alt="Open actions menu" :options="options">Actions</DropdownMenu>
+                </div>
+            </template>
+        </SectionTopMenu>
         <div class="text-sm sm:px-6 mt-4 sm:mt-8">
             <router-view :project="project" @projectUpdated="updateProject"></router-view>
         </div>
@@ -38,16 +42,19 @@
 import projectApi from '@/api/project'
 
 import NavItem from '@/components/NavItem'
-import SideNavigation from '@/components/SideNavigation'
-import SideTeamSelection from '@/components/SideTeamSelection'
+// import SideNavigation from '@/components/SideNavigation'
+// import SideTeamSelection from '@/components/SideTeamSelection'
+import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vue'
 import DropdownMenu from '@/components/DropdownMenu'
 import ProjectStatusBadge from './components/ProjectStatusBadge'
+import SectionTopMenu from '@/components/SectionTopMenu'
 
 import { mapState } from 'vuex'
 import { Roles } from '@core/lib/roles'
 
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
-import { ChevronLeftIcon, TemplateIcon, CogIcon, ClockIcon, ChipIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
+import ProjectsIcon from '@/components/icons/Projects'
+import { ChevronLeftIcon, CogIcon, ClockIcon, ChipIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
 
 const projectTransitionStates = [
     'starting',
@@ -109,16 +116,16 @@ export default {
     },
     methods: {
         async updateProject () {
-            const parts = this.$route.path.split('/')
+            const projectId = this.$route.params.id
             try {
-                const data = await projectApi.getProject(parts[2])
+                const data = await projectApi.getProject(projectId)
                 if (this.features.devices) {
                     data.deviceSettings = {}
                 }
                 this.project = data
                 this.$store.dispatch('account/setTeam', this.project.team.slug)
                 if (this.features.devices) {
-                    this.project.deviceSettings = await projectApi.getProjectDeviceSettings(parts[2])
+                    this.project.deviceSettings = await projectApi.getProjectDeviceSettings(projectId)
                 }
             } catch (err) {
                 this.$router.push({
@@ -147,16 +154,16 @@ export default {
         },
         checkAccess () {
             this.navigation = [
-                { name: 'Overview', path: `/project/${this.project.id}/overview`, icon: TemplateIcon },
-                { name: 'Activity', path: `/project/${this.project.id}/activity`, icon: ViewListIcon },
-                { name: 'Snapshots', path: `/project/${this.project.id}/snapshots`, icon: ClockIcon },
-                { name: 'Logs', path: `/project/${this.project.id}/logs`, icon: TerminalIcon }
+                { label: 'Overview', path: `/project/${this.project.id}/overview`, icon: ProjectsIcon },
+                { label: 'Activity', path: `/project/${this.project.id}/activity`, icon: ViewListIcon },
+                { label: 'Snapshots', path: `/project/${this.project.id}/snapshots`, icon: ClockIcon },
+                { label: 'Logs', path: `/project/${this.project.id}/logs`, icon: TerminalIcon }
             ]
             if (this.features.devices) {
-                this.navigation.splice(3, 0, { name: 'Devices', path: `/project/${this.project.id}/devices`, icon: ChipIcon })
+                this.navigation.splice(3, 0, { label: 'Devices', path: `/project/${this.project.id}/devices`, icon: ChipIcon })
             }
             if (this.teamMembership && this.teamMembership.role === Roles.Owner) {
-                this.navigation.push({ name: 'Settings', path: `/project/${this.project.id}/settings`, icon: CogIcon })
+                this.navigation.push({ label: 'Settings', path: `/project/${this.project.id}/settings`, icon: CogIcon })
                 // this.navigation.push({ name: "Debug", path: `/project/${this.project.id}/debug` })
             }
             if (this.project.meta && (this.project.pendingRestart || projectTransitionStates.includes(this.project.meta.state))) {
@@ -167,11 +174,11 @@ export default {
     },
     components: {
         NavItem,
-        SideNavigation,
         ExternalLinkIcon,
         DropdownMenu,
         ProjectStatusBadge,
-        'ff-team-selection': SideTeamSelection
+        SideNavigationTeamOptions,
+        SectionTopMenu
     }
 }
 </script>

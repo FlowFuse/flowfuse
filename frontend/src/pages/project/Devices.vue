@@ -20,7 +20,7 @@ export default {
     methods: {
         checkAccess: async function () {
             if (!this.features.devices) {
-                useRouter().push({ path: `/project/${useRoute().params.id}/overview` })
+                useRouter().push({ path: `team/${this.team.slug}/project/${useRoute().params.id}/overview` })
             }
         }
     },
