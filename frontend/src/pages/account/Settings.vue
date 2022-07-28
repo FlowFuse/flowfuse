@@ -1,6 +1,6 @@
 <template>
     <ff-loading v-if="loading" message="" />
-    <form v-else class="space-y-6">
+    <form v-else class="space-y-6" @submit.enter.prevent="">
         <FormRow v-model="input.username" :type="editing?'text':'uneditable'" :error="errors.username">Username</FormRow>
         <FormRow v-model="input.name" :type="editing?'text':'uneditable'" :placeholder="input.username" :error="errors.name">Name</FormRow>
         <FormRow v-model="input.email" :type="editing?'text':'uneditable'" :error="errors.email">Email</FormRow>
