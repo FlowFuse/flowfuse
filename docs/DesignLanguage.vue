@@ -227,13 +227,13 @@
                 <props-table :rows="groups['dialog'].components[0].props"></props-table>
                 <h3>Emits:</h3>
                 <events-table :rows="groups['dialog'].components[0].emits"></events-table>
+                <h3>Slots:</h3>
+                <slots-table :rows="groups['dialog'].components[0].slots"></slots-table>
                 <h3>Examples:</h3>
                 <div class="examples">
                     <div class="example">
-                        <ff-button @click="models.showDialog = !models.showDialog">Show Dialog</ff-button>
-                        <ff-dialog :open="models.showDialog" header="My Dialog Box"
-                            @cancel="models.showDialog = false"
-                            @confirm="models.showDialog = false">
+                        <ff-button @click="$refs['dialog0'].show()">Show Dialog</ff-button>
+                        <ff-dialog ref="dialog0" header="My Dialog Box">
                             <p style="margin-bottom: 12px">The main message for the dialog box goes here. We can put any elements we like here.
                             For example, a text input:</p>
                             <ff-text-input placeholder="My Text Input"/>
@@ -241,19 +241,25 @@
                         <code>{{ groups['dialog'].components[0].examples[0].code }}</code>
                     </div>
                     <div class="example">
-                        <ff-button @click="models.showDialog1 = !models.showDialog1">Show Delete Dialog</ff-button>
-                        <ff-dialog :open="models.showDialog1" header="My Other Dialog Box"
-                            @cancel="models.showDialog1 = false"
-                            @confirm="models.showDialog1 = false">
-                            <template v-slot:default>
-                                Are you sure you want to delete this?
-                            </template>
-                            <template v-slot:actions>
-                                <ff-button kind="secondary" @click="models.showDialog1 = false">Cancel</ff-button>
-                                <ff-button kind="danger" @click="models.showDialog1 = false">Delete</ff-button>
-                            </template>
+                        <ff-button @click="$refs['dialog1'].show()">Show Delete Dialog</ff-button>
+                        <ff-dialog ref="dialog1" header="My Other Dialog Box" confirm-label="Delete" kind="danger">
+                            Are you sure you want to delete this?
                         </ff-dialog>
                         <code>{{ groups['dialog'].components[0].examples[1].code }}</code>
+                    </div>
+                    <div class="example">
+                        <ff-button @click="$refs['dialog2'].show()">Show Custom Dialog</ff-button>
+                        <ff-dialog ref="dialog2" header="My Custom Dialog Box">
+                            <template v-slot:default>
+                                Note we can override the actions too, but need to include close logic
+                            </template>
+                            <template v-slot:actions>
+                                <ff-button kind="secondary" @click="$refs['dialog2'].close()">Secondary 1</ff-button>
+                                <ff-button kind="secondary" @click="$refs['dialog2'].close()">Secondary 2</ff-button>
+                                <ff-button @click="$refs['dialog2'].close()">Confirm</ff-button>
+                            </template>
+                        </ff-dialog>
+                        <code>{{ groups['dialog'].components[0].examples[2].code }}</code>
                     </div>
                 </div>
             </div>
@@ -541,8 +547,6 @@ export default {
         return {
             theme: 'light',
             models: {
-                showDialog: false,
-                showDialog1: false,
                 textInput0: '',
                 dropdown0: null,
                 dropdown1: null,
