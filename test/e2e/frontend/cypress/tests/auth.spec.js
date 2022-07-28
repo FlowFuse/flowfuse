@@ -1,7 +1,13 @@
+import makeServer from '../../test_server'
+
 describe('FlowForge', () => {
+    let server, port, close
     before(() => {
-        // reset and seed the database prior to every test
-        cy.exec('node ./test/e2e/frontend/test_environment.js')
+        console.log('before all')
+        const info = makeServer()
+        server = info.server
+        port = info.port
+        close = info.close
     })
 
     it('successfully loads', () => {
@@ -10,8 +16,8 @@ describe('FlowForge', () => {
     it('prevents a user logging in with incorrect credentials', () => {
         cy.visit('/')
         // fill out credentials
-        cy.get('input[label=username]').type('wrongusername')
-        cy.get('input[label=password]').type('wrongpassword')
+        cy.get('div[label=username] input').type('wrongusername')
+        cy.get('div[label=password] input').type('wrongpassword')
         // Ensure no error message displayed
         cy.get('.ff-error-inline').should('not.be.visible')
         // click "login"
@@ -24,11 +30,11 @@ describe('FlowForge', () => {
     it('requires a password', () => {
         cy.visit('/')
         // fill out credentials
-        cy.get('input[label=username]').type('wrongusername')
+        cy.get('div[label=username] input').type('wrongusername')
         // click "login"
         cy.get('.ff-actions button').click()
         // display "Required Field"
-        cy.get('input[label=password]').should('have.class', 'ff-input--error')
+        cy.get('div[label=password]').should('have.class', 'ff-input--error')
         cy.get('.ff-error-inline').should('be.visible')
         // check where we are
         cy.url().should('not.include', '/overview')
@@ -36,11 +42,21 @@ describe('FlowForge', () => {
     it('allows a user to login', () => {
         cy.visit('/')
         // fill out credentials
-        cy.get('input[label=username]').type('joepavitt')
-        cy.get('input[label=password]').type('n0ntrivial')
+        cy.get('div[label=username] input').type('alice')
+        cy.get('div[label=password] input').type('aaPassword')
         // click "login"
         cy.get('.ff-actions button').click()
         // check where we are
         cy.url().should('include', '/overview')
+    })
+
+    after(async () => {
+        console.log('after all')
+        if (!server) {
+            console.log('no server to close')
+            return
+        }
+        await close()
+        console.log('closed the server running on port %d', port)
     })
 })
