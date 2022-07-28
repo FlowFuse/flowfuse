@@ -1,7 +1,7 @@
 <template>
     <ff-dialog :open="isOpen" header="Create Snapshot">
         <template v-slot:default>
-            <form class="space-y-6 mt-2" @submit="confirm()">
+            <form class="space-y-6 mt-2" @submit.prevent>
                 <FormRow v-model="input.name" :error="errors.name">Name</FormRow>
                 <FormRow>Description
                     <template #input><textarea v-model="input.description" rows="8" class="ff-input ff-text-input" style="height: auto"></textarea></template>

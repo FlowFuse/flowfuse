@@ -1,7 +1,7 @@
 <template>
     <ff-dialog :open="isOpen" :header="dialogTitle" @close="close">
         <template v-slot:default>
-            <form class="space-y-6 mt-2" @submit="confirm()">
+            <form class="space-y-6 mt-2" @submit.prevent>
                 <FormRow v-model="input.name" :error="errors.name">Name</FormRow>
                 <FormRow v-model="input.active" type="checkbox">Active</FormRow>
                 <FormRow v-model="input.description" :error="errors.description">Description

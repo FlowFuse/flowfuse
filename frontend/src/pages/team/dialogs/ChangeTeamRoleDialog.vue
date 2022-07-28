@@ -1,7 +1,7 @@
 <template>
     <ff-dialog :open="isOpen" header="Change Role" @close="close">
         <template v-slot:default v-if="user">
-            <form class="space-y-6" @submit="confirm()">
+            <form class="space-y-6" @submit.prevent>
                 <div class="mt-2 space-y-2">
                     <template v-if="ownerCount < 2 && isOwner">
                         <p class="text-sm text-gray-500">You cannot change the role for <span class="font-bold">{{ user.username }}</span> as

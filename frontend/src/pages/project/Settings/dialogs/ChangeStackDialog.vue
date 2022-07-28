@@ -1,7 +1,7 @@
 <template>
     <ff-dialog header="Change Project Stack" :open="isOpen">
         <template v-slot:default>
-            <form class="space-y-6" @submit="confirm()">
+            <form class="space-y-6" @submit.prevent>
                 <p >
                     Select the new stack you want to use for this project:
                 </p>

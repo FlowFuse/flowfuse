@@ -1,7 +1,7 @@
 <template>
     <ff-dialog :open="isOpen" header="Edit User" @close="close">
         <template v-slot:default>
-            <form class="space-y-6" @submit="confirm()">
+            <form class="space-y-6" @submit.prevent>
                 <FormRow v-model="input.username" :error="errors.username">Username</FormRow>
                 <FormRow v-model="input.name" :placeholder="input.username">Name</FormRow>
                 <FormRow v-model="input.email" :error="errors.email">Email</FormRow>

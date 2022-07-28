@@ -1,7 +1,7 @@
 <template>
     <ff-dialog :open="isOpen" header="Invite Team Member" @close="close">
         <template v-slot:default>
-            <form class="space-y-6" @submit="confirm()">
+            <form class="space-y-6" @submit.prevent>
                 <div class="space-y-2">
                     <template v-if="!responseErrors">
                         <p>Invite a user to join the team.</p>

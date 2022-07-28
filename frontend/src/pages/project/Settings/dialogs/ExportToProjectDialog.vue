@@ -1,7 +1,7 @@
 <template>
     <ff-dialog header="Export to Existing Project" :open="isOpen">
         <template v-slot:default>
-            <form class="space-y-6" @submit="confirm()">
+            <form class="space-y-6" @submit.prevent>
                 <FormRow>
                     Select the components to copy over to the new project
                     <template #input>
