@@ -539,6 +539,8 @@ import notificationsDocs from './data/notifications.docs.json'
 import tabsDocs from './data/tabs.docs.json'
 import utilitiesDocs from './data/utilities.docs.json'
 
+import FFNotificationPill from '@/components/NotificationPill.vue'
+
 // icons
 import { PlusSmIcon, SearchIcon } from '@heroicons/vue/outline'
 import { markRaw } from '@vue/reactivity'
