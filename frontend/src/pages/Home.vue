@@ -1,15 +1,17 @@
 <template>
-    <template v-if="pending">
-        <div class="flex-grow flex flex-col items-center justify-center mx-auto text-gray-600 opacity-50">
-            <FlowForgeLogo class="max-w-xs mx-auto w-full"/>
-        </div>
-    </template>
-    <template v-if="!user.email_verified">
-        <NoVerifiedEmail/>
-    </template>
-    <template v-else-if="teams.length === 0">
-        <NoTeamsUser/>
-    </template>
+    <main>
+        <template v-if="pending">
+            <div class="flex-grow flex flex-col items-center justify-center mx-auto text-gray-600 opacity-50">
+                <FlowForgeLogo class="max-w-xs mx-auto w-full"/>
+            </div>
+        </template>
+        <template v-if="!user.email_verified">
+            <NoVerifiedEmail/>
+        </template>
+        <template v-else-if="teams.length === 0">
+            <NoTeamsUser/>
+        </template>
+    </main>
 </template>
 
 <script>
