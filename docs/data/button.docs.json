@@ -52,9 +52,11 @@
     }, {
         "name": "ff-kebab-menu",
         "examples": [{
-            "code": "<ff-kebab-menu menu-align=\"left\">\n\t<ff-list-item :label=\"Option 1\" @click=\"doSomething()\"/>\n\t<ff-list-item :label=\"Option 2\" @click=\"doSomething()\"/>\n</ff-kebab-menu>"
+            "code": "<ff-kebab-menu menu-align=\"left\">\n\t<ff-list-item label=\"Option 1\" @click=\"doSomething()\"/>\n\t<ff-list-item label=\"Option 2\" @click=\"doSomething()\"/>\n</ff-kebab-menu>"
         }, {
-            "code": "<ff-kebab-menu style=\"margin-left: 150px;\" menu-align=\"right\">\n\t<ff-list-item :label=\"Option 1\" @click=\"doSomething()\"/>\n\t<ff-list-item :label=\"Option 2\" @click=\"doSomething()\"/>\n</ff-kebab-menu>"
+            "code": "<ff-kebab-menu style=\"margin-left: 150px;\" menu-align=\"right\">\n\t<ff-list-item label=\"Option 1\" @click=\"doSomething()\"/>\n\t<ff-list-item label=\"Option 2\" @click=\"doSomething()\"/>\n</ff-kebab-menu>"
+        }, {
+            "code": "<ff-kebab-menu menu-align=\"left\">\n\t<ff-list-item label=\"Option 1\" @click=\"doSomething()\"/>\n\t<ff-list-item label=\"Option 2\" kind=\"danger\" @click=\"doSomething()\"/>\n</ff-kebab-menu>"
         }],
         "props": [{
             "key": "menu-align",

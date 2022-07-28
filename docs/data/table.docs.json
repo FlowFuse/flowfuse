@@ -9,7 +9,7 @@
         }, {
             "code": "<ff-data-table :columns=\"cols\" :rows=\"rows\" :rows-selectable=\"true\" @row-selected=\"doSomething\"></ff-data-table>"
         }, {
-            "code": "<ff-data-table :columns=\"cols\" :rows=\"rows\">\n\t<template v-slot:context-menu>\n\t\t<ff-list-item label=\"Option 1\" @click=\"doSomething\"/>\n\t\t<ff-list-item label=\"Option 2\" @click=\"doSomething\"/>\n\t\t<ff-list-item label=\"Option 3\" @click=\"doSomething\"/>\n\t</template>\n</ff-data-table>"
+            "code": "<ff-data-table :columns=\"cols\" :rows=\"rows\">\n\t<template v-slot:context-menu=\"{row}\">\n\t\t<ff-list-item label=\"Option 1\" @click=\"doSomething(row)\"/>\n\t\t<ff-list-item label=\"Option 2\" @click=\"doSomething(row)\"/>\n\t\t<ff-list-item label=\"Option 3\" @click=\"doSomething(row)\"/>\n\t</template>\n</ff-data-table>"
         }, {
             "code": "<ff-data-table :columns=\"cols\" :rows=\"rows\" :show-search=\"true\"\n\tsearch-placeholder=\"Search here...\" v-model:search=\"search\">\n\t<template v-slot:actions>\n\t\t<ff-button>Press Me!</ff-button>\n\t\t<ff-button>Click Me!</ff-button>\n\t</template>\n</ff-data-table>"
         }, {
@@ -20,6 +20,8 @@
             "code": "<ff-data-table :columns=\"cols\" :rows=\"[]\"></ff-data-table>"
         }, {
             "code": "<ff-data-table :columns=\"cols\" :rows=\"[]\" :loading=\"true\" loading-message=\"Loading Projects...\"></ff-data-table>"
+        }, {
+            "code": "<ff-data-table :columns=\"cols\" :rows=\"rows\" :show-search=\"true\" v-model:search=\"search\" \n\t:search-fields=\"['sName', 'number']\" search-placeholder=\"search-fields limits\n\twhich properties the search applies to.\">\n</ff-data-table>"
         }],
         "props": [{
             "key": "columns",
@@ -41,6 +43,10 @@
             "key": "search-placeholder",
             "default": "null",
             "description": "If `show-search` is true, then this proeprty will set the placeholder of the search bar."
+        },{
+            "key": "search-fields",
+            "default": "null",
+            "description": "If null, the search will look through the entire data object provided, otherwise, it will only consider the fields provided in the array. Recommendation is to provide this value."
         }, {
             "key": "show-load-more",
             "default": "false",
@@ -53,6 +59,10 @@
             "key": "loading-message",
             "default": "'Loading Data...'",
             "description": "If loading=true, then this message will be shown."
+        }, {
+            "key": "no-data-message",
+            "default": "'No Data Found'",
+            "description": "Whenan empty array is passed into rows, this message will show."
         }],
         "slots": [{
             "name": "table",

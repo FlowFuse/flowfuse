@@ -5,16 +5,21 @@
                 :placeholder="searchPlaceholder" v-model="filterTerm">
                 <template v-slot:icon><SearchIcon /></template>
             </ff-text-input>
-            <div class="ff-data-table--actions">
+            <div class="ff-data-table--actions" v-if="$slots.actions">
                 <slot name="actions"></slot>
             </div>
         </div>
         <table class="ff-data-table--data">
             <slot name="table">
                 <thead>
+                    <!-- HEADERS -->
                     <slot name="header">
                         <ff-data-table-row>
-                            <ff-data-table-cell v-for="(col, $index) in columns" :key="$index" :class="{'sorted': sort.key === col.key ,'sortable': col.sortable}" @click="sortBy(col)">
+                            <ff-data-table-cell v-for="(col, $index) in columns" :key="$index"
+                                :class="[sort.key === col.key ? 'sorted' : '', col.sortable ? 'sortable' : ''].concat(col.class)"
+                                :style="col.style"
+                                @click="sortBy(col, $index)">
+                                <!-- Internal div required to have flex w/sorting icons -->
                                 <div>
                                     {{ col.label }}
                                     <SwitchVerticalIcon class="ff-icon" v-if="col.sortable && col.key !== sort.key"/>
@@ -27,20 +32,24 @@
                     </slot>
                 </thead>
                 <tbody>
+                    <!-- ROWS -->
                     <slot name="rows">
                         <ff-data-table-row v-if="loading">
-                            <ff-data-table-cell class="status-message" :colspan="columns.length">{{ loadingMessage }}</ff-data-table-cell>
+                            <ff-data-table-cell class="status-message" :colspan="messageColSpan">{{ loadingMessage }}</ff-data-table-cell>
                         </ff-data-table-row>
                         <template v-if="!loading">
-                            <ff-data-table-row v-for="(r, $index) in sortedRows" :key="$index" :data="r" :columns="columns"
-                                :selectable="rowsSelectable" @click="rowClick(r)">
-                                <template v-if="hasContextMenu" v-slot:context-menu>
-                                    <slot name="context-menu"></slot>
+                            <ff-data-table-row v-for="(r, $index) in filteredRows" :key="$index" :data="r" :columns="columns"
+                                :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn" @click="rowClick(r)">
+                                <template v-if="hasContextMenu" v-slot:context-menu="{row}">
+                                    <slot name="context-menu" :row="row"></slot>
                                 </template>
                             </ff-data-table-row>
                         </template>
-                        <ff-data-table-row v-if="!loading && sortedRows.length === 0">
-                            <ff-data-table-cell class="status-message" :colspan="columns.length">No Data Found</ff-data-table-cell>
+                        <ff-data-table-row v-if="!loading && rows?.length > 0 && filteredRows?.length === 0">
+                            <ff-data-table-cell class="status-message" :colspan="messageColSpan">No Data Found. Try Another Search.</ff-data-table-cell>
+                        </ff-data-table-row>
+                        <ff-data-table-row v-else-if="!loading && filteredRows?.length === 0">
+                            <ff-data-table-cell class="status-message" :colspan="messageColSpan">{{ noDataMessage }}</ff-data-table-cell>
                         </ff-data-table-row>
                     </slot>
                 </tbody>
@@ -59,7 +68,7 @@ import { SearchIcon, SwitchVerticalIcon, SortAscendingIcon, SortDescendingIcon }
 
 export default {
     name: 'ff-data-table',
-    emits: ['update:search', 'load-more'],
+    emits: ['update:search', 'load-more', 'row-selected'],
     props: {
         columns: {
             type: Array,
@@ -85,6 +94,10 @@ export default {
             type: String,
             default: null
         },
+        searchFields: {
+            type: Array,
+            default: null
+        },
         showLoadMore: {
             type: Boolean,
             default: false
@@ -96,6 +109,10 @@ export default {
         loadingMessage: {
             type: String,
             default: 'Loading Data...'
+        },
+        noDataMessage: {
+            type: String,
+            default: 'No Data Found'
         }
     },
     computed: {
@@ -107,15 +124,20 @@ export default {
                 return this.search
             },
             set (value) {
+                this.internalSearch = value
                 this.$emit('update:search', value)
             }
         },
         hasContextMenu: function () {
             return this.$slots['context-menu']
         },
-        sortedRows: function () {
+        messageColSpan: function () {
+            return this.hasContextMenu ? this.columns.length + 1 : this.columns.length
+        },
+        filteredRows: function () {
+            const rows = this.filterRows([...this.rows])
             if (this.sort.key) {
-                return [...this.rows].sort((a, b) => {
+                return rows.sort((a, b) => {
                     if (this.sort.order === 'asc') {
                         if (a[this.sort.key] < b[this.sort.key]) {
                             return 1
@@ -135,13 +157,15 @@ export default {
                     }
                 })
             } else {
-                return this.rows
+                return rows
             }
         }
     },
     data () {
         return {
+            internalSearch: '',
             sort: {
+                highlightColumn: null,
                 key: '',
                 order: 'desc'
             },
@@ -153,18 +177,48 @@ export default {
         }
     },
     methods: {
-        rowClick () {
-            if (this.rowsSelectable) {
-                this.$emit('row-selected')
+        filterRows (rows) {
+            const search = this.internalSearch
+            if (search) {
+                const filtered = rows.filter((cell, index) => {
+                    const props = Object.entries(cell)
+                    for (let i = 0; i < props.length; i++) {
+                        let [prop, value] = props[i]
+                        if (!this.searchFields || (this.searchFields?.indexOf(prop) > -1)) {
+                            if (typeof value === 'number') {
+                                value = value.toString()
+                            }
+                            if (typeof value === 'string') {
+                                if (value.toLowerCase().indexOf(search.toLowerCase()) > -1) {
+                                    return true
+                                }
+                            }
+                        }
+                    }
+                    return false
+                })
+                return filtered
+            } else {
+                return rows
             }
         },
-        sortBy (col) {
+        rowClick (row) {
+            if (this.rowsSelectable) {
+                this.$emit('row-selected', row)
+            }
+        },
+        sortBy (col, colIndex) {
             if (col.sortable) {
                 if (this.sort.key === col.key) {
                     this.cycleOrder()
                 } else {
                     this.sort.key = col.key
                     this.resetOrder()
+                }
+                if (this.sort.key) {
+                    this.sort.highlightColumn = colIndex
+                } else {
+                    this.sort.highlightColumn = null
                 }
             }
         },

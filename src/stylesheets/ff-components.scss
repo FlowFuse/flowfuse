@@ -5,16 +5,19 @@
 .ff-icon {
   width: 20px;
   height: 20px;
+  display: inline-block;
 }
 
 .ff-icon-sm {
   width: 16px;
   height: 16px;
+  display: inline-block;
 }
 
 .ff-icon-lg {
   width: 24px;
   height: 24px;
+  display: inline-block;
 }
 
 /*
@@ -164,8 +167,13 @@
   top: 24px;
   border: 1px solid $ff-grey-300;
   z-index: 10;
+  box-shadow: 0px 6px 9px 0px #00000038;
   li {
-    min-width: 150px;    
+    min-width: 150px;
+    white-space: nowrap;
+    &.ff-list-item--danger {
+      color: $ff-red-500;
+    }
   }
   &--left {
     left: 0;
@@ -211,6 +219,7 @@ li.ff-list-item {
       border-radius: $ff-unit-xs;
       background: none;
       height: 100%;
+      border-width: 0;
       &:focus-visible {
         border: none;
         outline: none;
@@ -419,6 +428,7 @@ li.ff-list-item {
         align-items: center;
         gap: $ff-unit-md;
         padding-right: $ff-unit-xl;
+        margin-top: 0;
         svg {
           width: 24px;
           height: 24px;
@@ -477,6 +487,8 @@ li.ff-list-item {
 */
 .ff-data-table {
   width: 100%;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
   &--options {
     margin-bottom: 6px;
     display: flex;
@@ -524,13 +536,16 @@ li.ff-list-item {
         padding: 9px 12px;
         background-color: $ff-grey-100;
         font-weight: 600;
-        >div {
-          display: flex;
-          justify-content: space-between;
-        }
+        transition: 0.3s background-color, 0.3s color;
+        -webkit-transition: 0.3s background-color, 0.3s color;
         &.sortable {
+          >div {
+            display: flex;
+            justify-content: space-between;
+            gap: $ff-unit-md;
+          }
           .ff-icon {
-            opacity: 0;
+            opacity: 0.2;
           }
           &:hover {
             background-color: $ff-grey-200;
@@ -564,6 +579,9 @@ li.ff-list-item {
       .ff-data-table--cell {
         padding: 12px 12px;
         background-color: white;
+        &.highlight {
+          background-color: $ff-grey-50;
+        }
         &.status-message {
           text-align: center;
           color: $ff-grey-400;
