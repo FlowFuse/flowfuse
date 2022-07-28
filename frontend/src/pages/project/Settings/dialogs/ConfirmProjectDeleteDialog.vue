@@ -61,7 +61,6 @@ export default {
         return {
             isOpen,
             close () {
-                console.log('close')
                 isOpen.value = false
             },
             show (project) {
