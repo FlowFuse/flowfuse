@@ -1,7 +1,7 @@
 <template>
     <ff-dialog :open="isOpen" header="Delete Stack" @close="close">
         <template v-slot:default>
-            <form class="space-y-6">
+            <form class="space-y-6" @submit.prevent>
                 <div class="mt-2 space-y-2">
                     <p>
                         <span v-if="!deleteDisabled">
@@ -35,8 +35,10 @@ export default {
     },
     methods: {
         confirm () {
-            this.$emit('deleteStack', this.stack)
-            this.isOpen = false
+            if (!this.deleteDisabled) {
+                this.$emit('deleteStack', this.stack)
+                this.isOpen = false
+            }
         }
     },
     setup () {

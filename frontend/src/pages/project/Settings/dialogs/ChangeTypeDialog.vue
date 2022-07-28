@@ -1,7 +1,7 @@
 <template>
     <ff-dialog header="Change Project Type" :open="isOpen">
         <template v-slot:default>
-            <form class="space-y-6">
+            <form class="space-y-6" @submit.prevent>
                 <p>
                     Select the type for your project:
                 </p>
@@ -47,8 +47,10 @@ export default {
     },
     methods: {
         confirm () {
-            this.$emit('changeType', this.input.projectType)
-            this.isOpen = false
+            if (this.formValid) {
+                this.$emit('changeType', this.input.projectType)
+                this.isOpen = false
+            }
         }
     },
     computed: {

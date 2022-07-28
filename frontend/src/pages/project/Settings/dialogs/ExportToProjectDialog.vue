@@ -1,7 +1,7 @@
 <template>
     <ff-dialog header="Export to Existing Project" :open="isOpen">
         <template v-slot:default>
-            <form class="space-y-6">
+            <form class="space-y-6" @submit.prevent>
                 <FormRow>
                     Select the components to copy over to the new project
                     <template #input>
@@ -67,15 +67,17 @@ export default {
     },
     methods: {
         confirm () {
-            const settings = {
-                target: this.input.target,
-                sourceProject: {
-                    id: this.project.id,
-                    options: { ...this.parts }
+            if (this.exportEnabled) {
+                const settings = {
+                    target: this.input.target,
+                    sourceProject: {
+                        id: this.project.id,
+                        options: { ...this.parts }
+                    }
                 }
+                this.$emit('exportToProject', settings)
+                this.isOpen = false
             }
-            this.$emit('exportToProject', settings)
-            this.isOpen = false
         }
     },
     setup () {

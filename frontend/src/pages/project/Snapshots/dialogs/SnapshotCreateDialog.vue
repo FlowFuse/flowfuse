@@ -1,7 +1,7 @@
 <template>
     <ff-dialog :open="isOpen" header="Create Snapshot">
         <template v-slot:default>
-            <form class="space-y-6 mt-2">
+            <form class="space-y-6 mt-2" @submit.prevent>
                 <FormRow v-model="input.name" :error="errors.name">Name</FormRow>
                 <FormRow>Description
                     <template #input><textarea v-model="input.description" rows="8" class="ff-input ff-text-input" style="height: auto"></textarea></template>
@@ -53,23 +53,25 @@ export default {
     },
     methods: {
         confirm () {
-            this.submitted = true
-            const opts = {
-                name: this.input.name,
-                description: this.input.description
-            }
-            snapshotApi.create(this.project.id, opts).then((response) => {
-                this.isOpen = false
-                this.$emit('snapshotCreated', response)
-                alerts.emit('Successfully created snapshot of project.', 'confirmation')
-            }).catch(err => {
-                console.log(err.response.data)
-                if (err.response.data) {
-                    if (/name/.test(err.response.data.error)) {
-                        this.errors.name = err.response.data.error
-                    }
+            if (this.formValid) {
+                this.submitted = true
+                const opts = {
+                    name: this.input.name,
+                    description: this.input.description
                 }
-            })
+                snapshotApi.create(this.project.id, opts).then((response) => {
+                    this.isOpen = false
+                    this.$emit('snapshotCreated', response)
+                    alerts.emit('Successfully created snapshot of project.', 'confirmation')
+                }).catch(err => {
+                    console.log(err.response.data)
+                    if (err.response.data) {
+                        if (/name/.test(err.response.data.error)) {
+                            this.errors.name = err.response.data.error
+                        }
+                    }
+                })
+            }
         }
     },
     setup () {

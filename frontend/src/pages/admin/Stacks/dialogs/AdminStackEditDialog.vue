@@ -2,7 +2,7 @@
     <ff-dialog :open="isOpen" :header="dialogTitle" @confirm="isOpen = false">
         <template v-slot:default>
             <ff-loading v-if="loading" message="Creating Stack..."/>
-            <form v-else class="space-y-6">
+            <form v-else class="space-y-6" @submit.prevent>
                 <div v-if="this.input.replaces">
                     This will create a new stack to replace '{{input.replaces.name}}'.
                     The existing stack will be marked inactive and will not be
@@ -144,59 +144,61 @@ export default {
             })
         },
         confirm () {
-            this.loading = true
-            let opts = {
-                name: this.input.name,
-                active: this.input.active,
-                projectType: this.input.projectType,
-                properties: {}
-            }
-            if (this.input.replaces) {
-                opts.replace = this.input.replaces.id
-            }
-            this.stackProperties.forEach(prop => {
-                opts.properties[prop.name] = this.input.properties[prop.name]
-            })
-
-            if (this.stack) {
-                if (this.editDisabled) {
-                    opts = { active: this.input.active }
-                    if (!this.editTypeDisabled && this.input.projectType) {
-                        opts.projectType = this.input.projectType
-                    }
+            if (this.formValid || !this.loading) {
+                this.loading = true
+                let opts = {
+                    name: this.input.name,
+                    active: this.input.active,
+                    projectType: this.input.projectType,
+                    properties: {}
                 }
-                // Update
-                stacksApi.updateStack(this.stack.id, opts).then((response) => {
-                    this.isOpen = false
-                    this.$emit('stackUpdated', response)
-                }).catch(err => {
-                    console.log(err.response.data)
-                    if (err.response.data) {
-                        if (/name/.test(err.response.data.error)) {
-                            this.errors.name = 'Name unavailable'
+                if (this.input.replaces) {
+                    opts.replace = this.input.replaces.id
+                }
+                this.stackProperties.forEach(prop => {
+                    opts.properties[prop.name] = this.input.properties[prop.name]
+                })
+
+                if (this.stack) {
+                    if (this.editDisabled) {
+                        opts = { active: this.input.active }
+                        if (!this.editTypeDisabled && this.input.projectType) {
+                            opts.projectType = this.input.projectType
                         }
                     }
-                }).finally(() => {
-                    this.loading = false
-                })
-            } else {
-                stacksApi.create(opts).then((response) => {
-                    this.isOpen = false
-                    if (this.input.replaces) {
-                        this.input.replaces.active = false
-                        this.input.replaces.replacedBy = response.id
-                    }
-                    this.$emit('stackCreated', response, this.input.replaces)
-                }).catch(err => {
-                    console.log(err.response.data)
-                    if (err.response.data) {
-                        if (/name/.test(err.response.data.error)) {
-                            this.errors.name = 'Name unavailable'
+                    // Update
+                    stacksApi.updateStack(this.stack.id, opts).then((response) => {
+                        this.isOpen = false
+                        this.$emit('stackUpdated', response)
+                    }).catch(err => {
+                        console.log(err.response.data)
+                        if (err.response.data) {
+                            if (/name/.test(err.response.data.error)) {
+                                this.errors.name = 'Name unavailable'
+                            }
                         }
-                    }
-                }).finally(() => {
-                    this.loading = false
-                })
+                    }).finally(() => {
+                        this.loading = false
+                    })
+                } else {
+                    stacksApi.create(opts).then((response) => {
+                        this.isOpen = false
+                        if (this.input.replaces) {
+                            this.input.replaces.active = false
+                            this.input.replaces.replacedBy = response.id
+                        }
+                        this.$emit('stackCreated', response, this.input.replaces)
+                    }).catch(err => {
+                        console.log(err.response.data)
+                        if (err.response.data) {
+                            if (/name/.test(err.response.data.error)) {
+                                this.errors.name = 'Name unavailable'
+                            }
+                        }
+                    }).finally(() => {
+                        this.loading = false
+                    })
+                }
             }
         }
     },

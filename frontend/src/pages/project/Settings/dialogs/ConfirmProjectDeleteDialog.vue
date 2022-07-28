@@ -1,7 +1,7 @@
 <template>
     <ff-dialog header="Delete Project" :open="isOpen">
         <template v-slot:default>
-            <form class="space-y-6">
+            <form class="space-y-6" @submit.prevent>
                 <div class="mt-2 space-y-2">
                     <p>
                         Are you sure you want to delete this project? Once deleted, there is no going back.
@@ -50,8 +50,10 @@ export default {
     },
     methods: {
         confirm () {
-            this.$emit('deleteProject')
-            this.isOpen = false
+            if (this.formValid) {
+                this.$emit('deleteProject')
+                this.isOpen = false
+            }
         }
     },
     setup () {

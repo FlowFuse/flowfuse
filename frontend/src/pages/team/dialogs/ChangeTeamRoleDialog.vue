@@ -1,7 +1,7 @@
 <template>
     <ff-dialog :open="isOpen" header="Change Role" @close="close">
         <template v-slot:default v-if="user">
-            <form class="space-y-6">
+            <form class="space-y-6" @submit.prevent>
                 <div class="mt-2 space-y-2">
                     <template v-if="ownerCount < 2 && isOwner">
                         <p class="text-sm text-gray-500">You cannot change the role for <span class="font-bold">{{ user.username }}</span> as
@@ -57,15 +57,17 @@ export default {
     },
     methods: {
         async confirm () {
-            try {
-                await teamApi.changeTeamMemberRole(this.team.id, this.user.id, this.input.role)
-                this.user.role = this.input.role
-                this.$emit('roleUpdated', this.user)
-                alerts.emit("User's role successfully updated", 'confirmation')
-            } catch (err) {
-                console.warn(err)
+            if (!(this.ownerCount < 2 && this.isOwner)) {
+                try {
+                    await teamApi.changeTeamMemberRole(this.team.id, this.user.id, this.input.role)
+                    this.user.role = this.input.role
+                    this.$emit('roleUpdated', this.user)
+                    alerts.emit("User's role successfully updated", 'confirmation')
+                } catch (err) {
+                    console.warn(err)
+                }
+                this.isOpen = false
             }
-            this.isOpen = false
         }
     },
     computed: {
