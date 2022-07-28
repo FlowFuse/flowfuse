@@ -144,7 +144,6 @@ export default {
             })
         },
         confirm () {
-            console.log('confirm')
             if (this.formValid || !this.loading) {
                 this.loading = true
                 let opts = {
