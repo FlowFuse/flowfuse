@@ -1,7 +1,7 @@
 <template>
     <ff-dialog :open="isOpen" header="Invite Team Member" @close="close">
         <template v-slot:default>
-            <form class="space-y-6" @submit.enter.prevent="">
+            <form class="space-y-6" @submit="confirm()">
                 <div class="space-y-2">
                     <template v-if="!responseErrors">
                         <p>Invite a user to join the team.</p>
@@ -19,7 +19,7 @@
         </template>
         <template v-slot:actions>
             <ff-button kind="secondary" @click="close">Cancel</ff-button>
-            <ff-button :disabled="responseErrors || !input.userInfo.trim() || errors.userInfo" class="ml-4" @click="confirm">Invite</ff-button>
+            <ff-button :disabled="disabledConfirm" class="ml-4" @click="confirm">Invite</ff-button>
         </template>
     </ff-dialog>
 </template>
@@ -54,6 +54,9 @@ export default {
         ...mapState('account', ['settings']),
         externalEnabled () {
             return this.settings.email && this.settings['team:user:invite:external']
+        },
+        disableConfirm () {
+            return this.responseErrors || !this.input.userInfo.trim() || this.errors.userInfo
         }
     },
     watch: {
