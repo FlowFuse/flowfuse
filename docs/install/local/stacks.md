@@ -24,7 +24,7 @@ If you are developing FlowForge having checked it out from GitHub then you can r
 the following command in the project root
 
 ```bash
-npm run ff-install-stack --vers=2.2.2
+npm run install-stack --vers=2.2.2
 ```
 
 ### Production
