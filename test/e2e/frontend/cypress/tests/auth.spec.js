@@ -1,15 +1,4 @@
-import makeServer from '../../test_server'
-
 describe('FlowForge', () => {
-    let server, port, close
-    before(() => {
-        console.log('before all')
-        const info = makeServer()
-        server = info.server
-        port = info.port
-        close = info.close
-    })
-
     it('successfully loads', () => {
         cy.visit('/')
     })
@@ -48,15 +37,5 @@ describe('FlowForge', () => {
         cy.get('.ff-actions button').click()
         // check where we are
         cy.url().should('include', '/overview')
-    })
-
-    after(async () => {
-        console.log('after all')
-        if (!server) {
-            console.log('no server to close')
-            return
-        }
-        await close()
-        console.log('closed the server running on port %d', port)
     })
 })
