@@ -29,10 +29,10 @@
             <nav-item label="Create New Team" :icon="plusIcon"
                       @click="mobileTeamSelectionOpen = false; $router.push({name: 'CreateTeam'})"></nav-item>
         </div>
-        <div class="hidden sm:flex">
-            <ff-team-selection />
+        <div class="hidden sm:flex" data-cy="test">
+            <ff-team-selection data-cy="team-selection" />
             <!-- Desktop: User Options -->
-            <ff-dropdown v-if="user" class="ff-navigation ff-user-options" options-align="right">
+            <ff-dropdown v-if="user" class="ff-navigation ff-user-options" options-align="right" data-cy="user-options">
                 <template v-slot:placeholder>
                     <div class="ff-user">
                         <img :src="user.avatar" class="ff-avatar"/>
