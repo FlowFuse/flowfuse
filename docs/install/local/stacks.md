@@ -24,7 +24,7 @@ If you are developing FlowForge having checked it out from GitHub then you can r
 the following command in the project root
 
 ```bash
-npm run install-stack --vers=2.2.2
+npm run ff-install-stack --vers=2.2.2
 ```
 
 ### Production
@@ -35,12 +35,12 @@ commands where `bin` is in the FlowForge Home directory
 
 Linux/Mac
 ```
-bin/install-stack.sh 2.2.2
+bin/ff-install-stack.sh 2.2.2
 ```
 
 Windows:
 ```
-bin\install-stack.bat 2.2.2
+bin\ff-install-stack.bat 2.2.2
 ```
 
 These scripts will automate the following steps
