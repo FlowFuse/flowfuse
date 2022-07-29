@@ -1,17 +1,11 @@
 <template>
-    <ff-dialog :open="isOpen" :header="device?'Update Device':'Register Device'">
+    <ff-dialog ref="dialog" :header="device ? 'Update Device' : 'Register Device'"
+               :confirm-label="device ? 'Update' : 'Register'" @confirm="confirm()" :disable-primary="!formValid">
         <template v-slot:default>
             <form class="space-y-6 mt-2">
                 <FormRow v-model="input.name" :error="errors.name" :disabled="editDisabled">Name</FormRow>
                 <FormRow v-model="input.type" :error="errors.type" :disabled="editDisabled">Type</FormRow>
             </form>
-        </template>
-        <template v-slot:actions>
-            <ff-button kind="secondary" @click="close()">Cancel</ff-button>
-            <ff-button :disabled="!formValid" class="ml-4" @click="confirm()">
-                <span v-if="device">Update</span>
-                <span v-else>Register</span>
-            </ff-button>
         </template>
     </ff-dialog>
 </template>
@@ -21,8 +15,6 @@
 import devicesApi from '@/api/devices'
 
 import alerts from '@/services/alerts'
-
-import { ref } from 'vue'
 
 import FormRow from '@/components/FormRow'
 
@@ -62,7 +54,6 @@ export default {
             if (this.device) {
                 // Update
                 devicesApi.updateDevice(this.device.id, opts).then((response) => {
-                    this.isOpen = false
                     this.$emit('deviceUpdated', response)
                     alerts.emit('Device successfully updated.', 'confirmation')
                 }).catch(err => {
@@ -77,7 +68,6 @@ export default {
                 opts.team = this.team.id
                 devicesApi.create(opts).then((response) => {
                     if (!this.project) {
-                        this.isOpen = false
                         this.$emit('deviceCreated', response)
                         alerts.emit('Device successfully created.', 'confirmation')
                     } else {
@@ -86,7 +76,6 @@ export default {
                         //       in the project directly? Currently done as a two
                         //       step process
                         return devicesApi.updateDevice(response.id, { project: this.project.id }).then((response) => {
-                            this.isOpen = false
                             // Reattach the credentials from the create request
                             // so they can be displayed to the user
                             response.credentials = creds
@@ -106,13 +95,9 @@ export default {
         }
     },
     setup () {
-        const isOpen = ref(false)
         return {
-            isOpen,
-            close () {
-                isOpen.value = false
-            },
             show (device, project) {
+                this.$refs.dialog.show()
                 this.project = project
                 this.device = device
                 if (device) {
@@ -125,7 +110,6 @@ export default {
                     this.input = { name: '', type: '' }
                 }
                 this.errors = {}
-                isOpen.value = true
             }
         }
     }

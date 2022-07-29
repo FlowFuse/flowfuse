@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog :open="isOpen" header="Edit User" @close="close">
+    <ff-dialog ref="dialog" header="Edit User" confirm-label="Save" @confirm="confirm()" :disable-primary="!formValid">
         <template v-slot:default>
             <form class="space-y-6" @submit.prevent>
                 <FormRow v-model="input.username" :error="errors.username">Username</FormRow>
@@ -48,18 +48,12 @@
                 </div>
             </form>
         </template>
-        <template v-slot:actions>
-            <ff-button kind="secondary" @click="close()">Cancel</ff-button>
-            <ff-button :disabled="!formValid" @click="confirm()">Save</ff-button>
-        </template>
     </ff-dialog>
 </template>
 
 <script>
 import usersApi from '@/api/users'
 import { LockClosedIcon } from '@heroicons/vue/outline'
-
-import { ref } from 'vue'
 
 import FormHeading from '@/components/FormHeading'
 import FormRow from '@/components/FormRow'
@@ -137,7 +131,6 @@ export default {
 
                 if (changed) {
                     usersApi.updateUser(this.user.id, opts).then((response) => {
-                        this.isOpen = false
                         this.$emit('userUpdated', response)
                     }).catch(err => {
                         console.log(err.response.data)
@@ -153,35 +146,30 @@ export default {
                             }
                         }
                     })
-                } else {
-                    this.isOpen = false
                 }
             }
         },
         deleteUser () {
             usersApi.deleteUser(this.user.id).then((response) => {
-                this.isOpen = false
+                this.$refs.dialog.close()
                 this.$emit('userDeleted', this.user.id)
             }).catch(err => {
                 this.errors.deleteUser = err.response.data.error
             })
         },
         expirePassword () {
-            usersApi.updateUser(this.user.id, { password_expired: true }).then((response) => {
-                this.isOpen = false
-            }).catch(err => {
-                this.errors.expirePassword = err.response.data.error
-            })
+            usersApi.updateUser(this.user.id, { password_expired: true })
+                .then((response) => {
+                    this.$refs.dialog.close()
+                }).catch(err => {
+                    this.errors.expirePassword = err.response.data.error
+                })
         }
     },
     setup () {
-        const isOpen = ref(false)
         return {
-            isOpen,
-            close () {
-                isOpen.value = false
-            },
             show (user) {
+                this.$refs.dialog.show()
                 this.user = user
                 this.input.username = user.username
                 this.input.name = user.name
@@ -191,7 +179,6 @@ export default {
                 this.deleteLocked = true
                 this.expirePassLocked = true
                 this.errors = {}
-                isOpen.value = true
             }
         }
     }

@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog header="Export to Existing Project" :open="isOpen">
+    <ff-dialog ref="dialog" header="Export to Existing Project" confirm-label="Export to Existing Project" :disable-primary="!exportEnabled" @confirm="confirm()">
         <template v-slot:default>
             <form class="space-y-6" @submit.prevent>
                 <FormRow>
@@ -19,15 +19,10 @@
                 </FormRow>
             </form>
         </template>
-        <template v-slot:actions>
-            <ff-button kind="secondary" @click="close()">Cancel</ff-button>
-            <ff-button :disabled="!exportEnabled" class="ml-4" @click="confirm()">Export To Existing Project</ff-button>
-        </template>
     </ff-dialog>
 </template>
 
 <script>
-import { ref } from 'vue'
 
 import teamApi from '@/api/team'
 
@@ -76,19 +71,13 @@ export default {
                     }
                 }
                 this.$emit('exportToProject', settings)
-                this.isOpen = false
             }
         }
     },
     setup () {
-        const isOpen = ref(false)
-
         return {
-            isOpen,
-            close () {
-                isOpen.value = false
-            },
             async show (project) {
+                this.$refs.dialog.show()
                 this.input.target = ''
                 this.input.exportConfirm = false
                 this.project = project
@@ -100,7 +89,6 @@ export default {
                     settings: false,
                     envVars: 'all'
                 }
-                isOpen.value = true
                 this.input.stack = this.project.stack.id
                 this.input.template = this.project.template.id
                 this.input.team = this.project.team.id
@@ -114,10 +102,6 @@ export default {
                         })
                     }
                 }
-
-                // setTimeout(() => {
-                //     this.input.target = this.projects.length > 0 ? this.projects[0].value : ''
-                // }, 100)
             }
         }
     }

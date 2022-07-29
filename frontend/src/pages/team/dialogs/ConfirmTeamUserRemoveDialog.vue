@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog :open="isOpen" header="Remove User" @close="close">
+    <ff-dialog ref="dialog" header="Remove User" kind="danger" confirm-label="Remove" @confirm="confirm()" :disable-primary="disableConfirm">
         <template v-slot:default v-if="user">
             <form class="space-y-6" @submit.prevent>
                 <div class="mt-2 space-y-2">
@@ -15,15 +15,10 @@
                 </div>
             </form>
         </template>
-        <template v-slot:actions>
-            <ff-button kind="secondary" class="forge-button-secondary ml-4" @click="close()">Cancel</ff-button>
-            <ff-button kind="danger" :disabled="disableConfirm" class="ml-4" @click="confirm()">Remove</ff-button>
-        </template>
     </ff-dialog>
 </template>
 
 <script>
-import { ref } from 'vue'
 
 import alerts from '@/services/alerts'
 import teamApi from '@/api/team'
@@ -47,7 +42,6 @@ export default {
                 } catch (err) {
                     console.warn(err)
                 }
-                this.isOpen = false
             }
         }
     },
@@ -57,17 +51,12 @@ export default {
         }
     },
     setup () {
-        const isOpen = ref(false)
         return {
-            isOpen,
-            close () {
-                isOpen.value = false
-            },
             show (team, user, ownerCount) {
+                this.$refs.dialog.show()
                 this.user = user
                 this.team = team
                 this.ownerCount = ownerCount
-                isOpen.value = true
             }
         }
     }

@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog :open="isOpen" header="Delete Stack" @close="close">
+    <ff-dialog ref="dialog" header="Delete Stack" kind="danger" confirm-label="Delete" @confirm="confirm()" :disable-primary="deleteDisabled">
         <template v-slot:default>
             <form class="space-y-6">
                 <div class="mt-2 space-y-2">
@@ -14,15 +14,10 @@
                 </div>
             </form>
         </template>
-        <template v-slot:actions>
-            <ff-button kind="secondary" @click="close">Cancel</ff-button>
-            <ff-button kind="danger" class="ml-4" :disabled="deleteDisabled" @click="confirm">Delete</ff-button>
-        </template>
     </ff-dialog>
 </template>
 
 <script>
-import { ref } from 'vue'
 
 export default {
     name: 'AdminStackDeleteDialog',
@@ -35,20 +30,14 @@ export default {
     methods: {
         confirm () {
             this.$emit('deleteTemplate', this.template)
-            this.isOpen = false
         }
     },
     setup () {
-        const isOpen = ref(false)
         return {
-            isOpen,
-            close () {
-                isOpen.value = false
-            },
             show (template) {
+                this.$refs.dialog.show()
                 this.template = template
                 this.deleteDisabled = template.projectCount > 0
-                isOpen.value = true
             }
         }
     }

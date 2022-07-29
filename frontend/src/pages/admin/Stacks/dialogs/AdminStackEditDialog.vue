@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog :open="isOpen" :header="dialogTitle" @confirm="isOpen = false">
+    <ff-dialog ref="dialog" :header="dialogTitle" :confirm-label="stack ? 'Save' : 'Create'" @confirm="confirm()" :disable-primary="!formValid || loading">
         <template v-slot:default>
             <ff-loading v-if="loading" message="Creating Stack..."/>
             <form v-else class="space-y-6" @submit.prevent>
@@ -28,18 +28,12 @@
                 </template>
             </form>
         </template>
-        <template v-slot:actions>
-            <ff-button kind="secondary" @click="close()">Cancel</ff-button>
-            <ff-button kind="primary" @click="confirm()" :disabled="!formValid || loading">{{ (stack ? 'Save' : 'Create') }}</ff-button>
-        </template>
     </ff-dialog>
 </template>
 
 <script>
 import stacksApi from '@/api/stacks'
 import projectTypesApi from '@/api/projectTypes'
-
-import { ref } from 'vue'
 
 import FormRow from '@/components/FormRow'
 import { mapState } from 'vuex'
@@ -168,7 +162,6 @@ export default {
                     }
                     // Update
                     stacksApi.updateStack(this.stack.id, opts).then((response) => {
-                        this.isOpen = false
                         this.$emit('stackUpdated', response)
                     }).catch(err => {
                         console.log(err.response.data)
@@ -182,7 +175,6 @@ export default {
                     })
                 } else {
                     stacksApi.create(opts).then((response) => {
-                        this.isOpen = false
                         if (this.input.replaces) {
                             this.input.replaces.active = false
                             this.input.replaces.replacedBy = response.id
@@ -203,13 +195,9 @@ export default {
         }
     },
     setup () {
-        const isOpen = ref(false)
         return {
-            isOpen,
-            close () {
-                isOpen.value = false
-            },
             showCreate () {
+                this.$refs.dialog.show()
                 this.stack = null
                 this.editDisabled = false
                 this.editTypeDisabled = false
@@ -218,9 +206,9 @@ export default {
                 if (this.projectTypes.length === 0) {
                     this.errors.projectType = 'No project types available. Ask an Administator to create a new project type definition'
                 }
-                isOpen.value = true
             },
             showEdit (stack) {
+                this.$refs.dialog.show()
                 this.stack = stack
                 this.editDisabled = stack.projectCount > 0
                 this.editTypeDisabled = !!stack.projectType
@@ -232,9 +220,9 @@ export default {
                     projectType: stack.projectType
                 }
                 this.errors = {}
-                isOpen.value = true
             },
             showCreateVersion (stack) {
+                this.$refs.dialog.show()
                 this.stack = null
                 this.editDisabled = false
                 this.editTypeDisabled = true
@@ -251,7 +239,6 @@ export default {
                     })
                 }
                 this.errors = {}
-                isOpen.value = true
             }
         }
     }
