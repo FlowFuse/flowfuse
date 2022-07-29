@@ -41,7 +41,7 @@ module.exports = fp(async function (app, opts, done) {
                 const scheme = parts[0]
                 const token = parts[1]
                 if (scheme !== 'Bearer') {
-                    throw new Error('Unsupported authorization scheme')
+                    reply.code(401).send({ error: 'unauthorized' })
                 }
                 if (/^ff[td]/.test(token)) {
                     const accessToken = await app.db.controllers.AccessToken.getOrExpire(token)
@@ -57,14 +57,12 @@ module.exports = fp(async function (app, opts, done) {
                     request.session = await app.db.controllers.Session.getOrExpire(token)
                     return
                 }
-                throw new Error(`bad token ${token}`)
+                reply.code(401).send({ error: 'unauthorized' })
             } else {
-                // return done(new Error("Malformed authorization header"))
-                throw new Error('Malformed authorization header')
+                reply.code(401).send({ error: 'unauthorized' })
             }
         } else {
-            // done(new Error("Missing authorization header"))
-            throw new Error('Missing authorization header')
+            reply.code(401).send({ error: 'unauthorized' })
         }
     }
 
@@ -72,15 +70,11 @@ module.exports = fp(async function (app, opts, done) {
 
     app.decorate('verifyTokenOrSession', async function (request, reply) {
         // Order is important, other way round breaks nr-auth plugin
-        try {
-            if (request.sid) {
-                await verifySession(request, reply)
-            } else if (request.headers && request.headers.authorization) {
-                await verifyToken(request, reply)
-            } else if (!request.context.config.allowAnonymous) {
-                reply.code(401).send({ error: 'unauthorized' })
-            }
-        } catch (err) {
+        if (request.sid) {
+            await verifySession(request, reply)
+        } else if (request.headers && request.headers.authorization) {
+            await verifyToken(request, reply)
+        } else if (!request.context.config.allowAnonymous) {
             reply.code(401).send({ error: 'unauthorized' })
         }
     })
