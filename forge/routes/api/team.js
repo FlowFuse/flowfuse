@@ -115,8 +115,9 @@ module.exports = async function (app) {
         const projects = await app.db.models.Project.byTeam(request.params.teamId)
         if (projects) {
             let result = app.db.views.Project.teamProjectList(projects)
-            const limitResponse = request.session?.User === undefined
-            if (limitResponse) {
+            if (request.session.ownerType === 'project') {
+                // This request is from a project token. Filter the list to return
+                // the minimal information needed
                 result = result.map(e => {
                     return { id: e.id, name: e.name }
                 })
