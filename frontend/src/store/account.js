@@ -144,14 +144,8 @@ const actions = {
 
             state.commit('setOffline', false)
 
-            // check notifications count
-            state.dispatch('countNotifications')
-
             const user = await userApi.getUser()
             state.commit('login', user)
-
-            const teams = await teamApi.getTeams()
-            state.commit('setTeams', teams.teams)
 
             if (router.currentRoute.value.meta.requiresLogin === false) {
                 // This is only for logged-out users
@@ -163,6 +157,12 @@ const actions = {
                 router.push({ name: 'Home' })
                 return
             }
+
+            // check notifications count
+            state.dispatch('countNotifications')
+
+            const teams = await teamApi.getTeams()
+            state.commit('setTeams', teams.teams)
 
             if (teams.count === 0) {
                 state.commit('clearPending')
