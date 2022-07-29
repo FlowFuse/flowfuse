@@ -208,7 +208,7 @@ module.exports = async function (app) {
                 return badRequest(reply, 'invalid_request', 'Invalid code_verifier')
             }
             const requestObject = requestCache.get(code)
-            requestCache.del(code)
+            requestCache.delete(code)
 
             if (!requestObject) {
                 badRequest(reply, 'invalid_request', 'Invalid code')
