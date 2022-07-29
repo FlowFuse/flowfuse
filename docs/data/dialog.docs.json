@@ -5,27 +5,40 @@
     "components": [{
         "name": "ff-dialog",
         "examples": [{
-            "code": "<ff-dialog :open=\"isOpen\" header=\"My Dialog Box\" @cancel=\"isOpen = false\" @confirm=\"isOpen = false\">\n\t<p style=\"margin-bottom: 12px\">\n\t\tThe main message for the dialog box goes here.\n\t\tWe can put any elements we like here. For example, a text input:\n\t</p>\n\t<ff-text-input placeholder=\"My Text Input\"/>\n</ff-dialog>"
+            "code": "<ff-button @click=\"$refs['dialog0'].show()\">Show Dialog</ff-button>\n<ff-dialog ref=\"dialog0\" header=\"My Dialog Box\" @confirm=\"doSomething()\">\n\t<p style=\"margin-bottom: 12px\">\n\t\tThe main message for the dialog box goes here.\n\t\tWe can put any elements we like here. For example, a text input:\n\t</p>\n\t<ff-text-input placeholder=\"My Text Input\"/>\n</ff-dialog>"
         }, {
-            "code": "<ff-dialog :open=\"isOpen\" header=\"My Other Dialog Box\">\n\t<template v-slot:default>\n\t\tAre you sure you want to delete this?\n\t</template>\n\t<template v-slot:actions>\n\t\t<ff-button kind=\"secondary\" @click=\"models.showDialog1 = false\">Cancel</ff-button>\n\t\t<ff-button kind=\"danger\" @click=\"models.showDialog1 = false\">Delete</ff-button>\n\t</template>\n</ff-dialog>"
+            "code": "<ff-button @click=\"$refs['dialog1'].show()\">Show Delete Dialog</ff-button>\n<ff-dialog ref=\"dialog1\" header=\"My Other Dialog Box\" @confirm=\"doSomething()\" confirm-label=\"Delete\" kind=\"danger\">\n\tAre you sure you want to delete this?\n</ff-dialog>"
+        }, {
+            "code": "<ff-button @click=\"$refs['dialog2'].show()\">Show Custom Dialog</ff-button>\n<ff-dialog ref=\"dialog2\" header=\"My Custom Dialog Box\">\n\t<template v-slot:default>\n\t\tNote we can override the actions too, but need to include close logic\n\t</template>\n\t<template v-slot:actions>\n\t\t<ff-button kind=\"secondary\" @click=\"$refs['dialog2'].close();doSecondaryAction1()\">Secondary 1</ff-button>\n\t\t<ff-button kind=\"secondary\" @click=\"$refs['dialog2'].close();doSecondaryAction2()\">Secondary 2</ff-button>\n\t\t<ff-button kind=\"danger\" @click=\"$refs['dialog2'].close();doSomething()\">Confirm</ff-button>\n\t</template>\n</ff-dialog>"
         }],
         "props": [{
-            "key": "open",
-            "default": "false",
-            "description": "<boolean> to define whether or not the dialog box should be displayed"
-        }, {
             "key": "header",
             "default": "Dialog Box",
             "description": "<string> to display in the main header bar of the dialog box"
+        }, {
+            "key": "confirm-label",
+            "default": "Confirm",
+            "description": "The text contained within the primary button of the dialog box."
+        }, {
+            "key": "kind",
+            "default": "primary",
+            "description": "The 'kind' to set on the primary button. Recommended as 'primary' or 'danger'."
+        }],
+        "slots": [{
+            "name": "default",
+            "description": "Define the core content of the dialog."
+        }, {
+            "name": "actions",
+            "description": "Replace the default secondary/primary button layout. In this case, @confirm and @cancel will not emit."
         }],
         "emits": [{
             "event": "confirm",
             "example": null,
-            "description": "When the default, primary action button is selected, this event is triggered."
+            "description": "When the primary action button is selected, this event is triggered."
         }, {
             "event": "cancel",
             "example": null,
-            "description": "When the default, secondary action button is selected, this event is triggered."
+            "description": "When the secondary action button is selected, this event is triggered."
         }]
     }]
 }
