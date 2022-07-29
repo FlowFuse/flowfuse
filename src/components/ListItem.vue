@@ -1,5 +1,5 @@
 <template>
-    <li class="ff-list-item">
+    <li class="ff-list-item" :class="'ff-list-item--' + kind">
         <component :is="icon" />
         <label>{{ label }}</label>
     </li>
@@ -13,6 +13,10 @@ export default {
             type: Function
         },
         label: {
+            type: String,
+            default: ''
+        },
+        kind: {
             type: String,
             default: ''
         }

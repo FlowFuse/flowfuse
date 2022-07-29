@@ -86,6 +86,7 @@
                 <h3>Examples:</h3>
                 <div class="examples">
                     <div class="example">
+                        <h5>Left-Aligned Options</h5>
                         <ff-kebab-menu menu-align="left">
                             <ff-list-item label="Option 1" />
                             <ff-list-item label="Option 2" />
@@ -93,11 +94,20 @@
                         <code>{{ groups['button'].components[1].examples[0].code }}</code>
                     </div>
                     <div class="example">
+                        <h5>Right-Aligned Options</h5>
                         <ff-kebab-menu style="margin-left: 150px;" menu-align="right">
                             <ff-list-item label="Option 1" />
                             <ff-list-item label="Option 2" />
                         </ff-kebab-menu>
                         <code>{{ groups['button'].components[1].examples[1].code }}</code>
+                    </div>
+                    <div class="example">
+                        <h5>Danger Styling</h5>
+                        <ff-kebab-menu menu-align="left">
+                            <ff-list-item label="Option 1" />
+                            <ff-list-item label="Option 2" kind="danger" />
+                        </ff-kebab-menu>
+                        <code>{{ groups['button'].components[1].examples[2].code }}</code>
                     </div>
                 </div>
             </div>
@@ -138,7 +148,7 @@
                     </div>
                     <div class="example">
                         <h5>Example 4: Filtering via Search &amp; Actions</h5>
-                        <ff-data-table :columns="data.table3.columns" :rows="table3Filtered"
+                        <ff-data-table :columns="data.table3.columns" :rows="data.table3.rows"
                             :show-search="true" search-placeholder="Search here..." v-model:search="data.table3.search">
                             <template v-slot:actions>
                                 <ff-button>Press Me!</ff-button>
@@ -148,7 +158,17 @@
                         <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[3].code }}</code>
                     </div>
                     <div class="example">
-                        <h5>Example 5: Custom Row Content</h5>
+                        <h5>Example 5: Custom Row Content &amp; Components</h5>
+                        <p style="margin-bottom: 12px;">Note, this method requires components to be created that can parse and render the data structure provided to the row.</p>
+                        <p style="margin-bottom: 12px;">This method does still enable searching and sorting out of the box.</p>
+                        <ff-data-table :columns="data.table4.columns" :rows="data.table4.rows"
+                            :show-search="true" :search-fields="['sName', 'number']" search-placeholder="search-fields limits which properties the search applies to."></ff-data-table>
+                        <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[8].code }}</code>
+                        <code style="margin-top: 24px;">cols = {{ pretty(data.table4DocVersion.columns) }}</code>
+                    </div>
+                    <div class="example">
+                        <h5>Example 6: Custom Row Content &amp; Components</h5>
+                        <p style="margin-bottom: 12px;">Note, this method will override the full row object inside data-table, including filtering/sorting and loading/no-data placeholder options of the table.</p>
                         <ff-data-table :columns="data.table2.columns">
                             <template v-slot:rows>
                                 <ff-data-table-row>
@@ -167,7 +187,7 @@
                         <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[4].code }}</code>
                     </div>
                     <div class="example">
-                        <h5>Example 6: v-for Selectable Rows &amp; Custom Headers</h5>
+                        <h5>Example 7: v-for Selectable Rows &amp; Custom Headers</h5>
                         <ff-data-table>
                             <template v-slot:header>
                                 <ff-data-table-row>
@@ -200,12 +220,12 @@
                         <code style="margin-top: 24px;">rows = {{ pretty(data.table3.rows) }}</code>
                     </div>
                     <div class="example">
-                        <h5>Example 7: No Data</h5>
+                        <h5>Example 8: No Data</h5>
                         <ff-data-table :columns="data.table1.columns" :rows="[]"></ff-data-table>
                         <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[6].code }}</code>
                     </div>
                     <div class="example">
-                        <h5>Example 8: Loading</h5>
+                        <h5>Example 9: Loading</h5>
                         <ff-data-table :columns="data.table1.columns" :rows="data.table1.rows" :loading="true" loading-message="Loading Projects..."></ff-data-table>
                         <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[7].code }}</code>
                     </div>
@@ -227,13 +247,13 @@
                 <props-table :rows="groups['dialog'].components[0].props"></props-table>
                 <h3>Emits:</h3>
                 <events-table :rows="groups['dialog'].components[0].emits"></events-table>
+                <h3>Slots:</h3>
+                <slots-table :rows="groups['dialog'].components[0].slots"></slots-table>
                 <h3>Examples:</h3>
                 <div class="examples">
                     <div class="example">
-                        <ff-button @click="models.showDialog = !models.showDialog">Show Dialog</ff-button>
-                        <ff-dialog :open="models.showDialog" header="My Dialog Box"
-                            @cancel="models.showDialog = false"
-                            @confirm="models.showDialog = false">
+                        <ff-button @click="$refs['dialog0'].show()">Show Dialog</ff-button>
+                        <ff-dialog ref="dialog0" header="My Dialog Box">
                             <p style="margin-bottom: 12px">The main message for the dialog box goes here. We can put any elements we like here.
                             For example, a text input:</p>
                             <ff-text-input placeholder="My Text Input"/>
@@ -241,19 +261,25 @@
                         <code>{{ groups['dialog'].components[0].examples[0].code }}</code>
                     </div>
                     <div class="example">
-                        <ff-button @click="models.showDialog1 = !models.showDialog1">Show Delete Dialog</ff-button>
-                        <ff-dialog :open="models.showDialog1" header="My Other Dialog Box"
-                            @cancel="models.showDialog1 = false"
-                            @confirm="models.showDialog1 = false">
-                            <template v-slot:default>
-                                Are you sure you want to delete this?
-                            </template>
-                            <template v-slot:actions>
-                                <ff-button kind="secondary" @click="models.showDialog1 = false">Cancel</ff-button>
-                                <ff-button kind="danger" @click="models.showDialog1 = false">Delete</ff-button>
-                            </template>
+                        <ff-button @click="$refs['dialog1'].show()">Show Delete Dialog</ff-button>
+                        <ff-dialog ref="dialog1" header="My Other Dialog Box" confirm-label="Delete" kind="danger">
+                            Are you sure you want to delete this?
                         </ff-dialog>
                         <code>{{ groups['dialog'].components[0].examples[1].code }}</code>
+                    </div>
+                    <div class="example">
+                        <ff-button @click="$refs['dialog2'].show()">Show Custom Dialog</ff-button>
+                        <ff-dialog ref="dialog2" header="My Custom Dialog Box">
+                            <template v-slot:default>
+                                Note we can override the actions too, but need to include close logic
+                            </template>
+                            <template v-slot:actions>
+                                <ff-button kind="secondary" @click="$refs['dialog2'].close()">Secondary 1</ff-button>
+                                <ff-button kind="secondary" @click="$refs['dialog2'].close()">Secondary 2</ff-button>
+                                <ff-button @click="$refs['dialog2'].close()">Confirm</ff-button>
+                            </template>
+                        </ff-dialog>
+                        <code>{{ groups['dialog'].components[0].examples[2].code }}</code>
                     </div>
                 </div>
             </div>
@@ -364,7 +390,7 @@
                 </div>
                 <!-- Tile Selection -->
                 <h2 ref="ff-tile-selection"><pre>ff-tile-selection</pre></h2>
-                <markdown-viewer class="description" :content="groups['input'].components[4].description"/>
+                <ff-markdown-viewer class="description" :content="groups['input'].components[4].description"/>
                 <h3>Properties:</h3>
                 <props-table :rows="groups['input'].components[4].props"></props-table>
                 <h3>Examples:</h3>
@@ -406,7 +432,7 @@
             <div class="section">
                 <!-- Notifications -->
                 <h1>Notifications</h1>
-                <markdown-viewer class="description" :content="groups['notifications'].description"/>
+                <ff-markdown-viewer class="description" :content="groups['notifications'].description"/>
                 <h2 ref="ff-notification-pill"><pre>ff-notification-pill</pre></h2>
                 <h3>Properties:</h3>
                 <props-table :rows="groups['notifications'].components[0].props"></props-table>
@@ -458,7 +484,7 @@
             <div class="section">
                 <!-- Tabs -->
                 <h1>Tabs</h1>
-                <markdown-viewer class="description" :content="groups['tabs'].description"/>
+                <ff-markdown-viewer class="description" :content="groups['tabs'].description"/>
                 <h2 ref="ff-tabs"><pre>ff-tabs</pre></h2>
                 <h3>Properties:</h3>
                 <props-table :rows="groups['tabs'].components[0].props"></props-table>
@@ -489,7 +515,7 @@
             <div class="section">
                 <!-- Other -->
                 <h1>Utilities</h1>
-                <markdown-viewer class="description" :content="groups['utilities'].description"/>
+                <ff-markdown-viewer class="description" :content="groups['utilities'].description"/>
                 <h2 ref="ff-check"><pre>ff-check</pre></h2>
                 <h3>Properties:</h3>
                 <props-table :rows="groups['utilities'].components[0].props"></props-table>
@@ -516,8 +542,6 @@ import PropsTable from './components/PropsTable.vue'
 import EventsTable from './components/EventsTable.vue'
 import SlotsTable from './components/SlotsTable.vue'
 
-import MarkdownViewer from '@/components/Markdown.vue'
-
 import buttonDocs from './data/button.docs.json'
 import tableDocs from './data/table.docs.json'
 import dialogDocs from './data/dialog.docs.json'
@@ -526,8 +550,11 @@ import notificationsDocs from './data/notifications.docs.json'
 import tabsDocs from './data/tabs.docs.json'
 import utilitiesDocs from './data/utilities.docs.json'
 
+import FFNotificationPill from '@/components/NotificationPill.vue'
+
 // icons
 import { PlusSmIcon, SearchIcon } from '@heroicons/vue/outline'
+import { markRaw } from '@vue/reactivity'
 
 export default {
     name: 'DesignLanguage',
@@ -535,7 +562,6 @@ export default {
         PropsTable,
         EventsTable,
         SlotsTable,
-        MarkdownViewer,
         // icons
         PlusSmIcon,
         SearchIcon
@@ -549,8 +575,6 @@ export default {
         return {
             theme: 'light',
             models: {
-                showDialog: false,
-                showDialog1: false,
                 textInput0: '',
                 dropdown0: null,
                 dropdown1: null,
@@ -575,7 +599,9 @@ export default {
                     columns: [{
                         key: 'colA',
                         label: 'Column A',
-                        sortable: false
+                        sortable: false,
+                        class: ['classes-can-go-here-too'],
+                        style: { width: '60%' }
                     }, {
                         key: 'colB',
                         label: 'Column B',
@@ -682,6 +708,62 @@ export default {
                         sName: 'Solo',
                         number: 789
                     }]
+                },
+                table4: {
+                    search: '',
+                    columns: [{
+                        key: 'fName',
+                        label: 'First Name',
+                        sortable: true
+                    }, {
+                        key: 'sName',
+                        label: 'Last Name',
+                        sortable: true
+                    }, {
+                        key: 'number',
+                        label: 'Number',
+                        sortable: true,
+                        component: {
+                            is: markRaw(FFNotificationPill),
+                            map: {
+                                count: 'number'
+                            }
+                        }
+                    }],
+                    rows: [{
+                        fName: 'Alice',
+                        sName: 'Skywalker',
+                        number: 123
+                    }, {
+                        fName: 'Bob',
+                        sName: 'Palpatine',
+                        number: 456
+                    }, {
+                        fName: 'Freddie',
+                        sName: 'Solo',
+                        number: 789
+                    }]
+                },
+                table4DocVersion: {
+                    columns: [{
+                        key: 'fName',
+                        label: 'First Name',
+                        sortable: true
+                    }, {
+                        key: 'sName',
+                        label: 'Last Name',
+                        sortable: true
+                    }, {
+                        key: 'number',
+                        label: 'Number',
+                        sortable: true,
+                        component: {
+                            is: 'markRaw(FFNotificationPill)',
+                            map: {
+                                count: 'number'
+                            }
+                        }
+                    }]
                 }
             }
         }
@@ -689,28 +771,6 @@ export default {
     computed: {
         groups_ordered: function () {
             return _.sortedBy(this.groups, 'name')
-        },
-        table3Filtered: function () {
-            const search = this.data.table3.search
-            if (search) {
-                return this.data.table3.rows.filter(function (cell, index) {
-                    const vals = Object.values(cell)
-                    for (let i = 0; i < vals.length; i++) {
-                        let value = vals[i]
-                        if (typeof value === 'number') {
-                            value = value.toString()
-                        }
-                        if (typeof value === 'string') {
-                            if (value.toLowerCase().indexOf(search.toLowerCase()) > -1) {
-                                return true
-                            }
-                        }
-                    }
-                    return false
-                })
-            } else {
-                return this.data.table3.rows
-            }
         }
     },
     async mounted () {

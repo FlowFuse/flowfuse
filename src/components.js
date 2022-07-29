@@ -29,6 +29,7 @@ import FFTab from './components/tabs/Tab.vue'
 // Utilities
 import FFCheck from './components/Check.vue'
 import FFListItem from './components/ListItem.vue'
+import FFMarkdownViewer from './components/Markdown.vue'
 
 export default {
     FFButton,
@@ -36,6 +37,7 @@ export default {
     FFDialogBox,
     FFListItem,
     FFCheck,
+    FFMarkdownViewer,
     // Data Table
     FFDataTable,
     FFDataTableRow,
