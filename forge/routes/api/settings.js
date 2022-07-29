@@ -1,5 +1,5 @@
 module.exports = async function (app) {
-    app.get('/', { config: { allowAnonymous: true } }, async (request, reply) => {
+    app.get('/', { config: { allowAnonymous: true, allowUnverifiedEmail: true } }, async (request, reply) => {
         // This isn't as clean as I'd like, but it works for now.
         //
         // We return different things depending on the user session.

@@ -95,7 +95,9 @@ module.exports = fp(async function (app, opts, done) {
         if (request.sid) {
             request.session = await app.db.controllers.Session.getOrExpire(request.sid)
             if (request.session && request.session.User) {
-                return
+                if (!app.postoffice.enabled() || request.session.User.email_verified || request.context.config.allowUnverifiedEmail) {
+                    return
+                }
             }
         }
         if (request.context.config.allowAnonymous) {
@@ -332,7 +334,7 @@ module.exports = fp(async function (app, opts, done) {
         }
     })
 
-    app.post('/account/verify', { preHandler: app.verifySession }, async (request, reply) => {
+    app.post('/account/verify', { preHandler: app.verifySession, config: { allowUnverifiedEmail: true } }, async (request, reply) => {
         if (!app.postoffice.enabled()) {
             reply.code(400).send({ error: 'email not configured' })
             return

@@ -21,7 +21,7 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.user
      */
-    app.get('/', async (request, reply) => {
+    app.get('/', { config: { allowUnverifiedEmail: true } }, async (request, reply) => {
         const users = await app.db.views.User.userProfile(request.session.User)
         reply.send(users)
     })
