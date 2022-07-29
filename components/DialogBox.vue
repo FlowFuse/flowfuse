@@ -7,8 +7,8 @@
             </div>
             <div class="ff-dialog-actions">
                 <slot name="actions">
-                    <ff-button @click="$emit('cancel')" kind="secondary">Cancel</ff-button>
-                    <ff-button @click="$emit('confirm')">Confirm</ff-button>
+                    <ff-button @click="cancel()" kind="secondary">Cancel</ff-button>
+                    <ff-button @click="confirm()" :kind="kind">{{ confirmLabel }}</ff-button>
                 </slot>
             </div>
         </div>
@@ -21,14 +21,19 @@
 <script>
 export default {
     name: 'ff-dialog',
+    emits: ['cancel', 'confirm'],
     props: {
-        open: {
-            type: Boolean,
-            default: false
-        },
         header: {
             type: String,
             default: 'Dialog Box'
+        },
+        confirmLabel: {
+            type: String,
+            default: 'Confirm'
+        },
+        kind: {
+            type: String,
+            default: 'primary'
         }
     },
     watch: {
@@ -36,6 +41,26 @@ export default {
             this.$refs.content.scrollTop = 0
         }
     },
-    emits: ['cancel', 'confirm']
+    data () {
+        return {
+            open: false
+        }
+    },
+    methods: {
+        show () {
+            this.open = true
+        },
+        close () {
+            this.open = false
+        },
+        cancel () {
+            this.close()
+            this.$emit('cancel')
+        },
+        confirm () {
+            this.close()
+            this.$emit('confirm')
+        }
+    }
 }
 </script>
