@@ -22,6 +22,10 @@ module.exports = async function (app) {
         if (request.params.teamId !== undefined) {
             if (request.params.teamId) {
                 try {
+                    // if User is not defined, check to see if request.context.config.allowAnonymous is set
+                    if (request.session?.User === undefined && request.context.config?.allowAnonymous === true) {
+                        return
+                    }
                     request.teamMembership = await request.session.User.getTeamMembership(request.params.teamId)
                     if (!request.teamMembership && !request.session.User.admin) {
                         reply.code(404).type('text/html').send('Not Found')
@@ -88,10 +92,16 @@ module.exports = async function (app) {
         }
     })
 
-    app.get('/:teamId/projects', async (request, reply) => {
+    app.get('/:teamId/projects', { config: { allowAnonymous: true } }, async (request, reply) => {
         const projects = await app.db.models.Project.byTeam(request.params.teamId)
         if (projects) {
-            const result = app.db.views.Project.teamProjectList(projects)
+            let result = app.db.views.Project.teamProjectList(projects)
+            const limitResponse = request.session?.User === undefined
+            if (limitResponse) {
+                result = result.map(e => {
+                    return { id: e.id, name: e.name }
+                })
+            }
             reply.send({
                 count: result.length,
                 projects: result
