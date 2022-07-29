@@ -22,8 +22,27 @@ module.exports = async function (app) {
         if (request.params.teamId !== undefined) {
             if (request.params.teamId) {
                 try {
-                    // if User is not defined, check to see if request.context.config.allowAnonymous is set
-                    if (request.session?.User === undefined && request.context.config?.allowAnonymous === true) {
+                    if (!request.session.User) {
+                        // If request.session.User is not defined, this request is being
+                        // made with an access token. If it is a project access token,
+                        // ensure that project is in this team
+                        if (request.session.ownerType === 'project') {
+                            // Want this to be as small a query as possible. Sequelize
+                            // doesn't make it easy to just get `TeamId` without doing
+                            // a join on Team table.
+                            const project = await app.db.models.Project.findOne({
+                                where: { id: request.session.ownerId },
+                                include: {
+                                    model: app.db.models.Team,
+                                    attributes: ['hashid', 'id']
+                                }
+                            })
+                            // Ensure the token's project is in the team being accessed
+                            if (project && project.Team.hashid === request.params.teamId) {
+                                return
+                            }
+                        }
+                        reply.code(404).type('text/html').send('Not Found')
                         return
                     }
                     request.teamMembership = await request.session.User.getTeamMembership(request.params.teamId)
@@ -92,7 +111,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.get('/:teamId/projects', { config: { allowAnonymous: true } }, async (request, reply) => {
+    app.get('/:teamId/projects', { config: { allowToken: true } }, async (request, reply) => {
         const projects = await app.db.models.Project.byTeam(request.params.teamId)
         if (projects) {
             let result = app.db.views.Project.teamProjectList(projects)
