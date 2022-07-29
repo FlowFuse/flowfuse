@@ -29,12 +29,4 @@
             color: $ff-grey-300;
         }
     }
-
-    .ff-input.ff-text-input {
-        background-color: $ff-white;
-        border-color: $ff-grey-300;
-        &:focus-within {
-          border-color: $ff-blue-600;
-        }
-    }
 }
