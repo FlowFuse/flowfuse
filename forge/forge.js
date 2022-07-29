@@ -66,7 +66,7 @@ module.exports = async (options = {}) => {
             crossOriginEmbedderPolicy: false,
             crossOriginOpenerPolicy: false,
             crossOriginResourcePolicy: false,
-            hidePoweredBy: false,
+            hidePoweredBy: true,
             hsts: false,
             frameguard: {
                 action: 'deny'
