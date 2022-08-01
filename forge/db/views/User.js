@@ -38,6 +38,9 @@ module.exports = {
             result.password_expired = true
         }
         result.email_verified = user.email_verified
+        if (user.defaultTeamId) {
+            result.defaultTeam = app.db.models.Team.encodeHashid(user.defaultTeamId)
+        }
         return result
     },
 

@@ -107,6 +107,17 @@ module.exports = fp(async function (app, opts, next) {
             }
         }
 
+        if (!config.logging) {
+            config.logging = {
+                level: 'info',
+                http: 'warn'
+            }
+        } else {
+            if (!config.logging.http) {
+                config.logging.http = 'warn'
+            }
+        }
+
         config.features = features(app, config)
 
         Object.freeze(config)

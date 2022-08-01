@@ -83,3 +83,15 @@ Option         | Description
 ---------------|--------------
 `broker.url`   | The full url to the platform broker. This is used by the platform and project launchers to connect to the broker. For example: `mqtt://localhost:1883`.
 `broker.public_url` | If set, this is the url provided to Devices to connect to the broker with. When running in a Docker or K8S environment, this url should be the externally addressable url the broker is provided on. This could be via WebSockets, for example: `ws://example.com:1884`
+
+## Logging configuration
+
+By default the forge app is set to `info` level logging, with the HTTP routes logged at `warn`
+
+Option        | Description
+--------------|------------
+`logging.level` | Change the default logging level. Default: `info`
+`logging.http`  | Change the default HTTP route logging level. Default: `warn`
+
+Setting `logging.http` to `info` will log every HTTP request and response details.
+

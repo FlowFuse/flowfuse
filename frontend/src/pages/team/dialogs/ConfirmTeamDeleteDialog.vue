@@ -1,7 +1,7 @@
 <template>
     <ff-dialog :open="isOpen" header="Delete Team" @close="close">
         <template v-slot:default>
-            <form class="space-y-6" v-if="team">
+            <form class="space-y-6" v-if="team" @submit.prevent>
                 <div class="space-y-6">
                     <p>
                         Are you sure you want to delete this team? Once deleted, there is no going back.

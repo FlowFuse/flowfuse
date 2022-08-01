@@ -1,7 +1,7 @@
 <template>
     <ff-dialog :open="isOpen" header="Remove User" @close="close">
         <template v-slot:default v-if="user">
-            <form class="space-y-6">
+            <form class="space-y-6" @submit.prevent>
                 <div class="mt-2 space-y-2">
                     <template v-if="ownerCount < 2 && user.role === 'owner'">
                         <p class="text-sm text-gray-500">You cannot remove <span class="font-bold">{{user.username}}</span> as
@@ -17,7 +17,7 @@
         </template>
         <template v-slot:actions>
             <ff-button kind="secondary" class="forge-button-secondary ml-4" @click="close()">Cancel</ff-button>
-            <ff-button kind="danger" :disabled="user && ownerCount < 2 && user.role === 'owner'" class="ml-4" @click="confirm()">Remove</ff-button>
+            <ff-button kind="danger" :disabled="disableConfirm" class="ml-4" @click="confirm()">Remove</ff-button>
         </template>
     </ff-dialog>
 </template>
@@ -39,14 +39,21 @@ export default {
     },
     methods: {
         async confirm () {
-            try {
-                await teamApi.removeTeamMember(this.team.id, this.user.id)
-                this.$emit('userRemoved', this.user)
-                alerts.emit(`User <${this.user.id}> successfully removed`, 'confirmation')
-            } catch (err) {
-                console.warn(err)
+            if (!this.disableConfirm) {
+                try {
+                    await teamApi.removeTeamMember(this.team.id, this.user.id)
+                    this.$emit('userRemoved', this.user)
+                    alerts.emit(`User <${this.user.id}> successfully removed`, 'confirmation')
+                } catch (err) {
+                    console.warn(err)
+                }
+                this.isOpen = false
             }
-            this.isOpen = false
+        }
+    },
+    computed: {
+        disableConfirm: function () {
+            return this.user && this.ownerCount < 2 && this.user.role === 'owner'
         }
     },
     setup () {

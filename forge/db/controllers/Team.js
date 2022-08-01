@@ -74,6 +74,9 @@ module.exports = {
                     throw new Error('Cannot remove last owner')
                 }
             }
+            if (user.defaultTeamId === team.id) {
+                await user.setDefaultTeam(null)
+            }
             await userRole.destroy()
             return true
             // console.warn('TODO: forge.db.controllers.Team.removeUser - expire oauth sessions')

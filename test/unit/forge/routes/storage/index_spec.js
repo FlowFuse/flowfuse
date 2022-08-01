@@ -31,9 +31,37 @@ describe('Storage API', function () {
     afterEach(async function () {
         await app.close()
     })
-
+    it('Rejects bad token', async function () {
+        const settingsURL = `/api/v1/projects/${app.project.id}/settings`
+        const response = await app.inject({
+            method: 'GET',
+            url: settingsURL,
+            headers: {
+                authorization: 'Bearer 123'
+            }
+        })
+        response.statusCode.should.equal(401)
+    })
+    it('Rejects missing token', async function () {
+        const settingsURL = `/api/v1/projects/${app.project.id}/settings`
+        const response = await app.inject({
+            method: 'GET',
+            url: settingsURL
+        })
+        response.statusCode.should.equal(401)
+    })
+    it('Rejects invalid project', async function () {
+        const settingsURL = '/api/v1/projects/123/settings'
+        const response = await app.inject({
+            method: 'GET',
+            url: settingsURL,
+            headers: {
+                authorization: `Bearer ${tokens.token}`
+            }
+        })
+        response.statusCode.should.equal(404)
+    })
     it('Get Settings', async function () {
-        this.timeout(10000)
         const settingsURL = `/api/v1/projects/${app.project.id}/settings`
         const response = await app.inject({
             method: 'GET',
@@ -48,7 +76,6 @@ describe('Storage API', function () {
     })
 
     it('Save Flow', async function () {
-        this.timeout(10000)
         const newFlow = [{ id: '1', type: 'tab', label: 'tab1', disabled: false, info: '' }]
         const flowURL = `/storage/${project.id}/flows`
         await app.inject({
@@ -71,7 +98,6 @@ describe('Storage API', function () {
     })
 
     it('Get Credentials', async function () {
-        this.timeout(10000)
         const credsURL = `/storage/${project.id}/credentials`
         const response = await app.inject({
             method: 'GET',
@@ -85,7 +111,6 @@ describe('Storage API', function () {
     })
 
     it('Save Credentials', async function () {
-        this.timeout(10000)
         const newCreds = [{ id: '1', type: 'tab', label: 'tab1', disabled: false, info: '' }]
         const credsURL = `/storage/${project.id}/credentials`
         await app.inject({
@@ -122,7 +147,6 @@ describe('Storage API', function () {
     })
 
     it('Save Settings', async function () {
-        this.timeout(10000)
         const newSettings = [{ id: '1', type: 'tab', label: 'tab1', disabled: false, info: '' }]
         const settingsURL = `/storage/${project.id}/settings`
         await app.inject({
@@ -160,7 +184,6 @@ describe('Storage API', function () {
     })
 
     it('Save Sessions', async function () {
-        this.timeout(10000)
         const newSessions = [{ id: '1', type: 'tab', label: 'tab1', disabled: false, info: '' }]
         const sessionURL = `/storage/${project.id}/sessions`
         await app.inject({
@@ -210,7 +233,6 @@ describe('Storage API', function () {
     })
 
     it('Add to Library with path', async function () {
-        this.timeout(10000)
         const funcText = '\nreturn msg;'
         const libraryURL = `/storage/${project.id}/library/functions`
         await app.inject({

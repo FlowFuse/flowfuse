@@ -11,18 +11,11 @@ describe('Broker Auth API', async function () {
         SUBSCRIBE: 4
     }
     async function setupCE () {
-        app = await setup({}, {
-            broker: {
-                url: ':test:'
-            }
-        })
+        app = await setup()
         await setupTestObjects()
     }
     async function setupEE () {
-        app = await setup({}, {
-            broker: {
-                url: ':test:'
-            },
+        app = await setup({
             license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkJlbiBIYXJkaWxsIiwibmJmIjoxNjQ4MTY2NDAwLCJleHAiOjE2Nzk3ODg3OTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsImRldiI6dHJ1ZSwiaWF0IjoxNjQ4MjA1MDA3fQ.2swXs50ZJgiQLA9MeoKIepN6BJGGnDqIUQ0FuKUadVjTcUzFekId5RaTpedi14f2iA7qC1w50Ym2egaBFSg1JA'
         })
         await setupTestObjects()

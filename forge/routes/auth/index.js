@@ -30,7 +30,7 @@ const SESSION_COOKIE_OPTIONS = {
 }
 
 module.exports = fp(async function (app, opts, done) {
-    await app.register(require('./oauth'), { logLevel: 'warn' })
+    await app.register(require('./oauth'), { logLevel: app.config.logging.http })
     await app.register(require('./permissions'))
 
     // WIP:
@@ -41,7 +41,7 @@ module.exports = fp(async function (app, opts, done) {
                 const scheme = parts[0]
                 const token = parts[1]
                 if (scheme !== 'Bearer') {
-                    throw new Error('Unsupported authorization scheme')
+                    reply.code(401).send({ error: 'unauthorized' })
                 }
                 if (/^ff[td]/.test(token)) {
                     const accessToken = await app.db.controllers.AccessToken.getOrExpire(token)
@@ -57,14 +57,12 @@ module.exports = fp(async function (app, opts, done) {
                     request.session = await app.db.controllers.Session.getOrExpire(token)
                     return
                 }
-                throw new Error(`bad token ${token}`)
+                reply.code(401).send({ error: 'unauthorized' })
             } else {
-                // return done(new Error("Malformed authorization header"))
-                throw new Error('Malformed authorization header')
+                reply.code(401).send({ error: 'unauthorized' })
             }
         } else {
-            // done(new Error("Missing authorization header"))
-            throw new Error('Missing authorization header')
+            reply.code(401).send({ error: 'unauthorized' })
         }
     }
 
@@ -72,15 +70,11 @@ module.exports = fp(async function (app, opts, done) {
 
     app.decorate('verifyTokenOrSession', async function (request, reply) {
         // Order is important, other way round breaks nr-auth plugin
-        try {
-            if (request.sid) {
-                await verifySession(request, reply)
-            } else if (request.headers && request.headers.authorization) {
-                await verifyToken(request, reply)
-            } else if (!request.context.config.allowAnonymous) {
-                reply.code(401).send({ error: 'unauthorized' })
-            }
-        } catch (err) {
+        if (request.sid) {
+            await verifySession(request, reply)
+        } else if (request.headers && request.headers.authorization) {
+            await verifyToken(request, reply)
+        } else if (!request.context.config.allowAnonymous) {
             reply.code(401).send({ error: 'unauthorized' })
         }
     })
@@ -174,7 +168,7 @@ module.exports = fp(async function (app, opts, done) {
                 }
             }
         },
-        logLevel: 'warn'
+        logLevel: app.config.logging.http
     }, async (request, reply) => {
         const result = await app.db.controllers.User.authenticateCredentials(request.body.username, request.body.password)
         if (result) {
@@ -197,7 +191,7 @@ module.exports = fp(async function (app, opts, done) {
      * @static
      * @memberof forge.routes.session
      */
-    app.post('/account/logout', { logLevel: 'warn' }, async (request, reply) => {
+    app.post('/account/logout', async (request, reply) => {
         if (request.sid) {
             // logout:nodered(step-1)
             const thisSession = await app.db.models.Session.findOne({
@@ -246,7 +240,7 @@ module.exports = fp(async function (app, opts, done) {
                 }
             }
         },
-        logLevel: 'warn'
+        logLevel: app.config.logging.http
     }, async (request, reply) => {
         if (!app.settings.get('user:signup') && !app.settings.get('team:user:invite:external')) {
             reply.code(400).send({ error: 'user registration not enabled' })
@@ -301,7 +295,7 @@ module.exports = fp(async function (app, opts, done) {
         }
     })
 
-    app.get('/account/verify/:token', { logLevel: 'warn' }, async (request, reply) => {
+    app.get('/account/verify/:token', async (request, reply) => {
         try {
             let sessionUser
             if (request.sid) {
@@ -338,7 +332,7 @@ module.exports = fp(async function (app, opts, done) {
         }
     })
 
-    app.post('/account/verify', { preHandler: app.verifySession, logLevel: 'warn' }, async (request, reply) => {
+    app.post('/account/verify', { preHandler: app.verifySession }, async (request, reply) => {
         if (!app.postoffice.enabled()) {
             reply.code(400).send({ error: 'email not configured' })
             return
@@ -368,7 +362,7 @@ module.exports = fp(async function (app, opts, done) {
                 }
             }
         },
-        logLevel: 'warn'
+        logLevel: app.config.logging.http
     }, async (request, reply) => {
         if (!app.settings.get('user:reset-password')) {
             reply.code(400).send({ error: 'password reset not enabled' })
@@ -403,7 +397,7 @@ module.exports = fp(async function (app, opts, done) {
                 }
             }
         },
-        logLevel: 'warn'
+        logLevel: app.config.logging.http
     }, async (request, reply) => {
         if (!app.settings.get('user:reset-password')) {
             reply.code(400).send({ error: 'password reset not enabled' })

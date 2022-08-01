@@ -18,7 +18,7 @@ module.exports = fp(async function (app, _opts, next) {
     // to use the MQTT broker service
     if (app.config.broker && app.config.broker.url) {
         // Register the authentication routes the broker will be using
-        await app.register(require('./authRoutes'), { prefix: '/api/comms/auth', logLevel: 'warn' })
+        await app.register(require('./authRoutes'), { prefix: '/api/comms/auth', logLevel: app.config.logging.http })
 
         // Ensure we have a BrokerClient object (auth details) for use by the platform
         await app.db.controllers.BrokerClient.ensurePlatformClient()

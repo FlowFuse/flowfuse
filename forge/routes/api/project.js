@@ -628,6 +628,7 @@ module.exports = async function (app) {
         settings.env = settings.env || {}
         settings.baseURL = request.project.url
         settings.forgeURL = app.config.base_url
+        settings.teamID = request.project.Team.hashid
         settings.storageURL = request.project.storageURL
         settings.auditURL = request.project.auditURL
         settings.state = request.project.state
