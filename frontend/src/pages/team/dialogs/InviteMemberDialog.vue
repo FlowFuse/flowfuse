@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" header="Invite Team Member" confirm-label="Invite" @confirm="confirm()" :disable-primary="disabledConfirm">
+    <ff-dialog ref="dialog" header="Invite Team Member" confirm-label="Invite" @confirm="confirm()" :disable-primary="disableConfirm">
         <template v-slot:default>
             <form class="space-y-6" @submit.prevent>
                 <div class="space-y-2">
