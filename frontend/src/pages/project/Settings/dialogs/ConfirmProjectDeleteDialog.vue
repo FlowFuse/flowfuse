@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog header="Delete Project" :open="isOpen">
+    <ff-dialog ref="dialog" header="Delete Project" kind="danger" confirm-label="Delete" :disable-primary="!formValid" @confirm="confirm()">
         <template v-slot:default>
             <form class="space-y-6" @submit.prevent>
                 <div class="mt-2 space-y-2">
@@ -14,15 +14,10 @@
                 <FormRow v-model="input.projectName" id="projectName">Name</FormRow>
             </form>
         </template>
-        <template v-slot:actions>
-            <ff-button kind="secondary" @click="close()">Cancel</ff-button>
-            <ff-button kind="danger" :disabled="!formValid" class="ml-4" @click="confirm()">Delete</ff-button>
-        </template>
     </ff-dialog>
 </template>
 
 <script>
-import { ref } from 'vue'
 
 import FormRow from '@/components/FormRow'
 
@@ -52,20 +47,14 @@ export default {
         confirm () {
             if (this.formValid) {
                 this.$emit('deleteProject')
-                this.isOpen = false
             }
         }
     },
     setup () {
-        const isOpen = ref(false)
         return {
-            isOpen,
-            close () {
-                isOpen.value = false
-            },
             show (project) {
+                this.$refs.dialog.show()
                 this.project = project
-                isOpen.value = true
             }
         }
     }

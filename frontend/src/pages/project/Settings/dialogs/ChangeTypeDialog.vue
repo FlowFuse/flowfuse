@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog header="Change Project Type" :open="isOpen">
+    <ff-dialog ref="dialog" header="Change Project Type" :disable-primary="!formValid" confirm-label="Set Project Type" @confirm="confirm()">
         <template v-slot:default>
             <form class="space-y-6" @submit.prevent>
                 <p>
@@ -18,15 +18,10 @@
                 </ul>
             </form>
         </template>
-        <template v-slot:actions>
-            <ff-button kind="secondary" @click="close()">Cancel</ff-button>
-            <ff-button class="ml-4" :disabled="!formValid" @click="confirm()">Set Project Type</ff-button>
-        </template>
     </ff-dialog>
 </template>
 
 <script>
-import { ref } from 'vue'
 
 import projectTypesApi from '@/api/projectTypes'
 import ProjectTypeSummary from '../../../team/components/ProjectTypeSummary'
@@ -49,7 +44,6 @@ export default {
         confirm () {
             if (this.formValid) {
                 this.$emit('changeType', this.input.projectType)
-                this.isOpen = false
             }
         }
     },
@@ -59,17 +53,11 @@ export default {
         }
     },
     setup () {
-        const isOpen = ref(false)
-
         return {
-            isOpen,
-            close () {
-                isOpen.value = false
-            },
             async show (project) {
+                this.$refs.dialog.show()
                 this.project = project
                 this.input.projectType = this.project.projectType
-                isOpen.value = true
                 const projectTypes = await projectTypesApi.getProjectTypes()
                 this.projectTypes = projectTypes.types
             }
