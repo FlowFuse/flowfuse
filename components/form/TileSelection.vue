@@ -45,6 +45,17 @@ export default {
         registerOption: function (child) {
             this.children.push(child)
         }
+    },
+    mounted () {
+        this.$nextTick(() => {
+            for (let i = 0; i < this.children.length; i++) {
+                if (this.modelValue !== this.children[i].value) {
+                    this.children[i].selected = false
+                } else {
+                    this.children[i].selected = true
+                }
+            }
+        })
     }
 }
 </script>
