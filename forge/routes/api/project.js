@@ -611,6 +611,7 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.project
      */
     app.get('/:projectId/settings', {
+        config: { allowToken: true },
         preHandler: (request, reply, done) => {
             // check accessToken is project scope
             if (request.session.ownerType !== 'project') {

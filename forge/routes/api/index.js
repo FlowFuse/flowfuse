@@ -17,7 +17,7 @@ const Device = require('./device.js')
 const ProjectType = require('./projectType.js')
 
 module.exports = async function (app) {
-    app.addHook('preHandler', app.verifyTokenOrSession)
+    app.addHook('preHandler', app.verifySession)
     app.decorate('getPaginationOptions', (request, defaults) => {
         const result = { ...defaults }
         if (request.query.limit !== undefined) {

@@ -15,7 +15,7 @@
             </main>
         </template>
         <!-- Platform Entry Point -->
-        <template v-else-if="user && !user.password_expired">
+        <template v-else-if="user && !user.password_expired && user.email_verified">
             <ff-layout-platform>
                 <router-view></router-view>
             </ff-layout-platform>
@@ -23,6 +23,10 @@
         <!-- Password Reset Required -->
         <template v-else-if="user && user.password_expired">
             <PasswordExpired/>
+        </template>
+        <!-- Email Verification Required -->
+        <template v-else-if="user && !user.email_verified">
+            <UnverifiedEmail/>
         </template>
         <template v-else-if="!loginRequired">
             <router-view></router-view>
@@ -40,7 +44,7 @@ import Login from '@/pages/Login.vue'
 import Loading from '@/components/Loading'
 import Offline from '@/components/Offline'
 import PasswordExpired from '@/pages/PasswordExpired.vue'
-
+import UnverifiedEmail from '@/pages/UnverifiedEmail.vue'
 import FFLayoutPlatform from '@/layouts/Platform.vue'
 
 export default {
@@ -54,13 +58,13 @@ export default {
     components: {
         Login,
         PasswordExpired,
+        UnverifiedEmail,
         Loading,
         Offline,
         'ff-layout-platform': FFLayoutPlatform
     },
     mounted () {
         this.$store.dispatch('account/checkState')
-        this.$store.dispatch('account/countNotifications')
     }
 }
 </script>

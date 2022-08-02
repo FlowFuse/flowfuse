@@ -68,17 +68,6 @@ module.exports = fp(async function (app, opts, done) {
 
     app.decorate('verifyToken', verifyToken)
 
-    app.decorate('verifyTokenOrSession', async function (request, reply) {
-        // Order is important, other way round breaks nr-auth plugin
-        if (request.sid) {
-            await verifySession(request, reply)
-        } else if (request.headers && request.headers.authorization) {
-            await verifyToken(request, reply)
-        } else if (!request.context.config.allowAnonymous) {
-            reply.code(401).send({ error: 'unauthorized' })
-        }
-    })
-
     /**
      * preHandler function that ensures the current request comes from an active
      * session.
@@ -95,10 +84,16 @@ module.exports = fp(async function (app, opts, done) {
         if (request.sid) {
             request.session = await app.db.controllers.Session.getOrExpire(request.sid)
             if (request.session && request.session.User) {
-                return
+                if (!app.postoffice.enabled() || request.session.User.email_verified || request.context.config.allowUnverifiedEmail) {
+                    return
+                }
             }
         }
         if (request.context.config.allowAnonymous) {
+            return
+        }
+        if (request.context.config.allowToken) {
+            await verifyToken(request, reply)
             return
         }
         reply.code(401).send({ error: 'unauthorized' })
@@ -332,7 +327,7 @@ module.exports = fp(async function (app, opts, done) {
         }
     })
 
-    app.post('/account/verify', { preHandler: app.verifySession }, async (request, reply) => {
+    app.post('/account/verify', { preHandler: app.verifySession, config: { allowUnverifiedEmail: true } }, async (request, reply) => {
         if (!app.postoffice.enabled()) {
             reply.code(400).send({ error: 'email not configured' })
             return
