@@ -2,7 +2,7 @@
     <div>
         <form class="space-y-6">
             <div class="text-right"></div>
-            <ff-data-table :columns="inviteColumns" :rows="invitations">
+            <ff-data-table :columns="inviteColumns" :rows="invitations" :show-search="true" search-placeholder="Search Invites...">
                 <template v-slot:context-menu="{row}">
                     <ff-list-item label="Remove Invite" kind="danger" @click="removeInvite(row)"/>
                 </template>
@@ -41,7 +41,6 @@ export default {
         async fetchData () {
             const invitations = await adminApi.getInvitations()
             if (invitations.invitations.length > 0) {
-                console.log('length')
                 this.invitations = invitations.invitations.map(invite => {
                     invite.teamName = invite.team.name
                     invite.onremove = (teamId, inviteId) => { this.removeInvite(teamId, inviteId) }
