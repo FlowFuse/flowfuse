@@ -253,10 +253,10 @@
                 <div class="examples">
                     <div class="example">
                         <ff-button @click="$refs['dialog0'].show()">Show Dialog</ff-button>
-                        <ff-dialog ref="dialog0" header="My Dialog Box">
+                        <ff-dialog ref="dialog0" header="My Dialog Box" :disable-primary="!models.dialog0">
                             <p style="margin-bottom: 12px">The main message for the dialog box goes here. We can put any elements we like here.
                             For example, a text input:</p>
-                            <ff-text-input placeholder="My Text Input"/>
+                            <ff-text-input placeholder="My Text Input" v-model="models.dialog0"/>
                         </ff-dialog>
                         <code>{{ groups['dialog'].components[0].examples[0].code }}</code>
                     </div>
@@ -575,6 +575,7 @@ export default {
         return {
             theme: 'light',
             models: {
+                dialog0: '',
                 textInput0: '',
                 dropdown0: null,
                 dropdown1: null,

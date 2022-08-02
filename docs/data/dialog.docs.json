@@ -5,7 +5,7 @@
     "components": [{
         "name": "ff-dialog",
         "examples": [{
-            "code": "<ff-button @click=\"$refs['dialog0'].show()\">Show Dialog</ff-button>\n<ff-dialog ref=\"dialog0\" header=\"My Dialog Box\" @confirm=\"doSomething()\">\n\t<p style=\"margin-bottom: 12px\">\n\t\tThe main message for the dialog box goes here.\n\t\tWe can put any elements we like here. For example, a text input:\n\t</p>\n\t<ff-text-input placeholder=\"My Text Input\"/>\n</ff-dialog>"
+            "code": "<ff-button @click=\"$refs['dialog0'].show()\">Show Dialog</ff-button>\n<ff-dialog ref=\"dialog0\" header=\"My Dialog Box\" @confirm=\"doSomething()\" :disable-primary=\"!myInput\">\n\t<p style=\"margin-bottom: 12px\">\n\t\tThe main message for the dialog box goes here.\n\t\tWe can put any elements we like here. For example, a text input:\n\t</p>\n\t<ff-text-input placeholder=\"My Text Input\" v-model=\"myInput\"/>\n</ff-dialog>"
         }, {
             "code": "<ff-button @click=\"$refs['dialog1'].show()\">Show Delete Dialog</ff-button>\n<ff-dialog ref=\"dialog1\" header=\"My Other Dialog Box\" @confirm=\"doSomething()\" confirm-label=\"Delete\" kind=\"danger\">\n\tAre you sure you want to delete this?\n</ff-dialog>"
         }, {
@@ -23,6 +23,10 @@
             "key": "kind",
             "default": "primary",
             "description": "The 'kind' to set on the primary button. Recommended as 'primary' or 'danger'."
+        }, {
+            "key": "disable-primary",
+            "default": "false",
+            "description": "Boolean to control the disabled state of the primary confirm button."
         }],
         "slots": [{
             "name": "default",

@@ -8,7 +8,7 @@
             <div class="ff-dialog-actions">
                 <slot name="actions">
                     <ff-button @click="cancel()" kind="secondary">Cancel</ff-button>
-                    <ff-button @click="confirm()" :kind="kind">{{ confirmLabel }}</ff-button>
+                    <ff-button @click="confirm()" :kind="kind" :disabled="disablePrimary">{{ confirmLabel }}</ff-button>
                 </slot>
             </div>
         </div>
@@ -30,6 +30,10 @@ export default {
         confirmLabel: {
             type: String,
             default: 'Confirm'
+        },
+        disablePrimary: {
+            type: Boolean,
+            default: false
         },
         kind: {
             type: String,
