@@ -29,7 +29,8 @@
                     <span class="block text-xs ml-4 italic text-gray-500 m-0 max-w-sm">Please note, currently, project names cannot be changed once a project is created</span>
                 </div>
                 <div v-if="this.errors.projectTypes" class="text-red-400 text-xs">{{errors.projectTypes}}</div>
-                <ul v-else class="flex flex-wrap gap-1 items-stretch">
+                <!-- Project Type -->
+                <div v-else class="flex flex-wrap gap-1 items-stretch">
                     <label class="w-full block text-sm font-medium text-gray-700 mb-1">Project Type</label>
                     <ff-tile-selection v-model="input.projectType" >
                         <ff-tile-selection-option v-for="(projType, index) in projectTypes" :key="index"
@@ -38,8 +39,20 @@
                                                   :price-interval="projType.properties?.billingDescription?.split('/')[1]"
                                                   :value="projType.id"/>
                     </ff-tile-selection>
-                </ul>
-                <FormRow :options="stacks" :error="errors.stack" v-model="input.stack" id="stack">Stack</FormRow>
+                </div>
+                <!-- Stack -->
+                <!-- <FormRow :options="stacks" :error="errors.stack" v-model="input.stack" id="stack">Stack</FormRow> -->
+                <div class="flex flex-wrap gap-1 items-stretch">
+                    <label class="w-full block text-sm font-medium text-gray-700 mb-1">Stack</label>
+                    <label v-if="!input.projectType" class="text-sm text-gray-400">Please select a Project Type first.</label>
+                    <label v-if="input.projectType && !stacks.length" class="text-sm text-gray-400">This Project Type has no Stacks assigned. Please contact the administrator.</label>
+                    <ff-tile-selection v-if="input.projectType" v-model="input.stack" >
+                        <ff-tile-selection-option v-for="(stack, index) in stacks" :key="index"
+                                                  :value="stack.id" :label="stack.name"
+                                                  :meta="[{key: 'Node-RED Version', value: stack.properties.nodered}, {key: 'Memory (MB)', value: stack.properties.memory}]"/>
+                    </ff-tile-selection>
+                </div>
+                <!-- Template -->
                 <FormRow :options="templates" :disabled="isCopyProject" :error="errors.template" v-model="input.template" id="template">Template</FormRow>
                 <template v-if="isCopyProject">
                     <p class="text-gray-500">
@@ -141,12 +154,12 @@ export default {
             }
         },
         'input.projectType': async function (value, oldValue) {
-            console.log(value)
             if (value) {
                 const projectType = this.projectTypes.find(pt => pt.id === value)
                 this.billingDescription = projectType.properties?.billingDescription || ''
                 const stackList = await stacksApi.getStacks(null, null, null, value)
-                this.stacks = stackList.stacks.filter(stack => stack.active).map(stack => { return { value: stack.id, label: stack.name } })
+                this.stacks = stackList.stacks.filter(stack => stack.active)
+                this.input.stack = null
                 if (this.stacks.length === 0) {
                     this.errors.stack = 'No stacks available. Ask an Administator to create a new stack definition'
                 } else {

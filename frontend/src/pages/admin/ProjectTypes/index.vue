@@ -41,7 +41,6 @@ import ProjectTypeEditButton from './components/ProjectTypeEditButton'
 import ProjectTypeEditDialog from './dialogs/ProjectTypeEditDialog'
 import ProjectTypeDeleteDialog from './dialogs/ProjectTypeDeleteDialog'
 import ProjectTypeDescriptionCell from './components/ProjectTypeDescriptionCell'
-import ProjectTypeSummary from '../../team/components/ProjectTypeSummary'
 import { PlusSmIcon } from '@heroicons/vue/outline'
 
 const marked = require('marked')
@@ -157,9 +156,7 @@ export default {
         ItemTable,
         PlusSmIcon,
         ProjectTypeEditDialog,
-        ProjectTypeDeleteDialog,
-        ProjectTypeSummary,
-        ProjectTypeEditButton
+        ProjectTypeDeleteDialog
     }
 }
 </script>
