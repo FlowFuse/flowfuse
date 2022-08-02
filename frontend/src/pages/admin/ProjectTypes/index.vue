@@ -10,34 +10,13 @@
                 </ff-button>
             </template>
         </FormHeading>
-        <ul class="flex flex-wrap gap-1 items-stretch">
-            <li v-for="(projType, index) in activeProjectTypes" :key="index">
-                <ProjectTypeSummary :projectType="projType">
-                    <template v-slot:footer>
-                        <hr class="border border-gray-300 mb-1" />
-                        <table class="text-sm">
-                            <tr><td>Stack Count</td><td class="flex flex-row">{{projType.stackCount}}</td></tr>
-                            <tr><td>Project Count</td><td>{{projType.projectCount}}</td></tr>
-                        </table>
-                        <div class="text-right mt-2">
-                            <ProjectTypeEditButton :id="projType.id" @projectTypeAction="projectTypeAction"></ProjectTypeEditButton>
-                        </div>
-                    </template>
-                </ProjectTypeSummary>
-            </li>
-            <li>
-                <div class="flex flex-col border-2 border-gray-300 border-dashed bg-gray-100 p-3 w-52 h-full" style="min-height: 250px">
-                    <div class="flex justify-center items-center h-full">
-                        <ff-button kind="secondary" @click="showCreateProjectTypeDialog">
-                            <template v-slot:icon>
-                                <PlusSmIcon />
-                            </template>
-                        </ff-button>
-                    </div>
-                </div>
-            </li>
-        </ul>
-
+        <ff-tile-selection>
+            <ff-tile-selection-option v-for="(projType, index) in activeProjectTypes" :key="index"
+                                      :editable="true" @edit="showEditProjectTypeDialog(projType)" :price="projType.properties?.billingDescription?.split('/')[0]"
+                                      :price-interval="projType.properties?.billingDescription?.split('/')[1]"
+                                      :label="projType.name" :description="projType.description"
+                                      :meta="[{key: 'Project Count', value: projType.projectCount}, {key: 'Stack Count', value: projType.stackCount}]"/>
+        </ff-tile-selection>
         <div v-if="nextCursor">
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
         </div>
@@ -47,8 +26,9 @@
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
         </div>
     </form>
-    <ProjectTypeEditDialog @projectTypeCreated="projectTypeCreated" @projectTypeUpdated="projectTypeUpdated" ref="adminProjectTypeEditDialog"/>
-    <ProjectTypeDeleteDialog @deleteProjectType="deleteProjectType" ref="adminProjectTypeDeleteDialog" />
+    <ProjectTypeEditDialog ref="adminProjectTypeEditDialog" @projectTypeCreated="projectTypeCreated"
+                           @projectTypeUpdated="projectTypeUpdated" @showDeleteDialog="showConfirmProjectTypeDeleteDialog"/>
+    <ProjectTypeDeleteDialog ref="adminProjectTypeDeleteDialog" @deleteProjectType="deleteProjectType" />
 </template>
 
 <script>
@@ -132,6 +112,7 @@ export default {
             this.$refs.adminProjectTypeDeleteDialog.show(projectType)
         },
         async deleteProjectType (projectType) {
+            console.log(projectType)
             await projectTypesApi.deleteProjectType(projectType.id)
             const index = this.projectTypes.findIndex(pt => pt.id === projectType.id)
             this.projectTypes.splice(index, 1)

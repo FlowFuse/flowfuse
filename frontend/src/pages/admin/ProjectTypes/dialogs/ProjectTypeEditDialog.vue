@@ -1,6 +1,7 @@
 <template>
-    <ff-dialog ref="dialog" :header="dialogTitle" :confirm-label="projectType ? 'Update' : 'Create'" @confirm="confirm()" :disable-primary="!formValid">
+    <ff-dialog ref="dialog" :header="dialogTitle">
         <template v-slot:default>
+            type: {{ projectType ? 'update' : 'create '}}
             <form class="space-y-6 mt-2" @submit.prevent>
                 <FormRow v-model="input.name" :error="errors.name">Name</FormRow>
                 <FormRow v-model="input.active" type="checkbox">Active</FormRow>
@@ -32,6 +33,17 @@
                 </FormRow>
             </form>
         </template>
+        <template v-slot:actions>
+            <div class="w-full grow flex justify-between">
+                <div>
+                    <ff-button v-if="projectType" kind="danger" style="margin: 0;" @click="$emit('showDeleteDialog', projectType); $refs.dialog.close()">Delete Project Type</ff-button>
+                </div>
+                <div class="flex">
+                    <ff-button kind="secondary" @click="$refs['dialog'].close()">Cancel</ff-button>
+                    <ff-button @click="confirm(); $refs.dialog.close()" :disabled="!formValid">{{ projectType ? 'Update' : 'Create' }}</ff-button>
+                </div>
+            </div>
+        </template>
     </ff-dialog>
 </template>
 
@@ -46,6 +58,7 @@ import { mapState } from 'vuex'
 
 export default {
     name: 'AdminProjectTypeCreateDialog',
+    emits: ['projectTypeUpdated', 'projectTypeCreated', 'showDeleteDialog'],
     components: {
         FormRow,
         FormHeading

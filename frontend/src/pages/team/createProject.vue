@@ -30,15 +30,14 @@
                 </div>
                 <div v-if="this.errors.projectTypes" class="text-red-400 text-xs">{{errors.projectTypes}}</div>
                 <ul v-else class="flex flex-wrap gap-1 items-stretch">
-                    <li v-for="(projType, index) in projectTypes" :key="index">
-                        <ProjectTypeSummary :projectType="projType">
-                            <template v-slot:header>
-                                <div class="absolute">
-                                    <input type="radio" name="project-type" :value="projType.id" v-model="input.projectType">
-                                </div>
-                            </template>
-                        </ProjectTypeSummary>
-                    </li>
+                    <label class="w-full block text-sm font-medium text-gray-700 mb-1">Project Type</label>
+                    <ff-tile-selection v-model="input.projectType" >
+                        <ff-tile-selection-option v-for="(projType, index) in projectTypes" :key="index"
+                                                  :label="projType.name" :description="projType.description"
+                                                  :price="projType.properties?.billingDescription?.split('/')[0]"
+                                                  :price-interval="projType.properties?.billingDescription?.split('/')[1]"
+                                                  :value="projType.id"/>
+                    </ff-tile-selection>
                 </ul>
                 <FormRow :options="stacks" :error="errors.stack" v-model="input.stack" id="stack">Stack</FormRow>
                 <FormRow :options="templates" :disabled="isCopyProject" :error="errors.template" v-model="input.template" id="template">Template</FormRow>
@@ -82,7 +81,6 @@ import { RefreshIcon } from '@heroicons/vue/outline'
 import { Roles } from '@core/lib/roles'
 
 import ExportProjectComponents from '../project/components/ExportProjectComponents'
-import ProjectTypeSummary from './components/ProjectTypeSummary'
 
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
 
@@ -143,6 +141,7 @@ export default {
             }
         },
         'input.projectType': async function (value, oldValue) {
+            console.log(value)
             if (value) {
                 const projectType = this.projectTypes.find(pt => pt.id === value)
                 this.billingDescription = projectType.properties?.billingDescription || ''
@@ -247,7 +246,6 @@ export default {
         FormRow,
         RefreshIcon,
         ExportProjectComponents,
-        ProjectTypeSummary,
         SectionTopMenu,
         NavItem,
         SideNavigation

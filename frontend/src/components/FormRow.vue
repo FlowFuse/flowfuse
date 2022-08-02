@@ -52,7 +52,7 @@
                     <slot name="input"></slot>
                 </template>
                 <template v-else-if="type==='uneditable'">
-                    <div class="w-full uneditable" :class="inputClass">{{modelValue}}</div>
+                    <div class="w-full uneditable" :class="inputClass">{{ modelValue || 'No Value' }}</div>
                 </template>
                 <template v-else>
                     <ff-text-input
