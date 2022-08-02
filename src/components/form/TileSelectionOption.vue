@@ -77,12 +77,12 @@ export default {
     methods: {
         select () {
             if (!this.editable) {
-                this.$parent.value = {
+                this.$parent.setSelected({
                     value: this.value,
                     label: this.label,
                     description: this.description,
                     price: this.price
-                }
+                })
                 this.selected = !this.selected
             }
         }
