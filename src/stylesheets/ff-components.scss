@@ -406,7 +406,7 @@ li.ff-list-item {
     background-color: $ff-white;
     border: 2px solid $ff-grey-300;
     border-radius: $ff-unit-sm;
-    padding: $ff-unit-md $ff-unit-lg 12px;
+    padding: 12px $ff-unit-lg;
     margin-right: $ff-unit-md;
     width: 275px;
     ul {
@@ -423,8 +423,7 @@ li.ff-list-item {
     &--header {
       display: flex;
       justify-content: space-between;
-      align-items: end;
-      margin-bottom: 3px;
+      align-items: center;
       h2 {
         font-size: 16px;
       }
@@ -460,11 +459,14 @@ li.ff-list-item {
     }
     &--description {
       flex-grow: 1;
+      margin-top: $ff-unit-md;
+      padding-top: $ff-unit-md;
+      border-top: 1px solid $ff-grey-300;
     }
     &--meta {
       margin-top: $ff-unit-md;
       padding-top: $ff-unit-md;
-      border-top: 1px solid $ff-grey-400;
+      border-top: 1px solid $ff-grey-300;
       >div {
         display: flex;
         justify-content: space-between;
