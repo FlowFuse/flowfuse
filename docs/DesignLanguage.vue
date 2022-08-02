@@ -420,11 +420,10 @@
                     </div>
                     <div class="example">
                         <ff-tile-selection v-model="models.tiles3">
-                            <ff-tile-selection-option value="1" label="Option 1" :description="'Markdown supported in the description, consectetur adipiscing elit ut aliquam'" price="$15.00" price-interval="/month"/>
-                            <ff-tile-selection-option :disabled="true" value="2" label="Option 2" :description="'The second option is disabled.'" price="$50.00" price-interval="/month"/>
-                            <ff-tile-selection-option value="3" label="Option 3" :description="'The third option.'" price="$50.00" price-interval="/month"/>
+                            <ff-tile-selection-option :value="1" label="Option 1" :description="'Markdown supported in the description, consectetur adipiscing elit ut aliquam'" price="$15.00" price-interval="/month"/>
+                            <ff-tile-selection-option :disabled="true" :value="2" label="Option 2" :description="'The second option is disabled.'" price="$50.00" price-interval="/month"/>
+                            <ff-tile-selection-option :value="3" label="Option 3" :description="'The third option.'" price="$50.00" price-interval="/month"/>
                         </ff-tile-selection>
-                        {{ models.titles3 }}
                         <code>{{ groups['input'].components[4].examples[3].code }}</code>
                     </div>
                 </div>
@@ -583,7 +582,7 @@ export default {
                 radio1: null,
                 tiles0: null,
                 tiles1: null,
-                tiles3: null
+                tiles3: 3
             },
             groups: {
                 button: buttonDocs,
