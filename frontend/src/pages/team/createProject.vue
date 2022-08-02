@@ -45,7 +45,7 @@
                 <div class="flex flex-wrap gap-1 items-stretch">
                     <label class="w-full block text-sm font-medium text-gray-700 mb-1">Stack</label>
                     <label v-if="!input.projectType" class="text-sm text-gray-400">Please select a Project Type first.</label>
-                    <label v-if="input.projectType && !stacks.length" class="text-sm text-gray-400">This Project Type has no Stacks assigned. Please contact the administrator.</label>
+                    <label v-if="errors.stack" class="text-sm text-gray-400">{{ errors.stack }}</label>
                     <ff-tile-selection v-if="input.projectType" v-model="input.stack" >
                         <ff-tile-selection-option v-for="(stack, index) in stacks" :key="index"
                                                   :value="stack.id" :label="stack.name"
@@ -53,7 +53,18 @@
                     </ff-tile-selection>
                 </div>
                 <!-- Template -->
-                <FormRow :options="templates" :disabled="isCopyProject" :error="errors.template" v-model="input.template" id="template">Template</FormRow>
+                <div class="flex flex-wrap gap-1 items-stretch">
+                    <label class="w-full block text-sm font-medium text-gray-700 mb-1">Template</label>
+                    <label v-if="!input.projectType && !input.stack" class="text-sm text-gray-400">Please select a Project Type &amp; Stack first.</label>
+                    <label v-if="errors.template" class="text-sm text-gray-400">{{ errors.template }}</label>
+                    <ff-tile-selection v-if="input.projectType" v-model="input.template" >
+                        <ff-tile-selection-option v-for="(t, index) in templates" :key="index"
+                                                  :value="t.id" :disabled="isCopyProject"
+                                                  :label="t.name" :description="t.description"/>
+                    </ff-tile-selection>
+                </div>
+                <!-- <FormRow :options="templates" :disabled="isCopyProject" :error="errors.template" v-model="input.template" id="template">Template</FormRow> -->
+                <!-- Is Copy Project -->
                 <template v-if="isCopyProject">
                     <p class="text-gray-500">
                         Select the components to copy from '{{this.sourceProject?.name}}'
@@ -196,7 +207,7 @@ export default {
         this.projectTypes = projectTypes.types
 
         const templateList = await templatesApi.getTemplates()
-        this.templates = templateList.templates.filter(template => template.active).map(template => { return { value: template.id, label: template.name } })
+        this.templates = templateList.templates.filter(template => template.active)
 
         this.init = true
 
