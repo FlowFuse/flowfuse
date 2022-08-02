@@ -21,12 +21,26 @@ module.exports.init = function (app) {
             'sub',
             { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/in\/[^/]+($|\/.*$)$/, verify: 'checkTeamAndObjectIds' }
         )
+        // Receive link-call response messages sent to this project
+        // - ff/v1/<team>/p/<project>/res/+/#
+        app.comms.aclManager.addACL(
+            'project',
+            'sub',
+            { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/res\/[^/]+($|\/.*$)$/, verify: 'checkTeamAndObjectIds' }
+        )
         // Send message to other project
         // - ff/v1/<team>/p/+/in/+/#
         app.comms.aclManager.addACL(
             'project',
             'pub',
             { topic: /^ff\/v1\/([^/]+)\/p\/[^/]+\/in\/[^/]+($|\/.*$)/, verify: 'checkTeamId' }
+        )
+        // Send link-call response messages to other project
+        // - ff/v1/<team>/p/+/res/+/#
+        app.comms.aclManager.addACL(
+            'project',
+            'pub',
+            { topic: /^ff\/v1\/([^/]+)\/p\/[^/]+\/res\/[^/]+($|\/.*$)/, verify: 'checkTeamId' }
         )
         // Send broadcast messages
         // - ff/v1/<team>/p/<project>/out/+/#
@@ -52,6 +66,13 @@ module.exports.init = function (app) {
             'sub',
             { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/in\/[^/]+($|\/.*$)$/, verify: 'checkDeviceAssignedToProject' }
         )
+        // Receive link-call response messages sent to this project
+        // - ff/v1/<team>/p/<project>/res/+/#
+        app.comms.aclManager.addACL(
+            'device',
+            'sub',
+            { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/res\/[^/]+($|\/.*$)$/, verify: 'checkDeviceAssignedToProject' }
+        )
 
         // Send message to other project
         // - ff/v1/<team>/p/+/in/+/#
@@ -66,6 +87,13 @@ module.exports.init = function (app) {
             'device',
             'pub',
             { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/out\/[^/]+($|\/.*$)/, verify: 'checkDeviceAssignedToProject' }
+        )
+        // Send link-call response messages to other project
+        // - ff/v1/<team>/p/+/res/+/#
+        app.comms.aclManager.addACL(
+            'device',
+            'pub',
+            { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/res\/[^/]+($|\/.*$)/, verify: 'checkDeviceCanAccessProject' }
         )
     }
 }

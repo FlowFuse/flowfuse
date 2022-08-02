@@ -284,7 +284,7 @@ describe('Broker Auth API', async function () {
                         topic: 'ff/v1/abc/p/another-project/out/foo/bar'
                     })
                 })
-                it('project canonot subscribe to own inbox', async function () {
+                it('project cannot subscribe to own inbox', async function () {
                     await denyRead({
                         username: 'project:abc:xyz',
                         topic: 'ff/v1/abc/p/xyz/in'
@@ -326,6 +326,50 @@ describe('Broker Auth API', async function () {
                     await denyWrite({
                         username: 'project:abc:xyz',
                         topic: 'ff/v1/abc/p/another-project/in/foo/bar'
+                    })
+                })
+                it('project cannot subscribe to own response topic', async function () {
+                    await denyRead({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/xyz/res'
+                    })
+                    await denyRead({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/xyz/res/'
+                    })
+                    await denyRead({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/xyz/res/foo'
+                    })
+                    await denyRead({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/xyz/res/foo/bar'
+                    })
+                    await denyRead({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/xyz/res/#'
+                    })
+                })
+                it('project cannot publish to another projects response topic', async function () {
+                    await denyWrite({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/another-project/res'
+                    })
+                    await denyWrite({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/another-project/res/'
+                    })
+                    await denyWrite({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/another-project/res/foo'
+                    })
+                    await denyWrite({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/another-project/res/foo/'
+                    })
+                    await denyWrite({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/another-project/res/foo/bar'
                     })
                 })
             })
@@ -471,6 +515,50 @@ describe('Broker Auth API', async function () {
                         topic: 'ff/v1/abc/p/another-project/in/foo/bar'
                     })
                 })
+                it('allows project to subscribe to own response topic', async function () {
+                    await denyRead({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/xyz/res'
+                    })
+                    await denyRead({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/xyz/res/'
+                    })
+                    await allowRead({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/xyz/res/foo'
+                    })
+                    await allowRead({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/xyz/res/foo/bar'
+                    })
+                    await allowRead({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/xyz/res/#'
+                    })
+                })
+                it('allows project to publish to another projects response topic', async function () {
+                    await denyWrite({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/another-project/res'
+                    })
+                    await denyWrite({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/another-project/res/'
+                    })
+                    await allowWrite({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/another-project/res/foo'
+                    })
+                    await allowWrite({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/another-project/res/foo/'
+                    })
+                    await allowWrite({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/another-project/res/foo/bar'
+                    })
+                })
             })
         })
 
@@ -602,6 +690,12 @@ describe('Broker Auth API', async function () {
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectA.id}/out/foo`
                         })
                     })
+                    it('cannot publish to project response if unassigned', async function () {
+                        await denyWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectB.id}/res/foo`
+                        })
+                    })
                 })
                 describe('assigned', async function () {
                     before(async function () {
@@ -638,10 +732,16 @@ describe('Broker Auth API', async function () {
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectB.id}/in/foo`
                         })
                     })
-                    it('can publish to project output if unassigned', async function () {
+                    it('can publish to project output if assigned', async function () {
                         await allowWrite({
                             username: deviceUsername,
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectA.id}/out/foo`
+                        })
+                    })
+                    it('can publish to project response if assigned', async function () {
+                        await allowWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectB.id}/res/foo`
                         })
                     })
                 })
