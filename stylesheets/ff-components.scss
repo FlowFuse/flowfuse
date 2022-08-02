@@ -433,11 +433,18 @@ li.ff-list-item {
         align-items: center;
         gap: $ff-unit-md;
         padding-right: $ff-unit-xl;
-        margin-top: 0;
+        margin: 0;
         svg {
           width: 24px;
           height: 24px;
           fill: $ff-grey-300;
+          &.ff-tile-selection-option--edit {
+            cursor: pointer;
+            fill: $ff-blue-800;
+            &:hover {
+              fill: $ff-indigo-600;
+            }
+          }
         }
       }
     }
@@ -449,12 +456,6 @@ li.ff-list-item {
       }
       label {
         font-size: $ff-funit-sm;
-      }
-    }
-    &--edit {
-      cursor: pointer;
-      &:hover {
-        fill: $ff-blue-700;
       }
     }
     &--description {
