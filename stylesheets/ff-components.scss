@@ -401,7 +401,8 @@ li.ff-list-item {
 .ff-tile-selection {
   display: flex;
   .ff-tile-selection-option {
-    display: inline-block;
+    display: flex;
+    flex-direction: column;
     background-color: $ff-white;
     border: 2px solid $ff-grey-300;
     border-radius: $ff-unit-sm;
@@ -454,6 +455,9 @@ li.ff-list-item {
       &:hover {
         fill: $ff-blue-700;
       }
+    }
+    &--description {
+      flex-grow: 1;
     }
     &--meta {
       margin-top: $ff-unit-md;
