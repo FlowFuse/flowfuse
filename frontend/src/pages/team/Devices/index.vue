@@ -13,7 +13,15 @@
                     <ff-button kind="tertiary" size="small" to="./snapshots"><template v-slot:icon-left><ClockIcon/></template>Target Snapshot: {{project.deviceSettings.targetSnapshot || 'none'}}</ff-button>
                 </div>
             </template>
-            <ItemTable :items="devices" :columns="columns" @deviceAction="deviceAction"/>
+            <ff-data-table :columns="columns" :rows="devices"
+                           :show-search="true" search-placeholder="Search Devices...">
+                <template v-slot:context-menu="{row}">
+                    <ff-list-item label="Edit Details" @click="deviceAction('edit', row.id)"/>
+                    <ff-list-item label="Add to Project" @click="deviceAction('assignToProject', row.id)" />
+                    <ff-list-item kind="danger" label="Regenerate Credentials" @click="deviceAction('updateCredentials', row.id)"/>
+                    <ff-list-item kind="danger" label="Delete Device" @click="deviceAction('delete', row.id)" />
+                </template>
+            </ff-data-table>
         </template>
         <template v-else-if="addDeviceEnabled && !loading">
             <div class="flex justify-center mb-4 p-8">
@@ -57,8 +65,6 @@ import teamApi from '@/api/team'
 import deviceApi from '@/api/devices'
 import projectApi from '@/api/project'
 
-import DeviceEditButton from './components/DeviceEditButton.vue'
-import ItemTable from '@/components/tables/ItemTable'
 import SectionTopMenu from '@/components/SectionTopMenu'
 import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
 
@@ -229,30 +235,25 @@ export default {
             }
 
             const cols = [
-                { name: 'Device', class: ['w-64'], component: { is: markRaw(DeviceLink) } },
-                { name: 'Status', class: ['w-20'], component: { is: markRaw(ProjectStatusBadge) } },
-                { name: 'Last Seen', class: ['w-64'], component: { is: markRaw(LastSeen) } }
+                { label: 'Device', class: ['w-64'], key: 'name', sortable: true, component: { is: markRaw(DeviceLink) } },
+                { label: 'Status', class: ['w-20'], key: 'status', sortable: true, component: { is: markRaw(ProjectStatusBadge) } },
+                { label: 'Last Seen', class: ['w-64'], key: 'last seen', sortable: true, component: { is: markRaw(LastSeen) } }
             ]
             if (!this.isProjectDeviceView) {
                 cols.push({
-                    name: 'Project', class: ['w-64'], component: { is: markRaw(ProjectLink) }
+                    label: 'Project', class: ['w-64'], key: 'project', sortable: true, component: { is: markRaw(ProjectLink) }
                 })
             } else {
                 cols.push(
-                    { name: 'Deployed Snapshot', class: ['w-64'], property: 'activeSnapshot', component: { is: markRaw(SnapshotComponent) } }
+                    { label: 'Deployed Snapshot', class: ['w-64'], property: 'activeSnapshot', component: { is: markRaw(SnapshotComponent) } }
                     // { name: 'Target', class: ['w-64'], property: 'targetSnapshot', component: { is: markRaw(SnapshotComponent) } }
                 )
             }
-            cols.push(
-                // dropdown optinos for the item table
-                { name: '', class: ['w-16'], component: { is: markRaw(DeviceEditButton) } }
-            )
             return cols
         }
     },
     props: ['team', 'teamMembership', 'project'],
     components: {
-        ItemTable,
         PlusSmIcon,
         ClockIcon,
         TeamDeviceCreateDialog,

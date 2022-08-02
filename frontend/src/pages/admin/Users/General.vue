@@ -1,35 +1,33 @@
 <template>
 
     <form class="space-y-6">
-        <FormHeading>Users
-            <template v-slot:tools>
-                <ff-button to="./create" size="small">
+        <ff-data-table :columns="columns" :rows="users" :show-search="true" search-placeholder="Search Users...">
+            <template v-slot:actions>
+                <ff-button to="./create">
                     <template v-slot:icon-left>
                         <UserAddIcon />
                     </template>
-                    New User
+                    Create New User
                 </ff-button>
             </template>
-        </FormHeading>
-        <ItemTable :items="users" :columns="columns" />
+            <template v-slot:context-menu="{row}">
+                <ff-list-item label="Edit User" @click="showEditUserDialog(row)"></ff-list-item>
+            </template>
+        </ff-data-table>
         <div v-if="nextCursor">
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
         </div>
         <AdminUserEditDialog @userUpdated="userUpdated" @userDeleted="userDeleted" ref="adminUserEditDialog"/>
-
     </form>
 </template>
 
 <script>
 
 import usersApi from '@/api/users'
-import ItemTable from '@/components/tables/ItemTable'
-import FormHeading from '@/components/FormHeading'
 import { UserAddIcon } from '@heroicons/vue/outline'
 import UserCell from '@/components/tables/cells/UserCell'
 import { markRaw } from 'vue'
 
-import AdminUserEditButton from './components/AdminUserEditButton'
 import AdminUserEditDialog from './dialogs/AdminUserEditDialog'
 
 export default {
@@ -40,12 +38,10 @@ export default {
             loading: false,
             nextCursor: null,
             columns: [
-                { name: 'User', class: ['flex-grow'], component: { is: markRaw(UserCell) } },
-                { name: 'Password Expired', class: ['w-32', 'text-center'], property: 'password_expired' },
-                { name: 'Email Verified', class: ['w-32', 'text-center'], property: 'email_verified' },
-
-                { name: 'Admin', class: ['w-32', 'text-center'], property: 'admin' },
-                { name: '', class: ['w-16', 'text-center'], component: { is: markRaw(AdminUserEditButton) } }
+                { label: 'User', class: ['flex-grow'], key: 'name', component: { is: markRaw(UserCell) }, sortable: true },
+                { label: 'Password Expired', class: ['w-56', 'text-center'], key: 'password_expired', sortable: true },
+                { label: 'Email Verified', class: ['w-56', 'text-center'], key: 'email_verified', sortable: true },
+                { label: 'Admin', class: ['w-32', 'text-center'], key: 'admin', sortable: true }
             ]
         }
     },
@@ -83,8 +79,6 @@ export default {
         }
     },
     components: {
-        ItemTable,
-        FormHeading,
         UserAddIcon,
         AdminUserEditDialog
 

@@ -1,23 +1,37 @@
 <template>
     <form class="space-y-6">
         <FormHeading>Active Stacks
-            <template v-slot:tools>
-                <ff-button size="small" @click="showCreateStackDialog">
+        </FormHeading>
+        <ff-loading v-if="loadingActive" message="Loading Stacks..." />
+        <ff-data-table v-if="!loadingActive" :columns="activeColumns" :rows="activeStacks"
+                       :show-search="true" search-placeholder="Search by Stack Name..."  no-data-message="No Inactive Stacks Found">
+            <template v-slot:actions>
+                <ff-button @click="showCreateStackDialog">
                     <template v-slot:icon-right>
                         <PlusSmIcon />
                     </template>
                     Create stack
                 </ff-button>
             </template>
-        </FormHeading>
-        <ff-loading v-if="loadingActive" message="Loading Stacks..." />
-        <ItemTable v-if="!loadingActive" :items="activeStacks" :columns="activeColumns" @stackAction="stackAction" />
+            <template v-slot:context-menu="{row}">
+                <ff-list-item label="Create New Version" @click="stackAction('createNewVersion', row.id)"/>
+                <ff-list-item label="Edit Properties" @click="stackAction('editProperties', row.id)"/>
+                <ff-list-item label="Delete Stack" kind="danger" @click="stackAction('delete', row.id)"/>
+            </template>
+        </ff-data-table>
         <div v-if="nextActiveCursor">
             <a v-if="!loadingActive" @click.stop="loadActiveItems" class="forge-button-inline">Load more...</a>
         </div>
         <FormHeading>Inactive Stacks</FormHeading>
         <ff-loading v-if="loadingInactive" message="Loading Stacks..." />
-        <ItemTable v-if="!loadingInactive" :items="inactiveStacks" :columns="inactiveColumns" @stackAction="stackAction" />
+        <ff-data-table v-if="!loadingInactive" :columns="inactiveColumns" :rows="inactiveStacks"
+                       :show-search="true" search-placeholder="Search by Stack Name..." no-data-message="No Inactive Stacks Found">
+            <template v-slot:context-menu="{row}">
+                <ff-list-item label="Create New Version" @click="stackAction('createNewVersion', row.id)"/>
+                <ff-list-item label="Edit Properties" @click="stackAction('editProperties', row.id)"/>
+                <ff-list-item label="Delete Stack" kind="danger" @click="stackAction('delete', row.id)"/>
+            </template>
+        </ff-data-table>
         <div v-if="nextInactiveCursor">
             <a v-if="!loadingInactive" @click.stop="loadInactiveItems" class="forge-button-inline">Load more...</a>
         </div>
@@ -31,13 +45,11 @@
 import stacksApi from '@/api/stacks'
 import projectTypesApi from '@/api/projectTypes'
 
-import ItemTable from '@/components/tables/ItemTable'
 import FormHeading from '@/components/FormHeading'
 
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import AdminStackEditButton from './components/AdminStackEditButton'
 import AdminStackEditDialog from './dialogs/AdminStackEditDialog'
 import AdminStackDeleteDialog from './dialogs/AdminStackDeleteDialog'
 
@@ -70,17 +82,15 @@ export default {
             nextActiveCursor: null,
             nextInactiveCursor: null,
             activeColumns: [
-                { name: 'Stack', component: { is: markRaw(StackName) } },
-                { name: 'Properties', component: { is: markRaw(StackPropertiesCell) } },
-                { name: 'Project Count', class: ['w-32', 'text-center'], property: 'projectCount' },
-                { name: '', class: ['w-16', 'text-center'], component: { is: markRaw(AdminStackEditButton) } }
+                { label: 'Stack', key: 'name', component: { is: markRaw(StackName) } },
+                { label: 'Properties', component: { is: markRaw(StackPropertiesCell) } },
+                { label: 'Project Count', key: 'projectCount', class: ['w-32', 'text-center'] }
             ],
             inactiveColumns: [
-                { name: 'Stack', component: { is: markRaw(StackName) } },
-                { name: 'Properties', component: { is: markRaw(StackPropertiesCell) } },
-                { name: 'Replaced By', class: ['w-56'], property: 'replacedBy' },
-                { name: 'Project Count', class: ['w-32', 'text-center'], property: 'projectCount' },
-                { name: '', class: ['w-16', 'text-center'], component: { is: markRaw(AdminStackEditButton) } }
+                { label: 'Stack', component: { is: markRaw(StackName) } },
+                { label: 'Properties', component: { is: markRaw(StackPropertiesCell) } },
+                { label: 'Replaced By', key: 'replacedBy', class: ['w-56'] },
+                { label: 'Project Count', key: 'projectCount', class: ['w-32', 'text-center'] }
             ]
         }
     },
@@ -221,7 +231,6 @@ export default {
     },
     components: {
         FormHeading,
-        ItemTable,
         AdminStackEditDialog,
         AdminStackDeleteDialog,
         PlusSmIcon

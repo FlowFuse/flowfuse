@@ -7,7 +7,8 @@
     <form class="space-y-6">
         <ff-loading v-if="loading" message="Loading Projects..." />
         <template v-else-if="projects.length > 0">
-            <ItemTable :items="projects" :columns="columns" />
+            <ff-data-table :columns="columns" :rows="projects" :show-search="true" search-placeholder="Search Projects..."
+                           :rows-selectable="true" @row-selected="openProject"/>
         </template>
         <template v-else-if="createProjectEnabled && !loading">
             <div class="flex justify-center mb-4 p-8">
@@ -32,7 +33,6 @@
 import { markRaw } from 'vue'
 import { Roles } from '@core/lib/roles'
 import teamApi from '@/api/team'
-import ItemTable from '@/components/tables/ItemTable'
 import { PlusSmIcon } from '@heroicons/vue/outline'
 import SectionTopMenu from '@/components/SectionTopMenu'
 
@@ -45,9 +45,9 @@ export default {
             loading: false,
             projects: [],
             columns: [
-                { name: 'Name', class: ['flex-grow'], property: 'name', link: 'link' },
-                { name: 'Status', class: ['w-44'], component: { is: markRaw(ProjectStatusBadge) } },
-                { name: 'Updated', class: ['w-44', 'text-xs'], property: 'updatedSince' }
+                { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true },
+                { label: 'Status', class: ['w-44'], key: 'status', sortable: true, component: { is: markRaw(ProjectStatusBadge) } },
+                { label: 'Updated', class: ['w-44', 'text-xs'], key: 'updatedSince', sortable: true }
             ]
         }
     },
@@ -65,6 +65,14 @@ export default {
                 this.projects = data.projects
             }
             this.loading = false
+        },
+        openProject (project) {
+            this.$router.push({
+                name: 'Project',
+                params: {
+                    id: project.id
+                }
+            })
         }
     },
     computed: {
@@ -74,7 +82,6 @@ export default {
     },
     props: ['team', 'teamMembership'],
     components: {
-        ItemTable,
         PlusSmIcon,
         SectionTopMenu
     }

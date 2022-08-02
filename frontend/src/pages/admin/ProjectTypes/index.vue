@@ -42,7 +42,12 @@
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
         </div>
         <FormHeading>Inactive Types</FormHeading>
-        <ItemTable :items="inactiveProjectTypes" :columns="columns" @projectTypeAction="projectTypeAction"/>
+        <ff-data-table :columns="columns" :rows="inactiveProjectTypes">
+            <template v-slot:context-menu="{row}">
+                <ff-list-item label="Edit Project Type" @click="projectTypeAction('edit', row.id)"/>
+                <ff-list-item label="Delete Project Type" kind="danger" @click="projectTypeAction('delete', row.id)"/>
+            </template>
+        </ff-data-table>
         <div v-if="nextCursor">
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
         </div>
@@ -53,7 +58,6 @@
 
 <script>
 import projectTypesApi from '@/api/projectTypes'
-import ItemTable from '@/components/tables/ItemTable'
 import FormHeading from '@/components/FormHeading'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
@@ -66,17 +70,6 @@ import { PlusSmIcon } from '@heroicons/vue/outline'
 
 const marked = require('marked')
 
-const WrappedProjectTypeEditButton = {
-    template: '<ProjectTypeEditButton :id="id" @projectTypeAction="projectTypeAction"></ProjectTypeEditButton>',
-    props: ['id'],
-    methods: {
-        projectTypeAction (action, id) {
-            this.$parent.$emit('projectTypeAction', action, id)
-        }
-    },
-    components: { ProjectTypeEditButton }
-}
-
 export default {
     name: 'AdminProjectTypes',
     data () {
@@ -85,12 +78,11 @@ export default {
             loading: false,
             nextCursor: null,
             columns: [
-                { name: 'Type', property: 'name' },
-                { name: 'Description', component: { is: markRaw(ProjectTypeDescriptionCell) } },
-                { name: 'Default Stack', class: ['w-16'], property: 'defaultStack' },
-                { name: 'Projects', class: ['w-16', 'text-center'], property: 'projectCount' },
-                { name: 'Stacks', class: ['w-16', 'text-center'], property: 'stackCount' },
-                { name: '', class: ['w-16', 'text-center'], component: { is: markRaw(WrappedProjectTypeEditButton) } }
+                { label: 'Type', key: 'name', sortable: true },
+                { label: 'Description', key: 'description', sortable: true, component: { is: markRaw(ProjectTypeDescriptionCell) } },
+                { label: 'Default Stack', class: ['w-48'], key: 'defaultStack', sortable: true },
+                { label: 'Projects', class: ['w-32', 'text-center'], key: 'projectCount', sortable: true },
+                { label: 'Stacks', class: ['w-32', 'text-center'], key: 'stackCount', sortable: true }
             ]
         }
     },
@@ -173,7 +165,6 @@ export default {
     },
     components: {
         FormHeading,
-        ItemTable,
         PlusSmIcon,
         ProjectTypeEditDialog,
         ProjectTypeDeleteDialog,
