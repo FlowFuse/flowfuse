@@ -25,7 +25,7 @@
         <FormHeading>Inactive Stacks</FormHeading>
         <ff-loading v-if="loadingInactive" message="Loading Stacks..." />
         <ff-data-table v-if="!loadingInactive" :columns="inactiveColumns" :rows="inactiveStacks"
-                       no-data-message:show-search="true" search-placeholder="Search by Stack Name..." no-data-message="No Inactive Stacks Found">
+                       :show-search="true" search-placeholder="Search by Stack Name..." no-data-message="No Inactive Stacks Found">
             <template v-slot:context-menu="{row}">
                 <ff-list-item label="Create New Version" @click="stackAction('createNewVersion', row.id)"/>
                 <ff-list-item label="Edit Properties" @click="stackAction('editProperties', row.id)"/>
