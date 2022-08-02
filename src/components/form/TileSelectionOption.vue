@@ -11,7 +11,7 @@
                 <label>{{ priceInterval }}</label>
             </div>
         </div>
-        <div>
+        <div class="ff-tile-selection-option--description">
             <ff-markdown-viewer :content="description"></ff-markdown-viewer>
         </div>
         <div v-if="meta" class="ff-tile-selection-option--meta">
