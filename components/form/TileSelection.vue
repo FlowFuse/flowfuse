@@ -16,7 +16,6 @@ export default {
     },
     watch: {
         modelValue: function (value) {
-            console.log(value)
             this.$nextTick(() => {
                 for (let i = 0; i < this.children.length; i++) {
                     if (value !== this.children[i].value) {
@@ -39,7 +38,6 @@ export default {
             this.children.push(child)
         },
         setSelected (selected) {
-            console.log(selected)
             if (selected?.value === this.modelValue) {
                 this.$emit('update:modelValue', null)
             } else {
