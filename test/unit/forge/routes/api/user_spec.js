@@ -36,6 +36,8 @@ describe('User API', async function () {
         await TestObjects.BTeam.addUser(TestObjects.chris, { through: { role: Roles.Member } })
         await TestObjects.BTeam.addUser(TestObjects.dave, { through: { role: Roles.Member } })
 
+        TestObjects.Project1 = app.project
+
         TestObjects.tokens = {}
     })
 
@@ -103,6 +105,13 @@ describe('User API', async function () {
                     cookies: { sid: TestObjects.tokens.chris }
                 })
                 response.statusCode.should.equal(401)
+
+                const response2 = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/projects/${TestObjects.Project1.id}`,
+                    cookies: { sid: TestObjects.tokens.chris }
+                })
+                response2.statusCode.should.equal(401)
             })
         })
         describe('Password Expired', async function () {
@@ -146,6 +155,13 @@ describe('User API', async function () {
                     cookies: { sid: TestObjects.tokens.dave }
                 })
                 response.statusCode.should.equal(401)
+
+                const response2 = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/projects/${TestObjects.Project1.id}`,
+                    cookies: { sid: TestObjects.tokens.dave }
+                })
+                response2.statusCode.should.equal(401)
             })
         })
     })

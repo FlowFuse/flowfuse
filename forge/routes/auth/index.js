@@ -84,10 +84,9 @@ module.exports = fp(async function (app, opts, done) {
         if (request.sid) {
             request.session = await app.db.controllers.Session.getOrExpire(request.sid)
             if (request.session && request.session.User) {
-                if (!app.postoffice.enabled() || request.session.User.email_verified || request.context.config.allowUnverifiedEmail) {
-                    return
-                }
-                if (!request.session.User.password_expired || request.context.config.allowExpiredPassword) {
+                const emailVerified = !app.postoffice.enabled() || request.session.User.email_verified || request.context.config.allowUnverifiedEmail
+                const passwordNotExpired = !request.session.User.password_expired || request.context.config.allowExpiredPassword
+                if (emailVerified && passwordNotExpired) {
                     return
                 }
             }
