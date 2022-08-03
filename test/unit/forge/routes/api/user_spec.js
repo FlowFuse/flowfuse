@@ -78,7 +78,7 @@ describe('User API', async function () {
             result.should.have.property('username', TestObjects.alice.username)
             result.should.have.property('email', TestObjects.alice.email)
         })
-        describe('Unverified Email', async function  () {
+        describe('Unverified Email', async function () {
             it('return user info for unverified_email user', async function () {
                 await login('chris', 'ccPassword')
                 const response = await app.inject({
