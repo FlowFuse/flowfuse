@@ -7,6 +7,7 @@
         <ff-button @click="changePassword">
             Change Password
         </ff-button>
+        <ff-button kind="tertiary" @click="logout">Log out</ff-button>
         <div v-if="errors.password_change" class="ml-4 text-red-400 font-medium inline text-sm">{{errors.password_change}}</div>
     </form>
 </template>
@@ -15,6 +16,7 @@
 import { mapState } from 'vuex'
 import FormRow from '@/components/FormRow'
 import userApi from '@/api/user'
+import store from '@/store'
 
 export default {
     name: 'UpdateExpiredPassword',
@@ -71,6 +73,9 @@ export default {
         },
         focusConfirmPassword () {
             this.$refs.password_form.querySelectorAll('input')[2].focus()
+        },
+        logout () {
+            store.dispatch('account/logout')
         }
     },
     mounted () {
