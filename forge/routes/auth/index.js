@@ -87,6 +87,9 @@ module.exports = fp(async function (app, opts, done) {
                 if (!app.postoffice.enabled() || request.session.User.email_verified || request.context.config.allowUnverifiedEmail) {
                     return
                 }
+                if (!request.session.User.password_expired || request.context.config.allowExpiredPassword) {
+                    return
+                }
             }
         }
         if (request.context.config.allowAnonymous) {
