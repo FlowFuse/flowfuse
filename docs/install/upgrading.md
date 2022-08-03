@@ -25,3 +25,22 @@ users will be able to create new projects:
     2. As a one-time action, set its Project Type to the one just created.
     3. Click 'save'. This will update the stack *and* all existing projects to
        be associated with the new Project Type
+
+
+### Upgrading to 0.8
+
+With the 0.8 release we have updated the version of the SQLite3 node used by the localfs 
+contianer driver. We are moving from v5.0.2 to v5.0.8.
+
+There appears to be a clash with the bcrypt module when doing an inplace upgrade of the
+SQLite3 node that gives an error similar to the following:
+
+```
+npm ERR! path /opt/share/projects/flowforge/sqlite-test/node_modules/sqlite3
+npm ERR! command failed
+npm ERR! command sh -c node-pre-gyp install --fallback-to-build
+npm ERR! sh: line 1: node-pre-gyp: command not found
+```
+
+If you see this then the simplest fix is to remove the `node_modules` directory and reinstall
+all the nodes from clean.
