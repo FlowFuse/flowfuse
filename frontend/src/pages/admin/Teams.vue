@@ -2,7 +2,9 @@
     <form>
         <SectionTopMenu hero="Teams" />
         <ff-loading v-if="loading" message="Loading Teams..." />
-        <ItemTable v-if="!loading" :items="teams" :columns="columns" />
+        <ff-data-table v-if="!loading" :columns="columns" :rows="teams"
+                       :show-search="true" search-placeholder="Search Teams..."
+                       :search-fields="['name', 'id']"/>
         <div v-if="nextCursor">
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
         </div>
@@ -11,8 +13,6 @@
 
 <script>
 import teamsApi from '@/api/teams'
-
-import ItemTable from '@/components/tables/ItemTable'
 
 import SectionTopMenu from '@/components/SectionTopMenu'
 
@@ -27,10 +27,9 @@ export default {
             loading: false,
             nextCursor: null,
             columns: [
-                { name: 'Team', class: ['flex-grow'], component: { is: markRaw(TeamCell) }, link: true },
-                { name: '', class: ['font-mono', 'text-xs', 'text-gray-500'], property: 'id' },
-                { name: 'Members', class: ['w-32', 'text-center'], property: 'memberCount' },
-                { name: 'Projects', class: ['w-32', 'text-center'], property: 'projectCount' }
+                { label: 'Name', class: ['w-full'], component: { is: markRaw(TeamCell) }, sortable: true },
+                { label: 'Members', class: ['w-54', 'text-center'], key: 'memberCount', sortable: true },
+                { label: 'Projects', class: ['w-54', 'text-center'], key: 'projectCount', sortable: true }
             ]
         }
     },
@@ -49,8 +48,7 @@ export default {
         }
     },
     components: {
-        SectionTopMenu,
-        ItemTable
+        SectionTopMenu
     }
 }
 </script>
