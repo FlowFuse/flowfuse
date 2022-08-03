@@ -120,6 +120,22 @@ describe('User API', async function () {
                 result.should.have.property('email', TestObjects.dave.email)
                 result.should.have.property('password_expired', true)
             })
+            it('password_expired user can change password', async function () {
+                await login('dave', 'ddPassword')
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/user/change_password',
+                    payload: {
+                        old_password: 'ddPassword',
+                        password: 'newDDPassword'
+                    },
+                    cookies: { sid: TestObjects.tokens.dave }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('status', 'okay')
+            })
+
             it('cannot access other parts of api', async function () {
                 // Not an exhaustive check by any means, but a simple check the
                 // basic blocking is working
