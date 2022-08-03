@@ -14,25 +14,17 @@ export default {
             default: null
         }
     },
-    computed: {
-        value: {
-            get () {
-                return this.selected
-            },
-            set (selected) {
-                if (selected?.value === this.selected?.value) {
-                    this.selected = null
-                    this.$emit('update:modelValue', null)
-                } else {
-                    this.selected = selected
-                    this.$emit('update:modelValue', selected.value)
-                }
+    watch: {
+        modelValue: function (value) {
+            this.$nextTick(() => {
                 for (let i = 0; i < this.children.length; i++) {
-                    if (selected.value !== this.children[i].value) {
+                    if (value !== this.children[i].value) {
                         this.children[i].selected = false
+                    } else {
+                        this.children[i].selected = true
                     }
                 }
-            }
+            })
         }
     },
     data () {
@@ -44,7 +36,25 @@ export default {
     methods: {
         registerOption: function (child) {
             this.children.push(child)
+        },
+        setSelected (selected) {
+            if (selected?.value === this.modelValue) {
+                this.$emit('update:modelValue', null)
+            } else {
+                this.$emit('update:modelValue', selected.value)
+            }
         }
+    },
+    mounted () {
+        this.$nextTick(() => {
+            for (let i = 0; i < this.children.length; i++) {
+                if (this.modelValue !== this.children[i].value) {
+                    this.children[i].selected = false
+                } else {
+                    this.children[i].selected = true
+                }
+            }
+        })
     }
 }
 </script>
