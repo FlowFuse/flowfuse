@@ -140,8 +140,8 @@ you can use a pre-built docker image that provides everything needed.
     auth_opt_acl_jitter_seconds 5
     auth_opt_http_host 172.17.0.1
     auth_opt_http_port 3000
-    auth_opt_http_getuser_uri /api/comms/auth-client
-    auth_opt_http_aclcheck_uri /api/comms/auth-acl
+    auth_opt_http_getuser_uri /api/comms/auth/client
+    auth_opt_http_aclcheck_uri /api/comms/auth/acl
     ```
 
     You will need to customise the values to match your local configuration:
