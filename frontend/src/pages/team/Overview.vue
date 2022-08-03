@@ -74,14 +74,21 @@ export default {
             if (this.team.slug) {
                 // Team Data
                 const data = await teamApi.getTeamProjects(this.team.id)
-                this.projectCount = data.count
-                this.projects = data.projects
+                    .then((data) => {
+                        this.projectCount = data.count
+                        this.projects = data.projects
+                    }).catch(() => {})
+
                 // Team Members
                 const members = await teamApi.getTeamMembers(this.team.id)
-                this.userCount = members.count
-                this.users = members.members
+                    .then((members) => {
+                        this.userCount = members.count
+                        this.users = members.members
+                    }).catch(() => {})
 
-                this.loading = false
+                Promise.all([data, members]).finally(() => {
+                    this.loading = false
+                })
             }
         },
         // has the user navigated here directly from Stripe, having just completed payment details
