@@ -48,14 +48,6 @@ export default {
                             team_slug: this.team.slug
                         }
                     })
-                } else if (this.teams && this.teams.length > 0) {
-                    this.$store.dispatch('account/setTeam', this.teams[0])
-                    this.$router.push({
-                        name: 'Team',
-                        params: {
-                            team_slug: this.teams[0].slug
-                        }
-                    })
                 }
             }
         }
