@@ -11,7 +11,7 @@
                 <label>{{ priceInterval }}</label>
             </div>
         </div>
-        <div>
+        <div v-if="description" class="ff-tile-selection-option--description">
             <ff-markdown-viewer :content="description"></ff-markdown-viewer>
         </div>
         <div v-if="meta" class="ff-tile-selection-option--meta">
@@ -77,12 +77,12 @@ export default {
     methods: {
         select () {
             if (!this.editable) {
-                this.$parent.value = {
+                this.$parent.setSelected({
                     value: this.value,
                     label: this.label,
                     description: this.description,
                     price: this.price
-                }
+                })
                 this.selected = !this.selected
             }
         }
