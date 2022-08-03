@@ -21,7 +21,7 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.user
      */
-    app.get('/', { config: { allowUnverifiedEmail: true, allowToken: true } }, async (request, reply) => {
+    app.get('/', { config: { allowUnverifiedEmail: true, allowToken: true, allowExpiredPassword: true } }, async (request, reply) => {
         const users = await app.db.views.User.userProfile(request.session.User)
         reply.send(users)
     })
@@ -33,6 +33,7 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.user
      */
     app.put('/change_password', {
+        config: { allowExpiredPassword: true },
         schema: {
             body: {
                 type: 'object',
