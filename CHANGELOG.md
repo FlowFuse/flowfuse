@@ -1,3 +1,42 @@
+#### 0.8.0: Release
+
+ - Update 06-story.yml
+ - Add upgrading notes for broker and project nodes (#848) @knolleary
+ - Fix loading of default team when logging in (#847) @knolleary
+ - Bump sqlite node to 5.0.8 (#707) @hardillb
+ - Ensure expired password users cannot access API (#842) @knolleary
+ - Notify user of API errors (#845) @joepavitt
+ - Fix docker run command (#840) @hardillb
+ - Show username instead of ID in alert on removal (#834) @sammachin
+ - docs: Add details on migrations for developers (#832) @ZJvandeWeg
+ - Component Update: ff-data-table (#798) @joepavitt
+ - add ACLs for project link-call responses (#838) @Steve-Mcl
+ - Prevent user with unverified email from accessing API (#824) @knolleary
+ - Remove all manual show/close logic for ff-dialog (now contained within the component) (#829) @joepavitt
+ - Initial mqtt broker configuration docs (#804) @knolleary
+ - Add basic helmet config (#823) @hardillb
+ - Fix deprated funtion call (#828) @hardillb
+ - Allow limited access to project list for anonymous (#820) @Steve-Mcl
+ - Fix reply-already-sent error when auth fails on storage routes (#819) @knolleary
+ - Added ff- prefix to reflect current filenames (#818) @Steveorevo
+ - Handle "@submit" events on forms in dialog boxes (#811) @joepavitt
+ - Add defaultTeam to User model and enable API to modify (#810) @knolleary
+ - Update README.md (#812) @HaroldPetersInskipp
+ - Wrap the "Home" view in a <main> in order to get cleaner styling (#809) @joepavitt
+ - Update 06-story.yml (#797) @sammachin
+ - Add details of setting logging level to the docs (#808) @hardillb
+ - Warn if trying to login with email address (#799) @sammachin
+ - Centralise how tests initialise Forge app (#805) @knolleary
+ -  Allow http logging level to be set independently #802 (#803) @hardillb
+ - Add comms (mqtt) component to forge platform (#706) @knolleary
+ - Update stacks.md (#801) @sammachin
+ - Restyle "Thank you" message when user signs up. (#792) @joepavitt
+ - Remove catch all transition & assign component-level transition class (#796) @joepavitt
+ - Fix logo height for safari (#793) @joepavitt
+ - Prevent User and Team Name containing a URL (#788) @hardillb
+ - Fix typo in change stack alert (#786) @knolleary
+ - Modify CSS to prevent HTML hierarchy dependency & add --primary flag to SideNavigation.vue (#784) @joepavitt
+
 #### 0.7.0: Release
 
  - Update contributing guide to point at dev-env (#768) @knolleary
