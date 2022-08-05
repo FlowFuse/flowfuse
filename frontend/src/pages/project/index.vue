@@ -5,7 +5,7 @@
                 <div class="ff-nested-title">Project</div>
                 <!-- <div class="ff-nested-title">{{ project.name }}</div> -->
                 <router-link v-for="route in navigation" :key="route.label" :to="route.path">
-                    <nav-item :icon="route.icon" :label="route.label"></nav-item>
+                    <nav-item :icon="route.icon" :label="route.label" :data-nav="route.tag"></nav-item>
                 </router-link>
             </template>
         </SideNavigationTeamOptions>
@@ -22,13 +22,13 @@
             </template>
             <template v-slot:tools>
                 <div class="space-x-2 flex">
-                    <a v-if="editorAvailable" :href="project.url" target="_blank" class="ff-btn ff-btn--secondary">
+                    <a v-if="editorAvailable" :href="project.url" target="_blank" class="ff-btn ff-btn--secondary" data-action="open-editor">
                         Open Editor
                         <span class="ff-btn--icon ff-btn--icon-right">
                             <ExternalLinkIcon />
                         </span>
                     </a>
-                    <DropdownMenu buttonClass="ff-btn ff-btn--primary" alt="Open actions menu" :options="options">Actions</DropdownMenu>
+                    <DropdownMenu buttonClass="ff-btn ff-btn--primary" alt="Open actions menu" :options="options" data-action="open-actions">Actions</DropdownMenu>
                 </div>
             </template>
         </SectionTopMenu>
@@ -154,16 +154,16 @@ export default {
         },
         checkAccess () {
             this.navigation = [
-                { label: 'Overview', path: `/project/${this.project.id}/overview`, icon: ProjectsIcon },
-                { label: 'Activity', path: `/project/${this.project.id}/activity`, icon: ViewListIcon },
-                { label: 'Snapshots', path: `/project/${this.project.id}/snapshots`, icon: ClockIcon },
-                { label: 'Logs', path: `/project/${this.project.id}/logs`, icon: TerminalIcon }
+                { label: 'Overview', path: `/project/${this.project.id}/overview`, tag: 'project-overview', icon: ProjectsIcon },
+                { label: 'Activity', path: `/project/${this.project.id}/activity`, tag: 'project-activity', icon: ViewListIcon },
+                { label: 'Snapshots', path: `/project/${this.project.id}/snapshots`, tag: 'project-snapshots', icon: ClockIcon },
+                { label: 'Logs', path: `/project/${this.project.id}/logs`, tag: 'project-logs', icon: TerminalIcon }
             ]
             if (this.features.devices) {
-                this.navigation.splice(3, 0, { label: 'Devices', path: `/project/${this.project.id}/devices`, icon: ChipIcon })
+                this.navigation.splice(3, 0, { label: 'Devices', path: `/project/${this.project.id}/devices`, tag: 'project-devices', icon: ChipIcon })
             }
             if (this.teamMembership && this.teamMembership.role === Roles.Owner) {
-                this.navigation.push({ label: 'Settings', path: `/project/${this.project.id}/settings`, icon: CogIcon })
+                this.navigation.push({ label: 'Settings', path: `/project/${this.project.id}/settings`, tag: 'project-settings', icon: CogIcon })
                 // this.navigation.push({ name: "Debug", path: `/project/${this.project.id}/debug` })
             }
             if (this.project.meta && (this.project.pendingRestart || projectTransitionStates.includes(this.project.meta.state))) {

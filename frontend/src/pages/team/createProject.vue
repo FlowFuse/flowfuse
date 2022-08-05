@@ -56,7 +56,7 @@
                     </template>
                 </FormRow>
 
-                <ff-button :disabled="!createEnabled" @click="createProject">Create Project</ff-button>
+                <ff-button :disabled="!createEnabled" @click="createProject" data-action="create-project">Create Project</ff-button>
             </form>
         </div>
     </main>

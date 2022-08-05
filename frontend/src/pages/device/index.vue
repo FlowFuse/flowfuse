@@ -4,7 +4,7 @@
             <template v-slot:nested-menu>
                 <div class="ff-nested-title">Device</div>
                 <!-- <div class="ff-nested-title">{{ project.name }}</div> -->
-                <router-link v-for="route in navigation" :key="route.label" :to="route.path">
+                <router-link v-for="route in navigation" :key="route.label" :to="route.path" :data-nav="route.tag">
                     <nav-item :icon="route.icon" :label="route.label"></nav-item>
                 </router-link>
             </template>
@@ -14,7 +14,7 @@
         <SectionTopMenu>
             <template #hero>
                 <div class="flex-grow space-x-6 items-center inline-flex">
-                    <router-link :to="navigation[0]?navigation[0].path:''" class="inline-flex items-center">
+                    <router-link :to="navigation[0]?navigation[0].path:''" class="inline-flex items-center" data-nav="device-overview">
                         <div class="text-gray-800 text-xl font-bold">{{ device?.name }}</div>
                         <div class="text-gray-400 text-md font-bold ml-3">{{ device?.type }}</div>
                     </router-link>
@@ -48,8 +48,8 @@ export default {
     },
     data: function () {
         const navigation = [
-            { label: 'Overview', path: `/device/${this.$route.params.id}/overview`, icon: ChipIcon },
-            { label: 'Settings', path: `/device/${this.$route.params.id}/settings`, icon: CogIcon }
+            { label: 'Overview', path: `/device/${this.$route.params.id}/overview`, tag: 'device-overview', icon: ChipIcon },
+            { label: 'Settings', path: `/device/${this.$route.params.id}/settings`, tag: 'device-settings', icon: CogIcon }
         ]
 
         return {

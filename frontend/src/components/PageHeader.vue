@@ -16,13 +16,13 @@
             </i>
         </div>
         <!-- Mobile: User Options -->
-        <div class="ff-navigation ff-navigation-right" :class="{'open': mobileUserOptionsOpen}">
+        <div class="ff-navigation ff-navigation-right" :class="{'open': mobileUserOptionsOpen}" data-action="user-options">
             <nav-item v-for="option in options" :key="option.label"
                       :label="option.label" :icon="option.icon" :notifications="option.notifications"
                       @click="mobileUserOptionsOpen = false; option.onclick(option.onclickparams)"></nav-item>
         </div>
         <!-- Mobile: Team Selection -->
-        <div class="ff-navigation ff-navigation-right" :class="{'open': mobileTeamSelectionOpen}">
+        <div class="ff-navigation ff-navigation-right" :class="{'open': mobileTeamSelectionOpen}" data-action="team-selection">
             <nav-item v-for="team in teams" :key="team.name"
                       :label="team.name" :avatar="team.avatar"
                       @click="mobileTeamSelectionOpen = false; $router.push({name: 'Team', params: {team_slug: team.slug}})"></nav-item>
@@ -30,9 +30,9 @@
                       @click="mobileTeamSelectionOpen = false; $router.push({name: 'CreateTeam'})"></nav-item>
         </div>
         <div class="hidden sm:flex">
-            <ff-team-selection />
+            <ff-team-selection  data-action="team-selection" />
             <!-- Desktop: User Options -->
-            <ff-dropdown v-if="user" class="ff-navigation ff-user-options" options-align="right">
+            <ff-dropdown v-if="user" class="ff-navigation ff-user-options" options-align="right" data-action="user-options">
                 <template v-slot:placeholder>
                     <div class="ff-user">
                         <img :src="user.avatar" class="ff-avatar"/>
@@ -42,7 +42,7 @@
                 </template>
                 <template v-slot:default>
                     <ff-dropdown-option v-for="option in options" :key="option.label" @click="option.onclick(option.onclickparams)">
-                        <nav-item :label="option.label" :icon="option.icon" :notifications="option.notifications"></nav-item>
+                        <nav-item :label="option.label" :icon="option.icon" :notifications="option.notifications" :data-nav="option.tag"></nav-item>
                     </ff-dropdown-option>
                 </template>
             </ff-dropdown>
@@ -100,16 +100,19 @@ export default {
             options: [{
                 label: 'User Settings',
                 icon: CogIcon,
+                tag: 'user-settings',
                 onclick: this.$router.push,
                 onclickparams: { name: 'User Settings' }
             }, {
                 label: 'Documentation',
                 icon: QuestionMarkCircleIcon,
+                tag: 'documentation',
                 onclick: this.to,
                 onclickparams: { url: 'https://flowforge.com/docs/' }
             }, {
                 label: 'Sign Out',
                 icon: LogoutIcon,
+                tag: 'sign-out',
                 onclick: this.signout
             }]
         }
@@ -126,6 +129,7 @@ export default {
             this.options.splice(1, 0, {
                 label: 'Admin Settings',
                 icon: AdjustmentsIcon,
+                tag: 'admin-settings',
                 onclick: this.$router.push,
                 onclickparams: { name: 'Admin Settings' }
             })
