@@ -1,7 +1,6 @@
 import client from './client'
 import daysSince from '@/utils/daysSince'
 import elapsedTime from '@/utils/elapsedTime'
-import posthog from 'posthog-js'
 
 const login = (username, password, remember) => {
     return client.post('/account/login', {
@@ -14,7 +13,7 @@ const login = (username, password, remember) => {
 }
 const logout = () => {
     return client.post('/account/logout').then((res) => {
-        posthog.reset()
+        window.posthog?.reset()
         return res.data
     })
 }
@@ -25,7 +24,7 @@ const registerUser = async (options) => {
 
 const getUser = () => {
     return client.get('/api/v1/user/').then((res) => {
-        posthog.identify(res.data.username, {
+        window.posthog?.identify(res.data.username, {
             name: res.data.name,
             email: res.data.email,
             username: res.data.username

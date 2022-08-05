@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import posthog from 'posthog-js'
+// import posthog from 'posthog-js'
 
 import Home from '@/pages/Home.vue'
 import PageNotFound from '@/pages/PageNotFound'
@@ -46,14 +46,14 @@ const router = createRouter({
 
 // This callback runs before every route change, including on page load.
 router.beforeEach((to, from, next) => {
-    posthog.capture(
+    window.posthog?.capture(
         '$pageleave',
         {
             to: to.fullPath,
             $current_url: from.fullPath
         }
     )
-    posthog.capture(
+    window.posthog?.capture(
         '$pageview',
         {
             from: from.fullPath,
