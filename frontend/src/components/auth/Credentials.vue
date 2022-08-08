@@ -53,10 +53,6 @@ export default {
                 valid = false
                 this.errors.password = 'Required field'
             }
-            if (this.input.username.includes('@')) {
-                valid = false
-                this.errors.username = 'Username cannot be an email address'
-            }
             if (valid) {
                 this.$store.dispatch('account/login', this.input)
             }
