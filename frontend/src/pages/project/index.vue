@@ -28,7 +28,7 @@
                             <ExternalLinkIcon />
                         </span>
                     </a>
-                    <DropdownMenu buttonClass="ff-btn ff-btn--primary" alt="Open actions menu" :options="options">Actions</DropdownMenu>
+                    <DropdownMenu v-if="isOwner" buttonClass="ff-btn ff-btn--primary" alt="Open actions menu" :options="options">Actions</DropdownMenu>
                 </div>
             </template>
         </SectionTopMenu>
@@ -100,6 +100,9 @@ export default {
         },
         editorAvailable: function () {
             return this.project.meta && this.project.meta.state === 'running'
+        },
+        isOwner: function () {
+            return this.teamMembership ? this.teamMembership.role === Roles.Owner : false
         }
     },
     watch: {
