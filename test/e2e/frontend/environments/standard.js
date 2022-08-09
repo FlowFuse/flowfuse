@@ -26,9 +26,16 @@ module.exports = async function (settings = {}, config = {}) {
     const forge = await Forge({ config })
 
     await forge.settings.set('setup:initialised', true)
+    // full platform & team admin
     const userAlice = await forge.db.models.User.create({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
+    // team admin, not platform admin
+    const userBob = await forge.db.models.User.create({ admin: false, username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
+    // no admin rights
+    const userCharlie = await forge.db.models.User.create({ admin: false, username: 'charlie', name: 'Charlie Palpatine', email: 'charlie@example.com', email_verified: true, password: 'ccPassword' })
     const team1 = await forge.db.models.Team.create({ name: 'ATeam' })
     await team1.addUser(userAlice, { through: { role: Roles.Owner } })
+    await team1.addUser(userBob, { through: { role: Roles.Owner } })
+    await team1.addUser(userCharlie, { through: { role: Roles.Member } })
 
     const templateProperties = {
         name: 'template1',

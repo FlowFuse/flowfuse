@@ -23,3 +23,45 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+
+// fixtures: https://docs.cypress.io/guides/guides/network-requests
+
+// Login - use the FF API to directly login
+Cypress.Commands.add('login', (username, password) => {
+    cy.session([username, password], () => {
+        // wait for data to get refreshed
+        cy.request('post', '/account/login', {
+            username: username,
+            password: password
+        })
+    })
+})
+
+// Navigate to the home page, and given we are logged in, wait untila ll API calls have completed before moving on
+Cypress.Commands.add('home', (username, password) => {
+    // checkState from vue store
+    cy.intercept('/api/*/user').as('getUser')
+    cy.intercept('/api/*/settings').as('getSettings')
+    cy.intercept('/api/*/user/teams').as('getTeams')
+    cy.intercept('/api/*/teams/*').as('getTeam')
+    cy.intercept('/api/*/teams/*/user').as('getTeamRole')
+    cy.intercept('/api/*/teams/*/members').as('getTeamMembers')
+    cy.intercept('/api/*/teams/*/projects').as('getTeamProjects')
+    cy.intercept('/api/*/user/invitations').as('getInvitations')
+
+    cy.intercept('/api/*/admin/stats').as('getAdminStats')
+    cy.intercept('/api/*/admin/license').as('getAdminLicense')
+
+    cy.visit('/')
+
+    cy.wait('@getUser')
+    cy.wait('@getSettings')
+    cy.wait('@getTeam')
+    cy.wait('@getTeams')
+    cy.wait('@getTeamRole')
+    cy.wait('@getTeamMembers')
+    cy.wait('@getTeamProjects')
+    cy.wait('@getInvitations')
+
+    cy.url().should('include', '/overview')
+})
