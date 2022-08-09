@@ -29,10 +29,71 @@ Owners can remove a member from a team by clicking the dropdown menu next to the
 Members can have 1 role for all projects in the team. Below there's a table to
 describe the different Roles apply for all projects in the team
 
-| Role | Manage team members | Create and Delete Projects | Update flows in Projects | Manage Devices | View Audit Log | Update and Delete Team | Manage Billing  |
-|---|---|---|---|---|
-| Owner  | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Member | - | - | ✓ | ✓ | ✓ | - | - |
+| Role                                 | Owner | Member |
+|:-------------------------------------|:-----:|:------:|
+|                                      |       |        |
+| Manage Billing                       | ✓     | -      |
+| **Overview**                         |       |        |
+| • View Projects                      | ✓     | ✓      |
+| • Create Project                     | ✓     | -      |
+|                                      |       |        |
+| **Projects**                         |       |        |
+| • View Projects                      | ✓     | ✓      |
+| • Create Project                     | ✓     | -      |
+|                                      |       |        |
+| **Project**                          |       |        |
+| • Actions Menu                       | ✓     | -      |
+| • Editor Link + Status               | ✓     | ✓      |
+| • Modifiy Flows                      | ✓     | ✓      |
+|                                      |       |        |
+| **Selected Project**                 |       |        |
+| • Overview                           | ✓     | ✓      |
+| • Activity                           | ✓     | ✓      |
+| • Snapshots...                       |       |        |
+|     • View Snapshots                 | ✓     | ✓      |
+|     • Create Snapshot                | ✓     | -      |
+|     • Rollback                       | ✓     | -      |
+|     • Set as Device Target           | ✓     | ✓      |
+|     • Delete Snapshot                | ✓     | -      |
+| • Devices...                         |       |        |
+|     • View Devices                   | ✓     | ✓      |
+|     • Register Device                | ✓     | -      |
+|     • Device Row Menu                | ✓     | -      |
+|     • Device Overview                | ✓     | ✓      |
+|     • Device Settings...             | ✓     |        |
+|         • Edit Device                | ✓     | ✓      |
+|         • View Environment Variables | ✓     | ✓      |
+|         • Edit Environment Variables | ✓     | -      |
+|         • Delete Device              | ✓     | -      |
+| • Logs                               | ✓     | ✓      |
+| • Settings...                        | -     | -      |
+|     * View General                   | ✓     | ✓      |
+|     * View Environment Variables     | ✓     | ✓      |
+|     * Edit Environment Variables     | ✓     | -      |
+|     * View Other Settings            | ✓     | -      |
+|     * Edit Other Settings            | ✓     | -      |
+|                                      |       |        |
+| **Devices**                          |       |        |
+| • View Devices                       | ✓     | ✓      |
+| • Register Device                    | ✓     | -      |
+| • Device Row Menu                    | ✓     | -      |
+| • Device Overview                    | ✓     | ✓      |
+| • Device Settings...                 | ✓     |        |
+|     • General                        | ✓     | ✓      |
+|     • Edit Device                    | ✓     | -      |
+|     • View Environment Variables     | ✓     | ✓      |
+|     • Edit Environment Variables     | ✓     | -      |
+|     • Delete Device                  | ✓     | -      |
+|                                      |       |        |
+| **Members**                          |       |        |
+| • Invite                             | ✓     | -      |
+| • Member List Row Menu               | ✓     | ✓      |
+|     • Change Role                    | ✓     | -      |
+|     • Remove From Team               | ✓     | ✓      |
+|     • Remove Other from Team         | ✓     | -      |
+|                                      |       |        |
+| **Audit Log**                        | ✓     | -      |
+| **Team Settings**                    | ✓     | -      |
 
 #### Changing roles
 
