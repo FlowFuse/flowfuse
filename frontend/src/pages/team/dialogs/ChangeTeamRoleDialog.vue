@@ -1,7 +1,7 @@
 <template>
-    <ff-dialog :open="isOpen" header="Change Role" @close="close">
+    <ff-dialog ref="dialog" header="Change Role" confirm-label="Change" @confirm="confirm()" :disable-primary="ownerCount < 2 && isOwner">
         <template v-slot:default v-if="user">
-            <form class="space-y-6">
+            <form class="space-y-6" @submit.prevent>
                 <div class="mt-2 space-y-2">
                     <template v-if="ownerCount < 2 && isOwner">
                         <p class="text-sm text-gray-500">You cannot change the role for <span class="font-bold">{{ user.username }}</span> as
@@ -21,15 +21,10 @@
                 </div>
             </form>
         </template>
-        <template v-slot:actions>
-            <ff-button kind="secondary" class="ml-4" @click="close()">Cancel</ff-button>
-            <ff-button :disabled="ownerCount < 2 && isOwner" class="ml-4" @click="confirm()">Change</ff-button>
-        </template>
     </ff-dialog>
 </template>
 
 <script>
-import { ref } from 'vue'
 
 import alerts from '@/services/alerts'
 
@@ -57,15 +52,16 @@ export default {
     },
     methods: {
         async confirm () {
-            try {
-                await teamApi.changeTeamMemberRole(this.team.id, this.user.id, this.input.role)
-                this.user.role = this.input.role
-                this.$emit('roleUpdated', this.user)
-                alerts.emit("User's role successfully updated", 'confirmation')
-            } catch (err) {
-                console.warn(err)
+            if (!(this.ownerCount < 2 && this.isOwner)) {
+                try {
+                    await teamApi.changeTeamMemberRole(this.team.id, this.user.id, this.input.role)
+                    this.user.role = this.input.role
+                    this.$emit('roleUpdated', this.user)
+                    alerts.emit("User's role successfully updated", 'confirmation')
+                } catch (err) {
+                    console.warn(err)
+                }
             }
-            this.isOpen = false
         }
     },
     computed: {
@@ -74,18 +70,13 @@ export default {
         }
     },
     setup () {
-        const isOpen = ref(false)
         return {
-            isOpen,
-            close () {
-                isOpen.value = false
-            },
             show (team, user, ownerCount) {
+                this.$refs.dialog.show()
                 this.team = team
                 this.ownerCount = ownerCount
                 this.user = user
                 this.input.role = user.role
-                isOpen.value = true
             }
         }
     }

@@ -1,22 +1,17 @@
 <template>
-    <ff-dialog header="Change Project Stack" :open="isOpen">
+    <ff-dialog ref="dialog" header="Change Project Stack" confirm-label="Change Stack" @confirm="confirm()">
         <template v-slot:default>
-            <form class="space-y-6">
+            <form class="space-y-6" @submit.prevent>
                 <p >
                     Select the new stack you want to use for this project:
                 </p>
                 <FormRow :options="stacks" v-model="input.stack">Stack</FormRow>
             </form>
         </template>
-        <template v-slot:actions>
-            <ff-button kind="secondary" @click="close()">Cancel</ff-button>
-            <ff-button class="ml-4" @click="confirm()">Change Stack</ff-button>
-        </template>
     </ff-dialog>
 </template>
 
 <script>
-import { ref } from 'vue'
 
 import stacksApi from '@/api/stacks'
 
@@ -39,21 +34,14 @@ export default {
     methods: {
         confirm () {
             this.$emit('changeStack', this.input.stack)
-            this.isOpen = false
         }
     },
     setup () {
-        const isOpen = ref(false)
-
         return {
-            isOpen,
-            close () {
-                isOpen.value = false
-            },
             async show (project) {
+                this.$refs.dialog.show()
                 this.project = project
                 this.input.stack = this.project.stack?.id
-                isOpen.value = true
                 const stackList = await stacksApi.getStacks(null, null, 'all', this.project.projectType?.id)
                 this.stacks = stackList.stacks
                     .filter(stack => (stack.active || stack.id === this.project.stack?.id))

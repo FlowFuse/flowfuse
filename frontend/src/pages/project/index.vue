@@ -32,7 +32,7 @@
                 </div>
             </template>
         </SectionTopMenu>
-        <div class="text-sm sm:px-6 mt-4 sm:mt-8">
+        <div class="text-sm mt-4 sm:mt-8">
             <router-view :project="project" @projectUpdated="updateProject"></router-view>
         </div>
     </main>

@@ -1,6 +1,8 @@
 import axios from 'axios'
 import store from '@/store'
 
+import Alerts from '@/services/alerts'
+
 const client = axios.create({
     headers: {
         'Content-Type': 'application/json'
@@ -8,6 +10,7 @@ const client = axios.create({
     timeout: 30000
 })
 
+// Authentication
 client.interceptors.response.use(function (response) {
     return response
 }, function (error) {
@@ -18,6 +21,18 @@ client.interceptors.response.use(function (response) {
     } else if (error.code === 'ERR_NETWORK') {
         // network error
         store.dispatch('account/setOffline', true)
+    }
+    return Promise.reject(error)
+})
+
+// 500 Internal Server Errors
+client.interceptors.response.use(function (response) {
+    return response
+}, function (error) {
+    if (error.response && error.response.status === 500) {
+        // show toast notification
+        Alerts.emit(error.response.data.error + ': ' + error.response.data.message, 'warning', 7500)
+        return Promise.reject(error)
     }
     return Promise.reject(error)
 })

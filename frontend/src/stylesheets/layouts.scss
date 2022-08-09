@@ -72,14 +72,16 @@ $nav_height: 60px;
     a {
         color: $ff-teal-400;
     }
-    input.ff-input:not(.ff-input--error) {
+    .ff-input:not(.ff-input--error) {
         border-color: transparent;
     }
-    input.ff-input {
-        color: $ff-grey-50;
+    .ff-input {
         background-color: $ff-grey-600;
         border-width: 2px;
-        &:focus {
+        input {
+            color: $ff-grey-50;
+        }
+        &:focus-within {
             border-color: $ff-teal-400;
         }
     }

@@ -1,8 +1,8 @@
 <template>
-    <ff-dialog :open="isOpen" :header="dialogTitle" @confirm="isOpen = false">
+    <ff-dialog ref="dialog" :header="dialogTitle" :confirm-label="stack ? 'Save' : 'Create'" @confirm="confirm()" :disable-primary="!formValid || loading">
         <template v-slot:default>
             <ff-loading v-if="loading" message="Creating Stack..."/>
-            <form v-else class="space-y-6">
+            <form v-else class="space-y-6" @submit.prevent>
                 <div v-if="this.input.replaces">
                     This will create a new stack to replace '{{input.replaces.name}}'.
                     The existing stack will be marked inactive and will not be
@@ -28,18 +28,12 @@
                 </template>
             </form>
         </template>
-        <template v-slot:actions>
-            <ff-button kind="secondary" @click="close()">Cancel</ff-button>
-            <ff-button kind="primary" @click="confirm()" :disabled="!formValid || loading">{{ (stack ? 'Save' : 'Create') }}</ff-button>
-        </template>
     </ff-dialog>
 </template>
 
 <script>
 import stacksApi from '@/api/stacks'
 import projectTypesApi from '@/api/projectTypes'
-
-import { ref } from 'vue'
 
 import FormRow from '@/components/FormRow'
 import { mapState } from 'vuex'
@@ -144,70 +138,66 @@ export default {
             })
         },
         confirm () {
-            this.loading = true
-            let opts = {
-                name: this.input.name,
-                active: this.input.active,
-                projectType: this.input.projectType,
-                properties: {}
-            }
-            if (this.input.replaces) {
-                opts.replace = this.input.replaces.id
-            }
-            this.stackProperties.forEach(prop => {
-                opts.properties[prop.name] = this.input.properties[prop.name]
-            })
-
-            if (this.stack) {
-                if (this.editDisabled) {
-                    opts = { active: this.input.active }
-                    if (!this.editTypeDisabled && this.input.projectType) {
-                        opts.projectType = this.input.projectType
-                    }
+            if (this.formValid || !this.loading) {
+                this.loading = true
+                let opts = {
+                    name: this.input.name,
+                    active: this.input.active,
+                    projectType: this.input.projectType,
+                    properties: {}
                 }
-                // Update
-                stacksApi.updateStack(this.stack.id, opts).then((response) => {
-                    this.isOpen = false
-                    this.$emit('stackUpdated', response)
-                }).catch(err => {
-                    console.log(err.response.data)
-                    if (err.response.data) {
-                        if (/name/.test(err.response.data.error)) {
-                            this.errors.name = 'Name unavailable'
+                if (this.input.replaces) {
+                    opts.replace = this.input.replaces.id
+                }
+                this.stackProperties.forEach(prop => {
+                    opts.properties[prop.name] = this.input.properties[prop.name]
+                })
+
+                if (this.stack) {
+                    if (this.editDisabled) {
+                        opts = { active: this.input.active }
+                        if (!this.editTypeDisabled && this.input.projectType) {
+                            opts.projectType = this.input.projectType
                         }
                     }
-                }).finally(() => {
-                    this.loading = false
-                })
-            } else {
-                stacksApi.create(opts).then((response) => {
-                    this.isOpen = false
-                    if (this.input.replaces) {
-                        this.input.replaces.active = false
-                        this.input.replaces.replacedBy = response.id
-                    }
-                    this.$emit('stackCreated', response, this.input.replaces)
-                }).catch(err => {
-                    console.log(err.response.data)
-                    if (err.response.data) {
-                        if (/name/.test(err.response.data.error)) {
-                            this.errors.name = 'Name unavailable'
+                    // Update
+                    stacksApi.updateStack(this.stack.id, opts).then((response) => {
+                        this.$emit('stackUpdated', response)
+                    }).catch(err => {
+                        console.log(err.response.data)
+                        if (err.response.data) {
+                            if (/name/.test(err.response.data.error)) {
+                                this.errors.name = 'Name unavailable'
+                            }
                         }
-                    }
-                }).finally(() => {
-                    this.loading = false
-                })
+                    }).finally(() => {
+                        this.loading = false
+                    })
+                } else {
+                    stacksApi.create(opts).then((response) => {
+                        if (this.input.replaces) {
+                            this.input.replaces.active = false
+                            this.input.replaces.replacedBy = response.id
+                        }
+                        this.$emit('stackCreated', response, this.input.replaces)
+                    }).catch(err => {
+                        console.log(err.response.data)
+                        if (err.response.data) {
+                            if (/name/.test(err.response.data.error)) {
+                                this.errors.name = 'Name unavailable'
+                            }
+                        }
+                    }).finally(() => {
+                        this.loading = false
+                    })
+                }
             }
         }
     },
     setup () {
-        const isOpen = ref(false)
         return {
-            isOpen,
-            close () {
-                isOpen.value = false
-            },
             showCreate () {
+                this.$refs.dialog.show()
                 this.stack = null
                 this.editDisabled = false
                 this.editTypeDisabled = false
@@ -216,9 +206,9 @@ export default {
                 if (this.projectTypes.length === 0) {
                     this.errors.projectType = 'No project types available. Ask an Administator to create a new project type definition'
                 }
-                isOpen.value = true
             },
             showEdit (stack) {
+                this.$refs.dialog.show()
                 this.stack = stack
                 this.editDisabled = stack.projectCount > 0
                 this.editTypeDisabled = !!stack.projectType
@@ -230,9 +220,9 @@ export default {
                     projectType: stack.projectType
                 }
                 this.errors = {}
-                isOpen.value = true
             },
             showCreateVersion (stack) {
+                this.$refs.dialog.show()
                 this.stack = null
                 this.editDisabled = false
                 this.editTypeDisabled = true
@@ -249,7 +239,6 @@ export default {
                     })
                 }
                 this.errors = {}
-                isOpen.value = true
             }
         }
     }

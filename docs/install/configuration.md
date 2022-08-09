@@ -71,6 +71,19 @@ Option        | Description
 `telemetry.frontend.plausible.domain` | The `data-domain` of your site (see [Plausible docs](https://plausible.io/docs/plausible-script)). Default: `null`
 `telemetry.frontend.plausible.extension` | By default, Plausible only detects events running in a production environment, it is possible to enhance measurements with [script extensions](https://plausible.io/docs/script-extensions). You can, for example, detect localhost events using `local`. Default: `null`
 
+## MQTT Broker configuration
+
+The platform depends on the [Mosquitto MQTT Broker](https://mosquitto.org/) to
+provide real-time messaging between devices and the platform.
+
+This is currently an *optional* component - the platform will work without the
+broker, but some features will not be available.
+
+Option         | Description
+---------------|--------------
+`broker.url`   | The full url to the platform broker. This is used by the platform and project launchers to connect to the broker. For example: `mqtt://localhost:1883`.
+`broker.public_url` | If set, this is the url provided to Devices to connect to the broker with. When running in a Docker or K8S environment, this url should be the externally addressable url the broker is provided on. This could be via WebSockets, for example: `ws://example.com:1884`
+
 ## Logging configuration
 
 By default the forge app is set to `info` level logging, with the HTTP routes logged at `warn`
@@ -81,3 +94,4 @@ Option        | Description
 `logging.http`  | Change the default HTTP route logging level. Default: `warn`
 
 Setting `logging.http` to `info` will log every HTTP request and response details.
+

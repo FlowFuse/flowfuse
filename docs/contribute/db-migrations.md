@@ -1,11 +1,10 @@
 # Database Migrations
 
-It is important that any changes made to the database models include migrations that
-can modify the database state from one state to another.
+It is important that any changes made to the database models include migrations
+that can modify the database state from one state to another.
 
 Whilst we use Sequelize as our ORM layer, we do not use the migration tooling
 it provides - we have our own.
-
 
 ## Creating migrations
 
@@ -51,3 +50,8 @@ how it was prior to the migration.
 
 The `context` argument is an instance of [Sequelize.QueryInterface](https://sequelize.org/v6/class/lib/dialects/abstract/query-interface.js~QueryInterface.html) that can be used to perform
 operations on the database.
+
+## Applying migrations
+
+Migrations are applied automatically on start of the FlowForge application. Down
+migrations are not yet supported.

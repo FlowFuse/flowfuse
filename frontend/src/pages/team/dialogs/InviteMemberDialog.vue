@@ -1,7 +1,7 @@
 <template>
-    <ff-dialog :open="isOpen" header="Invite Team Member" @close="close">
+    <ff-dialog ref="dialog" header="Invite Team Member" confirm-label="Invite" @confirm="confirm()" :disable-primary="disableConfirm">
         <template v-slot:default>
-            <form class="space-y-6" @submit.enter.prevent="">
+            <form class="space-y-6" @submit.prevent>
                 <div class="space-y-2">
                     <template v-if="!responseErrors">
                         <p>Invite a user to join the team.</p>
@@ -17,15 +17,10 @@
                 </div>
             </form>
         </template>
-        <template v-slot:actions>
-            <ff-button kind="secondary" @click="close">Cancel</ff-button>
-            <ff-button :disabled="responseErrors || !input.userInfo.trim() || errors.userInfo" class="ml-4" @click="confirm">Invite</ff-button>
-        </template>
     </ff-dialog>
 </template>
 
 <script>
-import { ref } from 'vue'
 import { mapState } from 'vuex'
 import FormRow from '@/components/FormRow'
 import teamApi from '@/api/team'
@@ -54,6 +49,9 @@ export default {
         ...mapState('account', ['settings']),
         externalEnabled () {
             return this.settings.email && this.settings['team:user:invite:external']
+        },
+        disableConfirm () {
+            return this.responseErrors || !this.input.userInfo.trim() || this.errors.userInfo
         }
     },
     watch: {
@@ -77,26 +75,19 @@ export default {
                 } else {
                     alerts.emit('Invite sent to ' + this.input.userInfo, 'confirmation')
                     this.$emit('invitationSent')
-                    this.isOpen = false
                 }
             } catch (err) {
                 console.warn(err)
-                this.isOpen = false
             }
         }
     },
     setup () {
-        const isOpen = ref(false)
         return {
-            isOpen,
-            close () {
-                isOpen.value = false
-            },
             show () {
+                this.$refs.dialog.show()
                 this.responseErrors = null
                 this.input.userInfo = ''
                 this.errors.userInfo = null
-                isOpen.value = true
             }
         }
     }

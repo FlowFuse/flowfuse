@@ -1,7 +1,7 @@
 <template>
-    <ff-dialog header="Delete Project" :open="isOpen">
+    <ff-dialog ref="dialog" header="Delete Project" kind="danger" confirm-label="Delete" :disable-primary="!formValid" @confirm="confirm()">
         <template v-slot:default>
-            <form class="space-y-6">
+            <form class="space-y-6" @submit.prevent>
                 <div class="mt-2 space-y-2">
                     <p>
                         Are you sure you want to delete this project? Once deleted, there is no going back.
@@ -14,15 +14,10 @@
                 <FormRow v-model="input.projectName" id="projectName">Name</FormRow>
             </form>
         </template>
-        <template v-slot:actions>
-            <ff-button kind="secondary" @click="close()">Cancel</ff-button>
-            <ff-button kind="danger" :disabled="!formValid" class="ml-4" @click="confirm()">Delete</ff-button>
-        </template>
     </ff-dialog>
 </template>
 
 <script>
-import { ref } from 'vue'
 
 import FormRow from '@/components/FormRow'
 
@@ -50,20 +45,16 @@ export default {
     },
     methods: {
         confirm () {
-            this.$emit('deleteProject')
-            this.isOpen = false
+            if (this.formValid) {
+                this.$emit('deleteProject')
+            }
         }
     },
     setup () {
-        const isOpen = ref(false)
         return {
-            isOpen,
-            close () {
-                isOpen.value = false
-            },
             show (project) {
+                this.$refs.dialog.show()
                 this.project = project
-                isOpen.value = true
             }
         }
     }

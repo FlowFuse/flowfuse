@@ -1,7 +1,7 @@
 <template>
-    <ff-dialog :open="isOpen" header="Delete Project Type" @close="close">
+    <ff-dialog ref="dialog" header="Delete Project Type" kind="danger" confirm-label="Delete" @confirm="confirm()" :disable-primary="deleteDisabled">
         <template v-slot:default>
-            <form class="space-y-6">
+            <form class="space-y-6" @submit.prevent>
                 <div class="mt-2 space-y-2">
                     <p>
                         <span v-if="!deleteDisabled">
@@ -14,15 +14,10 @@
                 </div>
             </form>
         </template>
-        <template v-slot:actions>
-            <ff-button kind="secondary" @click="close()">Cancel</ff-button>
-            <ff-button kind="danger" :disabled="deleteDisabled" @click="confirm()">Delete</ff-button>
-        </template>
     </ff-dialog>
 </template>
 
 <script>
-import { ref } from 'vue'
 
 export default {
     name: 'ProjectTypeDeleteDialog',
@@ -35,21 +30,17 @@ export default {
     },
     methods: {
         confirm () {
-            this.$emit('deleteProjectType', this.projectType)
-            this.isOpen = false
+            if (!this.deleteDisabled) {
+                this.$emit('deleteProjectType', this.projectType)
+            }
         }
     },
     setup () {
-        const isOpen = ref(false)
         return {
-            isOpen,
-            close () {
-                isOpen.value = false
-            },
             show (projectType) {
+                this.$refs.dialog.show()
                 this.projectType = projectType
                 this.deleteDisabled = projectType.projectCount > 0
-                isOpen.value = true
             }
         }
     }

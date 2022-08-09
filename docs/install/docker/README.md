@@ -61,6 +61,42 @@ You also need to update the `VIRTUAL_HOST` entry in the `docker-compose.yml` fil
 
 For more details on the options available, see the [configuration guide](../configuration.md).
 
+### MQTT Broker
+
+The only configuration needed will be to edit the `VIRTUAL_HOST` line in the `flowforge-broker` section of `docker-compose.yml` to 
+set the correct domain name and make the same change to the `public_url` entry in the `etc/flowforge.yml` file.
+
+`docker-compose.yml`
+
+```
+  ...
+  flowforge-broker:
+    image: "iegomez/mosquitto-go-auth"
+    networks:
+      - flowforge
+    restart: always
+    ulimits:
+      nofile: 2048
+    environment:
+      - "VIRTUAL_HOST=mqtt.example.com"
+      - "VIRTUAL_PORT=1884"
+    volumes:
+      - "./broker/mosquitto.conf:/etc/mosquitto/mosquitto.conf"
+  ...
+```
+
+`etc/flowforge.yml`
+
+```
+  ...
+  broker:
+    url: mqtt://forge:1883
+    public_url: ws://forge.example.com
+```
+
+
+
+
 ### SSL (optional)
 If you want to serve the forge app and projects via SSL you will need to obtain wildcard SSL certs for the domain you are using eg `*.example.com`
 
@@ -82,6 +118,8 @@ If you wish to redirect all traffic to use HTTPS then add the following section 
 environment:
       - "HTTPS_METHOD=redirect"
 ```
+
+If you are running with the MQTT broker then you should adjust the `public_url` to start with `wss://` rather than `ws://`
 
 ### Running FlowForge
 

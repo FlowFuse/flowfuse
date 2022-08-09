@@ -1,7 +1,7 @@
 <template>
-    <ff-dialog :open="isOpen" :header="dialogTitle" @close="close">
+    <ff-dialog ref="dialog" :header="dialogTitle" :confirm-label="projectType ? 'Update' : 'Create'" @confirm="confirm()" :disable-primary="!formValid">
         <template v-slot:default>
-            <form class="space-y-6 mt-2">
+            <form class="space-y-6 mt-2" @submit.prevent>
                 <FormRow v-model="input.name" :error="errors.name">Name</FormRow>
                 <FormRow v-model="input.active" type="checkbox">Active</FormRow>
                 <FormRow v-model="input.description" :error="errors.description">Description
@@ -32,21 +32,12 @@
                 </FormRow>
             </form>
         </template>
-        <template v-slot:actions>
-            <ff-button kind="secondary" @click="close()">Cancel</ff-button>
-            <ff-button :disabled="!formValid" class="ml-4" @click="confirm()">
-                <span v-if="projectType">Update</span>
-                <span v-else>Create</span>
-            </ff-button>
-        </template>
     </ff-dialog>
 </template>
 
 <script>
 import projectTypesApi from '@/api/projectTypes'
 import stacksApi from '@/api/stacks'
-
-import { ref } from 'vue'
 
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
@@ -89,58 +80,54 @@ export default {
     },
     methods: {
         confirm () {
-            const opts = {
-                name: this.input.name,
-                active: this.input.active,
-                description: this.input.description,
-                order: parseInt(this.input.order),
-                defaultStack: this.input.defaultStack,
-                properties: {}
-            }
-            if (this.features.billing) {
-                opts.properties.billingProductId = this.input.properties.billingProductId
-                opts.properties.billingPriceId = this.input.properties.billingPriceId
-                opts.properties.billingDescription = this.input.properties.billingDescription
-            }
+            if (this.formValid) {
+                const opts = {
+                    name: this.input.name,
+                    active: this.input.active,
+                    description: this.input.description,
+                    order: parseInt(this.input.order),
+                    defaultStack: this.input.defaultStack,
+                    properties: {}
+                }
+                if (this.features.billing) {
+                    opts.properties.billingProductId = this.input.properties.billingProductId
+                    opts.properties.billingPriceId = this.input.properties.billingPriceId
+                    opts.properties.billingDescription = this.input.properties.billingDescription
+                }
 
-            if (this.projectType) {
-                // For edits, we cannot touch the properties
-                delete opts.properties
-                // Update
-                projectTypesApi.updateProjectType(this.projectType.id, opts).then((response) => {
-                    this.isOpen = false
-                    this.$emit('projectTypeUpdated', response)
-                }).catch(err => {
-                    console.log(err.response.data)
-                    if (err.response.data) {
-                        if (/name/.test(err.response.data.error)) {
-                            this.errors.name = 'Name unavailable'
+                if (this.projectType) {
+                    // For edits, we cannot touch the properties
+                    delete opts.properties
+                    // Update
+                    projectTypesApi.updateProjectType(this.projectType.id, opts).then((response) => {
+                        this.$emit('projectTypeUpdated', response)
+                    }).catch(err => {
+                        console.log(err.response.data)
+                        if (err.response.data) {
+                            if (/name/.test(err.response.data.error)) {
+                                this.errors.name = 'Name unavailable'
+                            }
                         }
-                    }
-                })
-            } else {
-                projectTypesApi.create(opts).then((response) => {
-                    this.isOpen = false
-                    this.$emit('projectTypeCreated', response)
-                }).catch(err => {
-                    console.log(err.response.data)
-                    if (err.response.data) {
-                        if (/name/.test(err.response.data.error)) {
-                            this.errors.name = 'Name unavailable'
+                    })
+                } else {
+                    projectTypesApi.create(opts).then((response) => {
+                        this.$emit('projectTypeCreated', response)
+                    }).catch(err => {
+                        console.log(err.response.data)
+                        if (err.response.data) {
+                            if (/name/.test(err.response.data.error)) {
+                                this.errors.name = 'Name unavailable'
+                            }
                         }
-                    }
-                })
+                    })
+                }
             }
         }
     },
     setup () {
-        const isOpen = ref(false)
         return {
-            isOpen,
-            close () {
-                isOpen.value = false
-            },
             show (projectType) {
+                this.$refs.dialog.show()
                 this.projectType = projectType
                 this.stacks = []
                 if (projectType) {
@@ -165,7 +152,6 @@ export default {
                     this.input = { active: true, name: '', properties: {}, description: '', order: '1' }
                 }
                 this.errors = {}
-                isOpen.value = true
             }
         }
     }

@@ -1,18 +1,14 @@
 <template>
-    <ff-dialog :open="isOpen" header="Create Snapshot">
+    <ff-dialog ref="dialog" header="Create Snapshot" confirm-label="Create" :disable-primary="!formValid" @confirm="confirm()">
         <template v-slot:default>
-            <form class="space-y-6 mt-2">
+            <form class="space-y-6 mt-2" @submit.prevent>
                 <FormRow v-model="input.name" :error="errors.name">Name</FormRow>
                 <FormRow>Description
-                    <template #input><textarea v-model="input.description" rows="8" class="ff-input ff-text-input" style="height: auto"></textarea></template>
+                    <template #input>
+                        <textarea v-model="input.description" rows="8" class="ff-input ff-text-input" style="height: auto"></textarea>
+                    </template>
                 </FormRow>
             </form>
-        </template>
-        <template v-slot:actions>
-            <ff-button kind="secondary" @click="close()">Cancel</ff-button>
-            <ff-button class="ml-4" :disabled="!formValid" @click="confirm()">
-                <span>Create</span>
-            </ff-button>
         </template>
     </ff-dialog>
 </template>
@@ -22,8 +18,6 @@
 import snapshotApi from '@/api/projectSnapshots'
 
 import alerts from '@/services/alerts'
-
-import { ref } from 'vue'
 
 import FormRow from '@/components/FormRow'
 
@@ -53,38 +47,34 @@ export default {
     },
     methods: {
         confirm () {
-            this.submitted = true
-            const opts = {
-                name: this.input.name,
-                description: this.input.description
-            }
-            snapshotApi.create(this.project.id, opts).then((response) => {
-                this.isOpen = false
-                this.$emit('snapshotCreated', response)
-                alerts.emit('Successfully created snapshot of project.', 'confirmation')
-            }).catch(err => {
-                console.log(err.response.data)
-                if (err.response.data) {
-                    if (/name/.test(err.response.data.error)) {
-                        this.errors.name = err.response.data.error
-                    }
+            if (this.formValid) {
+                this.submitted = true
+                const opts = {
+                    name: this.input.name,
+                    description: this.input.description
                 }
-            })
+                snapshotApi.create(this.project.id, opts).then((response) => {
+                    this.$emit('snapshotCreated', response)
+                    alerts.emit('Successfully created snapshot of project.', 'confirmation')
+                }).catch(err => {
+                    console.log(err.response.data)
+                    if (err.response.data) {
+                        if (/name/.test(err.response.data.error)) {
+                            this.errors.name = err.response.data.error
+                        }
+                    }
+                })
+            }
         }
     },
     setup () {
-        const isOpen = ref(false)
         return {
-            isOpen,
-            close () {
-                isOpen.value = false
-            },
             show () {
+                this.$refs.dialog.show()
                 this.input.name = ''
                 this.input.description = ''
                 this.submitted = false
                 this.errors = {}
-                isOpen.value = true
             }
         }
     }

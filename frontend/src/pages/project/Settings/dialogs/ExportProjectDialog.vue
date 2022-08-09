@@ -1,7 +1,7 @@
 <template>
-    <ff-dialog header="Export Project" :open="isOpen">
+    <ff-dialog ref="dialog" header="Export Project" confirm-label="Export Project" @confirm="confirm()">
         <template v-slot:default>
-            <form class="space-y-6">
+            <form class="space-y-6" @submit.prevent>
                 <div class="mt-2 space-y-2">
                     <p class="text-sm text-gray-500">
                         Select project components to export:
@@ -10,15 +10,10 @@
                 <ExportProjectComponents id="exportSettings" v-model="parts" showSecret="true"/>
             </form>
         </template>
-        <template v-slot:actions>
-            <ff-button kind="secondary" @click="close()">Cancel</ff-button>
-            <ff-button class="ml-4" @click="confirm()">Export project</ff-button>
-        </template>
     </ff-dialog>
 </template>
 
 <script>
-import { ref } from 'vue'
 
 // import FormRow from '@/components/FormRow'
 import ExportProjectComponents from '../../components/ExportProjectComponents'
@@ -47,18 +42,12 @@ export default {
                 delete parts.credsSecret
             }
             this.$emit('exportProject', this.parts)
-            this.isOpen = false
         }
     },
     setup () {
-        const isOpen = ref(false)
-
         return {
-            isOpen,
-            close () {
-                isOpen.value = false
-            },
             async show (project) {
+                this.$refs.dialog.show()
                 this.project = project
                 this.parts = {
                     flows: true,
@@ -67,7 +56,6 @@ export default {
                     envVars: true,
                     envVarsKo: false
                 }
-                isOpen.value = true
             }
         }
     }

@@ -69,7 +69,7 @@ describe('Stripe Callbacks', function () {
                 type: 'charge.failed'
             }
         })
-        should(response).have.property('statusCode', 404)
+        should(response).have.property('statusCode', 200)
     })
 
     it('Recieve checkout.session.completed callback', async function () {

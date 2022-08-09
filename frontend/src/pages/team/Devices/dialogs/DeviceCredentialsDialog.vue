@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog :open="isOpen" header="Device Credentials">
+    <ff-dialog ref="dialog" header="Device Credentials">
         <template v-slot:default>
             <form class="space-y-6 mt-2">
                 <template v-if="!hasCredentials">
@@ -37,7 +37,6 @@
 <script>
 // import devicesApi from '@/api/devices'
 
-import { ref } from 'vue'
 import { mapState } from 'vuex'
 import deviceApi from '@/api/devices'
 
@@ -68,7 +67,7 @@ export default {
             this.device.credentials = creds
         },
         close () {
-            this.isOpen = false
+            this.$refs.dialog.close()
             this.device.credentials = undefined
         }
     },
@@ -96,12 +95,10 @@ brokerPassword: ${this.device.credentials.broker.password}
         }
     },
     setup () {
-        const isOpen = ref(false)
         return {
-            isOpen,
             show (device) {
+                this.$refs.dialog.show()
                 this.device = device
-                isOpen.value = true
             }
         }
     }
