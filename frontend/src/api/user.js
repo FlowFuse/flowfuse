@@ -26,7 +26,6 @@ const getUser = () => {
     return client.get('/api/v1/user/').then((res) => {
         window.posthog?.identify(res.data.username, {
             name: res.data.name,
-            email: res.data.email,
             username: res.data.username
         })
         return res.data
