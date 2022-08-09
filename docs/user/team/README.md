@@ -33,6 +33,7 @@ describe the different Roles apply for all projects in the team
 |:-------------------------------------|:-----:|:------:|
 |                                      |       |        |
 | Manage Billing                       | ✓     | -      |
+|                                      |       |        |
 | **Overview**                         |       |        |
 | • View Projects                      | ✓     | ✓      |
 | • Create Project                     | ✓     | -      |
@@ -50,28 +51,28 @@ describe the different Roles apply for all projects in the team
 | • Overview                           | ✓     | ✓      |
 | • Activity                           | ✓     | ✓      |
 | • Snapshots...                       |       |        |
-|     • View Snapshots                 | ✓     | ✓      |
-|     • Create Snapshot                | ✓     | -      |
-|     • Rollback                       | ✓     | -      |
-|     • Set as Device Target           | ✓     | ✓      |
-|     • Delete Snapshot                | ✓     | -      |
+| &emsp; • View Snapshots                 | ✓     | ✓      |
+| &emsp; • Create Snapshot                | ✓     | -      |
+| &emsp; • Rollback                       | ✓     | -      |
+| &emsp; • Set as Device Target           | ✓     | ✓      |
+| &emsp; • Delete Snapshot                | ✓     | -      |
 | • Devices...                         |       |        |
-|     • View Devices                   | ✓     | ✓      |
-|     • Register Device                | ✓     | -      |
-|     • Device Row Menu                | ✓     | -      |
-|     • Device Overview                | ✓     | ✓      |
-|     • Device Settings...             | ✓     |        |
-|         • Edit Device                | ✓     | ✓      |
-|         • View Environment Variables | ✓     | ✓      |
-|         • Edit Environment Variables | ✓     | -      |
-|         • Delete Device              | ✓     | -      |
+| &emsp; • View Devices                   | ✓     | ✓      |
+| &emsp; • Register Device                | ✓     | -      |
+| &emsp; • Device Row Menu                | ✓     | -      |
+| &emsp; • Device Overview                | ✓     | ✓      |
+| &emsp; • Device Settings...             | ✓     |        |
+| &emsp;&emsp; • Edit Device                | ✓     | ✓      |
+| &emsp;&emsp; • View Environment Variables | ✓     | ✓      |
+| &emsp;&emsp; • Edit Environment Variables | ✓     | -      |
+| &emsp;&emsp; • Delete Device              | ✓     | -      |
 | • Logs                               | ✓     | ✓      |
 | • Settings...                        | -     | -      |
-|     * View General                   | ✓     | ✓      |
-|     * View Environment Variables     | ✓     | ✓      |
-|     * Edit Environment Variables     | ✓     | -      |
-|     * View Other Settings            | ✓     | -      |
-|     * Edit Other Settings            | ✓     | -      |
+| &emsp; • View General                   | ✓     | ✓      |
+| &emsp; • View Environment Variables     | ✓     | ✓      |
+| &emsp; • Edit Environment Variables     | ✓     | -      |
+| &emsp; • View Other Settings            | ✓     | -      |
+| &emsp; • Edit Other Settings            | ✓     | -      |
 |                                      |       |        |
 | **Devices**                          |       |        |
 | • View Devices                       | ✓     | ✓      |
@@ -79,18 +80,18 @@ describe the different Roles apply for all projects in the team
 | • Device Row Menu                    | ✓     | -      |
 | • Device Overview                    | ✓     | ✓      |
 | • Device Settings...                 | ✓     |        |
-|     • General                        | ✓     | ✓      |
-|     • Edit Device                    | ✓     | -      |
-|     • View Environment Variables     | ✓     | ✓      |
-|     • Edit Environment Variables     | ✓     | -      |
-|     • Delete Device                  | ✓     | -      |
+| &emsp; • General                        | ✓     | ✓      |
+| &emsp; • Edit Device                    | ✓     | -      |
+| &emsp; • View Environment Variables     | ✓     | ✓      |
+| &emsp; • Edit Environment Variables     | ✓     | -      |
+| &emsp; • Delete Device                  | ✓     | -      |
 |                                      |       |        |
 | **Members**                          |       |        |
 | • Invite                             | ✓     | -      |
 | • Member List Row Menu               | ✓     | ✓      |
-|     • Change Role                    | ✓     | -      |
-|     • Remove From Team               | ✓     | ✓      |
-|     • Remove Other from Team         | ✓     | -      |
+| &emsp; • Change Role                    | ✓     | -      |
+| &emsp; • Remove From Team               | ✓     | ✓      |
+| &emsp; • Remove Other from Team         | ✓     | -      |
 |                                      |       |        |
 | **Audit Log**                        | ✓     | -      |
 | **Team Settings**                    | ✓     | -      |
