@@ -19,7 +19,8 @@ jobs:
       - name: Install Dependencies
         run: npm install
       # and run all Cypress tests
-      - name: Cypress runuses: cypress-io/github-action@v4
+      - name: Cypress run
+        uses: cypress-io/github-action@v4
         with:
           install: false
           config-file: config/cypress.json
