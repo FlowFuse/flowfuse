@@ -279,11 +279,14 @@ const actions = {
         state.commit('setSettings', settings)
     },
     async countNotifications (state) {
-        const invitations = await userApi.getTeamInvitations()
-        state.commit('setNotificationsCount', {
-            type: 'invitations',
-            count: invitations.count
-        })
+        await userApi.getTeamInvitations()
+            .then((invitations) => {
+                state.commit('setNotificationsCount', {
+                    type: 'invitations',
+                    count: invitations.count
+                })
+            })
+            .catch(_ => {})
     },
     setOffline (state, value) {
         state.commit('setOffline', value)
