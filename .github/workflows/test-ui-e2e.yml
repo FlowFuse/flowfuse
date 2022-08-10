@@ -2,7 +2,7 @@ name: UI E2E (Cypress) Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, e2e-testing ]
   pull_request:
     branches: [ main ]
 
