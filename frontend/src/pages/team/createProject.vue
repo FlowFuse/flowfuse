@@ -206,7 +206,7 @@ export default {
         }, 100)
     },
     async beforeMount () {
-        if (this.features.billing && !this.team.billingEnabled) {
+        if (this.features.billing && !this.team.billingSetup) {
             this.$router.push({
                 path: `/team/${this.team.slug}/billing`
             })

@@ -49,7 +49,7 @@ export default {
         },
         checkBilling: async function () {
             // Team Billing
-            if (this.features.billing && !this.team.billingEnabled) {
+            if (this.features.billing && !this.team.billingSetup) {
                 this.$router.push({
                     path: `/team/${this.team.slug}/billing`
                 })

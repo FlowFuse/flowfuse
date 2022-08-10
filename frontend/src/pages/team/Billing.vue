@@ -91,7 +91,7 @@ export default {
     watch: { },
     async mounted () {
         this.loading = true
-        if (!this.team.billingEnabled) {
+        if (!this.team.billingSetup) {
             this.loading = false
         } else {
             try {
