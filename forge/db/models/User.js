@@ -143,10 +143,12 @@ module.exports = {
                     })
                 },
                 byUsernameOrEmail: async (name) => {
+                    let clause = { username: name }
+                    if (/.+@.+/.test(name)) {
+                        clause = { email: name }
+                    }
                     return this.findOne({
-                        where: {
-                            [Op.or]: [{ username: name }, { email: name }]
-                        },
+                        where: clause,
                         include: {
                             model: M.Team,
                             attributes: ['name'],
