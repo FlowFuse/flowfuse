@@ -35,7 +35,7 @@
                         <p>You will not be charged for creating the team. You will be charged for the projects
                             you create within the team. For more information on billing, please read our <a class="underline" href="https://flowforge.com/docs/cloud/billing/">Billing documentation</a>.</p>
                     </div>
-                    <ff-button @click="createTeam()">
+                    <ff-button :disabled="!formValid" @click="createTeam()">
                         <template v-slot:icon-right><ExternalLinkIcon /></template>
                         Create team and setup payment details
                     </ff-button>
