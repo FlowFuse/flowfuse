@@ -102,7 +102,7 @@ export default {
     computed: {
         ...mapState('account', ['team', 'features']),
         formValid () {
-            return this.input.teamType && this.input.name && !this.input.slugError && !this.errors.name
+            return this.input.name && !this.input.slugError && !this.errors.name
         },
         billingEnabled () {
             return this.features.billing
