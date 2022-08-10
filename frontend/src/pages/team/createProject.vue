@@ -29,19 +29,41 @@
                     <span class="block text-xs ml-4 italic text-gray-500 m-0 max-w-sm">Please note, currently, project names cannot be changed once a project is created</span>
                 </div>
                 <div v-if="this.errors.projectTypes" class="text-red-400 text-xs">{{errors.projectTypes}}</div>
-                <ul v-else class="flex flex-wrap gap-1 items-stretch">
-                    <li v-for="(projType, index) in projectTypes" :key="index">
-                        <ProjectTypeSummary :projectType="projType">
-                            <template v-slot:header>
-                                <div class="absolute">
-                                    <input type="radio" name="project-type" :value="projType.id" v-model="input.projectType">
-                                </div>
-                            </template>
-                        </ProjectTypeSummary>
-                    </li>
-                </ul>
-                <FormRow :options="stacks" :error="errors.stack" v-model="input.stack" id="stack">Stack</FormRow>
-                <FormRow :options="templates" :disabled="isCopyProject" :error="errors.template" v-model="input.template" id="template">Template</FormRow>
+                <!-- Project Type -->
+                <div v-else class="flex flex-wrap gap-1 items-stretch">
+                    <label class="w-full block text-sm font-medium text-gray-700 mb-1">Project Type</label>
+                    <ff-tile-selection v-model="input.projectType" >
+                        <ff-tile-selection-option v-for="(projType, index) in projectTypes" :key="index"
+                                                  :label="projType.name" :description="projType.description"
+                                                  :price="projType.properties?.billingDescription?.split('/')[0]"
+                                                  :price-interval="projType.properties?.billingDescription?.split('/')[1]"
+                                                  :value="projType.id"/>
+                    </ff-tile-selection>
+                </div>
+                <!-- Stack -->
+                <!-- <FormRow :options="stacks" :error="errors.stack" v-model="input.stack" id="stack">Stack</FormRow> -->
+                <div class="flex flex-wrap gap-1 items-stretch">
+                    <label class="w-full block text-sm font-medium text-gray-700 mb-1">Stack</label>
+                    <label v-if="!input.projectType" class="text-sm text-gray-400">Please select a Project Type first.</label>
+                    <label v-if="errors.stack" class="text-sm text-gray-400">{{ errors.stack }}</label>
+                    <ff-tile-selection v-if="input.projectType" v-model="input.stack" >
+                        <ff-tile-selection-option v-for="(stack, index) in stacks" :key="index"
+                                                  :value="stack.id" :label="stack.name"/>
+                    </ff-tile-selection>
+                </div>
+                <!-- Template -->
+                <div class="flex flex-wrap gap-1 items-stretch">
+                    <label class="w-full block text-sm font-medium text-gray-700 mb-1">Template</label>
+                    <label v-if="!input.projectType && !input.stack" class="text-sm text-gray-400">Please select a Project Type &amp; Stack first.</label>
+                    <label v-if="errors.template" class="text-sm text-gray-400">{{ errors.template }}</label>
+                    <ff-tile-selection v-if="input.projectType" v-model="input.template" >
+                        <ff-tile-selection-option v-for="(t, index) in templates" :key="index"
+                                                  :value="t.id" :disabled="isCopyProject"
+                                                  :label="t.name" :description="t.description"/>
+                    </ff-tile-selection>
+                </div>
+                <!-- <FormRow :options="templates" :disabled="isCopyProject" :error="errors.template" v-model="input.template" id="template">Template</FormRow> -->
+                <!-- Is Copy Project -->
                 <template v-if="isCopyProject">
                     <p class="text-gray-500">
                         Select the components to copy from '{{this.sourceProject?.name}}'
@@ -82,7 +104,6 @@ import { RefreshIcon } from '@heroicons/vue/outline'
 import { Roles } from '@core/lib/roles'
 
 import ExportProjectComponents from '../project/components/ExportProjectComponents'
-import ProjectTypeSummary from './components/ProjectTypeSummary'
 
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
 
@@ -147,7 +168,8 @@ export default {
                 const projectType = this.projectTypes.find(pt => pt.id === value)
                 this.billingDescription = projectType.properties?.billingDescription || ''
                 const stackList = await stacksApi.getStacks(null, null, null, value)
-                this.stacks = stackList.stacks.filter(stack => stack.active).map(stack => { return { value: stack.id, label: stack.name } })
+                this.stacks = stackList.stacks.filter(stack => stack.active)
+                this.input.stack = null
                 if (this.stacks.length === 0) {
                     this.errors.stack = 'No stacks available. Ask an Administator to create a new stack definition'
                 } else {
@@ -184,7 +206,7 @@ export default {
         this.projectTypes = projectTypes.types
 
         const templateList = await templatesApi.getTemplates()
-        this.templates = templateList.templates.filter(template => template.active).map(template => { return { value: template.id, label: template.name } })
+        this.templates = templateList.templates.filter(template => template.active)
 
         this.init = true
 
@@ -247,7 +269,6 @@ export default {
         FormRow,
         RefreshIcon,
         ExportProjectComponents,
-        ProjectTypeSummary,
         SectionTopMenu,
         NavItem,
         SideNavigation
