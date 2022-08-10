@@ -8,11 +8,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      # Install NPM dependencies, cache them correctly
+      # Install NPM dependencies
+      - name: Install Dependencies
+        run: npm install
       # and run all Cypress tests
       - name: Cypress run
         uses: cypress-io/github-action@v4
         with:
+          install: false
           config-file: config/cypress.json
           build: npm run build
           start: node test/e2e/frontend/test_environment.js
