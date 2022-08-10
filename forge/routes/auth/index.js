@@ -324,7 +324,7 @@ module.exports = fp(async function (app, opts, done) {
 
             reply.redirect('/')
         } catch (err) {
-            console.log(err.toString())
+            app.log.error(`/account/verify/token error - ${err.toString()}`)
             reply.code(400).send({ status: 'error', message: err.toString() })
         }
     })
@@ -376,6 +376,7 @@ module.exports = fp(async function (app, opts, done) {
                         resetLink: `${app.config.base_url}/account/change-password/${token.token}`
                     }
                 )
+                app.log.info(`Password reset request for ${user.hashid}`)
             } else {
                 reply.code(400).send({ status: 'error', message: 'Email not enabled - cannot reset password' })
                 return
