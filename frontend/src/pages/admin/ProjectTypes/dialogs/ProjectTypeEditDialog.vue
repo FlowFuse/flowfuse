@@ -1,7 +1,6 @@
 <template>
     <ff-dialog ref="dialog" :header="dialogTitle">
         <template v-slot:default>
-            type: {{ projectType ? 'update' : 'create '}}
             <form class="space-y-6 mt-2" @submit.prevent>
                 <FormRow v-model="input.name" :error="errors.name">Name</FormRow>
                 <FormRow v-model="input.active" type="checkbox">Active</FormRow>
