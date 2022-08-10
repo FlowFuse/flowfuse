@@ -3,6 +3,9 @@ name: UI E2E (Cypress) Tests
 on:
   push:
     branches: [ main, e2e-testing ]
+    paths:
+      - 'frontend/**'
+      - 'test/e2e/frontend/**'
   pull_request:
     branches: [ main ]
 
@@ -12,23 +15,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      # Only proceed if we have a UI change
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: |
-            frontend_src:
-              - 'frontend/**'
-            frontend_tests:
-              - 'test/e2e/frontend/**'
       # Install NPM dependencies
       - name: Install Dependencies
-        if: steps.filter.outputs.frontend_src == 'true' || steps.filter.outputs.frontend_tests == 'true'
         run: npm install
       # and run all Cypress tests
-      - name: Cypress run
-        if: steps.filter.outputs.frontend_src == 'true' || steps.filter.outputs.frontend_tests == 'true'
-        uses: cypress-io/github-action@v4
+      - name: Cypress runuses: cypress-io/github-action@v4
         with:
           install: false
           config-file: config/cypress.json
