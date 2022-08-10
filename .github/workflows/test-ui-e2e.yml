@@ -2,7 +2,7 @@ name: UI E2E (Cypress) Tests
 
 on:
   push:
-    branches: [ main, e2e-testing ]
+    branches: [ main ]
     paths:
       - 'frontend/**'
       - 'test/e2e/frontend/**'
