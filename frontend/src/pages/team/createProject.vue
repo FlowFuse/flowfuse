@@ -87,7 +87,6 @@
 <script>
 import { mapState } from 'vuex'
 
-import teamApi from '@/api/team'
 import projectApi from '@/api/project'
 import projectTypesApi from '@/api/projectTypes'
 import stacksApi from '@/api/stacks'
@@ -101,7 +100,6 @@ import SideNavigation from '@/components/SideNavigation'
 import FormRow from '@/components/FormRow'
 import NameGenerator from '@/utils/name-generator'
 import { RefreshIcon } from '@heroicons/vue/outline'
-import { Roles } from '@core/lib/roles'
 
 import ExportProjectComponents from '../project/components/ExportProjectComponents'
 
@@ -119,15 +117,12 @@ export default {
                 chevronLeft: ChevronLeftIcon
             },
             init: false,
-            currentTeam: null,
-            teams: [],
             stacks: [],
             templates: [],
             projectTypes: [],
             billingDescription: '',
             input: {
                 name: NameGenerator(),
-                team: '',
                 stack: '',
                 template: '',
                 billingConfirmation: false,
@@ -152,7 +147,7 @@ export default {
             return !!this.sourceProjectId
         },
         createEnabled () {
-            return this.input.stack && this.input.team && this.input.name && !this.errors.name && this.input.template && (this.features.billing ? this.input.billingConfirmation : true)
+            return this.input.stack && this.input.name && !this.errors.name && this.input.template && (this.features.billing ? this.input.billingConfirmation : true)
         }
     },
     watch: {
@@ -184,24 +179,6 @@ export default {
         }
     },
     async created () {
-        const data = await teamApi.getTeams()
-        const filteredTeams = []
-
-        data.teams.forEach((t) => {
-            if (t.role !== Roles.Owner) {
-                return
-            }
-            if (t.slug === this.$route.params.team_slug) {
-                this.currentTeam = t.id
-            }
-            filteredTeams.push({ value: t.id, label: t.name })
-        })
-
-        if (this.currentTeam == null && filteredTeams.length > 0) {
-            this.currentTeam = filteredTeams[0].value
-        }
-        this.teams = filteredTeams
-
         const projectTypes = await projectTypesApi.getProjectTypes()
         this.projectTypes = projectTypes.types
 
@@ -213,7 +190,6 @@ export default {
         setTimeout(() => {
             // There must be a better Vue way of doing this, but I can't find it.
             // Without the setTimeout, the select box doesn't update
-            this.input.team = this.currentTeam
 
             if (this.projectTypes.length === 0) {
                 this.errors.projectTypes = 'No project types available. Ask an Administrator to create a new project type'
@@ -228,6 +204,13 @@ export default {
                 this.errors.template = 'No templates available. Ask an Administator to create a new template definition'
             }
         }, 100)
+    },
+    async beforeMount () {
+        if (this.features.billing && !this.team.billingSetup) {
+            this.$router.push({
+                path: `/team/${this.team.slug}/billing`
+            })
+        }
     },
     mounted () {
         this.mounted = true
@@ -244,7 +227,7 @@ export default {
     methods: {
         createProject () {
             this.loading = true
-            const createPayload = { ...this.input }
+            const createPayload = { ...this.input, team: this.team.id }
             if (this.isCopyProject) {
                 createPayload.sourceProject = {
                     id: this.sourceProjectId,
