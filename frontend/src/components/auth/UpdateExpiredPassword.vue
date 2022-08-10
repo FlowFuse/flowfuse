@@ -1,12 +1,13 @@
 <template>
-    <form class="space-y-6">
+    <form class="space-y-6" ref="password_form">
         <div>You must set a new password before continuing</div>
-        <FormRow type="password" :onEnter="focusPassword" :error="errors.old_password" v-model="input.old_password" id="old_password">Old Password</FormRow>
-        <FormRow type="password" :onEnter="focusConfirmPassword" :error="errors.password" v-model="input.password" id="password">New Password</FormRow>
-        <FormRow type="password" :onEnter="changePassword" :error="errors.password_confirm" v-model="input.password_confirm" id="password_confirm">Confirm</FormRow>
+        <FormRow type="password" :onEnter="focusPassword" :error="errors.old_password" v-model="input.old_password">Old Password</FormRow>
+        <FormRow type="password" :onEnter="focusConfirmPassword" :error="errors.password" v-model="input.password">New Password</FormRow>
+        <FormRow type="password" :onEnter="changePassword" :error="errors.password_confirm" v-model="input.password_confirm">Confirm</FormRow>
         <ff-button @click="changePassword">
             Change Password
         </ff-button>
+        <ff-button kind="tertiary" @click="logout">Log out</ff-button>
         <div v-if="errors.password_change" class="ml-4 text-red-400 font-medium inline text-sm">{{errors.password_change}}</div>
     </form>
 </template>
@@ -15,6 +16,7 @@
 import { mapState } from 'vuex'
 import FormRow from '@/components/FormRow'
 import userApi from '@/api/user'
+import store from '@/store'
 
 export default {
     name: 'UpdateExpiredPassword',
@@ -64,17 +66,22 @@ export default {
             })
         },
         focusOldPassword () {
-            document.getElementById('old_password').focus()
+            this.$refs.password_form.querySelectorAll('input')[0].focus()
         },
         focusPassword () {
-            document.getElementById('password').focus()
+            this.$refs.password_form.querySelectorAll('input')[1].focus()
         },
         focusConfirmPassword () {
-            document.getElementById('password_confirm').focus()
+            this.$refs.password_form.querySelectorAll('input')[2].focus()
+        },
+        logout () {
+            store.dispatch('account/logout')
         }
     },
     mounted () {
-        this.focusOldPassword()
+        setTimeout(() => {
+            this.focusOldPassword()
+        }, 50)
     },
     watch: {
         loginError (newError, oldError) {

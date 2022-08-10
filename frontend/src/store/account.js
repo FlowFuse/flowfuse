@@ -152,7 +152,7 @@ const actions = {
                 window.location = '/'
                 return
             }
-            if (user.email_verified === false) {
+            if (user.email_verified === false || user.password_expired) {
                 state.commit('clearPending')
                 router.push({ name: 'Home' })
                 return

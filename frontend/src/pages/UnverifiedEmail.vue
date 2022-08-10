@@ -12,6 +12,7 @@
                 <span v-if="!sent">Resend email</span>
                 <span v-else>Sent</span>
             </ff-button>
+            <ff-button kind="tertiary" @click="logout">Log out</ff-button>
         </form>
     </ff-layout-box>
 </template>
@@ -19,6 +20,7 @@
 <script>
 import { mapState } from 'vuex'
 import userApi from '@/api/user'
+import store from '@/store'
 
 import FFLayoutBox from '@/layouts/Box'
 
@@ -30,6 +32,9 @@ export default {
                 this.sent = true
                 await userApi.triggerVerification()
             }
+        },
+        logout () {
+            store.dispatch('account/logout')
         }
     },
     computed: mapState('account', ['user']),

@@ -11,7 +11,7 @@
             <TransitionGroup class="ff-notifications" name="notifictions-list" tag="div">
                 <ff-notification-toast v-for="(a, $index) in alertsReversed" :key="a.timestamp"
                                        :type="a.type" :message="a.message"
-                                       :countdown="3000" @close="clear($index)"></ff-notification-toast>
+                                       :countdown="a.countdown || 3000" @close="clear($index)"></ff-notification-toast>
             </TransitionGroup>
         </div>
     </div>
@@ -61,10 +61,11 @@ export default {
                 }
             }
         },
-        alertReceived (msg, type) {
+        alertReceived (msg, type, countdown) {
             this.alerts.push({
                 message: msg,
                 type: type,
+                countdown: countdown,
                 timestamp: Date.now()
             })
         },
