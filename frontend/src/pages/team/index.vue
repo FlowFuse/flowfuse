@@ -13,8 +13,6 @@
 </template>
 
 <script>
-import billingApi from '@/api/billing'
-
 import Loading from '@/components/Loading'
 import { useRoute } from 'vue-router'
 import { mapState } from 'vuex'
@@ -51,18 +49,10 @@ export default {
         },
         checkBilling: async function () {
             // Team Billing
-            if (this.features.billing) {
-                try {
-                    await billingApi.getSubscriptionInfo(this.team.id)
-                } catch (err) {
-                    const path = '/team/' + this.team.slug + '/billing'
-                    // if 404 - no billing setup, but are we running in EE?
-                    if (err.response.status === 404) {
-                        this.$router.push({
-                            path
-                        })
-                    }
-                }
+            if (this.features.billing && !this.team.billingEnabled) {
+                this.$router.push({
+                    path: `/team/${this.team.slug}/billing`
+                })
             }
         }
     },

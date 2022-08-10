@@ -19,7 +19,7 @@
         <div v-else>
             Billing has not yet been configured for this team. Before proceeding further, you must continue to Stripe and complete this.
             <div class="mt-3">
-                <ff-button size="small" @click="setupBilling()">
+                <ff-button @click="setupBilling()">
                     <template v-slot:icon-right><ExternalLinkIcon /></template>
                     Setup Payment Details
                 </ff-button>
@@ -91,19 +91,23 @@ export default {
     watch: { },
     async mounted () {
         this.loading = true
-        try {
-            const billingSubscription = await billingApi.getSubscriptionInfo(this.team.id)
-            billingSubscription.next_billing_date = billingSubscription.next_billing_date * 1000 // API returns Seconds, JS expects miliseconds
-            this.subscription = billingSubscription
-            this.subscription.items.map((item) => {
-                item.total_price = item.unit_price * item.quantity
-                return item
-            })
+        if (!this.team.billingEnabled) {
             this.loading = false
-        } catch (err) {
-            // check for 404 and redirect if 404 returned
-            if (err.response.status === 404) {
+        } else {
+            try {
+                const billingSubscription = await billingApi.getSubscriptionInfo(this.team.id)
+                billingSubscription.next_billing_date = billingSubscription.next_billing_date * 1000 // API returns Seconds, JS expects miliseconds
+                this.subscription = billingSubscription
+                this.subscription.items.map((item) => {
+                    item.total_price = item.unit_price * item.quantity
+                    return item
+                })
                 this.loading = false
+            } catch (err) {
+                // check for 404 and redirect if 404 returned
+                if (err.response.status === 404) {
+                    this.loading = false
+                }
             }
         }
     },

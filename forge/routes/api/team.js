@@ -63,6 +63,15 @@ module.exports = async function (app) {
         }
     })
 
+    async function getTeamDetails (request, reply, team) {
+        const result = app.db.views.Team.team(team)
+        if (app.license.active() && app.billing) {
+            const subscription = await app.db.models.Subscription.byTeam(team.id)
+            result.billingEnabled = !!subscription
+        }
+        reply.send(result)
+    }
+
     app.register(TeamMembers, { prefix: '/:teamId/members' })
     app.register(TeamInvitations, { prefix: '/:teamId/invitations' })
     if (app.config.features.enabled('devices')) {
@@ -75,7 +84,7 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.team
      */
     app.get('/:teamId', async (request, reply) => {
-        reply.send(app.db.views.Team.team(request.team))
+        await getTeamDetails(request, reply, request.team)
     })
 
     /**
@@ -96,7 +105,7 @@ module.exports = async function (app) {
                 if (!teamMembership && !request.session.User.admin) {
                     reply.code(404).type('text/html').send('Not Found')
                 }
-                reply.send(app.db.views.Team.team(team))
+                await getTeamDetails(request, reply, team)
             } else {
                 reply.code(404).type('text/html').send('Not Found')
             }
