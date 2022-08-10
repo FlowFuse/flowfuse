@@ -11,8 +11,6 @@ describe('FlowForge platform admin users', () => {
     })
 
     it('can view (and click) the "Admin Settings" in user options', () => {
-        cy.intercept('/api/*/settings').as('getUser')
-
         cy.get('[data-cy="user-options"]').get('.ff-dropdown-options').should('not.exist')
         cy.get('[data-cy="user-options"]').click()
         cy.get('[data-cy="user-options"] .ff-dropdown-options').should('be.visible')
