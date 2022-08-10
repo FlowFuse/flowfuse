@@ -1,6 +1,10 @@
 name: UI E2E (Cypress) Tests
 
-on: [workflow_dispatch, push]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   cypress-run:
@@ -8,6 +12,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      # Only proceed if we have a UI change
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'frontend/**'
       # Install NPM dependencies
       - name: Install Dependencies
         run: npm install
