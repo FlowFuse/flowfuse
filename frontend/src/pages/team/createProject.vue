@@ -48,8 +48,7 @@
                     <label v-if="errors.stack" class="text-sm text-gray-400">{{ errors.stack }}</label>
                     <ff-tile-selection v-if="input.projectType" v-model="input.stack" >
                         <ff-tile-selection-option v-for="(stack, index) in stacks" :key="index"
-                                                  :value="stack.id" :label="stack.name"
-                                                  :meta="[{key: 'Node-RED Version', value: stack.properties.nodered}, {key: 'Memory (MB)', value: stack.properties.memory}]"/>
+                                                  :value="stack.id" :label="stack.name"/>
                     </ff-tile-selection>
                 </div>
                 <!-- Template -->
