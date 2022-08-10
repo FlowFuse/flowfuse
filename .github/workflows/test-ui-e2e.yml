@@ -8,6 +8,9 @@ on:
       - 'test/e2e/frontend/**'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'frontend/**'
+      - 'test/e2e/frontend/**'
 
 jobs:
   cypress-run:
