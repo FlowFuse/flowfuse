@@ -49,7 +49,7 @@ describe('FlowForge platform non-admin users', () => {
         cy.url().should('not.include', '/admin/overview')
     })
 
-    it('cannot navigate to Admin Settings directly', () => {
+    it('cannot navigate to Admin Settings directly, and should be redirected', () => {
         cy.visit('/admin/overview')
         cy.url().should('not.include', '/admin/overview')
     })
