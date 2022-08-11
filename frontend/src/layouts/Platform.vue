@@ -13,6 +13,11 @@
                                        :type="a.type" :message="a.message"
                                        :countdown="a.countdown || 3000" @close="clear($index)"></ff-notification-toast>
             </TransitionGroup>
+            <TransitionGroup class="ff-notifications" name="notifictions-list" tag="div">
+                <ff-dialog ref="dialog">
+                    <p>{{ dialog.content }}</p>
+                </ff-dialog>
+            </TransitionGroup>
         </div>
     </div>
 </template>
@@ -21,6 +26,7 @@
 import PageHeader from '@/components/PageHeader.vue'
 
 import alerts from '@/services/alerts.js'
+import dialog from '@/services/dialog.js'
 
 export default {
     name: 'ff-layout-platform',
@@ -30,7 +36,10 @@ export default {
     data () {
         return {
             mobileMenuOpen: false,
-            alerts: []
+            alerts: [],
+            dialog: {
+                content: ''
+            }
         }
     },
     computed: {
@@ -47,6 +56,7 @@ export default {
     mounted () {
         this.checkRouteMeta()
         alerts.subscribe(this.alertReceived)
+        dialog.bind(this.$refs.dialog, this.showDialogHandler)
     },
     methods: {
         toggleMenu () {
@@ -68,6 +78,9 @@ export default {
                 countdown: countdown,
                 timestamp: Date.now()
             })
+        },
+        showDialogHandler (msg) {
+            this.dialog.content = msg
         },
         clear (i) {
             this.alerts.splice(this.alerts.length - 1 - i, 1)

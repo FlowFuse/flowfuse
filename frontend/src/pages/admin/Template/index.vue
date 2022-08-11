@@ -26,6 +26,8 @@
 </template>
 
 <script>
+import Dialog from '@/services/dialog'
+
 import templateApi from '@/api/templates'
 import SectionSideMenu from '@/components/SectionSideMenu'
 import AdminTemplateSaveDialog from './dialogs/AdminTemplateSaveDialog'
@@ -209,7 +211,8 @@ export default {
             this.editable.errors = {}
         },
         showSaveTemplateDialog () {
-            this.$refs.adminTemplateSaveDialog.show()
+            Dialog.show('Testing Message')
+            // this.$refs.adminTemplateSaveDialog.show()
         },
         async saveTemplate () {
             // Updating an existing template
