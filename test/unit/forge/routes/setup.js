@@ -5,8 +5,11 @@ module.exports = async function (config = {}) {
     const forge = await FF_UTIL.setupApp(config)
 
     await forge.db.models.PlatformSettings.upsert({ key: 'setup:initialised', value: true })
+
+    forge.defaultTeamType = await forge.db.models.TeamType.findOne()
+
     const userAlice = await forge.db.models.User.create({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
-    const team1 = await forge.db.models.Team.create({ name: 'ATeam' })
+    const team1 = await forge.db.models.Team.create({ name: 'ATeam', TeamTypeId: forge.defaultTeamType.id })
     await team1.addUser(userAlice, { through: { role: Roles.Owner } })
 
     const projectType = {

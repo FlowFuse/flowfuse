@@ -36,6 +36,7 @@ module.exports = {
     },
     associations: function (M) {
         this.belongsToMany(M.User, { through: M.TeamMember })
+        this.belongsTo(M.TeamType)
         this.hasMany(M.TeamMember)
         this.hasMany(M.Device)
         this.hasMany(M.Project)
@@ -51,32 +52,9 @@ module.exports = {
                     }
                     return self.findOne({
                         where: { id },
-                        include: {
-                            model: M.User,
-                            attributes: ['name'],
-                            through: {
-                                model: M.TeamMembers, // .scope('owners'),
-                                attributes: ['role']
-                            }
-                        }
-                    })
-                },
-                byName: async function (name) {
-                    return self.findOne({
-                        where: { name },
-                        include: {
-                            model: M.User,
-                            attributes: ['name'],
-                            through: {
-                                model: M.TeamMembers, // .scope('owners'),
-                                attributes: ['role']
-                            }
-                        }
-                    })
-                },
-                bySlug: async function (slug) {
-                    return self.findOne({
-                        where: { slug },
+                        include: [{
+                            model: M.TeamType
+                        }],
                         attributes: {
                             include: [
                                 [
@@ -101,6 +79,45 @@ module.exports = {
                         }
                     })
                 },
+                bySlug: async function (slug) {
+                    return self.findOne({
+                        where: { slug },
+                        include: [{
+                            model: M.TeamType
+                        }],
+                        attributes: {
+                            include: [
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "Projects" AS "project"
+                                        WHERE
+                                        "project"."TeamId" = "Team"."id"
+                                    )`),
+                                    'projectCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "TeamMembers" AS "members"
+                                        WHERE
+                                        "members"."TeamId" = "Team"."id"
+                                    )`),
+                                    'memberCount'
+                                ]
+                            ]
+                        }
+                    })
+                },
+                byName: async function (name) {
+                    // This is primarily used by the unit tests.
+                    return self.findOne({
+                        where: { name },
+                        include: [{
+                            model: M.TeamType
+                        }]
+                    })
+                },
                 forUser: async function (User) {
                     return M.TeamMember.findAll({
                         where: {
@@ -108,7 +125,8 @@ module.exports = {
                         },
                         include: {
                             model: M.Team,
-                            attributes: ['hashid', 'links', 'id', 'name', 'avatar', 'slug']
+                            attributes: ['hashid', 'links', 'id', 'name', 'avatar', 'slug'],
+                            include: { model: M.TeamType, attributes: ['hashid', 'id', 'name'] }
                         },
                         attributes: {
                             include: [
@@ -144,6 +162,7 @@ module.exports = {
                         where,
                         order: [['id', 'ASC']],
                         limit,
+                        include: { model: M.TeamType, attributes: ['hashid', 'id', 'name'] },
                         attributes: {
                             include: [
                                 [
@@ -177,15 +196,24 @@ module.exports = {
                 }
             },
             instance: {
-                members: async function (role) {
-                    return this.Users.filter(u => !role || u.TeamMember.role === role)
+                memberCount: async function (role) {
+                    const where = {
+                        TeamId: this.id
+                    }
+                    if (role !== undefined) {
+                        where.role = role
+                    }
+                    return await M.TeamMember.count({ where })
                 },
-                owners: async function () {
+                ownerCount: async function () {
                     // All Team owners
-                    return this.members(Roles.Owner)
+                    return this.memberCount(Roles.Owner)
                 },
                 projectCount: async function () {
                     return await M.Project.count({ where: { TeamId: this.id } })
+                },
+                pendingInviteCount: async function () {
+                    return await M.Invitation.count({ where: { teamId: this.id } })
                 }
             }
         }

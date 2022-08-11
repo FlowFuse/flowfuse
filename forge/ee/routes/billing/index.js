@@ -172,21 +172,14 @@ module.exports = async function (app) {
         const team = request.team
         const sub = await app.db.models.Subscription.byTeam(team.id)
         if (!sub) {
-            if (!request.session.User.admin) {
-                const session = await app.billing.createSubscriptionSession(team, '') // request.session.User)
-                app.db.controllers.AuditLog.teamLog(
-                    team.id,
-                    request.session.User.id,
-                    'billing.session.created',
-                    { session: session.id }
-                )
-                response.code(404).type('application/json').send({ billingURL: session.url })
-            } else {
-                response.status(200).send({
-                    next_billing_date: new Date().getTime(),
-                    items: []
-                })
-            }
+            const session = await app.billing.createSubscriptionSession(team, '') // request.session.User)
+            app.db.controllers.AuditLog.teamLog(
+                team.id,
+                request.session.User.id,
+                'billing.session.created',
+                { session: session.id }
+            )
+            response.code(404).type('application/json').send({ billingURL: session.url })
             return
         }
 

@@ -1,15 +1,51 @@
-module.exports.init = function (app) {
+module.exports.init = async function (app) {
     // Set the billing feature flag
     app.config.features.register('billing', true, true)
 
     const stripe = require('stripe')(app.config.billing.stripe.key)
 
+    /**
+     * Get the Stripe product/price ids for the given team.
+     *
+     * These are provided via flowforge.yml.
+     *  - billing.stripe.team_* provide the default values.
+     *  - billing.stripe.teams.<team-name>.* provide type-specific values
+     *
+     * Example flowforge.yml config:
+     *   billing:
+     *     stripe:
+     *       ...
+     *       team_price: <default team price>
+     *       team_product: <default team product>
+     *       ...
+     *       teams:
+     *         starter:
+     *           price: <starter team price>
+     *           product: <starter team product>
+     *
+     * @param {Team} team The team object to get the billing ids for
+     * @returns Object containing `price` and `product` properties
+     */
+    function getBillingIdsForTeam (team) {
+        const result = {
+            price: app.config.billing.stripe.team_price,
+            product: app.config.billing.stripe.team_product
+        }
+        if (app.config.billing.stripe.teams?.[team.TeamType.name]) {
+            result.price = app.config.billing.stripe.teams[team.TeamType.name].price || result.price
+            result.product = app.config.billing.stripe.teams[team.TeamType.name].product || result.product
+        }
+        return result
+    }
+
     return {
         createSubscriptionSession: async (team) => {
+            const billingIds = getBillingIdsForTeam(team)
+
             const sub = {
                 mode: 'subscription',
                 line_items: [{
-                    price: app.config.billing.stripe.team_price,
+                    price: billingIds.price,
                     quantity: 1
                 }],
                 subscription_data: {
@@ -145,6 +181,33 @@ module.exports.init = function (app) {
             } else {
                 // not found?
                 app.log.warn('Project not found in Subscription, possible Grandfathered in')
+            }
+        },
+        updateTeamMemberCount: async (team) => {
+            const billingIds = getBillingIdsForTeam(team)
+
+            const subscription = await app.db.models.Subscription.byTeam(team.id)
+
+            const existingSub = await stripe.subscriptions.retrieve(subscription.subscription)
+            const subItems = existingSub.items
+
+            const teamItem = subItems.data.find(item => item.plan.product === billingIds.product)
+
+            const memberCount = await team.memberCount()
+
+            if (teamItem.quantity !== memberCount) {
+                app.log.info(`Updating team ${team.hashid} subscription member count to ${memberCount}`)
+                const update = {
+                    quantity: memberCount,
+                    proration_behavior: 'always_invoice'
+                }
+                try {
+                    await stripe.subscriptionItems.update(teamItem.id, update)
+                } catch (error) {
+                    app.log.warn(`Problem updating team ${team.hashid} subscription: ${error.message}`)
+                }
+            } else {
+                app.log.info(`Team ${team.hashid} subscription member count up to date`)
             }
         },
         closeSubscription: async (subscription) => {
