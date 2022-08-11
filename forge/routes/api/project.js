@@ -271,8 +271,11 @@ module.exports = async function (app) {
                     })
                 })
             }
+            newProjectSettings.header = { title: name }
             await project.updateSetting('settings', newProjectSettings)
         } else {
+            const newProjectSettings = { header: { title: name } }
+            await project.updateSetting('settings', newProjectSettings)
             await project.updateSetting('credentialSecret', generateCredentialSecret())
         }
 
