@@ -23,7 +23,7 @@ export default {
     setup () {
         return {
             show () {
-                this.$refs.show()
+                this.$refs.dialog.show()
             }
         }
     }
