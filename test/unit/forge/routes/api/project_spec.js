@@ -272,6 +272,19 @@ describe('Project API', function () {
             result.template.should.have.property('id', TestObjects.template1.hashid)
             result.should.have.property('stack')
             result.stack.should.have.property('id', TestObjects.stack1.hashid)
+            // ensure settings.header.title gets the project name set by default
+            const newProject = await app.db.models.Project.byId(result.id)
+            const newAccessToken = (await newProject.refreshAuthTokens()).token
+            const runtimeSettings = (await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${newProject.id}/settings`,
+                headers: {
+                    authorization: `Bearer ${newAccessToken}`
+                }
+            })).json()
+            runtimeSettings.should.have.property('settings')
+            runtimeSettings.settings.should.have.property('header')
+            runtimeSettings.settings.header.should.have.property('title', 'test-project')
         })
 
         it('Create a project cloned from existing one - include everything', async function () {
@@ -338,6 +351,9 @@ describe('Project API', function () {
                 }
             })).json()
             runtimeSettings.should.have.property('settings')
+            runtimeSettings.settings.should.have.property('header')
+            // ensure settings.header.title gets the project name set by default
+            runtimeSettings.settings.header.should.have.property('title', 'test-project')
             runtimeSettings.settings.should.not.have.property('credentialSecret')
             runtimeSettings.settings.should.have.property('httpAdminRoot', '/test-red')
             runtimeSettings.should.have.property('env')
