@@ -1,0 +1,31 @@
+name: UI E2E (Cypress) Tests
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'frontend/**'
+      - 'test/e2e/frontend/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'frontend/**'
+      - 'test/e2e/frontend/**'
+
+jobs:
+  cypress-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      # Install NPM dependencies
+      - name: Install Dependencies
+        run: npm install
+      # and run all Cypress tests
+      - name: Cypress run
+        uses: cypress-io/github-action@v4
+        with:
+          install: false
+          config-file: config/cypress.json
+          build: npm run build
+          start: node test/e2e/frontend/test_environment.js
