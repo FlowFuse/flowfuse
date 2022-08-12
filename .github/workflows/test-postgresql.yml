@@ -3,8 +3,18 @@ name: Test Postgress
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'forge/**'
+      - 'test/unit/**'
+      - 'test/system/**'
+      - 'package.json'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'forge/**'
+      - 'test/unit/**'
+      - 'test/system/**'
+      - 'package.json'
 
 jobs:
   runner-job:
