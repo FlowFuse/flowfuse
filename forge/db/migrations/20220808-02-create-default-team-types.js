@@ -14,10 +14,7 @@ module.exports = {
                 {
                     name: 'starter',
                     enabled: true,
-                    description: `Manage your personal projects
- - Up to 3 team members
- - More features to highlight
-`,
+                    description: `Collaborate on projects with a starter team`,
                     properties: JSON.stringify({
                         userLimit: 0
                     }),
