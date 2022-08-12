@@ -1,7 +1,7 @@
 module.exports = {
     teamType: function (app, teamType) {
         const properties = { ...teamType.properties }
-        if (app.config.billing.stripe.teams?.[teamType.name]) {
+        if (app.config.billing?.stripe.teams?.[teamType.name]) {
             properties.billing = {
                 userCost: app.config.billing.stripe.teams[teamType.name].userCost || 0
             }
