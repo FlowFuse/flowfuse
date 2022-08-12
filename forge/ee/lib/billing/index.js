@@ -9,7 +9,7 @@ module.exports.init = async function (app) {
      *
      * These are provided via flowforge.yml.
      *  - billing.stripe.team_* provide the default values.
-     *  - billing.stripe.teams.<team-name>.* provide type-specific values
+     *  - billing.stripe.teams.<type-name>.* provide type-specific values
      *
      * Example flowforge.yml config:
      *   billing:
