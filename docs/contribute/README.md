@@ -198,7 +198,7 @@ billing:
 
 You will also need to install the [Stripe CLI](https://stripe.com/docs/cli/) in order
 to handle webhook callbacks properly. Install the CLI following their documentation, then
-run the following command, with the API key using the valud of `billing.stripe.key` from
+run the following command, with the API key using the value of `billing.stripe.key` from
 above.
 
 ```
