@@ -78,6 +78,19 @@
             </div>
         </div>
 
+        <FormHeading class="text-red-700">Suspend Project</FormHeading>
+        <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
+            <div class="flex-grow">
+                <div class="max-w-sm pt-2">
+                    Once suspended, your project will not be avialable until restarted.
+                </div>
+            </div>
+            <div class="min-w-fit flex-shrink-0">
+                <ff-button kind="danger" @click="showConfirmSuspendDialog()">Suspend Project</ff-button>
+                <ConfirmProjectSuspendDialog @suspendProject="suspendProject" ref="confirmProjectSuspendDialog"/>
+            </div>
+        </div>
+
         <FormHeading class="text-red-700">Delete Project</FormHeading>
         <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
             <div class="flex-grow">
@@ -100,6 +113,7 @@ import alerts from '@/services/alerts'
 
 import FormHeading from '@/components/FormHeading'
 import ConfirmProjectDeleteDialog from './dialogs/ConfirmProjectDeleteDialog'
+import ConfirmProjectSuspendDialog from './dialogs/ConfirmProjectSuspendDialog'
 import ChangeStackDialog from './dialogs/ChangeStackDialog'
 import ChangeTypeDialog from './dialogs/ChangeTypeDialog'
 // import ExportProjectDialog from './dialogs/ExportProjectDialog'
@@ -113,7 +127,7 @@ export default {
     computed: {
         ...mapState('account', ['team']),
         isLoading: function () {
-            return this.loading.deleting || this.loading.changingStack || this.loading.duplicating || this.loading.settingType
+            return this.loading.deleting || this.loading.suspend || this.loading.changingStack || this.loading.duplicating || this.loading.settingType
         }
     },
     data () {
@@ -122,13 +136,17 @@ export default {
                 settingType: false,
                 deleting: false,
                 changingStack: false,
-                duplicating: false
+                duplicating: false,
+                suspend: false
             }
         }
     },
     methods: {
         showConfirmDeleteDialog () {
             this.$refs.confirmProjectDeleteDialog.show(this.project)
+        },
+        showConfirmSuspendDialog () {
+            this.$refs.confirmProjectSuspendDialog.show(this.project)
         },
         showChangeTypeDialog () {
             this.$refs.changeTypeDialog.show(this.project)
@@ -186,6 +204,18 @@ export default {
                 this.loading.deleting = false
             })
         },
+        suspendProject () {
+            this.loading.suspend = true
+            projectApi.suspendProject(this.project.id).then(() => {
+                this.$router.push({ name: 'Home' })
+                alerts.emit('Project successfully suspended.', 'confirmation')
+            }).catch(err => {
+                console.warn(err)
+                alerts.emit('Project failed to suspend.', 'warning')
+            }).finally(() => {
+                this.loading.suspend = false
+            })
+        },
         changeType (selectedType) {
             if (!this.project.projectType && selectedType) {
                 this.loading.settingType = true
@@ -218,6 +248,7 @@ export default {
     components: {
         FormHeading,
         ConfirmProjectDeleteDialog,
+        ConfirmProjectSuspendDialog,
         ChangeStackDialog,
         ChangeTypeDialog,
         // ExportProjectDialog,
