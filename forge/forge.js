@@ -22,6 +22,7 @@ module.exports = async (options = {}) => {
     }
     const server = fastify({
         maxParamLength: 500,
+        trustProxy: true,
         logger: {
             level: loggerLevel,
             prettyPrint: {

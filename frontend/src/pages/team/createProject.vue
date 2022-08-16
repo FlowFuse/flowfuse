@@ -29,19 +29,41 @@
                     <span class="block text-xs ml-4 italic text-gray-500 m-0 max-w-sm">Please note, currently, project names cannot be changed once a project is created</span>
                 </div>
                 <div v-if="this.errors.projectTypes" class="text-red-400 text-xs">{{errors.projectTypes}}</div>
-                <ul v-else class="flex flex-wrap gap-1 items-stretch">
-                    <li v-for="(projType, index) in projectTypes" :key="index">
-                        <ProjectTypeSummary :projectType="projType">
-                            <template v-slot:header>
-                                <div class="absolute">
-                                    <input type="radio" name="project-type" :value="projType.id" v-model="input.projectType">
-                                </div>
-                            </template>
-                        </ProjectTypeSummary>
-                    </li>
-                </ul>
-                <FormRow :options="stacks" :error="errors.stack" v-model="input.stack" id="stack">Stack</FormRow>
-                <FormRow :options="templates" :disabled="isCopyProject" :error="errors.template" v-model="input.template" id="template">Template</FormRow>
+                <!-- Project Type -->
+                <div v-else class="flex flex-wrap gap-1 items-stretch">
+                    <label class="w-full block text-sm font-medium text-gray-700 mb-1">Project Type</label>
+                    <ff-tile-selection v-model="input.projectType" >
+                        <ff-tile-selection-option v-for="(projType, index) in projectTypes" :key="index"
+                                                  :label="projType.name" :description="projType.description"
+                                                  :price="projType.properties?.billingDescription?.split('/')[0]"
+                                                  :price-interval="projType.properties?.billingDescription?.split('/')[1]"
+                                                  :value="projType.id"/>
+                    </ff-tile-selection>
+                </div>
+                <!-- Stack -->
+                <!-- <FormRow :options="stacks" :error="errors.stack" v-model="input.stack" id="stack">Stack</FormRow> -->
+                <div class="flex flex-wrap gap-1 items-stretch">
+                    <label class="w-full block text-sm font-medium text-gray-700 mb-1">Stack</label>
+                    <label v-if="!input.projectType" class="text-sm text-gray-400">Please select a Project Type first.</label>
+                    <label v-if="errors.stack" class="text-sm text-gray-400">{{ errors.stack }}</label>
+                    <ff-tile-selection v-if="input.projectType" v-model="input.stack" >
+                        <ff-tile-selection-option v-for="(stack, index) in stacks" :key="index"
+                                                  :value="stack.id" :label="stack.name"/>
+                    </ff-tile-selection>
+                </div>
+                <!-- Template -->
+                <div class="flex flex-wrap gap-1 items-stretch">
+                    <label class="w-full block text-sm font-medium text-gray-700 mb-1">Template</label>
+                    <label v-if="!input.projectType && !input.stack" class="text-sm text-gray-400">Please select a Project Type &amp; Stack first.</label>
+                    <label v-if="errors.template" class="text-sm text-gray-400">{{ errors.template }}</label>
+                    <ff-tile-selection v-if="input.projectType" v-model="input.template" >
+                        <ff-tile-selection-option v-for="(t, index) in templates" :key="index"
+                                                  :value="t.id" :disabled="isCopyProject"
+                                                  :label="t.name" :description="t.description"/>
+                    </ff-tile-selection>
+                </div>
+                <!-- <FormRow :options="templates" :disabled="isCopyProject" :error="errors.template" v-model="input.template" id="template">Template</FormRow> -->
+                <!-- Is Copy Project -->
                 <template v-if="isCopyProject">
                     <p class="text-gray-500">
                         Select the components to copy from '{{this.sourceProject?.name}}'
@@ -65,7 +87,6 @@
 <script>
 import { mapState } from 'vuex'
 
-import teamApi from '@/api/team'
 import projectApi from '@/api/project'
 import projectTypesApi from '@/api/projectTypes'
 import stacksApi from '@/api/stacks'
@@ -79,10 +100,8 @@ import SideNavigation from '@/components/SideNavigation'
 import FormRow from '@/components/FormRow'
 import NameGenerator from '@/utils/name-generator'
 import { RefreshIcon } from '@heroicons/vue/outline'
-import { Roles } from '@core/lib/roles'
 
 import ExportProjectComponents from '../project/components/ExportProjectComponents'
-import ProjectTypeSummary from './components/ProjectTypeSummary'
 
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
 
@@ -98,15 +117,12 @@ export default {
                 chevronLeft: ChevronLeftIcon
             },
             init: false,
-            currentTeam: null,
-            teams: [],
             stacks: [],
             templates: [],
             projectTypes: [],
             billingDescription: '',
             input: {
                 name: NameGenerator(),
-                team: '',
                 stack: '',
                 template: '',
                 billingConfirmation: false,
@@ -131,7 +147,7 @@ export default {
             return !!this.sourceProjectId
         },
         createEnabled () {
-            return this.input.stack && this.input.team && this.input.name && !this.errors.name && this.input.template && (this.features.billing ? this.input.billingConfirmation : true)
+            return this.input.stack && this.input.name && !this.errors.name && this.input.template && (this.features.billing ? this.input.billingConfirmation : true)
         }
     },
     watch: {
@@ -147,7 +163,8 @@ export default {
                 const projectType = this.projectTypes.find(pt => pt.id === value)
                 this.billingDescription = projectType.properties?.billingDescription || ''
                 const stackList = await stacksApi.getStacks(null, null, null, value)
-                this.stacks = stackList.stacks.filter(stack => stack.active).map(stack => { return { value: stack.id, label: stack.name } })
+                this.stacks = stackList.stacks.filter(stack => stack.active)
+                this.input.stack = null
                 if (this.stacks.length === 0) {
                     this.errors.stack = 'No stacks available. Ask an Administator to create a new stack definition'
                 } else {
@@ -162,36 +179,17 @@ export default {
         }
     },
     async created () {
-        const data = await teamApi.getTeams()
-        const filteredTeams = []
-
-        data.teams.forEach((t) => {
-            if (t.role !== Roles.Owner) {
-                return
-            }
-            if (t.slug === this.$route.params.team_slug) {
-                this.currentTeam = t.id
-            }
-            filteredTeams.push({ value: t.id, label: t.name })
-        })
-
-        if (this.currentTeam == null && filteredTeams.length > 0) {
-            this.currentTeam = filteredTeams[0].value
-        }
-        this.teams = filteredTeams
-
         const projectTypes = await projectTypesApi.getProjectTypes()
         this.projectTypes = projectTypes.types
 
         const templateList = await templatesApi.getTemplates()
-        this.templates = templateList.templates.filter(template => template.active).map(template => { return { value: template.id, label: template.name } })
+        this.templates = templateList.templates.filter(template => template.active)
 
         this.init = true
 
         setTimeout(() => {
             // There must be a better Vue way of doing this, but I can't find it.
             // Without the setTimeout, the select box doesn't update
-            this.input.team = this.currentTeam
 
             if (this.projectTypes.length === 0) {
                 this.errors.projectTypes = 'No project types available. Ask an Administrator to create a new project type'
@@ -206,6 +204,13 @@ export default {
                 this.errors.template = 'No templates available. Ask an Administator to create a new template definition'
             }
         }, 100)
+    },
+    async beforeMount () {
+        if (this.features.billing && !this.team.billingSetup) {
+            this.$router.push({
+                path: `/team/${this.team.slug}/billing`
+            })
+        }
     },
     mounted () {
         this.mounted = true
@@ -222,7 +227,7 @@ export default {
     methods: {
         createProject () {
             this.loading = true
-            const createPayload = { ...this.input }
+            const createPayload = { ...this.input, team: this.team.id }
             if (this.isCopyProject) {
                 createPayload.sourceProject = {
                     id: this.sourceProjectId,
@@ -247,7 +252,6 @@ export default {
         FormRow,
         RefreshIcon,
         ExportProjectComponents,
-        ProjectTypeSummary,
         SectionTopMenu,
         NavItem,
         SideNavigation

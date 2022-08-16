@@ -28,6 +28,21 @@ describe('User controller', function () {
             const result = await app.db.controllers.User.authenticateCredentials('invalid', 'invalid')
             result.should.be.false()
         })
+
+        it('returns true for a valid email/password', async function () {
+            const result = await app.db.controllers.User.authenticateCredentials('alice@example.com', 'aaPassword')
+            result.should.be.true()
+        })
+
+        it('returns false for valid email/invalid password', async function () {
+            const result = await app.db.controllers.User.authenticateCredentials('alice@example.com', 'invalid')
+            result.should.be.false()
+        })
+
+        it('returns false for invalid email/password', async function () {
+            const result = await app.db.controllers.User.authenticateCredentials('alice@invalid.com', 'invalid')
+            result.should.be.false()
+        })
     })
 
     describe('changePassword', function () {

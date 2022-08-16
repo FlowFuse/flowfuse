@@ -8,9 +8,7 @@ module.exports = {
      * Create a new session for the given username
      */
     createUserSession: async function (app, username) {
-        const user = await app.db.models.User.findOne({
-            where: { username: username }
-        })
+        const user = await app.db.models.User.byUsernameOrEmail(username)
         if (user) {
             return app.db.models.Session.create({
                 sid: generateToken(32, 'ffu'),
@@ -25,9 +23,7 @@ module.exports = {
      * Create a new oauth session for the given username
      */
     createTokenSession: async function (app, username) {
-        const user = await app.db.models.User.findOne({
-            where: { username: username }
-        })
+        const user = await app.db.models.User.byUsernameOrEmail(username)
         if (user) {
             const session = {
                 sid: generateToken(32, 'ffp'),

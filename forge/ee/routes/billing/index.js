@@ -65,7 +65,7 @@ module.exports = async function (app) {
                 try {
                     event = stripe.webhooks.constructEvent(request.rawBody, sig, app.config.billing.stripe.wh_secret)
                 } catch (err) {
-                    console.log(err)
+                    app.log.error(`Stripe event failed signature: ${err.toString()}`)
                     response.code(400).type('text/hml').send('Failed Signature')
                     return
                 }
@@ -78,7 +78,8 @@ module.exports = async function (app) {
             if (teamId) {
                 team = await app.db.models.Team.byId(teamId)
                 if (!team) {
-                    response.status(404).type('text/html').send('Not Found')
+                    app.log.error(`Stripe event received for unknown team '${teamId}'`)
+                    response.status(200).send()
                     return
                 }
             } else {
@@ -87,7 +88,8 @@ module.exports = async function (app) {
                     team = sub?.Team
                 }
                 if (!team) {
-                    response.status(404).type('text/html').send('Not Found')
+                    app.log.error(`Stripe event received for unknown customer '${customer}'`)
+                    response.status(200).send()
                     return
                 }
             }

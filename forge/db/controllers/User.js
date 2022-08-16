@@ -6,8 +6,12 @@ module.exports = {
      * Validate the username/password
      */
     authenticateCredentials: async function (app, username, password) {
+        let clause = { username: username }
+        if (/.+@.+/.test(username)) {
+            clause = { email: username }
+        }
         const user = await app.db.models.User.findOne({
-            where: { username: username },
+            where: clause,
             attributes: ['password']
         })
         // Always call compareSync, even if no user found, to ensure
