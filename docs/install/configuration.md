@@ -73,8 +73,8 @@ Option        | Description
 `telemetry.enabled` | Enables the anonymous usage telemetry of the platform. Default: `true`
 `telemetry.frontend.posthog.apikey` | The API key provided to you from your own PostHog account. Default: `null`
 `telemetry.frontend.posthog.capture_pageview` | FlowForge is designed as to provide custom posthog `$pageview` events that provide more detail on navigation than the default, and suit a single page application better. As such, we recommend setting this to false in order to prevent duplicate `pageleave`/`pageview` events firing. Default: `true`
-`telemetry.frontend.plausible.domain` | _(Plausible not supported beyond 0.9)_ The `data-domain` of your site (see [Plausible docs](https://plausible.io/docs/plausible-script)). Default: `null`
-`telemetry.frontend.plausible.extension` | _(Plausible not supported beyond 0.9)_  By default, Plausible only detects events running in a production environment, it is possible to enhance measurements with [script extensions](https://plausible.io/docs/script-extensions). You can, for example, detect localhost events using `local`. Default: `null`
+`telemetry.frontend.plausible.domain` | _(deprecated)_ The `data-domain` of your site (see [Plausible docs](https://plausible.io/docs/plausible-script)). Default: `null`
+`telemetry.frontend.plausible.extension` | _(deprecated)_  By default, Plausible only detects events running in a production environment, it is possible to enhance measurements with [script extensions](https://plausible.io/docs/script-extensions). You can, for example, detect localhost events using `local`. Default: `null`
 
 ## MQTT Broker configuration
 
