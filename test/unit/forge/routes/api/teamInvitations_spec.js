@@ -25,10 +25,16 @@ describe('Team Invitations API', function () {
         // ATeam create in setup()
         TestObjects.ATeam = await app.db.models.Team.byName('ATeam')
         TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam' })
+        TestObjects.CTeam = await app.db.models.Team.create({ name: 'CTeam' })
 
         // Alice set as ATeam owner in setup()
         await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Member } })
         await TestObjects.BTeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+        await TestObjects.CTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+        await TestObjects.CTeam.addUser(TestObjects.chris, { through: { role: Roles.Member } })
+
+        // generate invite for bob to join CTeam
+        TestObjects.invites = await app.db.controllers.Invitation.createInvitations(TestObjects.alice, TestObjects.CTeam, ['bob'])
 
         TestObjects.tokens = {}
         await login('alice', 'aaPassword')
@@ -168,9 +174,85 @@ describe('Team Invitations API', function () {
     describe('List team invitations', async function () {
         // GET /api/v1/teams/:teamId/invitations
 
+        it('admin can list team invites', async () => {
+            // Alice can list CTeam invites
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.CTeam.hashid}/invitations`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('count', 1)
+            result.should.have.property('invitations')
+            result.invitations[0].should.have.property('invitee')
+            result.invitations[0].invitee.should.have.property('id', TestObjects.bob.hashid)
+            result.invitations[0].team.should.have.property('name', 'CTeam')
+        })
+
+        it('member can not list team invites', async () => {
+            // Chris can not list CTeam invites
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.CTeam.hashid}/invitations`,
+                cookies: { sid: TestObjects.tokens.chris }
+            })
+            response.statusCode.should.equal(403)
+            const result = response.json()
+            result.should.not.have.property('count', 1)
+            result.should.not.have.property('invitations')
+            result.should.have.property('error', 'unauthorized')
+        })
+
+        it('anonymous can not list team invites', async () => {
+            // anonymous can not list CTeam invites
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.CTeam.hashid}/invitations`
+            })
+            response.statusCode.should.equal(401)
+            const result = response.json()
+            result.should.not.have.property('count', 1)
+            result.should.not.have.property('invitations')
+            result.should.have.property('error', 'unauthorized')
+        })
     })
 
-    describe('Delete an invitation team member', async function () {
+    describe('Delete an invitation', async function () {
         // DELETE /api/v1/teams/:teamId/invitations/:invitationId
+
+        it('team owner can delete invited user', async () => {
+            // Alice accepts Bobs invite into CTeam
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/teams/${TestObjects.CTeam.hashid}/invitations/${TestObjects.invites.bob.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            const result = response.json()
+            result.should.have.property('status', 'okay')
+        })
+
+        it('team member can not delete invite', async () => {
+            // Chris can not delete invite to CTeam
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/teams/${TestObjects.CTeam.hashid}/invitations/${TestObjects.invites.bob.hashid}`,
+                cookies: { sid: TestObjects.tokens.chris }
+            })
+            response.statusCode.should.equal(403)
+            const result = response.json()
+            result.should.have.property('error', 'unauthorized')
+        })
+
+        it('anonymous can not delete invite', async () => {
+            // anonymous can not delete invite to CTeam
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/teams/${TestObjects.CTeam.hashid}/invitations/${TestObjects.invites.bob.hashid}`
+            })
+            response.statusCode.should.equal(401)
+            const result = response.json()
+            result.should.have.property('error', 'unauthorized')
+        })
     })
 })
