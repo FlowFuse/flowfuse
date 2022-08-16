@@ -87,7 +87,7 @@ export default {
             return [
                 { name: 'Start', action: async () => { this.project.pendingStateChange = true; await projectApi.startProject(this.project.id) } },
                 { name: 'Restart', action: async () => { this.project.pendingRestart = true; this.project.pendingStateChange = true; await projectApi.restartProject(this.project.id) }, disabled: flowActionsDisabled },
-                { name: 'Stop', action: async () => { this.project.pendingStateChange = true; await projectApi.stopProject(this.project.id) }, disabled: flowActionsDisabled },
+                { name: 'Suspend', action: () => { this.$router.push({ path: `/project/${this.project.id}/settings/danger` }) }, disabled: flowActionsDisabled },
                 null,
                 {
                     name: 'Delete',
