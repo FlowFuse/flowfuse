@@ -1,6 +1,7 @@
 const should = require('should') // eslint-disable-line
 const setup = require('../setup')
-
+const FF_UTIL = require('flowforge-test-utils')
+const { Roles } = FF_UTIL.require('forge/lib/roles')
 describe('Invitation controller', function () {
     // Use standard test data.
 
@@ -115,6 +116,45 @@ describe('Invitation controller', function () {
             const result = await app.db.controllers.Invitation.createInvitations(invitor, team, userList)
             Object.keys(result).should.have.length(1)
             checkExternalInvite(result['dave@example.com'], 1, 'dave@example.com', team.id)
+        })
+    })
+
+    describe('Accept invitation', function () {
+        it('invited user accepts own invitation', async function () {
+            const userAlice = await app.db.models.User.byUsername('alice')
+            const userBob = await app.db.models.User.byUsername('bob')
+            const team = await app.db.models.Team.byName('CTeam')
+            const invites = await app.db.controllers.Invitation.createInvitations(userAlice, team, ['bob'])
+            const bobsInvite = invites.bob
+            // before accepting invite, ensure bob is not already a member
+            const beforeMembership = await app.db.models.TeamMember.getTeamMembership(userBob.id, team.id, false)
+            should.equal(beforeMembership, null, 'bob should not be a member yet')
+            // bob accepts bobs his CTeam invite
+            await app.db.controllers.Invitation.acceptInvitation(bobsInvite, userBob)
+            const membership = await app.db.models.TeamMember.getTeamMembership(userBob.id, team.id, false)
+            should(membership).not.equal(null)
+            membership.should.have.property('role', Roles.Member)
+            membership.should.have.property('TeamId', team.id)
+        })
+    })
+
+    describe('Reject invitation', function () {
+        it('invited user rejects own invitation', async function () {
+            const userAlice = await app.db.models.User.byUsername('alice')
+            const userBob = await app.db.models.User.byUsername('bob')
+            const team = await app.db.models.Team.byName('CTeam')
+            const invites = await app.db.controllers.Invitation.createInvitations(userAlice, team, ['bob'])
+            const bobsInvite = invites.bob
+            // before deleting invite, ensure bob is invited
+            const checkInvite = await app.db.models.Invitation.forUser(userBob)
+            should(checkInvite).not.equal(null, 'bob should have invite')
+            checkInvite.should.have.property('length', 1)
+            checkInvite[0].invitee.should.have.property('username', 'bob')
+            // reject bobs CTeam invite
+            await app.db.controllers.Invitation.rejectInvitation(bobsInvite, userBob)
+            const recheckInvite = await app.db.models.Invitation.forUser(userBob)
+            should(recheckInvite).not.equal(null, 'bob should have invite')
+            recheckInvite.should.have.property('length', 0)
         })
     })
 })
