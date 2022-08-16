@@ -82,7 +82,7 @@
         <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
             <div class="flex-grow">
                 <div class="max-w-sm pt-2">
-                    Once suspended, your project will not be available until restarted.
+                    Once suspended, your project will not be available until restarted. Whilst suspend the project will consume no resources.
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
