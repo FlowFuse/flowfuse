@@ -25,7 +25,7 @@ module.exports = async function (app) {
      * Inject Analytics Tools
      * feConfig - the 'frontend' portion of our flowforge.yml
      */
-    async function injnectAnalytics (feConfig) {
+    async function injectAnalytics (feConfig) {
         if (!cachedIndex) {
             const filepath = path.join(frontendAssetsDir, 'index.html')
             const data = await fsp.readFile(filepath, 'utf8')
