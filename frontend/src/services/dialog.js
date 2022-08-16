@@ -8,9 +8,9 @@ export default {
         dialog = el
         subscriptions.push(fcn)
     },
-    show: async function (msg) {
+    show: async function (msg, onConfirm) {
         for (let fcn = 0; fcn < subscriptions.length; fcn++) {
-            subscriptions[fcn](msg)
+            subscriptions[fcn](msg, onConfirm)
         }
         dialog.show()
     }

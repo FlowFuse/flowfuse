@@ -14,8 +14,9 @@
                                        :countdown="a.countdown || 3000" @close="clear($index)"></ff-notification-toast>
             </TransitionGroup>
             <TransitionGroup class="ff-notifications" name="notifictions-list" tag="div">
-                <ff-dialog ref="dialog">
-                    <p>{{ dialog.content }}</p>
+                <ff-dialog ref="dialog" :header="dialog.header" :kind="dialog.kind" :confirm-label="dialog.confirmLabel" @confirm="dialog.onConfirm">
+                    <p v-if="dialog.text">{{ dialog.text }}</p>
+                    <div class="space-y-2" v-html="dialog.html" />
                 </ff-dialog>
             </TransitionGroup>
         </div>
@@ -38,7 +39,12 @@ export default {
             mobileMenuOpen: false,
             alerts: [],
             dialog: {
-                content: ''
+                header: null,
+                text: null,
+                html: null,
+                confirmLabel: null,
+                kind: null,
+                onConfirm: null
             }
         }
     },
@@ -79,8 +85,18 @@ export default {
                 timestamp: Date.now()
             })
         },
-        showDialogHandler (msg) {
-            this.dialog.content = msg
+        showDialogHandler (msg, onConfirm) {
+            if (typeof (msg) === 'string') {
+                this.dialog.content = msg
+            } else {
+                // msg is an object, let's break it apart
+                this.dialog.header = msg.header
+                this.dialog.text = msg.text
+                this.dialog.html = msg.html
+                this.dialog.confirmLabel = msg.confirmLabel
+                this.dialog.kind = msg.kind
+            }
+            this.dialog.onConfirm = onConfirm
         },
         clear (i) {
             this.alerts.splice(this.alerts.length - 1 - i, 1)

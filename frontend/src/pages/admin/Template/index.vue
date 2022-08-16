@@ -22,7 +22,6 @@
             <router-view v-model="editable" :editTemplate="true"></router-view>
         </div>
     </div>
-    <AdminTemplateSaveDialog @saveTemplate="saveTemplate" ref="adminTemplateSaveDialog"/>
 </template>
 
 <script>
@@ -30,7 +29,6 @@ import Dialog from '@/services/dialog'
 
 import templateApi from '@/api/templates'
 import SectionSideMenu from '@/components/SectionSideMenu'
-import AdminTemplateSaveDialog from './dialogs/AdminTemplateSaveDialog'
 import {
     setTemplateValue,
     templateFields,
@@ -211,8 +209,11 @@ export default {
             this.editable.errors = {}
         },
         showSaveTemplateDialog () {
-            Dialog.show('Testing Message')
-            // this.$refs.adminTemplateSaveDialog.show()
+            Dialog.show({
+                header: 'Update Template',
+                html: '<p>Are you sure you want to save this template?</p><p>Any projects using this template will need to be manually restarted to pick up any changes.</p>',
+                confirmLabel: 'Save Template'
+            }, this.saveTemplate)
         },
         async saveTemplate () {
             // Updating an existing template
@@ -279,8 +280,7 @@ export default {
         }
     },
     components: {
-        SectionSideMenu,
-        AdminTemplateSaveDialog
+        SectionSideMenu
     }
 }
 </script>
