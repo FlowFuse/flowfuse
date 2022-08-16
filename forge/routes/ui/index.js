@@ -106,7 +106,7 @@ module.exports = async function (app) {
         // }
         // check if we need to inject plausible
         if (app.config.telemetry.frontend) {
-            const injectedContent = await injnectAnalytics(app.config.telemetry.frontend) // injectPlausible(app.config.telemetry.frontend.plausible.domain, app.config.telemetry.frontend.plausible.extension)
+            const injectedContent = await injectAnalytics(app.config.telemetry.frontend)
             reply.type('text/html').send(injectedContent)
         } else {
             reply.sendFile('index.html')
