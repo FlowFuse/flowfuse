@@ -33,7 +33,6 @@
     </form>
     <ProjectTypeEditDialog ref="adminProjectTypeEditDialog" @projectTypeCreated="projectTypeCreated"
                            @projectTypeUpdated="projectTypeUpdated" @showDeleteDialog="showConfirmProjectTypeDeleteDialog"/>
-    <ProjectTypeDeleteDialog ref="adminProjectTypeDeleteDialog" @deleteProjectType="deleteProjectType" />
 </template>
 
 <script>
@@ -41,8 +40,10 @@ import projectTypesApi from '@/api/projectTypes'
 import FormHeading from '@/components/FormHeading'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
+
+import Dialog from '@/services/dialog'
+
 import ProjectTypeEditDialog from './dialogs/ProjectTypeEditDialog'
-import ProjectTypeDeleteDialog from './dialogs/ProjectTypeDeleteDialog'
 import ProjectTypeDescriptionCell from './components/ProjectTypeDescriptionCell'
 import { PlusSmIcon } from '@heroicons/vue/outline'
 
@@ -87,9 +88,10 @@ export default {
             case 'edit':
                 this.showEditProjectTypeDialog(projectType)
                 break
-            case 'delete':
+            case 'delete': {
                 this.showConfirmProjectTypeDeleteDialog(projectType)
                 break
+            }
             }
         },
         showCreateProjectTypeDialog () {
@@ -99,13 +101,19 @@ export default {
             this.$refs.adminProjectTypeEditDialog.show(projectType)
         },
         showConfirmProjectTypeDeleteDialog (projectType) {
-            this.$refs.adminProjectTypeDeleteDialog.show(projectType)
-        },
-        async deleteProjectType (projectType) {
-            console.log(projectType)
-            await projectTypesApi.deleteProjectType(projectType.id)
-            const index = this.projectTypes.findIndex(pt => pt.id === projectType.id)
-            this.projectTypes.splice(index, 1)
+            const text = projectType.projectCount > 0 ? 'You cannot delete a project type that is still being used by projects.' : 'Are you sure you want to delete this project type?'
+            Dialog.show({
+                header: 'Delete Project Type',
+                kind: 'danger',
+                text: text,
+                confirmLabel: 'Delete',
+                disablePrimary: projectType.projectCount > 0
+            }, async () => {
+                // on confirm - delete the project type
+                await projectTypesApi.deleteProjectType(projectType.id)
+                const index = this.projectTypes.findIndex(pt => pt.id === projectType.id)
+                this.projectTypes.splice(index, 1)
+            })
         },
         async projectTypeCreated (projectType) {
             this.projectTypes.push(projectType)
@@ -145,8 +153,7 @@ export default {
     components: {
         FormHeading,
         PlusSmIcon,
-        ProjectTypeEditDialog,
-        ProjectTypeDeleteDialog
+        ProjectTypeEditDialog
     }
 }
 </script>

@@ -4,7 +4,6 @@ const subscriptions = []
 export default {
     // bind this service to a ff-dialog element
     bind: function (el, fcn) {
-        console.log(el)
         dialog = el
         subscriptions.push(fcn)
     },
