@@ -82,7 +82,7 @@
         <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
             <div class="flex-grow">
                 <div class="max-w-sm pt-2">
-                    Once suspended, your project will not be available until restarted. Whilst suspend the project will consume no resources.
+                    Once suspended, your project will not be available until restarted. Whilst suspend the project will consume no <span v-if="features.billing">billable</span> resources.
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
@@ -125,7 +125,7 @@ export default {
     props: ['project'],
     emits: ['projectUpdated'],
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState('account', ['team', 'features']),
         isLoading: function () {
             return this.loading.deleting || this.loading.suspend || this.loading.changingStack || this.loading.duplicating || this.loading.settingType
         }
