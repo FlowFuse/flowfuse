@@ -37,13 +37,13 @@
         </div>
     </form>
     <AdminStackEditDialog @stackCreated="stackCreated" @stackUpdated="stackUpdated" ref="adminStackEditDialog"/>
-    <AdminStackDeleteDialog @deleteStack="deleteStack" ref="adminStackDeleteDialog"/>
-
 </template>
 
 <script>
 import stacksApi from '@/api/stacks'
 import projectTypesApi from '@/api/projectTypes'
+
+import Dialog from '@/services/dialog'
 
 import FormHeading from '@/components/FormHeading'
 
@@ -51,7 +51,6 @@ import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
 import AdminStackEditDialog from './dialogs/AdminStackEditDialog'
-import AdminStackDeleteDialog from './dialogs/AdminStackDeleteDialog'
 
 import StackPropertiesCell from './components/StackPropertiesCell'
 
@@ -107,15 +106,35 @@ export default {
     },
     methods: {
         stackAction (action, stackId) {
+            console.log('stack action')
             const stack = this.allStacks[stackId]
             if (stack) {
                 switch (action) {
                 case 'editProperties':
                     this.$refs.adminStackEditDialog.showEdit(stack)
                     break
-                case 'delete':
-                    this.$refs.adminStackDeleteDialog.show(stack)
+                case 'delete': {
+                    const text = stack.projectCount > 0 ? 'You cannot delete a stack that is still being used by projects.' : 'Are you sure you want to delete this stack?'
+                    Dialog.show({
+                        header: 'Delete Stack',
+                        kind: 'danger',
+                        text: text,
+                        confirmLabel: 'Delete',
+                        disablePrimary: stack.projectCount > 0
+                    }, async () => {
+                        // on confirm - delete the stack
+                        await stacksApi.deleteStack(stack.id)
+                        if (stack.active) {
+                            const index = this.activeStacks.indexOf(stack)
+                            this.activeStacks.splice(index, 1)
+                        } else {
+                            const index = this.inactiveStacks.indexOf(stack)
+                            this.inactiveStacks.splice(index, 1)
+                        }
+                        delete this.allStacks[stack.id]
+                    })
                     break
+                }
                 case 'createNewVersion':
                     this.$refs.adminStackEditDialog.showCreateVersion(stack)
                 }
@@ -174,17 +193,6 @@ export default {
             this.sortStacks(this.activeStacks)
             this.sortStacks(this.inactiveStacks)
         },
-        async deleteStack (stack) {
-            await stacksApi.deleteStack(stack.id)
-            if (stack.active) {
-                const index = this.activeStacks.indexOf(stack)
-                this.activeStacks.splice(index, 1)
-            } else {
-                const index = this.inactiveStacks.indexOf(stack)
-                this.inactiveStacks.splice(index, 1)
-            }
-            delete this.allStacks[stack.id]
-        },
         loadActiveItems: async function () {
             this.loadingActive = true
             const result = await stacksApi.getStacks(this.nextCursor, 30, 'active')
@@ -232,7 +240,6 @@ export default {
     components: {
         FormHeading,
         AdminStackEditDialog,
-        AdminStackDeleteDialog,
         PlusSmIcon
     }
 }
