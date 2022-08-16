@@ -4,7 +4,7 @@ module.exports = {
 
     createTeamForUser: async function (app, teamDetails, user) {
         const newTeam = await app.db.models.Team.create(teamDetails)
-        await newTeam.addUser(user, { through: { role: Roles.Owner } })
+        await app.db.controllers.Team.addUser(newTeam, user, Roles.Owner)
 
         // Reinflate the object now the user has been added
         const team = await app.db.models.Team.bySlug(newTeam.slug)
@@ -45,8 +45,8 @@ module.exports = {
             return { user, team, oldRole, role }
         }
         if (oldRole === Roles.Owner && role === Roles.Member) {
-            const owners = await team.owners()
-            if (owners.length === 1) {
+            const ownerCount = await team.ownerCount()
+            if (ownerCount === 1) {
                 throw new Error('Cannot remove last owner')
             }
         }
@@ -55,6 +55,14 @@ module.exports = {
         return { user, team, oldRole, role }
     },
 
+    addUser: async function (app, team, user, userRole) {
+        // TODO: Check team type has room for this user
+
+        await team.addUser(user, { through: { role: userRole } })
+        if (app.license.active() && app.billing) {
+            await app.billing.updateTeamMemberCount(team)
+        }
+    },
     /**
      * Remove a user from a team
      * @params team
@@ -69,8 +77,8 @@ module.exports = {
         }
         if (userRole) {
             if (userRole.role === Roles.Owner) {
-                const owners = await team.owners()
-                if (owners.length === 1) {
+                const ownerCount = await team.ownerCount()
+                if (ownerCount === 1) {
                     throw new Error('Cannot remove last owner')
                 }
             }
@@ -78,6 +86,11 @@ module.exports = {
                 await user.setDefaultTeam(null)
             }
             await userRole.destroy()
+
+            if (app.license.active() && app.billing) {
+                await app.billing.updateTeamMemberCount(team)
+            }
+
             return true
             // console.warn('TODO: forge.db.controllers.Team.removeUser - expire oauth sessions')
         }

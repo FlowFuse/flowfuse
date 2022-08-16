@@ -29,7 +29,13 @@ module.exports = async function (app) {
      */
     app.post('/', async (request, reply) => {
         const userDetails = request.body.user.split(',').map(u => u.trim()).filter(Boolean)
-        const invites = await app.db.controllers.Invitation.createInvitations(request.session.User, request.team, userDetails)
+        let invites = []
+        try {
+            invites = await app.db.controllers.Invitation.createInvitations(request.session.User, request.team, userDetails)
+        } catch (err) {
+            reply.code(400).send({ status: 'error', message: err.message })
+            return
+        }
 
         const result = {
             status: 'okay',

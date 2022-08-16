@@ -24,7 +24,7 @@ describe('Team Invitations API', function () {
 
         // ATeam create in setup()
         TestObjects.ATeam = await app.db.models.Team.byName('ATeam')
-        TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam' })
+        TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: app.defaultTeamType.id })
         TestObjects.CTeam = await app.db.models.Team.create({ name: 'CTeam' })
 
         // Alice set as ATeam owner in setup()

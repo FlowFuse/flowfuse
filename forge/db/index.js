@@ -84,6 +84,11 @@ module.exports = fp(async function (app, _opts, next) {
     await views.init(app)
     await controllers.init(app)
 
+    // Ensure default Team Types exist
+    const createDefaultTeamTypesMigration = require('./migrations/20220808-02-create-default-team-types')
+    const queryInterface = sequelize.getQueryInterface()
+    await createDefaultTeamTypesMigration.up(queryInterface)
+
     const { inject } = require('./test-data')
     await inject(app)
 

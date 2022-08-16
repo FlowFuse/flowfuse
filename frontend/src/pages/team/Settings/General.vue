@@ -6,6 +6,12 @@
                 <div v-if="editing.teamName">eg. 'Development'</div>
             </template>
         </FormRow>
+        <FormRow v-model="input.teamType" type="uneditable">
+            <template #default>Type</template>
+            <template #description>
+                <div v-if="editing.teamName">You cannot currently change the type of team</div>
+            </template>
+        </FormRow>
         <FormRow v-model="input.slug" :type="editing.teamName?'text':'uneditable'" :error="errors.slug" id="teamSlug">
             <template #default>Slug</template>
             <template #description>
@@ -55,7 +61,8 @@ export default {
             },
             input: {
                 slug: '',
-                teamName: ''
+                teamName: '',
+                teamType: ''
             }
         }
     },
@@ -90,7 +97,9 @@ export default {
         editName () {
             this.editing.teamName = true
             setTimeout(() => {
-                document.getElementById('teamName').focus()
+                // Until https://github.com/flowforge/forge-ui-components/issues/42 is resolved,
+                // this is what it takes to focus the right input
+                document.querySelector('label[for="teamName"]').parentNode.querySelector('input').focus()
             }, 0)
         },
         async saveEditName () {
@@ -127,6 +136,7 @@ export default {
             this.editing.teamName = false
             this.input.teamName = this.team.name
             this.input.slug = this.team.slug
+            this.input.teamType = this.team.type.name
         },
 
         async fetchData () {
