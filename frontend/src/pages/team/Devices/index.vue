@@ -17,7 +17,8 @@
                            :show-search="true" search-placeholder="Search Devices...">
                 <template v-slot:context-menu="{row}">
                     <ff-list-item label="Edit Details" @click="deviceAction('edit', row.id)"/>
-                    <ff-list-item label="Add to Project" @click="deviceAction('assignToProject', row.id)" />
+                    <ff-list-item v-if="!row.project" label="Add to Project" @click="deviceAction('assignToProject', row.id)" />
+                    <ff-list-item v-else label="Remove from Project" @click="deviceAction('removeFromProject', row.id)" />
                     <ff-list-item kind="danger" label="Regenerate Credentials" @click="deviceAction('updateCredentials', row.id)"/>
                     <ff-list-item kind="danger" label="Delete Device" @click="deviceAction('delete', row.id)" />
                 </template>
@@ -48,9 +49,7 @@
         </template>
     </form>
     <TeamDeviceCreateDialog :team="team" @deviceCreated="deviceCreated" @deviceUpdated="deviceUpdated" ref="teamDeviceCreateDialog"/>
-    <ConfirmDeviceDeleteDialog @deleteDevice="deleteDevice" ref="confirmDeviceDeleteDialog" />
     <DeviceCredentialsDialog ref="deviceCredentialsDialog" />
-    <ConfirmDeviceUnassignDialog @unassignDevice="unassignDevice" ref="confirmDeviceUnassignDialog" />
     <DeviceAssignProjectDialog :team="team" @assignDevice="assignDevice" ref="deviceAssignProjectDialog" />
 </template>
 
@@ -60,6 +59,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { markRaw } from 'vue'
 
 import { Roles } from '@core/lib/roles'
+
+import Alerts from '@/services/alerts'
+import Dialog from '@/services/dialog'
 
 import teamApi from '@/api/team'
 import deviceApi from '@/api/devices'
@@ -71,8 +73,6 @@ import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
 import { CheckCircleIcon, ChipIcon, PlusSmIcon, ClockIcon, ExclamationIcon } from '@heroicons/vue/outline'
 
 import TeamDeviceCreateDialog from './dialogs/TeamDeviceCreateDialog'
-import ConfirmDeviceDeleteDialog from './dialogs/ConfirmDeviceDeleteDialog'
-import ConfirmDeviceUnassignDialog from './dialogs/ConfirmDeviceUnassignDialog'
 import DeviceCredentialsDialog from './dialogs/DeviceCredentialsDialog'
 import DeviceAssignProjectDialog from './dialogs/DeviceAssignProjectDialog'
 
@@ -160,35 +160,44 @@ export default {
                 this.devices[index] = device
             }
         },
-        async deleteDevice (device) {
-            await deviceApi.deleteDevice(device.id)
-            const index = this.devices.indexOf(device)
-            this.devices.splice(index, 1)
-        },
         async assignDevice (device, projectId) {
             const updatedDevice = await deviceApi.updateDevice(device.id, { project: projectId })
             device.project = updatedDevice.project
-        },
-        async unassignDevice (device) {
-            await deviceApi.updateDevice(device.id, { project: null })
-            delete device.project
-            // If this component is being used on the Team/Device page - this unassign should
-            // remove it from the view.
-            if (this.isProjectDeviceView) {
-                const index = this.devices.indexOf(device)
-                this.devices.splice(index, 1)
-            }
         },
         deviceAction (action, deviceId) {
             const device = this.devices.find(d => d.id === deviceId)
             if (action === 'edit') {
                 this.showEditDeviceDialog(device)
             } else if (action === 'delete') {
-                this.$refs.confirmDeviceDeleteDialog.show(device)
+                Dialog.show({
+                    header: 'Delete Device',
+                    kind: 'danger',
+                    text: 'Are you sure you want to delete this device? Once deleted, there is no going back.',
+                    confirmLabel: 'Delete'
+                }, async () => {
+                    await deviceApi.deleteDevice(device.id)
+                    const index = this.devices.indexOf(device)
+                    this.devices.splice(index, 1)
+                })
             } else if (action === 'updateCredentials') {
                 this.$refs.deviceCredentialsDialog.show(device)
             } else if (action === 'removeFromProject') {
-                this.$refs.confirmDeviceUnassignDialog.show(device)
+                Dialog.show({
+                    header: 'Remove Device from Project',
+                    kind: 'danger',
+                    text: 'Are you sure you want to remove this device from the project? This will stop the project running on the device.',
+                    confirmLabel: 'Remove'
+                }, async () => {
+                    await deviceApi.updateDevice(device.id, { project: null })
+                    delete device.project
+                    // If this component is being used on the Team/Device page - this unassign should
+                    // remove it from the view.
+                    if (this.isProjectDeviceView) {
+                        const index = this.devices.indexOf(device)
+                        this.devices.splice(index, 1)
+                    }
+                    Alerts.emit('Successfully unassigned the project from this device.', 'confirmation')
+                })
             } else if (action === 'assignToProject') {
                 this.$refs.deviceAssignProjectDialog.show(device)
             }
@@ -257,9 +266,7 @@ export default {
         PlusSmIcon,
         ClockIcon,
         TeamDeviceCreateDialog,
-        ConfirmDeviceDeleteDialog,
         DeviceCredentialsDialog,
-        ConfirmDeviceUnassignDialog,
         DeviceAssignProjectDialog,
         SectionTopMenu
     }
