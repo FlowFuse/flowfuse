@@ -95,7 +95,9 @@ describe('Device API', async function () {
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(400)
-            response.body.should.match(/body should have required property 'team'/)
+            console.log(typeof response.body)
+            console.log(response.body)
+            response.body.should.match(/body must have required property 'team'/)
         })
         it('rejects if user not the team owner', async function () {
             // Chris (member) cannot create device in BTeam
