@@ -11,7 +11,8 @@
             </template>
         </FormHeading>
         <ff-loading v-if="loading" message="Loading Templates..." />
-        <ff-data-table v-if="!loading" :columns="columns" :rows="templates" :show-search="true" search-placeholder="Search Templates..."
+        <ff-data-table v-if="!loading" :columns="columns" data-el="templates"
+                       :rows="templates" :show-search="true" search-placeholder="Search Templates..."
                        :search-fields="['name',, 'description', 'owner_username', 'owner_id']">
             <template v-slot:context-menu="{row}">
                 <ff-list-item label="Edit Template" @click="editTemplate(row)"/>
