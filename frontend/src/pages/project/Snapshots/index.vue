@@ -21,9 +21,6 @@
                 </template>
             </div>
         </template>
-        <ConfirmSnapshotDeleteDialog @deleteSnapshot="deleteSnapshot" ref="confirmSnapshotDeleteDialog" />
-        <ConfirmSnapshotTargetDialog @targetSnapshot="targetSnapshot" ref="confirmSnapshotTargetDialog" />
-        <ConfirmSnapshotRollbackDialog @rollbackSnapshot="rollbackSnapshot" ref="confirmSnapshotRollbackDialog" />
         <SnapshotCreateDialog :project="project" @snapshotCreated="snapshotCreated" ref="snapshotCreateDialog" />
     </form>
 </template>
@@ -32,14 +29,15 @@
 
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
+
+import Alerts from '@/services/alerts'
+import Dialog from '@/services/dialog'
+
 import projectApi from '@/api/project'
 import snapshotApi from '@/api/projectSnapshots'
 import { PlusSmIcon, ChipIcon, ClockIcon } from '@heroicons/vue/outline'
 import daysSince from '@/utils/daysSince'
 import UserCell from '@/components/tables/cells/UserCell'
-import ConfirmSnapshotDeleteDialog from './dialogs/ConfirmSnapshotDeleteDialog'
-import ConfirmSnapshotTargetDialog from './dialogs/ConfirmSnapshotTargetDialog'
-import ConfirmSnapshotRollbackDialog from './dialogs/ConfirmSnapshotRollbackDialog'
 import SnapshotCreateDialog from './dialogs/SnapshotCreateDialog'
 
 const SnapshotMetaInformation = {
@@ -85,36 +83,51 @@ export default {
         },
         // snapshot actions - delete
         showDeleteSnapshotDialog (snapshot) {
-            this.$refs.confirmSnapshotDeleteDialog.show(snapshot)
+            Dialog.show({
+                header: 'Delete Snapshot',
+                text: 'Are you sure you want to delete this snapshot?',
+                kind: 'danger',
+                confirmLabel: 'Delete'
+            }, async () => {
+                await snapshotApi.deleteSnapshot(this.project.id, snapshot.id)
+                const index = this.snapshots.indexOf(snapshot)
+                this.snapshots.splice(index, 1)
+                Alerts.emit('Successfully deleted snapshot.', 'confirmation')
+            })
         },
         // snapshot actions - rollback
         showRollbackDialog (snapshot) {
-            this.$refs.confirmSnapshotRollbackDialog.show(snapshot)
+            Dialog.show({
+                header: 'Rollback Snapshot',
+                html: `<p>This rollback will overwrite the current project.</p>
+            <p>All changes to the flows, settings and environment variables made since
+                the last snapshot will be lost.</p>
+            <p>Are you sure you want to rollback to this snapshot?</p>`,
+                confirmLabel: 'Confirm Rollback'
+            }, async () => {
+                await snapshotApi.rollbackSnapshot(this.project.id, snapshot.id)
+                Alerts.emit('Successfully rollbacked snapshot.', 'confirmation')
+            })
         },
         // snapshot actions - set as device target
         showDeviceTargetDialog (snapshot) {
-            this.$refs.confirmSnapshotTargetDialog.show(snapshot)
+            Dialog.show({
+                header: 'Set Device Target Snapshot',
+                html: `<p>Are you sure you want to set this snapshot as the device target?</p>
+            <p>All devices in this team will be restarted on this snapshot.</p>`,
+                confirmLabel: 'Set Target'
+            }, async () => {
+                await projectApi.updateProjectDeviceSettings(this.project.id, {
+                    targetSnapshot: snapshot.id
+                })
+                this.$emit('projectUpdated')
+            })
         },
         showCreateSnapshotDialog () {
             this.$refs.snapshotCreateDialog.show()
         },
         snapshotCreated (snapshot) {
             this.snapshots.unshift(snapshot)
-        },
-        async deleteSnapshot (snapshot) {
-            await snapshotApi.deleteSnapshot(this.project.id, snapshot.id)
-            const index = this.snapshots.indexOf(snapshot)
-            this.snapshots.splice(index, 1)
-        },
-        async rollbackSnapshot (snapshot) {
-            console.log(snapshot.id)
-            await snapshotApi.rollbackSnapshot(this.project.id, snapshot.id)
-        },
-        async targetSnapshot (snapshot) {
-            await projectApi.updateProjectDeviceSettings(this.project.id, {
-                targetSnapshot: snapshot.id
-            })
-            this.$emit('projectUpdated')
         }
     },
     computed: {
@@ -165,9 +178,6 @@ export default {
     props: ['project'],
     components: {
         SnapshotCreateDialog,
-        ConfirmSnapshotDeleteDialog,
-        ConfirmSnapshotTargetDialog,
-        ConfirmSnapshotRollbackDialog,
         PlusSmIcon
     }
 }
