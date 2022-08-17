@@ -1,8 +1,11 @@
-describe('FlowForge Dialogs - Project Types', () => {
+describe('FlowForge - Project Types', () => {
     beforeEach(() => {
+        cy.intercept('GET', '/api/*/project-types*').as('getProjectTypes')
+
         cy.login('alice', 'aaPassword')
         cy.home()
         cy.visit('/admin/project-types')
+        cy.wait('@getProjectTypes')
     })
 
     it('can successfully create a project type', () => {
@@ -10,7 +13,8 @@ describe('FlowForge Dialogs - Project Types', () => {
 
         cy.get('.ff-dialog-box').should('not.be.visible')
 
-        cy.get('[data-el="active-types"]').find('ff-tile-selection-option').should('have.length', 0)
+        // we populate a project type on startup
+        cy.get('[data-el="active-types"]').find('.ff-tile-selection-option').should('have.length', 1)
 
         cy.get('[data-action="create-type"]').should('exist')
         cy.get('[data-action="create-type"]').click()
@@ -25,16 +29,17 @@ describe('FlowForge Dialogs - Project Types', () => {
 
         cy.get('.ff-dialog-box').should('not.be.visible')
 
-        cy.get('[data-el="active-types"]').find('.ff-tile-selection-option').should('have.length', 1)
+        cy.get('[data-el="active-types"]').find('.ff-tile-selection-option').should('have.length', 2)
     })
 
     it('can successfully set a project type as inactive', () => {
         cy.intercept('PUT', '/api/*/project-types/*').as('updateProjectType')
 
+        // should have "No Data" row
         cy.get('[data-el="inactive-types"] tbody').find('tr').should('have.length', 1)
         cy.get('[data-el="inactive-types"] tbody').contains('td', 'No Data Found')
 
-        cy.get('[data-el="active-types"]').find('.ff-tile-selection-option').first().find('.ff-tile-selection-option--edit').click()
+        cy.get('[data-el="active-types"]').find('.ff-tile-selection-option').eq(0).find('.ff-tile-selection-option--edit').click()
 
         cy.get('.ff-dialog-box').should('be.visible')
 
@@ -45,8 +50,8 @@ describe('FlowForge Dialogs - Project Types', () => {
 
         cy.wait('@updateProjectType')
 
-        // no active project stacks
-        cy.get('[data-el="active-types"]').find('.ff-tile-selection-option').should('have.length', 0)
+        // one active project stacks
+        cy.get('[data-el="active-types"]').find('.ff-tile-selection-option').should('have.length', 1)
 
         // one inactive project stacks
         cy.get('[data-el="inactive-types"] tbody').find('tr').should('have.length', 1)
@@ -64,8 +69,8 @@ describe('FlowForge Dialogs - Project Types', () => {
         // confirm delete
         cy.get('.ff-dialog-box button.ff-btn.ff-btn--danger').click()
 
-        // no active project types
-        cy.get('[data-el="active-types"]').find('ff-tile-selection-option').should('have.length', 0)
+        // one active project types
+        cy.get('[data-el="active-types"]').find('.ff-tile-selection-option').should('have.length', 1)
         // no inactive project types
         cy.get('[data-el="inactive-types"] tbody').find('tr').should('have.length', 1)
         cy.get('[data-el="inactive-types"] tbody').contains('td', 'No Data Found')

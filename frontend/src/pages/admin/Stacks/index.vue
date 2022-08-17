@@ -3,7 +3,7 @@
         <FormHeading>Active Stacks
         </FormHeading>
         <ff-loading v-if="loadingActive" message="Loading Stacks..." />
-        <ff-data-table v-if="!loadingActive" :columns="activeColumns" :rows="activeStacks"
+        <ff-data-table v-if="!loadingActive" data-el="active-stacks" :columns="activeColumns" :rows="activeStacks"
                        :show-search="true" search-placeholder="Search by Stack Name..."  no-data-message="No Inactive Stacks Found">
             <template v-slot:actions>
                 <ff-button @click="showCreateStackDialog">
@@ -24,7 +24,7 @@
         </div>
         <FormHeading>Inactive Stacks</FormHeading>
         <ff-loading v-if="loadingInactive" message="Loading Stacks..." />
-        <ff-data-table v-if="!loadingInactive" :columns="inactiveColumns" :rows="inactiveStacks"
+        <ff-data-table v-if="!loadingInactive" data-el="inactive-stacks" :columns="inactiveColumns" :rows="inactiveStacks"
                        :show-search="true" search-placeholder="Search by Stack Name..." no-data-message="No Inactive Stacks Found">
             <template v-slot:context-menu="{row}">
                 <ff-list-item label="Create New Version" @click="stackAction('createNewVersion', row.id)"/>
@@ -43,6 +43,7 @@
 import stacksApi from '@/api/stacks'
 import projectTypesApi from '@/api/projectTypes'
 
+import Alerts from '@/services/alerts'
 import Dialog from '@/services/dialog'
 
 import FormHeading from '@/components/FormHeading'
@@ -123,15 +124,20 @@ export default {
                         disablePrimary: stack.projectCount > 0
                     }, async () => {
                         // on confirm - delete the stack
-                        await stacksApi.deleteStack(stack.id)
-                        if (stack.active) {
-                            const index = this.activeStacks.indexOf(stack)
-                            this.activeStacks.splice(index, 1)
-                        } else {
-                            const index = this.inactiveStacks.indexOf(stack)
-                            this.inactiveStacks.splice(index, 1)
-                        }
-                        delete this.allStacks[stack.id]
+                        stacksApi.deleteStack(stack.id)
+                            .then(() => {
+                                if (stack.active) {
+                                    const index = this.activeStacks.indexOf(stack)
+                                    this.activeStacks.splice(index, 1)
+                                } else {
+                                    const index = this.inactiveStacks.indexOf(stack)
+                                    this.inactiveStacks.splice(index, 1)
+                                }
+                                delete this.allStacks[stack.id]
+                            })
+                            .catch((err) => {
+                                Alerts.emit(err.message, 'warning')
+                            })
                     })
                     break
                 }
