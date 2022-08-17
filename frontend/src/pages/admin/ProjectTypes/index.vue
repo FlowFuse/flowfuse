@@ -2,7 +2,7 @@
     <form class="space-y-6">
         <FormHeading>Project Types
             <template v-slot:tools>
-                <ff-button size="small" @click="showCreateProjectTypeDialog">
+                <ff-button size="small" @click="showCreateProjectTypeDialog" data-action="create-type">
                     <template v-slot:icon-right>
                         <PlusSmIcon />
                     </template>
@@ -10,7 +10,7 @@
                 </ff-button>
             </template>
         </FormHeading>
-        <ff-tile-selection>
+        <ff-tile-selection data-el="active-types">
             <ff-tile-selection-option v-for="(projType, index) in activeProjectTypes" :key="index"
                                       :editable="true" @edit="showEditProjectTypeDialog(projType)" :price="projType.properties?.billingDescription?.split('/')[0]"
                                       :price-interval="projType.properties?.billingDescription?.split('/')[1]"
@@ -21,7 +21,7 @@
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
         </div>
         <FormHeading>Inactive Types</FormHeading>
-        <ff-data-table :columns="columns" :rows="inactiveProjectTypes">
+        <ff-data-table :columns="columns" :rows="inactiveProjectTypes" data-el="inactive-types">
             <template v-slot:context-menu="{row}">
                 <ff-list-item label="Edit Project Type" @click="projectTypeAction('edit', row.id)"/>
                 <ff-list-item label="Delete Project Type" kind="danger" @click="projectTypeAction('delete', row.id)"/>
