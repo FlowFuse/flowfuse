@@ -20,6 +20,7 @@ import ExportProjectComponents from '../../components/ExportProjectComponents'
 
 export default {
     name: 'ExportProjectDialog',
+    emits: ['confirm'],
     components: {
         ExportProjectComponents
     },
@@ -41,7 +42,7 @@ export default {
                 parts.creds = parts.credsSecret.trim()
                 delete parts.credsSecret
             }
-            this.$emit('exportProject', this.parts)
+            this.$emit('confirm', this.parts)
         }
     },
     setup () {

@@ -23,6 +23,7 @@ import FormRow from '@/components/FormRow'
 
 export default {
     name: 'ConfirmProjectDeleteDialog',
+    emits: ['confirm'],
     components: {
         FormRow
     },
@@ -46,7 +47,7 @@ export default {
     methods: {
         confirm () {
             if (this.formValid) {
-                this.$emit('deleteProject')
+                this.$emit('confirm')
             }
         }
     },
