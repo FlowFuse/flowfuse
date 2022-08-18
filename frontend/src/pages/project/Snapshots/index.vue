@@ -2,9 +2,9 @@
     <form class="space-y-6">
         <ff-loading v-if="loading" message="Loading Snapshots..." />
         <template v-if="snapshots.length > 0">
-            <ff-data-table :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
+            <ff-data-table data-el="snapshots" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
                 <template v-slot:actions v-if="createSnapshotEnabled">
-                    <ff-button kind="primary" @click="showCreateSnapshotDialog"><template v-slot:icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
+                    <ff-button kind="primary" @click="showCreateSnapshotDialog" data-action="create-snapshot"><template v-slot:icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
                 </template>
                 <template v-slot:context-menu="{row}">
                     <ff-list-item label="Rollback" @click="showRollbackDialog(row)" />
@@ -17,7 +17,7 @@
             <div class="flex flex-col text-gray-500 items-center italic mb-4 p-8 space-y-6">
                 <div>You have not created any snapshots yet</div>
                 <template v-if="createSnapshotEnabled">
-                    <ff-button kind="primary" size="small" @click="showCreateSnapshotDialog"><template v-slot:icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
+                    <ff-button kind="primary" size="small" data-action="create-snapshot" @click="showCreateSnapshotDialog"><template v-slot:icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
                 </template>
             </div>
         </template>
