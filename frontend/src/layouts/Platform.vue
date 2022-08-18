@@ -15,7 +15,7 @@
             </TransitionGroup>
             <ff-dialog ref="dialog" :header="dialog.header" :kind="dialog.kind" :disable-primary="dialog.disablePrimary" :confirm-label="dialog.confirmLabel" @cancel="clearDialog" @confirm="dialog.onConfirm">
                 <p v-if="dialog.text">{{ dialog.text }}</p>
-                <div class="space-y-2" v-html="dialog.html" />
+                <div class="space-y-2" v-html="dialog.html"></div>
             </ff-dialog>
         </div>
     </div>
