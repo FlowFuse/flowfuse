@@ -19,6 +19,9 @@ module.exports = {
             }
             if (request.session.User.admin) {
                 // Settings only an admin can modify
+                if (request.body.email_verified !== undefined) {
+                    user.email_verified = request.body.email_verified
+                }
 
                 if (request.body.admin !== undefined) {
                     user.admin = request.body.admin
