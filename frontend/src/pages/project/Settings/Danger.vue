@@ -86,7 +86,7 @@
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="danger" @click="showConfirmDeleteDialog()">Delete Project</ff-button>
+                <ff-button data-action="delete-project" kind="danger" @click="showConfirmDeleteDialog()">Delete Project</ff-button>
                 <ConfirmProjectDeleteDialog @confirm="deleteProject" ref="confirmProjectDeleteDialog"/>
             </div>
         </div>

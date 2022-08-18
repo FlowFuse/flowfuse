@@ -11,7 +11,7 @@
                         <code class="block">{{ project?.name }}</code>
                     </p>
                 </div>
-                <FormRow v-model="input.projectName" id="projectName">Name</FormRow>
+                <FormRow v-model="input.projectName" id="projectName" data-form="project-name">Name</FormRow>
             </form>
         </template>
     </ff-dialog>
