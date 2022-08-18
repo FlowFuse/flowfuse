@@ -29,9 +29,9 @@ describe('Users API', async function () {
 
         // ATeam create in setup()
         TestObjects.ATeam = await app.db.models.Team.byName('ATeam')
-        TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam' })
-        TestObjects.CTeam = await app.db.models.Team.create({ name: 'CTeam' })
-        TestObjects.DTeam = await app.db.models.Team.create({ name: 'DTeam' })
+        TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: app.defaultTeamType.id })
+        TestObjects.CTeam = await app.db.models.Team.create({ name: 'CTeam', TeamTypeId: app.defaultTeamType.id })
+        TestObjects.DTeam = await app.db.models.Team.create({ name: 'DTeam', TeamTypeId: app.defaultTeamType.id })
 
         // Alice set as ATeam owner in setup()
         await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })

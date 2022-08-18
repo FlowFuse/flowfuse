@@ -2,6 +2,13 @@ const { Roles } = require('../../lib/roles.js')
 module.exports = {
     createInvitations: async (app, invitor, team, userList) => {
         const externalInvitesPermitted = app.postoffice.enabled() && !!app.settings.get('team:user:invite:external')
+        const currentTeamMemberCount = await team.memberCount()
+        const currentTeamInviteCount = await team.pendingInviteCount()
+        const userLimit = team.TeamType.properties?.userLimit
+        if (userLimit > 0 && currentTeamMemberCount + currentTeamInviteCount >= userLimit) {
+            throw new Error('Team user limit reached')
+        }
+
         const results = {}
         for (let i = 0; i < userList.length; i++) {
             const userDetail = userList[i]
@@ -52,7 +59,7 @@ module.exports = {
     },
 
     acceptInvitation: async (app, invitation, user) => {
-        await invitation.team.addUser(user, { through: { role: Roles.Member } })
+        await app.db.controllers.Team.addUser(invitation.team, user, Roles.Member)
         await invitation.destroy()
         await app.db.controllers.AuditLog.teamLog(
             invitation.team.id,

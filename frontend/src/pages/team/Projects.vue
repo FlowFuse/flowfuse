@@ -1,7 +1,7 @@
 <template>
     <SectionTopMenu hero="Projects">
         <template v-slot:tools>
-            <ff-button kind="primary" size="small" to="./projects/create"><template v-slot:icon-left><PlusSmIcon /></template>Create Project</ff-button>
+            <ff-button kind="primary" size="small" to="./projects/create" data-nav="create-project"><template v-slot:icon-left><PlusSmIcon /></template>Create Project</ff-button>
         </template>
     </SectionTopMenu>
     <form class="space-y-6">

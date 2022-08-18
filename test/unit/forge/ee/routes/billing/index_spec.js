@@ -1,5 +1,5 @@
 const should = require('should')
-const setup = require('../setup')
+const setup = require('../../setup')
 
 describe('Stripe Callbacks', function () {
     let app

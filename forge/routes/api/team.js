@@ -104,6 +104,7 @@ module.exports = async function (app) {
                 const teamMembership = await request.session.User.getTeamMembership(team.id)
                 if (!teamMembership && !request.session.User.admin) {
                     reply.code(404).type('text/html').send('Not Found')
+                    return
                 }
                 await getTeamDetails(request, reply, team)
             } else {
@@ -148,6 +149,7 @@ module.exports = async function (app) {
                 required: ['name'],
                 properties: {
                     name: { type: 'string' },
+                    type: { type: 'string' },
                     slug: { type: 'string' }
                 }
             }
@@ -168,12 +170,23 @@ module.exports = async function (app) {
             return
         }
 
+        const teamType = await app.db.models.TeamType.byId(request.body.type)
+        if (!teamType || !teamType.enabled) {
+            reply.code(400).send({ error: 'unknown team type' })
+            return
+        }
+
         try {
             const team = await app.db.controllers.Team.createTeamForUser({
                 name: request.body.name,
                 slug: request.body.slug
             }, request.session.User)
 
+            await team.setTeamType(teamType)
+
+            await team.reload({
+                include: [{ model: app.db.models.TeamType }]
+            })
             const teamView = app.db.views.Team.team(team)
 
             if (app.license.active() && app.billing) {

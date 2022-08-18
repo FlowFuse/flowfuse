@@ -17,6 +17,7 @@ import teamsApi from '@/api/teams'
 import SectionTopMenu from '@/components/SectionTopMenu'
 
 import TeamCell from '@/components/tables/cells/TeamCell'
+import TeamTypeCell from '@/components/tables/cells/TeamTypeCell'
 import { markRaw } from 'vue'
 
 export default {
@@ -28,6 +29,7 @@ export default {
             nextCursor: null,
             columns: [
                 { label: 'Name', class: ['w-full'], component: { is: markRaw(TeamCell) }, sortable: true },
+                { label: 'Type', key: 'type', component: { is: markRaw(TeamTypeCell) }, sortable: true },
                 { label: 'Members', class: ['w-54', 'text-center'], key: 'memberCount', sortable: true },
                 { label: 'Projects', class: ['w-54', 'text-center'], key: 'projectCount', sortable: true }
             ]

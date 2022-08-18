@@ -5,7 +5,8 @@
             <ul class="ff-side-navigation--options">
                 <router-link v-for="route in routes.general" :key="route.label"
                              :class="{'router-link-active': atNestedRoute(route)}"
-                             :to="'/team/' + team.slug + route.to" @click="$emit('option-selected')">
+                             :to="'/team/' + team.slug + route.to" @click="$emit('option-selected')"
+                             :data-nav="route.tag">
                     <nav-item :label="route.label" :icon="route.icon"></nav-item>
                 </router-link>
             </ul>
@@ -14,7 +15,9 @@
             </span>
             <!-- Team Options: Admin -->
             <ul v-if="showAdmin" class="ff-side-navigation--admin">
-                <router-link v-for="route in routes.admin" :key="route.label" :to="'/team/' + team.slug + route.to">
+                <router-link v-for="route in routes.admin" :key="route.label"
+                             :to="'/team/' + team.slug + route.to"
+                             :data-nav="route.tag">
                     <nav-item :icon="route.icon" :label="route.label"></nav-item>
                 </router-link>
             </ul>
@@ -55,23 +58,28 @@ export default {
             general: [{
                 label: 'Overview',
                 to: '/overview',
+                tag: 'team-overview',
                 icon: TemplateIcon
             }, {
                 label: 'Projects',
                 to: '/projects',
+                tag: 'team-projects',
                 icon: ProjectsIcon
             }, {
                 label: 'Members',
                 to: '/members',
+                tag: 'team-members',
                 icon: UsersIcon
             }],
             admin: [{
                 label: 'Audit Log',
                 to: '/audit-log',
+                tag: 'team-audit',
                 icon: DatabaseIcon
             }, {
                 label: 'Team Settings',
                 to: '/settings',
+                tag: 'team-settings',
                 icon: CogIcon
             }]
         }
