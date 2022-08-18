@@ -15,7 +15,16 @@
             <form class="space-y-6" >
                 <FormHeading>Create a new team</FormHeading>
                 <div class="mb-8 text-sm text-gray-500">Teams are how you organize who collaborates on your projects.</div>
-
+                <!-- TeamType Type -->
+                <div class="flex flex-wrap gap-1 items-stretch">
+                    <ff-tile-selection v-model="input.teamTypeId" >
+                        <ff-tile-selection-option v-for="(teamType, index) in teamTypes" :key="index"
+                                                  :label="teamType.name" :description="teamType.description"
+                                                  :price="billingEnabled ? teamType.billingPrice : ''"
+                                                  :price-interval="billingEnabled ? (!teamType.isFree ? 'per user/month' : '') : ''"
+                                                  :value="teamType.id"/>
+                    </ff-tile-selection>
+                </div>
                 <FormRow v-model="input.name" id="team" :error="errors.name">Team Name
                     <template v-slot:description>
                         eg. 'Development'
@@ -32,8 +41,12 @@
                 <template v-if="billingEnabled">
                     <div class="mb-8 text-sm text-gray-500 space-y-2">
                         <p>To create the team we need to setup payment details via Stripe, our secure payment provider.</p>
-                        <p>You will not be charged for creating the team. You will be charged for the projects
-                            you create within the team. For more information on billing, please read our <a class="underline" href="https://flowforge.com/docs/cloud/billing/">Billing documentation</a>.</p>
+                        <p v-if="input.teamType">
+                            <span v-if="input.teamType.isFree">You will not be charged for creating this team.</span>
+                            <span v-else>You will be charged <b>{{ input.teamType.billingPrice }} for each team member per month</b>.</span>
+                            You will be charged for the projects you create within the team.
+                            For more information on billing, please read our <a class="underline" href="https://flowforge.com/docs/cloud/billing/">Billing documentation</a>.
+                        </p>
                     </div>
                     <ff-button :disabled="!formValid" @click="createTeam()">
                         <template v-slot:icon-right><ExternalLinkIcon /></template>
@@ -52,6 +65,7 @@
 import { mapState } from 'vuex'
 
 import teamApi from '@/api/team'
+import teamTypesApi from '@/api/teamTypes'
 import slugify from '@/utils/slugify'
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
@@ -68,10 +82,13 @@ export default {
             mounted: false,
             loading: false,
             redirecting: false,
+            teamTypes: [],
             icons: {
                 chevronLeft: ChevronLeftIcon
             },
             input: {
+                teamTypeId: '',
+                teamType: null,
                 name: '',
                 slug: '',
                 defaultSlug: '',
@@ -97,16 +114,28 @@ export default {
             } else {
                 this.input.slugError = ''
             }
+        },
+        'input.teamTypeId': function (v) {
+            if (v) {
+                this.input.teamType = this.teamTypes.find(tt => tt.id === v)
+            } else {
+                this.input.teamType = null
+            }
         }
     },
     computed: {
         ...mapState('account', ['team', 'features']),
         formValid () {
-            return this.input.name && !this.input.slugError && !this.errors.name
+            return this.input.teamTypeId && this.input.name && !this.input.slugError && !this.errors.name
         },
         billingEnabled () {
             return this.features.billing
         }
+    },
+    async created () {
+        const data = await teamTypesApi.getTeamTypes()
+        this.teamTypes = data.types
+        this.input.teamTypeId = this.teamTypes[0].id
     },
     mounted () {
         this.mounted = true
@@ -117,7 +146,8 @@ export default {
 
             const opts = {
                 name: this.input.name,
-                slug: this.input.slug || this.input.defaultSlug
+                slug: this.input.slug || this.input.defaultSlug,
+                type: this.input.teamTypeId
             }
 
             teamApi.create(opts).then(async result => {

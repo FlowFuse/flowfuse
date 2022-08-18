@@ -50,15 +50,15 @@ module.exports = async function (app) {
      *  - team owners can do this for now - but will need to enable invite-only workflow
      * POST [/api/v1/teams/:teamId/members]/
      */
-    app.post('/', { preHandler: app.needsPermission('team:user:add') }, async (request, reply) => {
-        // await app.db.controllers.AuditLog.teamLog(
-        //     request.team.id,
-        //     request.session.User.id,
-        //     "user.added",
-        //     { user: userToRemove.username }
-        // )
-        reply.code(400).send({ error: 'POST /api/v1/teams/:teamId/members not implemented' })
-    })
+    // app.post('/', { preHandler: app.needsPermission('team:user:add') }, async (request, reply) => {
+    //     // await app.db.controllers.AuditLog.teamLog(
+    //     //     request.team.id,
+    //     //     request.session.User.id,
+    //     //     "user.added",
+    //     //     { user: userToRemove.username }
+    //     // )
+    //     reply.code(400).send({ error: 'POST /api/v1/teams/:teamId/members not implemented' })
+    // })
 
     /**
      * Remove member from group

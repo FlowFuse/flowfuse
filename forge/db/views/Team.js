@@ -4,13 +4,14 @@ module.exports = {
             const d = t.get({ plain: true })
             return {
                 id: d.Team.hashid,
-                slug: d.Team.slug,
-                links: d.Team.links,
                 name: d.Team.name,
-                role: d.role,
+                type: app.db.views.TeamType.teamTypeSummary(d.Team.TeamType),
+                slug: d.Team.slug,
                 avatar: d.Team.avatar,
+                role: d.role,
                 projectCount: d.projectCount,
-                memberCount: d.memberCount
+                memberCount: d.memberCount,
+                links: d.Team.links
             }
         })
     },
@@ -31,6 +32,7 @@ module.exports = {
             const filtered = {
                 id: result.hashid,
                 name: result.name,
+                type: app.db.views.TeamType.teamType(result.TeamType),
                 slug: result.slug,
                 avatar: result.avatar,
                 projectCount: result.projectCount,

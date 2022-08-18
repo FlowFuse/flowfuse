@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+// import posthog from 'posthog-js'
 
 import Home from '@/pages/Home.vue'
 import PageNotFound from '@/pages/PageNotFound'
@@ -45,6 +46,21 @@ const router = createRouter({
 
 // This callback runs before every route change, including on page load.
 router.beforeEach((to, from, next) => {
+    window.posthog?.capture(
+        '$pageleave',
+        {
+            to: to.fullPath,
+            $current_url: from.fullPath
+        }
+    )
+    window.posthog?.capture(
+        '$pageview',
+        {
+            from: from.fullPath,
+            $current_url: to.fullPath
+        }
+    )
+
     // This goes through the matched routes from last to first, finding the closest route with a title.
     // e.g., if we have `/some/deep/nested/route` and `/some`, `/deep`, and `/nested` have titles,
     // `/nested`'s will be chosen.

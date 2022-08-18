@@ -23,7 +23,7 @@
             </div>
             <label class="ff-error-inline">{{ errors.general }}</label>
             <div class="ff-actions">
-                <ff-button :disabled="!formValid" @click="registerUser()">Sign Up</ff-button>
+                <ff-button :disabled="!formValid" @click="registerUser()" data-action="sign-up">Sign Up</ff-button>
             </div>
         </div>
         <div v-else>
