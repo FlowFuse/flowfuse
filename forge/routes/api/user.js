@@ -93,5 +93,6 @@ module.exports = async function (app) {
      */
     app.put('/', async (request, reply) => {
         sharedUser.updateUser(app, request.session.User, request, reply)
+        return reply // fix errors in tests "Promise may not be fulfilled with 'undefined' when statusCode is not 204" https://github.com/fastify/help/issues/627
     })
 }
