@@ -9,11 +9,11 @@
         <template v-else-if="devices.length > 0">
             <template v-if="isProjectDeviceView">
                 <div class="flex space-x-8">
-                    <ff-button kind="primary" size="small" @click="showCreateDeviceDialog"><template v-slot:icon-left><PlusSmIcon /></template>Register Device</ff-button>
+                    <ff-button data-action="register-device" kind="primary" size="small" @click="showCreateDeviceDialog"><template v-slot:icon-left><PlusSmIcon /></template>Register Device</ff-button>
                     <ff-button kind="tertiary" size="small" to="./snapshots"><template v-slot:icon-left><ClockIcon/></template>Target Snapshot: {{project.deviceSettings.targetSnapshot || 'none'}}</ff-button>
                 </div>
             </template>
-            <ff-data-table :columns="columns" :rows="devices"
+            <ff-data-table data-el="devices" :columns="columns" :rows="devices"
                            :show-search="true" search-placeholder="Search Devices...">
                 <template v-slot:context-menu="{row}">
                     <ff-list-item label="Edit Details" @click="deviceAction('edit', row.id)"/>
@@ -26,7 +26,7 @@
         </template>
         <template v-else-if="addDeviceEnabled && !loading">
             <div class="flex justify-center mb-4 p-8">
-                <ff-button @click="showCreateDeviceDialog">
+                <ff-button data-action="register-device" @click="showCreateDeviceDialog">
                     <template v-slot:icon-right>
                         <PlusSmIcon />
                     </template>

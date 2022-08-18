@@ -28,8 +28,8 @@ describe('FlowForge - Project Snapshots', () => {
         // disabled primary button by default
         cy.get('.ff-dialog-box button.ff-btn.ff-btn--primary').should('be.disabled')
 
-        cy.get('[data-form="snapshot-name"] input[type="text').type('snapshot1')
-        // inserting snapshot name is enough ti enable button
+        cy.get('[data-form="snapshot-name"] input[type="text"]').type('snapshot1')
+        // inserting snapshot name is enough to enable button
         cy.get('.ff-dialog-box button.ff-btn.ff-btn--primary').should('not.be.disabled')
         cy.get('[data-form="snapshot-description"] textarea').type('snapshot1 description')
 

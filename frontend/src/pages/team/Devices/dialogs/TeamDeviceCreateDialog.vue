@@ -3,8 +3,8 @@
                :confirm-label="device ? 'Update' : 'Register'" @confirm="confirm()" :disable-primary="!formValid">
         <template v-slot:default>
             <form class="space-y-6 mt-2">
-                <FormRow v-model="input.name" :error="errors.name" :disabled="editDisabled">Name</FormRow>
-                <FormRow v-model="input.type" :error="errors.type" :disabled="editDisabled">Type</FormRow>
+                <FormRow data-form="device-name" v-model="input.name" :error="errors.name" :disabled="editDisabled">Name</FormRow>
+                <FormRow data-form="device-type" v-model="input.type" :error="errors.type" :disabled="editDisabled">Type</FormRow>
             </form>
         </template>
     </ff-dialog>
