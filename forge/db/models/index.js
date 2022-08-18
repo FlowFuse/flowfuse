@@ -45,6 +45,7 @@ const modelTypes = [
     'PlatformSettings',
     'Organization',
     'User',
+    'TeamType',
     'Team',
     'TeamMember',
     'Invitation',

@@ -13,6 +13,7 @@
 const modelTypes = [
     'User',
     'Team',
+    'TeamType',
     'Project',
     'Device',
     'Invitation',

@@ -13,9 +13,9 @@
         </div>
         <label class="ff-error-inline">{{ errors.general }}</label>
         <div class="ff-actions">
-            <ff-button @click="login()">Login</ff-button>
-            <ff-button v-if="settings['user:signup']" kind="tertiary" to="/account/create">Sign Up</ff-button>
-            <ff-button v-if="settings['user:reset-password']" kind="tertiary" :to="{'name': 'ForgotPassword'}">Forgot your password?</ff-button>
+            <ff-button @click="login()" data-action="login">Login</ff-button>
+            <ff-button v-if="settings['user:signup']" kind="tertiary" to="/account/create" data-action="sign-up">Sign Up</ff-button>
+            <ff-button v-if="settings['user:reset-password']" kind="tertiary" :to="{'name': 'ForgotPassword'}" data-action="forgot-password">Forgot your password?</ff-button>
         </div>
     </div>
 </template>

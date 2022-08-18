@@ -271,8 +271,11 @@ module.exports = async function (app) {
                     })
                 })
             }
+            newProjectSettings.header = { title: name }
             await project.updateSetting('settings', newProjectSettings)
         } else {
+            const newProjectSettings = { header: { title: name } }
+            await project.updateSetting('settings', newProjectSettings)
             await project.updateSetting('credentialSecret', generateCredentialSecret())
         }
 
@@ -599,7 +602,7 @@ module.exports = async function (app) {
 
             const result = await app.db.views.Project.project(request.project)
             result.meta = await app.containers.details(request.project) || { state: 'unknown' }
-            result.team = await app.db.views.Team.team(request.project.Team)
+            result.team = await app.db.views.Team.teamSummary(request.project.Team)
             reply.send(result)
         }
     })

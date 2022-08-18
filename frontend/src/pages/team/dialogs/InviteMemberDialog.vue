@@ -77,7 +77,11 @@ export default {
                     this.$emit('invitationSent')
                 }
             } catch (err) {
-                console.warn(err)
+                if (err.response?.data?.message) {
+                    alerts.emit(`Unable to invite users: ${err.response.data.message}`)
+                } else {
+                    console.log(err)
+                }
             }
         }
     },

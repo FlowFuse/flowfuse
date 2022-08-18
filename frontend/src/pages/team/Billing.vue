@@ -19,7 +19,7 @@
         <div v-else>
             Billing has not yet been configured for this team. Before proceeding further, you must continue to Stripe and complete this.
             <div class="mt-3">
-                <ff-button @click="setupBilling()">
+                <ff-button @click="setupBilling()" data-action="setup-payment-details">
                     <template v-slot:icon-right><ExternalLinkIcon /></template>
                     Setup Payment Details
                 </ff-button>
