@@ -13,7 +13,7 @@ It can be installed as a global npm module. This will ensure the agent
 command is on the path:
 
 ```
-npm install -g @flowforge/flowforge-device-agent
+sudo npm install -g @flowforge/flowforge-device-agent
 ```
 
 ### Configuration directory
@@ -57,7 +57,7 @@ with the `-d` option).
 The agent can then be started with the command:
 
 ```
-$ flowforge-device-agent
+flowforge-device-agent
 ```
 
 *Note:* This assume the agent was installed as a global npm module and your path
