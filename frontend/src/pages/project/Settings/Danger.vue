@@ -3,6 +3,7 @@
     <ff-loading v-if="loading.duplicating" message="Copying Project..." />
     <ff-loading v-if="loading.changingStack" message="Changing Stack..." />
     <ff-loading v-if="loading.settingType" message="Setting Type..." />
+    <ff-loading v-if="loading.suspend" message="Suspending Project..." />
     <form v-if="!isLoading" class="space-y-6">
         <template v-if="!project.projectType">
             <FormHeading>Set Project Type</FormHeading>
@@ -87,7 +88,6 @@
             </div>
             <div class="min-w-fit flex-shrink-0">
                 <ff-button kind="danger" @click="showConfirmSuspendDialog()">Suspend Project</ff-button>
-                <ConfirmProjectSuspendDialog @suspendProject="suspendProject" ref="confirmProjectSuspendDialog"/>
             </div>
         </div>
 
@@ -109,11 +109,11 @@
 <script>
 import projectApi from '@/api/project'
 
+import Dialog from '@/services/dialog'
 import alerts from '@/services/alerts'
 
 import FormHeading from '@/components/FormHeading'
 import ConfirmProjectDeleteDialog from './dialogs/ConfirmProjectDeleteDialog'
-import ConfirmProjectSuspendDialog from './dialogs/ConfirmProjectSuspendDialog'
 import ChangeStackDialog from './dialogs/ChangeStackDialog'
 import ChangeTypeDialog from './dialogs/ChangeTypeDialog'
 // import ExportProjectDialog from './dialogs/ExportProjectDialog'
@@ -146,7 +146,23 @@ export default {
             this.$refs.confirmProjectDeleteDialog.show(this.project)
         },
         showConfirmSuspendDialog () {
-            this.$refs.confirmProjectSuspendDialog.show(this.project)
+            Dialog.show({
+                header: 'Suspend Project',
+                text: 'Are you sure you want to suspend this project?',
+                confirmLabel: 'Suspend',
+                kind: 'danger'
+            }, () => {
+                this.loading.suspend = true
+                projectApi.suspendProject(this.project.id).then(() => {
+                    this.$router.push({ name: 'Home' })
+                    alerts.emit('Project successfully suspended.', 'confirmation')
+                }).catch(err => {
+                    console.warn(err)
+                    alerts.emit('Project failed to suspend.', 'warning')
+                }).finally(() => {
+                    this.loading.suspend = false
+                })
+            })
         },
         showChangeTypeDialog () {
             this.$refs.changeTypeDialog.show(this.project)
@@ -205,16 +221,7 @@ export default {
             })
         },
         suspendProject () {
-            this.loading.suspend = true
-            projectApi.suspendProject(this.project.id).then(() => {
-                this.$router.push({ name: 'Home' })
-                alerts.emit('Project successfully suspended.', 'confirmation')
-            }).catch(err => {
-                console.warn(err)
-                alerts.emit('Project failed to suspend.', 'warning')
-            }).finally(() => {
-                this.loading.suspend = false
-            })
+
         },
         changeType (selectedType) {
             if (!this.project.projectType && selectedType) {
@@ -248,7 +255,6 @@ export default {
     components: {
         FormHeading,
         ConfirmProjectDeleteDialog,
-        ConfirmProjectSuspendDialog,
         ChangeStackDialog,
         ChangeTypeDialog,
         // ExportProjectDialog,
