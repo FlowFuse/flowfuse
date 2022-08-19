@@ -2,8 +2,8 @@
     <ff-dialog ref="dialog" header="Create Snapshot" confirm-label="Create" :disable-primary="!formValid" @confirm="confirm()">
         <template v-slot:default>
             <form class="space-y-6 mt-2" @submit.prevent>
-                <FormRow v-model="input.name" :error="errors.name">Name</FormRow>
-                <FormRow>Description
+                <FormRow v-model="input.name" :error="errors.name" data-form="snapshot-name">Name</FormRow>
+                <FormRow data-form="snapshot-description">Description
                     <template #input>
                         <textarea v-model="input.description" rows="8" class="ff-input ff-text-input" style="height: auto"></textarea>
                     </template>

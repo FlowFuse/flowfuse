@@ -19,6 +19,7 @@ import FormRow from '@/components/FormRow'
 
 export default {
     name: 'ChangeStackDialog',
+    emits: ['confirm'],
     components: {
         FormRow
     },
@@ -33,7 +34,7 @@ export default {
     },
     methods: {
         confirm () {
-            this.$emit('changeStack', this.input.stack)
+            this.$emit('confirm', this.input.stack)
         }
     },
     setup () {

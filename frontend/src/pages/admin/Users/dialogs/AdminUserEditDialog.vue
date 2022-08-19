@@ -5,7 +5,17 @@
                 <FormRow v-model="input.username" :error="errors.username">Username</FormRow>
                 <FormRow v-model="input.name" :placeholder="input.username">Name</FormRow>
                 <FormRow v-model="input.email" :error="errors.email">Email</FormRow>
-                <FormRow id="admin" :disabled="adminLocked" v-model="input.admin" type="checkbox">Administrator
+                <FormRow id="email_verified" wrapperClass="flex justify-between items-center" :disabled="email_verifiedLocked" v-model="input.email_verified" type="checkbox">Verified
+                    <template v-slot:append>
+                        <ff-button v-if="email_verifiedLocked" kind="danger" size="small" @click="unlockEmailVerify()">
+                            Unlock
+                            <template v-slot:icon>
+                                <LockClosedIcon />
+                            </template>
+                        </ff-button>
+                    </template>
+                </FormRow>
+                <FormRow id="admin" wrapperClass="flex justify-between items-center" :disabled="adminLocked" v-model="input.admin" type="checkbox">Administrator
                     <template v-slot:append>
                         <ff-button v-if="adminLocked" kind="danger" size="small" @click="unlockAdmin()">
                             Unlock
@@ -16,36 +26,32 @@
                     </template>
                 </FormRow>
                 <FormHeading class="text-red-700">Danger Zone</FormHeading>
-                <div class="flex items-center space-x-2">
-                    <FormRow :error="errors.expirePassword">
-                        <template #input>
-                            <div class="flex items-center space-x-2">
-                                <ff-button :disabled="expirePassLocked"  :kind="expirePassLocked?'secondary':'danger'" @click="expirePassword">Expire password</ff-button>
-                                <ff-button v-if="expirePassLocked" kind="danger" size="small" @click="unlockExpirePassword()">
-                                    Unlock
-                                    <template v-slot:icon>
-                                        <LockClosedIcon />
-                                    </template>
-                                </ff-button>
-                            </div>
-                        </template>
-                    </FormRow>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <FormRow :error="errors.deleteUser">
-                        <template #input>
-                            <div class="flex items-center space-x-2">
-                                <ff-button :disabled="deleteLocked" :kind="deleteLocked?'secondary':'danger'" @click="deleteUser">Delete user</ff-button>
-                                <ff-button v-if="deleteLocked" kind="danger" size="small" @click="unlockDelete()">
-                                    Unlock
-                                    <template v-slot:icon>
-                                        <LockClosedIcon />
-                                    </template>
-                                </ff-button>
-                            </div>
-                        </template>
-                    </FormRow>
-                </div>
+                <FormRow :error="errors.expirePassword" wrapperClass="block">
+                    <template #input>
+                        <div class="flex justify-between items-center">
+                            <ff-button :disabled="expirePassLocked"  :kind="expirePassLocked?'secondary':'danger'" @click="expirePassword">Expire password</ff-button>
+                            <ff-button v-if="expirePassLocked" kind="danger" size="small" @click="unlockExpirePassword()">
+                                Unlock
+                                <template v-slot:icon>
+                                    <LockClosedIcon />
+                                </template>
+                            </ff-button>
+                        </div>
+                    </template>
+                </FormRow>
+                <FormRow :error="errors.deleteUser" wrapperClass="block">
+                    <template #input>
+                        <div class="flex justify-between items-center">
+                            <ff-button :disabled="deleteLocked" :kind="deleteLocked?'secondary':'danger'" @click="deleteUser">Delete user</ff-button>
+                            <ff-button v-if="deleteLocked" kind="danger" size="small" @click="unlockDelete()">
+                                Unlock
+                                <template v-slot:icon>
+                                    <LockClosedIcon />
+                                </template>
+                            </ff-button>
+                        </div>
+                    </template>
+                </FormRow>
             </form>
         </template>
     </ff-dialog>
@@ -72,6 +78,7 @@ export default {
             errors: {},
             user: null,
             adminLocked: true,
+            email_verifiedLocked: false,
             deleteLocked: true,
             expirePassLocked: true
         }
@@ -99,6 +106,9 @@ export default {
         }
     },
     methods: {
+        unlockEmailVerify () {
+            this.email_verifiedLocked = false
+        },
         unlockAdmin () {
             this.adminLocked = false
         },
@@ -126,6 +136,10 @@ export default {
                 }
                 if (this.input.admin !== this.user.admin) {
                     opts.admin = this.input.admin
+                    changed = true
+                }
+                if (this.input.email_verified !== this.user.email_verified) {
+                    opts.email_verified = this.input.email_verified
                     changed = true
                 }
 
@@ -175,6 +189,8 @@ export default {
                 this.input.name = user.name
                 this.input.email = user.email
                 this.input.admin = user.admin
+                this.input.email_verified = user.email_verified
+                this.email_verifiedLocked = true
                 this.adminLocked = true
                 this.deleteLocked = true
                 this.expirePassLocked = true

@@ -168,6 +168,48 @@ If you are developing locally and need to enable external email sending, you can
  - Alternatively, set the `email.debug` option to `true` in your configuration file
    and the app will print all emails to its log.
 
+### Configuring billing
+
+If you need to develop features covered by the Billing EE feature, you will need
+to configure the platform with a set of valid Stripe API keys and an EE license.
+
+The *development-only* EE licence is provided in `forgeforge/forge/licensing/index.js`. This
+licence is not valid for production usage.
+
+For FlowForge Inc. employees the configuration is provided in 1Password as 'Stripe Testing Configuration'.
+
+```
+license: ***
+
+billing:
+  stripe:
+    key: ***
+    wh_secret: ***
+    team_price: ***
+    team_product: ***
+    project_price: ***
+    project_product: ***
+    teams:
+      starter:
+        price: ***
+        product: ***
+        userCost: 0
+```
+
+You will also need to install the [Stripe CLI](https://stripe.com/docs/cli/) in order
+to handle webhook callbacks properly. Install the CLI following their documentation, then
+run the following command, with the API key using the value of `billing.stripe.key` from
+above.
+
+```
+stripe listen --forward-to localhost:3000/ee/billing/callback --api-key ***
+```
+
+Note that due to the way Stripe works, you will receive events for *all* activity
+in the configured Stripe account. That means if someone else is actively developing
+with billing enabled on the same account, you will see their events arrive.
+
+
 ### Testing
 
 Our testing philosophy follows the principle of:

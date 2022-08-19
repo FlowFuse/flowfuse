@@ -2,7 +2,7 @@
     <form class="space-y-6">
         <FormHeading>Project Types
             <template v-slot:tools>
-                <ff-button size="small" @click="showCreateProjectTypeDialog">
+                <ff-button size="small" @click="showCreateProjectTypeDialog" data-action="create-type">
                     <template v-slot:icon-right>
                         <PlusSmIcon />
                     </template>
@@ -10,7 +10,7 @@
                 </ff-button>
             </template>
         </FormHeading>
-        <ff-tile-selection>
+        <ff-tile-selection data-el="active-types">
             <ff-tile-selection-option v-for="(projType, index) in activeProjectTypes" :key="index"
                                       :editable="true" @edit="showEditProjectTypeDialog(projType)" :price="projType.properties?.billingDescription?.split('/')[0]"
                                       :price-interval="projType.properties?.billingDescription?.split('/')[1]"
@@ -21,7 +21,7 @@
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
         </div>
         <FormHeading>Inactive Types</FormHeading>
-        <ff-data-table :columns="columns" :rows="inactiveProjectTypes">
+        <ff-data-table :columns="columns" :rows="inactiveProjectTypes" data-el="inactive-types">
             <template v-slot:context-menu="{row}">
                 <ff-list-item label="Edit Project Type" @click="projectTypeAction('edit', row.id)"/>
                 <ff-list-item label="Delete Project Type" kind="danger" @click="projectTypeAction('delete', row.id)"/>
@@ -33,7 +33,6 @@
     </form>
     <ProjectTypeEditDialog ref="adminProjectTypeEditDialog" @projectTypeCreated="projectTypeCreated"
                            @projectTypeUpdated="projectTypeUpdated" @showDeleteDialog="showConfirmProjectTypeDeleteDialog"/>
-    <ProjectTypeDeleteDialog ref="adminProjectTypeDeleteDialog" @deleteProjectType="deleteProjectType" />
 </template>
 
 <script>
@@ -41,8 +40,10 @@ import projectTypesApi from '@/api/projectTypes'
 import FormHeading from '@/components/FormHeading'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
+
+import Dialog from '@/services/dialog'
+
 import ProjectTypeEditDialog from './dialogs/ProjectTypeEditDialog'
-import ProjectTypeDeleteDialog from './dialogs/ProjectTypeDeleteDialog'
 import ProjectTypeDescriptionCell from './components/ProjectTypeDescriptionCell'
 import { PlusSmIcon } from '@heroicons/vue/outline'
 
@@ -87,9 +88,10 @@ export default {
             case 'edit':
                 this.showEditProjectTypeDialog(projectType)
                 break
-            case 'delete':
+            case 'delete': {
                 this.showConfirmProjectTypeDeleteDialog(projectType)
                 break
+            }
             }
         },
         showCreateProjectTypeDialog () {
@@ -99,13 +101,19 @@ export default {
             this.$refs.adminProjectTypeEditDialog.show(projectType)
         },
         showConfirmProjectTypeDeleteDialog (projectType) {
-            this.$refs.adminProjectTypeDeleteDialog.show(projectType)
-        },
-        async deleteProjectType (projectType) {
-            console.log(projectType)
-            await projectTypesApi.deleteProjectType(projectType.id)
-            const index = this.projectTypes.findIndex(pt => pt.id === projectType.id)
-            this.projectTypes.splice(index, 1)
+            const text = projectType.projectCount > 0 ? 'You cannot delete a project type that is still being used by projects.' : 'Are you sure you want to delete this project type?'
+            Dialog.show({
+                header: 'Delete Project Type',
+                kind: 'danger',
+                text: text,
+                confirmLabel: 'Delete',
+                disablePrimary: projectType.projectCount > 0
+            }, async () => {
+                // on confirm - delete the project type
+                await projectTypesApi.deleteProjectType(projectType.id)
+                const index = this.projectTypes.findIndex(pt => pt.id === projectType.id)
+                this.projectTypes.splice(index, 1)
+            })
         },
         async projectTypeCreated (projectType) {
             this.projectTypes.push(projectType)
@@ -145,8 +153,7 @@ export default {
     components: {
         FormHeading,
         PlusSmIcon,
-        ProjectTypeEditDialog,
-        ProjectTypeDeleteDialog
+        ProjectTypeEditDialog
     }
 }
 </script>

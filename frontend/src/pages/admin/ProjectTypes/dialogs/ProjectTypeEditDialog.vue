@@ -2,13 +2,13 @@
     <ff-dialog ref="dialog" :header="dialogTitle">
         <template v-slot:default>
             <form class="space-y-6 mt-2" @submit.prevent>
-                <FormRow v-model="input.name" :error="errors.name">Name</FormRow>
-                <FormRow v-model="input.active" type="checkbox">Active</FormRow>
-                <FormRow v-model="input.description" :error="errors.description">Description
+                <FormRow v-model="input.name" :error="errors.name" data-form="name">Name</FormRow>
+                <FormRow v-model="input.active" type="checkbox" data-form="active">Active</FormRow>
+                <FormRow v-model="input.description" :error="errors.description" data-form="description">Description
                     <template #description>Use markdown for formatting</template>
                     <template #input><textarea class="w-full" rows="6" v-model="input.description"></textarea></template>
                 </FormRow>
-                <FormRow :options="stacks" v-model="input.defaultStack" :disabled="stacks.length === 0" id="stack">
+                <FormRow :options="stacks" v-model="input.defaultStack" :disabled="stacks.length === 0" id="stack" data-form="stack">
                     Default Stack
                     <template #description><div v-if="stacks.length === 0">There no stacks defined for this Project Type yet.</div></template>
                 </FormRow>

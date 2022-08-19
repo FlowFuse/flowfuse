@@ -68,7 +68,7 @@ export default {
             return [
                 { name: 'Start', action: async () => { await projectApi.startProject(this.project.id) } },
                 { name: 'Restart', action: async () => { await projectApi.restartProject(this.project.id) } },
-                { name: 'Stop', action: async () => { await projectApi.stopProject(this.project.id) } }
+                { name: 'Suspend', action: () => { this.$router.push({ path: `/project/${this.project.id}/settings/danger` }) } }
             ]
         },
         editorAvailable: function () {

@@ -11,7 +11,8 @@
             </template>
         </FormHeading>
         <ff-loading v-if="loading" message="Loading Templates..." />
-        <ff-data-table v-if="!loading" :columns="columns" :rows="templates" :show-search="true" search-placeholder="Search Templates..."
+        <ff-data-table v-if="!loading" :columns="columns" data-el="templates"
+                       :rows="templates" :show-search="true" search-placeholder="Search Templates..."
                        :search-fields="['name',, 'description', 'owner_username', 'owner_id']">
             <template v-slot:context-menu="{row}">
                 <ff-list-item label="Edit Template" @click="editTemplate(row)"/>
@@ -22,20 +23,18 @@
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
         </div>
     </form>
-    <AdminTemplateDeleteDialog @deleteTemplate="deleteTemplate"  ref="adminTemplateDeleteDialog"/>
-
 </template>
 
 <script>
 import templatesApi from '@/api/templates'
+
+import Dialog from '@/services/dialog'
 
 import FormHeading from '@/components/FormHeading'
 
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 import UserCell from '@/components/tables/cells/UserCell'
-
-import AdminTemplateDeleteDialog from './dialogs/AdminTemplateDeleteDialog'
 
 import { PlusSmIcon } from '@heroicons/vue/outline'
 
@@ -97,20 +96,22 @@ export default {
             })
         },
         showDeleteDialog (template) {
-            this.showConfirmTemplateDeleteDialog(template)
-        },
-        showConfirmTemplateDeleteDialog (stack) {
-            this.$refs.adminTemplateDeleteDialog.show(stack)
-        },
-        async deleteTemplate (template) {
-            await templatesApi.deleteTemplate(template.id)
-            const index = this.templates.indexOf(template)
-            this.templates.splice(index, 1)
+            const text = template.projectCount > 0 ? 'You cannot delete a template that is still being used by projects.' : 'Are you sure you want to delete this template?'
+            Dialog.show({
+                header: 'Delete Template',
+                kind: 'danger',
+                text: text,
+                confirmLabel: 'Delete',
+                disablePrimary: template.projectCount > 0
+            }, async () => {
+                await templatesApi.deleteTemplate(template.id)
+                const index = this.templates.indexOf(template)
+                this.templates.splice(index, 1)
+            })
         }
     },
     components: {
         FormHeading,
-        AdminTemplateDeleteDialog,
         PlusSmIcon
     }
 }
