@@ -134,6 +134,7 @@
                         <h5>Example 2: Sortable Columns</h5>
                         <ff-data-table :columns="data.table1.columns" :rows="data.table1.rows"></ff-data-table>
                         <code style="margin-top: 24px;">{{ groups['data-table'].components[0].examples[1].code }}</code>
+                        <code style="margin-top: 24px;">rows = {{ pretty(data.table1.rows) }}</code>
                     </div>
                     <div class="example">
                         <h5>Example 3: Context Menu</h5>
@@ -649,6 +650,10 @@ export default {
                         colB: 17,
                         colC: 12.3,
                         colD: false
+                    }, {
+                        colA: 'This is Row 3, Column A',
+                        colB: 12,
+                        colC: 2.8
                     }]
                 },
                 table2: {
