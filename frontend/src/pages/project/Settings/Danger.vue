@@ -3,6 +3,7 @@
     <ff-loading v-if="loading.duplicating" message="Copying Project..." />
     <ff-loading v-if="loading.changingStack" message="Changing Stack..." />
     <ff-loading v-if="loading.settingType" message="Setting Type..." />
+    <ff-loading v-if="loading.suspend" message="Suspending Project..." />
     <form v-if="!isLoading" class="space-y-6">
         <template v-if="!project.projectType">
             <FormHeading>Set Project Type</FormHeading>
@@ -78,6 +79,21 @@
             </div>
         </div>
 
+        <FormHeading class="text-red-700">Suspend Project</FormHeading>
+        <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
+            <div class="flex-grow">
+                <div class="max-w-sm pt-2" v-if="project?.meta?.state === 'suspended'">
+                    Your project is already suspended. To restart the project, select "Start" from the Project actions.
+                </div>
+                <div class="max-w-sm pt-2" v-else>
+                    Once suspended, your project will not be available until restarted. Whilst suspended, the project will consume no <span v-if="features.billing">billable</span> resources.
+                </div>
+            </div>
+            <div class="min-w-fit flex-shrink-0">
+                <ff-button kind="danger" :disabled="project?.meta?.state === 'suspended'" @click="showConfirmSuspendDialog()">Suspend Project</ff-button>
+            </div>
+        </div>
+
         <FormHeading class="text-red-700">Delete Project</FormHeading>
         <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
             <div class="flex-grow">
@@ -96,6 +112,7 @@
 <script>
 import projectApi from '@/api/project'
 
+import Dialog from '@/services/dialog'
 import alerts from '@/services/alerts'
 
 import FormHeading from '@/components/FormHeading'
@@ -111,9 +128,9 @@ export default {
     props: ['project'],
     emits: ['projectUpdated'],
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState('account', ['team', 'features']),
         isLoading: function () {
-            return this.loading.deleting || this.loading.changingStack || this.loading.duplicating || this.loading.settingType
+            return this.loading.deleting || this.loading.suspend || this.loading.changingStack || this.loading.duplicating || this.loading.settingType
         }
     },
     data () {
@@ -122,13 +139,33 @@ export default {
                 settingType: false,
                 deleting: false,
                 changingStack: false,
-                duplicating: false
+                duplicating: false,
+                suspend: false
             }
         }
     },
     methods: {
         showConfirmDeleteDialog () {
             this.$refs.confirmProjectDeleteDialog.show(this.project)
+        },
+        showConfirmSuspendDialog () {
+            Dialog.show({
+                header: 'Suspend Project',
+                text: 'Are you sure you want to suspend this project?',
+                confirmLabel: 'Suspend',
+                kind: 'danger'
+            }, () => {
+                this.loading.suspend = true
+                projectApi.suspendProject(this.project.id).then(() => {
+                    this.$router.push({ name: 'Home' })
+                    alerts.emit('Project successfully suspended.', 'confirmation')
+                }).catch(err => {
+                    console.warn(err)
+                    alerts.emit('Project failed to suspend.', 'warning')
+                }).finally(() => {
+                    this.loading.suspend = false
+                })
+            })
         },
         showChangeTypeDialog () {
             this.$refs.changeTypeDialog.show(this.project)
