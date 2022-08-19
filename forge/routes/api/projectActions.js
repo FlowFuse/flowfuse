@@ -96,7 +96,7 @@ module.exports = async function (app) {
                 return
             }
             app.db.controllers.Project.setInflightState(request.project, 'suspending')
-            await app.containers.stop(request.project)
+            await app.containers.stop(request.project, true) // roundupBilling set to true when user suspends project
             app.db.controllers.Project.clearInflightState(request.project)
             await app.db.controllers.AuditLog.projectLog(
                 request.project.id,
