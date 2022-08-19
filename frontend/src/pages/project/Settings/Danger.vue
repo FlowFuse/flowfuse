@@ -223,9 +223,6 @@ export default {
                 this.loading.deleting = false
             })
         },
-        suspendProject () {
-
-        },
         changeType (selectedType) {
             if (!this.project.projectType && selectedType) {
                 this.loading.settingType = true
