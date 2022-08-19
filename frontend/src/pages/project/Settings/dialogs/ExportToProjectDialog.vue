@@ -31,6 +31,7 @@ import ExportProjectComponents from '../../components/ExportProjectComponents'
 
 export default {
     name: 'DuplicateProjectDialog',
+    emits: ['confirm'],
     components: {
         FormRow,
         ExportProjectComponents
@@ -70,7 +71,7 @@ export default {
                         options: { ...this.parts }
                     }
                 }
-                this.$emit('exportToProject', settings)
+                this.$emit('confirm', settings)
             }
         }
     },

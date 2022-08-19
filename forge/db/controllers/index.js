@@ -15,6 +15,7 @@ const modelTypes = [
     'AuthClient',
     'AccessToken',
     'Team',
+    'TeamType',
     'Invitation',
     'AuditLog',
     'Project',

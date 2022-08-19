@@ -32,7 +32,10 @@ module.exports = async function (settings = {}, config = {}) {
     const userBob = await forge.db.models.User.create({ admin: false, username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
     // no admin rights
     const userCharlie = await forge.db.models.User.create({ admin: false, username: 'charlie', name: 'Charlie Palpatine', email: 'charlie@example.com', email_verified: true, password: 'ccPassword' })
-    const team1 = await forge.db.models.Team.create({ name: 'ATeam' })
+
+    const defaultTeamType = await forge.db.models.TeamType.findOne()
+
+    const team1 = await forge.db.models.Team.create({ name: 'ATeam', TeamTypeId: defaultTeamType.id })
     await team1.addUser(userAlice, { through: { role: Roles.Owner } })
     await team1.addUser(userBob, { through: { role: Roles.Owner } })
     await team1.addUser(userCharlie, { through: { role: Roles.Member } })
@@ -51,12 +54,21 @@ module.exports = async function (settings = {}, config = {}) {
     const template = await forge.db.models.ProjectTemplate.create(templateProperties)
     template.setOwner(userAlice)
     await template.save()
+    const projectTypeProperties = {
+        name: 'type1',
+        description: 'project type description',
+        active: true,
+        order: 1,
+        properties: {}
+    }
+    const projectType = await forge.db.models.ProjectType.create(projectTypeProperties)
     const stackProperties = {
         name: 'stack1',
         active: true,
         properties: { nodered: '2.2.2' }
     }
     const stack = await forge.db.models.ProjectStack.create(stackProperties)
+    await stack.setProjectType(projectType)
     const project1 = await forge.db.models.Project.create({ name: 'project1', type: '', url: '' })
     await team1.addProject(project1)
     await project1.setProjectStack(stack)

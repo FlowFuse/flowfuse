@@ -12,10 +12,10 @@
         <template v-slot:default>
             <ul>
                 <ff-dropdown-option>
-                    <nav-item v-for="t in teams" :key="t.id" :label="t.name" :avatar="t?.avatar" @click="selectTeam(t)"></nav-item>
+                    <nav-item v-for="t in teams" :key="t.id" :label="t.name" :avatar="t?.avatar" @click="selectTeam(t)" data-action="switch-team"></nav-item>
                 </ff-dropdown-option>
                 <ff-dropdown-option>
-                    <nav-item label="Create New Team" :icon="plusIcon" @click="createTeam(t);"> </nav-item>
+                    <nav-item label="Create New Team" :icon="plusIcon" @click="createTeam(t);" data-action="create-team"> </nav-item>
                 </ff-dropdown-option>
             </ul>
         </template>

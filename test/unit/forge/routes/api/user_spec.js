@@ -23,10 +23,11 @@ describe('User API', async function () {
         TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword', admin: true })
         TestObjects.chris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', password: 'ccPassword' })
         TestObjects.dave = await app.db.models.User.create({ username: 'dave', name: 'Dave Vader', email: 'dave@example.com', password: 'ddPassword', email_verified: true, password_expired: true })
+        TestObjects.elvis = await app.db.models.User.create({ username: 'elvis', name: 'Elvis Dooku', email: 'elvis@example.com', email_verified: true, password: 'eePassword' })
 
         // ATeam create in setup()
         TestObjects.ATeam = await app.db.models.Team.byName('ATeam')
-        TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam' })
+        TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: app.defaultTeamType.id })
 
         // Alice set as ATeam owner in setup()
         await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
@@ -80,6 +81,42 @@ describe('User API', async function () {
             result.should.have.property('username', TestObjects.alice.username)
             result.should.have.property('email', TestObjects.alice.email)
         })
+        it('member user can modify non admin settings (name, email, username)', async function () {
+            await login('elvis', 'eePassword')
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.elvis },
+                payload: {
+                    name: 'afkae presley', // user setting
+                    email: 'afkae@example.com', // user setting
+                    username: 'afkae' // user setting
+                }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.not.have.property('error')
+            result.should.have.property('name', 'afkae presley')
+            result.should.have.property('email', 'afkae@example.com')
+            result.should.have.property('username', 'afkae')
+        })
+        it('member user cannot modify admin settings (email_verified, admin)', async function () {
+            await login('elvis', 'eePassword')
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.elvis },
+                payload: {
+                    email_verified: false, // admin only setting
+                    admin: true // admin only setting
+                }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.not.have.property('error')
+            result.should.have.property('email_verified', true) // unchanged
+            result.should.have.property('admin', false) // unchanged
+        })
         describe('Unverified Email', async function () {
             it('return user info for unverified_email user', async function () {
                 await login('chris', 'ccPassword')
@@ -112,6 +149,24 @@ describe('User API', async function () {
                     cookies: { sid: TestObjects.tokens.chris }
                 })
                 response2.statusCode.should.equal(401)
+            })
+        })
+        describe('Verify Email', async function () {
+            // PUT /api/v1/user
+            it('user cannot manually verify own email', async function () {
+                await login('chris', 'ccPassword')
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/user',
+                    cookies: { sid: TestObjects.tokens.chris },
+                    payload: {
+                        email_verified: true,
+                        password: 'ccPassword'
+                    }
+                })
+                response.statusCode.should.equal(401)
+                const result = response.json()
+                result.should.have.property('error')
             })
         })
         describe('Password Expired', async function () {
