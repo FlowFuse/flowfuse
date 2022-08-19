@@ -82,12 +82,15 @@
         <FormHeading class="text-red-700">Suspend Project</FormHeading>
         <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
             <div class="flex-grow">
-                <div class="max-w-sm pt-2">
+                <div class="max-w-sm pt-2" v-if="project?.meta?.state === 'suspended'">
+                    Your project is already suspended. To restart the project, select "Start" from the Project actions.
+                </div>
+                <div class="max-w-sm pt-2" v-else>
                     Once suspended, your project will not be available until restarted. Whilst suspended, the project will consume no <span v-if="features.billing">billable</span> resources.
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="danger" @click="showConfirmSuspendDialog()">Suspend Project</ff-button>
+                <ff-button kind="danger" :disabled="project?.meta?.state === 'suspended'" @click="showConfirmSuspendDialog()">Suspend Project</ff-button>
             </div>
         </div>
 
