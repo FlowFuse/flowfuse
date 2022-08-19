@@ -91,7 +91,7 @@ module.exports = {
      * @returns {Promise} Resolves when the project has been stopped
      */
 
-    stop: async (project, roundupBilling=false) => {
+    stop: async (project, roundupBilling = false) => {
         if (project.state === 'suspended') {
             // Already in the right state, nothing to do
             return

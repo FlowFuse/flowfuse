@@ -39,17 +39,16 @@ module.exports.init = async function (app) {
     }
 
     function timeTomorrow (ts) {
-        const d = new Date(ts*1000)
+        const d = new Date(ts * 1000)
         const today = new Date()
         const tmw = new Date(today)
         tmw.setDate(tmw.getDate() + 1)
         d.setDate(tmw.getDate())
         d.setMonth(tmw.getMonth())
         d.setFullYear(tmw.getFullYear())
-        return d.getTime()/1000
+        return d.getTime() / 1000
     }
-    
-    
+
     return {
         createSubscriptionSession: async (team) => {
             const billingIds = getBillingIdsForTeam(team)
@@ -83,7 +82,7 @@ module.exports.init = async function (app) {
             app.log.info(`Creating Subscription for team ${team.hashid}`)
             return session
         },
-        addProject: async (team, project, roundupBilling=false) => {
+        addProject: async (team, project, roundupBilling = false) => {
             let projectProduct = app.config.billing.stripe.project_product
             let projectPrice = app.config.billing.stripe.project_price
             const projectType = await project.getProjectType()
@@ -119,7 +118,7 @@ module.exports.init = async function (app) {
                     quantity: projectItem.quantity + 1,
                     proration_behavior: 'always_invoice'
                 }
-                if (roundupBilling){
+                if (roundupBilling) {
                     update.proration_date = timeTomorrow(projectItem.created)
                 }
                 // TODO update meta data?
