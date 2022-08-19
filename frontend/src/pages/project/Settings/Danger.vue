@@ -16,7 +16,7 @@
                 </div>
                 <div class="min-w-fit flex-shrink-0">
                     <ff-button kind="secondary" @click="showChangeTypeDialog()">Set Project Type</ff-button>
-                    <ChangeTypeDialog @changeType="changeType" ref="changeTypeDialog"/>
+                    <ChangeTypeDialog @confirm="changeType" ref="changeTypeDialog"/>
                 </div>
             </div>
         </template>
@@ -40,7 +40,7 @@
             </div>
             <div class="min-w-fit flex-shrink-0">
                 <ff-button :disabled="!project.projectType" kind="secondary" @click="showChangeStackDialog()">Change Stack</ff-button>
-                <ChangeStackDialog @changeStack="changeStack" ref="changeStackDialog"/>
+                <ChangeStackDialog @confirm="changeStack" ref="changeStackDialog"/>
             </div>
         </div>
 
@@ -49,7 +49,7 @@
         <!-- <div>
             <div>
                 <ff-button kind="secondary" @click="showExportProjectDialog()">Export Project</ff-button>
-                <ExportProjectDialog @exportProject="exportProject" ref="exportProjectDialog"/>
+                <ExportProjectDialog @confirm="exportProject" ref="exportProjectDialog"/>
             </div>
             <div class="max-w-sm pt-2">Allows you to export a snapshot of the
                 project's current state.</div>
@@ -74,7 +74,7 @@
             </div>
             <div class="min-w-fit flex-shrink-0">
                 <ff-button kind="secondary" @click="showExportToProjectDialog()">Export to existing project</ff-button>
-                <ExportToProjectDialog @exportToProject="exportToProject" ref="exportToProjectDialog"/>
+                <ExportToProjectDialog @confirm="exportToProject" ref="exportToProjectDialog"/>
             </div>
         </div>
 
@@ -86,8 +86,8 @@
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="danger" @click="showConfirmDeleteDialog()">Delete Project</ff-button>
-                <ConfirmProjectDeleteDialog @deleteProject="deleteProject" ref="confirmProjectDeleteDialog"/>
+                <ff-button data-action="delete-project" kind="danger" @click="showConfirmDeleteDialog()">Delete Project</ff-button>
+                <ConfirmProjectDeleteDialog @confirm="deleteProject" ref="confirmProjectDeleteDialog"/>
             </div>
         </div>
     </form>

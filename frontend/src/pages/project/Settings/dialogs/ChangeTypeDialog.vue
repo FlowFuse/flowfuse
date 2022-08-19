@@ -28,6 +28,7 @@ import ProjectTypeSummary from '../../../team/components/ProjectTypeSummary'
 
 export default {
     name: 'ChangeTypeDialog',
+    emits: ['confirm'],
     components: {
         ProjectTypeSummary
     },
@@ -43,7 +44,7 @@ export default {
     methods: {
         confirm () {
             if (this.formValid) {
-                this.$emit('changeType', this.input.projectType)
+                this.$emit('confirm', this.input.projectType)
             }
         }
     },
