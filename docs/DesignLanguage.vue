@@ -649,6 +649,10 @@ export default {
                         colB: 17,
                         colC: 12.3,
                         colD: false
+                    }, {
+                        colA: 'This is Row 3, Column A',
+                        colB: 12,
+                        colC: 2.8
                     }]
                 },
                 table2: {
