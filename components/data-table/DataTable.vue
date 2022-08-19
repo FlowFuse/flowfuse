@@ -138,18 +138,21 @@ export default {
             const rows = this.filterRows([...this.rows])
             if (this.sort.key) {
                 return rows.sort((a, b) => {
+                    // catch the undefined use case, by making undefined = 0
+                    const aValue = a[this.sort.key] || 0
+                    const bValue = b[this.sort.key] || 0
                     if (this.sort.order === 'asc') {
-                        if (a[this.sort.key] < b[this.sort.key]) {
+                        if (aValue < bValue) {
                             return 1
-                        } else if (a[this.sort.key] > b[this.sort.key]) {
+                        } else if (aValue > bValue) {
                             return -1
                         } else {
                             return 0
                         }
                     } else {
-                        if (a[this.sort.key] < b[this.sort.key]) {
+                        if (aValue < bValue) {
                             return -1
-                        } else if (a[this.sort.key] > b[this.sort.key]) {
+                        } else if (aValue > bValue) {
                             return 1
                         } else {
                             return 0
