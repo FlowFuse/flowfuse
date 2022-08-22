@@ -131,14 +131,14 @@ module.exports = {
      * @param {*} project The project to remove
      * @returns {Promise} Resolves when the project has been stopped
      */
-    remove: async (project) => {
+    remove: async (project, roundupBilling) => {
         if (project.state !== 'suspended') {
             // Only updated billing if the project isn't already suspended
             if (this._app.license.active() && this._app.billing) {
                 const subscription = this._app.db.models.Subscription.byTeam(project.Team.id)
                 if (subscription) {
                     try {
-                        await this._app.billing.removeProject(project.Team, project)
+                        await this._app.billing.removeProject(project.Team, project, roundupBilling)
                     } catch (err) {
                         // Rethrow or wrap?
                         throw new Error('Problem with removing project from subscription')
