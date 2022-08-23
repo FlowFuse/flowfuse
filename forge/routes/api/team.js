@@ -183,7 +183,6 @@ module.exports = async function (app) {
                 type: teamType
             }, request.session.User)
 
-
             const teamView = app.db.views.Team.team(team)
 
             if (app.license.active() && app.billing) {
