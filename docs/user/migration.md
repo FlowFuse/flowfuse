@@ -52,7 +52,7 @@ It is not possible to get credential details from the Node-RED editor once they 
 
 There are 2 options available:
 
-Firstly you can walk through your flows manually  and check any credential fields, then make sure you have access to the information in another source.
+Firstly you can walk through your flows manually and check any credential fields, then make sure you have access to the credentials in another source.
 
 Follow the instructions at <https://www.hardill.me.uk/wordpress/2021/02/17/viewing-node-red-credentials/> if you have access to the command line for the node-red install.
 
