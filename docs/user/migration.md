@@ -48,7 +48,7 @@ Ensure that you have **_ all flows _** selected in the modal and then click the
 
 ### Credentials.
 
-It is not possible to get credential details from the Node-RED editor once they have been entered
+It is not possible to get credential details from the Node-RED editor once they have been entered.
 
 There are 2 options available:
 
