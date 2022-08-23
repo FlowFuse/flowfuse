@@ -52,25 +52,26 @@ describe the different Roles apply for all projects in the team
 | • Activity                           | ✓     | ✓      |
 | • Snapshots...                       |       |        |
 | &emsp; • View Snapshots                 | ✓     | ✓      |
-| &emsp; • Create Snapshot                | ✓     | -      |
-| &emsp; • Rollback                       | ✓     | -      |
+| &emsp; • Create Snapshot                | ✓     | ✓      |
+| &emsp; • Rollback                       | ✓     | ✓      |
 | &emsp; • Set as Device Target           | ✓     | ✓      |
 | &emsp; • Delete Snapshot                | ✓     | -      |
 | • Devices...                         |       |        |
 | &emsp; • View Devices                   | ✓     | ✓      |
 | &emsp; • Register Device                | ✓     | -      |
-| &emsp; • Device Row Menu                | ✓     | -      |
+| &emsp; • Device Row Menu                | ✓     | ✓      |
+| &emsp; • Device Row Menu > delete device | ✓     | -      |
 | &emsp; • Device Overview                | ✓     | ✓      |
 | &emsp; • Device Settings...             | ✓     |        |
 | &emsp;&emsp; • Edit Device                | ✓     | ✓      |
 | &emsp;&emsp; • View Environment Variables | ✓     | ✓      |
-| &emsp;&emsp; • Edit Environment Variables | ✓     | -      |
+| &emsp;&emsp; • Edit Environment Variables | ✓     | ✓      |
 | &emsp;&emsp; • Delete Device              | ✓     | -      |
 | • Logs                               | ✓     | ✓      |
 | • Settings...                        | -     | -      |
 | &emsp; • View General                   | ✓     | ✓      |
 | &emsp; • View Environment Variables     | ✓     | ✓      |
-| &emsp; • Edit Environment Variables     | ✓     | -      |
+| &emsp; • Edit Environment Variables     | ✓     | ✓      |
 | &emsp; • View Other Settings            | ✓     | -      |
 | &emsp; • Edit Other Settings            | ✓     | -      |
 |                                      |       |        |
@@ -83,7 +84,7 @@ describe the different Roles apply for all projects in the team
 | &emsp; • General                        | ✓     | ✓      |
 | &emsp; • Edit Device                    | ✓     | -      |
 | &emsp; • View Environment Variables     | ✓     | ✓      |
-| &emsp; • Edit Environment Variables     | ✓     | -      |
+| &emsp; • Edit Environment Variables     | ✓     | ✓      |
 | &emsp; • Delete Device                  | ✓     | -      |
 |                                      |       |        |
 | **Members**                          |       |        |
