@@ -183,7 +183,6 @@ module.exports = async function (app) {
                 type: teamType
             }, request.session.User)
 
-            // await team.setTeamType(teamType)
 
             // await team.reload({
             //     include: [{ model: app.db.models.TeamType }]
