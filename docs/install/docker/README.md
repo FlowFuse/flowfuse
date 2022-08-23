@@ -101,6 +101,7 @@ set the correct domain name and make the same change to the `public_url` entry i
 If you want to serve the forge app and projects via SSL you will need to obtain wildcard SSL certs for the domain you are using eg `*.example.com`
 
 Create a folder in the `docker-compose-0.x.0` directory named `certs`, place your .crt and .key files in there, they should be named for the domain without the `*` eg `example.com.crt` & `example.com.key`
+You  also need to create a copy of the .crt and .key files named `default.crt` & `default.key` in the same folder. This is used for serving unknown hosts.
 
 In the `docker-compose.yml` file, 
 - uncomment the line 
