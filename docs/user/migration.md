@@ -32,7 +32,7 @@ Ensure that you are not using these and then click remove on each one.
 
 ### Identify installed nodes
 
-You should now have in the palette manager only the nodes that are required in your flows, You will need to make a note of the name of each package along with the version number.
+Your palette manager should now only include nodes that are required for your flows. You will need to make a note of the name of each package along with the version number.
 
 Presently it is not possible to install older versions of a package into Node-RED so your flows will need to run on the latest version of each package, you may want to consider updating before you migrate.
 
