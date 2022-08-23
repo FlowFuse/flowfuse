@@ -39,7 +39,7 @@ Presently it is not possible to install older versions of a package into Node-RE
 
 ### Backup your flows
 
-From the Node-RED editor goto the hamburger menu, and select **_Export_**![](./images/mig_export_menu.png)
+From the Node-RED editor go to the hamburger menu, and select **_Export_**.![](./images/mig_export_menu.png)
 
 In the modal that opens ensure that you  have**_ all flows _**selected and then click the download button. This will download a file called **_flows.json_** to your browser, keep it safe.
 
