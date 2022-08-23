@@ -224,17 +224,17 @@ export default {
             const SnapshotComponent = {
                 template: `<span class="flex space-x-4">
     
-    <span v-if="id || updateNeeded" class="flex items-center space-x-2 text-gray-500 italic">
+    <span v-if="activeSnapshot?.id || updateNeeded" class="flex items-center space-x-2 text-gray-500 italic">
         <ExclamationIcon class="text-yellow-600 w-4" v-if="updateNeeded" />
-        <CheckCircleIcon class="text-green-700 w-4" v-else-if="id" />
+        <CheckCircleIcon class="text-green-700 w-4" v-else-if="activeSnapshot?.id" />
     </span>
-    <template v-if="id"><div class="flex flex-col"><span>{{name}}</span><span class="text-xs text-gray-500">{{id}}</span></div></template>
+    <template v-if="activeSnapshot"><div class="flex flex-col"><span>{{ activeSnapshot?.name }}</span><span class="text-xs text-gray-500">{{ activeSnapshot.id }}</span></div></template>
     <template v-else><span class="italic text-gray-500">none</span></template>
 </span>`,
-                props: ['id', 'name'],
+                props: ['activeSnapshot', 'targetSnapshot'],
                 computed: {
                     updateNeeded: function () {
-                        return this.id !== targetSnapshot
+                        return !this.activeSnapshot || (this.activeSnapshot?.id !== targetSnapshot)
                     }
                 },
                 components: {
@@ -254,7 +254,7 @@ export default {
                 })
             } else {
                 cols.push(
-                    { label: 'Deployed Snapshot', class: ['w-64'], property: 'activeSnapshot', component: { is: markRaw(SnapshotComponent) } }
+                    { label: 'Deployed Snapshot', class: ['w-64'], component: { is: markRaw(SnapshotComponent) } }
                     // { name: 'Target', class: ['w-64'], property: 'targetSnapshot', component: { is: markRaw(SnapshotComponent) } }
                 )
             }
