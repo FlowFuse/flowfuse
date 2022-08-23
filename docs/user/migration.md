@@ -77,7 +77,7 @@ From your team page click create project and assign a suitable name to the proje
 
 ### Environment Variables.
 
-If your project uses environment variables you can configure these in the flowforge application under the Project > Settings >Environment tabs.
+If your project uses environment variables you can configure these in the FlowForge application under the Project > Settings > Environment tabs.
 
 
 ### Install Nodes
