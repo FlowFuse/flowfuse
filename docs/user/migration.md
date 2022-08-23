@@ -89,7 +89,10 @@ Now install each of the nodes that you identified in the export earlier.
 
 ### Import Flows
 
-From the hamburger menu select Import
+From the hamburger menu select "Import". Either paste your `flows.json` or upload the file. Click "Import".
+Check that you don’t get any errors about missing nodes. If you do, go back and check that you have installed all the required nodes.
+
+When there are no errors click "Deploy" to save the flows. You may want to ensure your flows are stopped to the "Deploy" action does not start your flows yet.
 
 Either paste your flows.json or upload the file.
 
