@@ -70,7 +70,7 @@ Check your settings.js file to see if \`httpStatic\` has been set, if so then ch
 ## Import to FlowForge
 
 
-### Create a new flowforge project 
+### Create a new FlowForge project 
 
 From your team page click create project and assign a suitable name to the project, 
 
