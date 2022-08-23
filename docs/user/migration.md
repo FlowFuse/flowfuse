@@ -15,7 +15,7 @@ You will see any config nodes here that are not in use by nodes on your flow. In
 
 ![](./images/mig_config_nodes.png)
 
-Ensure sure that you don’t need these in your flows any longer and then double click on the node and select delete.
+Ensure that you don’t need these in your flows and then double click on the node and select delete.
 
 ### Cleanup unused packages
 
