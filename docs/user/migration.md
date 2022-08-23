@@ -25,7 +25,7 @@ Click on the Nodes Tab, this will show all the packages installed on your instan
 
 ![](images/mig_remove_package.png)
 
-You can see any that are not in use by the flows because they have the remove button (instead of in use) 
+You can identify unused packages through the "remove" button instead of "in use". Ensure that you are not using these and then click remove on each one.
 
 Ensure that you are not using these and then click remove on each one.
 
