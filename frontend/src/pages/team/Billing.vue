@@ -55,6 +55,18 @@ const priceCell = {
     template: '<div>{{ formattedPrice }}</div>'
 }
 
+const totalPriceCell = {
+    name: 'PriceCell',
+    props: ['total_price'],
+    mixins: [formatCurrency],
+    computed: {
+        formattedPrice: function () {
+            return this.formatCurrency(this.total_price)
+        }
+    },
+    template: '<div>{{ formattedPrice }}</div>'
+}
+
 export default {
     name: 'TeamBilling',
     props: ['billingUrl', 'team', 'teamMembership'],
@@ -83,7 +95,7 @@ export default {
                 key: 'total_price',
                 sortable: true,
                 component: {
-                    is: markRaw(priceCell)
+                    is: markRaw(totalPriceCell)
                 }
             }]
         }
@@ -99,7 +111,7 @@ export default {
                 billingSubscription.next_billing_date = billingSubscription.next_billing_date * 1000 // API returns Seconds, JS expects miliseconds
                 this.subscription = billingSubscription
                 this.subscription.items.map((item) => {
-                    item.total_price = item.unit_price * item.quantity
+                    item.total_price = item.price * item.quantity
                     return item
                 })
                 this.loading = false
