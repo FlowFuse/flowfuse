@@ -112,7 +112,7 @@ module.exports = async function (app) {
                 required: ['name', 'team', 'projectType', 'stack', 'template'],
                 properties: {
                     name: { type: 'string' },
-                    team: { type: ['string', 'number'] },
+                    team: { anyOf: [{ type: 'string' }, { type: 'number' }] },
                     projectType: { type: 'string' },
                     stack: { type: 'string' },
                     template: { type: 'string' },

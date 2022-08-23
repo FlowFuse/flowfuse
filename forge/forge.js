@@ -24,12 +24,15 @@ module.exports = async (options = {}) => {
         maxParamLength: 500,
         trustProxy: true,
         logger: {
-            level: loggerLevel,
-            prettyPrint: {
-                translateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss.l'Z'",
-                ignore: 'pid,hostname',
-                singleLine: true
-            }
+            transport: {
+                target: 'pino-pretty',
+                options: {
+                    translateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss.l'Z'",
+                    ignore: 'pid,hostname',
+                    singleLine: true
+                }
+            },
+            level: loggerLevel
         }
     })
 
@@ -90,7 +93,6 @@ module.exports = async (options = {}) => {
         return server
     } catch (err) {
         server.log.error(`Failed to start: ${err.toString()}`)
-        console.log(err)
         throw err
     }
 }

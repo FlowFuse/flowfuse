@@ -163,7 +163,12 @@ module.exports = async function (app) {
                     properties: {
                         name: { type: 'string' },
                         meta: { type: 'object' },
-                        body: { type: ['string', 'object'] }
+                        body: {
+                            anyOf: [
+                                { type: 'string' },
+                                { type: 'object' }
+                            ]
+                        }
                     }
                 },
                 params: {
