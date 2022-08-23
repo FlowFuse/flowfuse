@@ -4,6 +4,10 @@ module.exports = {
 
     createTeamForUser: async function (app, teamDetails, user) {
         const newTeam = await app.db.models.Team.create(teamDetails)
+        await newTeam.setTeamType(teamDetails.type)
+        await newTeam.reload({
+            include: [{ model: app.db.models.TeamType }]
+        })
         await app.db.controllers.Team.addUser(newTeam, user, Roles.Owner)
 
         // Reinflate the object now the user has been added
