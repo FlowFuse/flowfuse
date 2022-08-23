@@ -184,9 +184,6 @@ module.exports = async function (app) {
             }, request.session.User)
 
 
-            // await team.reload({
-            //     include: [{ model: app.db.models.TeamType }]
-            // })
             const teamView = app.db.views.Team.team(team)
 
             if (app.license.active() && app.billing) {
