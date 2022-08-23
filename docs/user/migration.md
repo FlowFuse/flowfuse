@@ -19,7 +19,7 @@ Ensure that you don’t need these in your flows and then double click on the no
 
 ### Cleanup unused packages
 
-From the hamburger menu ![](./images/mig_menu.png) Select Manage palette
+From the hamburger menu ![](./images/mig_menu.png) select Manage palette. Click on the Nodes Tab, this will show all the packages installed on your instance.
 
 Click on the Nodes Tab, this will show all the packages installed on your instance.
 
