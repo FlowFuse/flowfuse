@@ -82,7 +82,7 @@ If your project uses environment variables you can configure these in the FlowFo
 
 ### Install Nodes
 
-Open the editor and goto the manage palette option in the hamburger menu. 
+Open the editor and go to the manage palette option in the hamburger menu. 
 
 Now install each of the nodes that you identified in the export above
 
