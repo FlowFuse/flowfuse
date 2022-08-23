@@ -64,7 +64,7 @@ You can use this flow <https://flows.nodered.org/flow/8ebfe9ae218aa5105e7da13db1
 
 ### Static Files
 
-Check your settings.js file to see if \`httpStatic\` has been set, if so then check for any files in this path.FlowForge does not currently support serving static files so you will need to find alternative hosting for these such as AWS S3.
+Check your `settings.js` file to see if `httpStatic` has been set, if so then check for any files in this path. FlowForge does not currently support serving static files so you will need to find alternative hosting for these such as AWS S3.
 
 
 ## Import to FlowForge
