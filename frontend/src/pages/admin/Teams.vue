@@ -3,6 +3,7 @@
         <SectionTopMenu hero="Teams" />
         <ff-loading v-if="loading" message="Loading Teams..." />
         <ff-data-table v-if="!loading" :columns="columns" :rows="teams"
+                       :rows-selectable="true" @row-selected="viewTeam"
                        :show-search="true" search-placeholder="Search Teams..."
                        :search-fields="['name', 'id']"/>
         <div v-if="nextCursor">
@@ -47,6 +48,14 @@ export default {
                 this.teams.push(v)
             })
             this.loading = false
+        },
+        viewTeam (row) {
+            this.$router.push({
+                name: 'Team',
+                params: {
+                    team_slug: row.slug
+                }
+            })
         }
     },
     components: {
