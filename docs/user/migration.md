@@ -72,7 +72,7 @@ Check your `settings.js` file to see if `httpStatic` has been set, if so then ch
 
 ### Create a new FlowForge project 
 
-From your team page click create project and assign a suitable name to the project, 
+From your team page click create project and assign a suitable name to the project.
 
 
 ### Environment Variables.
