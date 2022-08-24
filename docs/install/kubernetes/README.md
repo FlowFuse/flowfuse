@@ -1,6 +1,7 @@
 # Kubernetes Install
 
-This version of the FlowForge platform is intended for running in the Kubernetes Container management system. Typically suited for large on permise deployments or deployment in Cloud infrastucture.
+This version of the FlowForge platform is intended for running in the Kubernetes (sometimes referred to as K8s)
+Container management system. Typically suited for large on permise deployments or deployment in Cloud infrastucture.
 
 ### Prerequisites
 
@@ -15,13 +16,14 @@ You will need a Kubernetes environment. The deployment has currently been tested
 
 #### Helm
 
-FlowForge uses a Helm Chart to manage deployment
+FlowForge uses a Helm Chart to manage deployment. Installation can be done
+through the instructions on [their website](https://helm.sh).
 
 #### Docker Container Registry
 
 FlowForge on Kubernetes will require a Docker Container Registry to host the both the core platform container and the containers that back any Stacks you wish to deploy.
 
-### PostgreSQL Database 
+#### PostgreSQL Database
 
 The Helm chart can either install a dedicated PostgreSQL database into the same K8s cluster or can configure the install to use an external instance.
 
@@ -40,9 +42,7 @@ Some features require the ability to send email to users. This can be currently 
 
 #### Download
 
-Download the helm project from GitHub here:
-
-https://github.com/flowforge/helm/
+Download the helm project [from GitHub](https://github.com/flowforge/helm).
 
 #### Building Containers
 
@@ -106,7 +106,7 @@ forge:
 
 TODO: *Detailed walk through for AWS in internal Cloud Project docs. Will add extra page with sanitised version* [AWS setup notes](aws.md)
 
-A full list of all the configable values can be found in the Helm Chart README.md [here](https://github.com/flowforge/helm/blob/main/helm/flowforge/README.md)
+A full list of all the configable values can be found in the [Helm Chart README](https://github.com/flowforge/helm/blob/main/helm/flowforge/README.md).
 
 
 ```
