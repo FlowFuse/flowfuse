@@ -179,14 +179,10 @@ module.exports = async function (app) {
         try {
             const team = await app.db.controllers.Team.createTeamForUser({
                 name: request.body.name,
-                slug: request.body.slug
+                slug: request.body.slug,
+                type: teamType
             }, request.session.User)
 
-            await team.setTeamType(teamType)
-
-            await team.reload({
-                include: [{ model: app.db.models.TeamType }]
-            })
             const teamView = app.db.views.Team.team(team)
 
             if (app.license.active() && app.billing) {

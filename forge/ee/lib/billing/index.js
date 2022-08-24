@@ -187,27 +187,28 @@ module.exports.init = async function (app) {
             const billingIds = getBillingIdsForTeam(team)
 
             const subscription = await app.db.models.Subscription.byTeam(team.id)
+            if (subscription) {
+                const existingSub = await stripe.subscriptions.retrieve(subscription.subscription)
+                const subItems = existingSub.items
 
-            const existingSub = await stripe.subscriptions.retrieve(subscription.subscription)
-            const subItems = existingSub.items
+                const teamItem = subItems.data.find(item => item.plan.product === billingIds.product)
 
-            const teamItem = subItems.data.find(item => item.plan.product === billingIds.product)
+                const memberCount = await team.memberCount()
 
-            const memberCount = await team.memberCount()
-
-            if (teamItem.quantity !== memberCount) {
-                app.log.info(`Updating team ${team.hashid} subscription member count to ${memberCount}`)
-                const update = {
-                    quantity: memberCount,
-                    proration_behavior: 'always_invoice'
+                if (teamItem.quantity !== memberCount) {
+                    app.log.info(`Updating team ${team.hashid} subscription member count to ${memberCount}`)
+                    const update = {
+                        quantity: memberCount,
+                        proration_behavior: 'always_invoice'
+                    }
+                    try {
+                        await stripe.subscriptionItems.update(teamItem.id, update)
+                    } catch (error) {
+                        app.log.warn(`Problem updating team ${team.hashid} subscription: ${error.message}`)
+                    }
+                } else {
+                    app.log.info(`Team ${team.hashid} subscription member count up to date`)
                 }
-                try {
-                    await stripe.subscriptionItems.update(teamItem.id, update)
-                } catch (error) {
-                    app.log.warn(`Problem updating team ${team.hashid} subscription: ${error.message}`)
-                }
-            } else {
-                app.log.info(`Team ${team.hashid} subscription member count up to date`)
             }
         },
         closeSubscription: async (subscription) => {
