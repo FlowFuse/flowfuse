@@ -1,6 +1,6 @@
 # Installing FlowForge
 
-FlowForge can be installed on most Linux distributions, Windows and MacOS.
+FlowForge can be installed on most Linux distributions, Windows, and MacOS.
 
 It provides three models for how to run and manage the individual Node-RED instances
 it creates. Choosing the right model is important based on how you plan to use
