@@ -9,13 +9,13 @@
         <template v-else-if="devices.length > 0">
             <template v-if="isProjectDeviceView">
                 <div class="flex space-x-8">
-                    <ff-button data-action="register-device" kind="primary" size="small" @click="showCreateDeviceDialog"><template v-slot:icon-left><PlusSmIcon /></template>Register Device</ff-button>
+                    <ff-button v-if="isOwner" data-action="register-device" kind="primary" size="small" @click="showCreateDeviceDialog"><template v-slot:icon-left><PlusSmIcon /></template>Register Device</ff-button>
                     <ff-button kind="tertiary" size="small" to="./snapshots"><template v-slot:icon-left><ClockIcon/></template>Target Snapshot: {{project.deviceSettings.targetSnapshot || 'none'}}</ff-button>
                 </div>
             </template>
             <ff-data-table data-el="devices" :columns="columns" :rows="devices"
                            :show-search="true" search-placeholder="Search Devices...">
-                <template v-slot:context-menu="{row}">
+                <template v-if="isOwner" v-slot:context-menu="{row}">
                     <ff-list-item label="Edit Details" @click="deviceAction('edit', row.id)"/>
                     <ff-list-item v-if="!row.project" label="Add to Project" @click="deviceAction('assignToProject', row.id)" />
                     <ff-list-item v-else label="Remove from Project" @click="deviceAction('removeFromProject', row.id)" />
@@ -210,6 +210,9 @@ export default {
         },
         addDeviceEnabled: function () {
             return !this.isProjectDeviceView && this.teamMembership.role === Roles.Owner
+        },
+        isOwner: function () {
+            return !this.isProjectDeviceView && (this.teamMembership.role === Roles.Owner)
         },
         columns: function () {
             const targetSnapshot = this.project?.deviceSettings.targetSnapshot

@@ -15,6 +15,8 @@
 </template>
 <script>
 import { mapState } from 'vuex'
+import { useRouter } from 'vue-router'
+import { Roles } from '@core/lib/roles'
 
 import deviceApi from '@/api/devices'
 
@@ -30,7 +32,7 @@ export default {
         FormHeading
     },
     computed: {
-        ...mapState('account', ['team'])
+        ...mapState('account', ['team', 'teamMembership'])
     },
     data () {
         return {
@@ -39,7 +41,15 @@ export default {
             }
         }
     },
+    mounted () {
+        this.checkAccess()
+    },
     methods: {
+        checkAccess: async function () {
+            if (this.teamMembership && this.teamMembership.role !== Roles.Owner) {
+                useRouter().push({ replace: true, path: 'general' })
+            }
+        },
         showConfirmDeleteDialog () {
             this.$refs.confirmDeviceDeleteDialog.show(this.device)
         },

@@ -2,16 +2,16 @@
     <ff-loading v-if="loading" message="Loading Team..." />
     <form v-else class="space-y-6 mb-8">
         <div class="text-right"></div>
-        <ff-data-table :columns="userColumns" :rows="users" :show-search="true" search-placeholder="Search Team Members..." :search-fields="['name', 'username', 'role']">
-            <template v-slot:actions>
-                <ff-button kind="primary" @click="inviteMember">
+        <ff-data-table data-el="members-table" :columns="userColumns" :rows="users" :show-search="true" search-placeholder="Search Team Members..." :search-fields="['name', 'username', 'role']">
+            <template v-if="isOwner" v-slot:actions>
+                <ff-button data-action="member-invite-button" kind="primary" @click="inviteMember">
                     <template v-slot:icon-left><PlusSmIcon class="w-4" /></template>
                     Invite Member
                 </ff-button>
             </template>
-            <template v-slot:context-menu="{row}">
-                <ff-list-item label="Change Role" @click="changeRoleDialog(row)" />
-                <ff-list-item label="Remove From Team" kind="danger" @click="removeUserDialog(row)" />
+            <template v-if="isOwner" v-slot:context-menu="{row}">
+                <ff-list-item data-action="member-change-role" label="Change Role" @click="changeRoleDialog(row)" />
+                <ff-list-item data-action="member-remove-from-team" label="Remove From Team" kind="danger" @click="removeUserDialog(row)" />
             </template>
         </ff-data-table>
     </form>
@@ -49,6 +49,11 @@ export default {
     },
     watch: {
         team: 'fetchData'
+    },
+    computed: {
+        isOwner: function () {
+            return this.teamMembership.role === Roles.Owner
+        }
     },
     mounted () {
         this.fetchData()

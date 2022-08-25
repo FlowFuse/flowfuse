@@ -119,16 +119,17 @@ import FormHeading from '@/components/FormHeading'
 import ConfirmProjectDeleteDialog from './dialogs/ConfirmProjectDeleteDialog'
 import ChangeStackDialog from './dialogs/ChangeStackDialog'
 import ChangeTypeDialog from './dialogs/ChangeTypeDialog'
-// import ExportProjectDialog from './dialogs/ExportProjectDialog'
 import ExportToProjectDialog from './dialogs/ExportToProjectDialog'
+import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
+import { Roles } from '@core/lib/roles'
 
 export default {
     name: 'ProjectSettingsDanger',
     props: ['project'],
     emits: ['projectUpdated'],
     computed: {
-        ...mapState('account', ['team', 'features']),
+        ...mapState('account', ['team', 'features', 'teamMembership']),
         isLoading: function () {
             return this.loading.deleting || this.loading.suspend || this.loading.changingStack || this.loading.duplicating || this.loading.settingType
         }
@@ -144,7 +145,15 @@ export default {
             }
         }
     },
+    mounted () {
+        this.checkAccess()
+    },
     methods: {
+        checkAccess: async function () {
+            if (this.teamMembership && this.teamMembership.role !== Roles.Owner) {
+                useRouter().push({ replace: true, path: 'general' })
+            }
+        },
         showConfirmDeleteDialog () {
             this.$refs.confirmProjectDeleteDialog.show(this.project)
         },

@@ -1,3 +1,4 @@
+const { Roles } = require('../../lib/roles')
 const DeviceLive = require('./deviceLive')
 
 /**
@@ -266,9 +267,16 @@ module.exports = async function (app) {
     })
 
     app.put('/:deviceId/settings', {
-        preHandler: app.needsPermission('device:edit')
+        preHandler: app.needsPermission('device:edit-env-only')
     }, async (request, reply) => {
-        await request.device.updateSettings(request.body)
+        if (request.teamMembership?.role === Roles.Owner) {
+            await request.device.updateSettings(request.body)
+        } else {
+            const bodySettingsEnvOnly = {
+                env: request.body.env
+            }
+            await request.device.updateSettings(bodySettingsEnvOnly)
+        }
         if (app.comms) {
             app.comms.devices.sendCommand(request.device.Team.hashid, request.device.hashid, 'update', {
                 project: request.device.Project?.id || null,
@@ -280,9 +288,15 @@ module.exports = async function (app) {
     })
 
     app.get('/:deviceId/settings', {
-        preHandler: app.needsPermission('device:edit')
+        preHandler: app.needsPermission('device:edit-env-only')
     }, async (request, reply) => {
         const settings = await request.device.getAllSettings()
-        reply.send(settings)
+        if (request.teamMembership?.role === Roles.Owner) {
+            reply.send(settings)
+        } else {
+            reply.send({
+                env: settings?.env
+            })
+        }
     })
 }

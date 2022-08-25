@@ -3,20 +3,20 @@
         <ff-loading v-if="loading" message="Loading Snapshots..." />
         <template v-if="snapshots.length > 0">
             <ff-data-table data-el="snapshots" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
-                <template v-slot:actions v-if="createSnapshotEnabled">
+                <template v-slot:actions v-if="canCreateSnapshot">
                     <ff-button kind="primary" @click="showCreateSnapshotDialog" data-action="create-snapshot"><template v-slot:icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
                 </template>
                 <template v-slot:context-menu="{row}">
                     <ff-list-item label="Rollback" @click="showRollbackDialog(row)" />
                     <ff-list-item v-if="features.devices" label="Set as Device Target" @click="showDeviceTargetDialog(row)"/>
-                    <ff-list-item label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)"/>
+                    <ff-list-item v-if="canDelete" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)"/>
                 </template>
             </ff-data-table>
         </template>
         <template v-else-if="!loading">
             <div class="flex flex-col text-gray-500 items-center italic mb-4 p-8 space-y-6">
                 <div>You have not created any snapshots yet</div>
-                <template v-if="createSnapshotEnabled">
+                <template v-if="canCreateSnapshot">
                     <ff-button kind="primary" size="small" data-action="create-snapshot" @click="showCreateSnapshotDialog"><template v-slot:icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
                 </template>
             </div>
@@ -29,6 +29,7 @@
 
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
+import { Roles } from '@core/lib/roles'
 
 import Alerts from '@/services/alerts'
 import Dialog from '@/services/dialog'
@@ -47,9 +48,6 @@ const SnapshotMetaInformation = {
     </div>`,
     props: ['user', 'createdAt'],
     computed: {
-        // localTime: function () {
-        //     return new Date(this.createdAt).toLocaleString()
-        // },
         since: function () {
             return daysSince(this.createdAt)
         }
@@ -131,10 +129,12 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features']),
-        createSnapshotEnabled: function () {
-            // TODO: RBAC check
-            return true
+        ...mapState('account', ['features', 'teamMembership']),
+        canDelete: function () {
+            return this.teamMembership?.role === Roles.Owner
+        },
+        canCreateSnapshot: function () {
+            return this.teamMembership?.role === Roles.Owner || this.teamMembership?.role === Roles.Member
         },
         columns: function () {
             const devicesEnabled = this.features.devices
@@ -169,7 +169,6 @@ export default {
 
             const cols = [
                 { label: 'Snapshots', component: { is: markRaw(SnapshotName) } },
-                // { name: '', class: ['w-56'], property: 'user', component: { is: UserCell } },
                 { class: ['w-56'], component: { is: markRaw(SnapshotMetaInformation) } }
             ]
             return cols

@@ -8,14 +8,19 @@
             Name
         </FormRow>
 
-        <ff-button v-if="!editing.deviceName" kind="primary" @click="editDevice">Edit Device</ff-button>
-        <ff-button v-else kind="primary" @click="updateDevice">Save Changes</ff-button>
+        <div v-if="isOwner">
+            <ff-button v-if="!editing.deviceName" kind="primary" @click="editDevice">Edit Device</ff-button>
+            <ff-button v-else kind="primary" @click="updateDevice">Save Changes</ff-button>
+        </div>
     </form>
 </template>
 
 <script>
 import deviceApi from '@/api/devices'
 import FormRow from '@/components/FormRow'
+
+import { mapState } from 'vuex'
+import { Roles } from '@core/lib/roles'
 
 export default {
     name: 'DeviceSettings',
@@ -37,6 +42,12 @@ export default {
     },
     watch: {
         device: 'fetchData'
+    },
+    computed: {
+        ...mapState('account', ['teamMembership']),
+        isOwner: function () {
+            return this.teamMembership.role === Roles.Owner
+        }
     },
     mounted () {
         this.fetchData()

@@ -28,7 +28,7 @@
                             <ExternalLinkIcon />
                         </span>
                     </a>
-                    <DropdownMenu buttonClass="ff-btn ff-btn--primary" alt="Open actions menu" :options="options" data-action="open-actions">Actions</DropdownMenu>
+                    <DropdownMenu v-if="isOwner" buttonClass="ff-btn ff-btn--primary" alt="Open actions menu" :options="options" data-action="open-actions">Actions</DropdownMenu>
                 </div>
             </template>
         </SectionTopMenu>
@@ -81,6 +81,9 @@ export default {
     },
     computed: {
         ...mapState('account', ['teamMembership', 'team', 'features']),
+        isOwner: function () {
+            return this.teamMembership.role === Roles.Owner
+        },
         options: function () {
             const flowActionsDisabled = !(this.project.meta && this.project.meta.state !== 'suspended')
 
@@ -157,15 +160,13 @@ export default {
                 { label: 'Overview', path: `/project/${this.project.id}/overview`, tag: 'project-overview', icon: ProjectsIcon },
                 { label: 'Activity', path: `/project/${this.project.id}/activity`, tag: 'project-activity', icon: ViewListIcon },
                 { label: 'Snapshots', path: `/project/${this.project.id}/snapshots`, tag: 'project-snapshots', icon: ClockIcon },
-                { label: 'Logs', path: `/project/${this.project.id}/logs`, tag: 'project-logs', icon: TerminalIcon }
+                { label: 'Logs', path: `/project/${this.project.id}/logs`, tag: 'project-logs', icon: TerminalIcon },
+                { label: 'Settings', path: `/project/${this.project.id}/settings`, tag: 'project-settings', icon: CogIcon }
             ]
             if (this.features.devices) {
                 this.navigation.splice(3, 0, { label: 'Devices', path: `/project/${this.project.id}/devices`, tag: 'project-devices', icon: ChipIcon })
             }
-            if (this.teamMembership && this.teamMembership.role === Roles.Owner) {
-                this.navigation.push({ label: 'Settings', path: `/project/${this.project.id}/settings`, tag: 'project-settings', icon: CogIcon })
-                // this.navigation.push({ name: "Debug", path: `/project/${this.project.id}/debug` })
-            }
+
             if (this.project.meta && (this.project.pendingRestart || projectTransitionStates.includes(this.project.meta.state))) {
                 this.project.pendingStateChange = true
                 this.refreshProject()

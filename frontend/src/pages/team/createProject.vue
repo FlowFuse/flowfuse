@@ -166,7 +166,7 @@ export default {
                 this.stacks = stackList.stacks.filter(stack => stack.active)
                 this.input.stack = null
                 if (this.stacks.length === 0) {
-                    this.errors.stack = 'No stacks available. Ask an Administator to create a new stack definition'
+                    this.errors.stack = 'No stacks available. Ask an Administrator to create a new stack definition'
                 } else {
                     this.errors.stack = ''
                     if (projectType.defaultStack) {

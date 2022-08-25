@@ -19,6 +19,10 @@ import {
     prepareTemplateForEdit
 } from '../../admin/Template/utils'
 
+import { useRouter } from 'vue-router'
+import { mapState } from 'vuex'
+import { Roles } from '@core/lib/roles'
+
 export default {
     name: 'ProjectSettingsEditor',
     data () {
@@ -42,6 +46,9 @@ export default {
         }
     },
     props: ['project'],
+    computed: {
+        ...mapState('account', ['team', 'teamMembership'])
+    },
     watch: {
         project: 'getSettings',
         editable: {
@@ -59,9 +66,15 @@ export default {
         }
     },
     mounted () {
+        this.checkAccess()
         this.getSettings()
     },
     methods: {
+        checkAccess: async function () {
+            if (this.teamMembership && this.teamMembership.role !== Roles.Owner) {
+                useRouter().push({ replace: true, path: 'general' })
+            }
+        },
         getSettings: function () {
             if (this.project.template) {
                 const preparedTemplate = prepareTemplateForEdit(this.project.template)

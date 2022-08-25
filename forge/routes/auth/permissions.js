@@ -13,17 +13,20 @@ const defaultPermissions = {
     'team:user:remove': { description: 'Remove Member', role: Roles.Owner, self: true },
     'team:user:change-role': { description: 'Modify Member role', role: Roles.Owner },
     // Projects
+    'project:member': { description: 'Create Project', role: Roles.Member },
     'project:create': { description: 'Create Project', role: Roles.Owner },
     'project:delete': { description: 'Delete Project', role: Roles.Owner },
     'project:transfer': { description: 'Transfer Project', role: Roles.Owner },
     'project:change-status': { description: 'Start/Stop Project', role: Roles.Owner },
+    'project:rollback': { description: 'Start/Stop Project', role: Roles.Member },
     'project:edit': { description: 'Edit Project Settings', role: Roles.Owner },
+    'project:edit-env-only': { description: 'Edit Project Environment Variables', role: Roles.Member },
     'project:log': { description: 'Access Project Log', role: Roles.Member },
     'project:audit-log': { description: 'Access Project Audit Log', role: Roles.Member },
     // Project Editor
     'project:flows:view': { description: 'View Project Flows', role: Roles.Member },
     'project:flows:edit': { description: 'Edit Project Flows', role: Roles.Member },
-    'project:snapshot:create': { description: 'Create Project Snapshot', role: Roles.Owner },
+    'project:snapshot:create': { description: 'Create Project Snapshot', role: Roles.Member },
     'project:snapshot:delete': { description: 'Delete Project Snapshot', role: Roles.Owner },
     // Templates
     'template:create': { description: 'Create a Template', role: Roles.Admin },
@@ -37,7 +40,8 @@ const defaultPermissions = {
     'device:list': { description: 'List Devices', role: Roles.Admin },
     'device:create': { description: 'Create a Device', role: Roles.Owner },
     'device:delete': { description: 'Delete a Device', role: Roles.Owner },
-    'device:edit': { description: 'Edit a Stack', role: Roles.Owner },
+    'device:edit': { description: 'Edit a Device', role: Roles.Owner },
+    'device:edit-env-only': { description: 'Edit Device Environment Variables', role: Roles.Member },
     // Project Types
     'project-type:create': { description: 'Create a ProjectType', role: Roles.Admin },
     'project-type:delete': { description: 'Delete a ProjectType', role: Roles.Admin },

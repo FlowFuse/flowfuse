@@ -1,18 +1,18 @@
 <template>
     <SectionTopMenu hero="Projects">
         <template v-slot:tools>
-            <ff-button kind="primary" size="small" to="./projects/create" data-nav="create-project"><template v-slot:icon-left><PlusSmIcon /></template>Create Project</ff-button>
+            <ff-button data-action="create-project-1" v-if="createProjectEnabled" kind="primary" size="small" to="./projects/create" data-nav="create-project"><template v-slot:icon-left><PlusSmIcon /></template>Create Project</ff-button>
         </template>
     </SectionTopMenu>
     <form class="space-y-6">
         <ff-loading v-if="loading" message="Loading Projects..." />
         <template v-else-if="projects.length > 0">
-            <ff-data-table :columns="columns" :rows="projects" :show-search="true" search-placeholder="Search Projects..."
+            <ff-data-table data-el="projects-table" :columns="columns" :rows="projects" :show-search="true" search-placeholder="Search Projects..."
                            :rows-selectable="true" @row-selected="openProject"/>
         </template>
         <template v-else-if="createProjectEnabled && !loading">
             <div class="flex justify-center mb-4 p-8">
-                <ff-button to="./projects/create">
+                <ff-button data-action="create-project-2" to="./projects/create">
                     <template v-slot:icon-right>
                         <PlusSmIcon />
                     </template>
