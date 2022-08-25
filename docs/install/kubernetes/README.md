@@ -21,7 +21,13 @@ through the instructions on [their website](https://helm.sh).
 
 #### Docker Container Registry
 
-FlowForge on Kubernetes will require a Docker Container Registry to host the both the core platform container and the containers that back any Stacks you wish to deploy.
+FlowForge on Kubernetes will require a Docker Container Registry to host both
+the core platform container and the containers that back any Node-RED stacks you
+wish to deploy.
+
+You can use [Dockers public registry](https://hub.docker.com). If you do, make
+sure you create two repositories: `forge-k8s` and `node-red` under your namespace.
+Also ensure you're signed in locally by running `docker login` in your terminal.
 
 #### PostgreSQL Database
 
@@ -42,7 +48,8 @@ Some features require the ability to send email to users. This can be currently 
 
 #### Download
 
-Download the helm project [from GitHub](https://github.com/flowforge/helm).
+Download the [FlowForge Helm Charts](https://github.com/flowforge/helm/archive/refs/heads/main.zip)
+and extract the ZIP archive.
 
 #### Building Containers
 
@@ -51,27 +58,43 @@ At a minimum there are 2 container required.
  - flowforge/forge-k8s
  - flowforge/node-red
 
-These can be built usinth the `./build-containers.sh` script in the root of the `helm` project. This script takes the hostname of the Docker Container Registry as it's only argument. This will be pre-pended to the constainer names. e.g.
+These can be built using the `./build-containers.sh` script in the root of the
+`helm` repository. This script takes the hostname of the Docker Container
+Registry as it's only argument. This will be pre-pended to the constainer names.
+For example:
 
 ```
 ./build-containers.sh containers.example.com
 ```
 
-This will build and publish
+This will build two containers
 
-- containers.example.com/flowforge/forge-k8s
-- containers.example.com/flowforge/node-red
+- containers.example.com/flowforge/forge-k8s:<current-version>
+- containers.example.com/flowforge/node-red:<current-version>
+
+If you're using Dockers Hub you need to create two repositories: `forge-k8s` and
+`node-red`. When done retag and push the containers:
+
+```
+docker tag containers.example.com/flowforge/forge-k8s:<current-version> <your-docker-username>/forge-k8s:<current-version>
+docker tag containers.example.com/flowforge/forge-k8s:<current-version> <your-docker-username>/forge-k8s:<current-version>
+
+docker login
+
+docker push <your-docker-username>/forge-k8s:<current-version>
+docker push <your-docker-username>/node-red:<current-version>
+```
 
 ##### flowforge/forge-k8s
 
-This container includes the FlowForge App and the Kubernetes Drivers
+This container includes the FlowForge application and the Kubernetes drivers.
 
 ##### flowforge/node-red
 
-This is a basic Node-RED image with the FlowForge Launcher and the required Node-RED plugins to talk to the FlowForge Platform. This is the basis for the initial Stack.
+This is the default Node-RED image with the FlowForge components needed to talk
+to the FlowForge Platform. This is the basis for the initial [Node-RED stack][stacks].
 
 This is the container you can customise for your deployment.
-
 
 ### Configure FlowForge
 
@@ -133,3 +156,5 @@ The first time you access the platform in your browser, it will take you through
 creating an administrator for the platform and other configuration options.
 
 For more information, follow [this guide](../first-run.md).
+
+[stacks]: ../../admin/README.md
