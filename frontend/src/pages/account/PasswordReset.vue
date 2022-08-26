@@ -52,6 +52,10 @@ export default {
                 this.errors.password = 'Password too short'
                 return false
             }
+            if (this.input.password.length > 1024) {
+                this.errors.password = 'Password too long'
+                return false
+            }
             if (this.input.password !== this.input.confirm) {
                 this.errors.confirm = 'Passwords do not match'
                 return false

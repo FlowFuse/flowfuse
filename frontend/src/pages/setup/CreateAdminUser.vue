@@ -95,6 +95,11 @@ export default {
             } else {
                 this.errors.password = ''
             }
+            if (this.input.password && this.input.password.length > 1024) {
+                this.errors.password = 'Password too long'
+            } else {
+                this.errors.password = ''
+            }
         },
         createUser () {
             // eslint-disable-next-line no-undef

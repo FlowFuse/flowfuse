@@ -53,6 +53,10 @@ export default {
                 valid = false
                 this.errors.password = 'Required field'
             }
+            if (this.input.password.length > 1024) {
+                valid = false
+                this.errors.password = 'Too long'
+            }
             if (valid) {
                 this.$store.dispatch('account/login', this.input)
             }

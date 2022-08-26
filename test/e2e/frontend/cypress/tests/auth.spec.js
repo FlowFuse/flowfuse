@@ -38,4 +38,22 @@ describe('FlowForge', () => {
         // check where we are
         cy.url().should('include', '/overview')
     })
+    it('prevent long password', () => {
+        cy.visit('')
+        // fill out credentials
+        cy.get('div[label=username] input').type('alice')
+        let passwd = ''
+        for (let i = 0; i < 1030; i++) {
+            passwd += 'x'
+        }
+        console.log(passwd.length)
+        cy.get('div[label=password] input').type(passwd)
+        // click "login"
+        cy.get('.ff-actions button').click()
+        // should have error
+        cy.get('div[label=password]').should('have.class', 'ff-input--error')
+        cy.get('.ff-error-inline').should('be.visible')
+        // check where we are
+        cy.url().should('not.include', '/overview')
+    })
 })
