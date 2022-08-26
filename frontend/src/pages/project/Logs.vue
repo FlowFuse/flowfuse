@@ -34,6 +34,9 @@ export default {
         project: 'fetchData'
     },
     mounted () {
+        if (this.project.meta && this.project.meta.state === 'suspended') {
+            this.loading = false
+        }
         this.fetchData()
         this.checkInterval = setInterval(() => {
             if (this.project.meta && this.project.meta.state !== 'suspended') {
