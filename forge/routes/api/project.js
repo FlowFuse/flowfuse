@@ -170,13 +170,13 @@ module.exports = async function (app) {
             return
         }
 
-        const name = request.body.name
-
+        const name = request.body.name?.trim()
         if (bannedNameList.includes(name)) {
             reply.status(409).type('application/json').send({ error: 'name not allowed' })
             return
         }
-        if (await app.db.models.Project.count({ where: { name: name } }) !== 0) {
+
+        if (await app.db.models.Project.isProjectNameInUse(name)) {
             reply.status(409).type('application/json').send({ error: 'name in use' })
             return
         }
@@ -576,8 +576,10 @@ module.exports = async function (app) {
 
             reply.code(200).send({})
         } else {
-            if (request.body.name && request.project.name !== request.body.name) {
-                request.project.name = request.body.name
+            const reqName = request.body.name?.trim()
+            const projectName = request.project.name?.trim()
+            if (reqName && projectName !== reqName) {
+                request.project.name = reqName
                 changed = true
             }
             if (request.body.settings) {

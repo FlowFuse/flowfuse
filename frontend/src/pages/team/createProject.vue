@@ -152,10 +152,10 @@ export default {
     },
     watch: {
         'input.name': function (value, oldValue) {
-            if (/^[a-z0-9-]+$/.test(value)) {
+            if (/^[a-zA-Z0-9-]+$/.test(value)) {
                 this.errors.name = ''
             } else {
-                this.errors.name = 'Names can include a-z, 0-9 & - with no spaces'
+                this.errors.name = 'Names must only include a→z, A→Z, -, 0→9'
             }
         },
         'input.projectType': async function (value, oldValue) {
@@ -201,7 +201,7 @@ export default {
             }
 
             if (this.templates.length === 0) {
-                this.errors.template = 'No templates available. Ask an Administator to create a new template definition'
+                this.errors.template = 'No templates available. Ask an Administrator to create a new template definition'
             }
         }, 100)
     },

@@ -2,7 +2,7 @@
  * A Project
  * @namespace forge.db.models.Project
  */
-const { DataTypes } = require('sequelize')
+const { DataTypes, Sequelize } = require('sequelize')
 
 const Controllers = require('../controllers')
 
@@ -42,7 +42,13 @@ module.exports = {
             }
         },
         storageURL: { type: DataTypes.VIRTUAL, get () { return process.env.FLOWFORGE_API_URL + '/storage' } },
-        auditURL: { type: DataTypes.VIRTUAL, get () { return process.env.FLOWFORGE_API_URL + '/logging' } }
+        auditURL: { type: DataTypes.VIRTUAL, get () { return process.env.FLOWFORGE_API_URL + '/logging' } },
+        safeName: {
+            type: DataTypes.VIRTUAL,
+            get () {
+                return this.getDataValue('name')?.toLowerCase()
+            }
+        }
     },
     associations: function (M) {
         this.belongsTo(M.Team)
@@ -185,6 +191,12 @@ module.exports = {
                 }
             },
             static: {
+                isProjectNameInUse: async (name) => {
+                    const found = await this.findOne({
+                        where: Sequelize.where(Sequelize.fn('lower', Sequelize.col('name')), Sequelize.fn('lower', name))
+                    })
+                    return !!found
+                },
                 byUser: async (user) => {
                     return this.findAll({
                         include: {
