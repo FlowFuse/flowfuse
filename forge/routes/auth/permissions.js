@@ -13,7 +13,6 @@ const defaultPermissions = {
     'team:user:remove': { description: 'Remove Member', role: Roles.Owner, self: true },
     'team:user:change-role': { description: 'Modify Member role', role: Roles.Owner },
     // Projects
-    'project:member': { description: 'Create Project', role: Roles.Member },
     'project:create': { description: 'Create Project', role: Roles.Owner },
     'project:delete': { description: 'Delete Project', role: Roles.Owner },
     'project:transfer': { description: 'Transfer Project', role: Roles.Owner },
