@@ -164,21 +164,22 @@ module.exports = async function (app) {
             }
         }
         if (request.body.projectType) {
-            if (stack.ProjectTypeId) {
+            if (!stack.ProjectTypeId) {
+                // This is assigning the stack to a project type for the first time
+                // We'll allow that as part of the migration of legacy stacks
+                const projectTypeId = app.db.models.ProjectType.decodeHashid(request.body.projectType)
+                if (projectTypeId) {
+                    stack.ProjectTypeId = projectTypeId[0]
+                    // We can also assign any projects using this stack to the same project-type
+                    await app.db.models.Project.update({ ProjectTypeId: projectTypeId[0] }, {
+                        where: {
+                            ProjectStackId: stack.id
+                        }
+                    })
+                }
+            } else if (stack.ProjectTypeId !== request.body.projectType) {
                 reply.code(400).send({ error: 'Cannot change stack project type' })
                 return
-            }
-            // This is assigning the stack to a project type for the first time
-            // We'll allow that as part of the migration of legacy stacks
-            const projectTypeId = app.db.models.ProjectType.decodeHashid(request.body.projectType)
-            if (projectTypeId) {
-                stack.ProjectTypeId = projectTypeId[0]
-                // We can also assign any projects using this stack to the same project-type
-                await app.db.models.Project.update({ ProjectTypeId: projectTypeId[0] }, {
-                    where: {
-                        ProjectStackId: stack.id
-                    }
-                })
             }
         }
 
