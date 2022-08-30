@@ -41,7 +41,7 @@ const defaultPermissions = {
     'device:create': { description: 'Create a Device', role: Roles.Owner },
     'device:delete': { description: 'Delete a Device', role: Roles.Owner },
     'device:edit': { description: 'Edit a Device', role: Roles.Owner },
-    'device:edit-env-only': { description: 'Edit Device Environment Variables', role: Roles.Member },
+    'device:edit-env': { description: 'Edit Device Environment Variables', role: Roles.Member },
     // Project Types
     'project-type:create': { description: 'Create a ProjectType', role: Roles.Admin },
     'project-type:delete': { description: 'Delete a ProjectType', role: Roles.Admin },
