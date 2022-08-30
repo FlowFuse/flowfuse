@@ -37,7 +37,7 @@ module.exports = {
                 }
                 const replacedByCount = await M.ProjectStack.count({ where: { replacedBy: stack.id } })
                 if (replacedByCount > 0) {
-                    throw new Error('Cannot delete stack is active replacing another stack')
+                    throw new Error('Cannot delete stack that is the latest version of an active stack')
                 }
             }
         }
