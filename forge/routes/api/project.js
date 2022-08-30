@@ -362,7 +362,7 @@ module.exports = async function (app) {
         let allSettingsEdit = false
 
         // First, check what is being set & check permissions accordingly.
-        // * If the only value sent is `request.body.settings.env`, then we only need 'project:edit-env-only' permission
+        // * If the only value sent is `request.body.settings.env`, then we only need 'project:edit-env' permission
         // * Otherwise, everything else requires 'project:edit' permission
         const bodyKeys = Object.keys(request.body || {})
         const settingsKeys = Object.keys(request.body?.settings || {})
