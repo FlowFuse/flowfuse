@@ -248,6 +248,24 @@ describe('Project API', function () {
             result.should.have.property('error', 'name in use')
         })
 
+        it('Fails for duplicate project name (with different case)', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/projects',
+                payload: {
+                    name: TestObjects.project1.name.toUpperCase(),
+                    team: TestObjects.ATeam.hashid,
+                    projectType: TestObjects.projectType1.hashid,
+                    template: TestObjects.template1.hashid,
+                    stack: TestObjects.stack1.hashid
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(409)
+            const result = response.json()
+            result.should.have.property('error', 'name in use')
+        })
+
         it('Create a project', async function () {
             const response = await app.inject({
                 method: 'POST',
@@ -265,6 +283,7 @@ describe('Project API', function () {
             const result = response.json()
             result.should.have.property('id')
             result.should.have.property('name', 'test-project')
+            result.should.have.property('safeName', 'test-project')
             result.should.have.property('team')
             result.should.have.property('projectType')
             result.projectType.should.have.property('id', TestObjects.projectType1.hashid)
@@ -285,6 +304,46 @@ describe('Project API', function () {
             runtimeSettings.should.have.property('settings')
             runtimeSettings.settings.should.have.property('header')
             runtimeSettings.settings.header.should.have.property('title', 'test-project')
+        })
+
+        it('Create a project with upper case characters in name', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/projects',
+                payload: {
+                    name: 'New-Project',
+                    team: TestObjects.ATeam.hashid,
+                    projectType: TestObjects.projectType1.hashid,
+                    template: TestObjects.template1.hashid,
+                    stack: TestObjects.stack1.hashid
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('id')
+            result.should.have.property('name', 'New-Project')
+            result.should.have.property('safeName', 'new-project')
+            result.should.have.property('team')
+            result.should.have.property('projectType')
+            result.projectType.should.have.property('id', TestObjects.projectType1.hashid)
+            result.should.have.property('template')
+            result.template.should.have.property('id', TestObjects.template1.hashid)
+            result.should.have.property('stack')
+            result.stack.should.have.property('id', TestObjects.stack1.hashid)
+            // ensure settings.header.title gets the project name set by default
+            const newProject = await app.db.models.Project.byId(result.id)
+            const newAccessToken = (await newProject.refreshAuthTokens()).token
+            const runtimeSettings = (await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${newProject.id}/settings`,
+                headers: {
+                    authorization: `Bearer ${newAccessToken}`
+                }
+            })).json()
+            runtimeSettings.should.have.property('settings')
+            runtimeSettings.settings.should.have.property('header')
+            runtimeSettings.settings.header.should.have.property('title', 'New-Project')
         })
 
         it('Create a project cloned from existing one - include everything', async function () {
