@@ -367,7 +367,7 @@ module.exports = async function (app) {
         const bodyKeys = Object.keys(request.body || {})
         const settingsKeys = Object.keys(request.body?.settings || {})
         if (bodyKeys.length === 1 && bodyKeys[0] === 'settings' && settingsKeys.length === 1 && settingsKeys[0] === 'env') {
-            const permissionTest = app.needsPermission('project:edit-env-only')
+            const permissionTest = app.needsPermission('project:edit-env')
             await permissionTest(request, reply)
         } else {
             const permissionTest = app.needsPermission('project:edit')
