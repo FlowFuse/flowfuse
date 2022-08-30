@@ -20,7 +20,7 @@ const defaultPermissions = {
     'project:change-status': { description: 'Start/Stop Project', role: Roles.Owner },
     'project:rollback': { description: 'Start/Stop Project', role: Roles.Member },
     'project:edit': { description: 'Edit Project Settings', role: Roles.Owner },
-    'project:edit-env-only': { description: 'Edit Project Environment Variables', role: Roles.Member },
+    'project:edit-env': { description: 'Edit Project Environment Variables', role: Roles.Member },
     'project:log': { description: 'Access Project Log', role: Roles.Member },
     'project:audit-log': { description: 'Access Project Audit Log', role: Roles.Member },
     // Project Editor
