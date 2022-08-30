@@ -93,8 +93,8 @@ module.exports = async function (app) {
     })
 
     /**
-     * Create an new project
-     * @name /api/v1/project
+     * Create a project
+     * @name /api/v1/projects
      * @memberof forge.routes.api.project
      */
     app.post('/', {
@@ -176,16 +176,22 @@ module.exports = async function (app) {
             return
         }
 
-        if (await app.db.models.Project.isProjectNameInUse(name)) {
-            reply.status(409).type('application/json').send({ error: 'name in use' })
-            return
-        }
+        let project
 
-        const project = await app.db.models.Project.create({
-            name: name,
-            type: '',
-            url: ''
-        })
+        try {
+            project = await app.db.models.Project.create({
+                name: name,
+                type: '',
+                url: ''
+            })
+        } catch (error) {
+            if (error.name === 'SequelizeUniqueConstraintError') {
+                reply.status(409).type('application/json').send({ error: 'name in use' })
+                return reply
+            }
+            reply.code(500).send({ error: error.toString() })
+            return reply
+        }
 
         // const authClient = await app.db.controllers.AuthClient.createClientForProject(project);
         // const projectToken = await app.db.controllers.AccessToken.createTokenForProject(project, null, ["project:flows:view","project:flows:edit"])

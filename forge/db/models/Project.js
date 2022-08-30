@@ -2,7 +2,7 @@
  * A Project
  * @namespace forge.db.models.Project
  */
-const { DataTypes, Sequelize } = require('sequelize')
+const { DataTypes } = require('sequelize')
 
 const Controllers = require('../controllers')
 
@@ -10,7 +10,14 @@ module.exports = {
     name: 'Project',
     schema: {
         id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
-        name: { type: DataTypes.STRING, allowNull: false },
+        name: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            set (value) {
+                this.setDataValue('safeName', value?.toLowerCase())
+                this.setDataValue('name', value)
+            }
+        },
         type: { type: DataTypes.STRING, allowNull: false },
         url: {
             type: DataTypes.STRING,
@@ -44,9 +51,11 @@ module.exports = {
         storageURL: { type: DataTypes.VIRTUAL, get () { return process.env.FLOWFORGE_API_URL + '/storage' } },
         auditURL: { type: DataTypes.VIRTUAL, get () { return process.env.FLOWFORGE_API_URL + '/logging' } },
         safeName: {
-            type: DataTypes.VIRTUAL,
+            type: DataTypes.STRING,
+            unique: true,
+            allowNull: false,
             get () {
-                return this.getDataValue('name')?.toLowerCase()
+                return this.getDataValue('safeName') || this.getDataValue('name')?.toLowerCase()
             }
         }
     },
@@ -191,12 +200,6 @@ module.exports = {
                 }
             },
             static: {
-                isProjectNameInUse: async (name) => {
-                    const found = await this.findOne({
-                        where: Sequelize.where(Sequelize.fn('lower', Sequelize.col('name')), Sequelize.fn('lower', name))
-                    })
-                    return !!found
-                },
                 byUser: async (user) => {
                     return this.findAll({
                         include: {

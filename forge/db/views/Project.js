@@ -4,6 +4,7 @@ module.exports = {
         const result = {
             id: proj.id,
             name: proj.name,
+            safeName: proj.safeName || proj.name?.toLowerCase(),
             url: proj.url,
             createdAt: proj.createdAt,
             updatedAt: proj.updatedAt
