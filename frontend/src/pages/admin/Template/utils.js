@@ -1,6 +1,7 @@
 const templateFields = [
     'disableEditor',
     'httpAdminRoot',
+    'dashboardUI',
     'codeEditor',
     'theme',
     'page_title',
@@ -17,6 +18,7 @@ const templateFields = [
 const defaultTemplateValues = {
     disableEditor: false,
     httpAdminRoot: '',
+    dashboardUI: '',
     codeEditor: 'monaco',
     theme: 'forge-light',
     page_title: 'FlowForge',
@@ -89,6 +91,11 @@ const templateEncoders = {
 
 const templateValidators = {
     httpAdminRoot: (v) => {
+        if (!/^[0-9a-z_\-\\/]*$/i.test(v)) {
+            return 'Must contain only 0-9 a-z _ - /'
+        }
+    },
+    dashboardUI: (v) => {
         if (!/^[0-9a-z_\-\\/]*$/i.test(v)) {
             return 'Must contain only 0-9 a-z _ - /'
         }

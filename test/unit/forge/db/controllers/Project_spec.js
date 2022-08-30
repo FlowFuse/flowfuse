@@ -22,6 +22,7 @@ describe('Project controller', function () {
                 settings: {
                     disableEditor: true,
                     httpAdminRoot: '/foo',
+                    dashboardUI: '/dashfoo',
                     codeEditor: 'monaco',
                     palette: {
                         allowInstall: true,
@@ -46,6 +47,7 @@ describe('Project controller', function () {
 
             await project.updateSetting('settings', {
                 httpAdminRoot: '/bar',
+                dashboardUI: '/dashbar',
                 palette: {
                     nodesExcludes: 'updated.js'
                 },
@@ -61,6 +63,7 @@ describe('Project controller', function () {
 
             result.should.have.property('disableEditor', true)
             result.should.have.property('httpAdminRoot', '/bar')
+            result.should.have.property('dashboardUI', '/dashbar')
             result.should.have.property('codeEditor', 'monaco')
             result.should.have.property('palette')
             result.palette.should.have.property('allowInstall', true)

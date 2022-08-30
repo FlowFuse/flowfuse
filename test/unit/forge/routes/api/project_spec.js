@@ -296,6 +296,7 @@ describe('Project API', function () {
                 'key1',
                 {
                     httpAdminRoot: '/test-red',
+                    dashboardUI: '/test-dash',
                     env: [
                         { name: 'one', value: 'a' },
                         { name: 'two', value: 'b' }
@@ -356,6 +357,7 @@ describe('Project API', function () {
             runtimeSettings.settings.header.should.have.property('title', 'test-project')
             runtimeSettings.settings.should.not.have.property('credentialSecret')
             runtimeSettings.settings.should.have.property('httpAdminRoot', '/test-red')
+            runtimeSettings.settings.should.have.property('dashboardUI', '/test-dash')
             runtimeSettings.should.have.property('env')
             runtimeSettings.env.should.have.property('one', 'a')
             runtimeSettings.env.should.have.property('two', 'b')
@@ -925,6 +927,7 @@ describe('Project API', function () {
                 'key1',
                 {
                     httpAdminRoot: '/test-red',
+                    dashboardUI: '/test-dash',
                     env: [
                         { name: 'src_only', value: 'src value' }, // this should be copied to target
                         { name: 'in_both', value: 'src common' } // this should be superseded by existing env var in target
@@ -1006,6 +1009,7 @@ describe('Project API', function () {
             runtimeSettings.settings.should.not.have.property('credentialSecret')
             runtimeSettings.should.not.have.property('_credentialSecret')
             runtimeSettings.settings.should.have.property('httpAdminRoot', '/test-red')
+            runtimeSettings.settings.should.have.property('dashboardUI', '/test-dash')
             runtimeSettings.should.have.property('env')
             runtimeSettings.env.should.have.property('src_only', 'src value') // key only copied
             runtimeSettings.env.should.have.property('trg_only', 'trg value') // original value kept
