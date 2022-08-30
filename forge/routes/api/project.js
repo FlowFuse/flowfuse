@@ -357,7 +357,7 @@ module.exports = async function (app) {
      * @name /api/v1/project/:id
      * @memberof forge.routes.api.project
      */
-    app.put('/:projectId', { preHandler: app.needsPermission('project:member') }, async (request, reply) => {
+    app.put('/:projectId', async (request, reply) => {
         let changed = false
         let allSettingsEdit = false
 
