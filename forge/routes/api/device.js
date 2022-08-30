@@ -267,7 +267,7 @@ module.exports = async function (app) {
     })
 
     app.put('/:deviceId/settings', {
-        preHandler: app.needsPermission('device:edit-env-only')
+        preHandler: app.needsPermission('device:edit-env')
     }, async (request, reply) => {
         if (request.teamMembership?.role === Roles.Owner) {
             await request.device.updateSettings(request.body)
