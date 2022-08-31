@@ -366,13 +366,16 @@ module.exports = async function (app) {
         // * Otherwise, everything else requires 'project:edit' permission
         const bodyKeys = Object.keys(request.body || {})
         const settingsKeys = Object.keys(request.body?.settings || {})
-        if (bodyKeys.length === 1 && bodyKeys[0] === 'settings' && settingsKeys.length === 1 && settingsKeys[0] === 'env') {
-            const permissionTest = app.needsPermission('project:edit-env')
-            await permissionTest(request, reply)
-        } else {
-            const permissionTest = app.needsPermission('project:edit')
-            await permissionTest(request, reply)
-            allSettingsEdit = true
+        try {
+            if (bodyKeys.length === 1 && bodyKeys[0] === 'settings' && settingsKeys.length === 1 && settingsKeys[0] === 'env') {
+                await app.needsPermission('project:edit-env')(request, reply)
+            } else {
+                await app.needsPermission('project:edit')(request, reply)
+                allSettingsEdit = true
+            }
+        } catch (err) {
+            // Auth failure. needsPermission will have responded already
+            return
         }
 
         if (request.body.stack) {
