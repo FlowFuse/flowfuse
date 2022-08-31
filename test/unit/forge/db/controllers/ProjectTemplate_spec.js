@@ -19,6 +19,7 @@ describe('Project Template controller', function () {
             const result = app.db.controllers.ProjectTemplate.validateSettings({
                 disableEditor: true,
                 httpAdminRoot: '/foo',
+                dashboardUI: '/dashfoo',
                 codeEditor: 'monaco',
                 palette: {
                     allowInstall: true,
@@ -35,6 +36,7 @@ describe('Project Template controller', function () {
 
             result.should.have.property('disableEditor', true)
             result.should.have.property('httpAdminRoot', '/foo')
+            result.should.have.property('dashboardUI', '/dashfoo')
             result.should.have.property('codeEditor', 'monaco')
             result.should.have.property('palette')
             result.palette.should.have.property('allowInstall', true)
@@ -72,6 +74,7 @@ describe('Project Template controller', function () {
             const result = app.db.controllers.ProjectTemplate.validateSettings({
                 disableEditor: true,
                 httpAdminRoot: '/foo',
+                dashboardUI: '/dashfoo',
                 codeEditor: 'monaco',
                 palette: {
                     allowInstall: true,
@@ -89,6 +92,7 @@ describe('Project Template controller', function () {
 
             result.should.have.property('disableEditor', true)
             result.should.not.have.property('httpAdminRoot', '/foo')
+            result.should.not.have.property('dashboardUI')
             result.should.not.have.property('codeEditor', 'monaco')
             result.should.have.property('palette')
             result.palette.should.not.have.property('allowInstall', true)
@@ -128,6 +132,32 @@ describe('Project Template controller', function () {
                 }).throw()
             })
         })
+        describe('dashboardUI', function () {
+            it('normalises dashboardUI', async function () {
+                app.db.controllers.ProjectTemplate.validateSettings({
+                    dashboardUI: 'foo'
+                }).should.have.property('dashboardUI', '/foo')
+
+                app.db.controllers.ProjectTemplate.validateSettings({
+                    dashboardUI: 'foo/'
+                }).should.have.property('dashboardUI', '/foo')
+
+                app.db.controllers.ProjectTemplate.validateSettings({
+                    dashboardUI: '/'
+                }).should.have.property('dashboardUI', '')
+
+                app.db.controllers.ProjectTemplate.validateSettings({
+                    dashboardUI: ''
+                }).should.have.property('dashboardUI', '')
+            })
+            it('rejects invalid values', async function () {
+                should(() => {
+                    app.db.controllers.ProjectTemplate.validateSettings({
+                        dashboardUI: '1 2 3'
+                    })
+                }).throw()
+            })
+        })
 
         describe('palette.nodeExcludes', function () {
             it('normalises palette.nodeExcludes', async function () {
@@ -162,6 +192,7 @@ describe('Project Template controller', function () {
             const originalSettings = {
                 disableEditor: true,
                 httpAdminRoot: '/foo',
+                dashboardUI: '/dashfoo',
                 codeEditor: 'monaco',
                 palette: {
                     allowInstall: true,
@@ -183,6 +214,7 @@ describe('Project Template controller', function () {
 
             result.should.have.property('disableEditor', false)
             result.should.have.property('httpAdminRoot', '/foo')
+            result.should.have.property('dashboardUI', '/dashfoo')
             result.should.have.property('codeEditor', 'monaco')
             result.should.have.property('palette')
             result.palette.should.have.property('allowInstall', true)

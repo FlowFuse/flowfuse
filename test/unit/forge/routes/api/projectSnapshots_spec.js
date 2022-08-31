@@ -168,6 +168,7 @@ describe('Project Snapshots API', function () {
                 'key1',
                 {
                     httpAdminRoot: '/test-red',
+                    dashboardUI: '/test-dash',
                     env: [
                         { name: 'one', value: 'a' },
                         { name: 'two', value: 'b' }
@@ -193,6 +194,7 @@ describe('Project Snapshots API', function () {
             snapshot.flows.credentials.should.have.property('$')
             snapshot.settings.should.have.property('settings')
             snapshot.settings.settings.should.have.property('httpAdminRoot', '/test-red')
+            snapshot.settings.settings.should.have.property('dashboardUI', '/test-dash')
             snapshot.settings.should.have.property('env')
             snapshot.settings.env.should.have.property('one', 'a')
             snapshot.settings.env.should.have.property('two', 'b')

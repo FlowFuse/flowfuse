@@ -31,6 +31,7 @@ module.exports = async function (config = {}) {
         },
         policy: {
             httpAdminRoot: true,
+            dashboardUI: true,
             codeEditor: true
         }
     }

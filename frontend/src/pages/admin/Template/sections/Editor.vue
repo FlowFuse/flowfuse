@@ -27,6 +27,18 @@
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
+                <FormRow v-model="editable.settings.dashboardUI" :error="editable.errors.dashboardUI" :type="(editTemplate||editable.policy.dashboardUI)?'text':'uneditable'">
+                    Dashboard URL Path
+                    <template #description>
+                        The path used to serve the node-red-dashboard UI
+                    </template>
+                    <template #append><ChangeIndicator :value="editable.changed.settings.dashboardUI"></ChangeIndicator></template>
+                </FormRow>
+            </div>
+            <LockSetting :editTemplate="editTemplate" v-model="editable.policy.dashboardUI" :changed="editable.changed.policy.dashboardUI"></LockSetting>
+        </div>
+        <div class="flex flex-col sm:flex-row">
+            <div class="w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.codeEditor" :type="(editTemplate||editable.policy.codeEditor)?'select':'uneditable'" :options="[{label:'monaco', value:'monaco'},{label:'ace', value:'ace'}]">
                     Code Editor
                     <template #append><ChangeIndicator :value="editable.changed.settings.codeEditor"></ChangeIndicator></template>

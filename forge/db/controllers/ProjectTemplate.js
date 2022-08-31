@@ -1,6 +1,7 @@
 const validSettings = [
     'disableEditor',
     'httpAdminRoot',
+    'dashboardUI',
     'codeEditor',
     'theme',
     'page_title',
@@ -103,6 +104,28 @@ module.exports = {
                     }
                 }
                 result.httpAdminRoot = httpAdminRoot
+            }
+        }
+        if (result.dashboardUI !== undefined) {
+            let dashboardUI = result.dashboardUI
+            delete result.dashboardUI
+            if (typeof dashboardUI === 'string') {
+                dashboardUI = dashboardUI.trim()
+                if (dashboardUI.length > 0) {
+                    if (dashboardUI[0] !== '/') {
+                        dashboardUI = `/${dashboardUI}`
+                    }
+                    if (dashboardUI[dashboardUI.length - 1] === '/') {
+                        dashboardUI = dashboardUI.substring(
+                            0,
+                            dashboardUI.length - 1
+                        )
+                    }
+                    if (!/^[0-9a-z_\-\\/]*$/i.test(dashboardUI)) {
+                        throw new Error('Invalid settings.dashboardUI')
+                    }
+                }
+                result.dashboardUI = dashboardUI
             }
         }
         if (result.palette?.nodesExcludes !== undefined) {
