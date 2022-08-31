@@ -10,7 +10,7 @@ module.exports = {
      * @param {QueryInterface} context Sequelize.QueryInterface
      */
     up: async (context) => {
-        await context.sequelize.query('UPDATE Projects SET "safeName" = LOWER("name") WHERE "safeName" IS NULL;')
+        await context.sequelize.query('UPDATE "Projects" SET "safeName" = LOWER("name") WHERE "safeName" IS NULL;')
         await context.addIndex('Projects', { name: 'projects_safe_name_unique', fields: ['safeName'], unique: true })
     },
     down: async (context) => {
