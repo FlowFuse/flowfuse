@@ -1,16 +1,32 @@
 /**
  * A Project
  * @namespace forge.db.models.Project
+ * // type helpers for design time help and error checking
+ * @typedef {import('sequelize').Model} Model
+ * @typedef {import('sequelize').ModelAttributes} ModelAttributes
+ * @typedef {import('sequelize').SchemaOptions} SchemaOptions
+ * @typedef {import('sequelize').ModelIndexesOptions} ModelIndexesOptions
+ * @typedef {import('sequelize').InitOptions} InitOptions
+ * @typedef {import('sequelize').ModelScopeOptions} ModelScopeOptions
+ * @typedef {{name: string, schema: ModelAttributes, model: Model, indexes?: ModelIndexesOptions[], scopes?: ModelScopeOptions, options?: InitOptions}} FFModel
  */
-const { DataTypes } = require('sequelize')
 
+const { DataTypes } = require('sequelize')
 const Controllers = require('../controllers')
 
+/** @type {FFModel} */
 module.exports = {
     name: 'Project',
     schema: {
         id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
-        name: { type: DataTypes.STRING, allowNull: false },
+        name: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            set (value) {
+                this.setDataValue('safeName', value?.toLowerCase())
+                this.setDataValue('name', value)
+            }
+        },
         type: { type: DataTypes.STRING, allowNull: false },
         url: {
             type: DataTypes.STRING,
@@ -42,8 +58,19 @@ module.exports = {
             }
         },
         storageURL: { type: DataTypes.VIRTUAL, get () { return process.env.FLOWFORGE_API_URL + '/storage' } },
-        auditURL: { type: DataTypes.VIRTUAL, get () { return process.env.FLOWFORGE_API_URL + '/logging' } }
+        auditURL: { type: DataTypes.VIRTUAL, get () { return process.env.FLOWFORGE_API_URL + '/logging' } },
+        safeName: {
+            type: DataTypes.STRING,
+            unique: true,
+            allowNull: false,
+            get () {
+                return this.getDataValue('safeName') || this.getDataValue('name')?.toLowerCase()
+            }
+        }
     },
+    indexes: [
+        { name: 'projects_safe_name_unique', fields: ['safeName'], unique: true }
+    ],
     associations: function (M) {
         this.belongsTo(M.Team)
         this.hasOne(M.AuthClient, {
@@ -185,6 +212,13 @@ module.exports = {
                 }
             },
             static: {
+                isNameUsed: async (name) => {
+                    const safeName = name?.toLowerCase()
+                    const count = await this.count({
+                        where: { safeName: safeName }
+                    })
+                    return count !== 0
+                },
                 byUser: async (user) => {
                     return this.findAll({
                         include: {

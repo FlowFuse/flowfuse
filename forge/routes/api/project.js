@@ -94,8 +94,8 @@ module.exports = async function (app) {
     })
 
     /**
-     * Create an new project
-     * @name /api/v1/project
+     * Create a project
+     * @name /api/v1/projects
      * @memberof forge.routes.api.project
      */
     app.post('/', {
@@ -171,13 +171,14 @@ module.exports = async function (app) {
             return
         }
 
-        const name = request.body.name
-
-        if (bannedNameList.includes(name)) {
+        const name = request.body.name?.trim()
+        const safeName = name?.toLowerCase()
+        if (bannedNameList.includes(safeName)) {
             reply.status(409).type('application/json').send({ error: 'name not allowed' })
             return
         }
-        if (await app.db.models.Project.count({ where: { name: name } }) !== 0) {
+
+        if (await app.db.models.Project.isNameUsed(safeName)) {
             reply.status(409).type('application/json').send({ error: 'name in use' })
             return
         }
@@ -596,8 +597,19 @@ module.exports = async function (app) {
 
             reply.code(200).send({})
         } else {
-            if (request.body.name && request.project.name !== request.body.name) {
-                request.project.name = request.body.name
+            const reqName = request.body.name?.trim()
+            const reqSafeName = reqName?.toLowerCase()
+            const projectName = request.project.name?.trim()
+            if (reqName && projectName !== reqName) {
+                if (bannedNameList.includes(reqSafeName)) {
+                    reply.status(409).type('application/json').send({ error: 'name not allowed' })
+                    return
+                }
+                if (await app.db.models.Project.isNameUsed(reqSafeName)) {
+                    reply.status(409).type('application/json').send({ error: 'name in use' })
+                    return
+                }
+                request.project.name = reqName
                 changed = true
             }
             if (request.body.settings) {

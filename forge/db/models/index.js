@@ -36,6 +36,14 @@
  *
  * @namespace models
  * @memberof forge.db
+ * // type helpers for design time help and error checking
+ * @typedef {import('sequelize').Model} Model
+ * @typedef {import('sequelize').ModelAttributes} ModelAttributes
+ * @typedef {import('sequelize').SchemaOptions} SchemaOptions
+ * @typedef {import('sequelize').ModelIndexesOptions} ModelIndexesOptions
+ * @typedef {import('sequelize').InitOptions} InitOptions
+ * @typedef {import('sequelize').ModelScopeOptions} ModelScopeOptions
+ * @typedef {{name: string, schema: ModelAttributes, model: Model, indexes?: ModelIndexesOptions[], scopes?: ModelScopeOptions, options?: InitOptions}} FFModel
  */
 const { Model, DataTypes } = require('sequelize')
 const { getHashId } = require('../utils')
@@ -77,12 +85,12 @@ const M = {}
  *
  * For each one it:
  *  1. requires the corresponding model
- *  2. builds the approprate sequelize Model object for it
+ *  2. builds the appropriate sequelize Model object for it
  *  3. exports it as `module.exports.<Type>`
  *
  * Once all of the models are created, it loops back over them to:
  *  1. setup inter-model associates
- *  2. attach the static and instance finers to the model object
+ *  2. attach the static and instance finders to the model object
  *
  *
  * Finally it synchronizes with the database to create the tables as needed.
@@ -90,14 +98,17 @@ const M = {}
  */
 async function init (app) {
     const sequelize = app.db.sequelize
+    /** @type {FFModel[]} */
     const allModels = []
 
     modelTypes.forEach(type => {
+        /** @type { FFModel } */
         const m = require(`./${type}`)
         if (m.name !== type) {
             throw new Error(`Model name mismatch: '${m.name}' !== '${type}'`)
         }
 
+        /** @type {InitOptions} */
         const opts = {
             sequelize,
             modelName: m.name,
@@ -115,7 +126,7 @@ async function init (app) {
             }
         }
         if (m.indexes) {
-            opts.index = m.indexes
+            opts.indexes = m.indexes
         }
         if (!m.model) {
             m.model = class model extends Model {}
