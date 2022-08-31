@@ -64,6 +64,9 @@ module.exports = {
 
         await team.addUser(user, { through: { role: userRole } })
         if (app.license.active() && app.billing) {
+            await team.reload({
+                include: [{ model: app.db.models.TeamType }]
+            })
             await app.billing.updateTeamMemberCount(team)
         }
     },
