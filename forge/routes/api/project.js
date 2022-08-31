@@ -174,12 +174,12 @@ module.exports = async function (app) {
         const safeName = name?.toLowerCase()
         if (bannedNameList.includes(safeName)) {
             reply.status(409).type('application/json').send({ error: 'name not allowed' })
-            return reply
+            return
         }
 
         if (await app.db.models.Project.isNameUsed(safeName)) {
             reply.status(409).type('application/json').send({ error: 'name in use' })
-            return reply
+            return
         }
 
         const project = await app.db.models.Project.create({
@@ -583,11 +583,11 @@ module.exports = async function (app) {
             if (reqName && projectName !== reqName) {
                 if (bannedNameList.includes(reqSafeName)) {
                     reply.status(409).type('application/json').send({ error: 'name not allowed' })
-                    return reply
+                    return
                 }
                 if (await app.db.models.Project.isNameUsed(reqSafeName)) {
                     reply.status(409).type('application/json').send({ error: 'name in use' })
-                    return reply
+                    return
                 }
                 request.project.name = reqName
                 changed = true
