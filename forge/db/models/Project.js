@@ -214,10 +214,10 @@ module.exports = {
             static: {
                 isNameUsed: async (name) => {
                     const safeName = name?.toLowerCase()
-                    const found = await this.findOne({
+                    const count = await this.count({
                         where: { safeName: safeName }
                     })
-                    return !!found
+                    return count !== 0
                 },
                 byUser: async (user) => {
                     return this.findAll({
