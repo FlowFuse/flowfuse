@@ -171,27 +171,22 @@ module.exports = async function (app) {
         }
 
         const name = request.body.name?.trim()
-        if (bannedNameList.includes(name)) {
+        const safeName = name?.toLowerCase()
+        if (bannedNameList.includes(safeName)) {
             reply.status(409).type('application/json').send({ error: 'name not allowed' })
-            return
-        }
-
-        let project
-
-        try {
-            project = await app.db.models.Project.create({
-                name: name,
-                type: '',
-                url: ''
-            })
-        } catch (error) {
-            if (error.name === 'SequelizeUniqueConstraintError') {
-                reply.status(409).type('application/json').send({ error: 'name in use' })
-                return reply
-            }
-            reply.code(500).send({ error: error.toString() })
             return reply
         }
+
+        if (await app.db.models.Project.isNameUsed(safeName)) {
+            reply.status(409).type('application/json').send({ error: 'name in use' })
+            return reply
+        }
+
+        const project = await app.db.models.Project.create({
+            name: name,
+            type: '',
+            url: ''
+        })
 
         // const authClient = await app.db.controllers.AuthClient.createClientForProject(project);
         // const projectToken = await app.db.controllers.AccessToken.createTokenForProject(project, null, ["project:flows:view","project:flows:edit"])
@@ -583,8 +578,17 @@ module.exports = async function (app) {
             reply.code(200).send({})
         } else {
             const reqName = request.body.name?.trim()
+            const reqSafeName = reqName?.toLowerCase()
             const projectName = request.project.name?.trim()
             if (reqName && projectName !== reqName) {
+                if (bannedNameList.includes(reqSafeName)) {
+                    reply.status(409).type('application/json').send({ error: 'name not allowed' })
+                    return reply
+                }
+                if (await app.db.models.Project.isNameUsed(reqSafeName)) {
+                    reply.status(409).type('application/json').send({ error: 'name in use' })
+                    return reply
+                }
                 request.project.name = reqName
                 changed = true
             }

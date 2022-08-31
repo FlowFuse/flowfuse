@@ -1,11 +1,20 @@
 /**
  * A Project
  * @namespace forge.db.models.Project
+ * // type helpers for design time help and error checking
+ * @typedef {import('sequelize').Model} Model
+ * @typedef {import('sequelize').ModelAttributes} ModelAttributes
+ * @typedef {import('sequelize').SchemaOptions} SchemaOptions
+ * @typedef {import('sequelize').ModelIndexesOptions} ModelIndexesOptions
+ * @typedef {import('sequelize').InitOptions} InitOptions
+ * @typedef {import('sequelize').ModelScopeOptions} ModelScopeOptions
+ * @typedef {{name: string, schema: ModelAttributes, model: Model, indexes?: ModelIndexesOptions[], scopes?: ModelScopeOptions, options?: InitOptions}} FFModel
  */
-const { DataTypes } = require('sequelize')
 
+const { DataTypes } = require('sequelize')
 const Controllers = require('../controllers')
 
+/** @type {FFModel} */
 module.exports = {
     name: 'Project',
     schema: {
@@ -59,6 +68,9 @@ module.exports = {
             }
         }
     },
+    indexes: [
+        { name: 'projects_safe_name_unique', fields: ['safeName'], unique: true }
+    ],
     associations: function (M) {
         this.belongsTo(M.Team)
         this.hasOne(M.AuthClient, {
@@ -200,6 +212,13 @@ module.exports = {
                 }
             },
             static: {
+                isNameUsed: async (name) => {
+                    const safeName = name?.toLowerCase()
+                    const found = await this.findOne({
+                        where: { safeName: safeName }
+                    })
+                    return !!found
+                },
                 byUser: async (user) => {
                     return this.findAll({
                         include: {
