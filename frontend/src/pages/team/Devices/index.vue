@@ -212,7 +212,7 @@ export default {
             return !this.isProjectDeviceView && this.teamMembership.role === Roles.Owner
         },
         isOwner: function () {
-            return !this.isProjectDeviceView && (this.teamMembership.role === Roles.Owner)
+            return this.teamMembership.role === Roles.Owner
         },
         columns: function () {
             const targetSnapshot = this.project?.deviceSettings.targetSnapshot
