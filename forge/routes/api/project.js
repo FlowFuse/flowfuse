@@ -1,4 +1,5 @@
 const crypto = require('crypto')
+const { Roles } = require('../../lib/roles')
 const ProjectActions = require('./projectActions')
 const ProjectDevices = require('./projectDevices')
 const ProjectSnapshots = require('./projectSnapshots')
@@ -356,8 +357,27 @@ module.exports = async function (app) {
      * @name /api/v1/project/:id
      * @memberof forge.routes.api.project
      */
-    app.put('/:projectId', { preHandler: app.needsPermission('project:edit') }, async (request, reply) => {
+    app.put('/:projectId', async (request, reply) => {
         let changed = false
+        let allSettingsEdit = false
+
+        // First, check what is being set & check permissions accordingly.
+        // * If the only value sent is `request.body.settings.env`, then we only need 'project:edit-env' permission
+        // * Otherwise, everything else requires 'project:edit' permission
+        const bodyKeys = Object.keys(request.body || {})
+        const settingsKeys = Object.keys(request.body?.settings || {})
+        try {
+            if (bodyKeys.length === 1 && bodyKeys[0] === 'settings' && settingsKeys.length === 1 && settingsKeys[0] === 'env') {
+                await app.needsPermission('project:edit-env')(request, reply)
+            } else {
+                await app.needsPermission('project:edit')(request, reply)
+                allSettingsEdit = true
+            }
+        } catch (err) {
+            // Auth failure. needsPermission will have responded already
+            return
+        }
+
         if (request.body.stack) {
             if (request.body.stack !== request.project.ProjectStack?.id) {
                 const stack = await app.db.models.ProjectStack.byId(request.body.stack)
@@ -581,10 +601,17 @@ module.exports = async function (app) {
                 changed = true
             }
             if (request.body.settings) {
-                // Validate the settings
-                //  1. only store known keys
-                //  2. only store values for keys the template policy allows to be set
-                const newSettings = app.db.controllers.ProjectTemplate.validateSettings(request.body.settings, request.project.ProjectTemplate)
+                let bodySettings
+                if (allSettingsEdit) {
+                    // store all body settings if user is owner
+                    bodySettings = request.body.settings
+                } else {
+                    // only store settings.env if user is member
+                    bodySettings = {
+                        env: request.body.settings.env
+                    }
+                }
+                const newSettings = app.db.controllers.ProjectTemplate.validateSettings(bodySettings, request.project.ProjectTemplate)
                 // Merge the settings into the existing values
                 const currentProjectSettings = await request.project.getSetting('settings') || {}
                 const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings)
@@ -599,8 +626,27 @@ module.exports = async function (app) {
                     'project.settings.updated'
                 )
             }
-
-            const result = await app.db.views.Project.project(request.project)
+            const project = await app.db.views.Project.project(request.project)
+            let result
+            if (request.teamMembership.role >= Roles.Owner) {
+                result = project
+            } else {
+                // exclude template object in response when not owner
+                result = {
+                    createdAt: project.createdAt,
+                    id: project.id,
+                    name: project.name,
+                    links: project.links,
+                    projectType: project.projectType,
+                    stack: project.stack,
+                    team: project.team,
+                    updatedAt: project.updatedAt,
+                    url: project.url,
+                    settings: {
+                        env: project.settings?.env
+                    }
+                }
+            }
             result.meta = await app.containers.details(request.project) || { state: 'unknown' }
             result.team = await app.db.views.Team.teamSummary(request.project.Team)
             reply.send(result)

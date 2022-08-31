@@ -9,17 +9,9 @@
 
 <script>
 import SectionSideMenu from '@/components/SectionSideMenu'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
 import { Roles } from '@core/lib/roles'
-
-const sideNavigation = [
-    { name: 'General', path: './general' },
-    { name: 'Environment', path: './environment' },
-    { name: 'Editor', path: './editor' },
-    { name: 'Palette', path: './palette' },
-    { name: 'Danger', path: './danger' }
-]
 
 export default {
     name: 'ProjectSettings',
@@ -27,9 +19,9 @@ export default {
     computed: {
         ...mapState('account', ['team', 'teamMembership'])
     },
-    setup () {
+    data () {
         return {
-            sideNavigation
+            sideNavigation: []
         }
     },
     components: {
@@ -43,8 +35,17 @@ export default {
     },
     methods: {
         checkAccess: async function () {
-            if (this.teamMembership && this.teamMembership.role !== Roles.Owner) {
-                useRouter().push({ path: `team/${this.team.slug}/projects/${useRoute().params.id}/overview` })
+            this.sideNavigation = [
+                { name: 'General', path: './general' },
+                { name: 'Environment', path: './environment' }
+            ]
+            if (this.teamMembership && this.teamMembership.role === Roles.Owner) {
+                this.sideNavigation.push({ name: 'Editor', path: './editor' })
+                this.sideNavigation.push({ name: 'Palette', path: './palette' })
+                this.sideNavigation.push({ name: 'Danger', path: './danger' })
+            }
+            if (this.teamMembership && (this.teamMembership.role !== Roles.Owner && this.teamMembership.role !== Roles.Member)) {
+                useRouter().push({ path: '../overview' })
             }
         }
     }

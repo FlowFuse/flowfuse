@@ -1,9 +1,9 @@
 <template>
     <form class="space-y-6">
-        <ff-data-table :columns="inviteColumns" :rows="invitations">
+        <ff-data-table data-el="table" :columns="inviteColumns" :rows="invitations">
             <template v-slot:context-menu="{row}">
-                <ff-list-item label="Accept" @click="acceptInvite(row.id)"/>
-                <ff-list-item label="Reject" kind="danger" @click="rejectInvite(row.id)"/>
+                <ff-list-item data-action="accept" label="Accept" @click="acceptInvite(row.id)"/>
+                <ff-list-item data-action="reject" label="Reject" kind="danger" @click="rejectInvite(row.id)"/>
             </template>
         </ff-data-table>
     </form>

@@ -9,9 +9,9 @@
  * @memberof forge.routes.api
  */
 module.exports = async function (app) {
-    app.addHook('preHandler', app.needsPermission('project:change-status'))
-
-    app.post('/start', async (request, reply) => {
+    const changeStatusPreHandler = { preHandler: app.needsPermission('project:change-status') }
+    const rollbackPreHandler = { preHandler: app.needsPermission('project:rollback') }
+    app.post('/start', changeStatusPreHandler, async (request, reply) => {
         try {
             if (request.project.state === 'suspended') {
                 // Restart the container
@@ -45,7 +45,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.post('/stop', async (request, reply) => {
+    app.post('/stop', changeStatusPreHandler, async (request, reply) => {
         try {
             if (request.project.state === 'suspended') {
                 reply.code(400).send({ error: 'Project suspended' })
@@ -67,7 +67,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.post('/restart', async (request, reply) => {
+    app.post('/restart', changeStatusPreHandler, async (request, reply) => {
         try {
             if (request.project.state === 'suspended') {
                 reply.code(400).send({ error: 'Project suspended' })
@@ -89,7 +89,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.post('/suspend', async (request, reply) => {
+    app.post('/suspend', changeStatusPreHandler, async (request, reply) => {
         try {
             if (request.project.state === 'suspended') {
                 reply.code(400).send({ error: 'Project suspended' })
@@ -109,7 +109,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.post('/rollback', async (request, reply) => {
+    app.post('/rollback', rollbackPreHandler, async (request, reply) => {
         let restartProject = false
         try {
             // get (and check) snapshot is valid / owned by project before any actions

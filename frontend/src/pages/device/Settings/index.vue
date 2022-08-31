@@ -10,19 +10,40 @@
 <script>
 import SectionSideMenu from '@/components/SectionSideMenu'
 
-const sideNavigation = [
-    { name: 'General', path: './general' },
-    { name: 'Environment', path: './environment' },
-    { name: 'Danger', path: './danger' }
-]
+import { mapState } from 'vuex'
+import { useRouter } from 'vue-router'
+import { Roles } from '@core/lib/roles'
 
 export default {
     name: 'DeviceSettins',
     props: ['device'],
     emits: ['device-updated'],
-    setup () {
+    data: function () {
         return {
-            sideNavigation
+            sideNavigation: []
+        }
+    },
+    computed: {
+        ...mapState('account', ['teamMembership', 'team']),
+        isOwner: function () {
+            return this.teamMembership.role === Roles.Owner
+        }
+    },
+    mounted () {
+        this.checkAccess()
+    },
+    methods: {
+        checkAccess: async function () {
+            this.sideNavigation = [
+                { name: 'General', path: './general' },
+                { name: 'Environment', path: './environment' }
+            ]
+            if (this.teamMembership && this.teamMembership.role === Roles.Owner) {
+                this.sideNavigation.push({ name: 'Danger', path: './danger' })
+            }
+            if (!this.teamMembership || (this.teamMembership.role !== Roles.Owner && this.teamMembership.role !== Roles.Member)) {
+                useRouter().push({ replace: true, path: 'overview' })
+            }
         }
     },
     components: {

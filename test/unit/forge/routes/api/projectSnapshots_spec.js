@@ -126,10 +126,10 @@ describe('Project Snapshots API', function () {
         })
     }
     describe('Create project snapshot', function () {
-        it('Non-owner cannot create project snapshot', async function () {
-            // Bob (non-owner) cannot create in ATeam
+        it('Non-owner can create project snapshot', async function () {
+            // Bob (non-owner) can create in ATeam
             const response = await createSnapshot(TestObjects.project1.id, 'test-project-snapshot-01', TestObjects.tokens.bob)
-            response.statusCode.should.equal(403)
+            response.statusCode.should.equal(200)
         })
 
         it('Non-member cannot create project snapshot', async function () {
