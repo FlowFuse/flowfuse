@@ -283,12 +283,20 @@ describe('Stack API', function () {
             result.should.have.property('projectCount', 1)
         })
         it('Cannot change projectType for stack that already has one', async function () {
+            const projectType2 = await app.db.models.ProjectType.create({
+                name: 'projectType2',
+                description: 'second project type',
+                active: true,
+                properties: { foo: 'bar' },
+                order: 2
+            })
+
             const response = await app.inject({
                 method: 'PUT',
                 url: `/api/v1/stacks/${TestObjects.stack1.hashid}`,
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
-                    projectType: TestObjects.projectType1.hashid
+                    projectType: projectType2.hashid
                 }
             })
             response.statusCode.should.equal(400)
