@@ -18,7 +18,7 @@ const templateFields = [
 const defaultTemplateValues = {
     disableEditor: false,
     httpAdminRoot: '',
-    dashboardUI: '',
+    dashboardUI: '/ui',
     codeEditor: 'monaco',
     theme: 'forge-light',
     page_title: 'FlowForge',
