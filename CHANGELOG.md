@@ -1,3 +1,47 @@
+#### 0.9.0: Release
+
+ - Properly report stack delete error messages (#934) @knolleary
+ - Inflate team object with TeamType for updating billing (#933) @hardillb
+ - Ensure device action options are shown on project/devices view for owner (#932) @knolleary
+ - fix migration SQL for postgres (#931) @Steve-Mcl
+ - Permit `a-zA-Z-` in project name (#925) @Steve-Mcl
+ - permit custom dashboard path to be set from FF (#926) @Steve-Mcl
+ - Limit tests to only run when changes to code (#889) @hardillb
+ - Update Stack Deleting Error Text (#927) @sammachin
+ - adjust visibility and operations to match agreed RBACs (#920) @Steve-Mcl
+ - Fix Stack update logic (#928) @sammachin
+ - Hide loading graphic when project is susspended and viewing logs (#924) @hardillb
+ - Limit password length to 1024 chars (#922) @hardillb
+ - docs: Explain how to push images to docker (#919) @ZJvandeWeg
+ - docs: Fix minor issues on the k8s install docs (#918) @ZJvandeWeg
+ - Fix creating teams when billing enabled (#916) @hardillb
+ - docs: Update RBAC table (#865) @Steve-Mcl
+ - Map properties for Snapshot component (#908) @joepavitt
+ - Change .unit_price property to .price (#914) @joepavitt
+ - Make team row selectable (#913) @joepavitt
+ - Add migration guide (#897) @sammachin
+ - add default crt & key instructions (#909) @sammachin
+ - 
+ - 
+ - 
+ - 
+ - 
+ - 
+ - 
+ - Remove redundant test: calls that were not required in final Cypress solution (#895) @joepavitt
+ - 
+ - 
+ - 
+ - 
+ - 
+ - 
+ - 
+ - 
+ - 
+ - Select Tiles for "Create Project" & "Admin > Project Types" (#846) @joepavitt
+ - 
+ - 
+
 #### 0.8.0: Release
 
  - Update 06-story.yml
