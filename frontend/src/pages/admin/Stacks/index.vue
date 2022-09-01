@@ -107,7 +107,6 @@ export default {
     },
     methods: {
         stackAction (action, stackId) {
-            console.log('stack action')
             const stack = this.allStacks[stackId]
             if (stack) {
                 switch (action) {
@@ -136,7 +135,11 @@ export default {
                                 delete this.allStacks[stack.id]
                             })
                             .catch((err) => {
-                                Alerts.emit(err.message, 'warning')
+                                if (err.response && err.response.data && err.response.data.error) {
+                                    Alerts.emit(err.response.data.error, 'warning')
+                                } else {
+                                    Alerts.emit(err.message, 'warning')
+                                }
                             })
                     })
                     break
