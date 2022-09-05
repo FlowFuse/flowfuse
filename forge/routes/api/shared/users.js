@@ -30,6 +30,14 @@ module.exports = {
                 if (request.body.password_expired === true) {
                     user.password_expired = true
                 }
+
+                if (request.body.suspended !== undefined) {
+                    if (request.body.suspended === true) {
+                        await app.db.controllers.User.suspend(user)
+                    } else {
+                        user.suspended = false
+                    }
+                }
             }
             if (request.body.defaultTeam !== undefined) {
                 // verify user is a member of request.body.defaultTeam

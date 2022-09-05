@@ -88,6 +88,11 @@ module.exports = {
             }
         }
         throw new Error('Invalid link')
-    }
+    },
 
+    suspend: async function (app, user) {
+        user.suspended = true
+        // TODO: send email
+        await user.save()
+    }
 }

@@ -178,6 +178,9 @@ module.exports = fp(async function (app, opts, done) {
                 reply.setCookie('sid', session.sid, cookieOptions)
                 reply.send({ status: 'okay' })
                 return
+            } else {
+                reply.code(403).send({ error: 'user suspended' })
+                return
             }
         }
         reply.code(401).send({ error: 'unauthorized' })

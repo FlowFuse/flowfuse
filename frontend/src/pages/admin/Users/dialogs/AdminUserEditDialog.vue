@@ -25,6 +25,16 @@
                         </ff-button>
                     </template>
                 </FormRow>
+                <FormRow id="user_suspended" wrapperClass="flex justify-between items-center" :disabled="user_suspendedLocked" v-model="input.user_suspended" type="checkbox">Suspended
+                    <template v-slot:append>
+                        <ff-button v-if="user_suspendedLocked" kind="danger" size="small" @click="unlockSuspended()">
+                            Unlock
+                            <template v-slot:icon>
+                                <LockClosedIcon />
+                            </template>
+                        </ff-button>
+                    </template>
+                </FormRow>
                 <FormHeading class="text-red-700">Danger Zone</FormHeading>
                 <FormRow :error="errors.expirePassword" wrapperClass="block">
                     <template #input>
@@ -80,7 +90,8 @@ export default {
             adminLocked: true,
             email_verifiedLocked: false,
             deleteLocked: true,
-            expirePassLocked: true
+            expirePassLocked: true,
+            user_suspendedLocked: true
         }
     },
     watch: {
@@ -118,6 +129,9 @@ export default {
         unlockExpirePassword () {
             this.expirePassLocked = false
         },
+        unlockSuspended () {
+            this.user_suspendedLocked = false
+        },
         confirm () {
             if (this.formValid) {
                 const opts = {}
@@ -140,6 +154,10 @@ export default {
                 }
                 if (this.input.email_verified !== this.user.email_verified) {
                     opts.email_verified = this.input.email_verified
+                    changed = true
+                }
+                if (this.input.user_suspended !== this.user.suspended) {
+                    opts.suspended = this.input.user_suspended
                     changed = true
                 }
 
@@ -194,6 +212,8 @@ export default {
                 this.adminLocked = true
                 this.deleteLocked = true
                 this.expirePassLocked = true
+                this.user_suspendedLocked = true
+                this.input.user_suspended = user.suspended
                 this.errors = {}
             }
         }

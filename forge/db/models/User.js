@@ -33,6 +33,10 @@ module.exports = {
                     return avatar
                 }
             }
+        },
+        suspended: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
         }
     },
     scopes: {
