@@ -138,14 +138,14 @@ describe('Team API', function () {
         // - should fail if team owns projects
 
         it('', async function () {
-            // Alice invites Elvis to TeamB
-            // Delete Elvis
+            // Alice invites Chris to TeamB
+            // Delete TeamB
             await app.inject({
                 method: 'POST',
                 url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations`,
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
-                    user: 'elvis'
+                    user: 'chris'
                 }
             })
             const inviteListA = (await app.inject({
@@ -160,12 +160,12 @@ describe('Team API', function () {
                 cookies: { sid: TestObjects.tokens.alice }
             })
             deleteResult.statusCode.should.equal(200)
-            const inviteListElvis = (await app.inject({
+            const inviteListChris = (await app.inject({
                 method: 'GET',
                 url: '/api/users/invitations',
-                cookies: { sid: TestObjects.tokens.elvis }
+                cookies: { sid: TestObjects.tokens.chris }
             })).json()
-            inviteListElvis.should.have.property('count', 0)
+            inviteListChris.should.have.property('count', 0)
         })
     })
 
