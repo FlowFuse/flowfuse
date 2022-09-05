@@ -2,13 +2,7 @@ const { Roles } = require('../../lib/roles.js')
 module.exports = {
     createInvitations: async (app, invitor, team, userList) => {
         const externalInvitesPermitted = app.postoffice.enabled() && !!app.settings.get('team:user:invite:external')
-        const currentTeamMemberCount = await team.memberCount()
-        const currentTeamInviteCount = await team.pendingInviteCount()
-        const userLimit = team.TeamType.properties?.userLimit
-        if (userLimit > 0 && currentTeamMemberCount + currentTeamInviteCount >= userLimit) {
-            throw new Error('Team user limit reached')
-        }
-
+        const pendingInvites = []
         const results = {}
         for (let i = 0; i < userList.length; i++) {
             const userDetail = userList[i]
@@ -51,9 +45,20 @@ module.exports = {
                 continue
             }
             opts.invitorId = invitor.id
-            const invite = await app.db.models.Invitation.create(opts)
+            pendingInvites.push({ userDetail, opts })
+        }
+        if (team.TeamType.properties?.userLimit > 0) {
+            const currentTeamMemberCount = await team.memberCount()
+            const currentTeamInviteCount = await team.pendingInviteCount()
+            if (currentTeamMemberCount + currentTeamInviteCount + pendingInvites.length > team.TeamType.properties.userLimit) {
+                throw new Error('Team user limit reached')
+            }
+        }
+
+        for (let i = 0; i < pendingInvites.length; i++) {
+            const invite = await app.db.models.Invitation.create(pendingInvites[i].opts)
             // Re-get the new invite so the User/Team properties are pre-fetched
-            results[userDetail] = await app.db.models.Invitation.byId(invite.hashid)
+            results[pendingInvites[i].userDetail] = await app.db.models.Invitation.byId(invite.hashid)
         }
         return results
     },
