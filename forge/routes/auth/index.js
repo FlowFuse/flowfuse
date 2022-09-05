@@ -86,7 +86,8 @@ module.exports = fp(async function (app, opts, done) {
             if (request.session && request.session.User) {
                 const emailVerified = !app.postoffice.enabled() || request.session.User.email_verified || request.context.config.allowUnverifiedEmail
                 const passwordNotExpired = !request.session.User.password_expired || request.context.config.allowExpiredPassword
-                if (emailVerified && passwordNotExpired) {
+                const suspended = request.session.User.suspended
+                if (emailVerified && passwordNotExpired && !suspended) {
                     return
                 }
             }
