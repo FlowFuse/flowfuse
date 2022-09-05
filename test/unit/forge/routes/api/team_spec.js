@@ -126,4 +126,58 @@ describe('Team API', function () {
             failResponse.json().error.should.match(/license limit/)
         })
     })
+
+    describe('Create team', async function () {
+        // POST /api/v1/teams
+        // - Admin/Owner/Member
+    })
+
+    describe('Delete team', async function () {
+        // DELETE /api/v1/teams/:teamId
+        // - Admin/Owner/Member
+        // - should fail if team owns projects
+
+        it('', async function () {
+            // Alice invites Elvis to TeamB
+            // Delete Elvis
+            await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations`,
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    user: 'elvis'
+                }
+            })
+            const inviteListA = (await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })).json()
+            inviteListA.should.have.property('count', 1)
+            const deleteResult = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            deleteResult.statusCode.should.equal(200)
+            const inviteListElvis = (await app.inject({
+                method: 'GET',
+                url: '/api/users/invitations',
+                cookies: { sid: TestObjects.tokens.elvis }
+            })).json()
+            inviteListElvis.should.have.property('count', 0)
+        })
+    })
+
+    describe('Edit team details', async function () {
+        // PUT /api/v1/teams/:teamId
+    })
+
+    describe('Get current users membership', async function () {
+        // GET /api/v1/teams/:teamId/user
+    })
+
+    describe('Get team audit-log', async function () {
+        // GET /api/v1/teams/:teamId/audit-log
+    })
 })
