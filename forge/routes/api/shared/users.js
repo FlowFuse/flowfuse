@@ -34,6 +34,11 @@ module.exports = {
                 if (request.body.suspended !== undefined) {
                     if (request.body.suspended === true) {
                         await app.db.controllers.User.suspend(user)
+                        if (app.postoffice.enabled()) {
+                            // Send email
+                            app.postoffice.send(user, 'UserSuspended', {
+                            })
+                        }
                     } else {
                         user.suspended = false
                     }
