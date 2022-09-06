@@ -3,20 +3,30 @@ const fp = require('fastify-plugin')
 
 module.exports = fp(async function (app, opts, next) {
     // Dev License:
-    // {
-    //     iss: "FlowForge Inc.",
-    //     sub: "FlowForge Inc. Development",
-    //     nbf: 2021-12-17 14:26:00,
-    //     exp: 2200-01-01,
-    //     note: "For development only",
-    //     tier: "teams",
-    //     users: '100',
-    //     teams: '100',
-    //     projects: '100'
-    // }
-    // const devLicense = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjM5NzUxMTc1LCJleHAiOjcyNTgxMTg0MDAsIm5vdGUiOiJGb3IgZGV2ZWxvcG1lbnQgb25seSIsInRpZXIiOiJ0ZWFtcyIsInVzZXJzIjoiMTAwIiwidGVhbXMiOiIxMDAiLCJwcm9qZWN0cyI6IjEwMCIsImlhdCI6MTYzOTc1MTE3NX0.CZwIbUV9-vC1dPHaJqVJx1YchK_4JgRMBCd5UEQfNYblXNJKiaR9BFY7T-Qvzg1HsR3rbDhmraiiVMfGuR75gw'
+    /*
+    {
+        "iss": "FlowForge Inc.",
+        "sub": "FlowForge Inc. Development",
+        "nbf": 1662422400,
+        "exp": 7986902399,
+        "note": "Development-mode Only. Not for production",
+        "users": 150,
+        "teams": 50,
+        "projects": 50,
+        "devices": 50,
+        "dev": true
+    }
+    */
+    // const devLicense = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNDIyNDAwLCJleHAiOjc5ODY5MDIzOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjo1MCwiZGV2Ijp0cnVlLCJpYXQiOjE2NjI0ODI5ODd9.e8Jeppq4aURwWYz-rEpnXs9RY2Y7HF7LJ6rMtMZWdw2Xls6-iyaiKV1TyzQw5sUBAhdUSZxgtiFH5e_cNJgrUg'
 
     // TODO: load license from local file or app.config.XYZ
+
+    const defaultLimits = {
+        users: 150,
+        teams: 50,
+        projects: 50,
+        devices: 50
+    }
 
     let userLicense = await app.settings.get('license')
 
@@ -40,8 +50,18 @@ module.exports = fp(async function (app, opts, next) {
         },
         active: () => activeLicense !== null,
         get: (key) => {
-            return key ? activeLicense && activeLicense[key] : activeLicense
-        }
+            if (!key) {
+                return activeLicense
+            }
+            if (activeLicense) {
+                if (Object.hasOwn(activeLicense, key)) {
+                    return activeLicense[key]
+                }
+                return undefined
+            }
+            return defaultLimits[key]
+        },
+        defaults: defaultLimits
     }
 
     if (userLicense) {
@@ -52,10 +72,23 @@ module.exports = fp(async function (app, opts, next) {
         }
     } else {
         app.log.info('No license applied')
+        await reportUsage()
     }
     app.decorate('license', licenseApi)
 
     next()
+
+    async function reportUsage () {
+        const userCount = await app.db.models.User.count()
+        const teamCount = await app.db.models.Team.count()
+        const projectCount = await app.db.models.Project.count()
+        const deviceCount = await app.db.models.Device.count()
+        app.log.info('Usage:')
+        app.log.info(` Users    : ${userCount}/${licenseApi.get('users')}`)
+        app.log.info(` Teams    : ${teamCount}/${licenseApi.get('teams')}`)
+        app.log.info(` Projects : ${projectCount}/${licenseApi.get('projects')}`)
+        app.log.info(` Devices  : ${deviceCount}/${licenseApi.get('devices')}`)
+    }
 
     async function applyLicense (license) {
         activeLicense = await loader.verifyLicense(license)
@@ -68,5 +101,6 @@ module.exports = fp(async function (app, opts, next) {
         app.log.info(` Org:     ${activeLicense.organisation}`)
         app.log.info(` Valid From : ${activeLicense.validFrom.toISOString()}`)
         app.log.info(` Expires    : ${activeLicense.expiresAt.toISOString()}`)
+        await reportUsage()
     }
 })

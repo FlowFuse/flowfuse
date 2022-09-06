@@ -12,6 +12,10 @@ class LicenseDetails {
         this.validFrom = new Date(claims.nbf * 1000)
         this.expiresAt = new Date(claims.exp * 1000)
         this.dev = claims.dev
+        this.users = claims.users || 0
+        this.projects = claims.projects || 0
+        this.devices = claims.devices || 0
+        this.teams = claims.teams || 0
         Object.freeze(this)
     }
 
