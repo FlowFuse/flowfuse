@@ -4,15 +4,41 @@ const setup = require('../setup')
 describe('Project model', function () {
     // Use standard test data.
     let app
-    beforeEach(async function () {
-        app = await setup()
-    })
 
     afterEach(async function () {
-        await app.close()
+        if (app) {
+            await app.close()
+            app = null
+        }
+    })
+
+    describe('Project Create', function () {
+        it('limits how many projects can be created according to license', async function () {
+            app = await setup({
+                // license has projects limit set to 2
+                license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNDIyNDAwLCJleHAiOjc5ODY5MDIzOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjIsImRldmljZXMiOjUwLCJkZXYiOnRydWUsImlhdCI6MTY2MjQ4NDgzNn0.akS_SIeRNK_mQZyPXGVbg1odqoRRAi62xOyDS3jHnUVhSLvwZIpWBZu799PXCXRS0fV98GxVWjZm7i1YbuxlUg'
+            })
+            ;(await app.db.models.Project.count()).should.equal(0)
+            await app.db.models.Project.create({ name: 'p1', type: '', url: '' })
+            ;(await app.db.models.Project.count()).should.equal(1)
+            await app.db.models.Project.create({ name: 'p2', type: '', url: '' })
+            ;(await app.db.models.Project.count()).should.equal(2)
+            try {
+                await app.db.models.Project.create({ name: 'p3', type: '', url: '' })
+                return Promise.reject(new Error('able to create project that exceeds limit'))
+            } catch (err) { }
+            await app.db.models.Project.destroy({ where: { name: 'p2' } })
+            ;(await app.db.models.Project.count()).should.equal(1)
+            await app.db.models.Project.create({ name: 'p3', type: '', url: '' })
+            ;(await app.db.models.Project.count()).should.equal(2)
+        })
     })
 
     describe('Project Type', function () {
+        beforeEach(async function () {
+            app = await setup()
+        })
+
         it('has a project type', async function () {
             const project = await app.db.models.Project.create({
                 name: 'testProject',
@@ -33,6 +59,10 @@ describe('Project model', function () {
         })
     })
     describe('Project Settings', function () {
+        beforeEach(async function () {
+            app = await setup()
+        })
+
         it('can get project settings in one query', async function () {
             const project = await app.db.models.Project.create({
                 name: 'testProject',
