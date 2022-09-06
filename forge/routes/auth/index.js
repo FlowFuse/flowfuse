@@ -180,7 +180,7 @@ module.exports = fp(async function (app, opts, done) {
                 reply.send({ status: 'okay' })
                 return
             } else {
-                reply.code(403).send({ error: 'user suspended' })
+                reply.code(403).send({ error: 'User Suspended' })
                 return
             }
         }

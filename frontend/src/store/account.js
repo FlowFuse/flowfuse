@@ -240,11 +240,10 @@ const actions = {
             await userApi.login(credentials.username, credentials.password, credentials.remember)
             state.dispatch('checkState', state.getters.redirectUrlAfterLogin)
         } catch (err) {
-            console.log(err.response)
             if (err.response.status === 401) {
                 state.commit('loginFailed', 'Login failed')
             } else if (err.response.status === 403) {
-                state.commit('userSuspended', 'User Suspended')
+                state.commit('userSuspended', err.response.data.error)
             }
         }
     },
