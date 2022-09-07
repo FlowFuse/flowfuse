@@ -263,6 +263,10 @@ module.exports = fp(async function (app, opts, done) {
             reply.code(400).send({ error: 'invalid username' })
             return
         }
+        if (app.settings.get('user:tcs-required') && !request.body.tcs_accepted) {
+            reply.code(400).send({ error: 'terms and conditions not accepted' })
+            return
+        }
         try {
             const newUser = await app.db.models.User.create({
                 username: request.body.username,
@@ -270,7 +274,8 @@ module.exports = fp(async function (app, opts, done) {
                 email: request.body.email,
                 email_verified: false,
                 password: request.body.password,
-                admin: false
+                admin: false,
+                tcs_accepted: new Date()
             })
             const verifyToken = await app.db.controllers.User.generateEmailVerificationToken(newUser)
             await app.postoffice.send(

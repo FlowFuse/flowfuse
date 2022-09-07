@@ -17,7 +17,7 @@
                 <label class="ff-error-inline">{{ errors.password }}</label>
             </div>
             <div v-if="settings['user:tcs-required']">
-                <ff-checkbox v-model="input.tandcs">
+                <ff-checkbox v-model="input.tcs_accepted">
                     I accept the <a target="_blank" :href="settings['user:tcs-url']">FlowForge Terms &amp; Conditions.</a>
                 </ff-checkbox>
             </div>
@@ -56,7 +56,7 @@ export default {
                 username: '',
                 email: '',
                 password: '',
-                tandcs: false
+                tcs_accepted: false
             },
             errors: {
                 email: '',
@@ -73,7 +73,7 @@ export default {
             return (this.input.email && !this.errors.email) &&
                    (this.input.username && !this.errors.username) &&
                    this.input.password.length >= 8 &&
-                   (this.settings['user:tcs-required'] ? this.input.tandcs : true) &&
+                   (this.settings['user:tcs-required'] ? this.input.tcs_accepted : true) &&
                    (!this.errors.name)
         }
     },
