@@ -38,9 +38,14 @@ module.exports = {
     scopes: {
         admins: { where: { admin: true } }
     },
-    hooks: function (M) {
+    hooks: function (M, app) {
         return {
-            beforeCreate: (user, options) => {
+            beforeCreate: async (user, options) => {
+                const userLimit = app.license.get('users')
+                const userCount = await M.User.count()
+                if (userCount >= userLimit) {
+                    throw new Error('license limit reached')
+                }
                 if (!user.avatar) {
                     user.avatar = generateUserAvatar(user.name || user.username)
                 }
