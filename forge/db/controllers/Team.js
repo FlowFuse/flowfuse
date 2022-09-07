@@ -60,13 +60,24 @@ module.exports = {
     },
 
     addUser: async function (app, team, user, userRole) {
-        // TODO: Check team type has room for this user
+        const existingMembership = await user.getTeamMembership(team.id)
+        if (existingMembership !== null) {
+            throw new Error('User already in this team')
+        }
 
-        await team.addUser(user, { through: { role: userRole } })
-        if (app.license.active() && app.billing) {
+        const currentTeamMemberCount = await team.memberCount()
+        if (!team.TeamType) {
             await team.reload({
                 include: [{ model: app.db.models.TeamType }]
             })
+        }
+        const userLimit = team.TeamType.properties?.userLimit
+        if (userLimit > 0 && currentTeamMemberCount >= userLimit) {
+            throw new Error('Team user limit reached')
+        }
+
+        await team.addUser(user, { through: { role: userRole } })
+        if (app.license.active() && app.billing) {
             await app.billing.updateTeamMemberCount(team)
         }
     },

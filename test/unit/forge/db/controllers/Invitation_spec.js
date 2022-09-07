@@ -116,5 +116,15 @@ describe('Invitation controller', function () {
             Object.keys(result).should.have.length(1)
             checkExternalInvite(result['dave@example.com'], 1, 'dave@example.com', team.id)
         })
+
+        it('rejects if team user limit will be exceeded', async function () {
+            const invitor = await app.db.models.User.byUsername('alice')
+            const team = await app.db.models.Team.byName('ATeam')
+            const userList = ['dave@example.com', 'edward@example.com']
+            try {
+                await app.db.controllers.Invitation.createInvitations(invitor, team, userList)
+                return Promise.reject(new Error('allowed team user limit to be exceeded'))
+            } catch (err) {}
+        })
     })
 })

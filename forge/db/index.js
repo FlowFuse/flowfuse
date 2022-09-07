@@ -85,9 +85,15 @@ module.exports = fp(async function (app, _opts, next) {
     await controllers.init(app)
 
     // Ensure default Team Types exist
-    const createDefaultTeamTypesMigration = require('./migrations/20220808-02-create-default-team-types')
+    const TeamTypeMigrations = [
+        './migrations/20220808-02-create-default-team-types',
+        './migrations/20220905-01-update-default-team-type-limits'
+    ]
     const queryInterface = sequelize.getQueryInterface()
-    await createDefaultTeamTypesMigration.up(queryInterface)
+    for (let i = 0; i < TeamTypeMigrations.length; i++) {
+        const migration = require(TeamTypeMigrations[i])
+        await migration.up(queryInterface)
+    }
 
     const { inject } = require('./test-data')
     await inject(app)
