@@ -17,6 +17,9 @@ module.exports = {
             if (request.body.username) {
                 user.username = request.body.username
             }
+            if (request.body.tcs_accepted) {
+                user.tcs_accepted = new Date()
+            }
             if (request.session.User.admin) {
                 // Settings only an admin can modify
                 if (request.body.email_verified !== undefined) {

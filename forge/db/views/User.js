@@ -37,6 +37,9 @@ module.exports = {
         if (user.password_expired) {
             result.password_expired = true
         }
+        if (user.tcs_accepted) {
+            result.tcs_accepted = user.tcs_accepted
+        }
         result.email_verified = user.email_verified
         if (user.defaultTeamId) {
             result.defaultTeam = app.db.models.Team.encodeHashid(user.defaultTeamId)

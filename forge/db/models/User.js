@@ -33,7 +33,8 @@ module.exports = {
                     return avatar
                 }
             }
-        }
+        },
+        tcs_accepted: { type: DataTypes.DATE, allowNull: true }
     },
     scopes: {
         admins: { where: { admin: true } }

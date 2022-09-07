@@ -15,6 +15,9 @@ module.exports = async function (app) {
             const response = {
                 'team:user:invite:external': app.settings.get('team:user:invite:external') && app.postoffice.enabled(),
                 'team:create': app.settings.get('team:create'),
+                'user:tcs-required': app.settings.get('user:tcs-required'),
+                'user:tcs-url': app.settings.get('user:tcs-url'),
+                'user:tcs-date': app.settings.get('user:tcs-date'),
                 email: app.postoffice.enabled(),
                 stacks: app.containers.properties().stack || {},
                 features: app.config.features.getAllFeatures(),
@@ -24,9 +27,6 @@ module.exports = async function (app) {
             if (request.session.User.admin) {
                 response['telemetry:enabled'] = app.settings.get('telemetry:enabled')
                 response['user:signup'] = app.settings.get('user:signup')
-                response['user:reset-password'] = app.settings.get('user:reset-password')
-                response['user:tcs-required'] = app.settings.get('user:tcs-required')
-                response['user:tcs-url'] = app.settings.get('user:tcs-url')
                 response['user:reset-password'] = app.settings.get('user:reset-password')
                 response['user:team:auto-create'] = app.settings.get('user:team:auto-create')
                 response.email = app.postoffice.exportSettings(true)
@@ -47,7 +47,11 @@ module.exports = async function (app) {
 
     app.put('/', { preHandler: app.verifyAdmin }, async (request, reply) => {
         if (request.body) {
-            for (const [key, value] of Object.entries(request.body)) {
+            for (let [key, value] of Object.entries(request.body)) {
+                if (key === 'user:tcs-updated') {
+                    key = 'user:tcs-date'
+                    value = new Date()
+                }
                 await app.settings.set(key, value)
             }
             reply.send({ status: 'okay' })

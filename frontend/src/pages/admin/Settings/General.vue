@@ -29,9 +29,19 @@
             </template>
         </FormRow>
         <FormRow v-if="input['user:tcs-required']" v-model="input['user:tcs-url']" type="text" :error="errors.termsAndConditions">
-            Terms &amp; Conditions URL:
-            <template #description>
-                The URL for the Terms &amp; Conditions to load when a user wishes to view them.
+            Terms &amp; Conditions URL
+        </FormRow>
+        <FormRow v-if="input['user:tcs-required']">
+            Date of Terms &amp; Conditions applied
+            <template #input>
+                <div class="flex justify-between items-center" style="width: 100%">
+                    <div class="font-mono text-md grow">
+                        <span class="text-blue-700">{{tcsDate}}</span>
+                    </div>
+                    <div class="grow-0">
+                        <ff-button size="small" :disabled="loading" :kind="'secondary'" @click="updateTermsAndConditions">Update...</ff-button>
+                    </div>
+                </div>
             </template>
         </FormRow>
         <FormHeading>Teams</FormHeading>
@@ -47,7 +57,7 @@
             Allow users to invite external users to teams
             <template #description>
                 <p>Users can invite existing users to join a team. If they provide
-                    an email address of an unregistered user, the invitiation will be
+                    an email address of an unregistered user, the invitation will be
                     sent to that email address.</p>
             </template>
         </FormRow>
@@ -74,7 +84,8 @@
 
 <script>
 import settingsApi from '@/api/settings'
-
+import Dialog from '@/services/dialog'
+import Alerts from '@/services/alerts'
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
 import { mapState } from 'vuex'
@@ -85,6 +96,7 @@ const validSettings = [
     'user:team:auto-create',
     'user:tcs-required',
     'user:tcs-url',
+    'user:tcs-date',
     'team:create',
     'team:user:invite:external',
     'telemetry:enabled'
@@ -105,12 +117,22 @@ export default {
     },
     computed: {
         ...mapState('account', ['settings']),
-        saveEnabled: function () {
+        tcsDate () {
+            const _tcsDate = this.input['user:tcs-date']
+            if (_tcsDate && (typeof _tcsDate === 'string' || (_tcsDate instanceof Date && !isNaN(_tcsDate) && _tcsDate > 0))) {
+                return new Date(_tcsDate).toUTCString()
+            }
+            return '<Not Set>'
+        },
+        saveEnabled () {
             let result = false
             // check values are valid
             if (this.validate()) {
                 // has anything changed
                 validSettings.forEach(s => {
+                    if (s === 'user:tsc-date') {
+                        return // dont check tsc-date for change (no need to save if changed)
+                    }
                     if (s === 'user:tsc-url') {
                         result = this.input['user:tcs-required'] ? this.input[s] : null
                     } else {
@@ -147,13 +169,15 @@ export default {
                     options[s] = this.input[s]
                 }
             })
-
+            // don't save the T&C's date
+            delete options['user:tcs-date']
             // don't save the T&C's URL if no requirement for T&Cs
             options['user:tcs-url'] = this.input['user:tcs-required'] ? options['user:tcs-url'] : null
 
             settingsApi.updateSettings(options)
                 .then(() => {
                     this.$store.dispatch('account/refreshSettings')
+                    this.input['user:tcs-date'] = this.settings['user:tcs-date']
                 })
                 .catch((err) => {
                     console.warn(err)
@@ -161,6 +185,31 @@ export default {
                 .finally(() => {
                     this.loading = false
                 })
+        },
+        async updateTermsAndConditions () {
+            // don't save the T&C's if not required
+            if (!this.input['user:tcs-required']) {
+                return
+            }
+            Dialog.show({
+                header: 'Update Terms and Conditions',
+                kind: 'danger',
+                html: '<p>This action will update the timestamp associated with the Terms and Conditions effectively causing existing users to be prompted to re-review and reaccept the updated Terms and Conditions.</p><p>Are you sure?</p>',
+                confirmLabel: 'Continue'
+            }, async () => {
+                this.loading = true
+                const options = {}
+                options['user:tcs-updated'] = true
+                try {
+                    await settingsApi.updateSettings(options)
+                    this.$store.dispatch('account/refreshSettings')
+                    Alerts.emit('Terms and Conditions update success', 'info', 5000)
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.loading = false
+                }
+            })
         }
     },
     components: {
