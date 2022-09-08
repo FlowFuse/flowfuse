@@ -86,7 +86,6 @@ export default {
         'ff-layout-platform': FFLayoutPlatform
     },
     mounted () {
-        console.log('App mounted')
         this.$store.dispatch('account/checkState')
     }
 }
