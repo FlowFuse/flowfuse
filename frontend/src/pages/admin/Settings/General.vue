@@ -22,13 +22,13 @@
                 Users will be sent an email with a link back to the platform to reset their password.
             </template>
         </FormRow>
-        <FormRow v-model="input['user:tcs-required']" type="checkbox">
+        <FormRow v-model="input['user:tcs-required']" type="checkbox" data-el="terms-and-condition-required">
             Require user agreement to Terms &amp; Conditions
             <template #description>
                 When signing up, users will be presented with a link to the terms and conditions, and will be required to accept them in order to register.
             </template>
         </FormRow>
-        <FormRow v-if="input['user:tcs-required']" v-model="input['user:tcs-url']" type="text" :error="errors.termsAndConditions">
+        <FormRow v-if="input['user:tcs-required']" v-model="input['user:tcs-url']" type="text" :error="errors.termsAndConditions" data-el="terms-and-condition-url">
             Terms &amp; Conditions URL
         </FormRow>
         <FormRow v-if="input['user:tcs-required']">
@@ -39,7 +39,7 @@
                         <span class="text-blue-700">{{tcsDate}}</span>
                     </div>
                     <div class="grow-0">
-                        <ff-button size="small" :disabled="loading" :kind="'secondary'" @click="updateTermsAndConditions">Update...</ff-button>
+                        <ff-button size="small" :disabled="loading" :kind="'secondary'" @click="updateTermsAndConditions" data-action="terms-and-condition-update">Update...</ff-button>
                     </div>
                 </div>
             </template>
@@ -76,7 +76,7 @@
             </template>
         </FormRow>
         <div>
-            <ff-button :disabled="!saveEnabled" @click="saveChanges">Save settings</ff-button>
+            <ff-button :disabled="!saveEnabled" @click="saveChanges" data-action="save-settings">Save settings</ff-button>
         </div>
 
     </div>
@@ -156,12 +156,12 @@ export default {
             if (this.input['user:tcs-required']) {
                 const url = this.input['user:tcs-url'] || ''
                 if (url.trim() === '') {
-                this.errors.termsAndConditions = 'It is required to set a URL for the Terms & Conditions.'
-                return false
+                    this.errors.termsAndConditions = 'It is required to set a URL for the Terms & Conditions.'
+                    return false
                 }
             }
-                this.errors.termsAndConditions = ''
-                return true
+            this.errors.termsAndConditions = ''
+            return true
         },
         async saveChanges () {
             this.loading = true

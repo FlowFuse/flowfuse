@@ -7,11 +7,11 @@
             <p>
                 Please review the changes before you continue.
             </p>
-            <ff-checkbox v-model="accept">
+            <ff-checkbox v-model="accept" data-action="accept-terms-check">
                 I accept
             </ff-checkbox>
-            <ff-button :disabled="!accept || loading" kind="primary" @click="acceptAction">Continue</ff-button>
-            <ff-button kind="tertiary" @click="logout">Log out</ff-button>
+            <ff-button :disabled="!accept || loading" kind="primary" @click="acceptAction" data-action="accept-terms-button">Continue</ff-button>
+            <ff-button kind="tertiary" @click="logout" data-action="logout-terms-button">Log out</ff-button>
         </form>
     </ff-layout-box>
 </template>

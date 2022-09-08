@@ -169,6 +169,32 @@ describe('User API', async function () {
                 result.should.have.property('error')
             })
         })
+        describe('Terms and Conditions', async function () {
+            // PUT /api/v1/user
+            it('user can accept Terms and Conditions', async function () {
+                await login('elvis', 'eePassword')
+                const testStartTime = new Date()
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/user',
+                    cookies: { sid: TestObjects.tokens.elvis },
+                    payload: {
+                        tcs_accepted: true
+                    }
+                })
+                response.statusCode.should.equal(200)
+                const getUserResp = await app.inject({
+                    method: 'GET',
+                    url: '/api/v1/user',
+                    cookies: { sid: TestObjects.tokens.elvis }
+                })
+                getUserResp.statusCode.should.equal(200)
+                const user = response.json()
+                user.should.have.property('tcs_accepted')
+                const tcsAccepted = new Date(user.tcs_accepted)
+                should(tcsAccepted).be.greaterThanOrEqual(testStartTime)
+            })
+        })
         describe('Password Expired', async function () {
             it('return user info for password_expired user', async function () {
                 await login('dave', 'ddPassword')
