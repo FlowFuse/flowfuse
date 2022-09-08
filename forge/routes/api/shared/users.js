@@ -36,8 +36,19 @@ module.exports = {
                         await app.db.controllers.User.suspend(user)
                         if (app.postoffice.enabled()) {
                             // Send email
-                            const context = {
-                                support: app.config.support_contact ? app.config.support_contact : 'the administator'
+                            const context = {}
+                            if (app.config.support_contact) {
+                                console.log('from yaml')
+                                context.support = app.config.support_contact
+                            } else {
+                                const admin = await app.db.models.User.scope('admins').findOne()
+                                if (admin?.email) {
+                                    console.log('from admin email')
+                                    context.support = `mailto:${admin.email}`
+                                } else {
+                                    console.log('fall back')
+                                    context.support = 'the administrator'
+                                }
                             }
                             try {
                                 context.url = new URL(context.support)
@@ -45,8 +56,8 @@ module.exports = {
                                     context.support = context.url.pathname
                                 }
                             } catch (err) {
-                                console.log(err)
                             }
+                            console.log(context)
                             app.postoffice.send(user, 'UserSuspended', context)
                         }
                     } else {
