@@ -61,7 +61,7 @@ describe('Storage API', function () {
         })
         response.statusCode.should.equal(404)
     })
-    it('Get Settings', async function () {
+    it('Get Project Settings', async function () {
         const settingsURL = `/api/v1/projects/${app.project.id}/settings`
         const response = await app.inject({
             method: 'GET',
@@ -132,7 +132,7 @@ describe('Storage API', function () {
         should(creds).eqls(newCreds)
     })
 
-    it('Get Settings', async function () {
+    it('Get Storage Settings', async function () {
         this.timeout(10000)
         const settingsURL = `/storage/${project.id}/settings`
         const response = await app.inject({
