@@ -49,15 +49,6 @@ module.exports = async (options = {}) => {
         }
         // DB : the database connection/models/views/controllers
         await server.register(db)
-
-        // default to first admin if no support contact set
-        if (!server.config.support_contact) {
-            const admin = await server.db.models.User.scope('admins').findOne()
-            if (admin) {
-                server.config.support_contact = `mailto:${admin.email}`
-            }
-        }
-
         // Settings
         await server.register(settings)
         // Monitor

@@ -84,9 +84,6 @@ module.exports = async function (app) {
                 password: request.body.password,
                 admin: true
             })
-            if (!app.config.support_contact && request.body.email) {
-                app.config.support_contact = `mailto:${request.body.email}`
-            }
             reply.send({ status: 'okay' })
         } catch (err) {
             let responseMessage
