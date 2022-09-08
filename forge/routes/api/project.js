@@ -183,11 +183,17 @@ module.exports = async function (app) {
             return
         }
 
-        const project = await app.db.models.Project.create({
-            name: name,
-            type: '',
-            url: ''
-        })
+        let project
+        try {
+            project = await app.db.models.Project.create({
+                name: name,
+                type: '',
+                url: ''
+            })
+        } catch (err) {
+            reply.status(400).type('application/json').send({ error: err.message })
+            return
+        }
 
         // const authClient = await app.db.controllers.AuthClient.createClientForProject(project);
         // const projectToken = await app.db.controllers.AccessToken.createTokenForProject(project, null, ["project:flows:view","project:flows:edit"])
