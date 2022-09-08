@@ -5,19 +5,16 @@ module.exports = {
 
 Your FlowForge account has been suspended.
 
-{{#if reason}}
-{{ reason }}
-{{/if}}
-
-Please contact support
+Please contact support via {{{ support }}}
 
 `,
     html:
 `<p>Hello</p>
 <p>Your FlowForge account has been suspended.</p>
-{{#if reason}}
-<p>{{{ reason }}}</p>
+{{#if url}}
+<p>Please contact support via <a href="url.href">{{{ support }}}</a></p>
+{{else}}
+<p>Please contact support via {{{ support }}}</p>
 {{/if}}
-<p>Please contact support</p>
 `
 }

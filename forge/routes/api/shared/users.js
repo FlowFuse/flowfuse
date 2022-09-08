@@ -36,8 +36,18 @@ module.exports = {
                         await app.db.controllers.User.suspend(user)
                         if (app.postoffice.enabled()) {
                             // Send email
-                            app.postoffice.send(user, 'UserSuspended', {
-                            })
+                            const context = {
+                                support: app.config.support_contact ? app.config.support_contact : 'the administator'
+                            }
+                            try {
+                                context.url = new URL(context.support)
+                                if (context.url.protocol === 'mailto:' || context.url.protocol === 'tel:') {
+                                    context.support = context.url.pathname
+                                }
+                            } catch (err) {
+                                console.log(err)
+                            }
+                            app.postoffice.send(user, 'UserSuspended', context)
                         }
                     } else {
                         user.suspended = false
