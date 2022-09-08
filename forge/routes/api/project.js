@@ -178,7 +178,7 @@ module.exports = async function (app) {
             return
         }
 
-        if (/^[a-zA-Z]+[a-zA-Z0-9-]*$/.test(safeName) === false) {
+        if (/^[a-zA-Z][a-zA-Z0-9-]*$/.test(safeName) === false) {
             reply.status(409).type('application/json').send({ error: 'name not allowed' })
             return
         }

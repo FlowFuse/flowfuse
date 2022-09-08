@@ -154,7 +154,7 @@ export default {
     },
     watch: {
         'input.name': function (value, oldValue) {
-            if (/^[a-zA-Z]+[a-zA-Z0-9-]*$/.test(value)) {
+            if (/^[a-zA-Z][a-zA-Z0-9-]*$/.test(value)) {
                 this.errors.name = ''
             } else {
                 this.errors.name = 'Names must only include a→z, A→Z, -, 0→9'
