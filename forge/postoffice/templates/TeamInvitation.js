@@ -10,6 +10,6 @@ You've been invited to join team {{{invite.team.name}}} on the FlowForge platfor
     html:
 `<p>Hello!</p>
 <p>You've been invited to join team {{invite.team.name}} on the FlowForge platform.</p>
-<p><a href="{{{ signupLink }}}/account/teams/invitations">{{{ signupLink }}}/account/teams/invitations</a></p>
+<p><a href="{{{ signupLink }}}">{{{ signupLink }}}</a></p>
 `
 }
