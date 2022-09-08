@@ -153,13 +153,15 @@ export default {
     },
     methods: {
         validate () {
-            if (this.input['user:tcs-required'] && this.input['user:tcs-url'] === '') {
+            if (this.input['user:tcs-required']) {
+                const url = this.input['user:tcs-url'] || ''
+                if (url.trim() === '') {
                 this.errors.termsAndConditions = 'It is required to set a URL for the Terms & Conditions.'
                 return false
-            } else {
+                }
+            }
                 this.errors.termsAndConditions = ''
                 return true
-            }
         },
         async saveChanges () {
             this.loading = true
@@ -172,7 +174,7 @@ export default {
             // don't save the T&C's date
             delete options['user:tcs-date']
             // don't save the T&C's URL if no requirement for T&Cs
-            options['user:tcs-url'] = this.input['user:tcs-required'] ? options['user:tcs-url'] : null
+            options['user:tcs-url'] = this.input['user:tcs-required'] ? (options['user:tcs-url'] || '').trim() : null
 
             settingsApi.updateSettings(options)
                 .then(() => {
