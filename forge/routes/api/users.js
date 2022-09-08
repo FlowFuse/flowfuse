@@ -83,6 +83,14 @@ module.exports = async function (app) {
             reply.code(400).send({ error: 'invalid username' })
             return
         }
+        if (request.body.createDefaultTeam) {
+            const teamLimit = app.license.get('teams')
+            const teamCount = await app.db.models.Team.count()
+            if (teamCount >= teamLimit) {
+                reply.code(400).send({ error: 'Unable to create user team: license limit reached' })
+                return
+            }
+        }
         try {
             const newUser = await app.db.models.User.create({
                 username: request.body.username,
@@ -96,7 +104,8 @@ module.exports = async function (app) {
             if (request.body.createDefaultTeam) {
                 await app.db.controllers.Team.createTeamForUser({
                     name: `Team ${request.body.name}`,
-                    slug: request.body.username
+                    slug: request.body.username,
+                    TeamTypeId: (await app.db.models.TeamType.byName('starter')).id
                 }, newUser)
             }
             reply.send({ status: 'okay' })

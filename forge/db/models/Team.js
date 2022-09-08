@@ -14,24 +14,36 @@ module.exports = {
         slug: { type: DataTypes.STRING, unique: true, validate: { is: /^[a-z0-9-_]+$/i } },
         avatar: { type: DataTypes.STRING }
     },
-    hooks: {
-        beforeSave: (team, options) => {
-            if (!team.avatar) {
-                team.avatar = generateTeamAvatar(team.name)
+    hooks: function (M, app) {
+        return {
+            beforeCreate: async (team, options) => {
+                if (!team.TeamTypeId) {
+                    throw new Error('Cannot create team without TeamTypeId')
+                }
+                const teamLimit = app.license.get('teams')
+                const teamCount = await M.Team.count()
+                if (teamCount >= teamLimit) {
+                    throw new Error('license limit reached')
+                }
+            },
+            beforeSave: (team, options) => {
+                if (!team.avatar) {
+                    team.avatar = generateTeamAvatar(team.name)
+                }
+                if (!team.slug) {
+                    team.slug = slugify(team.name)
+                }
+                team.slug = team.slug.toLowerCase()
+            },
+            beforeDestroy: async (team, opts) => {
+                const projectCount = await team.projectCount()
+                if (projectCount > 0) {
+                    throw new Error('Cannot delete team that owns projects')
+                }
+            },
+            afterDestroy: async (team, opts) => {
+                // TODO: what needs tidying up after a team is deleted?
             }
-            if (!team.slug) {
-                team.slug = slugify(team.name)
-            }
-            team.slug = team.slug.toLowerCase()
-        },
-        beforeDestroy: async (team, opts) => {
-            const projectCount = await team.projectCount()
-            if (projectCount > 0) {
-                throw new Error('Cannot delete team that owns projects')
-            }
-        },
-        afterDestroy: async (team, opts) => {
-            // TODO: what needs tidying up after a team is deleted?
         }
     },
     associations: function (M) {
