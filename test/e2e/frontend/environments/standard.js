@@ -31,6 +31,7 @@ module.exports = async function (settings = {}, config = {}) {
     // team admin, not platform admin
     const userBob = await forge.db.models.User.create({ admin: false, username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
     // no admin rights
+    // eslint-disable-next-line no-unused-vars
     const userCharlie = await forge.db.models.User.create({ admin: false, username: 'charlie', name: 'Charlie Palpatine', email: 'charlie@example.com', email_verified: true, password: 'ccPassword' })
     // non admin, not in any team but will be invited and removed as required
     // eslint-disable-next-line no-unused-vars
@@ -41,7 +42,7 @@ module.exports = async function (settings = {}, config = {}) {
     const team1 = await forge.db.models.Team.create({ name: 'ATeam', TeamTypeId: defaultTeamType.id })
     await team1.addUser(userAlice, { through: { role: Roles.Owner } })
     await team1.addUser(userBob, { through: { role: Roles.Owner } })
-    await team1.addUser(userCharlie, { through: { role: Roles.Member } })
+    // await team1.addUser(userCharlie, { through: { role: Roles.Member } })
 
     const templateProperties = {
         name: 'template1',

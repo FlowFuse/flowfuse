@@ -267,6 +267,57 @@ describe('Project API', function () {
             const result = response.json()
             result.should.have.property('error', 'name in use')
         })
+        it('Fails for project name containing characters other than a-zA-Z0-9- ', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/projects',
+                payload: {
+                    name: 'this-$hould-fail',
+                    team: TestObjects.ATeam.hashid,
+                    projectType: TestObjects.projectType1.hashid,
+                    template: TestObjects.template1.hashid,
+                    stack: TestObjects.stack1.hashid
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(409)
+            const result = response.json()
+            result.should.have.property('error', 'name not allowed')
+        })
+        it('Fails for project name starting with a number', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/projects',
+                payload: {
+                    name: '12345-once-i-caught-a-fish-alive',
+                    team: TestObjects.ATeam.hashid,
+                    projectType: TestObjects.projectType1.hashid,
+                    template: TestObjects.template1.hashid,
+                    stack: TestObjects.stack1.hashid
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(409)
+            const result = response.json()
+            result.should.have.property('error', 'name not allowed')
+        })
+        it('Fails for project name starting with a dash', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/projects',
+                payload: {
+                    name: '-dash-dash-dot-dot-dot',
+                    team: TestObjects.ATeam.hashid,
+                    projectType: TestObjects.projectType1.hashid,
+                    template: TestObjects.template1.hashid,
+                    stack: TestObjects.stack1.hashid
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(409)
+            const result = response.json()
+            result.should.have.property('error', 'name not allowed')
+        })
 
         it('Create a project', async function () {
             const response = await app.inject({

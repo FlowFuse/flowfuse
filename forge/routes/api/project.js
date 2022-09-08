@@ -178,6 +178,11 @@ module.exports = async function (app) {
             return
         }
 
+        if (/^[a-zA-Z][a-zA-Z0-9-]*$/.test(safeName) === false) {
+            reply.status(409).type('application/json').send({ error: 'name not allowed' })
+            return
+        }
+
         if (await app.db.models.Project.isNameUsed(safeName)) {
             reply.status(409).type('application/json').send({ error: 'name in use' })
             return
