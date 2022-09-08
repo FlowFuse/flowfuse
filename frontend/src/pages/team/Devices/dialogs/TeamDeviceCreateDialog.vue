@@ -88,6 +88,8 @@ export default {
                     if (err.response.data) {
                         if (/name/.test(err.response.data.error)) {
                             this.errors.name = err.response.data.error
+                        } else {
+                            alerts.emit('Failed to create device: ' + err.response.data.error, 'warning', 7500)
                         }
                     }
                 })
