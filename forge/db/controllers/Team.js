@@ -4,7 +4,6 @@ module.exports = {
 
     createTeamForUser: async function (app, teamDetails, user) {
         const newTeam = await app.db.models.Team.create(teamDetails)
-        await newTeam.setTeamType(teamDetails.type)
         await newTeam.reload({
             include: [{ model: app.db.models.TeamType }]
         })

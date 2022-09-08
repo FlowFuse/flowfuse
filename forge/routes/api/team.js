@@ -180,7 +180,7 @@ module.exports = async function (app) {
             const team = await app.db.controllers.Team.createTeamForUser({
                 name: request.body.name,
                 slug: request.body.slug,
-                type: teamType
+                TeamTypeId: teamType.id
             }, request.session.User)
 
             const teamView = app.db.views.Team.team(team)

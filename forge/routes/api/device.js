@@ -99,32 +99,36 @@ module.exports = async function (app) {
 
         const team = teamMembership.get('Team')
 
-        const device = await app.db.models.Device.create({
-            name: request.body.name,
-            type: request.body.type,
-            credentialSecret: ''
-        })
+        try {
+            const device = await app.db.models.Device.create({
+                name: request.body.name,
+                type: request.body.type,
+                credentialSecret: ''
+            })
 
-        await team.addDevice(device)
+            await team.addDevice(device)
 
-        await device.reload({
-            include: [
-                { model: app.db.models.Team }
-            ]
-        })
+            await device.reload({
+                include: [
+                    { model: app.db.models.Team }
+                ]
+            })
 
-        const credentials = await device.refreshAuthTokens()
+            const credentials = await device.refreshAuthTokens()
 
-        await app.db.controllers.AuditLog.teamLog(
-            team.id,
-            request.session.User.id,
-            'team.device.created',
-            { id: device.hashid }
-        )
+            await app.db.controllers.AuditLog.teamLog(
+                team.id,
+                request.session.User.id,
+                'team.device.created',
+                { id: device.hashid }
+            )
 
-        const response = app.db.views.Device.device(device)
-        response.credentials = credentials
-        reply.send(response)
+            const response = app.db.views.Device.device(device)
+            response.credentials = credentials
+            reply.send(response)
+        } catch (err) {
+            reply.code(400).send({ error: err.toString() })
+        }
     })
 
     /**
