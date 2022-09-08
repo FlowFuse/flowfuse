@@ -84,7 +84,7 @@ describe('User model', function () {
             should.not.exist(membership3)
         })
 
-        it('User Real Name with URL', async function () {
+        it('Should not create a User where Real Name is a URL', async function () {
             let user
             try {
                 user = await app.db.models.User.create({
