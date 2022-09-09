@@ -38,6 +38,10 @@ export default {
         kind: {
             type: String,
             default: 'primary'
+        },
+        closeOnConfirm: {
+            type: Boolean,
+            default: true
         }
     },
     watch: {
@@ -62,7 +66,9 @@ export default {
             this.$emit('cancel')
         },
         confirm () {
-            this.close()
+            if (this.closeOnConfirm) {
+                this.close()
+            }
             this.$emit('confirm')
         }
     }
