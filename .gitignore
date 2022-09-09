@@ -13,5 +13,6 @@ docs/jsdoc
 package-lock.json
 coverage
 test/e2e/frontend/cypress/videos
+test/e2e/frontend/cypress/screenshots
 test/e2e/frontend/cypress/tests/examples
 .nyc_output
