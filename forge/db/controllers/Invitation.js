@@ -47,10 +47,10 @@ module.exports = {
             opts.invitorId = invitor.id
             pendingInvites.push({ userDetail, opts })
         }
-        if (team.TeamType.properties?.userLimit > 0) {
+        if (team.TeamType.getProperty('userLimit') > 0) {
             const currentTeamMemberCount = await team.memberCount()
             const currentTeamInviteCount = await team.pendingInviteCount()
-            if (currentTeamMemberCount + currentTeamInviteCount + pendingInvites.length > team.TeamType.properties.userLimit) {
+            if (currentTeamMemberCount + currentTeamInviteCount + pendingInvites.length > team.TeamType.getProperty('userLimit')) {
                 throw new Error('Team user limit reached')
             }
         }
