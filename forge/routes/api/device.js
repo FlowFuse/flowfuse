@@ -98,6 +98,19 @@ module.exports = async function (app) {
         }
 
         const team = teamMembership.get('Team')
+        await team.reload({
+            include: [
+                { model: app.db.models.TeamType }
+            ]
+        })
+        const teamDeviceLimit = team.TeamType.getProperty('deviceLimit')
+        if (typeof teamDeviceLimit === 'number') {
+            const currentDeviceCount = await team.deviceCount()
+            if (currentDeviceCount >= teamDeviceLimit) {
+                reply.code(400).send({ error: 'Team device limit reached' })
+                return
+            }
+        }
 
         try {
             const device = await app.db.models.Device.create({

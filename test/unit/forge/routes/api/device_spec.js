@@ -54,6 +54,8 @@ describe('Device API', async function () {
         await TestObjects.BTeam.addUser(TestObjects.chris, { through: { role: Roles.Member } })
         await TestObjects.CTeam.addUser(TestObjects.chris, { through: { role: Roles.Owner } })
 
+        TestObjects.defaultTeamType = app.defaultTeamType
+
         TestObjects.tokens = {}
         await login('alice', 'aaPassword')
         await login('bob', 'bbPassword')
@@ -153,6 +155,25 @@ describe('Device API', async function () {
 
             result.should.have.property('credentials')
             result.credentials.should.have.property('token')
+        })
+
+        it.only('limits how many devices can be added to a team according to TeamType', async function () {
+            // Set TeamType deviceLimit = 2
+            const existingTeamTypeProps = TestObjects.defaultTeamType.properties
+            existingTeamTypeProps.deviceLimit = 2
+            TestObjects.defaultTeamType.properties = existingTeamTypeProps
+            await TestObjects.defaultTeamType.save()
+
+            ;(await TestObjects.ATeam.deviceCount()).should.equal(0)
+            for (let i = 0; i < 2; i++) {
+                const response = await createDevice({ name: `D${i + 1}`, type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                response.should.have.property('id')
+            }
+            ;(await TestObjects.ATeam.deviceCount()).should.equal(2)
+
+            const response = await createDevice({ name: 'D3', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            response.should.have.property('error')
+            response.error.should.match(/limit reached/)
         })
 
         const licenseTest = it('limits how many devices can be created according to license', async function () {
