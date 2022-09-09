@@ -226,6 +226,9 @@ module.exports = {
                 },
                 pendingInviteCount: async function () {
                     return await M.Invitation.count({ where: { teamId: this.id } })
+                },
+                deviceCount: async function () {
+                    return await M.Device.count({ where: { TeamId: this.id } })
                 }
             }
         }

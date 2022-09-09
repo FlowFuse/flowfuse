@@ -70,7 +70,7 @@ module.exports = {
                 include: [{ model: app.db.models.TeamType }]
             })
         }
-        const userLimit = team.TeamType.properties?.userLimit
+        const userLimit = team.TeamType.getProperty('userLimit')
         if (userLimit > 0 && currentTeamMemberCount >= userLimit) {
             throw new Error('Team user limit reached')
         }

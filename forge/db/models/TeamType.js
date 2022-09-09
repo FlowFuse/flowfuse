@@ -75,6 +75,9 @@ module.exports = {
                 }
             },
             instance: {
+                getProperty: function (key) {
+                    return this.properties?.[key]
+                },
                 teamCount: async function () {
                     return await M.Team.count({ where: { TeamTypeId: this.id } })
                 }
