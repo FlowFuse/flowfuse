@@ -53,7 +53,14 @@ module.exports = {
                     user.name = user.username
                 }
             },
-            beforeUpdate: (user) => {
+            beforeUpdate: async (user) => {
+                if (user._previousDataValues.admin === true && user.admin === false) {
+                    const currentAdmins = await app.db.models.User.scope('admins').findAll()
+                    console.log(currentAdmins)
+                    if (currentAdmins.length <= 1) {
+                        throw new Error('Cannot remove last Admin user')
+                    }
+                }
                 if (user.avatar.startsWith(`${process.env.FLOWFORGE_BASE_URL}/avatar/`)) {
                     user.avatar = generateUserAvatar(user.name || user.username)
                 }

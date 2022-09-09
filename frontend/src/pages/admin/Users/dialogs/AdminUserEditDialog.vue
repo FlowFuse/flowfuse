@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" header="Edit User" confirm-label="Save" @confirm="confirm()" :disable-primary="!formValid">
+    <ff-dialog ref="dialog" header="Edit User" confirm-label="Save" @confirm="confirm()" :disable-primary="!formValid" :closeOnConfirm="false">
         <template v-slot:default>
             <form class="space-y-6" @submit.prevent>
                 <FormRow v-model="input.username" :error="errors.username">Username</FormRow>
@@ -15,7 +15,7 @@
                         </ff-button>
                     </template>
                 </FormRow>
-                <FormRow id="admin" wrapperClass="flex justify-between items-center" :disabled="adminLocked" v-model="input.admin" type="checkbox">Administrator
+                <FormRow id="admin" :error="errors.admin" wrapperClass="flex justify-between items-center" :disabled="adminLocked" v-model="input.admin" type="checkbox">Administrator
                     <template v-slot:append>
                         <ff-button v-if="adminLocked" kind="danger" size="small" @click="unlockAdmin()">
                             Unlock
@@ -60,7 +60,7 @@
 <script>
 import usersApi from '@/api/users'
 import { LockClosedIcon } from '@heroicons/vue/outline'
-
+import Alerts from '@/services/alerts'
 import FormHeading from '@/components/FormHeading'
 import FormRow from '@/components/FormRow'
 
@@ -146,17 +146,39 @@ export default {
                 if (changed) {
                     usersApi.updateUser(this.user.id, opts).then((response) => {
                         this.$emit('userUpdated', response)
+                        this.$refs.dialog.close()
                     }).catch(err => {
                         console.log(err.response.data)
                         if (err.response.data) {
+                            let showAlert = true
                             if (/username/.test(err.response.data.error)) {
                                 this.errors.username = 'Username unavailable'
+                                showAlert = false
                             }
                             if (/password/.test(err.response.data.error)) {
                                 this.errors.password = 'Invalid username'
+                                showAlert = false
+                            }
+                            if (/admin/i.test(err.response.data.error)) {
+                                this.errors.admin = err.response.data.error
+                                showAlert = false
                             }
                             if (err.response.data.error === 'email must be unique') {
                                 this.errors.email = 'Email already registered'
+                                showAlert = false
+                            }
+                            if (showAlert) {
+                                const msgLines = []
+                                if (err.response.data.error) {
+                                    msgLines.push(err.response.data.error)
+                                    if (err.response.data.message) {
+                                        msgLines.push(err.response.data.message)
+                                    }
+                                } else {
+                                    msgLines.push(err.message || 'Unknown error')
+                                }
+                                const msg = msgLines.join(' : ')
+                                Alerts.emit(msg, 'warning', 7500)
                             }
                         }
                     })
