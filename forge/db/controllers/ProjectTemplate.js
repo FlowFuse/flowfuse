@@ -13,7 +13,9 @@ const validSettings = [
     'palette_allowInstall',
     'palette_nodesExcludes',
     'palette_denyList',
-    'modules_allowInstall'
+    'modules_allowInstall',
+    'httpNodeAuth_user',
+    'httpNodeAuth_pass'
     // 'env' // Handled separately
 ]
 

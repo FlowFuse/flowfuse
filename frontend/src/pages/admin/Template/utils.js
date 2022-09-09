@@ -1,3 +1,5 @@
+import bcrypt from 'bcryptjs'
+
 const templateFields = [
     'disableEditor',
     'disableTours',
@@ -14,7 +16,9 @@ const templateFields = [
     'palette_nodesExcludes',
     'palette_denyList',
     'modules_allowInstall',
-    'modules_denyList'
+    'modules_denyList',
+    'httpNodeAuth_user',
+    'httpNodeAuth_pass'
 ]
 const defaultTemplateValues = {
     disableEditor: false,
@@ -32,7 +36,9 @@ const defaultTemplateValues = {
     palette_nodesExcludes: '',
     palette_denyList: '',
     modules_allowInstall: true,
-    modules_denyList: ''
+    modules_denyList: '',
+    httpNodeAuth_user: '',
+    httpNodeAuth_pass: ''
 }
 
 // Functions to map template values to a string for editing
@@ -87,6 +93,22 @@ const templateEncoders = {
             return v.split(',')
                 .map((fn) => fn.trim())
                 .filter((fn) => fn.length > 0)
+        }
+    },
+    httpNodeAuth_pass: {
+        decode: (v) => {
+            if (typeof v === 'boolean') {
+                return v
+            }
+            return '*****'
+        },
+        encode: (v) => {
+            if (typeof v === 'boolean') {
+                return v
+            }
+            // need to bcypt hash input here
+            const hash = bcrypt.hashSync(v, 8)
+            return hash
         }
     }
 }
