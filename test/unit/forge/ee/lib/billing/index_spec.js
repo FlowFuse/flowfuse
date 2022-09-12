@@ -168,7 +168,7 @@ describe('Billing', function () {
         })
     })
 
-    describe.only('updateTeamDeviceCount', async function () {
+    describe('updateTeamDeviceCount', async function () {
         let updateId, updateData
         describe('no existing subscription item', async function () {
             beforeEach(async function () {
