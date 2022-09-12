@@ -99,6 +99,27 @@ describe('User model', function () {
 
             should.not.exist(user)
         })
+
+        it('Should not remove last admin', async function () {
+            const alice = await app.db.models.User.byEmail('alice@example.com')
+            alice.admin = false
+            try {
+                await alice.save()
+                throw new Error('expected changing last admin to a non-admin to throw an error')
+            } catch (error) {
+                /last admin/i.test(error.toString()).should.be.true('expected error to include "last admin"')
+            }
+        })
+
+        it('Should not delete admin user', async function () {
+            const alice = await app.db.models.User.byEmail('alice@example.com')
+            try {
+                await alice.destroy()
+                throw new Error('expected deletion of an admin user to throw an error')
+            } catch (error) {
+                /cannot delete admin/i.test(error.toString()).should.be.true('expected error to include "cannot delete admin"')
+            }
+        })
     })
 
     describe('License limits', function () {
