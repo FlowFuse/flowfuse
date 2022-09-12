@@ -157,7 +157,7 @@ describe('Device API', async function () {
             result.credentials.should.have.property('token')
         })
 
-        it.only('limits how many devices can be added to a team according to TeamType', async function () {
+        it('limits how many devices can be added to a team according to TeamType', async function () {
             // Set TeamType deviceLimit = 2
             const existingTeamTypeProps = TestObjects.defaultTeamType.properties
             existingTeamTypeProps.deviceLimit = 2
