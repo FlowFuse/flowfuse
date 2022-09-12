@@ -155,7 +155,7 @@ describe('Team API', function () {
         // - Admin/Owner/Member
         // - should fail if team owns projects
 
-        it('', async function () {
+        it('removes pending invitations', async function () {
             // Alice invites Chris to TeamA
             // Delete TeamB
             await app.inject({
