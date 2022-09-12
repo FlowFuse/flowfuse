@@ -220,7 +220,7 @@ module.exports.init = async function (app) {
         updateTeamDeviceCount: async (team) => {
             const billingIds = getBillingIdsForTeam(team)
             if (!billingIds.device.product) {
-                app.log.info(`Unable to update device billing for team ${team.hashid} - app.config.billing.stripe.device_product not set`)
+                return
             }
             const subscription = await app.db.models.Subscription.byTeam(team.id)
             if (subscription) {
