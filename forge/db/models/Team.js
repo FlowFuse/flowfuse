@@ -43,6 +43,13 @@ module.exports = {
             },
             afterDestroy: async (team, opts) => {
                 // TODO: what needs tidying up after a team is deleted?
+                // Doing this here also clears historical invites.
+                // TeamId is null because there is a cascade rule
+                await M.Invitation.destroy({
+                    where: {
+                        teamId: null
+                    }
+                })
             }
         }
     },

@@ -1,11 +1,29 @@
 const should = require('should') // eslint-disable-line
 const setup = require('../setup')
-// const FF_UTIL = require('flowforge-test-utils')
-// const { Roles } = FF_UTIL.require('forge/lib/roles')
+const FF_UTIL = require('flowforge-test-utils')
+const { Roles } = FF_UTIL.require('forge/lib/roles')
 
 describe('Team API', function () {
     let app
     const TestObjects = {}
+    beforeEach(async function () {
+        app = await setup()
+
+        // Alice create in setup()
+        TestObjects.alice = await app.db.models.User.byUsername('alice')
+        TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
+        TestObjects.chris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', email_verified: true, password: 'ccPassword' })
+
+        TestObjects.ATeam = await app.db.models.Team.byName('ATeam')
+        TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: app.defaultTeamType.id })
+
+        await TestObjects.BTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+
+        TestObjects.tokens = {}
+        await login('alice', 'aaPassword')
+        await login('bob', 'bbPassword')
+        await login('chris', 'ccPassword')
+    })
 
     async function login (username, password) {
         const response = await app.inject({
@@ -125,5 +143,59 @@ describe('Team API', function () {
             failResponse.statusCode.should.equal(400)
             failResponse.json().error.should.match(/license limit/)
         })
+    })
+
+    describe('Create team', async function () {
+        // POST /api/v1/teams
+        // - Admin/Owner/Member
+    })
+
+    describe('Delete team', async function () {
+        // DELETE /api/v1/teams/:teamId
+        // - Admin/Owner/Member
+        // - should fail if team owns projects
+
+        it('removes pending invitations', async function () {
+            // Alice invites Chris to TeamA
+            // Delete TeamB
+            await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations`,
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    user: 'chris'
+                }
+            })
+            const inviteListA = (await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })).json()
+            inviteListA.should.have.property('count', 1)
+            const deleteResult = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            deleteResult.statusCode.should.equal(200)
+            const inviteListChris = (await app.inject({
+                method: 'GET',
+                url: '/api/v1/user/invitations',
+                cookies: { sid: TestObjects.tokens.chris }
+            })).json()
+            inviteListChris.should.have.property('count', 0)
+        })
+    })
+
+    describe('Edit team details', async function () {
+        // PUT /api/v1/teams/:teamId
+    })
+
+    describe('Get current users membership', async function () {
+        // GET /api/v1/teams/:teamId/user
+    })
+
+    describe('Get team audit-log', async function () {
+        // GET /api/v1/teams/:teamId/audit-log
     })
 })
