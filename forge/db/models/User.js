@@ -56,7 +56,6 @@ module.exports = {
             beforeUpdate: async (user) => {
                 if (user._previousDataValues.admin === true && user.admin === false) {
                     const currentAdmins = await app.db.models.User.scope('admins').findAll()
-                    console.log(currentAdmins)
                     if (currentAdmins.length <= 1) {
                         throw new Error('Cannot remove last Admin user')
                     }
