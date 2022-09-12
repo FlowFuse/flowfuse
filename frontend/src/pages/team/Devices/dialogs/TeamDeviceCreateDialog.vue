@@ -20,6 +20,7 @@
 import { mapState } from 'vuex'
 
 import devicesApi from '@/api/devices'
+import teamApi from '@/api/team'
 
 import alerts from '@/services/alerts'
 
@@ -31,11 +32,12 @@ export default {
         FormRow
     },
     props: ['team'],
-    emits: ['deviceUpdated', 'deviceCreated'],
+    emits: ['deviceUpdated', 'deviceCreating', 'deviceCreated'],
     data () {
         return {
             device: null,
             project: null,
+            totalDeviceCount: 0,
             input: {
                 name: '',
                 type: '',
@@ -48,7 +50,9 @@ export default {
     computed: {
         ...mapState('account', ['features']),
         deviceIsBillable () {
-            return this.features.billing && this.team.type.properties.billing?.deviceCost > 0
+            return this.features.billing && // billing enabled
+                this.team.type.properties.billing?.deviceCost > 0 && // >0 per device cost
+                (this.team.type.properties.deviceFreeAllocation || 0) <= this.totalDeviceCount // no remaining free allocation
         },
         billingDescription () {
             if (this.deviceIsBillable) {
@@ -60,7 +64,15 @@ export default {
             return this.input.name && (!this.deviceIsBillable || this.input.billingConfirmation)
         }
     },
-    mounted () {
+    async mounted () {
+        if (this.features.billing && // billing enabled
+                this.team.type.properties.billing?.deviceCost > 0) {
+            // Get the total device count for the team so that we can check allocation
+            // By passing 0 in as the limit, it will just return the `count`
+            // and not retrieve any actual devices
+            const teamData = await teamApi.getTeamDevices(this.team.id, null, 0)
+            this.totalDeviceCount = teamData.count
+        }
     },
     methods: {
         confirm () {
