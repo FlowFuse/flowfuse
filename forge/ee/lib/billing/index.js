@@ -17,6 +17,8 @@ module.exports.init = async function (app) {
      *       ...
      *       team_price: <default team price>
      *       team_product: <default team product>
+     *       device_price: <default device price>
+     *       device_product: <default device product>
      *       ...
      *       teams:
      *         starter:
@@ -29,7 +31,11 @@ module.exports.init = async function (app) {
     function getBillingIdsForTeam (team) {
         const result = {
             price: app.config.billing.stripe.team_price,
-            product: app.config.billing.stripe.team_product
+            product: app.config.billing.stripe.team_product,
+            device: {
+                price: app.config.billing.stripe.device_price,
+                product: app.config.billing.stripe.device_product
+            }
         }
         if (app.config.billing.stripe.teams?.[team.TeamType.name]) {
             result.price = app.config.billing.stripe.teams[team.TeamType.name].price || result.price
@@ -208,6 +214,51 @@ module.exports.init = async function (app) {
                     }
                 } else {
                     app.log.info(`Team ${team.hashid} subscription member count up to date`)
+                }
+            }
+        },
+        updateTeamDeviceCount: async (team) => {
+            const billingIds = getBillingIdsForTeam(team)
+            if (!billingIds.device.product) {
+                app.log.info(`Unable to update device billing for team ${team.hashid} - app.config.billing.stripe.device_product not set`)
+            }
+            const subscription = await app.db.models.Subscription.byTeam(team.id)
+            if (subscription) {
+                const deviceCount = await team.deviceCount()
+                const deviceFreeAllocation = team.TeamType.getProperty('deviceFreeAllocation') || 0
+                const billableCount = Math.max(0, deviceCount - deviceFreeAllocation)
+                const existingSub = await stripe.subscriptions.retrieve(subscription.subscription)
+                const subItems = existingSub.items
+                const deviceItem = subItems.data.find(item => item.plan.product === billingIds.device.product)
+                if (deviceItem) {
+                    if (deviceItem.quantity !== billableCount) {
+                        app.log.info(`Updating team ${team.hashid} subscription device count to ${billableCount}`)
+                        const update = {
+                            quantity: billableCount,
+                            proration_behavior: 'always_invoice'
+                        }
+                        try {
+                            await stripe.subscriptionItems.update(deviceItem.id, update)
+                        } catch (error) {
+                            app.log.warn(`Problem updating team ${team.hashid} subscription: ${error.message}`)
+                        }
+                    }
+                } else if (billableCount > 0) {
+                    // Need to add the device item to the subscription
+                    const update = {
+                        items: [{
+                            price: billingIds.device.price,
+                            quantity: billableCount
+                        }]
+                    }
+                    try {
+                        app.log.info(update)
+                        await stripe.subscriptions.update(subscription.subscription, update)
+                    } catch (error) {
+                        console.log(error)
+                        app.log.warn(`Problem adding first device to subscription\n${error.message}`)
+                        throw error
+                    }
                 }
             }
         },

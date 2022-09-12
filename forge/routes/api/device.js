@@ -138,6 +138,10 @@ module.exports = async function (app) {
 
             const response = app.db.views.Device.device(device)
             response.credentials = credentials
+
+            if (app.license.active() && app.billing) {
+                await app.billing.updateTeamDeviceCount(team)
+            }
             reply.send(response)
         } catch (err) {
             reply.code(400).send({ error: err.toString() })
@@ -153,14 +157,27 @@ module.exports = async function (app) {
     app.delete('/:deviceId', {
         preHandler: app.needsPermission('device:delete')
     }, async (request, reply) => {
-        await request.device.destroy()
-        await app.db.controllers.AuditLog.teamLog(
-            request.device.Team.id,
-            request.session.User.id,
-            'team.device.deleted',
-            { id: request.device.hashid }
-        )
-        reply.send({ status: 'okay' })
+        try {
+            const team = request.device.get('Team')
+            await team.reload({
+                include: [
+                    { model: app.db.models.TeamType }
+                ]
+            })
+            await request.device.destroy()
+            await app.db.controllers.AuditLog.teamLog(
+                request.device.Team.id,
+                request.session.User.id,
+                'team.device.deleted',
+                { id: request.device.hashid }
+            )
+            if (app.license.active() && app.billing) {
+                await app.billing.updateTeamDeviceCount(team)
+            }
+            reply.send({ status: 'okay' })
+        } catch (err) {
+            reply.code(400).send({ error: err.toString() })
+        }
     })
 
     /**

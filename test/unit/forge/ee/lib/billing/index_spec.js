@@ -167,4 +167,141 @@ describe('Billing', function () {
             updateData.should.have.property('proration_behavior', 'always_invoice')
         })
     })
+
+    describe.only('updateTeamDeviceCount', async function () {
+        let updateId, updateData
+        describe('no existing subscription item', async function () {
+            beforeEach(async function () {
+                updateId = null
+                updateData = null
+                setupStripe({
+                    subscriptions: {
+                        retrieve: async sub => {
+                            return { items: { data: [] } }
+                        },
+                        update: async (sub, update) => {
+                            updateId = sub
+                            updateData = update
+                        }
+                    }
+                })
+            })
+            it('does not add team device item when billable count is 0', async function () {
+                // app.team has no devices
+                app = await setup({
+                    billing: {
+                        stripe: {
+                            key: 1234,
+                            team_product: 'defaultteamprod',
+                            team_price: 'defaultteamprice',
+                            device_product: 'defaultdeviceprod',
+                            device_price: 'defaultdeviceprice'
+                        }
+                    }
+                })
+                await app.billing.updateTeamDeviceCount(app.team)
+                should.not.exist(updateId)
+                should.not.exist(updateData)
+            })
+            it('adds team device item when billable count is > 0', async function () {
+                // Using `starterteamprod` which has a quantity of 27
+                app = await setup({
+                    billing: {
+                        stripe: {
+                            key: 1234,
+                            team_product: 'defaultteamprod',
+                            team_price: 'defaultteamprice',
+                            device_product: 'defaultdeviceprod',
+                            device_price: 'defaultdeviceprice',
+                            teams: {
+                                starter: {
+                                    product: 'starterteamprod',
+                                    price: 'starterteampprice'
+                                }
+                            }
+                        }
+                    }
+                })
+                const device = await app.db.models.Device.create({ name: 'd1', type: 'd1', credentialSecret: '' })
+                await app.team.addDevice(device)
+
+                await app.billing.updateTeamDeviceCount(app.team)
+                should.exist(updateId)
+                updateId.should.equal('sub_1234567890')
+                should.exist(updateData)
+                updateData.should.have.property('items')
+                updateData.items.should.have.lengthOf(1)
+                updateData.items[0].should.have.property('price', 'defaultdeviceprice')
+                updateData.items[0].should.have.property('quantity', 1)
+            })
+        })
+        describe('existing subscription item', async function () {
+            beforeEach(async function () {
+                updateId = null
+                updateData = null
+                setupStripe({
+                    subscriptions: {
+                        retrieve: async sub => {
+                            return {
+                                items: {
+                                    data: [
+                                        { id: '123', quantity: 27, plan: { product: 'defaultdeviceprod' } }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    subscriptionItems: {
+                        update: async (id, update) => {
+                            updateId = id
+                            updateData = update
+                        }
+                    }
+                })
+            })
+            it('updates device count to 0', async function () {
+                // app.team has no devices
+                app = await setup({
+                    billing: {
+                        stripe: {
+                            key: 1234,
+                            team_product: 'defaultteamprod',
+                            team_price: 'defaultteamprice',
+                            device_product: 'defaultdeviceprod',
+                            device_price: 'defaultdeviceprice'
+                        }
+                    }
+                })
+                await app.billing.updateTeamDeviceCount(app.team)
+                should.exist(updateId)
+                updateId.should.equal('123')
+                should.exist(updateData)
+                updateData.should.have.property('quantity', 0)
+                updateData.should.have.property('proration_behavior', 'always_invoice')
+            })
+            it('updates device count to 1', async function () {
+                // app.team has no devices
+                app = await setup({
+                    billing: {
+                        stripe: {
+                            key: 1234,
+                            team_product: 'defaultteamprod',
+                            team_price: 'defaultteamprice',
+                            device_product: 'defaultdeviceprod',
+                            device_price: 'defaultdeviceprice'
+                        }
+                    }
+                })
+                const device = await app.db.models.Device.create({ name: 'd1', type: 'd1', credentialSecret: '' })
+                await app.team.addDevice(device)
+
+                await app.billing.updateTeamDeviceCount(app.team)
+                should.exist(updateId)
+                updateId.should.equal('123')
+                should.exist(updateData)
+                updateData.should.have.property('quantity', 1)
+                updateData.should.have.property('proration_behavior', 'always_invoice')
+            })
+        })
+    })
 })
