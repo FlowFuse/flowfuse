@@ -5,12 +5,19 @@
             <form class="space-y-6 mt-2">
                 <FormRow data-form="device-name" v-model="input.name" :error="errors.name" :disabled="editDisabled">Name</FormRow>
                 <FormRow data-form="device-type" v-model="input.type" :error="errors.type" :disabled="editDisabled">Type</FormRow>
+                <FormRow v-if="deviceIsBillable" type="checkbox" v-model="input.billingConfirmation" id="billing-confirmation">
+                    Confirm additional charges
+                    <template v-slot:description>
+                        {{ billingDescription }}
+                    </template>
+                </FormRow>
             </form>
         </template>
     </ff-dialog>
 </template>
 
 <script>
+import { mapState } from 'vuex'
 
 import devicesApi from '@/api/devices'
 
@@ -31,15 +38,26 @@ export default {
             project: null,
             input: {
                 name: '',
-                type: ''
+                type: '',
+                billingConfirmation: false
             },
             errors: {},
             editDisabled: false
         }
     },
     computed: {
+        ...mapState('account', ['features']),
+        deviceIsBillable () {
+            return this.features.billing && this.team.type.properties.billing?.deviceCost > 0
+        },
+        billingDescription () {
+            if (this.deviceIsBillable) {
+                return `$${this.team.type.properties.billing.deviceCost}/month`
+            }
+            return ''
+        },
         formValid () {
-            return (this.input.name)
+            return this.input.name && (!this.deviceIsBillable || this.input.billingConfirmation)
         }
     },
     mounted () {
@@ -66,6 +84,7 @@ export default {
                 })
             } else {
                 opts.team = this.team.id
+                this.$emit('deviceCreating')
                 devicesApi.create(opts).then((response) => {
                     if (!this.project) {
                         this.$emit('deviceCreated', response)
@@ -84,6 +103,7 @@ export default {
                         })
                     }
                 }).catch(err => {
+                    this.$emit('deviceCreated', null)
                     console.log(err.response.data)
                     if (err.response.data) {
                         if (/name/.test(err.response.data.error)) {
