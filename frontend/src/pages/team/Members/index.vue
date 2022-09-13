@@ -2,7 +2,7 @@
     <div class="">
         <SectionTopMenu hero="Members" :options="sideNavigation" />
         <div class="flex-grow">
-            <router-view :team="team" :teamMembership="teamMembership" @invites-updated="checkAccess()"></router-view>
+            <router-view :team="team" :teamMembership="teamMembership" :inviteCount="inviteCount" @invites-updated="checkAccess()"></router-view>
         </div>
     </div>
 </template>
@@ -26,7 +26,8 @@ export default {
     },
     data: function () {
         return {
-            sideNavigation: []
+            sideNavigation: [],
+            inviteCount: 0
         }
     },
     watch: {
@@ -42,6 +43,7 @@ export default {
             ]
             if (this.user.admin || (this.teamMembership && this.teamMembership.role === Roles.Owner)) {
                 const invitations = await teamApi.getTeamInvitations(this.team.id)
+                this.inviteCount = invitations.count
                 this.sideNavigation.push({ name: `Invitations (${invitations.count})`, path: './invitations' })
             }
         }

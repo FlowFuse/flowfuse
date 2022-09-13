@@ -1,11 +1,13 @@
 <template>
-    <ff-dialog ref="dialog" header="Invite Team Member" confirm-label="Invite" @confirm="confirm()" :disable-primary="disableConfirm">
+    <ff-dialog ref="dialog" header="Invite Team Member" confirm-label="Invite" @confirm="confirm()" :disable-primary="disableConfirm" :closeOnConfirm="false">
         <template v-slot:default>
             <form class="space-y-6" @submit.prevent>
                 <div class="space-y-2">
                     <template v-if="!responseErrors">
-                        <p>Invite a user to join the team.</p>
-                        <FormRow id="userInfo" v-model="input.userInfo" :error="errors.userInfo" :placeholder="'username'+(externalEnabled?' or email':'')"></FormRow>
+                        <p v-if="!exceedsUserLimit">Invite a user to join the team by username <span v-if="externalEnabled">or email</span>.</p>
+                        <p v-if="hasUserLimit">Your team can have a maximum of {{team.type.properties.userLimit}} members.</p>
+                        <p v-if="exceedsUserLimit">You currently have {{totalMembers}} (including existing invites) so cannot invite any more.</p>
+                        <FormRow id="userInfo" v-if="!exceedsUserLimit" v-model="input.userInfo" :error="errors.userInfo" :placeholder="'username'+(externalEnabled?' or email':'')"></FormRow>
                     </template>
                     <template v-else>
                         <ul>
@@ -33,7 +35,7 @@ export default {
     components: {
         FormRow
     },
-    props: ['team'],
+    props: ['team', 'userCount', 'inviteCount'],
     data () {
         return {
             input: {
@@ -52,6 +54,16 @@ export default {
         },
         disableConfirm () {
             return this.responseErrors || !this.input.userInfo.trim() || this.errors.userInfo
+        },
+        totalMembers () {
+            const count = this.userCount + this.inviteCount
+            return count + ' member' + (count > 1 ? 's' : '')
+        },
+        hasUserLimit () {
+            return this.team.type.properties.userLimit > 0
+        },
+        exceedsUserLimit () {
+            return this.hasUserLimit && (this.userCount + this.inviteCount) >= this.team.type.properties.userLimit
         }
     },
     watch: {

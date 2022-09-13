@@ -18,7 +18,7 @@
 
     <ChangeTeamRoleDialog @roleUpdated="roleUpdated" ref="changeTeamRoleDialog" />
     <ConfirmTeamUserRemoveDialog @userRemoved="userRemoved" ref="confirmTeamUserRemoveDialog" />
-    <InviteMemberDialog @invitationSent="$emit('invites-updated')" :team="team" v-if="canModifyMembers" ref="inviteMemberDialog" />
+    <InviteMemberDialog @invitationSent="$emit('invites-updated')" :team="team" :inviteCount="inviteCount" :userCount="userCount" v-if="canModifyMembers" ref="inviteMemberDialog" />
 </template>
 
 <script>
@@ -36,6 +36,7 @@ import { Roles } from '@core/lib/roles'
 
 export default {
     name: 'TeamUsersGeneral',
+    props: ['team', 'teamMembership', 'inviteCount'],
     emits: ['invites-updated'],
     data () {
         return {
@@ -104,7 +105,6 @@ export default {
             this.loading = false
         }
     },
-    props: ['team', 'teamMembership'],
     components: {
         ChangeTeamRoleDialog,
         ConfirmTeamUserRemoveDialog,
