@@ -130,9 +130,9 @@ export default {
                     if (s === 'user:tsc-date') {
                         return // dont check tsc-date for change (no need to save if changed)
                     }
-                    if (s === 'user:tsc-url') {
-                        result = this.input['user:tcs-required'] ? this.input[s] : null
-                    } else {
+                    if (s !== 'user:tsc-url' || this.input['user:tcs-required']) {
+                        // Check to see if the property has changed.
+                        // In the case of tsc-url, we only do that if tcs-required is true
                         result = result || (this.input[s] !== this.settings[s])
                     }
                 })
@@ -153,7 +153,7 @@ export default {
             if (this.input['user:tcs-required']) {
                 const url = this.input['user:tcs-url'] || ''
                 if (url.trim() === '') {
-                    this.errors.termsAndConditions = 'It is required to set a URL for the Terms & Conditions.'
+                    this.errors.termsAndConditions = 'A URL for the Terms & Conditions must be set.'
                     return false
                 }
             }
@@ -163,6 +163,7 @@ export default {
         async saveChanges () {
             this.loading = true
             const options = {}
+            // Only save options that have changed
             validSettings.forEach(s => {
                 if (this.input[s] !== this.settings[s]) {
                     options[s] = this.input[s]
@@ -171,8 +172,17 @@ export default {
             // don't save the T&C's date
             delete options['user:tcs-date']
             // don't save the T&C's URL if no requirement for T&Cs
-            options['user:tcs-url'] = this.input['user:tcs-required'] ? (options['user:tcs-url'] || '').trim() : null
-
+            if (!this.input['user:tcs-required']) {
+                if (this.settings['user:tcs-url']) {
+                    options['user:tcs-url'] = ''
+                } else {
+                    delete options['user:tcs-url']
+                }
+            }
+            // if tcs-url present in options then it has changed - set tcs-updated as well
+            if (this.input['user:tcs-required'] && options['user:tcs-url']) {
+                options['user:tcs-updated'] = true
+            }
             settingsApi.updateSettings(options)
                 .then(() => {
                     this.$store.dispatch('account/refreshSettings')
