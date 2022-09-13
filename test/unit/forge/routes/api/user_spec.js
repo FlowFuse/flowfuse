@@ -251,7 +251,7 @@ describe('User API', async function () {
                 const tcsAccepted = new Date(user.tcs_accepted)
                 should(tcsAccepted).be.greaterThanOrEqual(updatedDate)
             })
-            it('user can API does not return any Terms and Conditions properties if T&Cs are disabled', async function () {
+            it('user API does not return T&Cs properties if T&Cs are disabled', async function () {
                 await login('elvis', 'eePassword')
                 const response = await app.inject({
                     method: 'PUT',
