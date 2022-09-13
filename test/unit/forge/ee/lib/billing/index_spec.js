@@ -239,14 +239,13 @@ describe('Billing', function () {
             beforeEach(async function () {
                 updateId = null
                 updateData = null
+                const itemData = { id: '123', quantity: 27, plan: { product: 'defaultdeviceprod' } }
                 setupStripe({
                     subscriptions: {
                         retrieve: async sub => {
                             return {
                                 items: {
-                                    data: [
-                                        { id: '123', quantity: 27, plan: { product: 'defaultdeviceprod' } }
-                                    ]
+                                    data: [itemData]
                                 }
                             }
                         }
@@ -255,6 +254,9 @@ describe('Billing', function () {
                         update: async (id, update) => {
                             updateId = id
                             updateData = update
+                            if (id === itemData.id) {
+                                itemData.quantity = update.quantity
+                            }
                         }
                     }
                 })
@@ -295,6 +297,64 @@ describe('Billing', function () {
                 const device = await app.db.models.Device.create({ name: 'd1', type: 'd1', credentialSecret: '' })
                 await app.team.addDevice(device)
 
+                await app.billing.updateTeamDeviceCount(app.team)
+                should.exist(updateId)
+                updateId.should.equal('123')
+                should.exist(updateData)
+                updateData.should.have.property('quantity', 1)
+                updateData.should.have.property('proration_behavior', 'always_invoice')
+            })
+            it('includes free allocation when calculating billable device count', async function () {
+                // app.team has no devices
+                app = await setup({
+                    billing: {
+                        stripe: {
+                            key: 1234,
+                            team_product: 'defaultteamprod',
+                            team_price: 'defaultteamprice',
+                            device_product: 'defaultdeviceprod',
+                            device_price: 'defaultdeviceprice'
+                        }
+                    }
+                })
+
+                const teamType = await app.db.models.TeamType.byName('starter')
+                const properties = teamType.properties
+                properties.deviceFreeAllocation = 2
+                teamType.properties = properties
+                await teamType.save()
+                await app.team.reload({
+                    include: [{ model: app.db.models.TeamType }]
+                })
+
+                const device = await app.db.models.Device.create({ name: 'd1', type: 'd1', credentialSecret: '' })
+                await app.team.addDevice(device)
+
+                // With a free allocation of 2, this first call should see the
+                // count get changed from the starting point of 27 (setup in beforeEach)
+                // back to 0 - even though there is a device in the team.
+                await app.billing.updateTeamDeviceCount(app.team)
+                should.exist(updateId)
+                updateId.should.equal('123')
+                should.exist(updateData)
+                updateData.should.have.property('quantity', 0)
+                updateData.should.have.property('proration_behavior', 'always_invoice')
+
+                updateId = null
+                updateData = null
+
+                // Add a second device - still within free allocation
+                const device2 = await app.db.models.Device.create({ name: 'd2', type: 'd1', credentialSecret: '' })
+                await app.team.addDevice(device2)
+                // No update should get made as we're still inside free allocation
+                await app.billing.updateTeamDeviceCount(app.team)
+                should.not.exist(updateId)
+                should.not.exist(updateData)
+
+                // Add a third device - exceeds free allocation
+                const device3 = await app.db.models.Device.create({ name: 'd3', type: 'd1', credentialSecret: '' })
+                await app.team.addDevice(device3)
+                // Should update billing to 1 (3 devices, 2 are free)
                 await app.billing.updateTeamDeviceCount(app.team)
                 should.exist(updateId)
                 updateId.should.equal('123')
