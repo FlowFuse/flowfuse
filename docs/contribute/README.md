@@ -189,6 +189,9 @@ billing:
     team_product: ***
     project_price: ***
     project_product: ***
+    device_price: ***
+    device_product: ***
+    deviceCost: 10
     teams:
       starter:
         price: ***

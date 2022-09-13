@@ -5,14 +5,22 @@
             <form class="space-y-6 mt-2">
                 <FormRow data-form="device-name" v-model="input.name" :error="errors.name" :disabled="editDisabled">Name</FormRow>
                 <FormRow data-form="device-type" v-model="input.type" :error="errors.type" :disabled="editDisabled">Type</FormRow>
+                <FormRow v-if="deviceIsBillable" type="checkbox" v-model="input.billingConfirmation" id="billing-confirmation">
+                    Confirm additional charges
+                    <template v-slot:description>
+                        {{ billingDescription }}
+                    </template>
+                </FormRow>
             </form>
         </template>
     </ff-dialog>
 </template>
 
 <script>
+import { mapState } from 'vuex'
 
 import devicesApi from '@/api/devices'
+import teamApi from '@/api/team'
 
 import alerts from '@/services/alerts'
 
@@ -24,25 +32,47 @@ export default {
         FormRow
     },
     props: ['team'],
-    emits: ['deviceUpdated', 'deviceCreated'],
+    emits: ['deviceUpdated', 'deviceCreating', 'deviceCreated'],
     data () {
         return {
             device: null,
             project: null,
+            totalDeviceCount: 0,
             input: {
                 name: '',
-                type: ''
+                type: '',
+                billingConfirmation: false
             },
             errors: {},
             editDisabled: false
         }
     },
     computed: {
+        ...mapState('account', ['features']),
+        deviceIsBillable () {
+            return this.features.billing && // billing enabled
+                this.team.type.properties.billing?.deviceCost > 0 && // >0 per device cost
+                (this.team.type.properties.deviceFreeAllocation || 0) <= this.totalDeviceCount // no remaining free allocation
+        },
+        billingDescription () {
+            if (this.deviceIsBillable) {
+                return `$${this.team.type.properties.billing.deviceCost}/month`
+            }
+            return ''
+        },
         formValid () {
-            return (this.input.name)
+            return this.input.name && (!this.deviceIsBillable || this.input.billingConfirmation)
         }
     },
-    mounted () {
+    async mounted () {
+        if (this.features.billing && // billing enabled
+                this.team.type.properties.billing?.deviceCost > 0) {
+            // Get the total device count for the team so that we can check allocation
+            // By passing 0 in as the limit, it will just return the `count`
+            // and not retrieve any actual devices
+            const teamData = await teamApi.getTeamDevices(this.team.id, null, 0)
+            this.totalDeviceCount = teamData.count
+        }
     },
     methods: {
         confirm () {
@@ -66,6 +96,7 @@ export default {
                 })
             } else {
                 opts.team = this.team.id
+                this.$emit('deviceCreating')
                 devicesApi.create(opts).then((response) => {
                     if (!this.project) {
                         this.$emit('deviceCreated', response)
@@ -84,6 +115,7 @@ export default {
                         })
                     }
                 }).catch(err => {
+                    this.$emit('deviceCreated', null)
                     console.log(err.response.data)
                     if (err.response.data) {
                         if (/name/.test(err.response.data.error)) {
