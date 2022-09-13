@@ -38,7 +38,6 @@ module.exports = {
                             // Send email
                             const context = {}
                             if (app.config.support_contact) {
-                                console.log('from yaml')
                                 context.support = app.config.support_contact
                             } else {
                                 const admin = await app.db.models.User.scope('admins').findOne()
