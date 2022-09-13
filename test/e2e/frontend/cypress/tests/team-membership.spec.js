@@ -10,16 +10,8 @@ describe('FlowForge - Team Membership', () => {
         cy.visit('team/ateam/members/general')
         cy.wait(['@getInvitations'])
 
-        cy.get('[data-el="members-table"] tbody').find('tr').should('have.length', 3)
-    })
-
-    it('member cannot can invite or remove a user', () => {
-        cy.login('charlie', 'ccPassword')
-        cy.visit('team/ateam/members/general')
-        cy.wait(['@getTeamMembers'])
-
-        // kebab menu should NOT be available to non owner
-        cy.get('[data-el="members-table"] tbody').find('.ff-kebab-menu').should('have.length', 0)
+        // starts off with alice and bob as members
+        cy.get('[data-el="members-table"] tbody').find('tr').should('have.length', 2) // should be 2 members
     })
 
     it('owner/admin can invite user', () => {
@@ -30,9 +22,9 @@ describe('FlowForge - Team Membership', () => {
         // click invite button
         cy.get('[data-action="member-invite-button"]').click()
 
-        // invite dave
+        // invite charlie
         cy.get('.ff-dialog-box').should('be.visible')
-        cy.get('.ff-dialog-box .ff-input > input').type('dave')
+        cy.get('.ff-dialog-box .ff-input > input').type('charlie')
 
         // click invite button
         cy.get('.ff-dialog-box > .ff-dialog-actions > .ff-btn--primary').contains('Invite').click()
@@ -48,11 +40,11 @@ describe('FlowForge - Team Membership', () => {
     it('user can accept a team invite', () => {
         cy.intercept('PATCH', '/api/*/user/invitations/*').as('acceptInvite')
 
-        cy.login('dave', 'ddPassword')
+        cy.login('charlie', 'ccPassword')
         cy.visit('account/teams/invitations')
         cy.wait('@getInvitations')
 
-        // dave should have 1 invite
+        // charlie should have 1 invite
         cy.get('[data-el="table"] tbody tr').should('have.length', 1)
         cy.get('[data-el="table"] tbody tr td.status-message').should('have.length', 0)
 
@@ -72,17 +64,26 @@ describe('FlowForge - Team Membership', () => {
         cy.get('[data-el="table"] tbody tr td').contains('No Data Found')
     })
 
+    it('member cannot can invite or remove a user', () => {
+        cy.login('charlie', 'ccPassword')
+        cy.visit('team/ateam/members/general')
+        cy.wait(['@getTeamMembers'])
+
+        // kebab menu should NOT be available to non owner
+        cy.get('[data-el="members-table"] tbody').find('.ff-kebab-menu').should('have.length', 0)
+    })
+
     it('admin/owner can remove a member from the team', () => {
         cy.intercept('DELETE', '/api/*/teams/*/members/*').as('removeTeamMember')
 
         cy.visit('team/ateam/members/general')
         cy.wait(['@getTeamMembers'])
 
-        // check we now have 4 members (dave was added in previous test)
-        cy.get('[data-el="members-table"] tbody').find('tr').should('have.length', 4)
+        // check we now have 3 members (charlie was added in previous test)
+        cy.get('[data-el="members-table"] tbody').find('tr').should('have.length', 3)
 
-        // open click kebab menu of 4th member (dave)
-        cy.get('[data-el="members-table"] tbody').find('.ff-kebab-menu').eq(3).click()
+        // open click kebab menu of 3rd member (charlie)
+        cy.get('[data-el="members-table"] tbody').find('.ff-kebab-menu').eq(2).click()
 
         // click "member-remove-from-team"
         cy.get('[data-el="members-table"] tbody .ff-kebab-menu .ff-kebab-options').find('[data-action="member-remove-from-team"]').click()
@@ -96,6 +97,6 @@ describe('FlowForge - Team Membership', () => {
         cy.wait('@removeTeamMember')
 
         // check it has been deleted
-        cy.get('[data-el="members-table"] tbody').find('tr').should('have.length', 3)
+        cy.get('[data-el="members-table"] tbody').find('tr').should('have.length', 2)
     })
 })

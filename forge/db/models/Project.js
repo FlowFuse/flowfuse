@@ -93,8 +93,15 @@ module.exports = {
         this.belongsTo(M.ProjectTemplate)
         this.hasMany(M.ProjectSnapshot)
     },
-    hooks: function (M) {
+    hooks: function (M, app) {
         return {
+            beforeCreate: async (project, opts) => {
+                const projectLimit = app.license.get('projects')
+                const projectCount = await M.Project.count()
+                if (projectCount >= projectLimit) {
+                    throw new Error('license limit reached')
+                }
+            },
             afterDestroy: async (project, opts) => {
                 await M.AccessToken.destroy({
                     where: {

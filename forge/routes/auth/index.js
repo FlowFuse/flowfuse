@@ -86,7 +86,8 @@ module.exports = fp(async function (app, opts, done) {
             if (request.session && request.session.User) {
                 const emailVerified = !app.postoffice.enabled() || request.session.User.email_verified || request.context.config.allowUnverifiedEmail
                 const passwordNotExpired = !request.session.User.password_expired || request.context.config.allowExpiredPassword
-                if (emailVerified && passwordNotExpired) {
+                const suspended = request.session.User.suspended
+                if (emailVerified && passwordNotExpired && !suspended) {
                     return
                 }
             }
@@ -177,6 +178,9 @@ module.exports = fp(async function (app, opts, done) {
                 }
                 reply.setCookie('sid', session.sid, cookieOptions)
                 reply.send({ status: 'okay' })
+                return
+            } else {
+                reply.code(403).send({ error: 'User Suspended' })
                 return
             }
         }
@@ -299,6 +303,14 @@ module.exports = fp(async function (app, opts, done) {
 
     app.get('/account/verify/:token', async (request, reply) => {
         try {
+            if (app.settings.get('user:team:auto-create')) {
+                const teamLimit = app.license.get('teams')
+                const teamCount = await app.db.models.Team.count()
+                if (teamCount >= teamLimit) {
+                    reply.code(400).send({ status: 'error', message: 'Unable to create user team: license limit reached' })
+                    return
+                }
+            }
             let sessionUser
             if (request.sid) {
                 request.session = await app.db.controllers.Session.getOrExpire(request.sid)
@@ -309,7 +321,8 @@ module.exports = fp(async function (app, opts, done) {
             if (app.settings.get('user:team:auto-create')) {
                 await app.db.controllers.Team.createTeamForUser({
                     name: `Team ${verifiedUser.name}`,
-                    slug: verifiedUser.username
+                    slug: verifiedUser.username,
+                    TeamTypeId: (await app.db.models.TeamType.byName('starter')).id
                 }, verifiedUser)
             }
 

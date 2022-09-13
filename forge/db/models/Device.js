@@ -34,8 +34,15 @@ module.exports = {
         this.belongsTo(M.ProjectSnapshot, { as: 'activeSnapshot' })
         this.hasMany(M.DeviceSettings)
     },
-    hooks: function (M) {
+    hooks: function (M, app) {
         return {
+            beforeCreate: async (device, options) => {
+                const deviceLimit = app.license.get('devices')
+                const deviceCount = await M.Device.count()
+                if (deviceCount >= deviceLimit) {
+                    throw new Error('license limit reached')
+                }
+            },
             afterDestroy: async (device, opts) => {
                 await M.AccessToken.destroy({
                     where: {

@@ -178,16 +178,27 @@ module.exports = async function (app) {
             return
         }
 
+        if (/^[a-zA-Z][a-zA-Z0-9-]*$/.test(safeName) === false) {
+            reply.status(409).type('application/json').send({ error: 'name not allowed' })
+            return
+        }
+
         if (await app.db.models.Project.isNameUsed(safeName)) {
             reply.status(409).type('application/json').send({ error: 'name in use' })
             return
         }
 
-        const project = await app.db.models.Project.create({
-            name: name,
-            type: '',
-            url: ''
-        })
+        let project
+        try {
+            project = await app.db.models.Project.create({
+                name: name,
+                type: '',
+                url: ''
+            })
+        } catch (err) {
+            reply.status(400).type('application/json').send({ error: err.message })
+            return
+        }
 
         // const authClient = await app.db.controllers.AuthClient.createClientForProject(project);
         // const projectToken = await app.db.controllers.AccessToken.createTokenForProject(project, null, ["project:flows:view","project:flows:edit"])

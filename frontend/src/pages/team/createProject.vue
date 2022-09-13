@@ -92,6 +92,8 @@ import projectTypesApi from '@/api/projectTypes'
 import stacksApi from '@/api/stacks'
 import templatesApi from '@/api/templates'
 
+import Alerts from '@/services/alerts'
+
 import NavItem from '@/components/NavItem'
 import SectionTopMenu from '@/components/SectionTopMenu'
 
@@ -152,7 +154,7 @@ export default {
     },
     watch: {
         'input.name': function (value, oldValue) {
-            if (/^[a-zA-Z0-9-]+$/.test(value)) {
+            if (/^[a-zA-Z][a-zA-Z0-9-]*$/.test(value)) {
                 this.errors.name = ''
             } else {
                 this.errors.name = 'Names must only include a→z, A→Z, -, 0→9'
@@ -237,10 +239,13 @@ export default {
             projectApi.create(createPayload).then(result => {
                 this.$router.push({ name: 'Project', params: { id: result.id } })
             }).catch(err => {
-                console.log(err)
                 this.loading = false
                 if (err.response?.status === 409) {
                     this.errors.name = err.response.data.error
+                } else if (err.response?.status === 400) {
+                    Alerts.emit('Failed to create project: ' + err.response.data.error, 'warning', 7500)
+                } else {
+                    console.log(err)
                 }
             })
         },

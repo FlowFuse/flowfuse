@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" header="Edit User" confirm-label="Save" @confirm="confirm()" :disable-primary="!formValid">
+    <ff-dialog ref="dialog" header="Edit User" confirm-label="Save" @confirm="confirm()" :disable-primary="!formValid" :closeOnConfirm="false">
         <template v-slot:default>
             <form class="space-y-6" @submit.prevent>
                 <FormRow v-model="input.username" :error="errors.username">Username</FormRow>
@@ -15,9 +15,19 @@
                         </ff-button>
                     </template>
                 </FormRow>
-                <FormRow id="admin" wrapperClass="flex justify-between items-center" :disabled="adminLocked" v-model="input.admin" type="checkbox">Administrator
+                <FormRow id="admin" :error="errors.admin" wrapperClass="flex justify-between items-center" :disabled="adminLocked" v-model="input.admin" type="checkbox">Administrator
                     <template v-slot:append>
                         <ff-button v-if="adminLocked" kind="danger" size="small" @click="unlockAdmin()">
+                            Unlock
+                            <template v-slot:icon>
+                                <LockClosedIcon />
+                            </template>
+                        </ff-button>
+                    </template>
+                </FormRow>
+                <FormRow id="user_suspended" wrapperClass="flex justify-between items-center" :disabled="user_suspendedLocked" v-model="input.user_suspended" type="checkbox">Suspended
+                    <template v-slot:append>
+                        <ff-button v-if="user_suspendedLocked" kind="danger" size="small" @click="unlockSuspended()">
                             Unlock
                             <template v-slot:icon>
                                 <LockClosedIcon />
@@ -60,7 +70,7 @@
 <script>
 import usersApi from '@/api/users'
 import { LockClosedIcon } from '@heroicons/vue/outline'
-
+import Alerts from '@/services/alerts'
 import FormHeading from '@/components/FormHeading'
 import FormRow from '@/components/FormRow'
 
@@ -80,7 +90,8 @@ export default {
             adminLocked: true,
             email_verifiedLocked: false,
             deleteLocked: true,
-            expirePassLocked: true
+            expirePassLocked: true,
+            user_suspendedLocked: true
         }
     },
     watch: {
@@ -118,6 +129,9 @@ export default {
         unlockExpirePassword () {
             this.expirePassLocked = false
         },
+        unlockSuspended () {
+            this.user_suspendedLocked = false
+        },
         confirm () {
             if (this.formValid) {
                 const opts = {}
@@ -142,21 +156,47 @@ export default {
                     opts.email_verified = this.input.email_verified
                     changed = true
                 }
+                if (this.input.user_suspended !== this.user.suspended) {
+                    opts.suspended = this.input.user_suspended
+                    changed = true
+                }
 
                 if (changed) {
                     usersApi.updateUser(this.user.id, opts).then((response) => {
                         this.$emit('userUpdated', response)
+                        this.$refs.dialog.close()
                     }).catch(err => {
                         console.log(err.response.data)
                         if (err.response.data) {
+                            let showAlert = true
                             if (/username/.test(err.response.data.error)) {
                                 this.errors.username = 'Username unavailable'
+                                showAlert = false
                             }
                             if (/password/.test(err.response.data.error)) {
                                 this.errors.password = 'Invalid username'
+                                showAlert = false
+                            }
+                            if (/admin/i.test(err.response.data.error)) {
+                                this.errors.admin = err.response.data.error
+                                showAlert = false
                             }
                             if (err.response.data.error === 'email must be unique') {
                                 this.errors.email = 'Email already registered'
+                                showAlert = false
+                            }
+                            if (showAlert) {
+                                const msgLines = []
+                                if (err.response.data.error) {
+                                    msgLines.push(err.response.data.error)
+                                    if (err.response.data.message) {
+                                        msgLines.push(err.response.data.message)
+                                    }
+                                } else {
+                                    msgLines.push(err.message || 'Unknown error')
+                                }
+                                const msg = msgLines.join(' : ')
+                                Alerts.emit(msg, 'warning', 7500)
                             }
                         }
                     })
@@ -194,6 +234,8 @@ export default {
                 this.adminLocked = true
                 this.deleteLocked = true
                 this.expirePassLocked = true
+                this.user_suspendedLocked = true
+                this.input.user_suspended = user.suspended
                 this.errors = {}
             }
         }

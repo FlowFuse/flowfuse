@@ -35,13 +35,22 @@ module.exports = {
             }
         },
         tcs_accepted: { type: DataTypes.DATE, allowNull: true }
+        suspended: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
+        }
     },
     scopes: {
         admins: { where: { admin: true } }
     },
-    hooks: function (M) {
+    hooks: function (M, app) {
         return {
-            beforeCreate: (user, options) => {
+            beforeCreate: async (user, options) => {
+                const userLimit = app.license.get('users')
+                const userCount = await M.User.count()
+                if (userCount >= userLimit) {
+                    throw new Error('license limit reached')
+                }
                 if (!user.avatar) {
                     user.avatar = generateUserAvatar(user.name || user.username)
                 }
@@ -49,7 +58,13 @@ module.exports = {
                     user.name = user.username
                 }
             },
-            beforeUpdate: (user) => {
+            beforeUpdate: async (user) => {
+                if (user._previousDataValues.admin === true && user.admin === false) {
+                    const currentAdmins = await app.db.models.User.scope('admins').findAll()
+                    if (currentAdmins.length <= 1) {
+                        throw new Error('Cannot remove last Admin user')
+                    }
+                }
                 if (user.avatar.startsWith(`${process.env.FLOWFORGE_BASE_URL}/avatar/`)) {
                     user.avatar = generateUserAvatar(user.name || user.username)
                 }

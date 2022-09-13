@@ -8,7 +8,8 @@ function publicUserProfile (app, user) {
         'email',
         'avatar',
         'admin',
-        'createdAt'
+        'createdAt',
+        'suspended'
     ].forEach(p => { result[p] = user[p] })
     return result
 }

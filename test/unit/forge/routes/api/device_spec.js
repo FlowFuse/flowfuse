@@ -23,7 +23,11 @@ describe('Device API', async function () {
     }
 
     beforeEach(async function () {
-        app = await setup({ features: { devices: true } })
+        const setupConfig = { features: { devices: true } }
+        if (this.currentTest.license) {
+            setupConfig.license = this.currentTest.license
+        }
+        app = await setup(setupConfig)
 
         // alice : admin
         // bob
@@ -49,6 +53,8 @@ describe('Device API', async function () {
         await TestObjects.BTeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
         await TestObjects.BTeam.addUser(TestObjects.chris, { through: { role: Roles.Member } })
         await TestObjects.CTeam.addUser(TestObjects.chris, { through: { role: Roles.Owner } })
+
+        TestObjects.defaultTeamType = app.defaultTeamType
 
         TestObjects.tokens = {}
         await login('alice', 'aaPassword')
@@ -150,6 +156,43 @@ describe('Device API', async function () {
             result.should.have.property('credentials')
             result.credentials.should.have.property('token')
         })
+
+        it('limits how many devices can be added to a team according to TeamType', async function () {
+            // Set TeamType deviceLimit = 2
+            const existingTeamTypeProps = TestObjects.defaultTeamType.properties
+            existingTeamTypeProps.deviceLimit = 2
+            TestObjects.defaultTeamType.properties = existingTeamTypeProps
+            await TestObjects.defaultTeamType.save()
+
+            ;(await TestObjects.ATeam.deviceCount()).should.equal(0)
+            for (let i = 0; i < 2; i++) {
+                const response = await createDevice({ name: `D${i + 1}`, type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                response.should.have.property('id')
+            }
+            ;(await TestObjects.ATeam.deviceCount()).should.equal(2)
+
+            const response = await createDevice({ name: 'D3', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            response.should.have.property('error')
+            response.error.should.match(/limit reached/)
+        })
+
+        const licenseTest = it('limits how many devices can be created according to license', async function () {
+            // Check we're at the starting point we expect
+            ;(await app.db.models.Device.count()).should.equal(0)
+
+            for (let i = 0; i < 2; i++) {
+                const response = await createDevice({ name: `D${i + 1}`, type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                response.should.have.property('id')
+            }
+
+            ;(await app.db.models.Device.count()).should.equal(2)
+
+            const response = await createDevice({ name: 'D3', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            response.should.have.property('error')
+            response.error.should.match(/license limit/)
+        })
+        // Limited to 2 devices
+        licenseTest.license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
     })
     describe('Get device details', async function () {
         it('provides device details including project and team', async function () {

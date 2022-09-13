@@ -98,33 +98,50 @@ module.exports = async function (app) {
         }
 
         const team = teamMembership.get('Team')
-
-        const device = await app.db.models.Device.create({
-            name: request.body.name,
-            type: request.body.type,
-            credentialSecret: ''
-        })
-
-        await team.addDevice(device)
-
-        await device.reload({
+        await team.reload({
             include: [
-                { model: app.db.models.Team }
+                { model: app.db.models.TeamType }
             ]
         })
+        const teamDeviceLimit = team.TeamType.getProperty('deviceLimit')
+        if (typeof teamDeviceLimit === 'number') {
+            const currentDeviceCount = await team.deviceCount()
+            if (currentDeviceCount >= teamDeviceLimit) {
+                reply.code(400).send({ error: 'Team device limit reached' })
+                return
+            }
+        }
 
-        const credentials = await device.refreshAuthTokens()
+        try {
+            const device = await app.db.models.Device.create({
+                name: request.body.name,
+                type: request.body.type,
+                credentialSecret: ''
+            })
 
-        await app.db.controllers.AuditLog.teamLog(
-            team.id,
-            request.session.User.id,
-            'team.device.created',
-            { id: device.hashid }
-        )
+            await team.addDevice(device)
 
-        const response = app.db.views.Device.device(device)
-        response.credentials = credentials
-        reply.send(response)
+            await device.reload({
+                include: [
+                    { model: app.db.models.Team }
+                ]
+            })
+
+            const credentials = await device.refreshAuthTokens()
+
+            await app.db.controllers.AuditLog.teamLog(
+                team.id,
+                request.session.User.id,
+                'team.device.created',
+                { id: device.hashid }
+            )
+
+            const response = app.db.views.Device.device(device)
+            response.credentials = credentials
+            reply.send(response)
+        } catch (err) {
+            reply.code(400).send({ error: err.toString() })
+        }
     })
 
     /**

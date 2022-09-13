@@ -5,6 +5,16 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 
 describe('Team controller', function () {
     // Use standard test data.
+    /*
+        alice (admin)
+        bob
+        chris (!email_verified)
+
+        ATeam - alice(owner), bob(member)
+        BTeam - bob(owner), alice(member)
+        CTeam - alice(owner)
+    */
+
     let app
     beforeEach(async function () {
         app = await setup()
@@ -12,6 +22,43 @@ describe('Team controller', function () {
 
     afterEach(async function () {
         await app.close()
+    })
+
+    describe('add team member', function () {
+        it('adds a member to a team', async function () {
+            const team = await app.db.models.Team.byName('CTeam')
+            const user = await app.db.models.User.byUsername('bob')
+
+            await app.db.controllers.Team.addUser(team, user, Roles.Member)
+
+            const role = await user.getTeamMembership(team.id)
+            role.role.should.equal(Roles.Member)
+        })
+
+        it('prevents user being added twice to a team', async function () {
+            const team = await app.db.models.Team.byName('ATeam')
+            const user = await app.db.models.User.byUsername('bob')
+            try {
+                await app.db.controllers.Team.addUser(team, user, Roles.Member)
+                return Promise.reject(new Error('allowed duplicate team member'))
+            } catch (err) {
+            }
+        })
+
+        it('prevents the team userLimit from being exceeded', async function () {
+            // Cannot have >3 users in a starter team
+            const userDave = await app.db.models.User.create({ username: 'dave', name: 'Dave Vader', email: 'dave@example.com', email_verified: true, password: 'ddPassword' })
+            const userChris = await app.db.models.User.byUsername('chris')
+            const team = await app.db.models.Team.byName('ATeam')
+
+            await app.db.controllers.Team.addUser(team, userChris, Roles.Member)
+
+            try {
+                await app.db.controllers.Team.addUser(team, userDave, Roles.Member)
+                return Promise.reject(new Error('allowed team user limit to be exceeded'))
+            } catch (err) {
+            }
+        })
     })
 
     describe('change member role', function () {

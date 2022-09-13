@@ -8,7 +8,9 @@ describe('Users API', async function () {
     const TestObjects = {}
 
     beforeEach(async function () {
-        app = await setup({ features: { devices: true } })
+        app = await setup({
+            features: { devices: true }
+        })
 
         // alice : admin, team owner
         // bob : admin, team owner
@@ -285,20 +287,21 @@ describe('Users API', async function () {
         })
 
         it('Deleting a user removes pending invites for them', async function () {
-            // Alice invites Elvis to TeamB
+            // Chris invites Elvis to TeamC
             // Delete Elvis
-            await app.inject({
+            const response = await app.inject({
                 method: 'POST',
-                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations`,
-                cookies: { sid: TestObjects.tokens.alice },
+                url: `/api/v1/teams/${TestObjects.CTeam.hashid}/invitations`,
+                cookies: { sid: TestObjects.tokens.chris },
                 payload: {
                     user: 'elvis'
                 }
             })
+            response.statusCode.should.equal(200)
             const inviteListA = (await app.inject({
                 method: 'GET',
-                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations`,
-                cookies: { sid: TestObjects.tokens.alice }
+                url: `/api/v1/teams/${TestObjects.CTeam.hashid}/invitations`,
+                cookies: { sid: TestObjects.tokens.chris }
             })).json()
             inviteListA.should.have.property('count', 1)
             const deleteResult = await app.inject({
@@ -309,8 +312,8 @@ describe('Users API', async function () {
             deleteResult.statusCode.should.equal(200)
             const inviteListB = (await app.inject({
                 method: 'GET',
-                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations`,
-                cookies: { sid: TestObjects.tokens.alice }
+                url: `/api/v1/teams/${TestObjects.CTeam.hashid}/invitations`,
+                cookies: { sid: TestObjects.tokens.chris }
             })).json()
             inviteListB.should.have.property('count', 0)
         })
@@ -347,6 +350,26 @@ describe('Users API', async function () {
             // ensure elvis was actually removed
             membersAfterA.members.filter(e => e.username === 'elvis').should.have.property('length', 0)
             membersAfterA.members.filter(e => e.username === 'elvis').should.have.property('length', 0)
+        })
+    })
+
+    describe('Suspend User', async function () {
+        it('Suspend/Resume elivis', async function () {
+            await app.db.controllers.User.suspend(TestObjects.elvis)
+            const suspendedResponse = await app.inject({
+                method: 'POST',
+                url: '/account/login',
+                payload: { username: 'elvis', password: 'eePassword', remember: false }
+            })
+            suspendedResponse.should.have.property('statusCode', 403)
+            TestObjects.elvis.suspended = false
+            await TestObjects.elvis.save()
+            const response = await app.inject({
+                method: 'POST',
+                url: '/account/login',
+                payload: { username: 'elvis', password: 'eePassword', remember: false }
+            })
+            response.should.have.property('statusCode', 200)
         })
     })
 })

@@ -1,6 +1,6 @@
 <template>
     <SectionTopMenu hero="Admin Settings" />
-    <div class="grid grid-cols-3 gap-4 text-gray-700">
+    <div class="grid grid-cols-4 gap-4 text-gray-700">
         <div class="border rounded px-4 py-2 text-center">
             <router-link to="/admin/users/general">
                 <div class="text-xl">{{stats.userCount}}</div>
@@ -20,9 +20,19 @@
         <div class="border rounded p-4 text-center">
             <div class="text-xl">{{stats.projectCount}}</div>
             <div>{{ $filters.pluralize(stats.projectCount,'Project')}}</div>
+            <div class="w-full grid grid-cols-1 pt-1 mt-2 border-t">
+                <div v-for="(count, state) in stats.projectsByState" :key="state">
+                    {{ count }} {{ state }}
+                </div>
+            </div>
         </div>
 
-        <div class="border rounded p-4 col-span-3">
+        <div class="border rounded p-4 text-center">
+            <div class="text-xl">{{stats.deviceCount}}</div>
+            <div>{{ $filters.pluralize(stats.deviceCount,'Device')}}</div>
+        </div>
+
+        <div class="border rounded p-4 col-span-4">
             <div class="text-xl mb-1 border-b">License</div>
             <table v-if="license">
                 <tr><td class="font-medium p-2 pr-4 align-top">Type</td><td class="p-2"><span v-if="!license.dev">FlowForge Enterprise Edition</span><span v-else class="font-bold">FlowForge Development Only</span></td></tr>
@@ -35,7 +45,7 @@
                 </table>
             </div>
         </div>
-        <div class="border rounded p-4 col-span-3">
+        <div class="border rounded p-4 col-span-4">
             <div class="text-xl mb-1 border-b">Version</div>
             <table>
                 <tr><td class="font-medium p-2 pr-4 align-top">Forge Application</td><td class="p-2">{{settings['version:forge']}}</td></tr>

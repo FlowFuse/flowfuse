@@ -120,7 +120,7 @@ async function init (app) {
         }
         if (m.hooks) {
             if (typeof m.hooks === 'function') {
-                opts.hooks = m.hooks.call(null, M)
+                opts.hooks = m.hooks.call(null, M, app)
             } else {
                 opts.hooks = m.hooks
             }
@@ -180,10 +180,10 @@ async function init (app) {
     // Do a second pass to setup associations/finders now all Models exist
     allModels.forEach(m => {
         if (m.associations) {
-            m.associations.call(m.model, M)
+            m.associations.call(m.model, M, app)
         }
         if (m.finders) {
-            const finders = m.finders.call(m.model, M)
+            const finders = m.finders.call(m.model, M, app)
             if (finders.static) {
                 Object.assign(m.model, finders.static)
             }

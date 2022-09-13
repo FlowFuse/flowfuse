@@ -46,9 +46,11 @@ describe('Project Lifecycle', function () {
 
         // Setup the database with basic artefacts
 
+        const defaultTeamType = await forge.db.models.TeamType.byName('starter')
+
         await forge.db.models.PlatformSettings.upsert({ key: 'setup:initialised', value: true })
         TestObjects.userAlice = await forge.db.models.User.create({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
-        TestObjects.ATeam = await forge.db.models.Team.create({ name: 'ATeam' })
+        TestObjects.ATeam = await forge.db.models.Team.create({ name: 'ATeam', TeamTypeId: defaultTeamType.id })
         await TestObjects.ATeam.addUser(TestObjects.userAlice, { through: { role: Roles.Owner } })
         TestObjects.ProjectType1 = await forge.db.models.ProjectType.create({
             name: 'projectType1',

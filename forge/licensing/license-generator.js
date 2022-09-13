@@ -77,11 +77,11 @@ const promptly = require('promptly')
             sub: licenseHolder, // Name of the license holder
             nbf: validFrom,
             exp: expiry, // Expiry of the license in epoch seconds
-            note: licenseNotes // Freeform text to associate with license
-            // tier: 'teams', // Must be 'solo' or 'teams',
-            // users: '100',
-            // teams: '100',
-            // projects: '100'
+            note: licenseNotes, // Freeform text to associate with license
+            users: 150,
+            teams: 50,
+            projects: 50,
+            devices: 50
         }
 
         if (devLicense) {

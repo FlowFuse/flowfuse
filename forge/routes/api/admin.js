@@ -3,12 +3,15 @@ module.exports = async function (app) {
 
     app.get('/stats', async (request, reply) => {
         const userCount = await app.db.models.User.count({ attributes: ['admin'], group: 'admin' })
+        const projectStateCounts = await app.db.models.Project.count({ attributes: ['state'], group: 'state' })
         const result = {
             userCount: 0,
+            deviceCount: await app.db.models.Device.count(),
             inviteCount: await app.db.models.Invitation.count(),
             adminCount: 0,
             teamCount: await app.db.models.Team.count(),
-            projectCount: await app.db.models.Project.count()
+            projectCount: 0,
+            projectsByState: {}
         }
         userCount.forEach(u => {
             result.userCount += u.count
@@ -16,6 +19,12 @@ module.exports = async function (app) {
                 result.adminCount = u.count
             }
         })
+
+        projectStateCounts.forEach(projectState => {
+            result.projectCount += projectState.count
+            result.projectsByState[projectState.state] = projectState.count
+        })
+
         reply.send(result)
     })
 
