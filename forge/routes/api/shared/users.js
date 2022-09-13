@@ -54,7 +54,6 @@ module.exports = {
                                 }
                             } catch (err) {
                             }
-                            console.log(context)
                             app.postoffice.send(user, 'UserSuspended', context)
                         }
                     } else {
