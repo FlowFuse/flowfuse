@@ -7,7 +7,11 @@ describe('Team API', function () {
     let app
     const TestObjects = {}
     beforeEach(async function () {
-        app = await setup()
+        const opts = {}
+        if (this.currentTest.license) {
+            opts.license = this.currentTest.license
+        }
+        app = await setup(opts)
 
         // Alice create in setup()
         TestObjects.alice = await app.db.models.User.byUsername('alice')
@@ -42,20 +46,20 @@ describe('Team API', function () {
             app = null
         }
     })
-    describe.skip('Team API', function async () {
-        beforeEach(async function () {
-            app = await setup()
+    describe('Team API', function async () {
+        // beforeEach(async function () {
+        //     app = await setup()
 
-            // Alice create in setup()
-            TestObjects.alice = await app.db.models.User.byUsername('alice')
-            TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
-            TestObjects.chris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', email_verified: true, password: 'ccPassword' })
+        //     // Alice create in setup()
+        //     TestObjects.alice = await app.db.models.User.byUsername('alice')
+        //     TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
+        //     TestObjects.chris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', email_verified: true, password: 'ccPassword' })
 
-            TestObjects.tokens = {}
-            await login('alice', 'aaPassword')
-            await login('bob', 'bbPassword')
-            await login('chris', 'ccPassword')
-        })
+        //     TestObjects.tokens = {}
+        //     await login('alice', 'aaPassword')
+        //     await login('bob', 'bbPassword')
+        //     await login('chris', 'ccPassword')
+        // })
 
         describe('Get team details', async function () {
             // GET /api/v1/teams/:teamId
@@ -101,10 +105,8 @@ describe('Team API', function () {
         })
     })
     describe('license limits', async function () {
-        it('limits how many teams can be created according to license', async function () {
-            // This license has limit of 4 teams (1 created by default test setup)
-            const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo0LCJwcm9qZWN0cyI6NTAsImRldmljZXMiOjUwLCJkZXYiOnRydWUsImlhdCI6MTY2MjYzMTU4N30.J6ceWv3SdFC-J_dt05geeQZHosD1D102u54tVLeu_4EwRO5OYGiqMxFW3mx5pygod3xNT68e2Wq8A7wNVCt3Rg'
-            app = await setup({ license })
+        const test = it('limits how many teams can be created according to license', async function () {
+            // This license has limit of 4 teams (2 created by default test setup)
             // Alice create in setup()
             TestObjects.alice = await app.db.models.User.byUsername('alice')
             TestObjects.defaultTeamType = await app.db.models.TeamType.findOne()
@@ -112,9 +114,9 @@ describe('Team API', function () {
             await login('alice', 'aaPassword')
 
             // Check we're at the starting point we expect
-            ;(await app.db.models.Team.count()).should.equal(1)
+            ;(await app.db.models.Team.count()).should.equal(2)
 
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < 2; i++) {
                 const response = await app.inject({
                     method: 'POST',
                     url: '/api/v1/teams',
@@ -143,6 +145,7 @@ describe('Team API', function () {
             failResponse.statusCode.should.equal(400)
             failResponse.json().error.should.match(/license limit/)
         })
+        test.license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo0LCJwcm9qZWN0cyI6NTAsImRldmljZXMiOjUwLCJkZXYiOnRydWUsImlhdCI6MTY2MjYzMTU4N30.J6ceWv3SdFC-J_dt05geeQZHosD1D102u54tVLeu_4EwRO5OYGiqMxFW3mx5pygod3xNT68e2Wq8A7wNVCt3Rg'
     })
 
     describe('Create team', async function () {
