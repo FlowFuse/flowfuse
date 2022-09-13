@@ -41,6 +41,7 @@ describe('Platform Settings', function () {
                 transport: inbox
             }
         })
+        forge.defaultTeamType = await forge.db.models.TeamType.findOne()
 
         // Setup the database with basic artefacts
 
@@ -49,11 +50,11 @@ describe('Platform Settings', function () {
         TestObjects.alice = await forge.db.models.User.create({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword', tcs_accepted: new Date(2022, 1, 1) })
         TestObjects.bob = await forge.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, tcs_accepted: null, password: 'bbPassword' })
 
-        TestObjects.ATeam = await forge.db.models.Team.create({ name: 'ATeam' })
+        TestObjects.ATeam = await forge.db.models.Team.create({ name: 'ATeam', TeamTypeId: forge.defaultTeamType.id })
         await TestObjects.ATeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
         await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Member } })
 
-        TestObjects.BTeam = await forge.db.models.Team.create({ name: 'BTeam' })
+        TestObjects.BTeam = await forge.db.models.Team.create({ name: 'BTeam', TeamTypeId: forge.defaultTeamType.id })
         await TestObjects.BTeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
     })
 
