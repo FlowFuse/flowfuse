@@ -39,26 +39,20 @@ describe('FlowForge - Team Membership', () => {
 
         // save settings
         cy.get('[data-action="save-settings"]').click()
-        cy.wait(['@putSettings'])
-        cy.overview()
+        cy.wait(['@putSettings', '@getSettings'])
 
-        // navigate back, wait for APIs
+        // navigate again, wait for key APIs
         cy.visit('admin/settings/general')
         cy.wait(['@getUser'])
-        cy.wait(['@getSettings'])
-        cy.wait(['@getTeams'])
         cy.wait(['@getTeam'])
+        cy.wait(['@getTeams'])
         cy.wait(['@getTeamRole'])
 
-        // depending on DB state, the admin may be presented with the T+Cs acceptance form - just accept it at this point
-        cy.get('#ff-app').then((app) => {
-            cy.wait(500) // Not ideal but difficult to test if an element is not present (e.g. the T+Cs dialog)
-            if (app.find('[data-action="accept-terms-check"]').length > 0) {
-                cy.get('[data-action="accept-terms-check"]').click() // tick the box
-                cy.get('[data-action="accept-terms-button"]').click() // accept T+Cs
-                cy.wait(['@getUser'])
-            }
-        })
+        // now that changing the URL causes the T&Cs acceptance date to be updated,
+        // the T&Cs dialog will be shown
+        cy.get('[data-action="accept-terms-check"]').click() // tick the box
+        cy.get('[data-action="accept-terms-button"]').click() // accept T+Cs
+        cy.wait(['@getUser'])
 
         // Check settings
         cy.get('[data-el="terms-and-condition-url"]').find('input').should('have.value', 'http://a.b.c')
