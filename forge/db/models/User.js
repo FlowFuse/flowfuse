@@ -34,7 +34,7 @@ module.exports = {
                 }
             }
         },
-        tcs_accepted: { type: DataTypes.DATE, allowNull: true }
+        tcs_accepted: { type: DataTypes.DATE, allowNull: true },
         suspended: {
             type: DataTypes.BOOLEAN,
             defaultValue: false
