@@ -196,7 +196,7 @@ export default {
             Dialog.show({
                 header: 'Update Terms and Conditions',
                 kind: 'danger',
-                html: '<p>This action will update the timestamp associated with the Terms and Conditions effectively causing existing users to be prompted to re-review and reaccept the updated Terms and Conditions.</p><p>Are you sure?</p>',
+                html: '<p>This action will require all existing users to reaccept the Terms and Conditions the next time they access the platform.</p><p>Are you sure?</p>',
                 confirmLabel: 'Continue'
             }, async () => {
                 this.loading = true
