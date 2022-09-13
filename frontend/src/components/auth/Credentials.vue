@@ -75,7 +75,7 @@ export default {
     watch: {
         loginError (newError, oldError) {
             this.focusUsername()
-            this.errors.general = 'Login failed'
+            this.errors.general = newError
         }
     }
 }

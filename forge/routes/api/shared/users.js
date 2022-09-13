@@ -30,6 +30,36 @@ module.exports = {
                 if (request.body.password_expired === true) {
                     user.password_expired = true
                 }
+
+                if (request.body.suspended !== undefined) {
+                    if (request.body.suspended === true) {
+                        await app.db.controllers.User.suspend(user)
+                        if (app.postoffice.enabled()) {
+                            // Send email
+                            const context = {}
+                            if (app.config.support_contact) {
+                                context.support = app.config.support_contact
+                            } else {
+                                const admin = await app.db.models.User.scope('admins').findOne()
+                                if (admin?.email) {
+                                    context.support = `mailto:${admin.email}`
+                                } else {
+                                    context.support = 'the administrator'
+                                }
+                            }
+                            try {
+                                context.url = new URL(context.support)
+                                if (context.url.protocol === 'mailto:' || context.url.protocol === 'tel:') {
+                                    context.support = context.url.pathname
+                                }
+                            } catch (err) {
+                            }
+                            app.postoffice.send(user, 'UserSuspended', context)
+                        }
+                    } else {
+                        user.suspended = false
+                    }
+                }
             }
             if (request.body.defaultTeam !== undefined) {
                 // verify user is a member of request.body.defaultTeam

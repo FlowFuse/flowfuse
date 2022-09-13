@@ -132,6 +132,10 @@ const mutations = {
     },
     setOffline (state, value) {
         state.offline = value
+    },
+    userSuspended (state, error) {
+        state.loginInflight = false
+        state.loginError = error
     }
 }
 
@@ -236,7 +240,11 @@ const actions = {
             await userApi.login(credentials.username, credentials.password, credentials.remember)
             state.dispatch('checkState', state.getters.redirectUrlAfterLogin)
         } catch (err) {
-            state.commit('loginFailed', 'Login failed')
+            if (err.response.status === 401) {
+                state.commit('loginFailed', 'Login failed')
+            } else if (err.response.status === 403) {
+                state.commit('userSuspended', err.response.data.error)
+            }
         }
     },
     async logout (state) {

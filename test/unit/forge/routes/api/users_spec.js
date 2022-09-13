@@ -352,4 +352,24 @@ describe('Users API', async function () {
             membersAfterA.members.filter(e => e.username === 'elvis').should.have.property('length', 0)
         })
     })
+
+    describe('Suspend User', async function () {
+        it('Suspend/Resume elivis', async function () {
+            await app.db.controllers.User.suspend(TestObjects.elvis)
+            const suspendedResponse = await app.inject({
+                method: 'POST',
+                url: '/account/login',
+                payload: { username: 'elvis', password: 'eePassword', remember: false }
+            })
+            suspendedResponse.should.have.property('statusCode', 403)
+            TestObjects.elvis.suspended = false
+            await TestObjects.elvis.save()
+            const response = await app.inject({
+                method: 'POST',
+                url: '/account/login',
+                payload: { username: 'elvis', password: 'eePassword', remember: false }
+            })
+            response.should.have.property('statusCode', 200)
+        })
+    })
 })

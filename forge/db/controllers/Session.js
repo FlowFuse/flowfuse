@@ -9,7 +9,7 @@ module.exports = {
      */
     createUserSession: async function (app, username) {
         const user = await app.db.models.User.byUsernameOrEmail(username)
-        if (user) {
+        if (user && !user.suspended) {
             return app.db.models.Session.create({
                 sid: generateToken(32, 'ffu'),
                 expiresAt: Date.now() + DEFAULT_WEB_SESSION_EXPIRY,
