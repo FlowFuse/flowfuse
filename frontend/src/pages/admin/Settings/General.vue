@@ -28,21 +28,18 @@
                 When signing up, users will be presented with a link to the terms and conditions, and will be required to accept them in order to register.
             </template>
         </FormRow>
-        <FormRow v-if="input['user:tcs-required']" v-model="input['user:tcs-url']" type="text" :error="errors.termsAndConditions" data-el="terms-and-condition-url">
+        <FormRow v-if="input['user:tcs-required']" containerClass="max-w-sm ml-9" v-model="input['user:tcs-url']" type="text" :error="errors.termsAndConditions" data-el="terms-and-condition-url">
             Terms &amp; Conditions URL
-        </FormRow>
-        <FormRow v-if="input['user:tcs-required']">
-            Date of Terms &amp; Conditions applied
-            <template #input>
-                <div class="flex justify-between items-center" style="width: 100%">
-                    <div class="font-mono text-md grow">
-                        <span class="text-blue-700">{{tcsDate}}</span>
-                    </div>
-                    <div class="grow-0">
-                        <ff-button size="small" :disabled="loading" :kind="'secondary'" @click="updateTermsAndConditions" data-action="terms-and-condition-update">Update...</ff-button>
-                    </div>
-                </div>
+            <template #description>
+                <p>Changing this URL will require all users to reaccept the terms the next time they access the platform</p>
             </template>
+        </FormRow>
+        <FormRow v-if="input['user:tcs-required']" containerClass="max-w-sm ml-9">
+            <template #description>
+                <p>Last updated: {{tcsDate}}.</p>
+                <div class="flex items-center space-x-2"><p>Require users to reaccept the terms now: </p><ff-button size="small" :disabled="loading" kind="tertiary" @click="updateTermsAndConditions" data-action="terms-and-condition-update">update now</ff-button></div>
+            </template>
+            <template #input>&nbsp;</template>
         </FormRow>
         <FormHeading>Teams</FormHeading>
         <FormRow v-model="input['team:create']" type="checkbox">
