@@ -26,7 +26,7 @@ import userApi from '@/api/user'
 import FlowForgeLogo from '@/components/Logo'
 
 export default {
-    name: 'NoTeamsUser',
+    name: 'NoVerifiedEmail',
     computed: {
         ...mapState('account', ['user'])
     },
