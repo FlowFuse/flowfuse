@@ -43,7 +43,6 @@ module.exports = {
                             } else {
                                 const admin = await app.db.models.User.scope('admins').findOne()
                                 if (admin?.email) {
-                                    console.log('from admin email')
                                     context.support = `mailto:${admin.email}`
                                 } else {
                                     console.log('fall back')
