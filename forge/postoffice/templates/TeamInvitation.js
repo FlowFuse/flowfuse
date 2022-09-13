@@ -5,7 +5,7 @@ module.exports = {
 
 You've been invited to join team {{{invite.team.name}}} on the FlowForge platform.
 
-{{{ signupLink }}}/account/teams/invitations
+{{{ signupLink }}}
 `,
     html:
 `<p>Hello!</p>
