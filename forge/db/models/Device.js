@@ -185,7 +185,10 @@ module.exports = {
                     })
                 },
                 getAll: async (pagination = {}, where = {}) => {
-                    const limit = parseInt(pagination.limit) || 30
+                    let limit = parseInt(pagination.limit)
+                    if (isNaN(limit)) {
+                        limit = 30
+                    }
                     if (pagination.cursor) {
                         where.id = { [Op.gt]: M.Device.decodeHashid(pagination.cursor) }
                     }
@@ -208,7 +211,7 @@ module.exports = {
                     })
                     return {
                         meta: {
-                            next_cursor: rows.length === limit ? rows[rows.length - 1].hashid : undefined
+                            next_cursor: (rows.length === limit && limit > 0) ? rows[rows.length - 1].hashid : undefined
                         },
                         count: count,
                         devices: rows

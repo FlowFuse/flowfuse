@@ -6,49 +6,53 @@
     </SectionTopMenu>
     <form class="space-y-6">
         <ff-loading v-if="loading" message="Loading Devices..." />
-        <template v-else-if="devices.length > 0">
-            <template v-if="isProjectDeviceView">
-                <div class="flex space-x-8">
-                    <ff-button v-if="isOwner" data-action="register-device" kind="primary" size="small" @click="showCreateDeviceDialog"><template v-slot:icon-left><PlusSmIcon /></template>Register Device</ff-button>
-                    <ff-button kind="tertiary" size="small" to="./snapshots"><template v-slot:icon-left><ClockIcon/></template>Target Snapshot: {{project.deviceSettings.targetSnapshot || 'none'}}</ff-button>
-                </div>
-            </template>
-            <ff-data-table data-el="devices" :columns="columns" :rows="devices"
-                           :show-search="true" search-placeholder="Search Devices...">
-                <template v-if="isOwner" v-slot:context-menu="{row}">
-                    <ff-list-item label="Edit Details" @click="deviceAction('edit', row.id)"/>
-                    <ff-list-item v-if="!row.project" label="Add to Project" @click="deviceAction('assignToProject', row.id)" />
-                    <ff-list-item v-else label="Remove from Project" @click="deviceAction('removeFromProject', row.id)" />
-                    <ff-list-item kind="danger" label="Regenerate Credentials" @click="deviceAction('updateCredentials', row.id)"/>
-                    <ff-list-item kind="danger" label="Delete Device" @click="deviceAction('delete', row.id)" />
-                </template>
-            </ff-data-table>
-        </template>
-        <template v-else-if="addDeviceEnabled && !loading">
-            <div class="flex justify-center mb-4 p-8">
-                <ff-button data-action="register-device" @click="showCreateDeviceDialog">
-                    <template v-slot:icon-right>
-                        <PlusSmIcon />
-                    </template>
-                    Register Device
-                </ff-button>
-            </div>
-        </template>
-        <template v-if="devices.length === 0 && !loading">
-            <div class="flex text-gray-500 justify-center italic mb-4 p-8">
+        <ff-loading v-else-if="creatingDevice" message="Creating Device..." />
+        <ff-loading v-else-if="deletingDevice" message="Deleting Device..." />
+        <template v-else>
+            <template v-if="devices.length > 0">
                 <template v-if="isProjectDeviceView">
-                    <div class="text-center">
-                        <p>You have not added any devices to this team yet.</p>
-                        <p>To add a device, go to the <router-link :to="{name: 'TeamDevices', params: {team_slug:this.team.slug}}">Team Device</router-link> page</p>
+                    <div class="flex space-x-8">
+                        <ff-button v-if="isOwner" data-action="register-device" kind="primary" size="small" @click="showCreateDeviceDialog"><template v-slot:icon-left><PlusSmIcon /></template>Register Device</ff-button>
+                        <ff-button kind="tertiary" size="small" to="./snapshots"><template v-slot:icon-left><ClockIcon/></template>Target Snapshot: {{project.deviceSettings.targetSnapshot || 'none'}}</ff-button>
                     </div>
                 </template>
-                <template v-else>
-                    You don't have any devices yet
-                </template>
-            </div>
+                <ff-data-table data-el="devices" :columns="columns" :rows="devices"
+                               :show-search="true" search-placeholder="Search Devices...">
+                    <template v-if="isOwner" v-slot:context-menu="{row}">
+                        <ff-list-item label="Edit Details" @click="deviceAction('edit', row.id)"/>
+                        <ff-list-item v-if="!row.project" label="Add to Project" @click="deviceAction('assignToProject', row.id)" />
+                        <ff-list-item v-else label="Remove from Project" @click="deviceAction('removeFromProject', row.id)" />
+                        <ff-list-item kind="danger" label="Regenerate Credentials" @click="deviceAction('updateCredentials', row.id)"/>
+                        <ff-list-item kind="danger" label="Delete Device" @click="deviceAction('delete', row.id)" />
+                    </template>
+                </ff-data-table>
+            </template>
+            <template v-else-if="addDeviceEnabled">
+                <div class="flex justify-center mb-4 p-8">
+                    <ff-button data-action="register-device" @click="showCreateDeviceDialog">
+                        <template v-slot:icon-right>
+                            <PlusSmIcon />
+                        </template>
+                        Register Device
+                    </ff-button>
+                </div>
+            </template>
+            <template v-if="devices.length === 0">
+                <div class="flex text-gray-500 justify-center italic mb-4 p-8">
+                    <template v-if="isProjectDeviceView">
+                        <div class="text-center">
+                            <p>You have not added any devices to this team yet.</p>
+                            <p>To add a device, go to the <router-link :to="{name: 'TeamDevices', params: {team_slug:this.team.slug}}">Team Device</router-link> page</p>
+                        </div>
+                    </template>
+                    <template v-else>
+                        You don't have any devices yet
+                    </template>
+                </div>
+            </template>
         </template>
     </form>
-    <TeamDeviceCreateDialog :team="team" @deviceCreated="deviceCreated" @deviceUpdated="deviceUpdated" ref="teamDeviceCreateDialog"/>
+    <TeamDeviceCreateDialog :team="team" @deviceCreating="deviceCreating" @deviceCreated="deviceCreated" @deviceUpdated="deviceUpdated" ref="teamDeviceCreateDialog"/>
     <DeviceCredentialsDialog ref="deviceCredentialsDialog" />
     <DeviceAssignProjectDialog :team="team" @assignDevice="assignDevice" ref="deviceAssignProjectDialog" />
 </template>
@@ -105,6 +109,8 @@ export default {
     data () {
         return {
             loading: false,
+            creatingDevice: false,
+            deletingDevice: false,
             devices: [],
             checkInterval: null
         }
@@ -148,11 +154,17 @@ export default {
         showEditDeviceDialog (device) {
             this.$refs.teamDeviceCreateDialog.show(device)
         },
+        deviceCreating () {
+            this.creatingDevice = true
+        },
         async deviceCreated (device) {
-            setTimeout(() => {
-                this.$refs.deviceCredentialsDialog.show(device)
-            }, 500)
-            this.devices.push(device)
+            this.creatingDevice = false
+            if (device) {
+                setTimeout(() => {
+                    this.$refs.deviceCredentialsDialog.show(device)
+                }, 500)
+                this.devices.push(device)
+            }
         },
         deviceUpdated (device) {
             const index = this.devices.findIndex(d => d.id === device.id)
@@ -175,9 +187,17 @@ export default {
                     text: 'Are you sure you want to delete this device? Once deleted, there is no going back.',
                     confirmLabel: 'Delete'
                 }, async () => {
-                    await deviceApi.deleteDevice(device.id)
-                    const index = this.devices.indexOf(device)
-                    this.devices.splice(index, 1)
+                    this.deletingDevice = true
+                    try {
+                        await deviceApi.deleteDevice(device.id)
+                        Alerts.emit('Successfully deleted the device', 'confirmation')
+                        const index = this.devices.indexOf(device)
+                        this.devices.splice(index, 1)
+                    } catch (err) {
+                        Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)
+                    } finally {
+                        this.deletingDevice = false
+                    }
                 })
             } else if (action === 'updateCredentials') {
                 this.$refs.deviceCredentialsDialog.show(device)
