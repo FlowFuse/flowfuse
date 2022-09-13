@@ -352,7 +352,7 @@ describe('Users API', async function () {
 
     describe('Suspend User', async function () {
         it('Suspend/Resume elivis', async function () {
-            app.db.controllers.User.suspend(TestObjects.elvis)
+            await app.db.controllers.User.suspend(TestObjects.elvis)
             const suspendedResponse = await app.inject({
                 method: 'POST',
                 url: '/account/login',
