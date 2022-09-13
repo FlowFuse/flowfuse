@@ -45,7 +45,6 @@ module.exports = {
                                 if (admin?.email) {
                                     context.support = `mailto:${admin.email}`
                                 } else {
-                                    console.log('fall back')
                                     context.support = 'the administrator'
                                 }
                             }
