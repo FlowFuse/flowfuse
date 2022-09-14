@@ -5,11 +5,11 @@
                 <template v-if="col.component">
                     <component :is="col.component.is" v-bind="getCellData(data, col)"></component>
                 </template>
-                <template v-else-if="!isBool(data[col.key])">
-                    {{ data[col.key] }}
+                <template v-else-if="!isBool(lookupProperty(data, col.key))">
+                    {{ lookupProperty(data, col.key) }}
                 </template>
                 <template v-else>
-                    <ff-check :value="data[col.key]" />
+                    <ff-check :value="lookupProperty(data, col.key)" />
                 </template>
             </ff-data-table-cell>
         </slot>
