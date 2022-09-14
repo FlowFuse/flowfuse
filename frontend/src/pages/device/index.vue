@@ -22,6 +22,9 @@
             </template>
         </SectionTopMenu>
         <div class="text-sm sm:px-6 mt-4 sm:mt-8">
+            <Teleport v-if="mounted && isVisitingAdmin" to="#platform-banner">
+                <div class="ff-banner">You are viewing this device as an Administrator</div>
+            </Teleport>
             <router-view :device="device" @device-updated="loadDevice()"></router-view>
         </div>
     </main>
@@ -30,6 +33,9 @@
 <script>
 // APIs
 import deviceApi from '@/api/devices'
+
+import { mapState } from 'vuex'
+import { Roles } from '@core/lib/roles'
 
 // components
 import NavItem from '@/components/NavItem'
@@ -56,6 +62,12 @@ export default {
             mounted: false,
             device: null,
             navigation: navigation
+        }
+    },
+    computed: {
+        ...mapState('account', ['teamMembership', 'team']),
+        isVisitingAdmin: function () {
+            return this.teamMembership.role === Roles.Admin
         }
     },
     mounted () {

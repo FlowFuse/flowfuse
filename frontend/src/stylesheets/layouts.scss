@@ -234,7 +234,13 @@ $nav_height: 60px;
         }
     }
 }
-
+.ff-banner {
+    background-color: $ff-grey-800;
+    color: $ff-grey-300;
+    padding: 8px;
+    text-align: center;
+    border-bottom: 2px solid $ff-red-500;
+}
 .ff-header {
     z-index: 10;
     background-color: $ff-grey-800;

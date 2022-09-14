@@ -6,6 +6,7 @@
                 <!-- Each view uses a <Teleport> to fill this -->
             </div>
             <div class="ff-view">
+                <div id="platform-banner"></div>
                 <slot></slot>
             </div>
             <TransitionGroup class="ff-notifications" name="notifictions-list" tag="div">
