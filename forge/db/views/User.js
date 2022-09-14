@@ -38,6 +38,10 @@ module.exports = {
         if (user.password_expired) {
             result.password_expired = true
         }
+        if (app.settings.get('user:tcs-required') && user.tcs_accepted) {
+            // Only include the tcs_accepted date if 'tcs-required' is enabled
+            result.tcs_accepted = user.tcs_accepted
+        }
         result.email_verified = user.email_verified
         if (user.defaultTeamId) {
             result.defaultTeam = app.db.models.Team.encodeHashid(user.defaultTeamId)

@@ -15,7 +15,7 @@
             </main>
         </template>
         <!-- Platform Entry Point -->
-        <template v-else-if="user && !user.password_expired && user.email_verified">
+        <template v-else-if="user && !user.password_expired && !termsAndConditionsRequired">
             <ff-layout-platform>
                 <router-view></router-view>
             </ff-layout-platform>
@@ -27,6 +27,10 @@
         <!-- Email Verification Required -->
         <template v-else-if="user && !user.email_verified">
             <UnverifiedEmail/>
+        </template>
+        <!-- Email Verification Required -->
+        <template v-else-if="user && termsAndConditionsRequired">
+            <TermsAndConditions/>
         </template>
         <template v-else-if="!loginRequired">
             <router-view></router-view>
@@ -45,20 +49,38 @@ import Loading from '@/components/Loading'
 import Offline from '@/components/Offline'
 import PasswordExpired from '@/pages/PasswordExpired.vue'
 import UnverifiedEmail from '@/pages/UnverifiedEmail.vue'
+import TermsAndConditions from '@/pages/TermsAndConditions.vue'
 import FFLayoutPlatform from '@/layouts/Platform.vue'
 
 export default {
     name: 'App',
     computed: {
-        ...mapState('account', ['pending', 'user', 'team', 'offline']),
+        ...mapState('account', ['pending', 'user', 'team', 'offline', 'settings']),
         loginRequired () {
             return this.$route.meta.requiresLogin !== false
+        },
+        termsAndConditionsRequired () {
+            if (!this.user || !this.settings || !this.settings['user:tcs-required']) {
+                return false
+            }
+            const platformTcsDate = this.settings['user:tcs-date']
+            const userTcsDate = this.user.tcs_accepted
+            if (!userTcsDate && !platformTcsDate) {
+                // assume existing installation, don't ask existing user unless platformTcsDate has been updated
+                return false
+            }
+            if (!userTcsDate && platformTcsDate) {
+                // platform has T&C date, user has not - needs to (re) accept
+                return true
+            }
+            return platformTcsDate > userTcsDate
         }
     },
     components: {
         Login,
         PasswordExpired,
         UnverifiedEmail,
+        TermsAndConditions,
         Loading,
         Offline,
         'ff-layout-platform': FFLayoutPlatform

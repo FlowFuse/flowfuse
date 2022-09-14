@@ -11,7 +11,7 @@ module.exports = {
     // Token to connect the platform client to the broker
     commsToken: null,
 
-    // Whether the intial setup has been run
+    // Whether the initial setup has been run
     'setup:initialised': false,
 
     // Is telemetry enabled?
@@ -28,6 +28,9 @@ module.exports = {
 
     // URL to link to Terms & Conditions on signup
     'user:tcs-url': '',
+
+    // flag for Terms & Conditions date
+    'user:tcs-date': null,
 
     // Can user's create their own teams
     'team:create': false,

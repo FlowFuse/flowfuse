@@ -6,7 +6,21 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 describe('User API', async function () {
     let app
     const TestObjects = {}
-
+    const TCS_REQUIRED = 'user:tcs-required'
+    const TCS_UPDATE_REQ = 'user:tcs-updated'
+    const TCS_URL = 'user:tcs-url'
+    const TCS_DATE = 'user:tcs-date'
+    const enableTermsAndConditions = async () => {
+        await app.settings.set(TCS_REQUIRED, true)
+        await app.settings.set(TCS_URL, 'http://a.a.a.a')
+    }
+    const getTcsSettings = async () => {
+        return {
+            tcsRequired: await app.settings.get(TCS_REQUIRED),
+            tcsUrl: await app.settings.get(TCS_URL),
+            tcsDate: await app.settings.get(TCS_DATE)
+        }
+    }
     beforeEach(async function () {
         app = await setup({ features: { devices: true } })
 
@@ -167,6 +181,95 @@ describe('User API', async function () {
                 response.statusCode.should.equal(401)
                 const result = response.json()
                 result.should.have.property('error')
+            })
+        })
+        describe('Terms and Conditions', async function () {
+            // PUT /api/v1/user
+            it('admin can enable Terms and Conditions', async function () {
+                await login('alice', 'aaPassword')
+                const initial = await getTcsSettings()
+                initial.should.have.property('tcsRequired', false)
+                initial.should.have.property('tcsUrl', '')
+
+                // enable tcs
+                const put1 = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/settings',
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: {
+                        [TCS_REQUIRED]: true,
+                        [TCS_URL]: 'http://g.h.i'
+                    }
+                })
+                put1.should.have.property('statusCode', 200)
+                const result = await getTcsSettings()
+                result.should.have.property('tcsRequired', true)
+            })
+            it('admin can update Terms and Conditions date', async function () {
+                await login('alice', 'aaPassword')
+                const testStartTime = new Date()
+                // enable tcs
+                await enableTermsAndConditions()
+
+                const put1 = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/settings',
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: {
+                        [TCS_UPDATE_REQ]: true,
+                        [TCS_URL]: 'http://x.y.z'
+                    }
+                })
+                put1.should.have.property('statusCode', 200)
+                const result = await getTcsSettings()
+                result.should.have.property('tcsUrl', 'http://x.y.z')
+                const tcsDate = new Date(result.tcsDate)
+                should(tcsDate).be.greaterThanOrEqual(testStartTime)
+            })
+            it('user can accept Terms and Conditions', async function () {
+                await login('elvis', 'eePassword')
+                // enable tcs
+                await enableTermsAndConditions()
+                const updatedDate = new Date()
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/user',
+                    cookies: { sid: TestObjects.tokens.elvis },
+                    payload: {
+                        tcs_accepted: true
+                    }
+                })
+                response.statusCode.should.equal(200)
+                const getUserResp = await app.inject({
+                    method: 'GET',
+                    url: '/api/v1/user',
+                    cookies: { sid: TestObjects.tokens.elvis }
+                })
+                getUserResp.statusCode.should.equal(200)
+                const user = response.json()
+                user.should.have.property('tcs_accepted')
+                const tcsAccepted = new Date(user.tcs_accepted)
+                should(tcsAccepted).be.greaterThanOrEqual(updatedDate)
+            })
+            it('user API does not return T&Cs properties if T&Cs are disabled', async function () {
+                await login('elvis', 'eePassword')
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/user',
+                    cookies: { sid: TestObjects.tokens.elvis },
+                    payload: {
+                        tcs_accepted: true
+                    }
+                })
+                response.statusCode.should.equal(200)
+                const getUserResp = await app.inject({
+                    method: 'GET',
+                    url: '/api/v1/user',
+                    cookies: { sid: TestObjects.tokens.elvis }
+                })
+                getUserResp.statusCode.should.equal(200)
+                const user = response.json()
+                user.should.not.have.property('tcs_accepted')
             })
         })
         describe('Password Expired', async function () {
