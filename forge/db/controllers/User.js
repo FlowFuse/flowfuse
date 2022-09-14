@@ -93,7 +93,7 @@ module.exports = {
     suspend: async function (app, user) {
         user.suspended = true
         // log suspended user out of all projects they have access to
-        const sessions = await app.db.models.StorageSessions.byUsername(user.username)
+        const sessions = await app.db.models.StorageSession.byUsername(user.username)
         for (let index = 0; index < sessions.length; index++) {
             const session = sessions[index]
             const ProjectId = session.ProjectId
