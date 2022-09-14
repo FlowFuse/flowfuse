@@ -139,8 +139,8 @@ export default {
             if (this.sort.key) {
                 return rows.sort((a, b) => {
                     // catch the undefined use case, by making undefined = 0
-                    const aValue = a[this.sort.key] || 0
-                    const bValue = b[this.sort.key] || 0
+                    const aValue = this.lookupProperty(a, this.sort.key) || 0
+                    const bValue = this.lookupProperty(b, this.sort.key) || 0
                     if (this.sort.order === 'asc') {
                         if (aValue < bValue) {
                             return 1
@@ -235,6 +235,22 @@ export default {
         },
         resetOrder () {
             this.sort.order = this.orders[0]
+        },
+        lookupProperty (obj, property) {
+            const parts = property.split('.')
+            if (parts.length === 1) {
+                return obj[property]
+            } else {
+                while (parts.length > 0) {
+                    const part = parts.shift()
+                    if (Object.hasOwn(obj, part)) {
+                        obj = obj[part]
+                    } else {
+                        return undefined
+                    }
+                }
+            }
+            return obj
         }
     },
     components: {
