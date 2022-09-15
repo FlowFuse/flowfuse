@@ -4,16 +4,16 @@
             <h2>Sign Up</h2>
             <div>
                 <label>Username</label>
-                <ff-text-input ref="signup-username" label="username" :error="errors.username" v-model="input.username" @enter="focusPassword"/>
+                <ff-text-input ref="signup-username" label="username" :error="errors.username" v-model="input.username" />
                 <label class="ff-error-inline">{{ errors.username }}</label>
                 <label>Full Name</label>
-                <ff-text-input ref="signup-fullname" label="Full Name" :error="errors.name" v-model="input.name" @enter="focusPassword"/>
+                <ff-text-input ref="signup-fullname" label="Full Name" :error="errors.name" v-model="input.name" />
                 <label class="ff-error-inline">{{ errors.name }}</label>
                 <label>E-Mail Address</label>
-                <ff-text-input ref="signup-email" label="E-Mail Address" :error="errors.email" v-model="input.email" @enter="focusPassword"/>
+                <ff-text-input ref="signup-email" label="E-Mail Address" :error="errors.email" v-model="input.email" />
                 <label class="ff-error-inline">{{ errors.email }}</label>
                 <label>Password</label>
-                <ff-text-input ref="signup-password" label="password" :error="errors.password" v-model="input.password" @enter="login" type="password"/>
+                <ff-text-input ref="signup-password" label="password" :error="errors.password" v-model="input.password" type="password"/>
                 <label class="ff-error-inline">{{ errors.password }}</label>
             </div>
             <div v-if="settings['user:tcs-required']">
@@ -126,8 +126,8 @@ export default {
                     if (/password/.test(err.response.data.error)) {
                         this.errors.password = 'Invalid username'
                     }
-                    if (err.response.data.error === 'email must be unique') {
-                        this.errors.email = 'Email already registered'
+                    if (/email/.test(err.response.data.error)) {
+                        this.errors.email = 'Email unavailable'
                     }
                     if (err.response.data.error === 'user registration not enabled') {
                         // TODO Where to show this error?
