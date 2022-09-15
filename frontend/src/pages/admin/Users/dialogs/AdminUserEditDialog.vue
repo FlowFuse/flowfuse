@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" header="Edit User" confirm-label="Save" @confirm="confirm()" :disable-primary="!formValid" :closeOnConfirm="false">
+    <ff-dialog ref="dialog" header="Edit User" confirm-label="Save" @confirm="confirm()" :closeOnConfirm="false" :disable-primary="disableSave">
         <template v-slot:default>
             <form class="space-y-6" @submit.prevent>
                 <FormRow v-model="input.username" :error="errors.username">Username</FormRow>
@@ -111,9 +111,9 @@ export default {
         }
     },
     computed: {
-        formValid () {
-            return (this.input.email && !this.errors.email) &&
-                   (this.input.username && !this.errors.username)
+        disableSave () {
+            const { isChanged, isValid } = this.getChanges()
+            return !isValid || !isChanged
         }
     },
     methods: {
@@ -132,75 +132,76 @@ export default {
         unlockSuspended () {
             this.user_suspendedLocked = false
         },
-        confirm () {
-            if (this.formValid) {
-                const opts = {}
-                let changed = false
+        getChanges () {
+            const changes = {}
+            const isValid = (this.input.email && !this.errors.email) &&
+                   (this.input.username && !this.errors.username)
+            if (this.user) {
                 if (this.input.username !== this.user.username) {
-                    opts.username = this.input.username
-                    changed = true
+                    changes.username = this.input.username
                 }
                 if (this.input.name !== this.user.name) {
-                    opts.name = this.input.name
-                    changed = true
+                    changes.name = this.input.name
                 }
                 if (this.input.email !== this.user.email) {
-                    opts.email = this.input.email
-                    changed = true
+                    changes.email = this.input.email
                 }
                 if (this.input.admin !== this.user.admin) {
-                    opts.admin = this.input.admin
-                    changed = true
+                    changes.admin = this.input.admin
                 }
                 if (this.input.email_verified !== this.user.email_verified) {
-                    opts.email_verified = this.input.email_verified
-                    changed = true
+                    changes.email_verified = this.input.email_verified
                 }
                 if (this.input.user_suspended !== this.user.suspended) {
-                    opts.suspended = this.input.user_suspended
-                    changed = true
+                    changes.suspended = this.input.user_suspended
                 }
-
-                if (changed) {
-                    usersApi.updateUser(this.user.id, opts).then((response) => {
-                        this.$emit('userUpdated', response)
-                        this.$refs.dialog.close()
-                    }).catch(err => {
-                        console.log(err.response.data)
-                        if (err.response.data) {
-                            let showAlert = true
-                            if (/username/.test(err.response.data.error)) {
-                                this.errors.username = 'Username unavailable'
-                                showAlert = false
-                            }
-                            if (/password/.test(err.response.data.error)) {
-                                this.errors.password = 'Invalid username'
-                                showAlert = false
-                            }
-                            if (/admin/i.test(err.response.data.error)) {
-                                this.errors.admin = err.response.data.error
-                                showAlert = false
-                            }
-                            if (err.response.data.error === 'email must be unique') {
-                                this.errors.email = 'Email already registered'
-                                showAlert = false
-                            }
-                            if (showAlert) {
-                                const msgLines = []
-                                if (err.response.data.error) {
-                                    msgLines.push(err.response.data.error)
-                                    if (err.response.data.message) {
-                                        msgLines.push(err.response.data.message)
-                                    }
-                                } else {
-                                    msgLines.push(err.message || 'Unknown error')
-                                }
-                                const msg = msgLines.join(' : ')
-                                Alerts.emit(msg, 'warning', 7500)
-                            }
+            }
+            const isChanged = Object.keys(changes).length > 0
+            return { isValid, isChanged, changes }
+        },
+        confirm () {
+            const { isValid, isChanged, changes } = this.getChanges()
+            if (isValid && isChanged) {
+                usersApi.updateUser(this.user.id, changes).then((response) => {
+                    this.$emit('userUpdated', response)
+                    this.$refs.dialog.close()
+                }).catch(err => {
+                    console.log(err.response.data)
+                    if (err.response.data) {
+                        let showAlert = true
+                        if (/username/.test(err.response.data.error)) {
+                            this.errors.username = 'Username unavailable'
+                            showAlert = false
                         }
-                    })
-                }
+                        if (/password/.test(err.response.data.error)) {
+                            this.errors.password = 'Invalid username'
+                            showAlert = false
+                        }
+                        if (/admin/i.test(err.response.data.error)) {
+                            this.errors.admin = err.response.data.error
+                            showAlert = false
+                        }
+                        if (err.response.data.error === 'email must be unique') {
+                            this.errors.email = 'Email already registered'
+                            showAlert = false
+                        }
+                        if (showAlert) {
+                            const msgLines = []
+                            if (err.response.data.error) {
+                                msgLines.push(err.response.data.error)
+                                if (err.response.data.message) {
+                                    msgLines.push(err.response.data.message)
+                                }
+                            } else {
+                                msgLines.push(err.message || 'Unknown error')
+                            }
+                            const msg = msgLines.join(' : ')
+                            Alerts.emit(msg, 'warning', 7500)
+                        }
+                    }
+                })
+            } else {
+                this.$refs.dialog.close()
             }
         },
         deleteUser () {
