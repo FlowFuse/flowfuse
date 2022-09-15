@@ -33,6 +33,9 @@
             </template>
         </SectionTopMenu>
         <div class="text-sm mt-4 sm:mt-8">
+            <Teleport v-if="mounted && isVisitingAdmin" to="#platform-banner">
+                <div class="ff-banner">You are viewing this project as an Administrator</div>
+            </Teleport>
             <router-view :project="project" @projectUpdated="updateProject"></router-view>
         </div>
     </main>
@@ -82,7 +85,10 @@ export default {
     computed: {
         ...mapState('account', ['teamMembership', 'team', 'features']),
         isOwner: function () {
-            return this.teamMembership.role === Roles.Owner
+            return this.teamMembership.role >= Roles.Owner
+        },
+        isVisitingAdmin: function () {
+            return this.teamMembership.role === Roles.Admin
         },
         options: function () {
             const flowActionsDisabled = !(this.project.meta && this.project.meta.state !== 'suspended')

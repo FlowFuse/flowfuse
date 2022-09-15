@@ -23,6 +23,7 @@
 
 <script>
 import { markRaw } from 'vue'
+import { mapState } from 'vuex'
 
 import UserCell from '@/components/tables/cells/UserCell'
 import UserRoleCell from '@/components/tables/cells/UserRoleCell'
@@ -51,8 +52,9 @@ export default {
         team: 'fetchData'
     },
     computed: {
+        ...mapState('account', ['user']),
         isOwner: function () {
-            return this.teamMembership.role === Roles.Owner
+            return this.teamMembership.role >= Roles.Owner
         }
     },
     mounted () {
@@ -84,8 +86,7 @@ export default {
             this.users = members.members
             this.ownerCount = 0
 
-            const currentUser = this.users.find(user => user.username === this.$store.state.account.user.username)
-            this.canModifyMembers = this.$store.state.account.user.admin || (currentUser && (currentUser.role === Roles.Owner))
+            this.canModifyMembers = this.teamMembership.role >= Roles.Owner
 
             this.userColumns = [
                 { label: 'User', key: 'name', sortable: true, class: ['flex-grow'], component: { is: markRaw(UserCell) } },

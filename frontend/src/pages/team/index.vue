@@ -7,6 +7,9 @@
             <Loading />
         </template>
         <div v-else-if="team">
+            <Teleport v-if="mounted && isVisitingAdmin" to="#platform-banner">
+                <div class="ff-banner">You are viewing this team as an Administrator</div>
+            </Teleport>
             <router-view :team="team" :teamMembership="teamMembership"></router-view>
         </div>
     </main>
@@ -16,13 +19,17 @@
 import Loading from '@/components/Loading'
 import { useRoute } from 'vue-router'
 import { mapState } from 'vuex'
+import { Roles } from '@core/lib/roles'
 
 import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vue'
 
 export default {
     name: 'TeamPage',
     computed: {
-        ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange', 'features'])
+        ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange', 'features']),
+        isVisitingAdmin: function () {
+            return (this.teamMembership.role === Roles.Admin)
+        }
     },
     components: {
         Loading,

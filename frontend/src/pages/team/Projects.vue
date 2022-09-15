@@ -77,7 +77,7 @@ export default {
     },
     computed: {
         createProjectEnabled: function () {
-            return this.teamMembership.role === Roles.Owner
+            return this.teamMembership.role >= Roles.Owner
         }
     },
     props: ['team', 'teamMembership'],

@@ -46,7 +46,7 @@ export default {
     computed: {
         ...mapState('account', ['teamMembership']),
         isOwner: function () {
-            return this.teamMembership.role === Roles.Owner
+            return this.teamMembership.role >= Roles.Owner
         }
     },
     mounted () {

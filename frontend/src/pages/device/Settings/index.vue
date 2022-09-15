@@ -24,25 +24,23 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership', 'team']),
-        isOwner: function () {
-            return this.teamMembership.role === Roles.Owner
-        }
+        ...mapState('account', ['teamMembership', 'team'])
     },
     mounted () {
         this.checkAccess()
     },
     methods: {
         checkAccess: async function () {
+            if (!this.teamMembership) {
+                useRouter().push({ replace: true, path: 'overview' })
+                return
+            }
             this.sideNavigation = [
                 { name: 'General', path: './general' },
                 { name: 'Environment', path: './environment' }
             ]
-            if (this.teamMembership && this.teamMembership.role === Roles.Owner) {
+            if (this.teamMembership && this.teamMembership.role >= Roles.Owner) {
                 this.sideNavigation.push({ name: 'Danger', path: './danger' })
-            }
-            if (!this.teamMembership || (this.teamMembership.role !== Roles.Owner && this.teamMembership.role !== Roles.Member)) {
-                useRouter().push({ replace: true, path: 'overview' })
             }
         }
     },

@@ -9,7 +9,6 @@
 
 <script>
 import SectionSideMenu from '@/components/SectionSideMenu'
-import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
 import { Roles } from '@core/lib/roles'
 
@@ -39,13 +38,10 @@ export default {
                 { name: 'General', path: './general' },
                 { name: 'Environment', path: './environment' }
             ]
-            if (this.teamMembership && this.teamMembership.role === Roles.Owner) {
+            if (this.teamMembership && this.teamMembership.role >= Roles.Owner) {
                 this.sideNavigation.push({ name: 'Editor', path: './editor' })
                 this.sideNavigation.push({ name: 'Palette', path: './palette' })
                 this.sideNavigation.push({ name: 'Danger', path: './danger' })
-            }
-            if (this.teamMembership && (this.teamMembership.role !== Roles.Owner && this.teamMembership.role !== Roles.Member)) {
-                useRouter().push({ path: '../overview' })
             }
         }
     }
