@@ -47,7 +47,7 @@ export default {
     computed: {
         ...mapState('account', ['user', 'team', 'teamMembership', 'features', 'notifications']),
         showAdmin: function () {
-            return this.teamMembership.role === Roles.Admin || this.teamMembership.role === Roles.Owner
+            return this.teamMembership.role >= Roles.Owner
         },
         nested: function () {
             return (this.$slots['nested-menu'] && this.loaded) || this.closeNested

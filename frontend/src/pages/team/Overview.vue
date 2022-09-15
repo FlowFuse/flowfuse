@@ -55,7 +55,7 @@ export default {
     },
     computed: {
         createProjectEnabled: function () {
-            return this.teamMembership.role === Roles.Owner
+            return this.teamMembership.role >= Roles.Owner
         },
         showingMessage: function () {
             return this.show.thankyou

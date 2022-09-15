@@ -39,7 +39,7 @@ export default {
     },
     methods: {
         checkAccess: async function () {
-            if (this.teamMembership && this.teamMembership.role !== Roles.Owner) {
+            if (this.teamMembership.role < Roles.Owner) {
                 useRouter().push({ path: `/team/${this.team.slug}/overview` })
             }
         }

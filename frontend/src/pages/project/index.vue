@@ -85,7 +85,7 @@ export default {
     computed: {
         ...mapState('account', ['teamMembership', 'team', 'features']),
         isOwner: function () {
-            return this.teamMembership.role === Roles.Owner
+            return this.teamMembership.role >= Roles.Owner
         },
         isVisitingAdmin: function () {
             return this.teamMembership.role === Roles.Admin

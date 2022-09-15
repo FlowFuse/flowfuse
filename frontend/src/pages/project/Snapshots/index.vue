@@ -131,10 +131,10 @@ export default {
     computed: {
         ...mapState('account', ['features', 'teamMembership']),
         canDelete: function () {
-            return this.teamMembership?.role === Roles.Owner
+            return this.teamMembership?.role >= Roles.Owner
         },
         canCreateSnapshot: function () {
-            return this.teamMembership?.role === Roles.Owner || this.teamMembership?.role === Roles.Member
+            return this.teamMembership?.role >= Roles.Member
         },
         columns: function () {
             const devicesEnabled = this.features.devices

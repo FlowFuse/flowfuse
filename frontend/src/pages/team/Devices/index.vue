@@ -229,10 +229,10 @@ export default {
             return this.project && this.project.id
         },
         addDeviceEnabled: function () {
-            return !this.isProjectDeviceView && this.teamMembership.role === Roles.Owner
+            return !this.isProjectDeviceView && this.teamMembership.role >= Roles.Owner
         },
         isOwner: function () {
-            return this.teamMembership.role === Roles.Owner
+            return this.teamMembership.role >= Roles.Owner
         },
         columns: function () {
             const targetSnapshot = this.project?.deviceSettings.targetSnapshot
