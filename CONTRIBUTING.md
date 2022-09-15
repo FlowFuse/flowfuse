@@ -18,6 +18,11 @@ as much information as you can.
 The perfect bug report is one that provides clear and concise steps to reproduce
 the issue and information on what versions of node and FlowForge you are using.
 
+## Set up Development Environment
+
+Details of how to up a local development environment can be found 
+[here](https://github.com/flowforge/flowforge/tree/main/docs/contribute)
+
 ---
 
 <a id="developers-certificate-of-origin"></a>
