@@ -21,8 +21,8 @@ import { Roles } from '@core/lib/roles'
 
 export default {
     name: 'MemberInviteTable',
-    props: ['team', 'teamMembership'],
-    emits: ['updated'],
+    props: ['team', 'teamMembership', 'inviteCount'],
+    emits: ['updated', 'invites-updated'],
     data () {
         return {
             loading: false,
