@@ -24,10 +24,10 @@ user which expires in 7 days. Once accepted the user is added as "Member".
 Owners can remove a member from a team by clicking the dropdown menu next to the username and selecting 
 `Remove from team`. The team member will no longer have access to any team data.
 
-## Role based access control
+## Role-based access control
 
-Members can have 1 role for all projects in the team. Below there's a table to
-describe the different Roles apply for all projects in the team
+The role a user has in a team determines what they are able to do. The following
+table summaries what actions are available to the different roles.
 
 | Role                                 | Owner | Member |
 |:-------------------------------------|:-----:|:------:|
@@ -96,6 +96,8 @@ describe the different Roles apply for all projects in the team
 |                                      |       |        |
 | **Audit Log**                        | ✓     | -      |
 | **Team Settings**                    | ✓     | -      |
+
+*Note* Administrators users have owner-level access to all teams.
 
 #### Changing roles
 
