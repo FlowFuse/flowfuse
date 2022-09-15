@@ -19,6 +19,22 @@ describe('User model', function () {
             app = await setup()
         })
 
+        it('Username must be case-insensitive unique', async function () {
+            try {
+                await app.db.models.User.create({
+                    username: 'ALiCE',
+                    name: 'Alice Skywalker',
+                    email: 'alice2@example.com',
+                    email_verified: true,
+                    password: 'aaPassword'
+                })
+            } catch (err) {
+                /user_username_lower_unique/.test(err.parent.toString()).should.be.true()
+                return
+            }
+            return Promise.reject(new Error('Able to create duplicate case-insensitive username'))
+        })
+
         it('User email can be null', async function () {
             await app.db.models.User.create({ username: 'nullEmail', password: '12345678' })
             await app.db.models.User.create({ username: 'nullEmail2', password: '12345678' })
@@ -28,9 +44,15 @@ describe('User model', function () {
             await app.db.models.User.create({ username: 'duplicateEmail', email: 'duplicate@email.com', password: '12345678' })
             try {
                 await app.db.models.User.create({ username: 'duplicateEmail2', email: 'duplicate@email.com', password: '12345678' })
-                throw new Error('Created user with duplicate email')
+                return Promise.reject(new Error('Created user with duplicate email'))
             } catch (err) {
                 /SequelizeUniqueConstraintError/.test(err.toString()).should.be.true()
+            }
+            try {
+                await app.db.models.User.create({ username: 'duplicateEmail2', email: 'DUPlicaTE@email.com', password: '12345678' })
+                return Promise.reject(new Error('Created user with duplicate case-insensitive email'))
+            } catch (err) {
+                /user_email_lower_unique/.test(err.parent.toString()).should.be.true()
             }
         })
 
@@ -100,6 +122,27 @@ describe('User model', function () {
             should.not.exist(user)
         })
 
+        it('User.byUsername should be case insensitive', async function () {
+            const user = await app.db.models.User.byUsername('ALiCE')
+            should.exist(user)
+            user.should.have.property('username', 'alice')
+        })
+
+        it('User.byEmail should be case insensitive', async function () {
+            const user = await app.db.models.User.byEmail('ALiCE@exAmpLe.cOm')
+            should.exist(user)
+            user.should.have.property('username', 'alice')
+        })
+
+        it('User.byUsernameOrEmail should be case insensitive', async function () {
+            let user = await app.db.models.User.byUsernameOrEmail('ALiCE@exAmpLe.cOm')
+            should.exist(user)
+            user.should.have.property('username', 'alice')
+
+            user = await app.db.models.User.byUsernameOrEmail('aLiCe')
+            should.exist(user)
+            user.should.have.property('username', 'alice')
+        })
         it('Should not remove last admin', async function () {
             const alice = await app.db.models.User.byEmail('alice@example.com')
             alice.admin = false

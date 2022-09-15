@@ -1,17 +1,18 @@
 const { compareHash, sha256 } = require('../utils')
 const jwt = require('jsonwebtoken')
+const { fn, col, where } = require('sequelize')
 
 module.exports = {
     /**
      * Validate the username/password
      */
     authenticateCredentials: async function (app, username, password) {
-        let clause = { username: username }
-        if (/.+@.+/.test(username)) {
-            clause = { email: username }
-        }
+        const column = /.+@.+/.test(username) ? 'email' : 'username'
         const user = await app.db.models.User.findOne({
-            where: clause,
+            where: where(
+                fn('lower', col(column)),
+                username.toLowerCase()
+            ),
             attributes: ['password']
         })
         // Always call compareSync, even if no user found, to ensure
