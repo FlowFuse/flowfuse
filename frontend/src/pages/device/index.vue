@@ -78,6 +78,7 @@ export default {
         loadDevice: async function () {
             const device = await deviceApi.getDevice(this.$route.params.id)
             this.device = device
+            this.$store.dispatch('account/setTeam', this.device.team.slug)
         }
     }
 }
