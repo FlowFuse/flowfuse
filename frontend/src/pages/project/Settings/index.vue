@@ -9,7 +9,6 @@
 
 <script>
 import SectionSideMenu from '@/components/SectionSideMenu'
-import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
 import { Roles } from '@core/lib/roles'
 
