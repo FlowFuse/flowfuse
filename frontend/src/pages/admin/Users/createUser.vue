@@ -124,8 +124,8 @@ export default {
                     if (/password/.test(err.response.data.error)) {
                         this.errors.password = 'Invalid username'
                     }
-                    if (err.response.data.error === 'email must be unique') {
-                        this.errors.email = 'Email already registered'
+                    if (/email/.test(err.response.data.error)) {
+                        this.errors.email = 'Email unavailable'
                     }
                 }
             })

@@ -292,7 +292,11 @@ module.exports = fp(async function (app, opts, done) {
             reply.send({ status: 'okay' })
         } catch (err) {
             let responseMessage
-            if (err.errors) {
+            if (/user_username_lower_unique/.test(err.parent?.toString())) {
+                responseMessage = 'username not available'
+            } else if (/user_email_lower_unique/.test(err.parent?.toString())) {
+                responseMessage = 'email not available'
+            } else if (err.errors) {
                 responseMessage = err.errors.map(err => err.message).join(',')
             } else {
                 responseMessage = err.toString()

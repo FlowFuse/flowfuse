@@ -2,7 +2,7 @@
  * A User
  * @namespace forge.db.models.User
  */
-const { DataTypes, Op } = require('sequelize')
+const { DataTypes, Op, fn, col, where } = require('sequelize')
 const { hash, generateUserAvatar } = require('../utils')
 
 module.exports = {
@@ -40,6 +40,10 @@ module.exports = {
             defaultValue: false
         }
     },
+    indexes: [
+        { name: 'user_username_lower_unique', fields: [fn('lower', col('username'))], unique: true },
+        { name: 'user_email_lower_unique', fields: [fn('lower', col('email'))], unique: true }
+    ],
     scopes: {
         admins: { where: { admin: true } }
     },
@@ -124,7 +128,10 @@ module.exports = {
                 },
                 byUsername: async (username) => {
                     return this.findOne({
-                        where: { username },
+                        where: where(
+                            fn('lower', col('username')),
+                            username.toLowerCase()
+                        ),
                         include: {
                             model: M.Team,
                             attributes: ['name'],
@@ -136,7 +143,10 @@ module.exports = {
                 },
                 byEmail: async (email) => {
                     return this.findOne({
-                        where: { email },
+                        where: where(
+                            fn('lower', col('email')),
+                            email.toLowerCase()
+                        ),
                         include: {
                             model: M.Team,
                             attributes: ['name'],
@@ -159,12 +169,11 @@ module.exports = {
                     })
                 },
                 byUsernameOrEmail: async (name) => {
-                    let clause = { username: name }
-                    if (/.+@.+/.test(name)) {
-                        clause = { email: name }
-                    }
                     return this.findOne({
-                        where: clause,
+                        where: where(
+                            fn('lower', col(/.+@.+/.test(name) ? 'email' : 'username')),
+                            name.toLowerCase()
+                        ),
                         include: {
                             model: M.Team,
                             attributes: ['name'],

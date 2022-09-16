@@ -85,7 +85,7 @@ describe('Accounts API', async function () {
                 password: '12345678',
                 name: 'u1.2',
                 email: 'u1-2@example.com'
-            }, /username must be unique/)
+            }, /username not available/)
         })
         it('rejects duplicate email', async function () {
             app = await setup()
@@ -103,7 +103,7 @@ describe('Accounts API', async function () {
                 password: '12345678',
                 name: 'u1.2',
                 email: 'u1@example.com'
-            }, /email must be unique/)
+            }, /email not available/)
         })
 
         it('limits how many users can be created according to license', async function () {
