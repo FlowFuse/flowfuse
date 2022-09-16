@@ -112,9 +112,9 @@ module.exports = async function (app) {
         } catch (err) {
             let responseMessage
             if (/user_username_lower_unique/.test(err.parent?.toString())) {
-                responseMessage = 'username not unique'
+                responseMessage = 'username not available'
             } else if (/user_email_lower_unique/.test(err.parent?.toString())) {
-                responseMessage = 'email not unique'
+                responseMessage = 'email not available'
             } else if (err.errors) {
                 responseMessage = err.errors.map(err => err.message).join(',')
             } else {
