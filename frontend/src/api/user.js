@@ -2,11 +2,10 @@ import client from './client'
 import daysSince from '@/utils/daysSince'
 import elapsedTime from '@/utils/elapsedTime'
 
-const login = (username, password, remember) => {
+const login = (username, password) => {
     return client.post('/account/login', {
         username,
-        password,
-        remember
+        password
     }).then((res) => {
         return res.data
     })

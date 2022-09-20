@@ -25,8 +25,7 @@ export default {
         return {
             input: {
                 username: '',
-                password: '',
-                remember: false
+                password: ''
             },
             errors: {
                 username: null,

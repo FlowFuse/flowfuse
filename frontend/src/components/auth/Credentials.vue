@@ -8,9 +8,6 @@
             <ff-text-input ref="login-password" label="password" :error="errors.password" v-model="input.password" @enter="login" type="password"/>
             <label class="ff-error-inline">{{ errors.password }}</label>
         </div>
-        <div>
-            <ff-checkbox v-model="input.remember" label="Remember Me"></ff-checkbox>
-        </div>
         <label class="ff-error-inline">{{ errors.general }}</label>
         <div class="ff-actions">
             <ff-button @click="login()" data-action="login">Login</ff-button>
@@ -30,8 +27,7 @@ export default {
         return {
             input: {
                 username: '',
-                password: '',
-                remember: false
+                password: ''
             },
             errors: {
                 general: null,

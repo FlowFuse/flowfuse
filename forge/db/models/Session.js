@@ -11,6 +11,7 @@ module.exports = {
     schema: {
         sid: { type: DataTypes.STRING, primaryKey: true, allowNull: false },
         expiresAt: { type: DataTypes.DATE, allowNull: false },
+        idleAt: { type: DataTypes.DATE },
         refreshToken: {
             type: DataTypes.STRING,
             set (value) {

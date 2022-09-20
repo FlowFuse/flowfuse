@@ -17,16 +17,17 @@
  */
 const fp = require('fastify-plugin')
 
-// Default to a 12 hour session if the user ticks 'remember me'
-// TODO - turn this into an idle timeout, with a separate 'max session' timeout.
-const SESSION_MAX_AGE = 60 * 60 * 12 // 12 hours in seconds
+// This defines how long the session cookie is valid for. This should match
+// the max session age defined in `forge/db/controllers/Session.DEFAULT_WEB_SESSION_EXPIRY
+// albeit in secs not millisecs due to cookie maxAge requirements
+const SESSION_MAX_AGE = 60 * 60 * 24 * 7 // 1 week in seconds
 
 // Options to apply to our session cookie
 const SESSION_COOKIE_OPTIONS = {
     httpOnly: true,
     path: '/',
-    signed: true
-    // TODO: secure only when in production
+    signed: true,
+    maxAge: SESSION_MAX_AGE
 }
 
 module.exports = fp(async function (app, opts, done) {
@@ -161,8 +162,7 @@ module.exports = fp(async function (app, opts, done) {
                 required: ['username', 'password'],
                 properties: {
                     username: { type: 'string' },
-                    password: { type: 'string' },
-                    remember: { type: 'boolean', default: false }
+                    password: { type: 'string' }
                 }
             }
         },
@@ -173,9 +173,7 @@ module.exports = fp(async function (app, opts, done) {
             const session = await app.db.controllers.Session.createUserSession(request.body.username)
             if (session) {
                 const cookieOptions = { ...SESSION_COOKIE_OPTIONS }
-                if (request.body.remember) {
-                    cookieOptions.maxAge = SESSION_MAX_AGE
-                }
+                cookieOptions.maxAge = SESSION_MAX_AGE
                 reply.setCookie('sid', session.sid, cookieOptions)
                 reply.send({ status: 'okay' })
                 return

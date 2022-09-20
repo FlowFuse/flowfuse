@@ -237,7 +237,7 @@ const actions = {
     async login (state, credentials) {
         try {
             state.commit('setLoginInflight')
-            await userApi.login(credentials.username, credentials.password, credentials.remember)
+            await userApi.login(credentials.username, credentials.password)
             state.dispatch('checkState', state.getters.redirectUrlAfterLogin)
         } catch (err) {
             if (err.response.status === 401) {
