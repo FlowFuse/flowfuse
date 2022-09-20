@@ -64,7 +64,7 @@ module.exports = {
                             user.suspended = false
                         }
                     } else {
-                        reply.code(400).send({ error: 'can not susspend self' })
+                        reply.code(400).send({ error: 'cannot suspend self' })
                         return
                     }
                 }
