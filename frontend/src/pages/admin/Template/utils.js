@@ -1,5 +1,6 @@
 const templateFields = [
     'disableEditor',
+    'disableTours',
     'httpAdminRoot',
     'dashboardUI',
     'codeEditor',
@@ -17,6 +18,7 @@ const templateFields = [
 ]
 const defaultTemplateValues = {
     disableEditor: false,
+    disableTours: false,
     httpAdminRoot: '',
     dashboardUI: '/ui',
     codeEditor: 'monaco',

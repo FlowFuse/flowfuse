@@ -9,6 +9,7 @@ const validSettings = [
     'header_title',
     'header_url',
     'timeZone',
+    'disableTours',
     'palette_allowInstall',
     'palette_nodesExcludes',
     'palette_denyList',
