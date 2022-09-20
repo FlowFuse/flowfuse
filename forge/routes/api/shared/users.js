@@ -35,32 +35,37 @@ module.exports = {
                 }
 
                 if (request.body.suspended !== undefined) {
-                    if (request.body.suspended === true) {
-                        await app.db.controllers.User.suspend(user)
-                        if (app.postoffice.enabled()) {
-                            // Send email
-                            const context = {}
-                            if (app.config.support_contact) {
-                                context.support = app.config.support_contact
-                            } else {
-                                const admin = await app.db.models.User.scope('admins').findOne()
-                                if (admin?.email) {
-                                    context.support = `mailto:${admin.email}`
+                    if (request.user.id !== user.id) {
+                        if (request.body.suspended === true) {
+                            await app.db.controllers.User.suspend(user)
+                            if (app.postoffice.enabled()) {
+                                // Send email
+                                const context = {}
+                                if (app.config.support_contact) {
+                                    context.support = app.config.support_contact
                                 } else {
-                                    context.support = 'the administrator'
+                                    const admin = await app.db.models.User.scope('admins').findOne()
+                                    if (admin?.email) {
+                                        context.support = `mailto:${admin.email}`
+                                    } else {
+                                        context.support = 'the administrator'
+                                    }
                                 }
-                            }
-                            try {
-                                context.url = new URL(context.support)
-                                if (context.url.protocol === 'mailto:' || context.url.protocol === 'tel:') {
-                                    context.support = context.url.pathname
+                                try {
+                                    context.url = new URL(context.support)
+                                    if (context.url.protocol === 'mailto:' || context.url.protocol === 'tel:') {
+                                        context.support = context.url.pathname
+                                    }
+                                } catch (err) {
                                 }
-                            } catch (err) {
+                                app.postoffice.send(user, 'UserSuspended', context)
                             }
-                            app.postoffice.send(user, 'UserSuspended', context)
+                        } else {
+                            user.suspended = false
                         }
                     } else {
-                        user.suspended = false
+                        reply.code(400).send({ error: 'can not susspend self' })
+                        return
                     }
                 }
             }
