@@ -118,6 +118,11 @@ module.exports = async function (app) {
         template.name = request.body.name
         template.description = request.body.description
         template.active = request.body.active !== undefined ? request.body.active : undefined
+        if (templateSettings.httpNodeAuth?.pass && templateSettings.httpNodeAuth.pass === '*****') {
+            if (template.settings.httpNodeAuth?.pass) {
+                templateSettings.httpNodeAuth.pass = template.settings.httpNodeAuth.pass
+            }
+        }
         template.settings = templateSettings
         template.policy = request.body.policy
         await template.save()

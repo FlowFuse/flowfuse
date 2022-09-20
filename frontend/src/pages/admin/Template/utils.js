@@ -107,8 +107,12 @@ const templateEncoders = {
                 return v
             }
             // need to bcypt hash input here
-            const hash = bcrypt.hashSync(v, 8)
-            return hash
+            if (v !== '*****') {
+                const hash = bcrypt.hashSync(v, 8)
+                return hash
+            } else {
+                return '*****'
+            }
         }
     }
 }
