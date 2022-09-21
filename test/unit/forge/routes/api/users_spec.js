@@ -371,5 +371,18 @@ describe('Users API', async function () {
             })
             response.should.have.property('statusCode', 200)
         })
+
+        it('Admin cannot suspend themselves', async function () {
+            const alice = await app.db.views.User.userProfile(TestObjects.alice)
+            alice.suspended = true
+            const suspendResponse = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/users/${TestObjects.alice.hashid}`,
+                payload: alice,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            suspendResponse.should.have.property('statusCode', 400)
+            suspendResponse.json().should.have.property('error', 'cannot suspend self')
+        })
     })
 })
