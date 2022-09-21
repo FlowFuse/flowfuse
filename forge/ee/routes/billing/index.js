@@ -172,15 +172,31 @@ module.exports = async function (app) {
         const team = request.team
         const sub = await app.db.models.Subscription.byTeam(team.id)
         if (!sub) {
-            const session = await app.billing.createSubscriptionSession(team, '') // request.session.User)
-            app.db.controllers.AuditLog.teamLog(
-                team.id,
-                request.session.User.id,
-                'billing.session.created',
-                { session: session.id }
-            )
-            response.code(404).type('application/json').send({ billingURL: session.url })
-            return
+            try {
+                let cookie
+                if (request.cookies.ff_coupon) {
+                    cookie = request.unsignCookie(request.cookies.ff_coupon)?.valid ? request.unsignCookie(request.cookies.ff_coupon).value : undefined
+                }
+                const session = await app.billing.createSubscriptionSession(team, cookie) // request.session.User)
+                app.db.controllers.AuditLog.teamLog(
+                    team.id,
+                    request.session.User.id,
+                    'billing.session.created',
+                    { session: session.id }
+                )
+                response.code(402).type('application/json').send({ billingURL: session.url })
+                return
+            } catch (err) {
+                let responseMessage
+                if (err.errors) {
+                    responseMessage = err.errors.map(err => err.message).join(',')
+                } else {
+                    responseMessage = err.toString()
+                }
+                response.clearCookie('ff_coupon', { path: '/' })
+                response.code(402).type('appication/json').send({ error: responseMessage })
+                return
+            }
         }
 
         const stripeSubscription = await stripe.subscriptions.retrieve(

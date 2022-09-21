@@ -56,7 +56,8 @@ export default {
                 username: '',
                 email: '',
                 password: '',
-                tcs_accepted: false
+                tcs_accepted: false,
+                code: ''
             },
             errors: {
                 email: '',
@@ -114,6 +115,9 @@ export default {
             }
         },
         registerUser () {
+            if (this.$route.query.code) {
+                this.input.code = this.$route.query.code
+            }
             const opts = { ...this.input, name: this.input.name || this.input.username }
             userApi.registerUser(opts).then(result => {
                 this.emailSent = true

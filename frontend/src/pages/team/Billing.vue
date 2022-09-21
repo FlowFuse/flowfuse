@@ -18,6 +18,12 @@
         </div>
         <div v-else>
             Billing has not yet been configured for this team. Before proceeding further, you must continue to Stripe and complete this.
+            <div v-if="coupon">
+                <div class="mb-8 text-sm text-gray-500 space-y-2">Will apply coupon code <span v-text="coupon"></span> at checkout</div>
+            </div>
+            <div v-if="errors.coupon">
+                <div class="ml-9 text-red-400 inline text-xs">{{errors.coupon}}</div>
+            </div>
             <div class="mt-3">
                 <ff-button @click="setupBilling()" data-action="setup-payment-details">
                     <template v-slot:icon-right><ExternalLinkIcon /></template>
@@ -42,6 +48,8 @@ import formatCurrency from '@/mixins/Currency.js'
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
 
 import SectionTopMenu from '@/components/SectionTopMenu'
+
+import Alerts from '@/services/alerts'
 
 const priceCell = {
     name: 'PriceCell',
@@ -97,13 +105,18 @@ export default {
                 component: {
                     is: markRaw(totalPriceCell)
                 }
-            }]
+            }],
+            coupon: false,
+            errors: {}
         }
     },
     watch: { },
     async mounted () {
+        // TODO remove
+        console.log(await window.cookieStore.get('ff_coupon'))
         this.loading = true
         if (!this.team.billingSetup) {
+            this.coupon = (await window.cookieStore.get('ff_coupon'))?.value.split('.')[0]
             this.loading = false
         } else {
             try {
@@ -116,8 +129,9 @@ export default {
                 })
                 this.loading = false
             } catch (err) {
-                // check for 404 and redirect if 404 returned
-                if (err.response.status === 404) {
+                // check for 402 and redirect if 402 returned
+                if (err.response.status === 402) {
+                    this.coupon = (await window.cookieStore.get('ff_coupon'))?.value.split('.')[0]
                     this.loading = false
                 }
             }
@@ -133,8 +147,15 @@ export default {
                 try {
                     billingUrl = await billingApi.getSubscriptionInfo(this.team.id)
                 } catch (err) {
-                    if (err.response.status === 404) {
-                        billingUrl = err.response.data.billingURL
+                    if (err.response.status === 402) {
+                        if (err.response.data.billingURL) {
+                            billingUrl = err.response.data.billingURL
+                        } else if (err.response.data.error) {
+                            Alerts.emit(`${this.coupon} coupon invalid`, 'warning', 7500)
+                            this.errors.coupon = `${this.coupon} is not a valid code. You will be able to provide an alternative code on the Stripe checkout page.`
+                            this.coupon = false
+                            return
+                        }
                     }
                 }
             }
