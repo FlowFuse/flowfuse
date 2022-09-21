@@ -21,7 +21,7 @@ import {
 
 import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
-import { Roles } from '@core/lib/roles'
+import permissionsMixin from '@/mixins/Permissions'
 
 export default {
     name: 'ProjectSettingsEditor',
@@ -46,6 +46,7 @@ export default {
         }
     },
     props: ['project'],
+    mixins: [permissionsMixin],
     computed: {
         ...mapState('account', ['team', 'teamMembership'])
     },
@@ -71,7 +72,7 @@ export default {
     },
     methods: {
         checkAccess: async function () {
-            if (this.teamMembership && this.teamMembership.role < Roles.Owner) {
+            if (!this.hasPermission('project:edit')) {
                 useRouter().push({ replace: true, path: 'general' })
             }
         },

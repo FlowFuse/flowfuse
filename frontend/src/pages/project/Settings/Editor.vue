@@ -12,7 +12,7 @@ import alerts from '@/services/alerts'
 
 import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
-import { Roles } from '@core/lib/roles'
+import permissionsMixin from '@/mixins/Permissions'
 
 import projectApi from '@/api/project'
 import TemplateSettingsEditor from '../../admin/Template/sections/Editor'
@@ -45,6 +45,7 @@ export default {
         }
     },
     props: ['project'],
+    mixins: [permissionsMixin],
     computed: {
         ...mapState('account', ['team', 'teamMembership'])
     },
@@ -81,7 +82,7 @@ export default {
     },
     methods: {
         checkAccess: async function () {
-            if (this.teamMembership && this.teamMembership.role < Roles.Owner) {
+            if (!this.hasPermission('project:edit')) {
                 useRouter().push({ replace: true, path: 'general' })
             }
         },

@@ -8,7 +8,7 @@
             Name
         </FormRow>
 
-        <div v-if="isOwner">
+        <div v-if="hasPermission('device:edit')">
             <ff-button v-if="!editing.deviceName" kind="primary" @click="editDevice">Edit Device</ff-button>
             <ff-button v-else kind="primary" @click="updateDevice">Save Changes</ff-button>
         </div>
@@ -20,12 +20,13 @@ import deviceApi from '@/api/devices'
 import FormRow from '@/components/FormRow'
 
 import { mapState } from 'vuex'
-import { Roles } from '@core/lib/roles'
+import permissionsMixin from '@/mixins/Permissions'
 
 export default {
     name: 'DeviceSettings',
     props: ['device'],
     emits: ['device-updated'],
+    mixins: [permissionsMixin],
     data () {
         return {
             editing: {
@@ -44,10 +45,7 @@ export default {
         device: 'fetchData'
     },
     computed: {
-        ...mapState('account', ['teamMembership']),
-        isOwner: function () {
-            return this.teamMembership.role >= Roles.Owner
-        }
+        ...mapState('account', ['teamMembership'])
     },
     mounted () {
         this.fetchData()
