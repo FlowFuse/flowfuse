@@ -19,14 +19,15 @@ module.exports = {
         'project:change-status': { description: 'Start/Stop Project', role: Roles.Owner },
         'project:edit': { description: 'Edit Project Settings', role: Roles.Owner },
         'project:edit-env': { description: 'Edit Project Environment Variables', role: Roles.Member },
-        'project:log': { description: 'Access Project Log', role: Roles.Member },
-        'project:audit-log': { description: 'Access Project Audit Log', role: Roles.Member },
+        'project:log': { description: 'Access Project Log', role: Roles.Viewer },
+        'project:audit-log': { description: 'Access Project Audit Log', role: Roles.Viewer },
         // Project Editor
-        'project:flows:view': { description: 'View Project Flows', role: Roles.Member },
+        'project:flows:view': { description: 'View Project Flows', role: Roles.Viewer },
         'project:flows:edit': { description: 'Edit Project Flows', role: Roles.Member },
         'project:snapshot:create': { description: 'Create Project Snapshot', role: Roles.Member },
         'project:snapshot:delete': { description: 'Delete Project Snapshot', role: Roles.Owner },
         'project:snapshot:rollback': { description: 'Rollback Project Snapshot', role: Roles.Member },
+        'project:snapshot:set-target': { description: 'Set Device Target Snapshot', role: Roles.Member },
         // Templates
         'template:create': { description: 'Create a Template', role: Roles.Admin },
         'template:delete': { description: 'Delete a Template', role: Roles.Admin },

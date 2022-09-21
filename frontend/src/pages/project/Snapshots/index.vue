@@ -6,9 +6,9 @@
                 <template v-slot:actions v-if="hasPermission('project:snapshot:create')">
                     <ff-button kind="primary" @click="showCreateSnapshotDialog" data-action="create-snapshot"><template v-slot:icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
                 </template>
-                <template v-slot:context-menu="{row}">
-                    <ff-list-item label="Rollback" @click="showRollbackDialog(row)" />
-                    <ff-list-item v-if="features.devices" label="Set as Device Target" @click="showDeviceTargetDialog(row)"/>
+                <template v-if="showContextMenu" v-slot:context-menu="{row}">
+                    <ff-list-item v-if="hasPermission('project:snapshot:rollback')" label="Rollback" @click="showRollbackDialog(row)" />
+                    <ff-list-item v-if="features.devices && hasPermission('project:snapshot:set-target')" label="Set as Device Target" @click="showDeviceTargetDialog(row)"/>
                     <ff-list-item v-if="hasPermission('project:snapshot:delete')" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)"/>
                 </template>
             </ff-data-table>
@@ -131,6 +131,9 @@ export default {
     },
     computed: {
         ...mapState('account', ['features', 'teamMembership']),
+        showContextMenu: function () {
+            return this.hasPermission('project:snapshot:rollback') || this.hasPermission('project:snapshot:set-target') || this.hasPermission('project:snapshot:delete')
+        },
         columns: function () {
             const devicesEnabled = this.features.devices
             const targetSnapshot = this.features.devices && this.project.deviceSettings?.targetSnapshot

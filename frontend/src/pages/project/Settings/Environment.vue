@@ -1,14 +1,17 @@
 <template>
     <form class="space-y-6">
-        <TemplateSettingsEnvironment v-model="editable" :editTemplate="false" />
-        <div class="space-x-4 whitespace-nowrap">
+        <TemplateSettingsEnvironment :readOnly="!hasPermission('device:edit-env')" v-model="editable" :editTemplate="false" />
+        <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
             <ff-button size="small" :disabled="!unsavedChanges" @click="saveSettings()">Save settings</ff-button>
         </div>
     </form>
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 import alerts from '@/services/alerts'
+import permissionsMixin from '@/mixins/Permissions'
 
 import projectApi from '@/api/project'
 import TemplateSettingsEnvironment from '../../admin/Template/sections/Environment'
@@ -18,6 +21,7 @@ import {
 
 export default {
     name: 'ProjectSettingsEnvironment',
+    mixins: [permissionsMixin],
     data () {
         return {
             unsavedChanges: false,
@@ -38,6 +42,9 @@ export default {
         }
     },
     props: ['project'],
+    computed: {
+        ...mapState('account', ['teamMembership'])
+    },
     watch: {
         project: 'getSettings',
         'editable.settings.env': {

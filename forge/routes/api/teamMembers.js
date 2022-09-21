@@ -1,4 +1,4 @@
-const { Roles } = require('../../lib/roles.js')
+const { TeamRoles } = require('../../lib/roles.js')
 
 /**
  * Team Membership api routes
@@ -93,7 +93,7 @@ module.exports = async function (app) {
      */
     app.put('/:userId', { preHandler: app.needsPermission('team:user:change-role') }, async (request, reply) => {
         const newRole = parseInt(request.body.role)
-        if (newRole === Roles.Owner || newRole === Roles.Member) {
+        if (TeamRoles.includes(newRole)) {
             try {
                 const result = await app.db.controllers.Team.changeUserRole(request.params.teamId, request.params.userId, newRole)
                 if (result.oldRole !== result.role) {
