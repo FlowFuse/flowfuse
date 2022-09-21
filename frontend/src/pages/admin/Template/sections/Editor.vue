@@ -15,6 +15,18 @@
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
+                <FormRow v-model="editable.settings.disableTours" type="checkbox" :disabled="!editTemplate && !editable.policy.disableTours">
+                    Disable Welcome Tour
+                    <template #description>
+                        Disable the Welcome Tour when accessing the editor the first rime.
+                    </template>
+                    <template #append><ChangeIndicator :value="editable.changed.settings.disableTours"></ChangeIndicator></template>
+                </FormRow>
+            </div>
+            <LockSetting :editTemplate="editTemplate" v-model="editable.policy.disableTours" :changed="editable.changed.policy.disableTours"></LockSetting>
+        </div>
+        <div class="flex flex-col sm:flex-row">
+            <div class="w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.httpAdminRoot" :error="editable.errors.httpAdminRoot" :type="(editTemplate||editable.policy.httpAdminRoot)?'text':'uneditable'">
                     Editor URL Path
                     <template #description>
