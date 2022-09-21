@@ -29,7 +29,6 @@
 
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
-import { Roles } from '@core/lib/roles'
 import permissionsMixin from '@/mixins/Permissions'
 
 import Alerts from '@/services/alerts'
