@@ -128,7 +128,7 @@
         "start-server-and-test": "^1.14.0",
         "style-loader": "^3.3.1",
         "tailwindcss": "^2.2.19",
-        "vitest": "^0.12.6",
+        "vitest": "^0.23.4",
         "vue-loader": "^16.8.3",
         "vue-template-compiler": "^2.6.14",
         "webpack": "^5.68.0",

@@ -24,15 +24,9 @@ vi.mock('@/api/client', () => {
     }
 })
 
+const roles = require('../../../../forge/lib/roles')
 vi.mock('@core/lib/roles', () => {
-    return {
-        RoleNames: {
-            0: 'none',
-            30: 'member',
-            50: 'owner',
-            99: 'admin'
-        }
-    }
+    return roles
 })
 
 const mockPaginateUrl = vi.fn().mockImplementation().mockReturnValue('<paginated-url>')
