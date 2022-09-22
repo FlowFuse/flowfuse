@@ -112,8 +112,6 @@ export default {
     },
     watch: { },
     async mounted () {
-        // TODO remove
-        console.log(await window.cookieStore.get('ff_coupon'))
         this.loading = true
         if (!this.team.billingSetup) {
             this.coupon = (await window.cookieStore.get('ff_coupon'))?.value.split('.')[0]
