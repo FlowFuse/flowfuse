@@ -17,6 +17,9 @@
                         <FormRow id="role-member" :value="Roles.Member" v-model="input.role" type="radio">Member
                             <template v-slot:description>Members can access the team projects</template>
                         </FormRow>
+                        <FormRow id="role-member" :value="Roles.Viewer" v-model="input.role" type="radio">Viewer
+                            <template v-slot:description>Viewers can access the team projects, but not make any changes</template>
+                        </FormRow>
                     </template>
                 </div>
             </form>

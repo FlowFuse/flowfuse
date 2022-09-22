@@ -321,9 +321,7 @@ module.exports = async function (app) {
         reply.send({ status: 'okay' })
     })
 
-    app.get('/:deviceId/settings', {
-        preHandler: app.needsPermission('device:edit-env')
-    }, async (request, reply) => {
+    app.get('/:deviceId/settings', async (request, reply) => {
         const settings = await request.device.getAllSettings()
         if (request.teamMembership?.role === Roles.Owner) {
             reply.send(settings)

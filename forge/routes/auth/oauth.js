@@ -97,8 +97,8 @@ module.exports = async function (app) {
         if (code_challenge_method !== 'S256') {
             return redirectInvalidRequest(reply, redirect_uri, 'invalid_request', "Invalid code_challenge_method. Only 'S256' is supported", state)
         }
-        if (!/^editor$/.test(scope)) {
-            return redirectInvalidRequest(reply, redirect_uri, 'invalid_request', "Invalid scope '" + scope + "'. Only 'editor' is supported", state)
+        if (!/^editor($|-)/.test(scope)) {
+            return redirectInvalidRequest(reply, redirect_uri, 'invalid_request', "Invalid scope '" + scope + "'. Only 'editor[-version]' is supported", state)
         }
 
         const requestObject = {
@@ -145,6 +145,18 @@ module.exports = async function (app) {
                 const teamMembership = await request.session.User.getTeamMembership(project.TeamId)
                 if (!teamMembership) {
                     return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
+                }
+                const canReadFlows = app.hasPermission(teamMembership, 'project:flows:view')
+                const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit')
+                if (!canReadFlows && !canWriteFlows) {
+                    return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
+                }
+                if (!canWriteFlows && requestObject.scope === 'editor') {
+                    // Older versions of nr-auth do not know how to apply read-only
+                    // access. We know it is an older version because it set scope to `editor`.
+                    // Versions that support viewer will have a scope of `editor-<version>`.
+                    reply.code(400).send('Please ask the team owner to update this project to the latest stack to support viewer access')
+                    return
                 }
                 requestObject.username = request.session.User.username
                 requestObject.code = base64URLEncode(crypto.randomBytes(32))
@@ -233,11 +245,27 @@ module.exports = async function (app) {
 
             const sessionTokens = await app.db.controllers.Session.createTokenSession(requestObject.username)
 
+            const project = await app.db.models.Project.byId(authClient.ownerId)
+            const teamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: project.TeamId, UserId: sessionTokens.UserId } })
+            const canReadFlows = app.hasPermission(teamMembership, 'project:flows:view')
+            const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit')
+
+            if (!canReadFlows && !canWriteFlows) {
+                await sessionTokens.destroy()
+                return badRequest(reply, 'access_denied', 'Access Denied')
+            }
+
+            let scope = '*'
+            if (!canWriteFlows) {
+                scope = 'read'
+            }
+
             const response = {
                 access_token: sessionTokens.sid,
                 expires_in: Math.floor((sessionTokens.expiresAt - Date.now()) / 1000),
                 refresh_token: sessionTokens.refreshToken,
-                state: requestObject.state
+                state: requestObject.state,
+                scope
             }
             reply.send(response)
         } else if (grant_type === 'refresh_token') {
@@ -249,15 +277,18 @@ module.exports = async function (app) {
             // this client is owned by
             const project = await app.db.models.Project.byId(authClient.ownerId)
             const teamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: project.TeamId, UserId: existingSession.UserId } })
-            if (!teamMembership) {
+            const canReadFlows = app.hasPermission(teamMembership, 'project:flows:view')
+            const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit')
+
+            if (!canReadFlows && !canWriteFlows) {
                 return badRequest(reply, 'access_denied', 'Access Denied')
             }
-
             const sessionTokens = await app.db.controllers.Session.refreshTokenSession(refresh_token)
             if (!sessionTokens) {
                 badRequest(reply, 'invalid_request', 'Invalid refresh_token')
                 return
             }
+
             const response = {
                 access_token: sessionTokens.sid,
                 expires_in: Math.floor((sessionTokens.expiresAt - Date.now()) / 1000),

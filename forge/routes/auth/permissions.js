@@ -2,6 +2,13 @@ const fp = require('fastify-plugin')
 const { Permissions } = require('../../lib/permissions')
 
 module.exports = fp(async function (app, opts, done) {
+    function hasPermission (teamMembership, scope) {
+        if (!teamMembership) {
+            return false
+        }
+        const permission = Permissions[scope]
+        return teamMembership.role >= permission.role
+    }
     function needsPermission (scope) {
         if (!Permissions[scope]) {
             throw new Error(`Unrecognised scope requested: '${scope}'`)
@@ -47,6 +54,7 @@ module.exports = fp(async function (app, opts, done) {
         }
     }
 
+    app.decorate('hasPermission', hasPermission)
     app.decorate('needsPermission', needsPermission)
     done()
 })

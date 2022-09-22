@@ -36,7 +36,7 @@ module.exports = async function (app) {
         reply.send(deviceSettings)
     })
 
-    app.post('/settings', async (request, reply) => {
+    app.post('/settings', { preHandler: app.needsPermission('project:snapshot:set-target') }, async (request, reply) => {
         if (request.body.targetSnapshot) {
             // We currently only have `targetSnapshot` under deviceSettings.
             // For now, only care about that - when we add other device settings, this
