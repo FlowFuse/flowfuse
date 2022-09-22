@@ -10,7 +10,6 @@
  */
 module.exports = async function (app) {
     const changeStatusPreHandler = { preHandler: app.needsPermission('project:change-status') }
-    const rollbackPreHandler = { preHandler: app.needsPermission('project:rollback') }
     app.post('/start', changeStatusPreHandler, async (request, reply) => {
         try {
             if (request.project.state === 'suspended') {
@@ -109,7 +108,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.post('/rollback', rollbackPreHandler, async (request, reply) => {
+    app.post('/rollback', { preHandler: app.needsPermission('project:snapshot:rollback') }, async (request, reply) => {
         let restartProject = false
         try {
             // get (and check) snapshot is valid / owned by project before any actions

@@ -12,11 +12,12 @@ import { mapState } from 'vuex'
 
 import SectionTopMenu from '@/components/SectionTopMenu'
 import { useRouter } from 'vue-router'
-import { Roles } from '@core/lib/roles'
+import permissionsMixin from '@/mixins/Permissions'
 
 export default {
     name: 'TeamSettings',
     props: ['team', 'teamMembership'],
+    mixins: [permissionsMixin],
     components: {
         SectionTopMenu
     },
@@ -39,7 +40,7 @@ export default {
     },
     methods: {
         checkAccess: async function () {
-            if (this.teamMembership.role < Roles.Owner) {
+            if (!this.hasPermission('team:edit')) {
                 useRouter().push({ path: `/team/${this.team.slug}/overview` })
             }
         }

@@ -17,12 +17,13 @@ import teamApi from '@/api/team'
 import { markRaw } from 'vue'
 import InviteUserCell from '@/components/tables/cells/InviteUserCell'
 import { useRoute, useRouter } from 'vue-router'
-import { Roles } from '@core/lib/roles'
+import permissionsMixin from '@/mixins/Permissions'
 
 export default {
     name: 'MemberInviteTable',
     props: ['team', 'teamMembership', 'inviteCount'],
     emits: ['updated', 'invites-updated'],
+    mixins: [permissionsMixin],
     data () {
         return {
             loading: false,
@@ -49,7 +50,7 @@ export default {
         async fetchData () {
             this.loading = true
             if (this.team && this.teamMembership) {
-                if (this.teamMembership.role < Roles.Owner) {
+                if (!this.hasPermission('team:user:invite')) {
                     useRouter().push({ path: `/team/${useRoute().params.team_slug}/members/general` })
                     return
                 }

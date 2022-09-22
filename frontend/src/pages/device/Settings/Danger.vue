@@ -16,9 +16,9 @@
 <script>
 import { mapState } from 'vuex'
 import { useRouter } from 'vue-router'
-import { Roles } from '@core/lib/roles'
 
 import deviceApi from '@/api/devices'
+import permissionsMixin from '@/mixins/Permissions'
 
 import FormHeading from '@/components/FormHeading'
 import ConfirmDeviceDeleteDialog from './dialogs/ConfirmDeviceDeleteDialog'
@@ -27,6 +27,7 @@ export default {
     name: 'DeviceSettingsDanger',
     props: ['device'],
     emits: ['device-updated'],
+    mixins: [permissionsMixin],
     components: {
         ConfirmDeviceDeleteDialog,
         FormHeading
@@ -46,7 +47,7 @@ export default {
     },
     methods: {
         checkAccess: async function () {
-            if (this.teamMembership && this.teamMembership.role < Roles.Owner) {
+            if (!this.hasPermission('device:edit')) {
                 useRouter().push({ replace: true, path: 'general' })
             }
         },

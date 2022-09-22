@@ -28,7 +28,7 @@
                             <ExternalLinkIcon />
                         </span>
                     </a>
-                    <DropdownMenu v-if="isOwner" buttonClass="ff-btn ff-btn--primary" alt="Open actions menu" :options="options" data-action="open-actions">Actions</DropdownMenu>
+                    <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" alt="Open actions menu" :options="options" data-action="open-actions">Actions</DropdownMenu>
                 </div>
             </template>
         </SectionTopMenu>
@@ -54,6 +54,7 @@ import SectionTopMenu from '@/components/SectionTopMenu'
 
 import { mapState } from 'vuex'
 import { Roles } from '@core/lib/roles'
+import permissionsMixin from '@/mixins/Permissions'
 
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
 import ProjectsIcon from '@/components/icons/Projects'
@@ -79,33 +80,36 @@ export default {
             checkInterval: null
         }
     },
+    mixins: [permissionsMixin],
     async created () {
         await this.updateProject()
     },
     computed: {
         ...mapState('account', ['teamMembership', 'team', 'features']),
-        isOwner: function () {
-            return this.teamMembership.role >= Roles.Owner
-        },
         isVisitingAdmin: function () {
             return this.teamMembership.role === Roles.Admin
         },
         options: function () {
             const flowActionsDisabled = !(this.project.meta && this.project.meta.state !== 'suspended')
 
-            return [
+            const result = [
                 { name: 'Start', action: async () => { this.project.pendingStateChange = true; await projectApi.startProject(this.project.id) } },
                 { name: 'Restart', action: async () => { this.project.pendingRestart = true; this.project.pendingStateChange = true; await projectApi.restartProject(this.project.id) }, disabled: flowActionsDisabled },
-                { name: 'Suspend', class: ['text-red-700'], action: () => { this.$router.push({ path: `/project/${this.project.id}/settings/danger` }) }, disabled: flowActionsDisabled },
-                null,
-                {
-                    name: 'Delete',
-                    class: ['text-red-700'],
-                    action: () => {
-                        this.$router.push({ path: `/project/${this.project.id}/settings/danger` })
-                    }
-                }
+                { name: 'Suspend', class: ['text-red-700'], action: () => { this.$router.push({ path: `/project/${this.project.id}/settings/danger` }) }, disabled: flowActionsDisabled }
             ]
+            if (this.hasPermission('project:delete')) {
+                result.push(
+                    null,
+                    {
+                        name: 'Delete',
+                        class: ['text-red-700'],
+                        action: () => {
+                            this.$router.push({ path: `/project/${this.project.id}/settings/danger` })
+                        }
+                    }
+                )
+            }
+            return result
         },
         editorAvailable: function () {
             return this.project.meta && this.project.meta.state === 'running'

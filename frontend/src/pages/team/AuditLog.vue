@@ -7,11 +7,12 @@
 import teamApi from '@/api/team'
 import SectionTopMenu from '@/components/SectionTopMenu'
 import AuditLog from '@/components/AuditLog'
-import { Roles } from '@core/lib/roles'
+import permissionsMixin from '@/mixins/Permissions'
 
 export default {
     name: 'TeamAuditLog',
     props: ['team', 'teamMembership'],
+    mixins: [permissionsMixin],
     watch: {
         team: 'fetchData',
         teamMembership: 'fetchData'
@@ -29,9 +30,9 @@ export default {
             return await teamApi.getTeamAuditLog(projectId, cursor)
         },
         fetchData: async function (newVal) {
-            if (this.team.id && this.teamMembership && this.teamMembership.role >= Roles.Owner) {
+            if (this.hasPermission('team:audit-log')) {
                 this.verifiedTeam = this.team
-            } else if (this.teamMembership && this.teamMembership.role < Roles.Owner) {
+            } else {
                 this.$router.push({ path: `/team/${this.team.slug}/overview` })
             }
         }

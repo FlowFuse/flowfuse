@@ -12,12 +12,13 @@ import SectionSideMenu from '@/components/SectionSideMenu'
 
 import { mapState } from 'vuex'
 import { useRouter } from 'vue-router'
-import { Roles } from '@core/lib/roles'
+import permissionsMixin from '@/mixins/Permissions'
 
 export default {
     name: 'DeviceSettins',
     props: ['device'],
     emits: ['device-updated'],
+    mixins: [permissionsMixin],
     data: function () {
         return {
             sideNavigation: []
@@ -39,7 +40,7 @@ export default {
                 { name: 'General', path: './general' },
                 { name: 'Environment', path: './environment' }
             ]
-            if (this.teamMembership && this.teamMembership.role >= Roles.Owner) {
+            if (this.hasPermission('device:edit')) {
                 this.sideNavigation.push({ name: 'Danger', path: './danger' })
             }
         }

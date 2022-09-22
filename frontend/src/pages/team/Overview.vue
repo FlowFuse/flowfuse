@@ -3,8 +3,8 @@
     <div v-else class="block md:flex">
         <div class="flex-grow">
             <SectionTopMenu hero="Projects">
-                <template v-if="createProjectEnabled" v-slot:tools>
-                    <ff-button v-if="createProjectEnabled" kind="primary" size="small" to="./projects/create" data-nav="create-project"><template v-slot:icon-left><PlusSmIcon /></template>Create Project</ff-button>
+                <template v-if="hasPermission('project:create')" v-slot:tools>
+                    <ff-button kind="primary" size="small" to="./projects/create" data-nav="create-project"><template v-slot:icon-left><PlusSmIcon /></template>Create Project</ff-button>
                 </template>
             </SectionTopMenu>
             <template v-if="projectCount > 0">
@@ -28,7 +28,7 @@
 
 <script>
 
-import { Roles } from '@core/lib/roles'
+import permissionsMixin from '@/mixins/Permissions'
 
 import teamApi from '@/api/team'
 
@@ -40,6 +40,7 @@ import { PlusSmIcon } from '@heroicons/vue/outline'
 export default {
     name: 'TeamOverview',
     props: ['team', 'teamMembership'],
+    mixins: [permissionsMixin],
     data: function () {
         return {
             loading: false,
@@ -54,9 +55,6 @@ export default {
         }
     },
     computed: {
-        createProjectEnabled: function () {
-            return this.teamMembership.role >= Roles.Owner
-        },
         showingMessage: function () {
             return this.show.thankyou
         }

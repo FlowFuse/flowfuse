@@ -10,11 +10,11 @@
                     <nav-item :label="route.label" :icon="route.icon"></nav-item>
                 </router-link>
             </ul>
-            <span v-if="showAdmin" class="ff-navigation-divider">
+            <span v-if="hasPermission('team:edit')" class="ff-navigation-divider">
                 <label>Team Admin Zone</label>
             </span>
             <!-- Team Options: Admin -->
-            <ul v-if="showAdmin" class="ff-side-navigation--admin">
+            <ul v-if="hasPermission('team:edit')" class="ff-side-navigation--admin">
                 <router-link v-for="route in routes.admin" :key="route.label"
                              :to="'/team/' + team.slug + route.to"
                              :data-nav="route.tag">
@@ -31,7 +31,7 @@
 <script>
 import { mapState } from 'vuex'
 
-import { Roles } from '@core/lib/roles'
+import permissionsMixin from '@/mixins/Permissions'
 
 import ProjectsIcon from '@/components/icons/Projects'
 import { ChipIcon, UsersIcon, DatabaseIcon, TemplateIcon, CurrencyDollarIcon, CogIcon } from '@heroicons/vue/solid'
@@ -41,14 +41,12 @@ export default {
     name: 'FFSideNavigationTeamOptions',
     props: ['mobile-menu-open'],
     emits: ['option-selected'],
+    mixins: [permissionsMixin],
     components: {
         NavItem
     },
     computed: {
         ...mapState('account', ['user', 'team', 'teamMembership', 'features', 'notifications']),
-        showAdmin: function () {
-            return this.teamMembership.role >= Roles.Owner
-        },
         nested: function () {
             return (this.$slots['nested-menu'] && this.loaded) || this.closeNested
         }

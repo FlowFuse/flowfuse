@@ -23,7 +23,7 @@
                             v-model="item.name"
                             :error="item.error"
                             :disabled="item.encrypted"
-                            :type="(editTemplate || item.policy === undefined)?'text':'uneditable'"></FormRow>
+                            :type="(!readOnly && (editTemplate || item.policy === undefined))?'text':'uneditable'"></FormRow>
                         <!-- <ff-text-input  v-model="item.name" :disabled="item.encrypted"  /> -->
                     </td>
                     <td class="px-4 py-4 border w-auto align-top" :class="{'align-middle':item.encrypted}">
@@ -31,12 +31,12 @@
                             <FormRow
                                 class="font-mono"
                                 v-model="item.value"
-                                :type="(editTemplate || item.policy === undefined || item.policy)?'text':'uneditable'"></FormRow>
+                                :type="(!readOnly && (editTemplate || item.policy === undefined || item.policy))?'text':'uneditable'"></FormRow>
                         </div>
                         <div v-else class="pt-1 text-gray-400"><LockClosedIcon class="inline w-4" /> encrypted</div>
                     </td>
                     <td class="border w-16 align-middle">
-                        <div v-if="(editTemplate|| item.policy === undefined )" class="flex justify-center ">
+                        <div v-if="(!readOnly && (editTemplate|| item.policy === undefined))" class="flex justify-center ">
                             <ff-button kind="tertiary" @click="removeEnv(itemIdx)" size="small">
                                 <template v-slot:icon>
                                     <TrashIcon />
@@ -44,7 +44,7 @@
                             </ff-button>
                         </div>
                     </td>
-                    <td v-if="editTemplate" class="px-4 py-4 align-middle">
+                    <td v-if="!readOnly && editTemplate" class="px-4 py-4 align-middle">
                         <LockSetting :editTemplate="editTemplate" v-model="item.policy"></LockSetting>
                     </td>
                 </tr>
@@ -54,10 +54,10 @@
                     </td>
                 </tr>
                 <!-- Empty row to differentiate between the existing env vars, and the iput form row-->
-                <tr>
+                <tr v-if="!readOnly">
                     <td :colspan="editTemplate?4:3" class="p-4 bg-gray-50"></td>
                 </tr>
-                <tr class="">
+                <tr v-if="!readOnly" class="">
                     <td class="px-4 pt-4 border w-auto align-top">
                         <FormRow class="font-mono" v-model="input.name" :error="input.error" placeholder="Name"></FormRow>
                     </td>
@@ -92,7 +92,7 @@ import { TrashIcon, PlusSmIcon, LockClosedIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'TemplateEnvironmentEditor',
-    props: ['editTemplate', 'modelValue'],
+    props: ['editTemplate', 'modelValue', 'readOnly'],
     emits: ['update:modelValue'],
     data () {
         return {

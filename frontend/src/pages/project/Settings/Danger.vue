@@ -114,6 +114,7 @@ import projectApi from '@/api/project'
 
 import Dialog from '@/services/dialog'
 import alerts from '@/services/alerts'
+import permissionsMixin from '@/mixins/Permissions'
 
 import FormHeading from '@/components/FormHeading'
 import ConfirmProjectDeleteDialog from './dialogs/ConfirmProjectDeleteDialog'
@@ -122,12 +123,12 @@ import ChangeTypeDialog from './dialogs/ChangeTypeDialog'
 import ExportToProjectDialog from './dialogs/ExportToProjectDialog'
 import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
-import { Roles } from '@core/lib/roles'
 
 export default {
     name: 'ProjectSettingsDanger',
     props: ['project'],
     emits: ['projectUpdated'],
+    mixins: [permissionsMixin],
     computed: {
         ...mapState('account', ['team', 'features', 'teamMembership']),
         isLoading: function () {
@@ -150,7 +151,7 @@ export default {
     },
     methods: {
         checkAccess: async function () {
-            if (this.teamMembership && this.teamMembership.role < Roles.Owner) {
+            if (!this.hasPermission('project:edit')) {
                 useRouter().push({ replace: true, path: 'general' })
             }
         },

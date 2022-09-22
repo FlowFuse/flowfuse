@@ -13,11 +13,12 @@ import { mapState } from 'vuex'
 import teamApi from '@/api/team'
 
 import SectionTopMenu from '@/components/SectionTopMenu'
-import { Roles } from '@core/lib/roles'
+import permissionsMixin from '@/mixins/Permissions'
 
 export default {
     name: 'TeamUsers',
     props: ['team', 'teamMembership'],
+    mixins: [permissionsMixin],
     computed: {
         ...mapState('account', ['user'])
     },
@@ -41,7 +42,7 @@ export default {
             this.sideNavigation = [
                 { name: 'Team Members', path: './general' }
             ]
-            if (this.teamMembership.role >= Roles.Owner) {
+            if (this.hasPermission('team:user:invite')) {
                 const invitations = await teamApi.getTeamInvitations(this.team.id)
                 this.inviteCount = invitations.count
                 this.sideNavigation.push({ name: `Invitations (${invitations.count})`, path: './invitations' })
