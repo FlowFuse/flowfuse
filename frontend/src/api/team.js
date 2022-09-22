@@ -2,7 +2,7 @@ import client from './client'
 import daysSince from '@/utils/daysSince'
 import elapsedTime from '@/utils/elapsedTime'
 import paginateUrl from '@/utils/paginateUrl'
-import { RoleNames } from '@core/lib/roles'
+import { RoleNames, Roles } from '@core/lib/roles'
 
 const getTeams = () => {
     return client.get('/api/v1/user/teams').then(res => {
@@ -58,6 +58,7 @@ const getTeamMembers = (teamId) => {
 const getTeamInvitations = (teamId) => {
     return client.get(`/api/v1/teams/${teamId}/invitations`).then(res => {
         res.data.invitations = res.data.invitations.map(r => {
+            r.roleName = RoleNames[r.role || Roles.Member]
             r.createdSince = daysSince(r.createdAt)
             r.expires = elapsedTime(r.expiresAt, Date.now())
             return r
@@ -65,9 +66,10 @@ const getTeamInvitations = (teamId) => {
         return res.data
     })
 }
-const createTeamInvitation = (teamId, userDetails) => {
+const createTeamInvitation = (teamId, userDetails, role) => {
     const opts = {
-        user: userDetails
+        user: userDetails,
+        role
     }
     return client.post(`/api/v1/teams/${teamId}/invitations`, opts).then(res => {
         return res.data

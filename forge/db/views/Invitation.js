@@ -4,6 +4,7 @@ module.exports = {
             const d = t.get({ plain: true })
             const result = {
                 id: d.hashid,
+                role: d.role,
                 createdAt: d.createdAt,
                 expiresAt: d.expiresAt,
                 sentAt: d.sentAt,

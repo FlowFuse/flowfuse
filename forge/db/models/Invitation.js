@@ -20,7 +20,10 @@ module.exports = {
         external: { type: DataTypes.BOOLEAN, allowNull: false },
         expiresAt: { type: DataTypes.DATE },
         email: { type: DataTypes.STRING, allowNull: true },
-        sentAt: { type: DataTypes.DATE, allowNull: true }
+        sentAt: { type: DataTypes.DATE, allowNull: true },
+        role: {
+            type: DataTypes.INTEGER
+        }
         // invitorId
         // inviteeId
     },

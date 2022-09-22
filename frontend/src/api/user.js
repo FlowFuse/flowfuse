@@ -1,6 +1,7 @@
 import client from './client'
 import daysSince from '@/utils/daysSince'
 import elapsedTime from '@/utils/elapsedTime'
+import { RoleNames, Roles } from '@core/lib/roles'
 
 const login = (username, password, remember) => {
     return client.post('/account/login', {
@@ -49,6 +50,7 @@ const getTeamInvitations = async () => {
         res.data.invitations = res.data.invitations.map(r => {
             r.createdSince = daysSince(r.createdAt)
             r.expires = elapsedTime(r.expiresAt, Date.now())
+            r.roleName = RoleNames[r.role || Roles.Member]
             return r
         })
         return res.data
