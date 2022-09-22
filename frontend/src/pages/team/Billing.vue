@@ -114,7 +114,7 @@ export default {
     async mounted () {
         this.loading = true
         if (!this.team.billingSetup) {
-            this.coupon = (await window.cookieStore.get('ff_coupon'))?.value.split('.')[0]
+            this.coupon = this.getCookie('ff_coupon')?.split('.')[0]
             this.loading = false
         } else {
             try {
@@ -129,7 +129,7 @@ export default {
             } catch (err) {
                 // check for 402 and redirect if 402 returned
                 if (err.response.status === 402) {
-                    this.coupon = (await window.cookieStore.get('ff_coupon'))?.value.split('.')[0]
+                    this.coupon = this.getCookie('ff_coupon')?.split('.')[0]
                     this.loading = false
                 }
             }
@@ -158,6 +158,18 @@ export default {
                 }
             }
             window.open(billingUrl, '_self')
+        },
+        getCookie (name) {
+            if (document.cookie) {
+                const cookies = document.cookie.split(';')
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i]
+                    if (cookie.split('=')[0] === name) {
+                        return cookie.split('=')[1]
+                    }
+                }
+            }
+            return undefined
         }
     },
     components: {

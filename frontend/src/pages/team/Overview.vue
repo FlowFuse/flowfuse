@@ -95,7 +95,8 @@ export default {
         async checkBillingSession () {
             this.show.thankyou = 'billing_session' in this.$route.query
             if (this.show.thankyou) {
-                await window.cookieStore.delete('ff_coupon')
+                // delete
+                document.cookie = 'ff_coupon=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
             }
         }
     },
