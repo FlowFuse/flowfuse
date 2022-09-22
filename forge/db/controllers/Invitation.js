@@ -1,6 +1,6 @@
-const { Roles } = require('../../lib/roles.js')
+const { Roles, RoleNames } = require('../../lib/roles.js')
 module.exports = {
-    createInvitations: async (app, invitor, team, userList) => {
+    createInvitations: async (app, invitor, team, userList, role) => {
         const externalInvitesPermitted = app.postoffice.enabled() && !!app.settings.get('team:user:invite:external')
         const pendingInvites = []
         const results = {}
@@ -45,6 +45,7 @@ module.exports = {
                 continue
             }
             opts.invitorId = invitor.id
+            opts.role = role
             pendingInvites.push({ userDetail, opts })
         }
         if (team.TeamType.getProperty('userLimit') > 0) {
@@ -64,21 +65,25 @@ module.exports = {
     },
 
     acceptInvitation: async (app, invitation, user) => {
-        await app.db.controllers.Team.addUser(invitation.team, user, Roles.Member)
+        const role = invitation.role || Roles.Member
+        await app.db.controllers.Team.addUser(invitation.team, user, role)
         await invitation.destroy()
         await app.db.controllers.AuditLog.teamLog(
             invitation.team.id,
             user.id,
-            'user.invite.accept'
+            'user.invite.accept',
+            { role: RoleNames[role] }
         )
     },
 
     rejectInvitation: async (app, invitation, user) => {
+        const role = invitation.role || Roles.Member
         await invitation.destroy()
         await app.db.controllers.AuditLog.teamLog(
             invitation.team.id,
             user.id,
-            'user.invite.reject'
+            'user.invite.reject',
+            { role: RoleNames[role] }
         )
     }
 }

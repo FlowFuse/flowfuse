@@ -61,12 +61,17 @@ describe('Team Invitations API', function () {
                 url: `/api/v1/teams/${TestObjects.ATeam.hashid}/invitations`,
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
-                    user: 'chris'
+                    user: 'chris',
+                    role: Roles.Viewer
                 }
             })
             const result = response.json()
             result.should.have.property('status', 'okay')
             app.config.email.transport.getMessageQueue().should.have.lengthOf(1)
+
+            const invites = await app.db.models.Invitation.findAll()
+            invites.should.have.lengthOf(1)
+            invites[0].should.have.property('role', Roles.Viewer)
         })
 
         it('team member cannot invite user to team', async () => {
@@ -90,11 +95,15 @@ describe('Team Invitations API', function () {
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
                     user: 'chris'
-                }
+                },
+                role: Roles.Member
             })
             const result = response.json()
             result.should.have.property('status', 'okay')
             app.config.email.transport.getMessageQueue().should.have.lengthOf(1)
+            const invites = await app.db.models.Invitation.findAll()
+            invites.should.have.lengthOf(1)
+            invites[0].should.have.property('role', Roles.Member)
         })
 
         it('team owner can invite multiple users to team', async () => {

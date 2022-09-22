@@ -17,7 +17,7 @@
                         <FormRow id="role-member" :value="Roles.Member" v-model="input.role" type="radio">Member
                             <template v-slot:description>Members can access the team projects</template>
                         </FormRow>
-                        <FormRow id="role-member" :value="Roles.Viewer" v-model="input.role" type="radio">Viewer
+                        <FormRow id="role-viewer" :value="Roles.Viewer" v-model="input.role" type="radio">Viewer
                             <template v-slot:description>Viewers can access the team projects, but not make any changes</template>
                         </FormRow>
                     </template>
@@ -33,7 +33,7 @@ import alerts from '@/services/alerts'
 
 import FormRow from '@/components/FormRow'
 import teamApi from '@/api/team'
-import { Roles, RoleNames } from '@core/lib/roles'
+import { Roles } from '@core/lib/roles'
 
 export default {
     name: 'ChangeTeamRoleDialog',
@@ -49,8 +49,7 @@ export default {
             input: {
                 role: ''
             },
-            Roles: Roles,
-            RoleNames: RoleNames
+            Roles: Roles
         }
     },
     methods: {

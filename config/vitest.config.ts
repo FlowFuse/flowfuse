@@ -6,18 +6,18 @@ import Vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
     plugins: [
-      Vue(),
+        Vue()
     ],
     test: {
         globals: true,
         environment: 'jsdom',
         coverage: {
-          src: ['./frontend/src'],
-          reportsDirectory: './coverage/frontend',
-          all: true
+            src: ['./frontend/src'],
+            reportsDirectory: './coverage/frontend',
+            all: true
         }
     },
     alias: {
-      '@': fileURLToPath(new URL('../frontend/src', import.meta.url))
+        '@': fileURLToPath(new URL('../frontend/src', import.meta.url))
     }
 })

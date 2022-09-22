@@ -9,6 +9,9 @@
  * @namespace teamInvitations
  * @memberof forge.routes.api
  */
+
+const { TeamRoles, RoleNames, Roles } = require('../../lib/roles')
+
 module.exports = async function (app) {
     // All routes require user to be owner of team
     app.addHook('preHandler', app.needsPermission('team:user:invite'))
@@ -29,9 +32,14 @@ module.exports = async function (app) {
      */
     app.post('/', async (request, reply) => {
         const userDetails = request.body.user.split(',').map(u => u.trim()).filter(Boolean)
+        const role = request.body.role || Roles.Member
+        if (!TeamRoles.includes(role)) {
+            reply.code(400).send({ status: 'error', message: 'invalid team role' })
+            return
+        }
         let invites = []
         try {
-            invites = await app.db.controllers.Invitation.createInvitations(request.session.User, request.team, userDetails)
+            invites = await app.db.controllers.Invitation.createInvitations(request.session.User, request.team, userDetails, role)
         } catch (err) {
             reply.code(400).send({ status: 'error', message: err.message })
             return
@@ -86,7 +94,7 @@ module.exports = async function (app) {
                 request.team.id,
                 request.session.User.id,
                 'user.invited',
-                { users: successfulInvites }
+                { users: successfulInvites, role: RoleNames[role] }
             )
         }
         if (errorCount > 0) {
@@ -110,7 +118,7 @@ module.exports = async function (app) {
                 request.team.id,
                 request.session.User.id,
                 'user.uninvited',
-                { users: [invitation.external ? invitation.email : invitation.invitee.username] }
+                { users: [invitation.external ? invitation.email : invitation.invitee.username], role: RoleNames[invitation.role || Roles.Member] }
             )
             reply.send({ status: 'okay' })
         } else {
