@@ -105,6 +105,12 @@ module.exports = async function (app) {
                         replacedBy: replacedStack.id
                     }
                 })
+                // Update all ProjectTypes that have this as their defaultStack
+                await app.db.models.ProjectType.update({ defaultStackId: stack.id }, {
+                    where: {
+                        defaultStackId: replacedStack.id
+                    }
+                })
                 replacedStack.active = false
                 replacedStack.replacedBy = stack.id
                 await replacedStack.save()
