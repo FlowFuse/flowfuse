@@ -287,6 +287,15 @@ module.exports = fp(async function (app, opts, done) {
                     confirmEmailLink: `${app.config.base_url}/account/verify/${verifyToken}`
                 }
             )
+            if (request.body.code) {
+                reply.setCookie('ff_coupon', request.body.code, {
+                    path: '/',
+                    maxAge: (60 * 60 * 24 * 7),
+                    sameSite: true,
+                    signed: true,
+                    secure: 'auto'
+                })
+            }
             reply.send({ status: 'okay' })
         } catch (err) {
             let responseMessage

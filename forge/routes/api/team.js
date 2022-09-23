@@ -176,8 +176,10 @@ module.exports = async function (app) {
             return
         }
 
+        let team
+
         try {
-            const team = await app.db.controllers.Team.createTeamForUser({
+            team = await app.db.controllers.Team.createTeamForUser({
                 name: request.body.name,
                 slug: request.body.slug,
                 TeamTypeId: teamType.id
@@ -186,7 +188,11 @@ module.exports = async function (app) {
             const teamView = app.db.views.Team.team(team)
 
             if (app.license.active() && app.billing) {
-                const session = await app.billing.createSubscriptionSession(team)
+                let cookie
+                if (request.cookies.ff_coupon) {
+                    cookie = request.unsignCookie(request.cookies.ff_coupon)?.valid ? request.unsignCookie(request.cookies.ff_coupon).value : undefined
+                }
+                const session = await app.billing.createSubscriptionSession(team, cookie)
                 app.db.controllers.AuditLog.teamLog(
                     team.id,
                     request.session.User.id,
@@ -198,12 +204,18 @@ module.exports = async function (app) {
 
             reply.send(teamView)
         } catch (err) {
+            if (team !== undefined) {
+                // safe to destory because it will have only 1 owner and no projects
+                await team.destroy()
+            }
+
             let responseMessage
             if (err.errors) {
                 responseMessage = err.errors.map(err => err.message).join(',')
             } else {
                 responseMessage = err.toString()
             }
+            reply.clearCookie('ff_coupon', { path: '/' })
             reply.code(400).send({ error: responseMessage })
         }
     })
