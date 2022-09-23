@@ -164,7 +164,7 @@ export default {
                 const cookies = document.cookie.split(';')
                 for (let i = 0; i < cookies.length; i++) {
                     const cookie = cookies[i]
-                    if (cookie.split('=')[0] === name) {
+                    if (cookie.split('=')[0].trim() === name) {
                         return cookie.split('=')[1]
                     }
                 }
