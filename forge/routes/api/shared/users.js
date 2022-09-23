@@ -35,7 +35,7 @@ module.exports = {
                 }
 
                 if (request.body.suspended !== undefined) {
-                    if (request.user.id !== user.id) {
+                    if (request.session.User.id !== user.id) {
                         if (request.body.suspended === true) {
                             await app.db.controllers.User.suspend(user)
                             if (app.postoffice.enabled()) {

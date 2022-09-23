@@ -371,7 +371,19 @@ describe('Users API', async function () {
             })
             response.should.have.property('statusCode', 200)
         })
-
+        it('Admin can suspend another user', async function () {
+            const elvis = await app.db.views.User.userProfile(TestObjects.elvis)
+            elvis.suspended = true
+            const suspendResponse = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/users/${TestObjects.elvis.hashid}`,
+                payload: { suspended: true },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            suspendResponse.should.have.property('statusCode', 200)
+            suspendResponse.json().should.have.property('id', TestObjects.elvis.hashid)
+            suspendResponse.json().should.have.property('suspended', true)
+        })
         it('Admin cannot suspend themselves', async function () {
             const alice = await app.db.views.User.userProfile(TestObjects.alice)
             alice.suspended = true
