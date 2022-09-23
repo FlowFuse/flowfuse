@@ -52,7 +52,7 @@
                     </ff-tile-selection>
                 </div>
                 <!-- Template -->
-                <div class="flex flex-wrap gap-1 items-stretch">
+                <div v-if="templates.length !== 1" class="flex flex-wrap gap-1 items-stretch">
                     <label class="w-full block text-sm font-medium text-gray-700 mb-1">Template</label>
                     <label v-if="!input.projectType && !input.stack" class="text-sm text-gray-400">Please select a Project Type &amp; Stack first.</label>
                     <label v-if="errors.template" class="text-sm text-gray-400">{{ errors.template }}</label>
@@ -173,6 +173,10 @@ export default {
                     this.errors.stack = ''
                     if (projectType.defaultStack) {
                         this.input.stack = projectType.defaultStack
+                        const defaultStack = this.stacks.find(st => st.id === this.input.stack)
+                        if (!defaultStack) {
+                            this.input.stack = this.stacks[0].id
+                        }
                     } else {
                         this.input.stack = this.stacks[0].value
                     }
@@ -186,7 +190,6 @@ export default {
 
         const templateList = await templatesApi.getTemplates()
         this.templates = templateList.templates.filter(template => template.active)
-
         this.init = true
 
         setTimeout(() => {
@@ -198,8 +201,8 @@ export default {
             }
 
             if (!this.sourceProjectId) {
-                this.input.stack = this.stacks.length > 0 ? this.stacks[0].value : ''
-                this.input.template = this.templates.length > 0 ? this.templates[0].value : ''
+                this.input.stack = this.stacks.length > 0 ? this.stacks[0].id : ''
+                this.input.template = this.templates.length > 0 ? this.templates[0].id : ''
             }
 
             if (this.templates.length === 0) {
