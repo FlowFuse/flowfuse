@@ -171,15 +171,25 @@ export default {
                     this.errors.stack = 'No stacks available. Ask an Administrator to create a new stack definition'
                 } else {
                     this.errors.stack = ''
-                    if (projectType.defaultStack) {
-                        this.input.stack = projectType.defaultStack
-                        const defaultStack = this.stacks.find(st => st.id === this.input.stack)
-                        if (!defaultStack) {
-                            this.input.stack = this.stacks[0].id
+                    this.$nextTick(() => {
+                        if (this.sourceProject) {
+                            if (this.stacks.find(st => st.id === this.sourceProject.stack.id)) {
+                                this.input.stack = this.sourceProject.stack.id
+                            } else {
+                                this.input.stack = this.stacks[0].id
+                            }
+                        } else {
+                            if (projectType.defaultStack) {
+                                this.input.stack = projectType.defaultStack
+                                const defaultStack = this.stacks.find(st => st.id === this.input.stack)
+                                if (!defaultStack) {
+                                    this.input.stack = this.stacks[0].id
+                                }
+                            } else {
+                                this.input.stack = this.stacks[0].id
+                            }
                         }
-                    } else {
-                        this.input.stack = this.stacks[0].value
-                    }
+                    })
                 }
             }
         }
@@ -192,10 +202,7 @@ export default {
         this.templates = templateList.templates.filter(template => template.active)
         this.init = true
 
-        setTimeout(() => {
-            // There must be a better Vue way of doing this, but I can't find it.
-            // Without the setTimeout, the select box doesn't update
-
+        this.$nextTick(() => {
             if (this.projectTypes.length === 0) {
                 this.errors.projectTypes = 'No project types available. Ask an Administrator to create a new project type'
             }
@@ -208,7 +215,7 @@ export default {
             if (this.templates.length === 0) {
                 this.errors.template = 'No templates available. Ask an Administrator to create a new template definition'
             }
-        }, 100)
+        })
     },
     async beforeMount () {
         if (this.features.billing && !this.team.billingSetup) {
@@ -222,8 +229,9 @@ export default {
         if (this.sourceProjectId) {
             projectApi.getProject(this.sourceProjectId).then(project => {
                 this.sourceProject = project
-                this.input.stack = this.sourceProject.stack?.id || ''
-                this.input.template = this.sourceProject.template?.id || ''
+                this.input.projectType = this.sourceProject.projectType?.id || ''
+                this.input.stack = this.sourceProject.stack?.id || this.stacks?.[0]?.id || ''
+                this.input.template = this.sourceProject.template?.id || this.templates?.[0]?.id || ''
             }).catch(err => {
                 console.log('Failed to load project', err)
             })
