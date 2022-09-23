@@ -57,7 +57,7 @@ const promptly = require('promptly')
         const maxUsers = parseInt(await promptly.prompt('Max allowed users: ', { default: '150' }))
         const maxTeams = parseInt(await promptly.prompt('Max allowed teams: ', { default: '50' }))
         const maxProjects = parseInt(await promptly.prompt('Max allowed projects: ', { default: '50' }))
-        const maxDevices = parseInt(await promptly.prompt('Max allowed devices: ', { default: '50'}))
+        const maxDevices = parseInt(await promptly.prompt('Max allowed devices: ', { default: '50' }))
 
         const licenseNotes = devLicense
             ? 'Development-mode Only. Not for production'
