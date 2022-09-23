@@ -216,6 +216,7 @@ export default {
             usersApi.updateUser(this.user.id, { password_expired: true })
                 .then((response) => {
                     this.$refs.dialog.close()
+                    this.$emit('userUpdated', response)
                 }).catch(err => {
                     this.errors.expirePassword = err.response.data.error
                 })
