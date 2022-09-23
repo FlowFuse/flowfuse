@@ -1,5 +1,4 @@
 import client from './client'
-import slugify from '@/utils/slugify'
 import daysSince from '@/utils/daysSince'
 import paginateUrl from '@/utils/paginateUrl'
 
@@ -17,18 +16,6 @@ const getProject = (projectId) => {
     })
 }
 
-const getProjects = () => {
-    return client.get('/api/v1/user/projects').then(res => {
-        res.data.projects = res.data.projects.map(r => {
-            r.createdSince = daysSince(r.createdAt)
-            r.updatedSince = daysSince(r.updatedAt)
-            r.link = { name: 'Project', params: { id: r.id } }
-            r.team.link = { name: 'Team', params: { id: slugify(r.team.name) } }
-            return r
-        })
-        return res.data
-    })
-}
 const deleteProject = async (projectId) => {
     return client.delete(`/api/v1/projects/${projectId}`)
 }
@@ -106,7 +93,6 @@ export default {
     create,
     getProject,
     deleteProject,
-    getProjects,
     getProjectLogs,
     getProjectAuditLog,
     startProject,
