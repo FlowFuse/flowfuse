@@ -113,6 +113,34 @@ app.post('/', { preHandler: app.needsPermission("team:user:add") }, async (reque
 });
 ```
 
+## Error formats
+
+If a route needs to return an error it should respond with a payload in the format:
+
+```
+{
+    code: 'error_code',
+    error: 'Human-readable message'
+}
+```
+
+The `code` property should be a well-defined string that can be used to programmatically
+identify the error without relying on the human-readable message.
+
+There are a set of predefined codes that should be used where appropriate:
+
+ - `unauthorized`
+ - `invalid_request`
+ - `unexpected_error`
+
+If the error is relating to an invalid option/parameter/object selection, then the code
+should be:
+
+ - `invalid_<name of property>`
+
+For example: `invalid_project_name`.
+
+
 ## Pagination
 
 All routes that return collections of things must use pagination to allow for
