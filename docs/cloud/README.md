@@ -26,4 +26,10 @@ Incoming TCP or UDP connections will not work, the TCP and UDP Nodes have theref
 MQTT Connections to an external broker using the standard MQTT nodes will work fine as the connection is initiated by Node-RED.
 
 ### IP Addresses
-As mentioned in HTTP above incoming connections MUST be to the hostname not the IP address. In addition the Source IP address of any outgoing connections cannot be guaranteed and may change at any time, therefore this should not be used to validate requests.
+As mentioned in HTTP above incoming connections MUST be to the hostname not the IP address. In addition the Source IP address of any outgoing connections will always be from one of the following IP addresses:
+
+3.250.182.143  
+54.75.12.35  
+54.78.87.6  
+52.215.205.23  
+54.216.142.246  
