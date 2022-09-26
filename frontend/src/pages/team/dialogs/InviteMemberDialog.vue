@@ -66,7 +66,7 @@ export default {
             return this.settings.email && this.settings['team:user:invite:external']
         },
         disableConfirm () {
-            return this.exceedsUserLimit || this.responseErrors || !this.input.userInfo.trim() || this.errors.userInfo
+            return !!(this.exceedsUserLimit || this.responseErrors || !this.input.userInfo.trim() || this.errors.userInfo)
         },
         totalMembers () {
             const count = this.userCount + this.inviteCount
@@ -94,16 +94,19 @@ export default {
         async confirm () {
             try {
                 const result = await teamApi.createTeamInvitation(this.team.id, this.input.userInfo, parseInt(this.input.role))
-                if (result.status === 'error') {
-                    this.responseErrors = result.message
-                    alerts.emit('Unable to invite ' + this.input.userInfo, 'warning')
+                if (result.error) {
+                    // result.error - an object of { username: error_message }
+                    this.responseErrors = result.error
+                    for (const [user, reason] of Object.entries(result.error)) {
+                        alerts.emit(`Unable to invite ${user}: ${reason}`, 'warning')
+                    }
                 } else {
                     alerts.emit('Invite sent to ' + this.input.userInfo, 'confirmation')
                     this.$emit('invitationSent')
                 }
             } catch (err) {
-                if (err.response?.data?.message) {
-                    alerts.emit(`Unable to invite users: ${err.response.data.message}`)
+                if (err.response?.data) {
+                    alerts.emit(`Unable to invite users: ${err.response.data.error}`)
                 } else {
                     console.log(err)
                 }

@@ -34,14 +34,14 @@ module.exports = async function (app) {
         const userDetails = request.body.user.split(',').map(u => u.trim()).filter(Boolean)
         const role = request.body.role || Roles.Member
         if (!TeamRoles.includes(role)) {
-            reply.code(400).send({ status: 'error', message: 'invalid team role' })
+            reply.code(400).send({ code: 'invalid_team_role', error: 'invalid team role' })
             return
         }
         let invites = []
         try {
             invites = await app.db.controllers.Invitation.createInvitations(request.session.User, request.team, userDetails, role)
         } catch (err) {
-            reply.code(400).send({ status: 'error', message: err.message })
+            reply.code(400).send({ code: 'invitation_failed', error: err.message })
             return
         }
 
@@ -98,11 +98,11 @@ module.exports = async function (app) {
             )
         }
         if (errorCount > 0) {
-            result.status = 'error'
-        } else {
-            delete result.message
+            result.code = 'invitation_failed'
+            result.error = result.message
+            delete result.status
         }
-        // TODO: set proper status code if error
+        delete result.message
         reply.send(result)
     })
 

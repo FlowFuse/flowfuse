@@ -80,7 +80,7 @@ module.exports = async function (app) {
             } else {
                 responseMessage = err.toString()
             }
-            reply.code(400).send({ error: responseMessage })
+            reply.code(400).send({ code: 'unexpected_error', error: responseMessage })
         }
     })
 
@@ -100,7 +100,7 @@ module.exports = async function (app) {
             await template.destroy()
             reply.send({ status: 'okay' })
         } catch (err) {
-            reply.code(400).send({ error: err.toString() })
+            reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 

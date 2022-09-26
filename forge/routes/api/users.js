@@ -80,14 +80,14 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         if (/^(admin|root)$/.test(request.body.username)) {
-            reply.code(400).send({ error: 'invalid username' })
+            reply.code(400).send({ code: 'invalid_username', error: 'invalid username' })
             return
         }
         if (request.body.createDefaultTeam) {
             const teamLimit = app.license.get('teams')
             const teamCount = await app.db.models.Team.count()
             if (teamCount >= teamLimit) {
-                reply.code(400).send({ error: 'Unable to create user team: license limit reached' })
+                reply.code(400).send({ code: 'team_limit_reached', error: 'Unable to create user team: license limit reached' })
                 return
             }
         }
@@ -111,16 +111,19 @@ module.exports = async function (app) {
             reply.send({ status: 'okay' })
         } catch (err) {
             let responseMessage
+            let responseCode = 'unexpected_error'
             if (/user_username_lower_unique/.test(err.parent?.toString())) {
                 responseMessage = 'username not available'
+                responseCode = 'invalid_username'
             } else if (/user_email_lower_unique/.test(err.parent?.toString())) {
                 responseMessage = 'email not available'
+                responseCode = 'invalid_email'
             } else if (err.errors) {
                 responseMessage = err.errors.map(err => err.message).join(',')
             } else {
                 responseMessage = err.toString()
             }
-            reply.code(400).send({ error: responseMessage })
+            reply.code(400).send({ code: responseCode, error: responseMessage })
         }
     })
 
@@ -135,7 +138,7 @@ module.exports = async function (app) {
             await request.user.destroy()
             reply.send({ status: 'okay' })
         } catch (err) {
-            reply.code(400).send({ error: err.toString() })
+            reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 }

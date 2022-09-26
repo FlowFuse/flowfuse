@@ -40,14 +40,14 @@ module.exports = async function (app) {
             }
             reply.send()
         } catch (err) {
-            reply.code(500).send({ error: err.toString() })
+            reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 
     app.post('/stop', changeStatusPreHandler, async (request, reply) => {
         try {
             if (request.project.state === 'suspended') {
-                reply.code(400).send({ error: 'Project suspended' })
+                reply.code(400).send({ code: 'project_suspended', error: 'Project suspended' })
                 return
             }
             app.db.controllers.Project.setInflightState(request.project, 'stopping')
@@ -62,14 +62,14 @@ module.exports = async function (app) {
             app.db.controllers.Project.clearInflightState(request.project)
             reply.send(result)
         } catch (err) {
-            reply.code(500).send({ error: err.toString() })
+            reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 
     app.post('/restart', changeStatusPreHandler, async (request, reply) => {
         try {
             if (request.project.state === 'suspended') {
-                reply.code(400).send({ error: 'Project suspended' })
+                reply.code(400).send({ code: 'project_suspended', error: 'Project suspended' })
                 return
             }
             app.db.controllers.Project.setInflightState(request.project, 'restarting')
@@ -84,14 +84,14 @@ module.exports = async function (app) {
             app.db.controllers.Project.clearInflightState(request.project)
             reply.send(result)
         } catch (err) {
-            reply.code(500).send({ error: err.toString() })
+            reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 
     app.post('/suspend', changeStatusPreHandler, async (request, reply) => {
         try {
             if (request.project.state === 'suspended') {
-                reply.code(400).send({ error: 'Project suspended' })
+                reply.code(400).send({ code: 'project_suspended', error: 'Project suspended' })
                 return
             }
             app.db.controllers.Project.setInflightState(request.project, 'suspending')
@@ -104,7 +104,7 @@ module.exports = async function (app) {
             )
             reply.send()
         } catch (err) {
-            reply.code(500).send({ error: err.toString() })
+            reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 
@@ -136,7 +136,7 @@ module.exports = async function (app) {
             }
             reply.send({ status: 'okay' })
         } catch (err) {
-            reply.code(500).send({ error: err.toString() })
+            reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 }

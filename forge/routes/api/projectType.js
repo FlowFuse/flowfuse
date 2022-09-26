@@ -85,7 +85,7 @@ module.exports = async function (app) {
             } else {
                 responseMessage = err.toString()
             }
-            reply.code(400).send({ error: responseMessage })
+            reply.code(400).send({ code: 'unexpected_error', error: responseMessage })
         }
     })
 
@@ -105,7 +105,7 @@ module.exports = async function (app) {
         if (inUse && request.body.properties) {
             // Don't allow the properties to be edited - this contains the billing
             // information and we don't want to have to update live projects
-            reply.code(400).send({ error: 'Cannot edit in-use ProjectType' })
+            reply.code(400).send({ code: 'invalid_request', error: 'Cannot edit in-use ProjectType' })
             return
         }
         try {
@@ -139,7 +139,7 @@ module.exports = async function (app) {
             } else {
                 responseMessage = err.toString()
             }
-            reply.code(400).send({ error: responseMessage })
+            reply.code(400).send({ code: 'unexpected_error', error: responseMessage })
         }
     })
 
@@ -160,10 +160,10 @@ module.exports = async function (app) {
                 await projectType.destroy()
                 reply.send({ status: 'okay' })
             } catch (err) {
-                reply.code(400).send({ error: err.toString() })
+                reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
             }
         } else {
-            reply.code(404).send({ status: 'Not Found' })
+            reply.code(404).send({ code: 'not_found', status: 'Not Found' })
         }
     })
 }

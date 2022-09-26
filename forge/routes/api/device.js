@@ -93,7 +93,7 @@ module.exports = async function (app) {
         // If we have roles that limit creation, that will need to be checked here.
 
         if (!teamMembership) {
-            reply.code(401).send({ error: 'Current user not in team ' + request.body.team })
+            reply.code(401).send({ code: 'unauthorized', error: 'Current user not in team ' + request.body.team })
             return
         }
 
@@ -107,7 +107,7 @@ module.exports = async function (app) {
         if (typeof teamDeviceLimit === 'number') {
             const currentDeviceCount = await team.deviceCount()
             if (currentDeviceCount >= teamDeviceLimit) {
-                reply.code(400).send({ error: 'Team device limit reached' })
+                reply.code(400).send({ code: 'device_limit_reached', error: 'Team device limit reached' })
                 return
             }
         }
@@ -144,7 +144,7 @@ module.exports = async function (app) {
             }
             reply.send(response)
         } catch (err) {
-            reply.code(400).send({ error: err.toString() })
+            reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 
@@ -176,7 +176,7 @@ module.exports = async function (app) {
             }
             reply.send({ status: 'okay' })
         } catch (err) {
-            reply.code(400).send({ error: err.toString() })
+            reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 
@@ -225,11 +225,11 @@ module.exports = async function (app) {
                     // Check if the specified project is in the same team
                     const project = await app.db.models.Project.byId(request.body.project)
                     if (!project) {
-                        reply.code(400).send({ error: 'invalid project' })
+                        reply.code(400).send({ code: 'invalid_project', error: 'invalid project' })
                         return
                     }
                     if (project.Team.id !== request.device.Team.id) {
-                        reply.code(400).send({ error: 'invalid project' })
+                        reply.code(400).send({ code: 'invalid_project', error: 'invalid project' })
                         return
                     }
                     // Project exists and is in the right team

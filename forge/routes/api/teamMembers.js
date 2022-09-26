@@ -82,7 +82,7 @@ module.exports = async function (app) {
             }
             reply.send({ status: 'okay' })
         } catch (err) {
-            reply.code(400).send({ error: 'cannot remove only owner' })
+            reply.code(400).send({ code: 'invalid_request', error: 'cannot remove only owner' })
         }
     })
 
@@ -109,7 +109,7 @@ module.exports = async function (app) {
                 reply.code(403).type('text/html').send('Forbidden')
             }
         } else {
-            reply.code(400).send({ error: 'invalid role' })
+            reply.code(400).send({ code: 'invalid_team_role', error: 'invalid role' })
         }
     })
 }

@@ -87,13 +87,13 @@ module.exports = async function (app) {
             if (request.body.replace) {
                 replacedStack = await app.db.models.ProjectStack.byId(request.body.replace)
                 if (!replacedStack) {
-                    reply.code(400).send({ error: 'unknown replace stack' })
+                    reply.code(400).send({ code: 'invalid_stack', error: 'unknown replace stack' })
                     return
                 } else if (replacedStack.getDataValue('replacedBy')) {
-                    reply.code(400).send({ error: 'stack already replaced' })
+                    reply.code(400).send({ code: 'invalid_request', error: 'stack already replaced' })
                     return
                 } else if (replacedStack.ProjectTypeId !== stackProperties.ProjectTypeId) {
-                    reply.code(400).send({ error: 'cannot replace stack with different project type' })
+                    reply.code(400).send({ code: 'invalid_request', error: 'cannot replace stack with different project type' })
                     return
                 }
             }
@@ -125,7 +125,7 @@ module.exports = async function (app) {
             } else {
                 responseMessage = err.toString()
             }
-            reply.code(400).send({ error: responseMessage })
+            reply.code(400).send({ code: 'unexpected_error', error: responseMessage })
         }
     })
 
@@ -146,10 +146,10 @@ module.exports = async function (app) {
                 await stack.destroy()
                 reply.send({ status: 'okay' })
             } catch (err) {
-                reply.code(400).send({ error: err.toString() })
+                reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
             }
         } else {
-            reply.code(404).send({ status: 'Not Found' })
+            reply.code(404).send({ code: 'not_found', status: 'Not Found' })
         }
     })
 
@@ -165,7 +165,7 @@ module.exports = async function (app) {
         const stack = await app.db.models.ProjectStack.byId(request.params.stackId)
         if (request.body.name !== undefined || request.body.properties !== undefined) {
             if (stack.getDataValue('projectCount') > 0) {
-                reply.code(400).send({ error: 'Cannot edit in-use stack' })
+                reply.code(400).send({ code: 'invalid_request', error: 'Cannot edit in-use stack' })
                 return
             }
         }
@@ -184,7 +184,7 @@ module.exports = async function (app) {
                     })
                 }
             } else if (stack.ProjectTypeId !== projectTypeId[0]) {
-                reply.code(400).send({ error: 'Cannot change stack project type' })
+                reply.code(400).send({ code: 'invalid_request', error: 'Cannot change stack project type' })
                 return
             }
         }

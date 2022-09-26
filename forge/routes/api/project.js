@@ -133,7 +133,7 @@ module.exports = async function (app) {
         // If we have roles that limit creation, that will need to be checked here.
 
         if (!teamMembership) {
-            reply.code(401).send({ error: 'Current user not in team ' + request.body.team })
+            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
             return
         }
 
@@ -143,48 +143,48 @@ module.exports = async function (app) {
         if (request.body.sourceProject && request.body.sourceProject.id) {
             sourceProject = await app.db.models.Project.byId(request.body.sourceProject.id)
             if (!sourceProject) {
-                reply.code(400).send({ error: 'Source Project Not Found' })
+                reply.code(400).send({ code: 'invalid_source_project', error: 'Source Project Not Found' })
                 return
             } else if (sourceProject.Team.hashid !== request.body.team) {
-                reply.code(403).send({ error: 'Source Project Not in Same Team' })
+                reply.code(403).send({ code: 'invalid_source_project', error: 'Source Project Not in Same Team' })
                 return
             }
         }
 
         const projectType = await app.db.models.ProjectType.byId(request.body.projectType)
         if (!projectType) {
-            reply.code(400).send({ error: 'Invalid project type' })
+            reply.code(400).send({ code: 'invalid_project_type', error: 'Invalid project type' })
             return
         }
 
         const stack = await app.db.models.ProjectStack.byId(request.body.stack)
 
         if (!stack || stack.ProjectTypeId !== projectType.id) {
-            reply.code(400).send({ error: 'Invalid stack' })
+            reply.code(400).send({ code: 'invalid_stack', error: 'Invalid stack' })
             return
         }
 
         const template = await app.db.models.ProjectTemplate.byId(request.body.template)
 
         if (!template) {
-            reply.code(400).send({ error: 'Invalid template' })
+            reply.code(400).send({ code: 'invalid_template', error: 'Invalid template' })
             return
         }
 
         const name = request.body.name?.trim()
         const safeName = name?.toLowerCase()
         if (bannedNameList.includes(safeName)) {
-            reply.status(409).type('application/json').send({ error: 'name not allowed' })
+            reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name not allowed' })
             return
         }
 
         if (/^[a-zA-Z][a-zA-Z0-9-]*$/.test(safeName) === false) {
-            reply.status(409).type('application/json').send({ error: 'name not allowed' })
+            reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name not allowed' })
             return
         }
 
         if (await app.db.models.Project.isNameUsed(safeName)) {
-            reply.status(409).type('application/json').send({ error: 'name in use' })
+            reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name in use' })
             return
         }
 
@@ -196,7 +196,7 @@ module.exports = async function (app) {
                 url: ''
             })
         } catch (err) {
-            reply.status(400).type('application/json').send({ error: err.message })
+            reply.status(400).type('application/json').send({code: 'unexpected_error', error: err.message })
             return
         }
 
@@ -360,7 +360,7 @@ module.exports = async function (app) {
             )
             reply.send({ status: 'okay' })
         } catch (err) {
-            reply.code(500).send({ error: err.toString() })
+            reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 
@@ -394,7 +394,7 @@ module.exports = async function (app) {
             if (request.body.stack !== request.project.ProjectStack?.id) {
                 const stack = await app.db.models.ProjectStack.byId(request.body.stack)
                 if (!stack) {
-                    reply.code(400).send({ error: 'Invalid stack' })
+                    reply.code(400).send({ code: 'invalid_stack', error: 'Invalid stack' })
                     return
                 }
                 app.log.info(`Updating project ${request.project.id} to use stack ${stack.hashid}`)
@@ -590,17 +590,17 @@ module.exports = async function (app) {
             }
         } else if (request.body.projectType) {
             if (request.project.ProjectType) {
-                reply.code(400).send({ error: 'Cannot change project type' })
+                reply.code(400).send({ code: 'invalid_request', error: 'Cannot change project type' })
                 return
             }
             const existingStackProjectType = request.project.ProjectStack.ProjectTypeId
             const newProjectType = await app.db.models.ProjectType.byId(request.body.projectType)
             if (!newProjectType) {
-                reply.code(400).send({ error: 'Invalid project type' })
+                reply.code(400).send({ code: 'invalid_project_type', error: 'Invalid project type' })
                 return
             }
             if (existingStackProjectType && newProjectType.id !== existingStackProjectType) {
-                reply.code(400).send({ error: 'Mismatch between stack project type and new project type' })
+                reply.code(400).send({ code: 'invalid_request', error: 'Mismatch between stack project type and new project type' })
                 return
             }
 
@@ -613,11 +613,11 @@ module.exports = async function (app) {
             const projectName = request.project.name?.trim()
             if (reqName && projectName !== reqName) {
                 if (bannedNameList.includes(reqSafeName)) {
-                    reply.status(409).type('application/json').send({ error: 'name not allowed' })
+                    reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name not allowed' })
                     return
                 }
                 if (await app.db.models.Project.isNameUsed(reqSafeName)) {
-                    reply.status(409).type('application/json').send({ error: 'name in use' })
+                    reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name in use' })
                     return
                 }
                 request.project.name = reqName
@@ -687,14 +687,14 @@ module.exports = async function (app) {
         preHandler: (request, reply, done) => {
             // check accessToken is project scope
             if (request.session.ownerType !== 'project') {
-                reply.code(401).send({ error: 'unauthorised' })
+                reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
             } else {
                 done()
             }
         }
     }, async (request, reply) => {
         if (request.project.state === 'suspended') {
-            reply.code(400).send({ error: 'Project suspended' })
+            reply.code(400).send({ code: 'project_suspended', error: 'Project suspended' })
             return
         }
         const settings = await app.containers.settings(request.project)
@@ -724,7 +724,7 @@ module.exports = async function (app) {
      */
     app.get('/:projectId/logs', async (request, reply) => {
         if (request.project.state === 'suspended') {
-            reply.code(400).send({ error: 'Project suspended' })
+            reply.code(400).send({ code: 'project_suspended', error: 'Project suspended' })
             return
         }
         const paginationOptions = app.getPaginationOptions(request, { limit: 30 })
