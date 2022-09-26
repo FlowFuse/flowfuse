@@ -29,7 +29,7 @@ MQTT Connections to an external broker using the standard MQTT nodes will work f
 As mentioned in HTTP above incoming connections MUST be to the hostname not the IP address. In addition the Source IP address of any outgoing connections will always be from one of the following IP addresses:
 
 3.250.182.143  
+52.215.205.23  
 54.75.12.35  
 54.78.87.6  
-52.215.205.23  
 54.216.142.246  
