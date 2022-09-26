@@ -26,7 +26,7 @@ Incoming TCP or UDP connections will not work, the TCP and UDP Nodes have theref
 MQTT Connections to an external broker using the standard MQTT nodes will work fine as the connection is initiated by Node-RED.
 
 ### IP Addresses
-As mentioned in HTTP above incoming connections MUST be to the hostname not the IP address. In addition the Source IP address of any outgoing connections will always be from one of the following IP addresses:
+Outbound connections from FlowForge will always come from one of the IP addresses listed below. This can make access to a remote database or corporate network possible where those systems are protected by IP address filtering firewalls. As mentioned in HTTP above, incoming connections MUST be to the hostname not the IP address.
 
 3.250.182.143  
 52.215.205.23  
