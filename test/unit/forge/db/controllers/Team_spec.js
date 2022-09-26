@@ -46,7 +46,10 @@ describe('Team controller', function () {
         })
 
         it('prevents the team userLimit from being exceeded', async function () {
-            // Cannot have >3 users in a starter team
+            // Use the migration to set userLimit to 3
+            const updateTeam = FF_UTIL.require('forge/db/migrations/20220905-01-update-default-team-type-limits')
+            await updateTeam.up(app.db.sequelize.getQueryInterface())
+
             const userDave = await app.db.models.User.create({ username: 'dave', name: 'Dave Vader', email: 'dave@example.com', email_verified: true, password: 'ddPassword' })
             const userChris = await app.db.models.User.byUsername('chris')
             const team = await app.db.models.Team.byName('ATeam')
