@@ -86,8 +86,7 @@ module.exports = fp(async function (app, _opts, next) {
 
     // Ensure default Team Types exist
     const TeamTypeMigrations = [
-        './migrations/20220808-02-create-default-team-types',
-        './migrations/20220905-01-update-default-team-type-limits'
+        './migrations/20220808-02-create-default-team-types'
     ]
     const queryInterface = sequelize.getQueryInterface()
     for (let i = 0; i < TeamTypeMigrations.length; i++) {
