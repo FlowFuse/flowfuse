@@ -1,5 +1,6 @@
 const should = require('should') // eslint-disable-line
 const setup = require('../setup')
+const FF_UTIL = require('flowforge-test-utils')
 
 describe('Invitation controller', function () {
     // Use standard test data.
@@ -118,6 +119,10 @@ describe('Invitation controller', function () {
         })
 
         it('rejects if team user limit will be exceeded', async function () {
+            // Use the migration to set userLimit to 3
+            const updateTeam = FF_UTIL.require('forge/db/migrations/20220905-01-update-default-team-type-limits')
+            await updateTeam.up(app.db.sequelize.getQueryInterface())
+
             const invitor = await app.db.models.User.byUsername('alice')
             const team = await app.db.models.Team.byName('ATeam')
             const userList = ['dave@example.com', 'edward@example.com']
