@@ -1,3 +1,4 @@
+const { hash } = require('../utils')
 const validSettings = [
     'disableEditor',
     'httpAdminRoot',
@@ -166,6 +167,9 @@ module.exports = {
                     result.palette.denyList = paletteDenyList
                 }
             }
+        }
+        if (typeof result.httpNodeAuth?.pass === 'string' && result.httpNodeAuth.pass.length > 0) {
+            result.httpNodeAuth.pass = hash(result.httpNodeAuth.pass)
         }
         return result
     },

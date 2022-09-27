@@ -17,7 +17,9 @@ import permissionsMixin from '@/mixins/Permissions'
 import projectApi from '@/api/project'
 import TemplateSettingsEditor from '../../admin/Template/sections/Editor'
 import {
+    isPasswordField,
     getTemplateValue,
+    getObjectValue,
     setTemplateValue,
     templateFields,
     prepareTemplateForEdit,
@@ -93,7 +95,19 @@ export default {
                 this.original = preparedTemplate.original
                 // Merge in the `project.settings` values
                 templateFields.forEach(field => {
-                    const projectSettingsValue = getTemplateValue(this.project.settings, field)
+                    let projectSettingsValue = getTemplateValue(this.project.settings, field)
+                    if (isPasswordField(field)) {
+                        // This is a password field - so the handling is a bit more complicated.
+                        // getTemplateValue for a password field returns '' if it isn't set. However
+                        // we need to know if the property is explicitly set on the project or not
+                        // so that we don't override the template-provided value with ''
+
+                        // getObjectValue gets the true value without doing any encode/decoding
+                        const passwordSettingValue = getObjectValue(this.project.settings, field)
+                        if (passwordSettingValue === undefined || passwordSettingValue === false) {
+                            projectSettingsValue = undefined
+                        }
+                    }
                     if (projectSettingsValue !== undefined) {
                         this.editable.settings[field] = projectSettingsValue
                         // Also update original for change detection - although if we want to
