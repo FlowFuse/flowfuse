@@ -1,24 +1,20 @@
 # FlowForge Project Nodes
 
-These nodes act in a similar way to the core Node-RED Link nodes - but can be
-used to send and receive messages between different Node-RED projects.
+Projects running within FlowForge include a set of nodes that make it very
+quick and easy to securely send and receive messages between different projects
+in a team.
 
-Whilst these nodes are published under the Apache-2.0 license, they can only be
-used with an instance of the FlowForge platform with an active EE license applied.
-If you try to install these nodes in an Non FlowForge EE platform you will see the following error in your Node-RED log:
-`Error: Project Link nodes cannot be loaded outside of flowforge EE environment`
-This can be safely ignored.
+The Project Nodes act in a similar way to the Node-RED Link nodes, but by allowing
+the links to extended between different projects, they open up a wide range of
+possibilities.
 
-### Prerequisites
-
- - FlowForge 0.8+ running with an active EE license and its integrated MQTT Broker
-
-Alternatively, you can [sign up to FlowForge Cloud](https://flowforge.com/product/)
-now to try these nodes out.
+For example, a single Project may contain a set of utility flows that you want
+to reuse in other projects. Rather than copy the flows into each project, the Project
+Nodes allow you to easily call those flows and get the result back.
 
 ### Nodes
 
-There are three nodes in this collection:
+There are three nodes in the Project Node collection:
 
  - `Project In` - listens for messages being broadcast by other projects, or for
    messages being sent just to this project
@@ -43,3 +39,7 @@ The Project Call node can be used to send a message to another Project In node
 and then wait for a response, with a built-in timeout if it doesn't arrive.
 The response is sent back using a Project Out node configured to respond to the call
 node.
+
+### GitHub
+
+The nodes are published under an Apache-2.0 license and available on [GitHub](https://github.com/flowforge/flowforge-nr-project-nodes).
