@@ -54,6 +54,11 @@ const promptly = require('promptly')
 
         const licenseHolder = await promptly.prompt('License holder name: ')
 
+        const maxUsers = parseInt(await promptly.prompt('Max allowed users: ', { default: '150' }))
+        const maxTeams = parseInt(await promptly.prompt('Max allowed teams: ', { default: '50' }))
+        const maxProjects = parseInt(await promptly.prompt('Max allowed projects: ', { default: '50' }))
+        const maxDevices = parseInt(await promptly.prompt('Max allowed devices: ', { default: '50' }))
+
         const licenseNotes = devLicense
             ? 'Development-mode Only. Not for production'
             : await promptly.prompt('License notes: ', { default: '' })
@@ -78,10 +83,10 @@ const promptly = require('promptly')
             nbf: validFrom,
             exp: expiry, // Expiry of the license in epoch seconds
             note: licenseNotes, // Freeform text to associate with license
-            users: 150,
-            teams: 50,
-            projects: 50,
-            devices: 50
+            users: maxUsers,
+            teams: maxTeams,
+            projects: maxProjects,
+            devices: maxDevices
         }
 
         if (devLicense) {
