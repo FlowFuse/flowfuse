@@ -19,6 +19,7 @@ For more details on these and other core concepts, you can learn about them [her
  - [Environment Variables](envvar.md) - How to manage Environment Variables in your projects
  - [Change Project Stack](changestack.md) - How to change a projects stack, for example to upgrade Node-RED
  - [Logs](logs.md) - The Logs available in the FlowForge application.
+ - [Project Link Nodes](projectnodes.md) - Custom nodes for sending messages between projects and devices.
 
 ## Working with Teams
 
