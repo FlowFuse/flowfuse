@@ -18,7 +18,7 @@
                 <FormRow v-model="editable.settings.disableTours" type="checkbox" :disabled="!editTemplate && !editable.policy.disableTours">
                     Disable Welcome Tour
                     <template #description>
-                        Disable the Welcome Tour when accessing the editor the first rime.
+                        Disable the Welcome Tour when accessing the editor the first time.
                     </template>
                     <template #append><ChangeIndicator :value="editable.changed.settings.disableTours"></ChangeIndicator></template>
                 </FormRow>
