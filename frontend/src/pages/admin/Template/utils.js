@@ -292,7 +292,7 @@ function prepareTemplateForEdit (template) {
     return result
 }
 
-function isPasswordField(path) {
+function isPasswordField (path) {
     return passwordTypes.includes(path)
 }
 export {
