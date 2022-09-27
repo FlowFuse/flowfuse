@@ -47,6 +47,8 @@ export default {
         checkRoute: async function (route) {
             const allowedRoutes = [
                 '/team/' + this.team.slug + '/billing',
+                '/team/' + this.team.slug + '/settings',
+                '/team/' + this.team.slug + '/settings/general',
                 '/team/' + this.team.slug + '/settings/danger'
             ]
             if (allowedRoutes.indexOf(route.path) === -1) {
