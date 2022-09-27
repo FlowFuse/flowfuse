@@ -40,7 +40,7 @@ module.exports = async function (app) {
             }
             reply.send()
         } catch (err) {
-            reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
+            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 
@@ -62,7 +62,7 @@ module.exports = async function (app) {
             app.db.controllers.Project.clearInflightState(request.project)
             reply.send(result)
         } catch (err) {
-            reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
+            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 
@@ -84,7 +84,7 @@ module.exports = async function (app) {
             app.db.controllers.Project.clearInflightState(request.project)
             reply.send(result)
         } catch (err) {
-            reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
+            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 
@@ -104,7 +104,7 @@ module.exports = async function (app) {
             )
             reply.send()
         } catch (err) {
-            reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
+            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 
@@ -114,10 +114,12 @@ module.exports = async function (app) {
             // get (and check) snapshot is valid / owned by project before any actions
             const snapshot = await app.db.models.ProjectSnapshot.byId(request.body.snapshot)
             if (!snapshot) {
-                throw new Error(`snapshot '${request.body.snapshotId}' not found for project '${request.body.snapshotId}'`)
+                reply.code(400).send({ code: 'invalid_snapshot', error: `snapshot '${request.body.snapshotId}' not found for project '${request.project.id}'` })
+                return
             }
             if (snapshot.ProjectId !== request.project.id) {
-                throw new Error(`snapshot '${request.body.snapshotId}' is only valid for project ${snapshot.ProjectId}`)
+                reply.code(400).send({ code: 'invalid_snapshot', error: `snapshot '${request.body.snapshotId}' not found for project '${request.project.id}'` })
+                return
             }
             if (request.project.state === 'running') {
                 restartProject = true
