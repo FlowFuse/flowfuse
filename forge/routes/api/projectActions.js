@@ -138,7 +138,7 @@ module.exports = async function (app) {
             }
             reply.send({ status: 'okay' })
         } catch (err) {
-            reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
+            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 }
