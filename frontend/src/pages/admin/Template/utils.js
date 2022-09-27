@@ -14,7 +14,9 @@ const templateFields = [
     'palette_nodesExcludes',
     'palette_denyList',
     'modules_allowInstall',
-    'modules_denyList'
+    'modules_denyList',
+    'httpNodeAuth_user',
+    'httpNodeAuth_pass'
 ]
 const defaultTemplateValues = {
     disableEditor: false,
@@ -32,8 +34,14 @@ const defaultTemplateValues = {
     palette_nodesExcludes: '',
     palette_denyList: '',
     modules_allowInstall: true,
-    modules_denyList: ''
+    modules_denyList: '',
+    httpNodeAuth_user: '',
+    httpNodeAuth_pass: ''
 }
+
+const passwordTypes = [
+    'httpNodeAuth_pass'
+]
 
 // Functions to map template values to a string for editing
 //
@@ -148,10 +156,9 @@ const templateValidators = {
         }
     }
 }
-
-function getTemplateValue (template, path) {
+function getObjectValue (object, path) {
     const parts = path.split('_')
-    let p = template
+    let p = object
     while (parts.length > 0) {
         const part = parts.shift()
         if (p[part] === undefined) {
@@ -160,15 +167,11 @@ function getTemplateValue (template, path) {
             p = p[part]
         }
     }
-    if (templateEncoders[path]) {
-        return templateEncoders[path].decode(p)
-    }
     return p
 }
-
-function setTemplateValue (template, path, value) {
+function setObjectValue (object, path, value) {
     const parts = path.split('_')
-    let p = template
+    let p = object
     while (parts.length > 1) {
         const part = parts.shift()
         if (p[part] === undefined) {
@@ -177,11 +180,38 @@ function setTemplateValue (template, path, value) {
         p = p[part]
     }
     const lastPart = parts.shift()
-    if (templateEncoders[path]) {
-        p[lastPart] = templateEncoders[path].encode(value)
-    } else {
-        p[lastPart] = value
+    p[lastPart] = value
+}
+function getTemplateValue (template, path) {
+    const p = getObjectValue(template, path)
+    if (passwordTypes.includes(path)) {
+        // This property is flagged as a password. That means:
+        // - if the value is undefined/''/false then it has no value and we return ''
+        // - if the value is true or non-empty string, it has a value, but we don't
+        //   know the true value. Return '__PASSWD__' as the password placeholder
+        return p ? '__PASSWD__' : ''
+    } else if (templateEncoders[path]) {
+        return templateEncoders[path].decode(p)
     }
+    return p
+}
+
+function setTemplateValue (template, path, value) {
+    let encodedValue = value
+    if (passwordTypes.includes(path)) {
+        // This property is flagged as a password. That means:
+        // - if the value is '__PASSWD__', the value has not been changed so
+        //   we set the value to true.
+        // - if the value is any other string, the value is being changed so
+        //   pass through as-is
+        if (value === '__PASSWD__') {
+            encodedValue = true
+        }
+    } else if (templateEncoders[path]) {
+        encodedValue = templateEncoders[path].encode(value)
+    }
+
+    setObjectValue(template, path, encodedValue)
 }
 
 function prepareTemplateForEdit (template) {
@@ -234,7 +264,7 @@ function prepareTemplateForEdit (template) {
         }
         result.editable.changed.settings[field] = false
 
-        const policyValue = getTemplateValue(template.policy, field)
+        const policyValue = getObjectValue(template.policy, field)
         if (policyValue !== undefined) {
             result.editable.policy[field] = policyValue
             result.original.policy[field] = policyValue
@@ -262,7 +292,13 @@ function prepareTemplateForEdit (template) {
     return result
 }
 
+function isPasswordField (path) {
+    return passwordTypes.includes(path)
+}
 export {
+    isPasswordField,
+    getObjectValue,
+    setObjectValue,
     getTemplateValue,
     setTemplateValue,
     defaultTemplateValues,

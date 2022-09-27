@@ -31,6 +31,7 @@ import templateApi from '@/api/templates'
 import SectionSideMenu from '@/components/SectionSideMenu'
 import {
     setTemplateValue,
+    setObjectValue,
     templateFields,
     prepareTemplateForEdit,
     templateValidators
@@ -226,7 +227,7 @@ export default {
             }
             templateFields.forEach(field => {
                 setTemplateValue(template.settings, field, this.editable.settings[field])
-                setTemplateValue(template.policy, field, this.editable.policy[field])
+                setObjectValue(template.policy, field, this.editable.policy[field])
             })
 
             template.settings.env = []
@@ -255,7 +256,7 @@ export default {
             }
             templateFields.forEach(field => {
                 setTemplateValue(template.settings, field, this.editable.settings[field])
-                setTemplateValue(template.policy, field, this.editable.policy[field])
+                setObjectValue(template.policy, field, this.editable.policy[field])
             })
 
             template.settings.env = []

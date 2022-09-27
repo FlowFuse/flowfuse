@@ -17,6 +17,10 @@ module.exports = {
             if (template.owner) {
                 filtered.owner = app.db.views.User.publicUserProfile(template.owner)
             }
+            if (filtered.settings.httpNodeAuth) {
+                // Only return whether a password is set or not
+                filtered.settings.httpNodeAuth.pass = !!filtered.settings.httpNodeAuth.pass
+            }
             return filtered
         } else {
             return null

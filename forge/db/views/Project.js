@@ -11,6 +11,10 @@ module.exports = {
         }
         if (proj.ProjectSettings && proj.ProjectSettings.length === 1 && proj.ProjectSettings[0].key === 'settings') {
             result.settings = proj.ProjectSettings[0].value || {}
+            if (result.settings.httpNodeAuth) {
+                // Only return whether a password is set or not
+                result.settings.httpNodeAuth.pass = !!result.settings.httpNodeAuth.pass
+            }
         } else {
             result.settings = {}
         }
@@ -36,6 +40,10 @@ module.exports = {
                 settings: proj.ProjectTemplate.settings,
                 policy: proj.ProjectTemplate.policy,
                 description: proj.ProjectTemplate.description
+            }
+            if (result.template.settings.httpNodeAuth) {
+                // Only return whether a password is set or not
+                result.template.settings.httpNodeAuth.pass = !!result.template.settings.httpNodeAuth.pass
             }
         }
         if (proj.ProjectStack) {
