@@ -51,14 +51,14 @@ module.exports = async function (app) {
             } else if (request.body.action === 'inspect') {
                 reply.send(await app.license.inspect(request.body.license))
             } else {
-                reply.code(400).send({ error: 'Invalid action' })
+                reply.code(400).send({ code: 'invalid_license_action', error: 'Invalid action' })
             }
         } catch (err) {
             let responseMessage = err.toString()
             if (/malformed/.test(responseMessage)) {
                 responseMessage = 'Failed to parse license'
             }
-            reply.code(400).send({ error: responseMessage })
+            reply.code(400).send({ code: 'invalid_license', error: responseMessage })
         }
     })
 

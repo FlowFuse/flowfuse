@@ -49,7 +49,7 @@ module.exports = async function (app) {
             await app.db.controllers.User.changePassword(request.session.User, request.body.old_password, request.body.password)
             reply.send({ status: 'okay' })
         } catch (err) {
-            reply.code(400).send({ error: 'password change failed' })
+            reply.code(400).send({ code: 'password_change_failed', error: 'password change failed' })
         }
     })
 

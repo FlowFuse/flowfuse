@@ -45,11 +45,11 @@ module.exports = async function (app) {
             const targetSnapshot = await app.db.models.ProjectSnapshot.byId(request.body.targetSnapshot)
 
             if (!targetSnapshot) {
-                reply.code(400).send({ error: 'Invalid snapshot' })
+                reply.code(400).send({ code: 'invalid_snapshot', error: 'Invalid snapshot' })
                 return
             }
             if (targetSnapshot.ProjectId !== request.project.id) {
-                reply.code(400).send({ error: 'Invalid snapshot' })
+                reply.code(400).send({ code: 'invalid_snapshot', error: 'Invalid snapshot' })
                 return
             }
 

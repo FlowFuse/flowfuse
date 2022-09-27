@@ -111,7 +111,7 @@ module.exports = async function (app) {
                 reply.code(404).type('text/html').send('Not Found')
             }
         } else if (!request.session.User.admin) {
-            reply.code(401).send({ error: 'unauthorized' })
+            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
         } else {
             // Admin request for all teams
             const paginationOptions = app.getPaginationOptions(request)
@@ -160,19 +160,19 @@ module.exports = async function (app) {
             // preHandler. To do so will require the perms model to know
             // to also check enabled features (and know that admin is allowed to
             // override in this instance)
-            reply.code(403).send({ error: 'unauthorized' })
+            reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
         }
 
         // TODO check license allows multiple teams
 
         if (request.body.slug === 'create') {
-            reply.code(400).send({ error: 'slug not available' })
+            reply.code(400).send({ code: 'invalid_slug', error: 'slug not available' })
             return
         }
 
         const teamType = await app.db.models.TeamType.byId(request.body.type)
         if (!teamType || !teamType.enabled) {
-            reply.code(400).send({ error: 'unknown team type' })
+            reply.code(400).send({ code: 'invalid_team_type', error: 'unknown team type' })
             return
         }
 
@@ -216,7 +216,7 @@ module.exports = async function (app) {
                 responseMessage = err.toString()
             }
             reply.clearCookie('ff_coupon', { path: '/' })
-            reply.code(400).send({ error: responseMessage })
+            reply.code(400).send({ code: 'unexpected_error', error: responseMessage })
         }
     })
 
@@ -247,7 +247,7 @@ module.exports = async function (app) {
             await request.team.destroy()
             reply.send({ status: 'okay' })
         } catch (err) {
-            reply.code(400).send({ error: err.toString() })
+            reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 
@@ -276,7 +276,7 @@ module.exports = async function (app) {
             }
             if (request.body.slug) {
                 if (request.body.slug === 'create') {
-                    reply.code(400).send({ error: 'slug not available' })
+                    reply.code(400).send({ code: 'invalid_slug', error: 'slug not available' })
                     return
                 }
                 const oldSlug = request.team.slug
@@ -297,7 +297,7 @@ module.exports = async function (app) {
             } else {
                 responseMessage = err.toString()
             }
-            reply.code(400).send({ error: responseMessage })
+            reply.code(400).send({ code: 'unexpected_error', error: responseMessage })
         }
     })
 

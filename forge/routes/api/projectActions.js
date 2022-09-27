@@ -40,14 +40,14 @@ module.exports = async function (app) {
             }
             reply.send()
         } catch (err) {
-            reply.code(500).send({ error: err.toString() })
+            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 
     app.post('/stop', changeStatusPreHandler, async (request, reply) => {
         try {
             if (request.project.state === 'suspended') {
-                reply.code(400).send({ error: 'Project suspended' })
+                reply.code(400).send({ code: 'project_suspended', error: 'Project suspended' })
                 return
             }
             app.db.controllers.Project.setInflightState(request.project, 'stopping')
@@ -62,14 +62,14 @@ module.exports = async function (app) {
             app.db.controllers.Project.clearInflightState(request.project)
             reply.send(result)
         } catch (err) {
-            reply.code(500).send({ error: err.toString() })
+            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 
     app.post('/restart', changeStatusPreHandler, async (request, reply) => {
         try {
             if (request.project.state === 'suspended') {
-                reply.code(400).send({ error: 'Project suspended' })
+                reply.code(400).send({ code: 'project_suspended', error: 'Project suspended' })
                 return
             }
             app.db.controllers.Project.setInflightState(request.project, 'restarting')
@@ -84,14 +84,14 @@ module.exports = async function (app) {
             app.db.controllers.Project.clearInflightState(request.project)
             reply.send(result)
         } catch (err) {
-            reply.code(500).send({ error: err.toString() })
+            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 
     app.post('/suspend', changeStatusPreHandler, async (request, reply) => {
         try {
             if (request.project.state === 'suspended') {
-                reply.code(400).send({ error: 'Project suspended' })
+                reply.code(400).send({ code: 'project_suspended', error: 'Project suspended' })
                 return
             }
             app.db.controllers.Project.setInflightState(request.project, 'suspending')
@@ -104,7 +104,7 @@ module.exports = async function (app) {
             )
             reply.send()
         } catch (err) {
-            reply.code(500).send({ error: err.toString() })
+            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 
@@ -114,10 +114,12 @@ module.exports = async function (app) {
             // get (and check) snapshot is valid / owned by project before any actions
             const snapshot = await app.db.models.ProjectSnapshot.byId(request.body.snapshot)
             if (!snapshot) {
-                throw new Error(`snapshot '${request.body.snapshotId}' not found for project '${request.body.snapshotId}'`)
+                reply.code(400).send({ code: 'invalid_snapshot', error: `snapshot '${request.body.snapshotId}' not found for project '${request.project.id}'` })
+                return
             }
             if (snapshot.ProjectId !== request.project.id) {
-                throw new Error(`snapshot '${request.body.snapshotId}' is only valid for project ${snapshot.ProjectId}`)
+                reply.code(400).send({ code: 'invalid_snapshot', error: `snapshot '${request.body.snapshotId}' not found for project '${request.project.id}'` })
+                return
             }
             if (request.project.state === 'running') {
                 restartProject = true
@@ -136,7 +138,7 @@ module.exports = async function (app) {
             }
             reply.send({ status: 'okay' })
         } catch (err) {
-            reply.code(500).send({ error: err.toString() })
+            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 }

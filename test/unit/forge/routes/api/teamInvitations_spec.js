@@ -132,8 +132,9 @@ describe('Team Invitations API', function () {
                 }
             })
             const result = response.json()
-            result.should.have.property('status', 'error')
-            result.message.should.have.property('bob', 'Already a member of the team')
+            result.should.have.property('code', 'invitation_failed')
+            result.should.have.property('error')
+            result.error.should.have.property('bob', 'Already a member of the team')
             app.config.email.transport.getMessageQueue().should.have.lengthOf(0)
         })
 
@@ -148,8 +149,9 @@ describe('Team Invitations API', function () {
                 }
             })
             const result = response.json()
-            result.should.have.property('status', 'error')
-            result.message.should.have.property('bob', 'Already a member of the team')
+            result.should.have.property('code', 'invitation_failed')
+            result.should.have.property('error')
+            result.error.should.have.property('bob', 'Already a member of the team')
             // But an email is still sent to chris
             app.config.email.transport.getMessageQueue().should.have.lengthOf(1)
         })
@@ -166,8 +168,9 @@ describe('Team Invitations API', function () {
                     }
                 })
                 const result = response.json()
-                result.should.have.property('status', 'error')
-                result.message.should.have.property('dave@example.com', 'External invites not permitted')
+                result.should.have.property('code', 'invitation_failed')
+                result.should.have.property('error')
+                result.error.should.have.property('dave@example.com', 'External invites not permitted')
 
                 app.config.email.transport.getMessageQueue().should.have.lengthOf(0)
             })

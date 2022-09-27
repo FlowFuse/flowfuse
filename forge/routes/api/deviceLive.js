@@ -13,7 +13,7 @@
 module.exports = async function (app) {
     app.addHook('preHandler', (request, reply, done) => {
         if (request.session.ownerType !== 'device' || request.session.ownerId !== ('' + request.device.id)) {
-            reply.code(401).send({ error: 'unauthorised' })
+            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
         } else {
             done()
         }

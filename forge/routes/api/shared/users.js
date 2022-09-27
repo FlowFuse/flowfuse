@@ -64,7 +64,7 @@ module.exports = {
                             user.suspended = false
                         }
                     } else {
-                        reply.code(400).send({ error: 'cannot suspend self' })
+                        reply.code(400).send({ code: 'invalid_request', error: 'cannot suspend self' })
                         return
                     }
                 }
@@ -75,7 +75,7 @@ module.exports = {
                 if (membership) {
                     user.defaultTeamId = membership.TeamId
                 } else {
-                    reply.code(400).send({ error: 'invalid team' })
+                    reply.code(400).send({ code: 'invalid_team', error: 'invalid team' })
                     return
                 }
             }
@@ -90,7 +90,7 @@ module.exports = {
             }
             console.log(err.toString())
             console.log(responseMessage)
-            reply.code(400).send({ error: responseMessage })
+            reply.code(400).send({ code: 'unexpected_error', error: responseMessage })
         }
     }
 }
