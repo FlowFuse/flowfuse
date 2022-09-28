@@ -22,7 +22,7 @@ When a project is deleted you will receive a pro-rated credit for the number of 
 
 ## Suspended Projects
 
-You are not billed for suspended projects.
+Suspended projects have no running editor, nor a runtime. You are not charged for suspended projects.
 When a project is suspended your account will receive a credit for the number of seconds remaining in the billing cycle.
 When a project is started up again then you will be billed for the remaining seconds in the teams billing cycle, any credit on the account from the project being suspended will be used towards this charge first.
 
