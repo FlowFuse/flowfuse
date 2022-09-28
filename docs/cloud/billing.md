@@ -17,7 +17,7 @@ If a project is added during the billing cycle then a new charge is made for a f
 
 ## Removing Projects
 
-If you delete a project but still have other projects on their account you will receive a pro-rated credit for the number of seconds remaining in the billing cycle, which is used against a future invoice.
+When a project is deleted you will receive a pro-rated credit for the number of seconds remaining in the billing cycle, which is used against a future invoice.
 
 
 ## Suspended Projects
