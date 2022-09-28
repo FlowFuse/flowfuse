@@ -17,19 +17,19 @@ If a project is added during the billing cycle then a new charge is made for a f
 
 ## Removing Projects
 
-If you delete a project but still have other projects on their account you will receive a pro-rated credit for the number of whole days remaining in the billing cycle, which is used against a future invoice.
-If you delete your final project you will receive a pro-rated refund for the number of days remaining.
-The minimum cost for a project that is created and then deleted will be one day.
+When a project is deleted you will receive a pro-rated credit for the number of seconds remaining in the billing cycle, which is used against a future invoice.
 
-## Stopped Projects
 
-Currently stopped projects are still charged as normal because the container is still running. 
-We hope to offer the ability to suspend a project in a future release, please see
-[the GitHub issue](https://github.com/flowforge/flowforge/issues/377).
+## Suspended Projects
+
+Suspended projects have no running editor, nor a runtime. You are not charged for suspended projects.
+When a project is suspended your account will receive a credit for the number of seconds remaining in the billing cycle.
+When a project is started up again then you will be billed for the remaining seconds in the teams billing cycle, any credit on the account from the project being suspended will be used towards this charge first.
+
 
 ## Managing Billing Details
 
-The settings tab of your Team page has a link to Billing, on here you can see a summary of the teams current subscription.
+The settings tab of your Team page has a link to billing, on here you can see a summary of the teams current subscription.
 There is also a link to the Stripe Customer Portal where you can change the payment card in use or the billing email address.
 
 ## Failed Payments
