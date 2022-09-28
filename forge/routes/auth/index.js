@@ -354,7 +354,10 @@ module.exports = fp(async function (app, opts, done) {
             reply.redirect('/')
         } catch (err) {
             app.log.error(`/account/verify/token error - ${err.toString()}`)
-            reply.code(400).send({ status: 'error', message: err.toString() })
+            // reply.code(400).send({ status: 'error', message: err.toString() })
+            // We should not dump a raw JSON error to the browser here. Better
+            // to log the error and redirect to login page
+            reply.redirect('/')
         }
     })
 
