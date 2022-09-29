@@ -1,3 +1,56 @@
+#### 0.10.0: Release
+
+ - Correct IP address
+ - Remove invitations for deleted teams (#942)
+ - Update forge-ui-components to latest (#1032) @knolleary
+ - Document minimal billing unit (#1030) @sammachin
+ - Don't show JSON error on double email verification (#1026) @hardillb
+ - Guard against an empty template when handling httpNodeAuth (#1023) @knolleary
+ - Add httpNodeAuth settings (#965) @hardillb
+ - Add Project Nodes docs to main documentation (#1002) @sammachin
+ - Fix typo in template description (#1022) @hardillb
+ - Update docs for static outbound ips (#1020) @robmarcer
+ - Update rbac table to include viewer (#1009) @knolleary
+ - Standardise format of error responses (#1021) @knolleary
+ - Allow access to team settings if billing is not configured (#1017) @knolleary
+ - Prompt for license Limits (#1016) @hardillb
+ - Revert userLimit on default TeamType (#1019) @knolleary
+ - Remove /api/v1/user/projects end-point as it is unused (#1014) @knolleary
+ - Refresh admin user list after expiring password (#1015) @knolleary
+ - Ensures stack/template are preselected on Create Project page (#1013) @knolleary
+ - Add 'leave team' option on User Settings/Teams view (#1010) @knolleary
+ - First pass at Coupon support (#1006) @hardillb
+ - Include role in Team Invitation (#1008) @knolleary
+ - Extend login sessions to one week with idle timeout (#1001) @knolleary
+ - Add Viewer role (#1005) @knolleary
+ - Introduce hasPermission mixin for checking rbac in frontend (#1004) @knolleary
+ - Add UI components to disable Welcome Tours (#996) @hardillb
+ - Prevent admin from suspending themselves (#997) @hardillb
+ - Add case-insensitive unique constraint on User.username and email (#993) @knolleary
+ - Log suspended users out of projects (#985) @hardillb
+ - Ensure team is set when loading device page (#992) @knolleary
+ - Add link to dev env setup to theContributing guide (#976) @hardillb
+ - Add notice about user limit in team invite dialog (#980) @knolleary
+ - fix User Edit dialog wont close & save btn state (#984) @Steve-Mcl
+ - Ensure admins have team-owner level access to all views in frontend (#991) @knolleary
+ - Add ability to update T+Cs to cause a re-review / reaccept for users (#951) @Steve-Mcl
+ - Remove tests and output from npm package (#981) @hardillb
+ - Add billing to device lifecycle (#970) @knolleary
+ - Update vue component name for NoVerifiedEmail.vue (#977) @ArshErgon
+ - Fix Team license tests on postgres (#975) @knolleary
+ - Add full path to invitations on email (#954) @sammachin
+ - Basic user suspend (#945) @hardillb
+ - Prevent last admin being removed from platform (#967) @Steve-Mcl
+ - remove .only from tests (#969) @Steve-Mcl
+ - Add TeamType.properties.deviceLimit to restrict devices in team (#964) @knolleary
+ - Add device count and project counts by type to admin (#949) @Pezmc
+ - Add cypress screenshots output to gitignore (#962) @knolleary
+ - ensure project name starts with alpha char (#958) @Steve-Mcl
+ - Enforce limits on number of teams that can be created (#959) @knolleary
+ - Apply license limits to number of users (#950) @knolleary
+ - Add limits to license and enforce Project limit (#947) @knolleary
+ - Set starter team userLimit to 3 and enforce member limits in api (#946) @knolleary
+
 #### 0.9.0: Release
 
  - Properly report stack delete error messages (#934) @knolleary
