@@ -1,3 +1,6 @@
+#### 0.1.0: Release
+
+
 #### 0.9.0: Release
 
  - Properly report stack delete error messages (#934) @knolleary
