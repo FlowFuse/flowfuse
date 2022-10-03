@@ -167,11 +167,8 @@ const actions = {
                 window.location = '/'
                 return
             }
-            debugger
             if (user.email_verified && state.state.verifyEmailInflight) {
                 state.commit('clearVerifyEmailInflight')
-                // window.location = '/'
-                // return
             }
             if (user.email_verified === false || user.password_expired) {
                 state.commit('clearPending')

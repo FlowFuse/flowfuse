@@ -100,7 +100,6 @@ export default [
             requiresLogin: false
         },
         beforeEnter: (to, _, next) => {
-            debugger
             store.dispatch('account/setVerifyEmailInflight', to.params.token)
             console.log('hit route /account/verifyemail/:token')
         },
