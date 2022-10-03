@@ -318,7 +318,7 @@ const actions = {
     },
     async clearVerifyEmailInflight (state) {
         state.commit('clearVerifyEmailInflight')
-    },
+    }
 }
 
 export default {

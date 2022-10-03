@@ -36,14 +36,14 @@ import alerts from '@/services/alerts'
 export default {
     name: 'NoVerifiedEmail',
     computed: {
-        ...mapState('account', ['user', 'verifyEmailInflight', 'verifyEmailToken']),
+        ...mapState('account', ['user', 'verifyEmailInflight', 'verifyEmailToken'])
     },
     data () {
         return {
             verified: false
         }
     },
-    mounted() {
+    mounted () {
         this.verified = !!this.user?.email_verified
     },
     methods: {
@@ -54,10 +54,10 @@ export default {
                 const user = await userApi.getUser()
                 this.verified = user.email_verified
                 if (this.verified === true) {
-                    alerts.emit('Email verified','confirmation', timing)
+                    alerts.emit('Email verified', 'confirmation', timing)
                     setTimeout(() => {
                         this.reload()
-                    }, timing);
+                    }, timing)
                 } else {
                     // somehow token was accepted but the user is NOT verified!
                     // throw an error to cause toast + reload (cause request for new token)
@@ -74,7 +74,7 @@ export default {
                 this.reload()
             }
         },
-        reload() {
+        reload () {
             // dispatch checkState to cause redirection now that user.email_verified is set
             this.$store.dispatch('account/checkState')
         }

@@ -330,7 +330,7 @@ module.exports = fp(async function (app, opts, done) {
                 request.session = await app.db.controllers.Session.getOrExpire(request.sid)
                 sessionUser = request.session.User
             }
-            let verifiedUser 
+            let verifiedUser
             try {
                 verifiedUser = await app.db.controllers.User.verifyEmailToken(sessionUser, request.params.token)
             } catch (err) {

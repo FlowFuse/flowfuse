@@ -28,7 +28,7 @@ import VerifyEmail from './account/VerifyEmail'
 export default {
     name: 'HomePage',
     computed: {
-        ...mapState('account', ['pending', 'user', 'team', 'teams', 'verifyEmailInflight']),
+        ...mapState('account', ['pending', 'user', 'team', 'teams', 'verifyEmailInflight'])
     },
     data () {
         return {
