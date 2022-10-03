@@ -55,9 +55,7 @@ export default {
                 this.verified = user.email_verified
                 if (this.verified === true) {
                     alerts.emit('Email verified', 'confirmation', timing)
-                    setTimeout(() => {
-                        this.reload()
-                    }, timing)
+                    this.reload()
                 } else {
                     // somehow token was accepted but the user is NOT verified!
                     // throw an error to cause toast + reload (cause request for new token)
