@@ -8,7 +8,7 @@ import AccountTeamTeams from '@/pages/account/Teams/Teams.vue'
 import AccountTeamInvitations from '@/pages/account/Teams/Invitations.vue'
 import AccessRequest from '@/pages/AccessRequest.vue'
 import AccountCreate from '@/pages/account/Create.vue'
-
+import VerifyEmail from '@/pages/account/VerifyEmail.vue'
 import ForgotPassword from '@/pages/account/ForgotPassword'
 import PasswordReset from '@/pages/account/PasswordReset'
 
@@ -94,12 +94,17 @@ export default [
         component: AccountCreate
     },
     {
-        path: '/account/verify/:token',
+        path: '/account/verifyemail/:token',
         name: 'Verify Email',
         meta: {
             requiresLogin: false
         },
-        component: AccountCreate
+        beforeEnter: (to, _, next) => {
+            debugger
+            store.dispatch('account/setVerifyEmailInflight', to.params.token)
+            console.log('hit route /account/verifyemail/:token')
+        },
+        component: VerifyEmail
     },
     {
         profileLink: true,

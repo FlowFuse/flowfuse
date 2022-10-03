@@ -9,7 +9,7 @@
             </div>
             <form class="px-4 sm:px-6 lg:px-8 mt-8 space-y-4 text-center">
                 <p class="text-gray-700 text-lg mt-10 ">Confirm your email address</p>
-                <p class="text-sm text-gray-700">Please click the link in the email we sent to <b>{{user.email}}</b></p>
+                <p class="text-sm text-gray-700">Please open the link in the email we sent to <b>{{user.email}}</b></p>
                 <ff-button class="m-auto" :disabled="sent" @click="resend()">
                     <span v-if="!sent">Resend email</span>
                     <span v-else>Sent</span>
@@ -24,6 +24,7 @@
 import { mapState } from 'vuex'
 import userApi from '@/api/user'
 import FlowForgeLogo from '@/components/Logo'
+import alerts from '../../services/alerts'
 
 export default {
     name: 'NoVerifiedEmail',
@@ -39,8 +40,18 @@ export default {
     methods: {
         async resend () {
             if (!this.sent) {
-                this.sent = true
-                await userApi.triggerVerification()
+                try {
+                    await userApi.triggerVerification()
+                    alerts.emit('Verification Email sent', 'confirmation')
+                    this.sent = true
+                } catch (err) {
+                    if (err.response?.data) {
+                        alerts.emit(`Email not sent. ${err.response.data.error}`, 'warning')
+                    } else {
+                        alerts.emit('Email not sent. Check logs for details.', 'warning')
+                        console.log(err)
+                    }
+                }
             }
         }
     },

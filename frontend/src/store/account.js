@@ -13,6 +13,9 @@ const state = () => ({
     pending: true,
     // A login attempt is inflight
     loginInflight: false,
+    // An email verify attempt is inflight
+    verifyEmailInflight: false,
+    verifyEmailToken: null,
     // redirect url,
     redirectUrlAfterLogin: null,
     // The active user
@@ -133,6 +136,14 @@ const mutations = {
     setOffline (state, value) {
         state.offline = value
     },
+    setVerifyEmailInflight (state, token) {
+        state.verifyEmailInflight = true
+        state.verifyEmailToken = token
+    },
+    clearVerifyEmailInflight (state) {
+        state.verifyEmailInflight = false
+        state.verifyEmailToken = null
+    },
     userSuspended (state, error) {
         state.loginInflight = false
         state.loginError = error
@@ -155,6 +166,12 @@ const actions = {
                 // This is only for logged-out users
                 window.location = '/'
                 return
+            }
+            debugger
+            if (user.email_verified && state.state.verifyEmailInflight) {
+                state.commit('clearVerifyEmailInflight')
+                // window.location = '/'
+                // return
             }
             if (user.email_verified === false || user.password_expired) {
                 state.commit('clearPending')
@@ -298,7 +315,13 @@ const actions = {
     },
     setOffline (state, value) {
         state.commit('setOffline', value)
-    }
+    },
+    async setVerifyEmailInflight (state, token) {
+        state.commit('setVerifyEmailInflight', token)
+    },
+    async clearVerifyEmailInflight (state) {
+        state.commit('clearVerifyEmailInflight')
+    },
 }
 
 export default {

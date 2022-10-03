@@ -284,7 +284,7 @@ module.exports = fp(async function (app, opts, done) {
                 newUser,
                 'VerifyEmail',
                 {
-                    confirmEmailLink: `${app.config.base_url}/account/verify/${verifyToken}`
+                    confirmEmailLink: `${app.config.base_url}/account/verifyemail/${verifyToken}`
                 }
             )
             if (request.body.code) {
@@ -312,13 +312,16 @@ module.exports = fp(async function (app, opts, done) {
         }
     })
 
-    app.get('/account/verify/:token', async (request, reply) => {
+    /**
+     * Perform email verification
+     */
+    app.post('/account/verify/:token', async (request, reply) => {
         try {
             if (app.settings.get('user:team:auto-create')) {
                 const teamLimit = app.license.get('teams')
                 const teamCount = await app.db.models.Team.count()
                 if (teamCount >= teamLimit) {
-                    reply.code(400).send({ status: 'error', message: 'Unable to create user team: license limit reached' })
+                    reply.code(400).send({ code: 'team_limit_reached', error: 'Unable to create user team: license limit reached' })
                     return
                 }
             }
@@ -327,7 +330,13 @@ module.exports = fp(async function (app, opts, done) {
                 request.session = await app.db.controllers.Session.getOrExpire(request.sid)
                 sessionUser = request.session.User
             }
-            const verifiedUser = await app.db.controllers.User.verifyEmailToken(sessionUser, request.params.token)
+            let verifiedUser 
+            try {
+                verifiedUser = await app.db.controllers.User.verifyEmailToken(sessionUser, request.params.token)
+            } catch (err) {
+                reply.code(400).send({ code: 'invalid_request', error: err.toString() })
+                return
+            }
 
             if (app.settings.get('user:team:auto-create')) {
                 await app.db.controllers.Team.createTeamForUser({
@@ -350,20 +359,19 @@ module.exports = fp(async function (app, opts, done) {
                 // invite.inviteeId = verifiedUser.id
                 // await invite.save()
             }
-
-            reply.redirect('/')
+            reply.send({ status: 'okay' })
         } catch (err) {
             app.log.error(`/account/verify/token error - ${err.toString()}`)
-            // reply.code(400).send({ status: 'error', message: err.toString() })
-            // We should not dump a raw JSON error to the browser here. Better
-            // to log the error and redirect to login page
-            reply.redirect('/')
+            reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 
+    /**
+     * Generate verification email
+     */
     app.post('/account/verify', { preHandler: app.verifySession, config: { allowUnverifiedEmail: true } }, async (request, reply) => {
         if (!app.postoffice.enabled()) {
-            reply.code(400).send({ error: 'email not configured' })
+            reply.code(400).send({ code: 'invalid_request', error: 'email not configured' })
             return
         }
         if (!request.session.User.email_verified) {
@@ -372,12 +380,12 @@ module.exports = fp(async function (app, opts, done) {
                 request.session.User,
                 'VerifyEmail',
                 {
-                    confirmEmailLink: `${app.config.base_url}/account/verify/${verifyToken}`
+                    confirmEmailLink: `${app.config.base_url}/account/verifyemail/${verifyToken}`
                 }
             )
             reply.send({ status: 'okay' })
         } else {
-            reply.code(400).send({ status: 'error', message: 'Email already verified' })
+            reply.code(400).send({ code: 'invalid_request', error: 'Email already verified' })
         }
     })
 

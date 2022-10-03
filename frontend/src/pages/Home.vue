@@ -5,7 +5,10 @@
                 <FlowForgeLogo class="max-w-xs mx-auto w-full"/>
             </div>
         </template>
-        <template v-if="!user.email_verified">
+        <template v-if="verifyEmailInflight">
+            <VerifyEmail/>
+        </template>
+        <template v-else-if="!user.email_verified">
             <NoVerifiedEmail/>
         </template>
         <template v-else-if="teams.length === 0">
@@ -20,11 +23,12 @@ import { mapState } from 'vuex'
 import FlowForgeLogo from '@/components/Logo'
 import NoTeamsUser from './account/NoTeamsUser'
 import NoVerifiedEmail from './account/NoVerifiedEmail'
+import VerifyEmail from './account/VerifyEmail'
 
 export default {
     name: 'HomePage',
     computed: {
-        ...mapState('account', ['pending', 'user', 'team', 'teams'])
+        ...mapState('account', ['pending', 'user', 'team', 'teams', 'verifyEmailInflight']),
     },
     data () {
         return {
@@ -55,7 +59,8 @@ export default {
     components: {
         FlowForgeLogo,
         NoTeamsUser,
-        NoVerifiedEmail
+        NoVerifiedEmail,
+        VerifyEmail
     }
 }
 </script>
