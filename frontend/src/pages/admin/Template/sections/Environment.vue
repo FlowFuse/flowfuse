@@ -43,6 +43,9 @@
                                 </template>
                             </ff-button>
                         </div>
+                        <div v-else-if="(item.platform === true)" class="flex justify-center ">
+                            <CogIcon class="inline w-4" />
+                        </div>
                     </td>
                     <td v-if="!readOnly && editTemplate" class="px-4 py-4 align-middle">
                         <LockSetting :editTemplate="editTemplate" v-model="item.policy"></LockSetting>
@@ -88,7 +91,7 @@ import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
 import LockSetting from '../components/LockSetting'
 import ChangeIndicator from '../components/ChangeIndicator'
-import { TrashIcon, PlusSmIcon, LockClosedIcon } from '@heroicons/vue/outline'
+import { TrashIcon, PlusSmIcon, LockClosedIcon, CogIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'TemplateEnvironmentEditor',
@@ -103,8 +106,14 @@ export default {
     },
     computed: {
         editable: {
-            get () { return this.modelValue },
-            set (localValue) { this.$emit('update:modelValue', localValue) }
+            get () {
+                console.log('editable.get')
+                return this.modelValue
+            },
+            set (localValue) {
+                console.log('editable.set')
+                this.$emit('update:modelValue', localValue)
+            }
         },
         addEnabled () {
             return this.input.name && this.input.value !== undefined && !this.input.error
@@ -135,7 +144,9 @@ export default {
                     if (this.envVarNames[field.name] === undefined) {
                         this.envVarNames[field.name] = i
                     }
-
+                    if (field.policy === undefined && field.platform === true) {
+                        field.policy = false
+                    }
                     if (field.policy === undefined && this.envVarNames[field.name] !== i) {
                         field.error = 'Field has duplicate name'
                     } else if (/ /.test(field.name)) {
@@ -180,7 +191,8 @@ export default {
         ChangeIndicator,
         TrashIcon,
         PlusSmIcon,
-        LockClosedIcon
+        LockClosedIcon,
+        CogIcon
     }
 }
 </script>

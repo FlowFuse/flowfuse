@@ -22,5 +22,19 @@ module.exports = {
             }
         }
         await device.save()
+    },
+    /**
+     * Sends the project id, snapshot hash and settings hash to the device
+     * so that the device can determine what/if it needs to update
+     * @param {forge.db.models.Device} device The device to send an "update" command to
+     */
+    sendDeviceUpdateCommand: function (app, device) {
+        if (app.comms) {
+            app.comms.devices.sendCommand(device.Team.hashid, device.hashid, 'update', {
+                project: device.Project?.id || null,
+                snapshot: device.targetSnapshot?.hashid || null,
+                settings: device.settingsHash || null
+            })
+        }
     }
 }

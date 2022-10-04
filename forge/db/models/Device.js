@@ -9,6 +9,7 @@ const Controllers = require('../controllers')
 const ALLOWED_SETTINGS = {
     env: 1
 }
+const RESERVED_ENV = ['FF_PROJECT_ID', 'FF_PROJECT_NAME', 'FF_DEVICE_ID', 'FF_DEVICE_NAME', 'FF_DEVICE_TYPE', 'FF_SNAPSHOT_ID', 'FF_SNAPSHOT_NAME']
 
 module.exports = {
     name: 'Device',
@@ -41,6 +42,12 @@ module.exports = {
                 const deviceCount = await M.Device.count()
                 if (deviceCount >= deviceLimit) {
                     throw new Error('license limit reached')
+                }
+            },
+            beforeSave: async (device, options) => {
+                if (device.changed('name') || device.changed('type')) {
+                    const settings = await device.getAllSettings()
+                    device.settingsHash = hashSettings(settings)
                 }
             },
             afterDestroy: async (device, opts) => {
@@ -93,12 +100,17 @@ module.exports = {
                     settings.forEach(setting => {
                         result[setting.key] = setting.value
                     })
+                    // add platform specific device env vars
+                    result.env = insertPlatformSpecificEnvVars(this, result.env)
                     return result
                 },
                 async updateSettings (obj) {
                     const updates = []
-                    for (const [key, value] of Object.entries(obj)) {
+                    for (let [key, value] of Object.entries(obj)) {
                         if (ALLOWED_SETTINGS[key]) {
+                            if (key === 'env' && value && Array.isArray(value)) {
+                                value = removePlatformSpecificEnvVars(value) // remove platform specific values
+                            }
                             updates.push({ DeviceId: this.id, key, value })
                         }
                     }
@@ -109,6 +121,9 @@ module.exports = {
                 },
                 async updateSetting (key, value) {
                     if (ALLOWED_SETTINGS[key]) {
+                        if (key === 'env' && value && Array.isArray(value)) {
+                            value = removePlatformSpecificEnvVars(value) // remove platform specific values
+                        }
                         const result = await M.ProjectSettings.upsert({ DeviceId: this.id, key, value })
                         const settings = await this.getAllSettings()
                         this.settingsHash = hashSettings(settings)
@@ -121,6 +136,9 @@ module.exports = {
                 async getSetting (key) {
                     const result = await M.DeviceSettings.findOne({ where: { DeviceId: this.id, key } })
                     if (result) {
+                        if (key === 'env' && result.value && Array.isArray(result.value)) {
+                            return insertPlatformSpecificEnvVars(this, result.value)
+                        }
                         return result.value
                     }
                     return undefined
@@ -264,4 +282,38 @@ function hashSettings (settings) {
     const hash = crypto.createHash('sha256')
     hash.update(JSON.stringify(settings))
     return hash.digest('hex')
+}
+
+/**
+ * Remove platform specific environment variables
+ * @param {[{name:string, value:string}]} envVars Environment variables array
+ */
+function removePlatformSpecificEnvVars (envVars) {
+    if (!envVars || !Array.isArray(envVars)) {
+        return []
+    }
+    return [...envVars.filter(e => RESERVED_ENV.indexOf(e.name) < 0)]
+}
+/**
+ * Insert platform specific environment variables
+ * @param {Device} device The device
+ * @param {[{name:string, value:string}]} envVars Environment variables array
+ */
+function insertPlatformSpecificEnvVars (device, envVars) {
+    if (!envVars || !Array.isArray(envVars)) {
+        envVars = []
+    }
+    const makeVar = (name, value) => {
+        return { name, value: value || '', platform: true } // add `platform` flag for UI
+    }
+    const result = []
+    result.push(makeVar('FF_PROJECT_ID', device.ProjectId))
+    result.push(makeVar('FF_PROJECT_NAME', device.Project?.name || ''))
+    result.push(makeVar('FF_DEVICE_ID', device.hashid || ''))
+    result.push(makeVar('FF_DEVICE_NAME', device.name || ''))
+    result.push(makeVar('FF_DEVICE_TYPE', device.type || ''))
+    result.push(makeVar('FF_SNAPSHOT_ID', device.activeSnapshot?.hashid || ''))
+    result.push(makeVar('FF_SNAPSHOT_NAME', device.activeSnapshot?.name))
+    result.push(...removePlatformSpecificEnvVars(envVars))
+    return result
 }
