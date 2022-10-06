@@ -1,5 +1,9 @@
 const { literal } = require('sequelize')
 
+// Any variables added to RESERVED_ENV should also be added
+// to  frontend/src/pages/admin/Template/sections/Environment.vue
+const RESERVED_ENV = ['FF_PROJECT_ID', 'FF_PROJECT_NAME', 'FF_DEVICE_ID', 'FF_DEVICE_NAME', 'FF_DEVICE_TYPE']
+
 module.exports = {
     updateState: async function (app, device, state) {
         if (state.state) {
@@ -36,5 +40,37 @@ module.exports = {
                 settings: device.settingsHash || null
             })
         }
+    },
+    /**
+     * Remove platform specific environment variables
+     * @param {[{name:string, value:string}]} envVars Environment variables array
+     */
+    removePlatformSpecificEnvVars: function (app, envVars) {
+        if (!envVars || !Array.isArray(envVars)) {
+            return []
+        }
+        return [...envVars.filter(e => RESERVED_ENV.indexOf(e.name) < 0)]
+    },
+    /**
+     * Insert platform specific environment variables
+     * @param {Device} device The device
+     * @param {[{name:string, value:string}]} envVars Environment variables array
+     */
+    insertPlatformSpecificEnvVars: function (app, device, envVars) {
+        if (!envVars || !Array.isArray(envVars)) {
+            envVars = []
+        }
+        const makeVar = (name, value) => {
+            return { name, value: value || '', platform: true } // add `platform` flag for UI
+        }
+        const result = []
+        result.push(makeVar('FF_PROJECT_ID', device.ProjectId))
+        result.push(makeVar('FF_PROJECT_NAME', device.Project?.name || ''))
+        result.push(makeVar('FF_DEVICE_ID', device.hashid || ''))
+        result.push(makeVar('FF_DEVICE_NAME', device.name || ''))
+        result.push(makeVar('FF_DEVICE_TYPE', device.type || ''))
+        result.push(...app.db.controllers.Device.removePlatformSpecificEnvVars(envVars))
+        return result
     }
+
 }

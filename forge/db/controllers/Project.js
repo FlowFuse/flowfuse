@@ -7,6 +7,10 @@ const crypto = require('crypto')
  */
 const inflightProjectState = { }
 
+// Any variables added to RESERVED_ENV should also be added
+// to  frontend/src/pages/admin/Template/sections/Environment.vue
+const RESERVED_ENV = ['FF_PROJECT_ID', 'FF_PROJECT_NAME']
+
 module.exports = {
     /**
      * Get the in-flight state of a project
@@ -61,13 +65,12 @@ module.exports = {
         if (project.ProjectSettings[0]?.key === 'settings') {
             const projectSettings = project.ProjectSettings[0].value
             result = app.db.controllers.ProjectTemplate.mergeSettings(result, projectSettings)
-            if (result.env) {
-                result.env.forEach(envVar => {
-                    env[envVar.name] = envVar.value
-                })
-            }
+            const envVars = app.db.controllers.Project.insertPlatformSpecificEnvVars(project, result.env)
+            // convert  [{name: 'a', value: '1'}, {name: 'b', value: '2'}]  >> to >>  { a: 1, b: 2 }
+            envVars.forEach(envVar => {
+                env[envVar.name] = envVar.value
+            })
         }
-
         result.env = env
         return result
     },
@@ -170,6 +173,35 @@ module.exports = {
         const newHash = crypto.createHash('sha256').update(newKey).digest()
         const oldHash = crypto.createHash('sha256').update(oldKey).digest()
         return encryptCreds(newHash, decryptCreds(oldHash, original))
+    },
+
+    /**
+     * Remove platform specific environment variables
+     * @param {[{name:string, value:string}]} envVars Environment variables array
+     */
+    removePlatformSpecificEnvVars: function (app, envVars) {
+        if (!envVars || !Array.isArray(envVars)) {
+            return []
+        }
+        return [...envVars.filter(e => RESERVED_ENV.indexOf(e.name) < 0)]
+    },
+    /**
+     * Insert platform specific environment variables
+     * @param {Project} project The device
+     * @param {[{name:string, value:string}]} envVars Environment variables array
+     */
+    insertPlatformSpecificEnvVars: function (app, project, envVars) {
+        if (!envVars || !Array.isArray(envVars)) {
+            envVars = []
+        }
+        const makeVar = (name, value) => {
+            return { name, value: value || '', platform: true } // add `platform` flag for UI
+        }
+        const result = []
+        result.push(makeVar('FF_PROJECT_ID', project.id || ''))
+        result.push(makeVar('FF_PROJECT_NAME', project.name || ''))
+        result.push(...app.db.controllers.Project.removePlatformSpecificEnvVars(envVars))
+        return result
     }
 }
 

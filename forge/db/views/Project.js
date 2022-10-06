@@ -18,6 +18,7 @@ module.exports = {
         } else {
             result.settings = {}
         }
+        result.settings.env = app.db.controllers.Project.insertPlatformSpecificEnvVars(proj, result.settings.env)
         if (proj.Team) {
             result.team = {
                 id: proj.Team.hashid,

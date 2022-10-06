@@ -173,11 +173,16 @@ module.exports = {
                     settings.forEach(setting => {
                         result[setting.key] = setting.value
                     })
+                    result.settings = result.settings || {}
+                    result.settings.env = Controllers.Project.insertPlatformSpecificEnvVars(this, result.settings.env) // add platform specific device env vars
                     return result
                 },
                 async updateSettings (obj, options) {
                     const updates = []
-                    for (const [key, value] of Object.entries(obj)) {
+                    for (let [key, value] of Object.entries(obj)) {
+                        if (key === 'env' && value && Array.isArray(value)) {
+                            value = Controllers.Project.removePlatformSpecificEnvVars(value) // remove platform specific values
+                        }
                         updates.push({ ProjectId: this.id, key, value })
                     }
                     options = options || {}
@@ -185,11 +190,17 @@ module.exports = {
                     await M.ProjectSettings.bulkCreate(updates, options)
                 },
                 async updateSetting (key, value, options) {
+                    if (key === 'env' && value && Array.isArray(value)) {
+                        value = Controllers.Project.removePlatformSpecificEnvVars(value) // remove platform specific values
+                    }
                     return await M.ProjectSettings.upsert({ ProjectId: this.id, key, value }, options)
                 },
                 async getSetting (key) {
                     const result = await M.ProjectSettings.findOne({ where: { ProjectId: this.id, key } })
                     if (result) {
+                        if (key === 'env' && result.value && Array.isArray(result.value)) {
+                            return Controllers.Project.insertPlatformSpecificEnvVars(this, result.value)
+                        }
                         return result.value
                     }
                     return undefined
