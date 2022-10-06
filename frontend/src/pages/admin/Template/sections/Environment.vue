@@ -92,7 +92,7 @@ import FormHeading from '@/components/FormHeading'
 import LockSetting from '../components/LockSetting'
 import ChangeIndicator from '../components/ChangeIndicator'
 import { TrashIcon, PlusSmIcon, LockClosedIcon, CogIcon } from '@heroicons/vue/outline'
-
+const RESERVED_ENV = ['FF_PROJECT_ID', 'FF_PROJECT_NAME', 'FF_DEVICE_ID', 'FF_DEVICE_NAME', 'FF_DEVICE_TYPE', 'FF_SNAPSHOT_ID', 'FF_SNAPSHOT_NAME']
 export default {
     name: 'TemplateEnvironmentEditor',
     props: ['editTemplate', 'modelValue', 'readOnly'],
@@ -106,14 +106,8 @@ export default {
     },
     computed: {
         editable: {
-            get () {
-                console.log('editable.get')
-                return this.modelValue
-            },
-            set (localValue) {
-                console.log('editable.set')
-                this.$emit('update:modelValue', localValue)
-            }
+            get () { return this.modelValue },
+            set (localValue) { this.$emit('update:modelValue', localValue) }
         },
         addEnabled () {
             return this.input.name && this.input.value !== undefined && !this.input.error
@@ -123,6 +117,8 @@ export default {
         'input.name' () {
             if (/ /.test(this.input.name)) {
                 this.input.error = 'Invalid name'
+            } else if (RESERVED_ENV.indexOf(this.input.name) >= 0) {
+                this.input.error = 'Reserved name'
             } else if (this.envVarNames[this.input.name] !== undefined) {
                 this.input.error = 'Duplicate name'
             } else {
