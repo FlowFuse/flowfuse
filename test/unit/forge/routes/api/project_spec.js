@@ -357,6 +357,8 @@ describe('Project API', function () {
             runtimeSettings.should.have.property('settings')
             runtimeSettings.settings.should.have.property('header')
             runtimeSettings.settings.header.should.have.property('title', 'test-project')
+            runtimeSettings.should.have.property('env').which.have.property('FF_PROJECT_ID', result.id)
+            runtimeSettings.should.have.property('env').which.have.property('FF_PROJECT_NAME', 'test-project')
         })
 
         it('Create a project with upper case characters in name', async function () {
