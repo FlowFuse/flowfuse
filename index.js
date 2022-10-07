@@ -31,7 +31,6 @@ const plugin = {
             if (directives.hasOwnProperty(prop)) {
                 const directive = directives[prop]
                 Vue.directive(directive.name, directive)
-                console.log(directive.name)
             }
         }
     }
