@@ -22,11 +22,24 @@ Option | Description
 
 FlowForge supports `sqlite` and `postgres` databases.
 
-
 Option       | Description
 -------------|------------
 `db.type`    | The type of database to use. Default: `sqlite`.
+
+### SQLite configuration
+
+Option       | Description
+-------------|------------
 `db.storage` | Path to the SQLite Database file to use, relative to `/opt/flowforge/var/`. Default: `forge.db`.
+
+### Postgres configuration
+
+Option       | Description
+-------------|------------
+`db.host`    | Hostname of the Postgres Database. Default: `postgres`.
+`db.database`| Database name on Postgres Server. Default: `flowforge`.
+`db.user`    | Username used when connecting to Postgres Server. 
+`db.password`| Password used when connecting to Postgres Server.
 
 ## Project Driver configuration
 
