@@ -7,6 +7,10 @@
                 </div>
             </main>
         </template>
+        <!-- Verify Email (show "Confirm") -->
+        <template v-else-if="verifyEmailInflight">
+            <VerifyEmail/>
+        </template>
         <template v-else-if="pending">
             <main class="ff-bg-dark flex-grow flex flex-col">
                 <div class="w-full mx-auto flex-grow flex flex-col">
@@ -24,11 +28,11 @@
         <template v-else-if="user && user.password_expired">
             <PasswordExpired/>
         </template>
-        <!-- Email Verification Required -->
+        <!-- Email Verification Required (Show "Resend")-->
         <template v-else-if="user && !user.email_verified">
             <UnverifiedEmail/>
         </template>
-        <!-- Email Verification Required -->
+        <!-- T+Cs Acceptance Required -->
         <template v-else-if="user && termsAndConditionsRequired">
             <TermsAndConditions/>
         </template>
@@ -49,13 +53,14 @@ import Loading from '@/components/Loading'
 import Offline from '@/components/Offline'
 import PasswordExpired from '@/pages/PasswordExpired.vue'
 import UnverifiedEmail from '@/pages/UnverifiedEmail.vue'
+import VerifyEmail from '@/pages/VerifyEmail.vue'
 import TermsAndConditions from '@/pages/TermsAndConditions.vue'
 import FFLayoutPlatform from '@/layouts/Platform.vue'
 
 export default {
     name: 'App',
     computed: {
-        ...mapState('account', ['pending', 'user', 'team', 'offline', 'settings']),
+        ...mapState('account', ['pending', 'user', 'team', 'offline', 'settings', 'verifyEmailInflight']),
         loginRequired () {
             return this.$route.meta.requiresLogin !== false
         },
@@ -80,6 +85,7 @@ export default {
         Login,
         PasswordExpired,
         UnverifiedEmail,
+        VerifyEmail,
         TermsAndConditions,
         Loading,
         Offline,
