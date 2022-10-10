@@ -273,6 +273,26 @@ module.exports = {
                     if (device) {
                         return device.ProjectId
                     }
+                },
+                /**
+                 * Recalculate the `settingsHash` for all devices
+                 * @param {boolean} [all=false] If `false` (or omitted), only devices where `settingsHash` == `null` will be recalculated. If `true`, all devices are updated.
+                 */
+                recalculateSettingsHashes: async (all) => {
+                    const findOpts = {
+                        where: { settingsHash: null },
+                        attributes: ['hashid', 'id', 'name', 'type', 'targetSnapshotId', 'settingsHash']
+                    }
+                    if (all) {
+                        delete findOpts.where
+                    }
+                    const devices = await this.findAll(findOpts)
+                    if (devices && devices.length) {
+                        devices.forEach(async (device) => {
+                            await device.updateSettingsHash()
+                            await device.save()
+                        })
+                    }
                 }
             }
         }

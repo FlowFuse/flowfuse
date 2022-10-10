@@ -90,6 +90,9 @@ module.exports = async (options = {}) => {
 
         await server.ready()
 
+        // NOTE: This is only likely to do anything after a db upgrade where the settingsHashes are cleared.
+        server.db.models.Device.recalculateSettingsHashes(false) // update device.settingsHash if null
+
         return server
     } catch (err) {
         server.log.error(`Failed to start: ${err.toString()}`)
