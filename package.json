@@ -103,6 +103,7 @@
         "eslint-config-standard": "^16.0.1",
         "eslint-import-resolver-node": "^0.3.2",
         "eslint-plugin-import": "^2.20.2",
+        "eslint-plugin-no-only-tests": "^3.0.0",
         "eslint-plugin-node": "^11.1.0",
         "eslint-plugin-promise": "^5.1.0",
         "eslint-plugin-vue": "^8.4.0",
