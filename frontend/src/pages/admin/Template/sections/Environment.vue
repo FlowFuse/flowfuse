@@ -44,7 +44,7 @@
                             </ff-button>
                         </div>
                         <div v-else-if="(item.platform === true)" class="flex justify-center ">
-                            <CogIcon class="inline w-4" />
+                            <LockClosedIcon class="inline w-4" />
                         </div>
                     </td>
                     <td v-if="!readOnly && editTemplate" class="px-4 py-4 align-middle">
@@ -91,7 +91,7 @@ import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
 import LockSetting from '../components/LockSetting'
 import ChangeIndicator from '../components/ChangeIndicator'
-import { TrashIcon, PlusSmIcon, LockClosedIcon, CogIcon } from '@heroicons/vue/outline'
+import { TrashIcon, PlusSmIcon, LockClosedIcon } from '@heroicons/vue/outline'
 const RESERVED_ENV = ['FF_PROJECT_ID', 'FF_PROJECT_NAME', 'FF_DEVICE_ID', 'FF_DEVICE_NAME', 'FF_DEVICE_TYPE', 'FF_SNAPSHOT_ID', 'FF_SNAPSHOT_NAME']
 export default {
     name: 'TemplateEnvironmentEditor',
@@ -187,8 +187,7 @@ export default {
         ChangeIndicator,
         TrashIcon,
         PlusSmIcon,
-        LockClosedIcon,
-        CogIcon
+        LockClosedIcon
     }
 }
 </script>
