@@ -7,10 +7,6 @@ const crypto = require('crypto')
  */
 const inflightProjectState = { }
 
-// Any variables added to RESERVED_ENV should also be added
-// to  frontend/src/pages/admin/Template/sections/Environment.vue
-const RESERVED_ENV = ['FF_PROJECT_ID', 'FF_PROJECT_NAME']
-
 module.exports = {
     /**
      * Get the in-flight state of a project
@@ -183,7 +179,7 @@ module.exports = {
         if (!envVars || !Array.isArray(envVars)) {
             return []
         }
-        return [...envVars.filter(e => RESERVED_ENV.indexOf(e.name) < 0)]
+        return [...envVars.filter(e => app.db.controllers.RESERVED_ENV_VARS.indexOf(e.name) < 0)]
     },
     /**
      * Insert platform specific environment variables

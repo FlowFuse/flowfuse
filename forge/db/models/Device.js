@@ -44,9 +44,10 @@ module.exports = {
                 }
             },
             beforeSave: async (device, options) => {
-                if (device.changed('name') || device.changed('type')) {
-                    const settings = await device.getAllSettings()
-                    device.settingsHash = hashSettings(settings)
+                // since `id`, `name` and `type` are added as FF_DEVICE_xx env vars, we
+                // should update the settings checksum if they are modified
+                if (device.changed('name') || device.changed('type') || device.changed('id')) {
+                    await device.updateSettingsHash()
                 }
             },
             afterDestroy: async (device, opts) => {
@@ -93,6 +94,10 @@ module.exports = {
                         where: { ownerId: '' + this.id }
                     })
                 },
+                async updateSettingsHash (settings) {
+                    const _settings = settings || await this.getAllSettings()
+                    this.settingsHash = hashSettings(_settings)
+                },
                 async getAllSettings () {
                     const result = {}
                     const settings = await this.getDeviceSettings()
@@ -113,8 +118,7 @@ module.exports = {
                         }
                     }
                     await M.DeviceSettings.bulkCreate(updates, { updateOnDuplicate: ['value'] })
-                    const settings = await this.getAllSettings()
-                    this.settingsHash = hashSettings(settings)
+                    await this.updateSettingsHash()
                     await this.save()
                 },
                 async updateSetting (key, value) {
@@ -123,8 +127,7 @@ module.exports = {
                             value = Controllers.Device.removePlatformSpecificEnvVars(value) // remove platform specific values
                         }
                         const result = await M.ProjectSettings.upsert({ DeviceId: this.id, key, value })
-                        const settings = await this.getAllSettings()
-                        this.settingsHash = hashSettings(settings)
+                        await this.updateSettingsHash()
                         await this.save()
                         return result
                     } else {

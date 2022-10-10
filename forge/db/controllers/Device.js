@@ -1,9 +1,5 @@
 const { literal } = require('sequelize')
 
-// Any variables added to RESERVED_ENV should also be added
-// to  frontend/src/pages/admin/Template/sections/Environment.vue
-const RESERVED_ENV = ['FF_PROJECT_ID', 'FF_PROJECT_NAME', 'FF_DEVICE_ID', 'FF_DEVICE_NAME', 'FF_DEVICE_TYPE']
-
 module.exports = {
     updateState: async function (app, device, state) {
         if (state.state) {
@@ -49,7 +45,7 @@ module.exports = {
         if (!envVars || !Array.isArray(envVars)) {
             return []
         }
-        return [...envVars.filter(e => RESERVED_ENV.indexOf(e.name) < 0)]
+        return [...envVars.filter(e => app.db.controllers.RESERVED_ENV_VARS.indexOf(e.name) < 0)]
     },
     /**
      * Insert platform specific environment variables

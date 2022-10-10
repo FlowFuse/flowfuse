@@ -179,9 +179,9 @@ module.exports = {
                 },
                 async updateSettings (obj, options) {
                     const updates = []
-                    for (let [key, value] of Object.entries(obj)) {
-                        if (key === 'env' && value && Array.isArray(value)) {
-                            value = Controllers.Project.removePlatformSpecificEnvVars(value) // remove platform specific values
+                    for (const [key, value] of Object.entries(obj)) {
+                        if (key === 'settings' && value && Array.isArray(value.env)) {
+                            value.env = Controllers.Project.removePlatformSpecificEnvVars(value.env) // remove platform specific values
                         }
                         updates.push({ ProjectId: this.id, key, value })
                     }
@@ -190,16 +190,17 @@ module.exports = {
                     await M.ProjectSettings.bulkCreate(updates, options)
                 },
                 async updateSetting (key, value, options) {
-                    if (key === 'env' && value && Array.isArray(value)) {
-                        value = Controllers.Project.removePlatformSpecificEnvVars(value) // remove platform specific values
+                    if (key === 'settings' && value && Array.isArray(value.env)) {
+                        value.env = Controllers.Project.removePlatformSpecificEnvVars(value.env) // remove platform specific values
                     }
                     return await M.ProjectSettings.upsert({ ProjectId: this.id, key, value }, options)
                 },
                 async getSetting (key) {
                     const result = await M.ProjectSettings.findOne({ where: { ProjectId: this.id, key } })
                     if (result) {
-                        if (key === 'env' && result.value && Array.isArray(result.value)) {
-                            return Controllers.Project.insertPlatformSpecificEnvVars(this, result.value)
+                        if (key === 'settings') {
+                            result.value = result.value || {}
+                            result.value.env = Controllers.Project.insertPlatformSpecificEnvVars(this, result.value.env)
                         }
                         return result.value
                     }
