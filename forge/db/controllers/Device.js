@@ -45,7 +45,7 @@ module.exports = {
         if (!envVars || !Array.isArray(envVars)) {
             return []
         }
-        return [...envVars.filter(e => app.db.controllers.RESERVED_ENV_VARS.indexOf(e.name) < 0)]
+        return [...envVars.filter(e => e.name.startsWith('FF_') === false)]
     },
     /**
      * Insert platform specific environment variables

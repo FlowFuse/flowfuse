@@ -45,6 +45,7 @@ describe('Project controller', function () {
         })
         it('removes env vars', async function () {
             const dummyEnvVars = [
+                { name: 'FF_FUTURE_UNKNOWN_ENV_VAR', value: 'future unknown env var starting with FF_ should be removed' },
                 { name: 'FF_PROJECT_ID', value: 'a' },
                 { name: 'FF_PROJECT_NAME', value: 'b' },
                 { name: 'FF_DEVICE_ID', value: 'c' },
@@ -97,7 +98,10 @@ describe('Project controller', function () {
                 },
                 env: [
                     { name: 'one', value: 'project-a' },
-                    { name: 'three', value: 'c' }
+                    { name: 'three', value: 'c' },
+                    { name: 'FF_PROJECT_VAR_TEST', value: 'should not be saved and not returned' },
+                    { name: 'FF_DEVICE_VAR_TEST', value: 'should not be saved and not returned' },
+                    { name: 'FF_RANDOM_XXX_123', value: 'should not be saved and not returned' }
                 ]
             })
 
@@ -121,6 +125,9 @@ describe('Project controller', function () {
             result.env.should.have.property('three', 'c')
             result.env.should.have.property('FF_PROJECT_ID', project.id)
             result.env.should.have.property('FF_PROJECT_NAME', 'testProject')
+            result.env.should.not.have.property('FF_PROJECT_VAR_TEST')
+            result.env.should.not.have.property('FF_DEVICE_VAR_TEST')
+            result.env.should.not.have.property('FF_RANDOM_XXX_123')
         })
     })
 
