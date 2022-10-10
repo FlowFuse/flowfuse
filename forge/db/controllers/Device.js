@@ -60,8 +60,6 @@ module.exports = {
             return { name, value: value || '', platform: true } // add `platform` flag for UI
         }
         const result = []
-        result.push(makeVar('FF_PROJECT_ID', device.ProjectId))
-        result.push(makeVar('FF_PROJECT_NAME', device.Project?.name || ''))
         result.push(makeVar('FF_DEVICE_ID', device.hashid || ''))
         result.push(makeVar('FF_DEVICE_NAME', device.name || ''))
         result.push(makeVar('FF_DEVICE_TYPE', device.type || ''))
