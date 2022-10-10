@@ -299,9 +299,9 @@ module.exports = fp(async function (app, opts, done) {
             reply.send({ status: 'okay' })
         } catch (err) {
             let responseMessage
-            if (/user_username_lower_unique/.test(err.parent?.toString())) {
+            if (/user_username_lower_unique|Users_username_key/.test(err.parent?.toString())) {
                 responseMessage = 'username not available'
-            } else if (/user_email_lower_unique/.test(err.parent?.toString())) {
+            } else if (/user_email_lower_unique|Users_email_key/.test(err.parent?.toString())) {
                 responseMessage = 'email not available'
             } else if (err.errors) {
                 responseMessage = err.errors.map(err => err.message).join(',')
