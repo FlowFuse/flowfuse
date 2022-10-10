@@ -3,7 +3,7 @@ const setup = require('../setup')
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 const dbUtils = FF_UTIL.require('forge/db/utils')
-
+/** @type {import("mocha").describe} */
 describe('Device API', async function () {
     let app
     const TestObjects = {}
@@ -663,8 +663,6 @@ describe('Device API', async function () {
             response.statusCode.should.equal(200)
             body.should.have.property('hash').which.equal(dbDevice.settingsHash)
             body.should.have.property('env').which.have.property('FOO')
-            body.should.have.property('env').which.have.property('FF_PROJECT_ID', TestObjects.deviceProject.id)
-            body.should.have.property('env').which.have.property('FF_PROJECT_NAME', TestObjects.deviceProject.name)
             body.should.have.property('env').which.have.property('FF_DEVICE_ID', device.id)
             body.should.have.property('env').which.have.property('FF_DEVICE_NAME', 'Ad1')
             body.should.have.property('env').which.have.property('FF_DEVICE_TYPE', 'Ad1_type')

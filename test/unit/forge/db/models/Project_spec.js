@@ -77,25 +77,27 @@ describe('Project model', function () {
             await project.setProjectStack(stack)
 
             await project.updateSetting('port', 123)
-            await project.updateSetting('pid', 123)
+            await project.updateSetting('pid', 456)
             await project.updateSetting('path', '/tmp/foo/bar')
+            const settings = await project.getAllSettings()
+            settings.should.have.a.property('port', 123)
+            settings.should.have.a.property('pid', 456)
+            settings.should.have.a.property('path', '/tmp/foo/bar')
+        })
 
-            // const projects = await app.db.models.Project.findAll({
-            //     attributes: [
-            //         'id',
-            //         'state',
-            //         'ProjectStackId'
-            //     ],
-            //     include: [
-            //         {
-            //             model: app.db.models.ProjectSettings,
-            //             where: { key: app.db.sequelize.or('port', 'path') }
-            //         }
-            //     ]
-            // })
-
-            // console.log(projects[0].ProjectStackId)
-            // console.log(await projects[0].getProjectStack())
+        it('includes platform specific env vars', async function () {
+            const project = await app.db.models.Project.create({
+                name: 'testProject',
+                type: '',
+                url: ''
+            })
+            const settings = await project.getAllSettings()
+            should(settings).be.an.Object()
+            settings.should.have.a.property('settings')
+            settings.settings.should.have.a.property('env').of.Array()
+            settings.settings.env.length.should.equal(2)
+            settings.settings.env.find(e => e.name === 'FF_PROJECT_ID').should.have.a.property('value', project.id)
+            settings.settings.env.find(e => e.name === 'FF_PROJECT_NAME').should.have.a.property('value', 'testProject')
         })
     })
 })
