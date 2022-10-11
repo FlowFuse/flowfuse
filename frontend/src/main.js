@@ -25,3 +25,9 @@ app.config.globalProperties.$filters = {
 }
 
 app.mount('#app')
+
+// TODO: Remove once resolved
+// https://www.vuemastery.com/blog/vue-router-4-route-params-not-available-on-created-setup/
+// router.isReady().then(() => {
+//     app.mount('#app')
+// })

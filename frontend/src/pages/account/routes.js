@@ -8,7 +8,7 @@ import AccountTeamTeams from '@/pages/account/Teams/Teams.vue'
 import AccountTeamInvitations from '@/pages/account/Teams/Invitations.vue'
 import AccessRequest from '@/pages/AccessRequest.vue'
 import AccountCreate from '@/pages/account/Create.vue'
-import VerifyEmail from '@/pages/VerifyEmail.vue'
+import VerifyEmail from '@/pages/account/VerifyEmail.vue'
 import ForgotPassword from '@/pages/account/ForgotPassword'
 import PasswordReset from '@/pages/account/PasswordReset'
 
@@ -94,13 +94,15 @@ export default [
         component: AccountCreate
     },
     {
-        path: '/account/verifyemail/:token',
         name: 'VerifyEmail',
+        path: '/account/verify/:token',
+        props: true,
         meta: {
             requiresLogin: false
         },
         beforeEnter: (to, _, next) => {
-            store.dispatch('account/setVerifyEmailInflight', to.params.token)
+            // TODO: Remove beforeEnter() before merge
+            console.log('flowforge/frontend/src/pages/account/routes.js - beforeEnter: to.params.token: ', to.params.token)
         },
         component: VerifyEmail
     },

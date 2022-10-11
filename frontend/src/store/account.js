@@ -13,9 +13,6 @@ const state = () => ({
     pending: true,
     // A login attempt is inflight
     loginInflight: false,
-    // An email verify attempt is inflight
-    verifyEmailInflight: false,
-    verifyEmailToken: null,
     // redirect url,
     redirectUrlAfterLogin: null,
     // The active user
@@ -136,14 +133,6 @@ const mutations = {
     setOffline (state, value) {
         state.offline = value
     },
-    setVerifyEmailInflight (state, token) {
-        state.verifyEmailInflight = true
-        state.verifyEmailToken = token
-    },
-    clearVerifyEmailInflight (state) {
-        state.verifyEmailInflight = false
-        state.verifyEmailToken = null
-    },
     userSuspended (state, error) {
         state.loginInflight = false
         state.loginError = error
@@ -154,22 +143,34 @@ const mutations = {
 const actions = {
     async checkState (state, redirectUrlAfterLogin) {
         try {
+            console.log('account/checkState called') // TODO: Remove me before merge
             const settings = await settingsApi.getSettings()
+            const currentRoute = router.currentRoute.value
             state.commit('setSettings', settings)
 
             state.commit('setOffline', false)
-
-            const user = await userApi.getUser()
+            let user
+            try {
+                user = await userApi.getUser()
+            } catch (err) {
+                // do nothing
+            }
             state.commit('login', user)
 
-            if (router.currentRoute.value.meta.requiresLogin === false) {
+            if (currentRoute.params?.emailVerificationToken && currentRoute.redirectedFrom?.name === 'VerifyEmail') {
+                state.commit('clearPending')
+                return // dont re-re-redirect!
+            }
+
+            if (currentRoute.meta.requiresLogin === false) {
                 // This is only for logged-out users
                 window.location = '/'
                 return
             }
-            if (user.email_verified && state.state.verifyEmailInflight) {
-                state.commit('clearVerifyEmailInflight')
+            if (!user) {
+                throw new Error('Not logged in')
             }
+
             if (user.email_verified === false || user.password_expired) {
                 state.commit('clearPending')
                 router.push({ name: 'Home' })
@@ -184,17 +185,15 @@ const actions = {
 
             if (teams.count === 0) {
                 state.commit('clearPending')
-                if (/^\/team\//.test(router.currentRoute.value.path)) {
+                if (/^\/team\//.test(currentRoute.path)) {
                     router.push({ name: 'Home' })
                 }
-
                 return
             }
 
             let teamId = user.defaultTeam || teams.teams[0].id
             let teamSlug = null
-            //
-            const teamIdMatch = /^\/team\/([^/]+)($|\/)/.exec(redirectUrlAfterLogin || router.currentRoute.value.path)
+            const teamIdMatch = /^\/team\/([^/]+)($|\/)/.exec(redirectUrlAfterLogin || currentRoute.path)
             if (teamIdMatch && teamIdMatch[1] !== 'create') {
                 teamId = null
                 teamSlug = teamIdMatch[1]
@@ -216,14 +215,16 @@ const actions = {
                 // This means the team doesn't exist, or the user doesn't have access
                 router.push({
                     name: 'PageNotFound',
-                    params: { pathMatch: router.currentRoute.value.path.substring(1).split('/') },
+                    params: { pathMatch: currentRoute.path.substring(1).split('/') },
                     // preserve existing query and hash if any
-                    query: router.currentRoute.value.query,
-                    hash: router.currentRoute.value.hash
+                    query: currentRoute.query,
+                    hash: currentRoute.hash
                 })
             }
         } catch (err) {
-            // Not logged in
+            // TODO: Remove comment before merge
+            // Not logged in - but can't determine if non logged in user is accessing page `VerifyEmail` or even if `meta.requiresLogin` is set
+            // Related? https://www.vuemastery.com/blog/vue-router-4-route-params-not-available-on-created-setup/
             state.commit('clearPending')
             if (router.currentRoute.value.meta.requiresLogin !== false) {
                 state.commit('setRedirectUrl', router.currentRoute.value.fullPath)
@@ -312,12 +313,6 @@ const actions = {
     },
     setOffline (state, value) {
         state.commit('setOffline', value)
-    },
-    async setVerifyEmailInflight (state, token) {
-        state.commit('setVerifyEmailInflight', token)
-    },
-    async clearVerifyEmailInflight (state) {
-        state.commit('clearVerifyEmailInflight')
     }
 }
 

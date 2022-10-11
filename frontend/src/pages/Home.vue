@@ -24,7 +24,7 @@ import NoVerifiedEmail from './account/NoVerifiedEmail'
 export default {
     name: 'HomePage',
     computed: {
-        ...mapState('account', ['pending', 'user', 'team', 'teams', 'verifyEmailInflight'])
+        ...mapState('account', ['pending', 'user', 'team', 'teams'])
     },
     data () {
         return {

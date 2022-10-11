@@ -16,36 +16,34 @@
 <script>
 
 import { mapState } from 'vuex'
-import store from '@/store'
 import userApi from '@/api/user'
 import alerts from '@/services/alerts'
 import FFLayoutBox from '@/layouts/Box'
 
 export default {
     name: 'VerifyEmail',
+    props: ['token'],
     computed: {
         ...mapState(['pending'])
     },
     data () {
         return {
-            verified: false,
-            verifyEmailInflight: null,
-            verifyEmailToken: null
+            verified: false
         }
     },
+    async beforeMount () {
+        // TODO: Remove beforeMount before merge
+        console.log('VerifyEmail beforeMount --> this.$route:', this.$route)
+    },
     async mounted () {
-        this.verifyEmailInflight = store?.state?.account?.verifyEmailInflight
-        this.verifyEmailToken = store?.state?.account?.verifyEmailToken
-        if (!this.verifyEmailToken || !this.verifyEmailInflight) {
-            this.reload()
-        }
+        console.log('VerifyEmail mounted --> this.$route:', this.$route) // TODO: Remove before merge
+        this.emailVerificationToken = this.$route.params.emailVerificationToken
     },
     methods: {
         async verifyEmail () {
             const timing = 4000
             try {
-                await userApi.verifyEmailToken(this.verifyEmailToken)
-                this.$store.dispatch('account/clearVerifyEmailInflight')
+                await userApi.verifyEmailToken(this.emailVerificationToken)
                 alerts.emit('Email verified', 'confirmation', timing)
                 this.verified = true
                 this.reload()
@@ -60,7 +58,6 @@ export default {
         },
         reload () {
             // dispatch checkState to cause redirection now that user.email_verified is set
-            this.$store.dispatch('account/clearVerifyEmailInflight')
             this.$store.dispatch('account/checkState')
         }
     },

@@ -7,10 +7,6 @@
                 </div>
             </main>
         </template>
-        <!-- Verify Email (show "Confirm") -->
-        <template v-else-if="verifyEmailInflight">
-            <VerifyEmail/>
-        </template>
         <template v-else-if="pending">
             <main class="ff-bg-dark flex-grow flex flex-col">
                 <div class="w-full mx-auto flex-grow flex flex-col">
@@ -53,14 +49,13 @@ import Loading from '@/components/Loading'
 import Offline from '@/components/Offline'
 import PasswordExpired from '@/pages/PasswordExpired.vue'
 import UnverifiedEmail from '@/pages/UnverifiedEmail.vue'
-import VerifyEmail from '@/pages/VerifyEmail.vue'
 import TermsAndConditions from '@/pages/TermsAndConditions.vue'
 import FFLayoutPlatform from '@/layouts/Platform.vue'
 
 export default {
     name: 'App',
     computed: {
-        ...mapState('account', ['pending', 'user', 'team', 'offline', 'settings', 'verifyEmailInflight']),
+        ...mapState('account', ['pending', 'user', 'team', 'offline', 'settings']),
         loginRequired () {
             return this.$route.meta.requiresLogin !== false
         },
@@ -85,7 +80,6 @@ export default {
         Login,
         PasswordExpired,
         UnverifiedEmail,
-        VerifyEmail,
         TermsAndConditions,
         Loading,
         Offline,
