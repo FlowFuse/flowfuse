@@ -170,6 +170,63 @@ module.exports = {
         const newHash = crypto.createHash('sha256').update(newKey).digest()
         const oldHash = crypto.createHash('sha256').update(oldKey).digest()
         return encryptCreds(newHash, decryptCreds(oldHash, original))
+    },
+
+    /**
+     *
+     * @param {*} app
+     * @param {*} project
+     * @param {*} components
+     */
+    importProject: async function (app, project, components) {
+        const t = await app.db.sequelize.transaction()
+        try {
+            if (components.flows) {
+                let currentProjectFlows = await app.db.models.StorageFlow.byProject(project.id)
+                if (currentProjectFlows) {
+                    currentProjectFlows.flows = components.flows
+                    await currentProjectFlows.save({ transaction: t })
+                } else {
+                    currentProjectFlows = app.db.models.StorageFlow.create({
+                        ProjectId: project.id,
+                        flow: components.flows
+                    }, { transaction: t })
+                }
+            }
+            if (components.credentials) {
+                const projectSecret = await project.getCredentialSecret()
+                console.log('project secret', projectSecret)
+                const credSecretsHash = crypto.createHash('sha256').update(components.credsSecret).digest()
+                const projectSecretHash = crypto.createHash('sha256').update(projectSecret).digest()
+
+                const decryptedCreds = decryptCreds(credSecretsHash, JSON.parse(components.credentials))
+                console.log('decrypted', decryptedCreds)
+                const encryptedCreds = encryptCreds(projectSecretHash, decryptedCreds)
+                console.log('re-encrypted', encryptedCreds)
+                let origCredentials = await app.db.models.StorageCredentials.byProject(project.id)
+                if (origCredentials) {
+                    console.log('replace creds')
+                    origCredentials.credentials = JSON.stringify(encryptedCreds)
+                    await origCredentials.save({ transaction: t })
+                } else {
+                    console.log('new creds')
+                    origCredentials = await app.db.models.StorageCredentials.create({
+                        ProjectId: project.id,
+                        credentials: JSON.stringify(encryptedCreds)
+                    }, { transaction: t })
+                }
+            }
+            await t.commit()
+        } catch (error) {
+            t.rollback()
+            throw error
+        }
+        app.db.controllers.Project.setInflightState(project, 'restarting')
+        project.state = 'running'
+        await project.save()
+        const result = await app.containers.restartFlows(project)
+        app.db.controllers.Project.clearInflightState(project)
+        return result
     }
 }
 
