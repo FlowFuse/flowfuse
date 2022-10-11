@@ -75,10 +75,13 @@ export default {
                     if (Array.isArray(flow)) {
                         // Good Start
                         this.parts.flows = reader.result
+                    } else {
+                        this.parts.flows = undefined
                     }
                 } catch (err) {
                     // problem
                     console.log(err)
+                    this.parts.flows = undefined
                 }
             }
             reader.readAsText(file)
@@ -91,10 +94,13 @@ export default {
                     if (creds.$) {
                         // Good Start
                         this.parts.credentials = reader.result
+                    } else {
+                        this.parts.credentials = undefined
                     }
                 } catch (err) {
                     // problem
                     console.log(err)
+                    this.parts.credentials = undefined
                 }
             }
             reader.readAsText(file)

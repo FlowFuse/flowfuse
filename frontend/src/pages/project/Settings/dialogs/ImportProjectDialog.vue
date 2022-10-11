@@ -43,7 +43,7 @@ export default {
     },
     computed: {
         disabled () {
-            return !(this.parts.flows || (this.parts.credentials && this.parts.credsSecret))
+            return !(((this.parts.credentials && this.parts.credsSecret) || !this.parts.credentials) && this.parts.flows)
         }
     },
     setup () {
@@ -54,8 +54,7 @@ export default {
                 this.parts = {
                     flows: '',
                     credentials: '',
-                    credsSecret: '',
-                    disable: true
+                    credsSecret: ''
                 }
             }
         }
