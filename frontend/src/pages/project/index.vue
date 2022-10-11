@@ -22,7 +22,7 @@
             </template>
             <template v-slot:tools>
                 <div class="space-x-2 flex">
-                    <a v-if="editorAvailable" :href="project.url" target="_blank" class="ff-btn ff-btn--secondary" data-action="open-editor">
+                    <a v-if="editorAvailable && !isVisitingAdmin" :href="project.url" target="_blank" class="ff-btn ff-btn--secondary" data-action="open-editor">
                         Open Editor
                         <span class="ff-btn--icon ff-btn--icon-right">
                             <ExternalLinkIcon />
@@ -36,7 +36,7 @@
             <Teleport v-if="mounted && isVisitingAdmin" to="#platform-banner">
                 <div class="ff-banner">You are viewing this project as an Administrator</div>
             </Teleport>
-            <router-view :project="project" @projectUpdated="updateProject"></router-view>
+            <router-view :project="project" :isVisitingAdmin="isVisitingAdmin" @projectUpdated="updateProject"></router-view>
         </div>
     </main>
 </template>
