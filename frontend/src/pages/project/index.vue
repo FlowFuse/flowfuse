@@ -36,7 +36,7 @@
             <Teleport v-if="mounted && isVisitingAdmin" to="#platform-banner">
                 <div class="ff-banner">You are viewing this project as an Administrator</div>
             </Teleport>
-            <router-view :project="project" @projectUpdated="updateProject"></router-view>
+            <router-view :project="project" :isVisitingAdmin="isVisitingAdmin" @projectUpdated="updateProject"></router-view>
         </div>
     </main>
 </template>

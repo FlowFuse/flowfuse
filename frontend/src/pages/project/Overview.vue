@@ -62,7 +62,7 @@ import AuditLog from '@/components/AuditLog'
 
 export default {
     name: 'ProjectOverview',
-    props: ['project'],
+    props: ['project', 'isVisitingAdmin'],
     computed: {
         options: function () {
             return [
