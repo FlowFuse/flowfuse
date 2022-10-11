@@ -60,7 +60,6 @@ router.beforeEach((to, from, next) => {
             $current_url: to.fullPath
         }
     )
-    console.log('to/from', to, from) // TODO: Remove before merge
     // This goes through the matched routes from last to first, finding the closest route with a title.
     // e.g., if we have `/some/deep/nested/route` and `/some`, `/deep`, and `/nested` have titles,
     // `/nested`'s will be chosen.

@@ -143,35 +143,26 @@ const mutations = {
 const actions = {
     async checkState (state, redirectUrlAfterLogin) {
         try {
-            console.log('account/checkState called') // TODO: Remove me before merge
             const settings = await settingsApi.getSettings()
-            const currentRoute = router.currentRoute.value
             state.commit('setSettings', settings)
 
             state.commit('setOffline', false)
-            let user
-            try {
-                user = await userApi.getUser()
-            } catch (err) {
-                // do nothing
-            }
+
+            const user = await userApi.getUser()
             state.commit('login', user)
 
-            if (currentRoute.params?.emailVerificationToken && currentRoute.redirectedFrom?.name === 'VerifyEmail') {
-                state.commit('clearPending')
-                return // dont re-re-redirect!
-            }
-
-            if (currentRoute.meta.requiresLogin === false) {
+            // User is logged in
+            if (router.currentRoute.value.name === 'VerifyEmail' && user.email_verified === false) {
+                // This page has `meta.requiresLogin = false` as it needs to be
+                // accessible to non-logged-in users.
+                // By default, we redirect away from those pages for logged in users,
+                // however this is the one exception that should be allowed to
+                // continue.
+            } else if (router.currentRoute.value.meta.requiresLogin === false) {
                 // This is only for logged-out users
                 window.location = '/'
                 return
-            }
-            if (!user) {
-                throw new Error('Not logged in')
-            }
-
-            if (user.email_verified === false || user.password_expired) {
+            } else if (user.email_verified === false || user.password_expired) {
                 state.commit('clearPending')
                 router.push({ name: 'Home' })
                 return
@@ -185,15 +176,17 @@ const actions = {
 
             if (teams.count === 0) {
                 state.commit('clearPending')
-                if (/^\/team\//.test(currentRoute.path)) {
+                if (/^\/team\//.test(router.currentRoute.value.path)) {
                     router.push({ name: 'Home' })
                 }
+
                 return
             }
 
             let teamId = user.defaultTeam || teams.teams[0].id
             let teamSlug = null
-            const teamIdMatch = /^\/team\/([^/]+)($|\/)/.exec(redirectUrlAfterLogin || currentRoute.path)
+            //
+            const teamIdMatch = /^\/team\/([^/]+)($|\/)/.exec(redirectUrlAfterLogin || router.currentRoute.value.path)
             if (teamIdMatch && teamIdMatch[1] !== 'create') {
                 teamId = null
                 teamSlug = teamIdMatch[1]
@@ -215,16 +208,14 @@ const actions = {
                 // This means the team doesn't exist, or the user doesn't have access
                 router.push({
                     name: 'PageNotFound',
-                    params: { pathMatch: currentRoute.path.substring(1).split('/') },
+                    params: { pathMatch: router.currentRoute.value.path.substring(1).split('/') },
                     // preserve existing query and hash if any
-                    query: currentRoute.query,
-                    hash: currentRoute.hash
+                    query: router.currentRoute.value.query,
+                    hash: router.currentRoute.value.hash
                 })
             }
         } catch (err) {
-            // TODO: Remove comment before merge
-            // Not logged in - but can't determine if non logged in user is accessing page `VerifyEmail` or even if `meta.requiresLogin` is set
-            // Related? https://www.vuemastery.com/blog/vue-router-4-route-params-not-available-on-created-setup/
+            // Not logged in
             state.commit('clearPending')
             if (router.currentRoute.value.meta.requiresLogin !== false) {
                 state.commit('setRedirectUrl', router.currentRoute.value.fullPath)

@@ -100,10 +100,6 @@ export default [
         meta: {
             requiresLogin: false
         },
-        beforeEnter: (to, _, next) => {
-            // TODO: Remove beforeEnter() before merge
-            console.log('flowforge/frontend/src/pages/account/routes.js - beforeEnter: to.params.token: ', to.params.token)
-        },
         component: VerifyEmail
     },
     {
