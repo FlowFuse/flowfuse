@@ -221,12 +221,14 @@ module.exports = {
             t.rollback()
             throw error
         }
-        app.db.controllers.Project.setInflightState(project, 'restarting')
-        project.state = 'running'
-        await project.save()
-        const result = await app.containers.restartFlows(project)
-        app.db.controllers.Project.clearInflightState(project)
-        return result
+        if (project.state === 'running') {
+            app.db.controllers.Project.setInflightState(project, 'restarting')
+            project.state = 'running'
+            await project.save()
+            const result = await app.containers.restartFlows(project)
+            app.db.controllers.Project.clearInflightState(project)
+            return result
+        }
     }
 }
 
