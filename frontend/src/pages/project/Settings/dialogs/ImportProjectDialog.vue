@@ -1,10 +1,10 @@
 <template>
-    <ff-dialog ref="dialog" header="Import Flows" confirm-label="Import Project" @confirm="confirm()">
+    <ff-dialog ref="dialog" header="Import Flows" confirm-label="Import Project" @confirm="confirm()" kind="danger" :disablePrimary="disabled">
         <template v-slot:default>
             <form class="space-y-6" @submit.prevent>
                 <div class="mt-2 space-y-2">
                     <p class="text-sm text-gray-500">
-                        Replace current flows by uploading a new flow file
+                        Replace current flows by uploading a new flow file. This will restart the project to pick up the new flow or credentials
                     </p>
                 </div>
                 <ImportProjectComponents id="importSettings" v-model="parts"/>
@@ -41,6 +41,11 @@ export default {
             this.$emit('confirm', this.parts)
         }
     },
+    computed: {
+        disabled () {
+            return !(this.parts.flows || (this.parts.credentials && this.parts.credsSecret))
+        }
+    },
     setup () {
         return {
             async show (project) {
@@ -49,7 +54,8 @@ export default {
                 this.parts = {
                     flows: '',
                     credentials: '',
-                    credsSecret: ''
+                    credsSecret: '',
+                    disable: true
                 }
             }
         }

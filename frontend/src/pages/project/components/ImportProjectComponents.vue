@@ -61,9 +61,8 @@ export default {
                     this.disableCredsSecret = false
                     this.getCredsFile(value.creds.files[0])
                 }
-                if (value.secret) {
-                    this.parts.credsSecret = value.secret
-                }
+
+                this.parts.credsSecret = value.secret
             }
         }
     },
@@ -75,12 +74,12 @@ export default {
                     const flow = JSON.parse(reader.result)
                     if (Array.isArray(flow)) {
                         // Good Start
+                        this.parts.flows = reader.result
                     }
                 } catch (err) {
                     // problem
                     console.log(err)
                 }
-                this.parts.flows = reader.result
             }
             reader.readAsText(file)
         },
@@ -91,12 +90,12 @@ export default {
                     const creds = JSON.parse(reader.result)
                     if (creds.$) {
                         // Good Start
+                        this.parts.credentials = reader.result
                     }
                 } catch (err) {
                     // problem
                     console.log(err)
                 }
-                this.parts.credentials = reader.result
             }
             reader.readAsText(file)
         }
