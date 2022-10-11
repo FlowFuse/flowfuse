@@ -1,0 +1,22 @@
+{
+    "name": "Tooltip",
+    "id": "tooltip",
+    "description": "",
+    "components": [{
+        "name": "ff-tooltip",
+        "examples": [{
+            "code": "<div v-ff-tooltip=\"'Hello World'\">Hover for Default Tooltip</div>"
+        }, {
+            "code": "<div v-ff-tooltip:left=\"'Hello World'\">Hover for Left Tooltip</div>"
+        }, {
+            "code": "<div v-ff-tooltip:top=\"'Hello World'\">Hover for Top Tooltip</div>"
+        }, {
+            "code": "<div v-ff-tooltip:bottom=\"'Hello World'\">Hover for Bottom Tooltip</div>"
+        }],
+        "props": [{
+            "key": "position",
+            "default": "right",
+            "description": "'Where, with respect to the item being attached to, does the tooltip position itself. Options: 'left', 'top', 'right', 'bottom'"
+        }]
+    }]
+}
