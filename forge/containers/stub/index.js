@@ -95,6 +95,8 @@ module.exports = {
                 meta: { foo: 'bar' },
                 stack: project.ProjectStack.hashid
             }
+            project.url = list[project.id].url
+            await project.save()
             if (await project.getSetting('stubProjectToken') === undefined) {
                 const stubProjectToken = forgeUtils.generateToken(8)
                 await project.updateSetting('stubProjectToken', stubProjectToken)
