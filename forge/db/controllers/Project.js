@@ -195,21 +195,15 @@ module.exports = {
             }
             if (components.credentials) {
                 const projectSecret = await project.getCredentialSecret()
-                console.log('project secret', projectSecret)
                 const credSecretsHash = crypto.createHash('sha256').update(components.credsSecret).digest()
                 const projectSecretHash = crypto.createHash('sha256').update(projectSecret).digest()
-
                 const decryptedCreds = decryptCreds(credSecretsHash, JSON.parse(components.credentials))
-                console.log('decrypted', decryptedCreds)
                 const encryptedCreds = encryptCreds(projectSecretHash, decryptedCreds)
-                console.log('re-encrypted', encryptedCreds)
                 let origCredentials = await app.db.models.StorageCredentials.byProject(project.id)
                 if (origCredentials) {
-                    console.log('replace creds')
                     origCredentials.credentials = JSON.stringify(encryptedCreds)
                     await origCredentials.save({ transaction: t })
                 } else {
-                    console.log('new creds')
                     origCredentials = await app.db.models.StorageCredentials.create({
                         ProjectId: project.id,
                         credentials: JSON.stringify(encryptedCreds)

@@ -811,13 +811,21 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const projectImport = await app.db.controllers.Project.importProject(request.project, request.body)
-        await app.db.controllers.AuditLog.projectLog(
-            request.project.id,
-            request.session.User.id,
-            'project.flow-imported'
-        )
-        reply.send(projectImport)
+        try {
+            const projectImport = await app.db.controllers.Project.importProject(request.project, request.body)
+            await app.db.controllers.AuditLog.projectLog(
+                request.project.id,
+                request.session.User.id,
+                'project.flow-imported'
+            )
+            reply.send(projectImport)
+        } catch (err) {
+            if (err.name === 'SyntaxError') {
+                reply.code(403).send({ code: 'credentials_bad_secret', error: 'incorrect credential secret' })
+            } else {
+                reply.code(500).send({ code: 'unknown_error', error: 'unknown error' })
+            }
+        }
     })
 
     /**

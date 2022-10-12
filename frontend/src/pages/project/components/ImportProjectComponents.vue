@@ -1,9 +1,9 @@
 <template>
     <div class="space-y-4 my-3">
-        <FormRow type="file" accept=".json" ref="flows" v-model="localData.flows">
+        <FormRow type="file" accept=".json" ref="flows" v-model="localData.flows" :error="errors.flows">
             Flow File
         </FormRow>
-        <FormRow type="file" accept=".json" ref="creds" v-model="localData.creds">
+        <FormRow type="file" accept=".json" ref="creds" v-model="localData.creds" :errors="errors.creds">
             Credentials File
         </FormRow>
         <FormRow :disabled="withCreds" type="text" v-model="localData.secret">
@@ -41,25 +41,30 @@ export default {
                 flows: '',
                 creds: '',
                 secret: ''
+            },
+            errors: {
+                flows: '',
+                creds: '',
+                secret: ''
             }
         }
     },
     mounted () {
         this.disableCredsSecret = true
-        this.localData.flows = ''
-        this.localData.creds = ''
+        this.localData.flows = null
+        this.localData.creds = null
         this.localData.secret = ''
     },
     watch: {
         localData: {
             deep: true,
             handler: function (value) {
-                if (value.flows) {
-                    this.getFlowFile(value.flows.files[0])
+                if (value.flows?.val) {
+                    this.getFlowFile(value.flows.obj.files[0])
                 }
-                if (value.creds) {
+                if (value.creds?.val) {
                     this.disableCredsSecret = false
-                    this.getCredsFile(value.creds.files[0])
+                    this.getCredsFile(value.creds.obj.files[0])
                 }
 
                 this.parts.credsSecret = value.secret
@@ -75,13 +80,16 @@ export default {
                     if (Array.isArray(flow)) {
                         // Good Start
                         this.parts.flows = reader.result
+                        this.errors.flows = ''
                     } else {
                         this.parts.flows = undefined
+                        this.errors.flows = 'Does not look like a flow file'
                     }
                 } catch (err) {
                     // problem
                     console.log(err)
                     this.parts.flows = undefined
+                    this.errors.flows = 'Not JSON'
                 }
             }
             reader.readAsText(file)
@@ -94,16 +102,30 @@ export default {
                     if (creds.$) {
                         // Good Start
                         this.parts.credentials = reader.result
+                        this.errors.creds = ''
                     } else {
                         this.parts.credentials = undefined
+                        this.errors.creds = 'Does not look like a creds file'
                     }
                 } catch (err) {
                     // problem
                     console.log(err)
                     this.parts.credentials = undefined
+                    this.errors.creds = 'Not JSON'
                 }
             }
             reader.readAsText(file)
+        },
+        clear () {
+            if (this.localData.flows?.obj) {
+                this.localData.flows.obj.value = ''
+            }
+            this.localData.flows = undefined
+            if (this.localData.creds?.obj) {
+                this.localData.creds.obj.value = ''
+            }
+            this.localData.creds = undefined
+            this.localData.secret = ''
         }
     },
     computed: {

@@ -44,10 +44,12 @@
                            :name="name"
                            :placeholder="placeholder"
                            :disabled="disabled"
-                           @change="$emit('update:modelValue', $event.target)"
+                           @change="$emit('update:modelValue', { obj: $event.target, val: $event.target.value})"
                     >
                 </div>
             </div>
+            <div v-if="error" class="ml-9 text-red-400 inline text-xs">{{error}}</div>
+            <div v-if="hasDescription" class="mt-1 text-xs text-gray-400 mb-2 ml-9 space-y-1"><slot name="description"></slot></div>
         </template>
         <template v-else>
             <label v-if="hasTitle" :for="inputId" class="block text-sm font-medium text-gray-700 mb-1"><slot></slot></label>

@@ -84,7 +84,7 @@
         <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
             <div class="flex-grow">
                 <div class="max-w-sm pt-2">
-                    Import an existing project
+                    Import an existing Node-RED project.
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
@@ -240,7 +240,6 @@ export default {
             projectApi.updateProject(parts.target, options)
         },
         importProject (parts) {
-            console.log('importProject', parts)
             projectApi.importProject(this.project.id, parts)
         },
         deleteProject () {
