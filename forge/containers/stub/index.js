@@ -13,6 +13,7 @@ const list = {}
 const forgeUtils = require('../../db/utils')
 
 module.exports = {
+    START_DELAY: 500,
     /**
      * Initialises this driver
      *
@@ -109,7 +110,7 @@ module.exports = {
                     }, 500)
                 })
             } else {
-                const startTime = project.name === 'stub-slow-start' ? 6000 : 500
+                const startTime = project.name === 'stub-slow-start' ? 6000 : module.exports.START_DELAY
                 return new Promise((resolve, reject) => {
                     setTimeout(() => {
                         list[project.id].state = 'running'
