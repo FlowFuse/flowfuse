@@ -36,3 +36,9 @@ There is also a link to the Stripe Customer Portal where you can change the paym
 
 If your payment fails for any reason you will receive a notification to the billing email address, you may need to login and update the card on file. 
 Stripe will retry the payment several times over a number of days. If the card repeatedly fails we may have to suspend your account.
+
+## Cancelling your subscription
+
+If you want to cancel your subscription with FlowForge Cloud you will need to remove all projects and then delete all teams from your account. If you have outstanding credit you can request a refund via a [support ticket](https://flowforge.com/contact-us/).
+
+
