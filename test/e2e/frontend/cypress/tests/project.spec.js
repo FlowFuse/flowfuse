@@ -60,7 +60,6 @@ describe('FlowForge - Projects', () => {
                 // should now be enabled again
                 cy.get('[data-el="delete-project"] button.ff-btn.ff-btn--danger').click()
                 cy.wait('@deleteProject')
-                cy.get('[data-el="delete-project"]').should('not.be.visible')
 
                 cy.url().should('include', `/team/${team.slug}/overview`)
             })
