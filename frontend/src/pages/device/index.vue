@@ -23,7 +23,7 @@
         </SectionTopMenu>
         <div class="text-sm sm:px-6 mt-4 sm:mt-8">
             <Teleport v-if="mounted && isVisitingAdmin" to="#platform-banner">
-                <div class="ff-banner">You are viewing this device as an Administrator</div>
+                <div class="ff-banner" data-el="banner-device-as-admin">You are viewing this device as an Administrator</div>
             </Teleport>
             <router-view :device="device" @device-updated="loadDevice()"></router-view>
         </div>

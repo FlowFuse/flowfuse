@@ -107,6 +107,13 @@ module.exports = async function (settings = {}, config = {}) {
     })
     await forge.containers.start(project2) // ensure project is initialized
 
+    const device2 = await forge.db.models.Device.create({
+        name: 'team2-device',
+        type: 'type2',
+        credentialSecret: ''
+    })
+    await team2.addDevice(device2)
+
     forge.project = project1
     forge.template = template
     forge.stack = stack
