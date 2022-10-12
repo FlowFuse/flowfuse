@@ -2,6 +2,7 @@ const should = require('should') // eslint-disable-line
 const FF_UTIL = require('flowforge-test-utils')
 const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localTransport.js')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
+const { START_DELAY } = FF_UTIL.require('forge/containers/stub/index.js')
 
 async function waitFor (delay) {
     return new Promise((resolve) => { setTimeout(() => resolve(), delay) })
@@ -124,7 +125,7 @@ describe('Project Lifecycle', function () {
     })
 
     it('Project starts asynchronously to the create', async function () {
-        await waitFor(500)
+        await waitFor(START_DELAY + 100)
         const response = await getProjectState(TestObjects.Project1.id)
         response.meta.should.have.property('state', 'running')
     })
