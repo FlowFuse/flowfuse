@@ -34,7 +34,7 @@
         </SectionTopMenu>
         <div class="text-sm mt-4 sm:mt-8">
             <Teleport v-if="mounted && isVisitingAdmin" to="#platform-banner">
-                <div class="ff-banner">You are viewing this project as an Administrator</div>
+                <div class="ff-banner" data-el="banner-project-as-admin">You are viewing this project as an Administrator</div>
             </Teleport>
             <router-view :project="project" :isVisitingAdmin="isVisitingAdmin" @projectUpdated="updateProject"></router-view>
         </div>

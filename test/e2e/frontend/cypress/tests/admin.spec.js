@@ -42,9 +42,13 @@ describe('FlowForge platform admin users', () => {
         cy.get('[data-el="teams-table"]').contains('BTeam').click()
         cy.wait('@getTeamProjects')
 
+        cy.get('[data-el="banner-team-as-admin"]').should('exist')
+
         cy.get('[data-action="view-project"]').contains('project2').click()
 
         cy.wait('@getProject')
+
+        cy.get('[data-el="banner-project-as-admin"]').should('exist')
 
         cy.get('[data-action="open-editor"]').should('not.exist')
         cy.get('[data-el="editor-link"]').should('not.exist')
