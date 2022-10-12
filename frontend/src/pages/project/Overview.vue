@@ -12,7 +12,7 @@
                                 <div v-if="isVisitingAdmin" class="my-2">
                                     {{project.url}}
                                 </div>
-                                <a v-else :href="project.url" target="_blank" class="forge-button-secondary py-1 mb-1">
+                                <a v-else :href="project.url" target="_blank" class="forge-button-secondary py-1 mb-1" data-el="editor-link">
                                     <span class="ml-r">{{project.url}}</span>
                                     <ExternalLinkIcon class="w-4 ml-3" />
                                 </a>
