@@ -127,7 +127,7 @@ If you are running with the MQTT broker then you should adjust the `public_url` 
 Once the containers have been built you can start FlowForge by running:
 
 ```
-docker-compose up -d
+docker-compose up -p flowforge -d
 ```
 
 This will also create a directory called `db` to hold the database files used to store project instance and user information.
