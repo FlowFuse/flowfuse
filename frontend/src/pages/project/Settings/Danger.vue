@@ -117,7 +117,7 @@
             </div>
             <div class="min-w-fit flex-shrink-0">
                 <ff-button data-action="delete-project" kind="danger" @click="showConfirmDeleteDialog()">Delete Project</ff-button>
-                <ConfirmProjectDeleteDialog @confirm="deleteProject" ref="confirmProjectDeleteDialog"/>
+                <ConfirmProjectDeleteDialog data-el="delete-project" @confirm="deleteProject" ref="confirmProjectDeleteDialog"/>
             </div>
         </div>
     </form>
