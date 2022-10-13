@@ -12,19 +12,6 @@
     </div>
 </template>
 
-<style>
-input::file-selector-button {
-    float: right;
-    border-radius: 6px;
-    color: #F9FAFB;
-    background-color: #4338CA;
-    height: auto;
-    line-height: 20px;
-    font-weight: bold;
-    border: 1px solid #1E3A8A;
-}
-</style>
-
 <script>
 import FormRow from '@/components/FormRow'
 
