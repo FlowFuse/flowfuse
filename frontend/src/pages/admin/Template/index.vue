@@ -1,14 +1,18 @@
 <template>
     <div class="flex flex-col sm:flex-row mb-8 max-w-4xl">
         <div class="flex-grow">
-            <div v-if="!isNew" class="text-gray-800 text-xl"><span class=" font-bold">Template:</span> {{ template.name }}</div>
-            <div v-else class="text-gray-800 text-xl"><span class=" font-bold">Create a new template</span></div>
-
+            <div class="text-gray-800 text-xl">
+                <router-link class="ff-link font-bold" :to="{path: '/admin/templates'}">Templates</router-link> 
+                <!-- <nav-item :icon="icons.breadcrumbSeparator" label="sss"></nav-item> -->
+                <ChevronRightIcon class="ff-icon" />
+                <span v-if="!isNew">{{ template.name }}</span>
+                <span v-if="isNew">Create a new template</span>
+            </div>
         </div>
         <div class="text-right space-x-4 flex h-8" >
-            <template v-if="unsavedChanges">
-                <ff-button kind="secondary" class="ml-4" @click="cancelEdit">Cancel</ff-button>
-                <ff-button class="ml-4" :disabled="hasErrors" @click="showSaveTemplateDialog">Save changes</ff-button>
+            <template v-if="!isNew">
+                <ff-button kind="secondary" v-if="unsavedChanges" class="ml-4" @click="cancelEdit">Discard changes</ff-button>
+                <ff-button class="ml-4" :disabled="hasErrors || !unsavedChanges" @click="showSaveTemplateDialog">Save changes</ff-button>
             </template>
             <template v-else-if="isNew">
                 <ff-button :to="{ name: 'Admin Templates' }" kind="secondary">Cancel</ff-button>
@@ -36,6 +40,8 @@ import {
     prepareTemplateForEdit,
     templateValidators
 } from './utils'
+import alerts from '@/services/alerts'
+import { ChevronRightIcon } from '@heroicons/vue/solid'
 
 const sideNavigation = [
     { name: 'Settings', path: './settings' },
@@ -78,7 +84,10 @@ export default {
                 policy: {}
             },
             unsavedChanges: false,
-            hasErrors: false
+            hasErrors: false,
+            icons: {
+                breadcrumbSeparator: ChevronRightIcon
+            }
         }
     },
     watch: {
@@ -245,6 +254,11 @@ export default {
                 await templateApi.updateTemplate(this.template.id, template)
                 await this.loadTemplate()
             } catch (err) {
+                if (err.response?.data) {
+                    alerts.emit(err.response.data.error, 'warning')
+                } else {
+                    alerts.emit('Unknown Error. Check logs.', 'warning')
+                }
                 console.log(err)
             }
         },
@@ -276,12 +290,18 @@ export default {
                     name: 'Admin Templates'
                 })
             } catch (err) {
+                if (err.response?.data) {
+                    alerts.emit(err.response.data.error, 'warning')
+                } else {
+                    alerts.emit('Unknown Error. Check logs.', 'warning')
+                }
                 console.log(err)
             }
         }
     },
     components: {
-        SectionSideMenu
+        SectionSideMenu,
+        ChevronRightIcon
     }
 }
 </script>

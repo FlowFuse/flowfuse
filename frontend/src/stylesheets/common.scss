@@ -6,6 +6,14 @@
     background-color: $ff-grey-300;
 }
 
+.ff-link {
+    color: $ff-blue-700;
+    &:hover {
+        cursor: pointer;
+        color: $ff-blue-900;
+    }
+}
+
 .ff-avatar {
     width: 24px;
     height: 24px;
