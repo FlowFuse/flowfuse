@@ -66,11 +66,26 @@ const rejectTeamInvitation = async (invitationId) => {
         return res.data
     })
 }
+/**
+ * Helper function to call runtime API to send a new account verification email
+ * @returns {Promise}
+ */
 const triggerVerification = async () => {
     return client.post('/account/verify').then(res => {
         return res.data
     })
 }
+/**
+ * Helper function to call 'account' 'verify' API
+ * @param {string} token The token provided in the users email
+ * @returns {Promise}
+ */
+const verifyEmailToken = async (token) => {
+    return client.post(`/account/verify/${token}`).then(res => {
+        return res.data
+    })
+}
+
 const requestPasswordReset = async (email) => {
     return client.post('/account/forgot_password', email).then(res => res.data)
 }
@@ -88,6 +103,7 @@ export default {
     acceptTeamInvitation,
     rejectTeamInvitation,
     triggerVerification,
+    verifyEmailToken,
     requestPasswordReset,
     resetPassword
 }
