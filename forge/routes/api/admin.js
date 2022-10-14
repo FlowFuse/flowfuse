@@ -4,7 +4,7 @@ module.exports = async function (app) {
     app.get('/stats', async (request, reply) => {
         const userCount = await app.db.models.User.count({ attributes: ['admin'], group: 'admin' })
         const projectStateCounts = await app.db.models.Project.count({ attributes: ['state'], group: 'state' })
-        const license = await app.license.get() || {}
+        const license = await app.license.get() || app.license.defaults
         const result = {
             userCount: 0,
             maxUsers: license.users,

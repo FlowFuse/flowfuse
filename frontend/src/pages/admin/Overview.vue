@@ -3,8 +3,7 @@
     <div class="grid grid-cols-4 gap-4 text-gray-700">
         <div class="border rounded px-4 py-2 text-center">
             <router-link to="/admin/users/general">
-                <div v-if="license" class="text-xl">{{stats.userCount}}/{{stats.maxUsers}}</div>
-                <div v-else class="text-xl">{{stats.userCount}}/150</div>
+                <div class="text-xl">{{stats.userCount}}/{{stats.maxUsers}}</div>
                 <div>Users</div>
             </router-link>
             <div class="w-full grid grid-cols-2 pt-1 mt-2 border-t">
@@ -14,14 +13,12 @@
         </div>
         <div class="border rounded p-4 text-center">
             <router-link to="/admin/teams">
-                <div v-if="license" class="text-xl">{{stats.teamCount}}/{{stats.maxProjects}}</div>
-                <div v-else class="text-xl">{{stats.teamCount}}/50</div>
+                <div class="text-xl">{{stats.teamCount}}/{{stats.maxProjects}}</div>
                 <div>{{ $filters.pluralize(stats.teamCount,'Team')}}</div>
             </router-link>
         </div>
         <div class="border rounded p-4 text-center">
-            <div v-if="license" class="text-xl">{{stats.projectCount}}/{{stats.maxProjects}}</div>
-            <div v-else class="text-xl">{{stats.projectCount}}/50</div>
+            <div class="text-xl">{{stats.projectCount}}/{{stats.maxProjects}}</div>
             <div>{{ $filters.pluralize(stats.projectCount,'Project')}}</div>
             <div class="w-full grid grid-cols-1 pt-1 mt-2 border-t">
                 <div v-for="(count, state) in stats.projectsByState" :key="state">
@@ -31,8 +28,7 @@
         </div>
 
         <div class="border rounded p-4 text-center">
-            <div v-if="license" class="text-xl">{{stats.deviceCount}}/{{stats.maxDevices}}</div>
-            <div v-else class="text-xl">{{stats.deviceCount}}/50</div>
+            <div class="text-xl">{{stats.deviceCount}}/{{stats.maxDevices}}</div>
             <div>{{ $filters.pluralize(stats.deviceCount,'Device')}}</div>
         </div>
         <div class="border rounded p-4 col-span-4">
