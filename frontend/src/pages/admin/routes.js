@@ -124,7 +124,7 @@ export default [
                 meta: {
                     title: 'Admin - Logs'
                 }
-            },
+            }
         ]
     }
 ]

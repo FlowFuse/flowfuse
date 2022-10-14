@@ -32,7 +32,7 @@ export default {
             if (this.hasPermission('platform:audit-log')) {
                 this.entity = { id: 'audit' }
             } else {
-                this.$router.push({ path: `/` })
+                this.$router.push({ path: '/' })
             }
         }
     },

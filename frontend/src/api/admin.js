@@ -41,11 +41,11 @@ const getInvitations = async (options) => {
 }
 
 const getPlatformAuditLog = async (cursor, limit) => {
-    const url = paginateUrl(`/api/v1/admin/audit-log`, cursor, limit)
+    const url = paginateUrl('/api/v1/admin/audit-log', cursor, limit)
     return client.get(url).then(res => res.data)
 }
 
-/** 
+/**
  * Calls api routes in admin.js
  * See [routes/api/admin.js](../../../forge/routes/api/admin.js)
 */

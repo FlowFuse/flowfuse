@@ -54,7 +54,6 @@ module.exports = async function (app) {
                     { license }
                 )
                 reply.send(license || {})
-
             } else if (request.body.action === 'inspect') {
                 const license = await app.license.inspect(request.body.license)
                 await app.db.controllers.AuditLog.platformLog(
