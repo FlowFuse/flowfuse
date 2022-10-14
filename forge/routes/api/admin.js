@@ -47,9 +47,22 @@ module.exports = async function (app) {
         try {
             if (request.body.action === 'apply') {
                 await app.license.apply(request.body.license)
-                reply.send(app.license.get() || {})
+                const license = app.license.get()
+                await app.db.controllers.AuditLog.platformLog(
+                    request.session.User.id,
+                    'platform.licence.apply',
+                    { license }
+                )
+                reply.send(license || {})
+
             } else if (request.body.action === 'inspect') {
-                reply.send(await app.license.inspect(request.body.license))
+                const license = await app.license.inspect(request.body.license)
+                await app.db.controllers.AuditLog.platformLog(
+                    request.session.User.id,
+                    'platform.licence.inspect',
+                    { license }
+                )
+                reply.send(license)
             } else {
                 reply.code(400).send({ code: 'invalid_license_action', error: 'Invalid action' })
             }
@@ -58,6 +71,11 @@ module.exports = async function (app) {
             if (/malformed/.test(responseMessage)) {
                 responseMessage = 'Failed to parse license'
             }
+            await app.db.controllers.AuditLog.platformLog(
+                request.session.User.id,
+                'platform.licence.' + request.body.action,
+                { error: responseMessage }
+            )
             reply.code(400).send({ code: 'invalid_license', error: responseMessage })
         }
     })
@@ -97,6 +115,18 @@ module.exports = async function (app) {
             result[tables[i]] = await app.db.sequelize.getQueryInterface().describeTable(tables[i])
         }
 
+        reply.send(result)
+    })
+    /**
+     * Get platform audit logs
+     * @name /api/v1/admin/audit-log
+     * @memberof forge.routes.api.admin
+     */
+    app.get('/audit-log', { preHandler: app.needsPermission('platform:audit-log') }, async (request, reply) => {
+        const paginationOptions = app.getPaginationOptions(request)
+        const logEntries = await app.db.models.AuditLog.forPlatform(paginationOptions)
+        const result = app.db.views.AuditLog.auditLog(logEntries)
+        // console.log(logEntries);
         reply.send(result)
     })
 }

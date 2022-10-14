@@ -1,6 +1,7 @@
 import client from './client'
 import daysSince from '@/utils/daysSince'
 import elapsedTime from '@/utils/elapsedTime'
+import paginateUrl from '@/utils/paginateUrl'
 
 const getStats = async (options) => {
     return client.get('/api/v1/admin/stats', options).then(res => {
@@ -38,9 +39,20 @@ const getInvitations = async (options) => {
         return res.data
     })
 }
+
+const getPlatformAuditLog = async (cursor, limit) => {
+    const url = paginateUrl(`/api/v1/admin/audit-log`, cursor, limit)
+    return client.get(url).then(res => res.data)
+}
+
+/** 
+ * Calls api routes in admin.js
+ * See [routes/api/admin.js](../../../forge/routes/api/admin.js)
+*/
 export default {
     getStats,
     getLicenseDetails,
     updateLicense,
-    getInvitations
+    getInvitations,
+    getPlatformAuditLog
 }

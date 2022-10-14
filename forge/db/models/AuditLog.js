@@ -24,6 +24,9 @@ module.exports = {
     finders: function (M) {
         return {
             static: {
+                forPlatform: async (pagination = {}) => {
+                    return M.AuditLog.forEntity('platform', 'audit', pagination)
+                },
                 forProject: async (projectId, pagination = {}) => {
                     return M.AuditLog.forEntity('project', projectId, pagination)
                 },

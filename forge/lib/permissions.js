@@ -2,6 +2,8 @@ const { Roles } = require('./roles.js')
 
 module.exports = {
     Permissions: {
+        // Platform Scoped Actions
+        'platform:audit-log': { description: 'Access Team Audit Log', role: Roles.Admin },
         // Team Scoped Actions
         'team:create': { description: 'Create Team', admin: false },
         'team:edit': { description: 'Edit Team', role: Roles.Owner },

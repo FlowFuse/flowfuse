@@ -31,7 +31,7 @@ import { mapState } from 'vuex'
 import NavItem from '@/components/NavItem'
 import SideNavigation from '@/components/SideNavigation'
 
-import { ChevronLeftIcon, CollectionIcon, CogIcon, UsersIcon, UserGroupIcon, DesktopComputerIcon, TemplateIcon, ColorSwatchIcon } from '@heroicons/vue/solid'
+import { ChevronLeftIcon, CollectionIcon, CogIcon, UsersIcon, UserGroupIcon, DesktopComputerIcon, TemplateIcon, ColorSwatchIcon, DatabaseIcon } from '@heroicons/vue/solid'
 
 const navigation = [
     { name: 'Overview', path: '/admin/overview', tag: 'admin-overview', icon: CollectionIcon },
@@ -40,7 +40,8 @@ const navigation = [
     { name: 'Project Types', path: '/admin/project-types', tag: 'admin-projecttypes', icon: ColorSwatchIcon },
     { name: 'Stacks', path: '/admin/stacks', tag: 'admin-stacks', icon: DesktopComputerIcon },
     { name: 'Templates', path: '/admin/templates', tag: 'admin-templates', icon: TemplateIcon },
-    { name: 'Settings', path: '/admin/settings', tag: 'admin-settings', icon: CogIcon }
+    { name: 'Settings', path: '/admin/settings', tag: 'admin-settings', icon: CogIcon },
+    { name: 'Audit Log', path: '/admin/audit-log', tag: 'admin-auditlog', icon: DatabaseIcon }
 ]
 
 export default {
