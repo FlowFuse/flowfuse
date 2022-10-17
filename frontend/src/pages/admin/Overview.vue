@@ -20,7 +20,7 @@
         <div class="border rounded p-4 text-center">
             <div class="text-xl">{{stats.projectCount}}/{{stats.maxProjects}}</div>
             <div>{{ $filters.pluralize(stats.projectCount,'Project')}}</div>
-            <div class="w-full grid grid-cols-1 pt-1 mt-2 border-t">
+            <div v-if="stats.projectsByState && Object.keys(stats.projectsByState).length > 0" class="w-full grid grid-cols-1 pt-1 mt-2 border-t">
                 <div v-for="(count, state) in stats.projectsByState" :key="state">
                     {{ count }} {{ state }}
                 </div>
