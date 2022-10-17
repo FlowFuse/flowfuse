@@ -84,7 +84,6 @@ module.exports = async function (app) {
             properties: request.body.properties,
             ProjectTypeId: app.db.models.ProjectType.decodeHashid(request.body.projectType)[0] || undefined
         }
-        console.log(stackProperties)
         try {
             let replacedStack
             if (request.body.replace) {
@@ -165,7 +164,6 @@ module.exports = async function (app) {
     app.put('/:stackId', {
         preHandler: app.needsPermission('stack:edit')
     }, async (request, reply) => {
-        console.log(request.body)
         const stack = await app.db.models.ProjectStack.byId(request.params.stackId)
         if (request.body.name !== undefined || request.body.properties !== undefined) {
             if (stack.getDataValue('projectCount') > 0) {
