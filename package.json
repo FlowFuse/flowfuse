@@ -51,7 +51,7 @@
         "tailwindcss": "^3.0.23"
     },
     "scripts": {
-        "serve": "vue-cli-service serve ./docs/main.js",
+        "serve": "vue-cli-service serve",
         "build": "rollup -c",
         "build-docs": "vue-cli-service build"
     },
