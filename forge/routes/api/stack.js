@@ -67,7 +67,7 @@ module.exports = async function (app) {
                 required: ['name'],
                 properties: {
                     name: { type: 'string' },
-                    label: {type: 'string' },
+                    label: { type: 'string' },
                     active: { type: 'boolean' },
                     projectType: { type: 'string' },
                     properties: { type: 'object' },
