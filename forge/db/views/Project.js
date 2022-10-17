@@ -50,6 +50,7 @@ module.exports = {
             result.stack = {
                 id: proj.ProjectStack.hashid,
                 name: proj.ProjectStack.name,
+                label: proj.ProjectStack.label,
                 properties: proj.ProjectStack.properties || {},
                 replacedBy: app.db.models.ProjectStack.encodeHashid(proj.ProjectStack.replacedBy) || undefined,
                 links: proj.ProjectStack.links
