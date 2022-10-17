@@ -6,7 +6,7 @@ in your own environment. It was created to make it easier to run Node-RED at sca
 
 ## Key Benefits
 
-* FlowForge makes it easier for developers to create, update and deployment flows to Node-RED.
+* FlowForge makes it easier for developers to create, update and deploy flows to Node-RED.
 
 * FlowForge manages resources and user permissions to reduce operational overhead for small and large teams.
 
