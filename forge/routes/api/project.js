@@ -76,6 +76,7 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.project
      */
     app.get('/:projectId', async (request, reply) => {
+        // request.project.runtimeSettings = await app.db.models.StorageSettings.byProject(request.project.id)
         const result = await app.db.views.Project.project(request.project)
         const inflightState = app.db.controllers.Project.getInflightState(request.project)
         if (inflightState) {

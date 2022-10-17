@@ -14,6 +14,7 @@ const validSettings = [
     'palette_allowInstall',
     'palette_nodesExcludes',
     'palette_denyList',
+    'palette_modules',
     'modules_allowInstall',
     'httpNodeAuth_user',
     'httpNodeAuth_pass'
@@ -61,12 +62,11 @@ module.exports = {
    */
     validateSettings: function (app, settings, template) {
         const result = {}
-
         // First pass - copy over only the known and policy-permitted settings
         validSettings.forEach((name) => {
             const value = getTemplateValue(settings, name)
             if (value !== undefined) {
-                if (!template || getTemplateValue(template.policy, name)) {
+                if (!template || getTemplateValue(template.policy, name) !== false) {
                     setTemplateValue(result, name, value)
                 }
             }
@@ -187,7 +187,7 @@ module.exports = {
    * @param {*} settings the new settings to merge in
    */
     mergeSettings: function (app, existingSettings, settings) {
-    // Quick deep clone that is safe as we know settings are JSON-safe
+        // Quick deep clone that is safe as we know settings are JSON-safe
         const result = JSON.parse(JSON.stringify(existingSettings))
         validSettings.forEach((name) => {
             const value = getTemplateValue(settings, name)
