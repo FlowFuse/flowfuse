@@ -17,10 +17,10 @@ There is an example `Dockerfile` and `package.json` in the [node-red-container](
 directory of the [docker-compose](https://github.com/flowforge/docker-compose) project. This will start with `nodered/node-red:latest` 
 as it's base and then add the required FlowForge components.
 
-If you wanted to pin at Node-RED v2.2.2 you would change the first line to:
+If you wanted to pin at Node-RED v3.0.2 you would change the first line to:
 
 ```docker
-FROM nodered/node-red:2.2.2
+FROM nodered/node-red:3.0.2
 
 ARG REGISTRY
 RUN if [[ ! -z "$REGISTRY" ]] ; then npm config set @flowforge:registry "$REGISTRY"; fi
@@ -39,9 +39,9 @@ side the FlowForge plugins
     "version": "0.7.0",
     "private": true,
     "dependencies":{
-        "@flowforge/nr-storage": "^0.7.0",
-        "@flowforge/nr-auth": "^0.7.0",
-        "@flowforge/nr-audit-logger": "^0.7.0",
+        "@flowforge/nr-storage": "^0.10.0",
+        "@flowforge/nr-auth": "^0.10.0",
+        "@flowforge/nr-audit-logger": "^0.10.0",
         "node-red-dashboard": "^3.1.6"
     }
 }
@@ -50,10 +50,10 @@ side the FlowForge plugins
 To build the container run the following:
 
 ```shell
-docker build node-red-container -t flowforge/node-red-dashboard:2.2.2
+docker build node-red-container -t flowforge/node-red-dashboard:3.0.2
 ```
 
-You would then enter `flowforge/node-red-dashboard:2.2.2` in the `container` section
+You would then enter `flowforge/node-red-dashboard:3.0.2` in the `container` section
 of the Stack configuration.
 
 Stacks can be changed on a per project basis, see also the
