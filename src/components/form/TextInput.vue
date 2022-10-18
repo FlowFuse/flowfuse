@@ -8,7 +8,6 @@
             :value="modelValue"
             @change="$emit('update:modelValue', $event.target.value)"
             @input="$emit('update:modelValue', $event.target.value)"
-            @enter="$emit('enter', $event)"
             @blur="$emit('blur')" @keyup.enter="$emit('enter', $evt)"/>
     </div>
 </template>
@@ -16,7 +15,7 @@
 <script>
 export default {
     name: 'ff-text-input',
-    emits: ['update:modelValue', 'input', 'blur', 'keyup'],
+    emits: ['update:modelValue', 'input', 'blur', 'keyup', 'enter'],
     props: {
         // broker standard text-input props
         disabled: {
