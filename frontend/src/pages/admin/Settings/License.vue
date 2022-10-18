@@ -5,7 +5,7 @@
         <template v-if="!editing.license">
             <FormHeading>License</FormHeading>
             <template v-if="license">
-                <table>
+                <table data-el="license-details">
                     <tr v-if="license.dev"><td class="font-medium p-2 pr-4 align-top" colspan="2"></td></tr>
                     <tr><td class="font-medium p-2 pr-4 align-top">Type</td><td class="p-2"><span v-if="!license.dev">FlowForge Enterprise Edition</span><span v-else class="font-bold">FlowForge Development Only</span></td></tr>
                     <tr><td class="font-medium p-2 pr-4 align-top">Organisation</td><td class="p-2">{{license.organisation}}</td></tr>
@@ -20,16 +20,16 @@
                 </table>
             </template>
             <div class="space-x-4 whitespace-nowrap">
-                <ff-button @click="editLicense">Update license</ff-button>
+                <ff-button @click="editLicense" data-form="update-licence">Update license</ff-button>
             </div>
         </template>
         <template v-if="editing.license">
             <FormHeading>1. Upload new license</FormHeading>
             <template v-if="!inspectedLicense">
-                <FormRow v-model="input.license" :error="errors.license" id="license" placeholder="Enter new license" ref="row-license"></FormRow>
+                <FormRow v-model="input.license" :error="errors.license" id="license" placeholder="Enter new license" ref="row-license" data-form="license"></FormRow>
                 <div class="space-x-4 whitespace-nowrap flex">
                     <ff-button @click="cancelEditLicense">Cancel</ff-button>
-                    <ff-button :disabled="!formValid" @click="inspectLicense">Check license</ff-button>
+                    <ff-button :disabled="!formValid" @click="inspectLicense" data-form="check-license">Check license</ff-button>
                 </div>
             </template>
             <template v-if="inspectedLicense">
@@ -42,7 +42,7 @@
                 <details><pre class="break-words">{{inspectedLicense}}</pre></details>
                 <div class="space-x-4 whitespace-nowrap flex">
                     <ff-button kind="secondary" @click="cancelEditLicense">Cancel</ff-button>
-                    <ff-button kind="primary" @click="applyLicense">Apply license</ff-button>
+                    <ff-button kind="primary" @click="applyLicense" data-form="submit">Apply license</ff-button>
                 </div>
             </template>
         </template>
