@@ -3,7 +3,7 @@
         <TemplateSettingsPalette v-model="editable" :editTemplate="false" />
         <TemplatePaletteModulesEditor v-model="editable" :editTemplate="false" :readOnly="!paletteEditable"/>
         <div class="space-x-4 whitespace-nowrap">
-            <ff-button size="small" :disabled="!unsavedChanges" @click="saveSettings()">Save settings</ff-button>
+            <ff-button size="small" :disabled="!unsavedChanges && !modulesChanged" @click="saveSettings()">Save settings</ff-button>
         </div>
     </form>
 </template>
@@ -105,7 +105,6 @@ export default {
                     changed = true
                 }
                 this.modulesChanged = changed
-                this.unsavedChanges = this.unsavedChanges || changed
                 this.hasErrors = errors
             }
         }
