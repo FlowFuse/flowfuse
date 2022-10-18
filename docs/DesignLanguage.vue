@@ -300,13 +300,15 @@
                 <h2 ref="ff-text-input"><pre>ff-text-input</pre></h2>
                 <h3>Properties:</h3>
                 <props-table :rows="cGroups['input'].components[0].props"></props-table>
+                <h3>Methods:</h3>
+                <methods-table :rows="cGroups['input'].components[0].methods" @callMethod="this.$refs['text-input']?.[$event]()"></methods-table>
                 <h3>Slots:</h3>
                 <slots-table :rows="cGroups['input'].components[0].slots"></slots-table>
                 <h3>Examples:</h3>
                 <div class="examples">
                     <div class="example">
                         <h5>Simple Text Input</h5>
-                        <ff-text-input placeholder="Insert something here..." v-model="models.textInput0"/>
+                        <ff-text-input placeholder="Insert something here..." v-model="models.textInput0" ref="text-input"/>
                         {{ models.textInput0 }}
                         <code>{{ cGroups['input'].components[0].examples[0].code }}</code>
                     </div>
@@ -578,8 +580,9 @@
 
 import _ from 'underscore'
 
-import PropsTable from './components/PropsTable.vue'
 import EventsTable from './components/EventsTable.vue'
+import MethodsTable from './components/MethodsTable.vue'
+import PropsTable from './components/PropsTable.vue'
 import SlotsTable from './components/SlotsTable.vue'
 
 import buttonDocs from './data/button.docs.json'
@@ -600,8 +603,9 @@ import { markRaw } from '@vue/reactivity'
 export default {
     name: 'DesignLanguage',
     components: {
-        PropsTable,
         EventsTable,
+        MethodsTable,
+        PropsTable,
         SlotsTable,
         // icons
         PlusSmIcon,
