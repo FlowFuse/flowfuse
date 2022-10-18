@@ -1,10 +1,10 @@
 <template>
-    <form class="space-y-6" ref="password_form">
+    <form class="space-y-6" ref="password_form" @submit.prevent>
         <div>You must set a new password before continuing</div>
-        <ff-button @click="changePassword">
         <FormRow type="password" @enter="focusPassword" :error="errors.old_password" v-model="input.old_password" ref="row-old">Old Password</FormRow>
         <FormRow type="password" @enter="focusConfirmPassword" :error="errors.password" v-model="input.password" ref="row-new">New Password</FormRow>
         <FormRow type="password" @enter="changePassword" :error="errors.password_confirm" v-model="input.password_confirm" ref="row-confirm">Confirm</FormRow>
+        <ff-button @click="changePassword" type="submit">
             Change Password
         </ff-button>
         <ff-button kind="tertiary" @click="logout">Log out</ff-button>
