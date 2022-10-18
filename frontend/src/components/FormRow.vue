@@ -66,8 +66,8 @@
                         :placeholder="placeholder"
                         :disabled="disabled"
                         :type="type"
-                        @keyup.enter.prevent="$emit('enter')"
-                        @blur="$emit('blur')"/>
+                        @enter="$emit('enter')"
+                        @blur="$emit('blur')" />
                 </template>
                 <template v-if="hasAppend">
                     <div :class="appendClass ? appendClass : 'block sm:inline sm:absolute sm:left-full sm:ml-4 mt-2 sm:mt-0'"><slot name="append"></slot></div>
