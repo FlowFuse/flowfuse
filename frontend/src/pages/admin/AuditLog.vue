@@ -29,11 +29,7 @@ export default {
             return await adminApi.getPlatformAuditLog(cursor)
         },
         fetchData: async function () {
-            if (this.hasPermission('platform:audit-log')) {
-                this.entity = { id: 'audit' }
-            } else {
-                this.$router.push({ path: '/' })
-            }
+            this.entity = { id: 'audit' }
         }
     },
     components: {
