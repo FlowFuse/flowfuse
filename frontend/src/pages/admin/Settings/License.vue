@@ -26,7 +26,7 @@
         <template v-if="editing.license">
             <FormHeading>1. Upload new license</FormHeading>
             <template v-if="!inspectedLicense">
-                <FormRow v-model="input.license" :error="errors.license" id="license" placeholder="Enter new license"></FormRow>
+                <FormRow v-model="input.license" :error="errors.license" id="license" placeholder="Enter new license" ref="LicenseFormRow"></FormRow>
                 <div class="space-x-4 whitespace-nowrap flex">
                     <ff-button @click="cancelEditLicense">Cancel</ff-button>
                     <ff-button :disabled="!formValid" @click="inspectLicense">Check license</ff-button>
@@ -99,9 +99,9 @@ export default {
         editLicense () {
             this.input.license = ''
             this.editing.license = true
-            setTimeout(() => {
-                document.getElementById('license').focus()
-            }, 0)
+            this.$nextTick(() => {
+                this.focusInput()
+            })
         },
         async inspectLicense () {
             this.loading.checking = true

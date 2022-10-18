@@ -4,6 +4,7 @@
             <div class="flex" :class="(wrapperClass ? wrapperClass : 'items-center')">
                 <div :class="(disabled ? ' cursor-not-allowed' : '')">
                     <input :id="inputId"
+                           ref="input"
                            type="checkbox"
                            :class="inputClass"
                            v-model="localModelValue"
@@ -20,6 +21,7 @@
         <template v-else-if="type==='radio'">
             <div class="flex" :class="(wrapperClass ? wrapperClass : 'items-center')  + (disabled ? ' cursor-not-allowed' : '')">
                 <input :id="inputId"
+                       ref="input"
                        type="radio"
                        :class="inputClass"
                        v-model="localModelValue"
@@ -39,6 +41,7 @@
             <div :class="(wrapperClass ? wrapperClass : 'flex flex-col sm:flex-row relative')">
                 <template v-if="options && type !== 'uneditable'">
                     <select :id="inputId"
+                            ref="input"
                             class="w-full"
                             :class="inputClass"
                             :value="modelValue"
@@ -58,7 +61,7 @@
                 </template>
                 <template v-else>
                     <ff-text-input
-                        ref="text_input"
+                        ref="input"
                         v-model="localModelValue"
                         :placeholder="placeholder"
                         :disabled="disabled"
@@ -117,6 +120,13 @@ export default {
             hasDescription,
             hasAppend,
             hasCustomInput
+        }
+    },
+    methods: {
+        focus () {
+            this.$nextTick(() => {
+                this.$refs.input?.focus()
+            })
         }
     }
 }
