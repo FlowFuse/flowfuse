@@ -16,6 +16,7 @@ in your own environment. It was created to make it easier to run Node-RED at sca
 
 * FlowForge gives a clear overview of all your projects in one easy to use dashboard.
 
+* FlowForge provides one-click deployment capability, with version control, to thousands of devices
 ## Links
 
 - [Documentation](https://github.com/flowforge/flowforge/blob/main/docs/README.md)
