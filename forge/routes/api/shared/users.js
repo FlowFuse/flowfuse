@@ -1,11 +1,39 @@
+
 module.exports = {
-    // This is common code shared by:
-    //   PUT /api/v1/user/ (user.js)
-    //   PUT /api/v1/users/:id (users.js)
-    // Access control is handled by those individual routes. For a request to reach
-    // this function, the request has passed all auth checks.
-    updateUser: async (app, user, request, reply) => {
+
+    /**
+     * For audit logging the event.
+     * @callback userLogCallback
+     * @param {number} userId ID of the user performing the action
+     * @param {string} event The name of the event
+     * @param {*} body The body/data for the log entry
+     * @param {string|number} [entityId] The ID of the user being affected (where available)
+     */
+
+    /**
+     * Update a user
+     * This is common code shared by:
+     *  * `PUT /api/v1/user/`     (user.js)
+     *  * `PUT /api/v1/users/:id` (users.js)
+     *
+     * Access control is handled by those individual routes.
+     * For a request to reach this function, the request has passed all auth checks.
+     * @param {object} app The app object
+     * @param {object} user The user to update
+     * @param {import("node_modules/fastify/fastify").FastifyRequest} request The incoming request
+     * @param {import("node_modules/fastify/fastify").FastifyReply} reply The HTTP reply object
+     * @param {userLogCallback} [userLog] Audit Log function
+     */
+    updateUser: async (app, user, request, reply, userLog) => {
+        const noop = async () => {}
+        userLog = userLog || noop
+        const logUserInfo = {
+            username: user.username,
+            name: user.name,
+            email: user.email
+        }
         try {
+            const oldProfile = app.db.views.User.userProfile(user)
             if (request.body.name && user.name !== request.body.name) {
                 user.name = request.body.name
             } else if (request.body.name === '') {
@@ -64,7 +92,9 @@ module.exports = {
                             user.suspended = false
                         }
                     } else {
-                        reply.code(400).send({ code: 'invalid_request', error: 'cannot suspend self' })
+                        const resp = { code: 'invalid_request', error: 'cannot suspend self' }
+                        await userLog(request.session.User.id, 'update-user', resp, user.id)
+                        reply.code(400).send(resp)
                         return
                     }
                 }
@@ -75,12 +105,24 @@ module.exports = {
                 if (membership) {
                     user.defaultTeamId = membership.TeamId
                 } else {
-                    reply.code(400).send({ code: 'invalid_team', error: 'invalid team' })
+                    const resp = { code: 'invalid_team', error: 'invalid team', team: request.body.defaultTeam }
+                    await userLog(request.session.User.id, 'update-user', { ...resp, user: logUserInfo }, user.id)
+                    reply.code(400).send(resp)
                     return
                 }
             }
             await user.save()
-            reply.send(app.db.views.User.userProfile(user))
+            // diff profile before and after for log
+            const newProfile = app.db.views.User.userProfile(user)
+            const newValues = Object.fromEntries(Object.entries(newProfile).filter(([k, v]) => oldProfile[k] !== v))
+            const originalValues = Object.fromEntries(Object.entries(oldProfile).filter(([k, v]) => newProfile[k] !== v))
+            await userLog(
+                request.session.User.id,
+                'update-user',
+                { status: 'okay', old: originalValues, new: newValues, user: logUserInfo }, // log body
+                user.id
+            )
+            reply.send(newProfile)
         } catch (err) {
             let responseMessage
             if (err.errors) {
@@ -90,7 +132,9 @@ module.exports = {
             }
             console.log(err.toString())
             console.log(responseMessage)
-            reply.code(400).send({ code: 'unexpected_error', error: responseMessage })
+            const resp = { code: 'unexpected_error', error: responseMessage }
+            await userLog(request.session.User.id, 'update-user', { ...resp, user: logUserInfo }, user.id)
+            reply.code(400).send(resp)
         }
     }
 }

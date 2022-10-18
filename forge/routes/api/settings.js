@@ -59,20 +59,21 @@ module.exports = async function (app) {
                 if (changed) {
                     changeCount++
                     changes[key] = {
-                        original: original,
+                        old: original,
                         new: value
                     }
                 }
                 await app.settings.set(key, value)
             }
+            const resp = { status: 'okay' }
             if (changeCount > 0) {
                 await app.db.controllers.AuditLog.platformLog(
                     request.session.User.id,
                     'platform.settings.update',
-                    changes
+                    { ...resp, changes }
                 )
             }
-            reply.send({ status: 'okay' })
+            reply.send(resp)
         } else {
             reply.code(400).send('invalid request')
         }

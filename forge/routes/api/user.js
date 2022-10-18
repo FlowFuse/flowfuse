@@ -46,10 +46,14 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         try {
+            const resp = { status: 'okay' }
             await app.db.controllers.User.changePassword(request.session.User, request.body.old_password, request.body.password)
-            reply.send({ status: 'okay' })
+            await userLog(request.session.User.id, 'change-password', resp, request.session.User.id)
+            reply.send(resp)
         } catch (err) {
-            reply.code(400).send({ code: 'password_change_failed', error: 'password change failed' })
+            const resp = { code: 'password_change_failed', error: 'password change failed' }
+            await userLog(request.session.User.id, 'change-password', resp, request.session.User.id)
+            reply.code(400).send(resp)
         }
     })
 
@@ -76,7 +80,28 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.user
      */
     app.put('/', async (request, reply) => {
-        sharedUser.updateUser(app, request.session.User, request, reply)
+        sharedUser.updateUser(app, request.session.User, request, reply, userLog)
         return reply // fix errors in tests "Promise may not be fulfilled with 'undefined' when statusCode is not 204" https://github.com/fastify/help/issues/627
     })
+
+    /**
+     * Log events against the entityType `users.x.y`
+     * @param {number} userId User performing the action
+     * @param {string} event The name of the event
+     * @param {*} body The body/data for the log entry
+     * @param {string|number} [entityId] The ID of the user being affected (where available)
+     */
+    async function userLog (userId, event, body, entityId) {
+        try {
+            // function userLog (app, UserId, event, body, entityId)
+            await app.db.controllers.AuditLog.userLog(
+                userId,
+                `user.${event}`,
+                body,
+                entityId || userId
+            )
+        } catch (error) {
+            console.error(error)
+        }
+    }
 }

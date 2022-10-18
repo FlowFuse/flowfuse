@@ -47,19 +47,19 @@ module.exports = async function (app) {
         try {
             if (request.body.action === 'apply') {
                 await app.license.apply(request.body.license)
-                const license = app.license.get()
+                const license = app.license.get() || {}
                 await app.db.controllers.AuditLog.platformLog(
                     request.session.User.id,
                     'platform.licence.apply',
-                    { license }
+                    { status: 'okay', license }
                 )
-                reply.send(license || {})
+                reply.send(license)
             } else if (request.body.action === 'inspect') {
                 const license = await app.license.inspect(request.body.license)
                 await app.db.controllers.AuditLog.platformLog(
                     request.session.User.id,
                     'platform.licence.inspect',
-                    { license }
+                    { status: 'okay', license }
                 )
                 reply.send(license)
             } else {
@@ -70,12 +70,13 @@ module.exports = async function (app) {
             if (/malformed/.test(responseMessage)) {
                 responseMessage = 'Failed to parse license'
             }
+            const resp = { code: 'invalid_license', error: responseMessage }
             await app.db.controllers.AuditLog.platformLog(
                 request.session.User.id,
                 'platform.licence.' + request.body.action,
-                { error: responseMessage }
+                resp
             )
-            reply.code(400).send({ code: 'invalid_license', error: responseMessage })
+            reply.code(400).send(resp)
         }
     })
 
@@ -121,7 +122,7 @@ module.exports = async function (app) {
      * @name /api/v1/admin/audit-log
      * @memberof forge.routes.api.admin
      */
-    app.get('/audit-log', { preHandler: app.needsPermission('platform:audit-log') }, async (request, reply) => {
+    app.get('/audit-log', async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const logEntries = await app.db.models.AuditLog.forPlatform(paginationOptions)
         const result = app.db.views.AuditLog.auditLog(logEntries)

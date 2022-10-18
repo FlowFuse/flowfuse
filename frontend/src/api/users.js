@@ -24,6 +24,10 @@ const updateUser = async (userId, options) => {
     })
 }
 
+/**
+ * Calls api routes in users.js
+ * See [routes/api/users.js](../../../forge/routes/api/users.js)
+*/
 export default {
     create,
     getUsers,

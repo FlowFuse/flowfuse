@@ -11,7 +11,16 @@ module.exports = {
     platformLog: async function (app, UserId, event, body) {
         await app.db.models.AuditLog.create({
             entityType: 'platform',
-            entityId: 'audit',
+            entityId: null,
+            UserId,
+            event,
+            body: encodeBody(body)
+        })
+    },
+    userLog: async function (app, UserId, event, body, entityId) {
+        await app.db.models.AuditLog.create({
+            entityType: 'user',
+            entityId: entityId || null,
             UserId,
             event,
             body: encodeBody(body)

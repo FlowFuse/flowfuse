@@ -25,20 +25,27 @@ module.exports = {
         return {
             static: {
                 forPlatform: async (pagination = {}) => {
-                    return M.AuditLog.forEntity('platform', 'audit', pagination)
+                    const where = {
+                        [Op.or]: [{ entityType: 'platform' }, { entityType: 'user' }]
+                    }
+                    return M.AuditLog.forEntity(where, pagination)
                 },
                 forProject: async (projectId, pagination = {}) => {
-                    return M.AuditLog.forEntity('project', projectId, pagination)
-                },
-                forTeam: async (teamId, pagination = {}) => {
-                    return M.AuditLog.forEntity('team', teamId, pagination)
-                },
-                forEntity: async (entityType, projectId, pagination = {}) => {
-                    const limit = parseInt(pagination.limit) || 30
                     const where = {
                         entityId: projectId.toString(),
-                        entityType: entityType
+                        entityType: 'project'
                     }
+                    return M.AuditLog.forEntity(where, pagination)
+                },
+                forTeam: async (teamId, pagination = {}) => {
+                    const where = {
+                        entityId: teamId,
+                        entityType: 'team'
+                    }
+                    return M.AuditLog.forEntity(where, pagination)
+                },
+                forEntity: async (where, pagination = {}) => {
+                    const limit = parseInt(pagination.limit) || 30
                     if (pagination.cursor) {
                         where.id = { [Op.lt]: M.AuditLog.decodeHashid(pagination.cursor) }
                     }
