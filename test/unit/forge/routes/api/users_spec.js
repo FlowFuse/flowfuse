@@ -172,7 +172,7 @@ describe('Users API', async function () {
                 const result = response.json()
                 result.should.have.property('email_verified', true)
                 // ensure audit log entry is made
-                const auditLogs = await getAuditLog('user', 1)
+                const auditLogs = await getAuditLog(1)
                 auditLogs.log[0].should.have.a.property('body').and.be.a.String()
                 const body = JSON.parse(auditLogs.log[0].body)
                 body.should.have.a.property('status', 'okay')
@@ -409,6 +409,21 @@ describe('Users API', async function () {
                 payload: { username: 'elvis', password: 'eePassword', remember: false }
             })
             response.should.have.property('statusCode', 200)
+            // ensure audit log entry is made
+            const auditLogs = await getAuditLog(2) // get last 2
+            // the oldest entry should be a failed login
+            auditLogs.log[1].should.have.a.property('body').and.be.a.String()
+            auditLogs.log[1].should.have.a.property('event', 'account.login')
+            const body = JSON.parse(auditLogs.log[1].body)
+            body.should.have.a.property('code', 'user_suspended')
+            body.should.have.a.property('user').and.be.an.Object()
+            body.user.should.have.a.property('username', 'elvis')
+            // the latest entry should be a successful login
+            auditLogs.log[0].should.have.a.property('body').and.be.a.String()
+            auditLogs.log[0].should.have.a.property('event', 'account.login')
+            const body2 = JSON.parse(auditLogs.log[0].body)
+            body2.should.have.a.property('status', 'okay')
+            body2.should.have.a.property('user').and.be.an.Object()
         })
         it('Admin can suspend another user', async function () {
             const elvis = await app.db.views.User.userProfile(TestObjects.elvis)

@@ -181,7 +181,7 @@ module.exports = fp(async function (app, opts, done) {
                 return
             } else {
                 const resp = { code: 'user_suspended', error: 'User Suspended' }
-                await userLog(session.UserId, 'login', { ...resp, user: { username: request.body.username } }, session.UserId)
+                await userLog(null, 'login', { ...resp, user: { username: request.body.username } }, null)
                 reply.code(403).send(resp)
                 return
             }
