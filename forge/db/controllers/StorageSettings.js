@@ -7,6 +7,9 @@ module.exports = {
                 const runtimeSettings = JSON.parse(storageSettings.settings)
                 if (runtimeSettings.nodes) {
                     for (const [key, value] of Object.entries(runtimeSettings.nodes)) {
+                        // Only return the 'local' modules - those are the ones loaded
+                        // from the project's own package.json, rather than elsewhere
+                        // on the node path.
                         if (value.local) {
                             result.push({
                                 name: key,

@@ -21,6 +21,29 @@ const validSettings = [
     // 'env' // Handled separately
 ]
 
+const defaultTemplatePolicy = {
+    disableEditor: false,
+    disableTours: false,
+    httpAdminRoot: false,
+    dashboardUI: false,
+    codeEditor: false,
+    theme: false,
+    page_title: false,
+    page_favicon: false,
+    header_title: false,
+    header_url: false,
+    timeZone: false,
+    palette_allowInstall: false,
+    palette_nodesExcludes: false,
+    palette_denyList: false,
+    palette_modules: true,
+    modules_allowInstall: false,
+    modules_denyList: false,
+    httpNodeAuth_user: false,
+    httpNodeAuth_pass: false
+}
+
+
 function getTemplateValue (template, path) {
     const parts = path.split('_')
     let p = template
@@ -66,7 +89,9 @@ module.exports = {
         validSettings.forEach((name) => {
             const value = getTemplateValue(settings, name)
             if (value !== undefined) {
-                if (!template || getTemplateValue(template.policy, name) !== false) {
+                let policy = !template || getTemplateValue(template.policy, name)
+                if (policy === undefined) { policy = defaultTemplatePolicy[name] }
+                if (!template || policy) {
                     setTemplateValue(result, name, value)
                 }
             }

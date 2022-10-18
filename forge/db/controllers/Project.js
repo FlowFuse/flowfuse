@@ -76,6 +76,7 @@ module.exports = {
         moduleList.forEach(module => {
             modules[module.name] = module.version
         })
+        result.palette = result.palette || {}
         result.palette.modules = modules
         result.env = env
         return result
@@ -188,7 +189,7 @@ module.exports = {
     mergeProjectModules: async function (app, project, moduleList) {
         let changed = false
         let newProjectModuleList
-        const currentProjectSettings = await project.getSetting('settings')
+        const currentProjectSettings = await project.getSetting('settings') || {}
         if (currentProjectSettings?.palette?.modules) {
             // The project has an existing list of modules - need to resolve any
             // changes between the two lists
@@ -228,6 +229,7 @@ module.exports = {
             newProjectModuleList = Object.values(existingModules)
         } else {
             // No existing modules - so updated with the list as provided
+            changed = true
             newProjectModuleList = moduleList.map(m => {
                 if (/^\d/.test(m.version)) {
                     m.version = `~${m.version}`
