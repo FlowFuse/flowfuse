@@ -6,7 +6,12 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 describe('Users API', async function () {
     let app
     const TestObjects = {}
-
+    async function getAuditLog (limit = 1) {
+        const logEntries = await app.db.models.AuditLog.forPlatform({ limit: limit || 1 })
+        const logRaw = [...(logEntries.log || [])]
+        const result = app.db.views.AuditLog.auditLog(logEntries)
+        return { log: result.log, logRaw }
+    }
     beforeEach(async function () {
         app = await setup({
             features: { devices: true }
@@ -71,6 +76,27 @@ describe('Users API', async function () {
         await app.close()
     })
 
+    describe('Create a new user', async function () {
+        // POST /api/v1/users
+        it.skip('Admin can create a new user', async function () {
+            // TODO: test audit log has 'users.create-user'  { status: 'okay', user: {} }
+        })
+        it.skip('Can not create a new user with the name admin or root', async function () {
+            // TODO: test audit log has 'users.create-user'  { code: 'invalid_username', error: 'xxx' }
+        })
+        it.skip('Can not create a new user because of team limit', async function () {
+            // TODO: test audit log has 'users.create-user'  { code: 'team_limit_reached', error: 'xxx' }
+        })
+        it.skip('Can not create a new user with duplicate username', async function () {
+            // TODO: test audit log has 'users.create-user'  { code: 'invalid_username', error: 'username not available' }
+        })
+        it.skip('Can not create a new user with duplicate email', async function () {
+            // TODO: test audit log has 'users.create-user'  { code: 'invalid_email', error: 'email not available' }
+        })
+        it.skip('Non admin can not create a new user', async function () {
+            // TODO: response should be unauthorised
+        })
+    })
     describe('Update user settings', async function () {
         describe('Default Team', async function () {
             // PUT /api/v1/users/:userId
@@ -145,7 +171,17 @@ describe('Users API', async function () {
                 response.statusCode.should.equal(200)
                 const result = response.json()
                 result.should.have.property('email_verified', true)
-                result.should.not.have.property('error')
+                // ensure audit log entry is made
+                const auditLogs = await getAuditLog('user', 1)
+                auditLogs.log[0].should.have.a.property('body').and.be.a.String()
+                const body = JSON.parse(auditLogs.log[0].body)
+                body.should.have.a.property('status', 'okay')
+                body.should.have.a.property('user').and.be.an.Object()
+                body.should.have.a.property('old').and.be.an.Object()
+                body.should.have.a.property('new').and.be.an.Object()
+                auditLogs.log[0].should.have.a.property('event', 'users.update-user')
+                auditLogs.log[0].should.have.a.property('username', 'alice') // admin user
+                auditLogs.logRaw[0].should.have.a.property('entityId', TestObjects.elvis.id.toString()) // affected user
             })
             it('team owner can not manually verify email', async function () {
                 const response = await app.inject({
@@ -227,6 +263,7 @@ describe('Users API', async function () {
             response.statusCode.should.equal(400)
             const result = response.json()
             result.should.have.property('error')
+            // TODO: test audit log has 'users.delete-user'  { code: 'unexpected_error', error: err.toString(), user: request.user }
         })
 
         it('Admin cannot delete themselves', async function () {
@@ -350,11 +387,13 @@ describe('Users API', async function () {
             // ensure elvis was actually removed
             membersAfterA.members.filter(e => e.username === 'elvis').should.have.property('length', 0)
             membersAfterA.members.filter(e => e.username === 'elvis').should.have.property('length', 0)
+
+            // TODO: test audit log has 'users.delete-user'  { status: 'okay', user: request.user }
         })
     })
 
     describe('Suspend User', async function () {
-        it('Suspend/Resume elivis', async function () {
+        it('Suspend/Resume elvis', async function () {
             await app.db.controllers.User.suspend(TestObjects.elvis)
             const suspendedResponse = await app.inject({
                 method: 'POST',
@@ -383,6 +422,8 @@ describe('Users API', async function () {
             suspendResponse.should.have.property('statusCode', 200)
             suspendResponse.json().should.have.property('id', TestObjects.elvis.hashid)
             suspendResponse.json().should.have.property('suspended', true)
+
+            // TODO: test audit log has { status: 'okay', old: originalValues, new: newValues, user: logUserInfo }
         })
         it('Admin cannot suspend themselves', async function () {
             const alice = await app.db.views.User.userProfile(TestObjects.alice)
@@ -395,6 +436,9 @@ describe('Users API', async function () {
             })
             suspendResponse.should.have.property('statusCode', 400)
             suspendResponse.json().should.have.property('error', 'cannot suspend self')
+
+            // TODO: test audit log has { code: 'invalid_request', error: 'cannot suspend self' }
+            // Consider also testing response has code: 'invalid_request' ?
         })
     })
 })

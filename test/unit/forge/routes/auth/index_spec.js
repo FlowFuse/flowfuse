@@ -36,6 +36,8 @@ describe('Accounts API', async function () {
                 name: 'u1',
                 email: 'u1@example.com'
             }, /user registration not enabled/)
+
+            // TODO: check user audit logs - expect 'account.xxx-yyy' { code: '', error, '' }
         })
         it('allows user to register', async function () {
             app = await setup()
@@ -48,6 +50,8 @@ describe('Accounts API', async function () {
                 email: 'u1@example.com'
             })
             response.statusCode.should.equal(200)
+
+            // TODO: check user audit logs - expect 'account.xxx-yyy' { status: 'okay', ... }
         })
 
         it('rejects reserved user names', async function () {
@@ -67,6 +71,8 @@ describe('Accounts API', async function () {
                 name: 'u1',
                 email: 'u1@example.com'
             }, /invalid username/)
+
+            // TODO: check user audit logs - expect 'account.xxx-yyy' { code: '', error, '' }
         })
 
         it('rejects duplicate username', async function () {
@@ -86,6 +92,8 @@ describe('Accounts API', async function () {
                 name: 'u1.2',
                 email: 'u1-2@example.com'
             }, /username not available/)
+
+            // TODO: check user audit logs - expect 'account.xxx-yyy' { code: '', error, '' }
         })
         it('rejects duplicate email', async function () {
             app = await setup()
@@ -104,6 +112,8 @@ describe('Accounts API', async function () {
                 name: 'u1.2',
                 email: 'u1@example.com'
             }, /email not available/)
+
+            // TODO: check user audit logs - expect 'account.xxx-yyy' { code: '', error, '' }
         })
 
         it('limits how many users can be created according to license', async function () {
@@ -127,6 +137,8 @@ describe('Accounts API', async function () {
                 name: 'u6',
                 email: 'u6@example.com'
             }, /license limit reached/)
+
+            // TODO: check user audit logs - expect 'account.xxx-yyy' { code: '', error, '' }
         })
     })
 })
