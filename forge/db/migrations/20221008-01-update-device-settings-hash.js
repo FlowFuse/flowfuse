@@ -1,5 +1,5 @@
 /**
- * Revert the starter teamType userLimit to 0
+ * Reset device settings hashes so they can be re-calculated as needed
  */
 
 module.exports = {
