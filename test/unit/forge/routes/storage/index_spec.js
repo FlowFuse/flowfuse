@@ -172,7 +172,7 @@ describe('Storage API', function () {
         const projectSettings = await app.db.controllers.Project.getRuntimeSettings(localProject)
         projectSettings.should.have.property('palette')
         projectSettings.palette.should.have.property('modules')
-        projectSettings.palette.modules.should.have.property('node-red-node-random', '1.2.3')
+        projectSettings.palette.modules.should.have.property('node-red-node-random', '~1.2.3')
         projectSettings.palette.modules.should.not.have.property('node-red')
         projectSettings.palette.modules.should.not.have.property('@flowforge/nr-project-nodes')
     })
