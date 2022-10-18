@@ -6,6 +6,7 @@
             :placeholder="placeholder"
             :disabled="disabled"
             :value="modelValue"
+            ref="input"
             @change="$emit('update:modelValue', $event.target.value)"
             @input="$emit('update:modelValue', $event.target.value)"
             @enter="$emit('enter', $event)"
@@ -44,6 +45,14 @@ export default {
         modelValue: {
             type: String,
             default: ''
+        }
+    },
+    methods: {
+        focus () {
+            this.$refs.input?.focus()
+        },
+        blur () {
+            this.$refs.input?.blur()
         }
     }
 }
