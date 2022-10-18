@@ -23,6 +23,7 @@
                             v-model="item.name"
                             :error="item.error"
                             :disabled="item.encrypted"
+                            value-empty-text=""
                             :type="(!readOnly && (editTemplate || item.policy === undefined))?'text':'uneditable'"></FormRow>
                         <!-- <ff-text-input  v-model="item.name" :disabled="item.encrypted"  /> -->
                     </td>
@@ -31,6 +32,7 @@
                             <FormRow
                                 class="font-mono"
                                 v-model="item.value"
+                                value-empty-text=""
                                 :type="(!readOnly && (editTemplate || item.policy === undefined || item.policy))?'text':'uneditable'"></FormRow>
                         </div>
                         <div v-else class="pt-1 text-gray-400"><LockClosedIcon class="inline w-4" /> encrypted</div>
