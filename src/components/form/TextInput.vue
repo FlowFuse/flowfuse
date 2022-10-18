@@ -16,7 +16,7 @@
 <script>
 export default {
     name: 'ff-text-input',
-    emits: ['update:modelValue', 'input', 'blur', 'keyup'],
+    emits: ['update:modelValue', 'input', 'blur', 'keyup', 'enter'],
     props: {
         // broker standard text-input props
         disabled: {
