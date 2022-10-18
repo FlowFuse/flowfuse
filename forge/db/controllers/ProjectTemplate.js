@@ -43,7 +43,6 @@ const defaultTemplatePolicy = {
     httpNodeAuth_pass: false
 }
 
-
 function getTemplateValue (template, path) {
     const parts = path.split('_')
     let p = template
