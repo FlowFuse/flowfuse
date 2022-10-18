@@ -810,13 +810,13 @@ $countdown_size: 20px;
 
 .countdown-spinner {
   transform-origin: 100% 50%;
-  border-radius: ($countdown_size/2) 0 0 ($countdown_size/2);
+  border-radius: ($countdown_size*0.5) 0 0 ($countdown_size*0.5);
   z-index: 200;
   border-right: none;
 }
 
 .countdown-filler {
-  border-radius: 0 ($countdown_size/2) ($countdown_size/2) 0;
+  border-radius: 0 ($countdown_size*0.5) ($countdown_size*0.5) 0;
   z-index: 100;
   border-left: none;
   left: 50%;
