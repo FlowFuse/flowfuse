@@ -1,5 +1,4 @@
 const featureFlags = [
-    { name: 'devices', default: true, isPublic: false }
 ]
 
 module.exports = function (app, config) {
