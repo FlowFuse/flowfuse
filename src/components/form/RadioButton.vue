@@ -9,6 +9,7 @@
 <script>
 export default {
     name: 'ff-radio-button',
+    // eslint-disable-next-line vue/require-prop-types
     props: ['label', 'value', 'checked'],
     emits: ['select'],
     methods: {

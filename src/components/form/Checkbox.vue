@@ -11,6 +11,7 @@
 <script>
 export default {
     name: 'ff-checkbox',
+    // eslint-disable-next-line vue/require-prop-types
     props: ['label', 'modelValue'],
     emits: ['update:modelValue'],
     computed: {
