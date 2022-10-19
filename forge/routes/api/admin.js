@@ -51,7 +51,7 @@ module.exports = async function (app) {
                 await app.db.controllers.AuditLog.platformLog(
                     request.session.User.id,
                     'platform.licence.apply',
-                    { status: 'okay', license }
+                    { license }
                 )
                 reply.send(license)
             } else if (request.body.action === 'inspect') {
@@ -59,7 +59,7 @@ module.exports = async function (app) {
                 await app.db.controllers.AuditLog.platformLog(
                     request.session.User.id,
                     'platform.licence.inspect',
-                    { status: 'okay', license }
+                    { license }
                 )
                 reply.send(license)
             } else {
