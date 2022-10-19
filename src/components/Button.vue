@@ -29,9 +29,9 @@ export default {
             default: 'normal',
             type: String // "small", "normal", "full-width"
         },
-        // eslint-disable-next-line vue/require-prop-types
         to: {
-            default: null
+            default: null,
+            type: [String, Object]
         }
     },
     computed: {

@@ -27,17 +27,17 @@ export default {
         ChevronDownIcon
     },
     props: {
-        // eslint-disable-next-line vue/require-prop-types
         modelValue: {
-            default: null
+            default: null,
+            type: String
         },
-        // eslint-disable-next-line vue/require-prop-types
         placeholder: {
-            default: 'Please Select'
+            default: 'Please Select',
+            type: String
         },
-        // eslint-disable-next-line vue/require-prop-types
         dropdownStyle: {
-            default: 'select' // 'button' or 'select'
+            default: 'select', // 'button' or 'select'
+            type: String
         },
         optionsAlign: {
             default: 'left',

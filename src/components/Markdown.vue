@@ -6,8 +6,8 @@
 export default {
     name: 'ff-markdown-viewer',
     props: {
-        // eslint-disable-next-line vue/require-default-prop
         content: {
+            required: true,
             type: String
         }
     },

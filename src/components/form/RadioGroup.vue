@@ -11,9 +11,9 @@
 export default {
     name: 'ff-radio-group',
     props: {
-        // eslint-disable-next-line vue/require-prop-types
         modelValue: {
-            default: null
+            default: null,
+            type: [String, Number]
         },
         label: {
             default: '',
