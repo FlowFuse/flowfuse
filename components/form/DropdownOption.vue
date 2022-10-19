@@ -8,9 +8,11 @@
 export default {
     name: 'ff-dropdown-option',
     props: {
+        // eslint-disable-next-line vue/require-prop-types
         value: {
             default: null
         },
+        // eslint-disable-next-line vue/require-prop-types
         label: {
             default: ''
         }

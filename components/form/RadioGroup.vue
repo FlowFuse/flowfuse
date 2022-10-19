@@ -11,6 +11,7 @@
 export default {
     name: 'ff-radio-group',
     props: {
+        // eslint-disable-next-line vue/require-prop-types
         modelValue: {
             default: null
         },
@@ -39,6 +40,7 @@ export default {
             this.internalOptions[i].checked = (option.checked && !hasCheck) ? option.checked : false
             if (this.internalOptions[i].checked) {
                 hasCheck = true
+                // eslint-disable-next-line vue/require-explicit-emits
                 this.$emit('update:modelValue', option.value)
             }
         })
@@ -48,6 +50,7 @@ export default {
             this.options.forEach((option, i) => {
                 this.internalOptions[i].checked = (option.value === val)
             })
+            // eslint-disable-next-line vue/require-explicit-emits
             this.$emit('update:modelValue', val)
         }
     }
