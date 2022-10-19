@@ -1,6 +1,7 @@
 <template>
     <form class="space-y-6">
-        <FormHeading>Project Templates
+        <FormHeading>
+            <div class="text-xl font-bold flex">Templates</div>
             <template v-slot:tools>
                 <ff-button size="small" :to="{ name: 'Admin Template', params: { id: 'create' } }">
                     <template v-slot:icon-right>
@@ -13,10 +14,12 @@
         <ff-loading v-if="loading" message="Loading Templates..." />
         <ff-data-table v-if="!loading" :columns="columns" data-el="templates"
                        :rows="templates" :show-search="true" search-placeholder="Search Templates..."
-                       :search-fields="['name',, 'description', 'owner_username', 'owner_id']">
+                       :search-fields="['name', 'description', 'owner_username', 'owner_id']"
+                       :rows-selectable="true" @row-selected="editTemplate"
+        >
             <template v-slot:context-menu="{row}">
-                <ff-list-item label="Edit Template" @click="editTemplate(row)"/>
-                <ff-list-item label="Delete Template" kind="danger" @click="showDeleteDialog(row)"/>
+                <ff-list-item label="Edit Template" @click.stop="editTemplate(row)"/>
+                <ff-list-item label="Delete Template" kind="danger" @click.stop="showDeleteDialog(row)"/>
             </template>
         </ff-data-table>
         <div v-if="nextCursor">
