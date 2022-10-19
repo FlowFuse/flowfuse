@@ -4,7 +4,7 @@
             <ff-text-input v-if="showSearch" class="ff-data-table--search"
                 :placeholder="searchPlaceholder" v-model="filterTerm"
             >
-                <template v-slot:icon><SearchIcon /></template>
+                <template #icon><SearchIcon /></template>
             </ff-text-input>
             <div class="ff-data-table--actions" v-if="$slots.actions">
                 <slot name="actions"></slot>
@@ -43,7 +43,7 @@
                             <ff-data-table-row v-for="(r, $index) in filteredRows" :key="$index" :data="r" :columns="columns"
                                 :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn" @click="rowClick(r)"
                             >
-                                <template v-if="hasContextMenu" v-slot:context-menu="{row}">
+                                <template v-if="hasContextMenu" #context-menu="{row}">
                                     <slot name="context-menu" :row="row"></slot>
                                 </template>
                             </ff-data-table-row>

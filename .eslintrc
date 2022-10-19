@@ -30,9 +30,6 @@
             "vue/max-attributes-per-line": "off",
             "vue/singleline-html-element-content-newline": "off",
             "vue/first-attribute-linebreak": "off",
-
-            // Should be auto-fixed - style related
-            "vue/v-slot-style": "off",
         }
     },
     {
