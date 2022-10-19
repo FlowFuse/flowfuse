@@ -81,7 +81,7 @@ describe('Project Type API', function () {
                 method: 'PUT',
                 url: `/api/v1/project-types/${id}`,
                 cookies: { sid: token },
-                payload: payload
+                payload
             })
         }
         async function denyUpdate (id, payload, token, expectedStatus = 400) {

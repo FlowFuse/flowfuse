@@ -41,8 +41,8 @@ export default {
         alertReceived (msg, type, countdown) {
             this.alerts.push({
                 message: msg,
-                type: type,
-                countdown: countdown,
+                type,
+                countdown,
                 timestamp: Date.now()
             })
         },

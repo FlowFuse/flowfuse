@@ -105,7 +105,7 @@ export default {
             Dialog.show({
                 header: 'Delete Project Type',
                 kind: 'danger',
-                text: text,
+                text,
                 confirmLabel: 'Delete',
                 disablePrimary: projectType.projectCount > 0
             }, async () => {

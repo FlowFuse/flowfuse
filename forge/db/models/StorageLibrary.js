@@ -22,19 +22,19 @@ module.exports = {
                     return this.findAll({
                         include: {
                             model: M.Project,
-                            where: { project: project },
+                            where: { project },
                             attributes: ['type', 'meta', 'body']
                         }
                     })
                 },
                 byType: async (project, type) => {
                     return this.findAll({
-                        where: { ProjectId: project, type: type }
+                        where: { ProjectId: project, type }
                     })
                 },
                 byName: async (project, type, name) => {
                     return this.findOne({
-                        where: { ProjectId: project, type: type, name: name }
+                        where: { ProjectId: project, type, name }
                     })
                 }
             }

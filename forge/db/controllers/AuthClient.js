@@ -25,7 +25,7 @@ module.exports = {
 
     getAuthClient: async function (app, clientID, clientSecret) {
         const client = await app.db.models.AuthClient.findOne({
-            where: { clientID: clientID }
+            where: { clientID }
         })
         if (client) {
             if (!clientSecret || compareHash(clientSecret, client.clientSecret)) {

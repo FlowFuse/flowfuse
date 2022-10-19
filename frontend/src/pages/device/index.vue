@@ -61,7 +61,7 @@ export default {
         return {
             mounted: false,
             device: null,
-            navigation: navigation
+            navigation
         }
     },
     computed: {

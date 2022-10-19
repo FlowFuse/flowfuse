@@ -31,8 +31,8 @@ Cypress.Commands.add('login', (username, password) => {
     cy.session([username, password], () => {
         // wait for data to get refreshed
         cy.request('post', '/account/login', {
-            username: username,
-            password: password
+            username,
+            password
         })
     })
 })

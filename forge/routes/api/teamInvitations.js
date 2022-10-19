@@ -65,7 +65,7 @@ module.exports = async function (app) {
                             invite,
                             'UnknownUserInvitation',
                             {
-                                invite: invite,
+                                invite,
                                 signupLink: `${app.config.base_url}/account/create?email=${invite.email}`
                             }
                         )
@@ -76,7 +76,7 @@ module.exports = async function (app) {
                                 invite.invitee,
                                 'TeamInvitation',
                                 {
-                                    invite: invite,
+                                    invite,
                                     signupLink: `${app.config.base_url}/account/teams/invitations`
                                 }
                             )
