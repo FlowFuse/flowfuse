@@ -54,7 +54,7 @@
         "serve": "vue-cli-service serve",
         "build": "rollup -c",
         "build-docs": "vue-cli-service build",
-        "lint": "eslint -c .eslintrc \"src/**/*.js\""
+        "lint": "eslint --ext .js,.vue src/"
     },
     "dependencies": {
         "underscore": "^1.13.2"
