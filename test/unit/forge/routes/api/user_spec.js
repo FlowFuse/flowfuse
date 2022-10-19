@@ -123,7 +123,6 @@ describe('User API', async function () {
             const auditLogs = await getAuditLog(1)
             auditLogs.log[0].should.have.a.property('body').and.be.a.String()
             const body = JSON.parse(auditLogs.log[0].body)
-            body.should.have.a.property('status', 'okay')
             body.should.have.a.property('old').and.be.an.Object()
             body.should.have.a.property('new').and.be.an.Object()
             body.should.have.a.property('user').and.be.an.Object()
@@ -161,12 +160,10 @@ describe('User API', async function () {
             })
             response.statusCode.should.equal(200)
             const result = response.json()
-            result.should.have.property('status', 'okay')
+            result.should.not.have.property('error')
             // ensure audit log entry is made
             const auditLogs = await getAuditLog(1)
             auditLogs.log[0].should.have.a.property('body').and.be.a.String()
-            const body = JSON.parse(auditLogs.log[0].body)
-            body.should.have.a.property('status', 'okay')
             auditLogs.log[0].should.have.a.property('event', 'user.change-password')
             auditLogs.log[0].should.have.a.property('username', 'dave') // admin user
             auditLogs.logRaw[0].should.have.a.property('entityId', TestObjects.dave.id.toString()) // affected user
@@ -318,7 +315,6 @@ describe('User API', async function () {
                 const auditLogs = await getAuditLog(1)
                 auditLogs.log[0].should.have.a.property('body').and.be.a.String()
                 const body = JSON.parse(auditLogs.log[0].body)
-                body.should.have.a.property('status', 'okay')
                 body.should.have.a.property('old').and.be.an.Object()
                 body.should.have.a.property('new').and.be.an.Object()
                 body.should.have.a.property('user').and.be.an.Object()

@@ -175,7 +175,6 @@ describe('Users API', async function () {
                 const auditLogs = await getAuditLog(1)
                 auditLogs.log[0].should.have.a.property('body').and.be.a.String()
                 const body = JSON.parse(auditLogs.log[0].body)
-                body.should.have.a.property('status', 'okay')
                 body.should.have.a.property('user').and.be.an.Object()
                 body.should.have.a.property('old').and.be.an.Object()
                 body.should.have.a.property('new').and.be.an.Object()
@@ -422,7 +421,7 @@ describe('Users API', async function () {
             auditLogs.log[0].should.have.a.property('body').and.be.a.String()
             auditLogs.log[0].should.have.a.property('event', 'account.login')
             const body2 = JSON.parse(auditLogs.log[0].body)
-            body2.should.have.a.property('status', 'okay')
+            body2.should.not.have.property('error')
             body2.should.have.a.property('user').and.be.an.Object()
         })
         it('Admin can suspend another user', async function () {

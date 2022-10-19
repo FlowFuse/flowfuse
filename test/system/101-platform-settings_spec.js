@@ -120,7 +120,6 @@ describe('Platform Settings', function () {
         const auditLogs = await getAuditLog(1)
         auditLogs.log[0].should.have.a.property('body').and.be.a.String()
         const body = JSON.parse(auditLogs.log[0].body)
-        body.should.have.a.property('status', 'okay')
         body.should.have.a.property('changes').and.be.an.Object()
         auditLogs.log[0].should.have.a.property('event', 'platform.settings.update')
         auditLogs.log[0].should.have.a.property('username', 'alice') // admin user
