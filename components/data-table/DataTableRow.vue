@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/require-explicit-emits -->
 <template>
     <tr class="ff-data-table--row" :class="{'selectable': selectable}" @click="$emit('selected', data)">
         <slot>
@@ -43,6 +42,7 @@ export default {
             default: null
         }
     },
+    emits: ['selected'],
     computed: {
         hasContextMenu: function () {
             return this.$slots['context-menu']
