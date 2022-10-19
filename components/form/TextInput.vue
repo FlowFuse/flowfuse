@@ -9,7 +9,8 @@
             ref="input"
             @change="$emit('update:modelValue', $event.target.value)"
             @input="$emit('update:modelValue', $event.target.value)"
-            @blur="$emit('blur')" @keyup.enter="$emit('enter', $evt)"/>
+            @blur="$emit('blur')" @keyup.enter="$emit('enter', $evt)"
+        />
     </div>
 </template>
 

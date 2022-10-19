@@ -6,7 +6,8 @@
         <DotsVerticalIcon v-if="open" @click.stop="closeOptions()"/>
         <template v-if="open">
             <ul class="ff-kebab-options" :class="'ff-kebab-options--' + menuAlign"
-                v-click-outside="closeOptions">
+                v-click-outside="closeOptions"
+            >
                 <slot></slot>
             </ul>
         </template>
