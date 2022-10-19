@@ -33,8 +33,8 @@
         "@vue/cli-service": "~5.0.0",
         "autoprefixer": "^10.4.2",
         "dotenv-webpack": "^7.1.0",
-        "eslint": "^7.32.0",
-        "eslint-config-standard": "^16.0.1",
+        "eslint": "^8.25.0",
+        "eslint-config-standard": "^17.0.0",
         "eslint-plugin-vue": "^8.0.3",
         "marked": "^4.0.12",
         "node-sass": "^7.0.1",
@@ -53,7 +53,8 @@
     "scripts": {
         "serve": "vue-cli-service serve",
         "build": "rollup -c",
-        "build-docs": "vue-cli-service build"
+        "build-docs": "vue-cli-service build",
+        "lint": "eslint --ext .js,.vue src/"
     },
     "dependencies": {
         "underscore": "^1.13.2"
