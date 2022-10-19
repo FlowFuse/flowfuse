@@ -147,11 +147,15 @@
                     </div>
                     <div class="example">
                         <h5>Example 3: Context Menu</h5>
+                        <p style="margin-bottom: 12px;">Note, the
+                            <pre style="display:inline;">.stop</pre> event modifier on the event handlers. This is important if
+                            <pre style="display:inline;">:rows-selectable="true"</pre> to prevent the click event bubbling up to the row.
+                        </p>
                         <ff-data-table :columns="data.table0.columns" :rows="data.table0.rows">
                             <template v-slot:context-menu>
-                                <ff-list-item label="Option 1" @click="doSomething"/>
-                                <ff-list-item label="Option 2" @click="doSomething"/>
-                                <ff-list-item label="Option 3" @click="doSomething"/>
+                                <ff-list-item label="Option 1" @click.stop=""/>
+                                <ff-list-item label="Option 2" @click.stop=""/>
+                                <ff-list-item label="Option 3" @click.stop=""/>
                             </template>
                         </ff-data-table>
                         <code style="margin-top: 24px;">{{ cGroups['data-table'].components[0].examples[2].code }}</code>
@@ -842,6 +846,9 @@ export default {
         },
         pretty: function (value) {
             return JSON.stringify(value, null, 2)
+        },
+        rowSelected () {
+            console.log('row selected')
         }
     }
 }
