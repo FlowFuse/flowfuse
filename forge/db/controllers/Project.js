@@ -187,7 +187,7 @@ module.exports = {
                     currentProjectFlows.flows = components.flows
                     await currentProjectFlows.save({ transaction: t })
                 } else {
-                    currentProjectFlows = app.db.models.StorageFlow.create({
+                    currentProjectFlows = await app.db.models.StorageFlow.create({
                         ProjectId: project.id,
                         flow: components.flows
                     }, { transaction: t })

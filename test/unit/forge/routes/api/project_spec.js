@@ -1665,6 +1665,7 @@ describe('Project API', function () {
 
         it('Import Flow', async function () {
             const importURL = `/api/v1/projects/${app.project.id}/import`
+            flows[0].label += 'a'
             const response = await app.inject({
                 method: 'POST',
                 url: importURL,
@@ -1675,11 +1676,14 @@ describe('Project API', function () {
             })
             response.should.have.property('statusCode')
             response.statusCode.should.eqls(200)
+            const savedFlow = await app.db.models.StorageFlow.byProject(app.project.id)
+            savedFlow.flow.should.eqls(JSON.stringify(flows))
         })
 
         it('Import Credentials', async function () {
             await app.project.updateSetting('credentialSecret', crypto.randomBytes(32).toString('hex'))
             const importURL = `/api/v1/projects/${app.project.id}/import`
+            flows[0].label += 'b'
             const response = await app.inject({
                 method: 'POST',
                 url: importURL,
@@ -1691,11 +1695,18 @@ describe('Project API', function () {
             })
             response.should.have.property('statusCode')
             response.statusCode.should.eqls(200)
+            const savedCreds = await app.db.models.StorageCredentials.byProject(app.project.id)
+            const inputKey = crypto.createHash('sha256').update(credsSecret).digest()
+            const savedKey = crypto.createHash('sha256').update(await app.project.getCredentialSecret()).digest()
+            const plainInputCreds = decryptCredentials(inputKey, credentials)
+            const plainSavedCreds = decryptCredentials(savedKey, JSON.parse(savedCreds.credentials))
+            JSON.stringify(plainSavedCreds).should.eqls(JSON.stringify(plainInputCreds))
         })
 
         it('Import Flow & Credentials', async function () {
             await app.project.updateSetting('credentialSecret', crypto.randomBytes(32).toString('hex'))
             const importURL = `/api/v1/projects/${app.project.id}/import`
+            flows[0].label += 'c'
             const response = await app.inject({
                 method: 'POST',
                 url: importURL,
@@ -1720,6 +1731,7 @@ describe('Project API', function () {
         it('Import Credentials with bad secret', async function () {
             await app.project.updateSetting('credentialSecret', crypto.randomBytes(32).toString('hex'))
             const importURL = `/api/v1/projects/${app.project.id}/import`
+            flows[0].label += 'd'
             const response = await app.inject({
                 method: 'POST',
                 url: importURL,
