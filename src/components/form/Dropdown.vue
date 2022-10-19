@@ -44,6 +44,7 @@ export default {
             type: String
         }
     },
+    emits: ['update:modelValue'],
     data () {
         return {
             isOpen: false,
@@ -57,7 +58,6 @@ export default {
             },
             set (selected) {
                 this.selected = selected
-                // eslint-disable-next-line vue/require-explicit-emits
                 this.$emit('update:modelValue', selected.value)
                 this.isOpen = false
             }
