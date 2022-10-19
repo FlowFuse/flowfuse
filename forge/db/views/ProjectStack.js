@@ -5,6 +5,7 @@ module.exports = {
             const filtered = {
                 id: result.hashid,
                 name: result.name,
+                label: result.label,
                 active: result.active,
                 projectType: app.db.models.ProjectType.encodeHashid(result.ProjectTypeId) || undefined,
                 properties: result.properties || {},

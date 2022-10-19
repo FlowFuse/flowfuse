@@ -61,7 +61,7 @@ export default {
         fetchData () {
             this.input.projectId = this.project.id
             if (this.project.stack) {
-                this.input.stackDescription = this.project.stack.name
+                this.input.stackDescription = this.project.stack.label || this.project.stack.name
             } else {
                 this.input.stackDescription = 'none'
             }

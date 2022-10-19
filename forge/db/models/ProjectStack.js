@@ -8,6 +8,7 @@ module.exports = {
     name: 'ProjectStack',
     schema: {
         name: { type: DataTypes.STRING, allowNull: false, unique: true },
+        label: { type: DataTypes.STRING },
         active: { type: DataTypes.BOOLEAN, defaultValue: true },
         properties: {
             type: DataTypes.TEXT,
