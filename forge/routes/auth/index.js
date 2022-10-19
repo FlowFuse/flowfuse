@@ -224,7 +224,7 @@ module.exports = fp(async function (app, opts, done) {
             await app.db.controllers.Session.deleteSession(request.sid)
         }
         reply.clearCookie('sid')
-        await userLog(userId, 'logout', {user: { id: userId } }, userId)
+        await userLog(userId, 'logout', { user: { id: userId } }, userId)
         reply.send({ status: 'okay' })
     })
 
