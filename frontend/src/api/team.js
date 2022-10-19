@@ -87,7 +87,7 @@ const create = async (options) => {
 
 const changeTeamMemberRole = (teamId, userId, role) => {
     const opts = {
-        role: role
+        role
     }
     return client.put(`/api/v1/teams/${teamId}/members/${userId}`, opts)
 }

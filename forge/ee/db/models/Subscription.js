@@ -47,7 +47,7 @@ module.exports = {
                 byCustomer: async function (customer) {
                     return self.findOne({
                         where: {
-                            customer: customer
+                            customer
                         },
                         include: {
                             model: M.Team,

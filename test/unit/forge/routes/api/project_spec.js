@@ -120,10 +120,10 @@ describe('Project API', function () {
             url: '/api/v1/projects',
             payload: {
                 name: name || 'project2',
-                team: team,
+                team,
                 projectType: TestObjects.projectType1.hashid,
-                template: template,
-                stack: stack,
+                template,
+                stack,
                 sourceProject: {
                     id: srcId,
                     options: duplicateOpts

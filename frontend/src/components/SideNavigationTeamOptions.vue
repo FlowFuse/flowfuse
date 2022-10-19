@@ -85,7 +85,7 @@ export default {
         return {
             closeNested: false,
             loaded: false,
-            routes: routes
+            routes
         }
     },
     mounted () {

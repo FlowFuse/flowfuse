@@ -285,7 +285,7 @@ module.exports = async function (app) {
                     request.team.id,
                     request.session.User.id,
                     'team.settings.slugChanged',
-                    { oldSlug: oldSlug, newSlug: request.body.slug }
+                    { oldSlug, newSlug: request.body.slug }
                 )
             }
             await request.team.save()

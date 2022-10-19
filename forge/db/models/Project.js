@@ -222,7 +222,7 @@ module.exports = {
                 isNameUsed: async (name) => {
                     const safeName = name?.toLowerCase()
                     const count = await this.count({
-                        where: { safeName: safeName }
+                        where: { safeName }
                     })
                     return count !== 0
                 },
@@ -255,7 +255,7 @@ module.exports = {
                 },
                 byId: async (id) => {
                     return this.findOne({
-                        where: { id: id },
+                        where: { id },
                         include: [
                             {
                                 model: M.Team,
@@ -306,7 +306,7 @@ module.exports = {
                 },
                 getProjectTeamId: async (id) => {
                     const project = await this.findOne({
-                        where: { id: id },
+                        where: { id },
                         attributes: [
                             'TeamId'
                         ]

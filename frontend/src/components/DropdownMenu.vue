@@ -1,5 +1,5 @@
 <template>
-    <Menu as="div" class="relative inline-block text-left">
+    <HeadlessUIMenu as="div" class="relative inline-block text-left">
         <div>
             <MenuButton :class="[buttonClass ? buttonClass : 'forge-button', !hasLabel?'px-1':'']">
                 <slot></slot>
@@ -50,7 +50,7 @@
                 </div>
             </MenuItems>
         </transition>
-    </Menu>
+    </HeadlessUIMenu>
 </template>
 <script>
 
@@ -62,7 +62,7 @@ export default {
     name: 'DropdownMenu',
     props: ['alt', 'options', 'buttonClass', 'edge'],
     components: {
-        Menu,
+        HeadlessUIMenu: Menu,
         MenuButton,
         MenuItems,
         MenuItem,

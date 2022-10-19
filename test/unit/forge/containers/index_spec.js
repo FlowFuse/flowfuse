@@ -22,7 +22,7 @@ describe('Container Wrapper', function () {
         }
         const stack = await app.db.models.ProjectStack.create(stackProperties)
         const project = await app.db.models.Project.create({
-            name: name,
+            name,
             type: '',
             url: ''
         })

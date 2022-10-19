@@ -118,7 +118,7 @@ export default {
                     Dialog.show({
                         header: 'Delete Stack',
                         kind: 'danger',
-                        text: text,
+                        text,
                         confirmLabel: 'Delete',
                         disablePrimary: stack.projectCount > 0
                     }, async () => {

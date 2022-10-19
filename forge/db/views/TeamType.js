@@ -11,7 +11,7 @@ module.exports = {
             id: teamType.hashid,
             name: teamType.name,
             description: teamType.description,
-            properties: properties
+            properties
         }
     },
     teamTypeSummary: function (app, teamType) {

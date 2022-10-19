@@ -97,8 +97,10 @@ set the correct domain name and make the same change to the `public_url` entry i
 
 
 
-### SSL (optional)
-If you want to serve the forge app and projects via SSL you will need to obtain wildcard SSL certs for the domain you are using eg `*.example.com`
+#### SSL (optional)
+If you want to serve the forge app and projects via SSL you will need to obtain wildcard SSL certs for the domain you are using eg `*.example.com` or you can use the Letsencrypt acme-companion.
+
+### Wilcard SSL
 
 Create a folder in the `docker-compose-0.x.0` directory named `certs`, place your .crt and .key files in there, they should be named for the domain without the `*` eg `example.com.crt` & `example.com.key`
 You  also need to create a copy of the .crt and .key files named `default.crt` & `default.key` in the same folder. This is used for serving unknown hosts.
@@ -122,7 +124,48 @@ environment:
 
 If you are running with the MQTT broker then you should adjust the `public_url` to start with `wss://` rather than `ws://`
 
-### Running FlowForge
+### Let's Encrypt
+
+In the `docker-compose.yml` file, uncomment the following lines
+```
+- "./certs:/etc/nginx/certs"
+```
+```
+- "443:443"
+```
+```
+  acme:
+    image: nginxproxy/acme-companion
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./acme:/etc/acme.sh"
+    volumes_from:
+      - nginx:rw
+    environment:
+      - "DEFAULT_EMAIL=mail@example.com"
+    depends_on:
+      - "nginx"
+```
+If you wish to redirect all traffic to use HTTPS then add the following section to the nginx service on docker-compose.yml
+```
+environment:
+      - "HTTPS_METHOD=redirect"
+```
+Then, in the `docker-compose.yml` file, edit the following lines added your domain and email address
+
+```
+- "DEFAULT_EMAIL=mail@example.com"
+```
+```
+- "LETSENCRYPT_HOST=mqtt.example.com"
+```
+```
+- "LETSENCRYPT_HOST=forge.example.com"
+```
+
+As with the Wilcard SSL method, if you are running with the MQTT broker then you should adjust the `public_url` to start with `wss://` rather than `ws://`
+
+#### Running FlowForge
 
 Once the containers have been built you can start FlowForge by running:
 
