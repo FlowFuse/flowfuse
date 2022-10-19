@@ -4,7 +4,7 @@
             <slot name="placeholder">
                 {{ selected?.label || placeholder }}
             </slot>
-            <ChevronDownIcon class="ff-icon"/>
+            <ChevronDownIcon class="ff-icon" />
         </div>
         <ff-button v-else-if="dropdownStyle === 'button'" @click="open()">
             {{ placeholder }}

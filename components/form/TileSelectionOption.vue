@@ -2,7 +2,7 @@
     <div class="ff-tile-selection-option" :class="{'editable': editable, 'disabled': disabled, 'active': selected}" @click="select()">
         <div class="ff-tile-selection-option--header">
             <h2>
-                <PencilAltIcon class="ff-tile-selection-option--edit" v-if="editable" @click="$emit('edit')"/>
+                <PencilAltIcon class="ff-tile-selection-option--edit" v-if="editable" @click="$emit('edit')" />
                 <CheckCircleIcon v-else />
                 {{ label }}
             </h2>

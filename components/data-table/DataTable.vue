@@ -24,9 +24,9 @@
                                 <!-- Internal div required to have flex w/sorting icons -->
                                 <div>
                                     {{ col.label }}
-                                    <SwitchVerticalIcon class="ff-icon-sm" v-if="col.sortable && col.key !== sort.key"/>
-                                    <SortAscendingIcon class="ff-icon-sm icon-sorted" v-if="col.sortable && col.key === sort.key && sort.order === 'asc'"/>
-                                    <SortDescendingIcon class="ff-icon-sm icon-sorted" v-if="col.sortable && col.key === sort.key && sort.order === 'desc'"/>
+                                    <SwitchVerticalIcon class="ff-icon-sm" v-if="col.sortable && col.key !== sort.key" />
+                                    <SortAscendingIcon class="ff-icon-sm icon-sorted" v-if="col.sortable && col.key === sort.key && sort.order === 'asc'" />
+                                    <SortDescendingIcon class="ff-icon-sm icon-sorted" v-if="col.sortable && col.key === sort.key && sort.order === 'desc'" />
                                 </div>
                             </ff-data-table-cell>
                             <ff-data-table-cell v-if="hasContextMenu"></ff-data-table-cell>
