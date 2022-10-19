@@ -58,10 +58,10 @@ export default {
             }
         },
         focusUsername () {
-            this.$refs['login-username'].$el.focus()
+            this.$refs['login-username'].focus()
         },
         focusPassword () {
-            this.$refs['login-password'].$el.focus()
+            this.$refs['login-password'].focus()
         }
     },
     async mounted () {

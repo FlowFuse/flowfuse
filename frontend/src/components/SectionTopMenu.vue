@@ -10,7 +10,7 @@
             </div>
             <ul class="flex">
                 <li class="mr-8 pt-1 flex" v-for="item in options" :key="item.name">
-                    <router-link :to="item.path" class="forge-nav-item" active-class="forge-nav-item-active">{{ item.name }}</router-link>
+                    <router-link :to="item.path" class="forge-nav-item" active-class="forge-nav-item-active" :data-nav="`section-${item.name.toLowerCase()}`">{{ item.name }}</router-link>
                 </li>
             </ul>
         </div>

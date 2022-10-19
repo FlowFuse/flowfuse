@@ -30,6 +30,28 @@ describe('FlowForge platform admin users', () => {
         cy.url().should('include', '/admin/overview')
     })
 
+    it('can set license', () => {
+        cy.visit('/admin/overview')
+        cy.url().should('include', '/admin/overview')
+
+        cy.get('[data-nav="admin-settings"]').click()
+
+        cy.get('[data-nav="section-license"]').click()
+
+        cy.get('[data-form="update-licence"]').click()
+
+        // Update
+        cy.focused().parents('[data-form="license"]').should('exist')
+        cy.get('[data-form="license"] input').type('eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNDIyNDAwLCJleHAiOjc5ODY5MDIzOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjo1MCwiZGV2Ijp0cnVlLCJpYXQiOjE2NjI0ODI5ODd9.e8Jeppq4aURwWYz-rEpnXs9RY2Y7HF7LJ6rMtMZWdw2Xls6-iyaiKV1TyzQw5sUBAhdUSZxgtiFH5e_cNJgrUg', { delay: 1 })
+        cy.get('[data-form="check-license"]').click()
+
+        // Check details
+        cy.get('[data-form="submit"]').click()
+
+        // Back to license screen
+        cy.get('[data-el="license-details"]').should('exist')
+    })
+
     it('can view projects from teams they\'re not a member of', () => {
         cy.intercept('GET', '/api/*/projects/*').as('getProject')
 
