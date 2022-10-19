@@ -64,6 +64,11 @@ export default {
                 tag: 'team-projects',
                 icon: ProjectsIcon
             }, {
+                label: 'Devices',
+                to: '/devices',
+                tag: 'team-devices',
+                icon: ChipIcon
+            }, {
                 label: 'Members',
                 to: '/members',
                 tag: 'team-members',
@@ -135,14 +140,6 @@ export default {
                     to: '/billing',
                     tag: 'team-billing',
                     icon: CurrencyDollarIcon
-                })
-            }
-            if (this.features.devices) {
-                this.routes.general.splice(2, 0, {
-                    label: 'Devices',
-                    to: '/devices',
-                    tag: 'team-devices',
-                    icon: ChipIcon
                 })
             }
         },
