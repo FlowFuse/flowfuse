@@ -4,7 +4,7 @@
  */
 
 const { DataTypes, literal, Op } = require('sequelize')
-const { slugify, generateTeamAvatar } = require('../utils')
+const { slugify, generateTeamAvatar, buildPaginationSearchClause } = require('../utils')
 const { Roles } = require('../../lib/roles')
 
 module.exports = {
@@ -171,12 +171,13 @@ module.exports = {
                         }
                     })
                 },
-                getAll: async (pagination = {}) => {
+                getAll: async (pagination = {}, where = {}) => {
                     const limit = parseInt(pagination.limit) || 30
-                    const where = {}
                     if (pagination.cursor) {
-                        where.id = { [Op.gt]: M.Team.decodeHashid(pagination.cursor) }
+                        pagination.cursor = M.Team.decodeHashid(pagination.cursor)
                     }
+                    where = buildPaginationSearchClause(pagination, where, ['Team.name'])
+
                     const { count, rows } = await this.findAndCountAll({
                         where,
                         order: [['id', 'ASC']],

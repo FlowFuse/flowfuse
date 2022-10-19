@@ -5,6 +5,7 @@
 const { DataTypes, Op } = require('sequelize')
 const crypto = require('crypto')
 const Controllers = require('../controllers')
+const { buildPaginationSearchClause } = require('../utils')
 
 const ALLOWED_SETTINGS = {
     env: 1
@@ -190,8 +191,9 @@ module.exports = {
                         limit = 30
                     }
                     if (pagination.cursor) {
-                        where.id = { [Op.gt]: M.Device.decodeHashid(pagination.cursor) }
+                        pagination.cursor = M.Device.decodeHashid(pagination.cursor)
                     }
+                    where = buildPaginationSearchClause(pagination, where, ['Device.name', 'Device.type'])
                     const { count, rows } = await this.findAndCountAll({
                         where,
                         include: [

@@ -3,6 +3,7 @@
  * @namespace forge.db.models.ProjectStack
  */
 const { DataTypes, literal, Op } = require('sequelize')
+const { buildPaginationSearchClause } = require('../utils')
 
 module.exports = {
     name: 'ProjectStack',
@@ -70,8 +71,9 @@ module.exports = {
                 getAll: async (pagination = {}, where = {}) => {
                     const limit = parseInt(pagination.limit) || 30
                     if (pagination.cursor) {
-                        where.id = { [Op.gt]: M.ProjectStack.decodeHashid(pagination.cursor) }
+                        pagination.cursor = M.ProjectStack.decodeHashid(pagination.cursor)
                     }
+                    where = buildPaginationSearchClause(pagination, where, ['ProjectStack.name'])
                     const { count, rows } = await this.findAndCountAll({
                         where,
                         order: [['id', 'ASC']],

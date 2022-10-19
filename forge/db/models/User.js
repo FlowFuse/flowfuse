@@ -3,7 +3,7 @@
  * @namespace forge.db.models.User
  */
 const { DataTypes, Op, fn, col, where } = require('sequelize')
-const { hash, generateUserAvatar } = require('../utils')
+const { hash, generateUserAvatar, buildPaginationSearchClause } = require('../utils')
 
 module.exports = {
     name: 'User',
@@ -196,12 +196,12 @@ module.exports = {
                         }
                     })
                 },
-                getAll: async (pagination = {}) => {
+                getAll: async (pagination = {}, where = {}) => {
                     const limit = parseInt(pagination.limit) || 30
-                    const where = {}
                     if (pagination.cursor) {
-                        where.id = { [Op.gt]: M.User.decodeHashid(pagination.cursor) }
+                        pagination.cursor = M.User.decodeHashid(pagination.cursor)
                     }
+                    where = buildPaginationSearchClause(pagination, where, ['User.username', 'User.name', 'User.email'])
                     const { count, rows } = await this.findAndCountAll({
                         where,
                         order: [['id', 'ASC']],

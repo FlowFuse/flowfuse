@@ -4,6 +4,7 @@
  */
 
 const { DataTypes, literal, Op } = require('sequelize')
+const { buildPaginationSearchClause } = require('../utils')
 
 module.exports = {
     name: 'TeamType',
@@ -45,8 +46,9 @@ module.exports = {
                 getAll: async (pagination = {}, where = {}) => {
                     const limit = parseInt(pagination.limit) || 30
                     if (pagination.cursor) {
-                        where.id = { [Op.gt]: M.Team.decodeHashid(pagination.cursor) }
+                        pagination.cursor = M.TeamType.decodeHashid(pagination.cursor)
                     }
+                    where = buildPaginationSearchClause(pagination, where, ['TeamType.name', 'TeamType.description'])
                     const { count, rows } = await this.findAndCountAll({
                         where,
                         order: [['id', 'ASC']],
