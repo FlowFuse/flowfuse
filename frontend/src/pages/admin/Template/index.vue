@@ -2,7 +2,7 @@
     <div class="flex flex-col sm:flex-row mb-8 max-w-4xl">
         <div class="flex-grow">
             <div class="text-gray-800 text-xl">
-                <router-link class="ff-link font-bold" :to="{path: '/admin/templates'}">Templates</router-link> 
+                <router-link class="ff-link font-bold" :to="{path: '/admin/templates'}">Templates</router-link>
                 <!-- <nav-item :icon="icons.breadcrumbSeparator" label="sss"></nav-item> -->
                 <ChevronRightIcon class="ff-icon" />
                 <span v-if="!isNew">{{ template.name }}</span>
