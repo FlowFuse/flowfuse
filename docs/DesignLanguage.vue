@@ -602,7 +602,7 @@ import FFNotificationPill from '@/components/NotificationPill.vue'
 
 // icons
 import { PlusSmIcon, SearchIcon } from '@heroicons/vue/outline'
-import { markRaw } from '@vue/reactivity'
+import { markRaw } from 'vue'
 
 export default {
     name: 'DesignLanguage',
