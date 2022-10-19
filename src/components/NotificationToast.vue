@@ -8,7 +8,7 @@
                 </slot>
             </div>
             <span class="ff-notification-toast--close">
-                <XIcon v-if="showClose" @click="close()"/>
+                <XIcon v-if="showClose" @click="close()" />
                 <div class="countdown-wrapper" v-if="countdown">
                     <div class="countdown-pie countdown-spinner" :style="'animation: rota ' + (countdown/1000) + 's linear infinite;'"></div>
                     <div class="countdown-pie countdown-filler" :style="'animation: fill ' + (countdown/1000) + 's steps(1, end) infinite;'"></div>

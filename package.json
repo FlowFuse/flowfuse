@@ -60,6 +60,7 @@
         "build": "rollup -c",
         "build-docs": "vue-cli-service build",
         "lint": "eslint --ext .js,.vue src/ tests/",
+        "lint:fix": "npm run lint -- --fix",
         "test": "npm run test:unit",
         "test:unit": "vue-cli-service test:unit"
     },
