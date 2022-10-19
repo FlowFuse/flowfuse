@@ -32,7 +32,6 @@
             "vue/first-attribute-linebreak": "off",
 
             // Should be auto-fixed - style related
-            "vue/multiline-html-element-content-newline": "off",
             "vue/v-slot-style": "off",
         }
     },
