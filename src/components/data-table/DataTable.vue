@@ -2,7 +2,8 @@
     <div class="ff-data-table">
         <div v-if="showOptions" class="ff-data-table--options">
             <ff-text-input v-if="showSearch" class="ff-data-table--search"
-                :placeholder="searchPlaceholder" v-model="filterTerm">
+                :placeholder="searchPlaceholder" v-model="filterTerm"
+            >
                 <template v-slot:icon><SearchIcon /></template>
             </ff-text-input>
             <div class="ff-data-table--actions" v-if="$slots.actions">
@@ -18,7 +19,8 @@
                             <ff-data-table-cell v-for="(col, $index) in columns" :key="$index"
                                 :class="[sort.key === col.key ? 'sorted' : '', col.sortable ? 'sortable' : ''].concat(col.class)"
                                 :style="col.style"
-                                @click="sortBy(col, $index)">
+                                @click="sortBy(col, $index)"
+                            >
                                 <!-- Internal div required to have flex w/sorting icons -->
                                 <div>
                                     {{ col.label }}
@@ -39,7 +41,8 @@
                         </ff-data-table-row>
                         <template v-if="!loading">
                             <ff-data-table-row v-for="(r, $index) in filteredRows" :key="$index" :data="r" :columns="columns"
-                                :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn" @click="rowClick(r)">
+                                :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn" @click="rowClick(r)"
+                            >
                                 <template v-if="hasContextMenu" v-slot:context-menu="{row}">
                                     <slot name="context-menu" :row="row"></slot>
                                 </template>
