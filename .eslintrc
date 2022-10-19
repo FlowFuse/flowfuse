@@ -14,5 +14,28 @@
     },
     "rules": {
         "indent": ["error", 4]
-    }
+    },
+    "overrides": [{
+        "files": "src/**",
+        "extends": [
+            "plugin:vue/vue3-strongly-recommended"
+        ],
+        "rules": {
+            // plugin:vue
+            "vue/html-indent": ["warn", 4, { "alignAttributesVertically": false }],
+            "vue/component-definition-name-casing": ["error", "kebab-case"],
+
+            // plugin:vue - style rules 
+            "vue/html-self-closing": "off",
+            "vue/max-attributes-per-line": "off",
+            "vue/singleline-html-element-content-newline": "off",
+            "vue/first-attribute-linebreak": "off",
+
+            // Should be auto-fixed - style related
+            "vue/html-closing-bracket-newline": "off",
+            "vue/html-closing-bracket-spacing": "off",
+            "vue/multiline-html-element-content-newline": "off",
+            "vue/v-slot-style": "off",
+        }
+    }]
 }
