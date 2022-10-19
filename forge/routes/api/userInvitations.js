@@ -27,9 +27,8 @@ module.exports = async function (app) {
         const invitation = await app.db.models.Invitation.byId(request.params.invitationId, request.session.User)
         if (invitation) {
             await app.db.controllers.Invitation.acceptInvitation(invitation, request.session.User)
-            const resp = { status: 'okay' }
-            await userLog(request.session.User.id, 'accept-invite', resp, invitation.inviteeId)
-            reply.send(resp)
+            await userLog(request.session.User.id, 'accept-invite', null, invitation.inviteeId)
+            reply.send({ status: 'okay' })
         } else {
             reply.code(404).type('text/html').send('Not Found')
         }
@@ -43,9 +42,8 @@ module.exports = async function (app) {
         const invitation = await app.db.models.Invitation.byId(request.params.invitationId, request.session.User)
         if (invitation) {
             await app.db.controllers.Invitation.rejectInvitation(invitation, request.session.User)
-            const resp = { status: 'okay' }
-            await userLog(request.session.User.id, 'delete-invite', resp, invitation.inviteeId)
-            reply.send(resp)
+            await userLog(request.session.User.id, 'delete-invite', null, invitation.inviteeId)
+            reply.send({ status: 'okay' })
         } else {
             reply.code(404).type('text/html').send('Not Found')
         }

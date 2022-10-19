@@ -46,10 +46,9 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         try {
-            const resp = { status: 'okay' }
             await app.db.controllers.User.changePassword(request.session.User, request.body.old_password, request.body.password)
-            await userLog(request.session.User.id, 'change-password', resp, request.session.User.id)
-            reply.send(resp)
+            await userLog(request.session.User.id, 'change-password', null, request.session.User.id)
+            reply.send({ status: 'okay' })
         } catch (err) {
             const resp = { code: 'password_change_failed', error: 'password change failed' }
             await userLog(request.session.User.id, 'change-password', resp, request.session.User.id)

@@ -113,7 +113,7 @@ module.exports = async function (app) {
                 admin: !!request.body.isAdmin
             })
             logUserInfo.id = newUser.id
-            await userLog(request.session.User.id, 'create-user', { status: 'okay', user: logUserInfo }, newUser.id)
+            await userLog(request.session.User.id, 'create-user', { user: logUserInfo }, newUser.id)
             if (request.body.createDefaultTeam) {
                 await app.db.controllers.Team.createTeamForUser({
                     name: `Team ${request.body.name}`,
@@ -121,7 +121,6 @@ module.exports = async function (app) {
                     TeamTypeId: (await app.db.models.TeamType.byName('starter')).id
                 }, newUser)
                 await userLog(request.session.User.id, 'auto-create-team', {
-                    status: 'okay',
                     team: {
                         name: `Team ${request.body.name}`,
                         type: 'starter'
@@ -160,9 +159,8 @@ module.exports = async function (app) {
         const userId = request.params.userId
         try {
             await request.user.destroy()
-            const resp = { status: 'okay' }
-            await userLog(request.session.User.id, 'delete-user', { ...resp, user: request.user }, userId)
-            reply.send(resp)
+            await userLog(request.session.User.id, 'delete-user', { user: request.user }, userId)
+            reply.send({ status: 'okay' })
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
             await userLog(request.session.User.id, 'delete-user', { ...resp, user: request.user }, userId)

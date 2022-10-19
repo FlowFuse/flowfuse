@@ -119,7 +119,7 @@ module.exports = {
             await userLog(
                 request.session.User.id,
                 'update-user',
-                { status: 'okay', old: originalValues, new: newValues, user: logUserInfo }, // log body
+                { old: originalValues, new: newValues, user: logUserInfo }, // log body
                 user.id
             )
             reply.send(newProfile)

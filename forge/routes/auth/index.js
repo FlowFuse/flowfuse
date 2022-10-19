@@ -175,9 +175,8 @@ module.exports = fp(async function (app, opts, done) {
                 const cookieOptions = { ...SESSION_COOKIE_OPTIONS }
                 cookieOptions.maxAge = SESSION_MAX_AGE
                 reply.setCookie('sid', session.sid, cookieOptions)
-                const resp = { status: 'okay' }
-                await userLog(session.UserId, 'login', { ...resp, user: { username: request.body.username } }, session.UserId)
-                reply.send(resp)
+                await userLog(session.UserId, 'login', { user: { username: request.body.username } }, session.UserId)
+                reply.send({ status: 'okay' })
                 return
             } else {
                 const resp = { code: 'user_suspended', error: 'User Suspended' }
@@ -225,9 +224,8 @@ module.exports = fp(async function (app, opts, done) {
             await app.db.controllers.Session.deleteSession(request.sid)
         }
         reply.clearCookie('sid')
-        const resp = { status: 'okay' }
-        await userLog(userId, 'logout', { ...resp, user: { id: userId } }, userId)
-        reply.send(resp)
+        await userLog(userId, 'logout', {user: { id: userId } }, userId)
+        reply.send({ status: 'okay' })
     })
 
     /**
@@ -321,9 +319,8 @@ module.exports = fp(async function (app, opts, done) {
                     secure: 'auto'
                 })
             }
-            const resp = { status: 'okay' }
-            await userLog(userInfo.id, 'register', { ...resp, user: userInfo }, userInfo.id)
-            reply.send(resp)
+            await userLog(userInfo.id, 'register', { user: userInfo }, userInfo.id)
+            reply.send({ status: 'okay' })
         } catch (err) {
             let responseMessage
             let responseCode = 'unexpected_error'
@@ -381,7 +378,6 @@ module.exports = fp(async function (app, opts, done) {
                     TeamTypeId: (await app.db.models.TeamType.byName('starter')).id
                 }, verifiedUser)
                 await userLog(request.session?.User?.id, 'verify.auto-create-team', {
-                    statue: 'okay',
                     team: {
                         name: `Team ${verifiedUser.name}`,
                         type: 'starter'
@@ -402,9 +398,7 @@ module.exports = fp(async function (app, opts, done) {
                 // invite.inviteeId = verifiedUser.id
                 // await invite.save()
             }
-            const resp = { status: 'okay' }
             await userLog(request.session.User.id, 'verify.verify-token', {
-                ...resp,
                 user: {
                     username: verifiedUser.username,
                     name: verifiedUser.name,
@@ -412,7 +406,7 @@ module.exports = fp(async function (app, opts, done) {
                     admin: !!verifiedUser.isAdmin
                 }
             })
-            reply.send(resp)
+            reply.send({ status: 'okay' })
         } catch (err) {
             app.log.error(`/account/verify/token error - ${err.toString()}`)
             const resp = { code: 'unexpected_error', error: err.toString() }
@@ -440,9 +434,8 @@ module.exports = fp(async function (app, opts, done) {
                     confirmEmailLink: `${app.config.base_url}/account/verify/${verifyToken}`
                 }
             )
-            const resp = { status: 'okay' }
-            await userLog(request.session.User.id, 'verify.request-token', { ...resp, info: 'Verify email password sent' })
-            reply.send(resp)
+            await userLog(request.session.User.id, 'verify.request-token', { info: 'Verify email password sent' })
+            reply.send({ status: 'okay' })
         } else {
             const resp = { code: 'invalid_request', error: 'email already verified' }
             await userLog(request.session?.User?.id, 'verify.request-token', resp)
@@ -484,7 +477,7 @@ module.exports = fp(async function (app, opts, done) {
                 )
                 const info = `Password reset request for ${user.hashid}`
                 app.log.info(info)
-                await userLog(user.id, 'forgot-password', { status: 'okay', info }, user.id)
+                await userLog(user.id, 'forgot-password', { info }, user.id)
             } else {
                 const resp = { code: 'not_enabled', error: 'Email not enabled - cannot reset password' }
                 await userLog(user.id, 'forgot-password', resp, user.id)
@@ -536,8 +529,7 @@ module.exports = fp(async function (app, opts, done) {
             await token.destroy()
         }
         if (success) {
-            const resp = { status: 'okay' }
-            await userLog(request.session?.User?.id, 'reset-password', { ...resp, user: { id: userId } }, userId)
+            await userLog(request.session?.User?.id, 'reset-password', null, userId)
             reply.code(200).send({})
         } else {
             const resp = { code: 'unexpected_error', error: 'Password reset failed' }
