@@ -69,7 +69,7 @@ module.exports = {
                         meta: {
                             next_cursor: rows.length === limit ? rows[rows.length - 1].hashid : undefined
                         },
-                        count: count,
+                        count,
                         types: rows
                     }
                 }

@@ -200,7 +200,7 @@ describe('Team API', async () => {
         TeamAPI.default.changeTeamMemberRole(teamid, userid, role)
         expect(mockPut).toHaveBeenCalledOnce()
         expect(mockPut).toHaveBeenCalledWith('/api/v1/teams/' + teamid + '/members/' + userid, {
-            role: role
+            role
         })
     })
 

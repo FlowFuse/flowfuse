@@ -18,7 +18,8 @@
     "rules": {
         "indent": ["error", 4],
         "vue/html-indent": ["error", 4],
-        "no-only-tests/no-only-tests": "error"
+        "no-only-tests/no-only-tests": "error",
+        "object-shorthand": ["error"]
     },
     "globals": {
         "cy": true,

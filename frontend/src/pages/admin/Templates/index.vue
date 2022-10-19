@@ -103,7 +103,7 @@ export default {
             Dialog.show({
                 header: 'Delete Template',
                 kind: 'danger',
-                text: text,
+                text,
                 confirmLabel: 'Delete',
                 disablePrimary: template.projectCount > 0
             }, async () => {

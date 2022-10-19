@@ -6,7 +6,7 @@ module.exports = {
      */
     authenticateCredentials: async function (app, username, password) {
         const user = await app.db.models.BrokerClient.findOne({
-            where: { username: username },
+            where: { username },
             attributes: ['password']
         })
         if (compareHash(password || '', user ? user.password : '')) {

@@ -132,7 +132,7 @@ module.exports = {
                         id = M.Device.decodeHashid(id)
                     }
                     return this.findOne({
-                        where: { id: id },
+                        where: { id },
                         include: [
                             {
                                 model: M.Team,
@@ -213,7 +213,7 @@ module.exports = {
                         meta: {
                             next_cursor: (rows.length === limit && limit > 0) ? rows[rows.length - 1].hashid : undefined
                         },
-                        count: count,
+                        count,
                         devices: rows
                     }
                 },
@@ -246,7 +246,7 @@ module.exports = {
                         id = M.Device.decodeHashid(id)
                     }
                     const device = await this.findOne({
-                        where: { id: id },
+                        where: { id },
                         attributes: [
                             'ProjectId'
                         ]

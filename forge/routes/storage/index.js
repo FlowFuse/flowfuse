@@ -197,9 +197,9 @@ module.exports = async function (app) {
             } else {
                 await app.db.models.StorageLibrary.create({
                     name: request.body.name,
-                    type: type,
+                    type,
                     meta: JSON.stringify(meta),
-                    body: body,
+                    body,
                     ProjectId: id
                 })
             }
