@@ -264,6 +264,9 @@ module.exports = async function (app) {
                     }
                 }
             }
+
+            newSettings.runtimeFlowState = 'stop'
+
             await project.updateSetting('credentialSecret', newCredentialSecret)
             const settings = await app.db.models.StorageSettings.create({
                 settings: JSON.stringify(newSettings),

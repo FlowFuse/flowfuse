@@ -59,7 +59,7 @@
         <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
             <div class="flex-grow">
                 <div class="max-w-sm pt-2">
-                    Create a copy of this project.
+                    Create a copy of this project. The new project will be created with the flow in the stopped state to allow you to make any changes required before starting.
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
