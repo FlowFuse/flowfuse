@@ -51,21 +51,6 @@ be done by running the following command:
 xcode-select --install
 ```
 
-#### Mosquitto
-
-The platform depends on the [Mosquitto MQTT Broker](https://mosquitto.org/) to
-provide real-time messaging between devices and the platform.
-
-We do **not** support sharing a broker with other non-FlowForge applications. If you
-already have mosquitto installed and running, you will need to run a second instance
-dedicated to FlowForge
-
-This is currently an *optional* component - the platform will work without the
-broker, but some features will not be available.
-
-You can either follow the manual install steps, which involve building the authentication
-plugin from scratch, or make use of the [Docker install](#docker-install)
-
 ##### Manual install
 
 **Note**: if you are running on Windows, you will need to follow the [Docker install](#docker-install)
@@ -248,6 +233,22 @@ The first time you access it, the platform will take you through creating an
 administrator for the platform and other configuration options.
 
 For more information, follow [this guide](../first-run.md).
+
+### Mosquitto
+
+The platform depends on the [Mosquitto MQTT Broker](https://mosquitto.org/) to
+provide real-time messaging between devices and the platform.
+
+We do **not** support sharing a broker with other non-FlowForge applications. If you
+already have mosquitto installed and running, you will need to run a second instance
+dedicated to FlowForge.
+
+This is currently an *optional* component - the platform will work without the
+broker, but some features will not be available.
+
+You can either follow the manual install steps, which involve building the authentication
+plugin from scratch, or make use of the [Docker install](#docker-install).
+
 
 ### Upgrade
 
