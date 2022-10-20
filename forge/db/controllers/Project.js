@@ -233,7 +233,7 @@ module.exports = {
             app.db.controllers.Project.clearInflightState(project)
             return result
         }
-    }
+    },
 
     /**
      * Updates the project settings.palette.modules value based on the
