@@ -52,7 +52,7 @@ describe('FlowForge - Project Snapshots', () => {
         cy.get('.ff-dialog-header').contains('Delete Snapshot')
 
         // Click "Delete"
-        cy.get('.ff-dialog-box button.ff-btn.ff-btn--danger').click()
+        cy.get('[data-el="platform-dialog"] .ff-btn--danger').click()
 
         cy.wait('@deleteSnapshot')
 
