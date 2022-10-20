@@ -339,8 +339,6 @@ module.exports = fp(async function (app, opts, done) {
             }
 
             // only create a personal team if no other teams exist
-            console.log(app.settings.get('user:team:auto-create'))
-            console.log(await app.db.models.Team.forUser(verifiedUser).length)
             if (app.settings.get('user:team:auto-create') && !((await app.db.models.Team.forUser(verifiedUser)).length)) {
                 await app.db.controllers.Team.createTeamForUser({
                     name: `Team ${verifiedUser.name}`,
