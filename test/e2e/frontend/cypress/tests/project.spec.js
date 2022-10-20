@@ -64,22 +64,21 @@ describe('FlowForge - Projects', () => {
                 cy.visit(`/project/${project.id}/settings/danger`)
                 cy.wait('@getProject')
 
-                cy.get('.ff-dialog-box').should('not.be.visible')
+                cy.get('[data-el="delete-project"]').should('not.be.visible')
                 cy.get('button[data-action="delete-project"]').click()
-                cy.get('.ff-dialog-box').should('be.visible')
+                cy.get('[data-el="delete-project"]').should('be.visible')
                 cy.get('.ff-dialog-header').contains('Delete Project')
 
                 // main button should be disabled
-                cy.get('.ff-dialog-box button.ff-btn.ff-btn--danger').should('be.disabled')
-                cy.get('.ff-dialog-box').should('be.visible')
+                cy.get('[data-el="delete-project"] button.ff-btn.ff-btn--danger').should('be.disabled')
+                cy.get('[data-el="delete-project"]').should('be.visible')
                 cy.get('.ff-dialog-header').contains('Delete Project')
 
-                cy.get('.ff-dialog-box [data-form="project-name"] input[type="text"]').type(PROJECT_NAME)
+                cy.get('[data-el="delete-project"] [data-form="project-name"] input[type="text"]').type(PROJECT_NAME)
 
                 // should now be enabled again
-                cy.get('.ff-dialog-box button.ff-btn.ff-btn--danger').click()
+                cy.get('[data-el="delete-project"] button.ff-btn.ff-btn--danger').click()
                 cy.wait('@deleteProject')
-                cy.get('.ff-dialog-box').should('not.be.visible')
 
                 cy.url().should('include', `/team/${team.slug}/overview`)
             })

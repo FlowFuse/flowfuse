@@ -1459,4 +1459,292 @@ describe('Project API', function () {
             should(response.statusCode).eqls(401)
         })
     })
+    describe('Project import flows & credentials', function () {
+        const flows = [
+            {
+                id: 'adc4e3930e0a9071',
+                type: 'tab',
+                label: 'Flow 1',
+                disabled: false,
+                info: '',
+                env: []
+            },
+            {
+                id: '7ecba32db86f0617',
+                type: 'tab',
+                label: 'Flow 1',
+                disabled: false,
+                info: '',
+                env: []
+            },
+            {
+                id: 'e7ece99c22e84b1c',
+                type: 'inject',
+                z: 'adc4e3930e0a9071',
+                name: '',
+                props: [
+                    {
+                        p: 'payload'
+                    },
+                    {
+                        p: 'topic',
+                        vt: 'str'
+                    }
+                ],
+                repeat: '',
+                crontab: '',
+                once: false,
+                onceDelay: 0.1,
+                topic: '',
+                payload: '',
+                payloadType: 'date',
+                x: 140,
+                y: 60,
+                wires: [
+                    [
+                        '5c5d940e2575e2a4'
+                    ]
+                ]
+            },
+            {
+                id: '5c5d940e2575e2a4',
+                type: 'http request',
+                z: 'adc4e3930e0a9071',
+                name: '',
+                method: 'GET',
+                ret: 'txt',
+                paytoqs: 'ignore',
+                url: 'http://localhost:1880/test',
+                tls: '',
+                persist: false,
+                proxy: '',
+                authType: 'basic',
+                senderr: false,
+                x: 290,
+                y: 60,
+                wires: [
+                    [
+                        '189e5eb3435b642b'
+                    ]
+                ]
+            },
+            {
+                id: '54636a79a0f39563',
+                type: 'http in',
+                z: 'adc4e3930e0a9071',
+                name: '',
+                url: '/test',
+                method: 'get',
+                upload: false,
+                swaggerDoc: '',
+                x: 140,
+                y: 120,
+                wires: [
+                    [
+                        'fc887a9eadc0ba23'
+                    ]
+                ]
+            },
+            {
+                id: 'd25b24804605b738',
+                type: 'http response',
+                z: 'adc4e3930e0a9071',
+                name: '',
+                statusCode: '',
+                headers: {},
+                x: 410,
+                y: 120,
+                wires: []
+            },
+            {
+                id: '189e5eb3435b642b',
+                type: 'debug',
+                z: 'adc4e3930e0a9071',
+                name: '',
+                active: true,
+                tosidebar: true,
+                console: false,
+                tostatus: false,
+                complete: 'false',
+                statusVal: '',
+                statusType: 'auto',
+                x: 450,
+                y: 60,
+                wires: []
+            },
+            {
+                id: 'fc887a9eadc0ba23',
+                type: 'function',
+                z: 'adc4e3930e0a9071',
+                name: '',
+                func: "var auth;\nfor (var i=0; i<msg.req.rawHeaders.length; i++) {\n    if (msg.req.rawHeaders[i] === 'Authorization') {\n        auth = msg.req.rawHeaders[i+1].split(' ')[1]\n        break;\n    }\n}\nmsg.payload = Buffer.from(auth, 'base64').toString('utf8')\nreturn msg;",
+                outputs: 1,
+                noerr: 0,
+                initialize: '',
+                finalize: '',
+                libs: [],
+                x: 280,
+                y: 120,
+                wires: [
+                    [
+                        'd25b24804605b738'
+                    ]
+                ]
+            },
+            {
+                id: '480ee2eb1cc81556',
+                type: 'http request',
+                z: '7ecba32db86f0617',
+                name: '',
+                method: 'GET',
+                ret: 'txt',
+                paytoqs: 'ignore',
+                url: 'https://jigsaw.w3.org/HTTP/Digest/',
+                tls: '',
+                persist: false,
+                proxy: '',
+                authType: 'digest',
+                senderr: false,
+                x: 330,
+                y: 140,
+                wires: [
+                    [
+                        '0ccbdebc64bd4ff2'
+                    ]
+                ]
+            },
+            {
+                id: '77c84803d42d4f9e',
+                type: 'inject',
+                z: '7ecba32db86f0617',
+                name: '',
+                props: [
+                    {
+                        p: 'payload'
+                    },
+                    {
+                        p: 'topic',
+                        vt: 'str'
+                    }
+                ],
+                repeat: '',
+                crontab: '',
+                once: false,
+                onceDelay: 0.1,
+                topic: '',
+                payload: '',
+                payloadType: 'date',
+                x: 180,
+                y: 140,
+                wires: [
+                    [
+                        '480ee2eb1cc81556'
+                    ]
+                ]
+            },
+            {
+                id: '0ccbdebc64bd4ff2',
+                type: 'debug',
+                z: '7ecba32db86f0617',
+                name: '',
+                active: true,
+                tosidebar: true,
+                console: false,
+                tostatus: false,
+                complete: 'true',
+                targetType: 'full',
+                statusVal: '',
+                statusType: 'auto',
+                x: 470,
+                y: 140,
+                wires: []
+            }
+        ]
+        const credentials = {
+            $: '00fd012ce6da285e6f0fd83e7360afebP/e6OeYPMqTUPXO7L+9e3SUgvJ9NaoCtZbUPme8Y4GMbep8oQzZd64r3J4i1BVvxR5mBZD3kst++ke3114qhm/MmmxyT6V0mogRB0d7z/AapbjnVliXdvE4vGO1tsSHnYa4uf5k//STkK90='
+        }
+        const credsSecret = 'd8bc017ef274d0418725b23d86cdf7a65f8e3699340dd6b65e26600719ad2ac6'
+
+        it('Import Flow', async function () {
+            const importURL = `/api/v1/projects/${app.project.id}/import`
+            flows[0].label += 'a'
+            const response = await app.inject({
+                method: 'POST',
+                url: importURL,
+                body: {
+                    flows: JSON.stringify(flows)
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.should.have.property('statusCode')
+            response.statusCode.should.eqls(200)
+            const savedFlow = await app.db.models.StorageFlow.byProject(app.project.id)
+            savedFlow.flow.should.eqls(JSON.stringify(flows))
+        })
+
+        it('Import Credentials', async function () {
+            await app.project.updateSetting('credentialSecret', crypto.randomBytes(32).toString('hex'))
+            const importURL = `/api/v1/projects/${app.project.id}/import`
+            flows[0].label += 'b'
+            const response = await app.inject({
+                method: 'POST',
+                url: importURL,
+                body: {
+                    credentials: JSON.stringify(credentials),
+                    credsSecret
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.should.have.property('statusCode')
+            response.statusCode.should.eqls(200)
+            const savedCreds = await app.db.models.StorageCredentials.byProject(app.project.id)
+            const inputKey = crypto.createHash('sha256').update(credsSecret).digest()
+            const savedKey = crypto.createHash('sha256').update(await app.project.getCredentialSecret()).digest()
+            const plainInputCreds = decryptCredentials(inputKey, credentials)
+            const plainSavedCreds = decryptCredentials(savedKey, JSON.parse(savedCreds.credentials))
+            JSON.stringify(plainSavedCreds).should.eqls(JSON.stringify(plainInputCreds))
+        })
+
+        it('Import Flow & Credentials', async function () {
+            await app.project.updateSetting('credentialSecret', crypto.randomBytes(32).toString('hex'))
+            const importURL = `/api/v1/projects/${app.project.id}/import`
+            flows[0].label += 'c'
+            const response = await app.inject({
+                method: 'POST',
+                url: importURL,
+                body: {
+                    flows: JSON.stringify(flows),
+                    credentials: JSON.stringify(credentials),
+                    credsSecret
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.should.have.property('statusCode')
+            response.statusCode.should.eqls(200)
+            const savedFlow = await app.db.models.StorageFlow.byProject(app.project.id)
+            const savedCreds = await app.db.models.StorageCredentials.byProject(app.project.id)
+            savedFlow.flow.should.eqls(JSON.stringify(flows))
+            const inputKey = crypto.createHash('sha256').update(credsSecret).digest()
+            const savedKey = crypto.createHash('sha256').update(await app.project.getCredentialSecret()).digest()
+            const plainInputCreds = decryptCredentials(inputKey, credentials)
+            const plainSavedCreds = decryptCredentials(savedKey, JSON.parse(savedCreds.credentials))
+            JSON.stringify(plainSavedCreds).should.eqls(JSON.stringify(plainInputCreds))
+        })
+        it('Import Credentials with bad secret', async function () {
+            await app.project.updateSetting('credentialSecret', crypto.randomBytes(32).toString('hex'))
+            const importURL = `/api/v1/projects/${app.project.id}/import`
+            flows[0].label += 'd'
+            const response = await app.inject({
+                method: 'POST',
+                url: importURL,
+                body: {
+                    credentials: JSON.stringify(credentials),
+                    credsSecret: 'fooBar'
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.should.have.property('statusCode')
+            response.statusCode.should.eqls(403)
+        })
+    })
 })
