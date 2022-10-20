@@ -23,7 +23,7 @@ describe('Device API', async function () {
     }
 
     beforeEach(async function () {
-        const setupConfig = { features: { devices: true } }
+        const setupConfig = { }
         if (this.currentTest.license) {
             setupConfig.license = this.currentTest.license
         }

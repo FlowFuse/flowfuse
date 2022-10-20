@@ -74,9 +74,7 @@ module.exports = async function (app) {
 
     app.register(TeamMembers, { prefix: '/:teamId/members' })
     app.register(TeamInvitations, { prefix: '/:teamId/invitations' })
-    if (app.config.features.enabled('devices')) {
-        app.register(TeamDevices, { prefix: '/:teamId/devices' })
-    }
+    app.register(TeamDevices, { prefix: '/:teamId/devices' })
     /**
      * Get the details of a team
      * @name /api/v1/teams

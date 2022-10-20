@@ -42,9 +42,7 @@ module.exports = async function (app) {
     app.register(Project, { prefix: '/projects' })
     app.register(Stack, { prefix: '/stacks' })
     app.register(Template, { prefix: '/templates' })
-    if (app.config.features.enabled('devices')) {
-        app.register(Device, { prefix: '/devices' })
-    }
+    app.register(Device, { prefix: '/devices' })
     app.register(ProjectType, { prefix: '/project-types' })
     app.get('*', function (request, reply) {
         reply.code(404).type('text/html').send('Not Found')
