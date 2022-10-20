@@ -1691,7 +1691,7 @@ describe('Project API', function () {
                 url: importURL,
                 body: {
                     credentials: JSON.stringify(credentials),
-                    credsSecret: credsSecret
+                    credsSecret
                 },
                 cookies: { sid: TestObjects.tokens.alice }
             })
@@ -1715,7 +1715,7 @@ describe('Project API', function () {
                 body: {
                     flows: JSON.stringify(flows),
                     credentials: JSON.stringify(credentials),
-                    credsSecret: credsSecret
+                    credsSecret
                 },
                 cookies: { sid: TestObjects.tokens.alice }
             })
