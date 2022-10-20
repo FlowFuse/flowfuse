@@ -2,7 +2,7 @@
  * A Project Stack definition
  * @namespace forge.db.models.ProjectStack
  */
-const { DataTypes, literal, Op } = require('sequelize')
+const { DataTypes, literal } = require('sequelize')
 const { buildPaginationSearchClause } = require('../utils')
 
 module.exports = {
@@ -73,25 +73,27 @@ module.exports = {
                     if (pagination.cursor) {
                         pagination.cursor = M.ProjectStack.decodeHashid(pagination.cursor)
                     }
-                    where = buildPaginationSearchClause(pagination, where, ['ProjectStack.name'])
-                    const { count, rows } = await this.findAndCountAll({
-                        where,
-                        order: [['id', 'ASC']],
-                        limit,
-                        attributes: {
-                            include: [
-                                [
-                                    literal(`(
-                                        SELECT COUNT(*)
-                                        FROM "Projects" AS "project"
-                                        WHERE
-                                        "project"."ProjectStackId" = "ProjectStack"."id"
-                                    )`),
-                                    'projectCount'
+                    const [rows, count] = await Promise.all([
+                        await this.findAll({
+                            where: buildPaginationSearchClause(pagination, where, ['ProjectStack.name']),
+                            order: [['id', 'ASC']],
+                            limit,
+                            attributes: {
+                                include: [
+                                    [
+                                        literal(`(
+                                            SELECT COUNT(*)
+                                            FROM "Projects" AS "project"
+                                            WHERE
+                                            "project"."ProjectStackId" = "ProjectStack"."id"
+                                        )`),
+                                        'projectCount'
+                                    ]
                                 ]
-                            ]
-                        }
-                    })
+                            }
+                        }),
+                        this.count({ where })
+                    ])
                     return {
                         meta: {
                             next_cursor: rows.length === limit ? rows[rows.length - 1].hashid : undefined

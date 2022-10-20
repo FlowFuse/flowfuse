@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt')
 const crypto = require('crypto')
 const Hashids = require('hashids/cjs')
-const { DataTypes, Op, fn, col, where } = require('sequelize')
+const { Op, fn, col, where } = require('sequelize')
 
 const hashids = {}
 
@@ -15,13 +15,14 @@ let app
 /**
  * Generate a properly formed where-object for sequelize findAll, that applies
  * the required pagination and search logic
- * 
+ *
  * @param {Object} params the pagination options - cursor, query, limit
  * @param {Object} whereClause any pre-existing where-query clauses to include
  * @param {Array<String>} columns an array of column names to search.
  * @returns a `where` object that can be passed to sequelize query
  */
-const buildPaginationSearchClause = (params, whereClause = {}, columns=[]) => {
+const buildPaginationSearchClause = (params, whereClause = {}, columns = []) => {
+    whereClause = { ...whereClause }
     if (params.cursor) {
         whereClause.id = { [Op.gt]: params.cursor }
     }

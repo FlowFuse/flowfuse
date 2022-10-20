@@ -201,12 +201,14 @@ module.exports = {
                     if (pagination.cursor) {
                         pagination.cursor = M.User.decodeHashid(pagination.cursor)
                     }
-                    where = buildPaginationSearchClause(pagination, where, ['User.username', 'User.name', 'User.email'])
-                    const { count, rows } = await this.findAndCountAll({
-                        where,
-                        order: [['id', 'ASC']],
-                        limit
-                    })
+                    const [rows, count] = await Promise.all([
+                        this.findAll({
+                            where: buildPaginationSearchClause(pagination, where, ['User.username', 'User.name', 'User.email']),
+                            order: [['id', 'ASC']],
+                            limit
+                        }),
+                        this.count({ where })
+                    ])
                     return {
                         meta: {
                             next_cursor: rows.length === limit ? rows[rows.length - 1].hashid : undefined

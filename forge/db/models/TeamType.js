@@ -3,7 +3,7 @@
  * @namespace forge.db.models.Team
  */
 
-const { DataTypes, literal, Op } = require('sequelize')
+const { DataTypes, literal } = require('sequelize')
 const { buildPaginationSearchClause } = require('../utils')
 
 module.exports = {
@@ -48,25 +48,28 @@ module.exports = {
                     if (pagination.cursor) {
                         pagination.cursor = M.TeamType.decodeHashid(pagination.cursor)
                     }
-                    where = buildPaginationSearchClause(pagination, where, ['TeamType.name', 'TeamType.description'])
-                    const { count, rows } = await this.findAndCountAll({
-                        where,
-                        order: [['id', 'ASC']],
-                        limit,
-                        attributes: {
-                            include: [
-                                [
-                                    literal(`(
-                                         SELECT COUNT(*)
-                                         FROM "Teams" AS "team"
-                                         WHERE
-                                         "team"."TeamTypeId" = "TeamType"."id"
-                                     )`),
-                                    'teamCount'
+
+                    const [rows, count] = await Promise.all([
+                        this.findAll({
+                            where: buildPaginationSearchClause(pagination, where, ['TeamType.name', 'TeamType.description']),
+                            order: [['id', 'ASC']],
+                            limit,
+                            attributes: {
+                                include: [
+                                    [
+                                        literal(`(
+                                            SELECT COUNT(*)
+                                            FROM "Teams" AS "team"
+                                            WHERE
+                                            "team"."TeamTypeId" = "TeamType"."id"
+                                        )`),
+                                        'teamCount'
+                                    ]
                                 ]
-                            ]
-                        }
-                    })
+                            }
+                        }),
+                        this.count({ where })
+                    ])
                     return {
                         meta: {
                             next_cursor: rows.length === limit ? rows[rows.length - 1].hashid : undefined
