@@ -85,7 +85,7 @@ export default {
         await this.updateProject()
     },
     computed: {
-        ...mapState('account', ['teamMembership', 'team', 'features']),
+        ...mapState('account', ['teamMembership', 'team']),
         isVisitingAdmin: function () {
             return this.teamMembership.role === Roles.Admin
         },
@@ -132,14 +132,9 @@ export default {
             const projectId = this.$route.params.id
             try {
                 const data = await projectApi.getProject(projectId)
-                if (this.features.devices) {
-                    data.deviceSettings = {}
-                }
-                this.project = data
+                this.project = Object.assign(data, { deviceSettings: {} })
                 this.$store.dispatch('account/setTeam', this.project.team.slug)
-                if (this.features.devices) {
-                    this.project.deviceSettings = await projectApi.getProjectDeviceSettings(projectId)
-                }
+                this.project.deviceSettings = await projectApi.getProjectDeviceSettings(projectId)
             } catch (err) {
                 this.$router.push({
                     name: 'PageNotFound',
@@ -169,13 +164,11 @@ export default {
             this.navigation = [
                 { label: 'Overview', path: `/project/${this.project.id}/overview`, tag: 'project-overview', icon: ProjectsIcon },
                 { label: 'Activity', path: `/project/${this.project.id}/activity`, tag: 'project-activity', icon: ViewListIcon },
+                { label: 'Devices', path: `/project/${this.project.id}/devices`, tag: 'project-devices', icon: ChipIcon },
                 { label: 'Snapshots', path: `/project/${this.project.id}/snapshots`, tag: 'project-snapshots', icon: ClockIcon },
                 { label: 'Logs', path: `/project/${this.project.id}/logs`, tag: 'project-logs', icon: TerminalIcon },
                 { label: 'Settings', path: `/project/${this.project.id}/settings`, tag: 'project-settings', icon: CogIcon }
             ]
-            if (this.features.devices) {
-                this.navigation.splice(3, 0, { label: 'Devices', path: `/project/${this.project.id}/devices`, tag: 'project-devices', icon: ChipIcon })
-            }
 
             if (this.project.meta && (this.project.pendingRestart || projectTransitionStates.includes(this.project.meta.state))) {
                 this.project.pendingStateChange = true

@@ -169,9 +169,16 @@ As with the Wilcard SSL method, if you are running with the MQTT broker then you
 
 Once the containers have been built you can start FlowForge by running:
 
+Using the docker compose plugin
 ```
-docker-compose up -d
+docker compose -p flowforge up -d
 ```
+
+Using the docker-compose command
+```
+docker-compose up -p flowforge up -d
+```
+
 
 This will also create a directory called `db` to hold the database files used to store project instance and user information.
 

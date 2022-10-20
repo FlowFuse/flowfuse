@@ -8,7 +8,7 @@
                 </template>
                 <template v-if="showContextMenu" v-slot:context-menu="{row}">
                     <ff-list-item v-if="hasPermission('project:snapshot:rollback')" label="Rollback" @click="showRollbackDialog(row)" />
-                    <ff-list-item v-if="features.devices && hasPermission('project:snapshot:set-target')" label="Set as Device Target" @click="showDeviceTargetDialog(row)"/>
+                    <ff-list-item v-if="hasPermission('project:snapshot:set-target')" label="Set as Device Target" @click="showDeviceTargetDialog(row)"/>
                     <ff-list-item v-if="hasPermission('project:snapshot:delete')" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)"/>
                 </template>
             </ff-data-table>
@@ -130,13 +130,12 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'teamMembership']),
+        ...mapState('account', ['teamMembership']),
         showContextMenu: function () {
             return this.hasPermission('project:snapshot:rollback') || this.hasPermission('project:snapshot:set-target') || this.hasPermission('project:snapshot:delete')
         },
         columns: function () {
-            const devicesEnabled = this.features.devices
-            const targetSnapshot = this.features.devices && this.project.deviceSettings?.targetSnapshot
+            const targetSnapshot = this.project.deviceSettings?.targetSnapshot
 
             const SnapshotName = {
                 template: `<div class="flex items-center">
@@ -160,7 +159,7 @@ export default {
                 components: { ClockIcon, ChipIcon },
                 computed: {
                     active: function () {
-                        return devicesEnabled && this.id === targetSnapshot
+                        return this.id === targetSnapshot
                     }
                 }
             }

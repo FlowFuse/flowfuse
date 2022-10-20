@@ -2,9 +2,10 @@
  * A Device
  * @namespace forge.db.models.Device
  */
-const { DataTypes, Op } = require('sequelize')
+const { DataTypes } = require('sequelize')
 const crypto = require('crypto')
 const Controllers = require('../controllers')
+const { buildPaginationSearchClause } = require('../utils')
 
 const ALLOWED_SETTINGS = {
     env: 1
@@ -190,25 +191,28 @@ module.exports = {
                         limit = 30
                     }
                     if (pagination.cursor) {
-                        where.id = { [Op.gt]: M.Device.decodeHashid(pagination.cursor) }
+                        pagination.cursor = M.Device.decodeHashid(pagination.cursor)
                     }
-                    const { count, rows } = await this.findAndCountAll({
-                        where,
-                        include: [
-                            {
-                                model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links']
-                            },
-                            {
-                                model: M.Project,
-                                attributes: ['id', 'name', 'links']
-                            },
-                            { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
-                            { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
-                        ],
-                        order: [['id', 'ASC']],
-                        limit
-                    })
+                    const [rows, count] = await Promise.all([
+                        this.findAll({
+                            where: buildPaginationSearchClause(pagination, where, ['Device.name', 'Device.type']),
+                            include: [
+                                {
+                                    model: M.Team,
+                                    attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                                },
+                                {
+                                    model: M.Project,
+                                    attributes: ['id', 'name', 'links']
+                                },
+                                { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
+                                { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
+                            ],
+                            order: [['id', 'ASC']],
+                            limit
+                        }),
+                        this.count({ where })
+                    ])
                     return {
                         meta: {
                             next_cursor: (rows.length === limit && limit > 0) ? rows[rows.length - 1].hashid : undefined

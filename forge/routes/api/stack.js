@@ -67,6 +67,7 @@ module.exports = async function (app) {
                 required: ['name'],
                 properties: {
                     name: { type: 'string' },
+                    label: { type: 'string' },
                     active: { type: 'boolean' },
                     projectType: { type: 'string' },
                     properties: { type: 'object' },
@@ -78,6 +79,7 @@ module.exports = async function (app) {
         // Only admins can create a stack
         const stackProperties = {
             name: request.body.name,
+            label: request.body.label,
             active: request.body.active !== undefined ? request.body.active : undefined,
             properties: request.body.properties,
             ProjectTypeId: app.db.models.ProjectType.decodeHashid(request.body.projectType)[0] || undefined
@@ -191,6 +193,9 @@ module.exports = async function (app) {
 
         if (request.body.name !== undefined) {
             stack.name = request.body.name
+        }
+        if (request.body.label !== undefined) {
+            stack.label = request.body.label
         }
         if (request.body.active !== undefined) {
             stack.active = request.body.active

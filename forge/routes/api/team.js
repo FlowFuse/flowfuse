@@ -74,9 +74,7 @@ module.exports = async function (app) {
 
     app.register(TeamMembers, { prefix: '/:teamId/members' })
     app.register(TeamInvitations, { prefix: '/:teamId/invitations' })
-    if (app.config.features.enabled('devices')) {
-        app.register(TeamDevices, { prefix: '/:teamId/devices' })
-    }
+    app.register(TeamDevices, { prefix: '/:teamId/devices' })
     /**
      * Get the details of a team
      * @name /api/v1/teams
@@ -124,7 +122,7 @@ module.exports = async function (app) {
     app.get('/:teamId/projects', { config: { allowToken: true } }, async (request, reply) => {
         const projects = await app.db.models.Project.byTeam(request.params.teamId)
         if (projects) {
-            let result = app.db.views.Project.teamProjectList(projects)
+            let result = await app.db.views.Project.teamProjectList(projects)
             if (request.session.ownerType === 'project') {
                 // This request is from a project token. Filter the list to return
                 // the minimal information needed
@@ -250,17 +248,6 @@ module.exports = async function (app) {
             reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
-
-    // app.get('/teams', async (request, reply) => {
-    //     const teams = await app.db.models.Team.forUser(request.session.User);
-    //     const result = await app.db.views.Team.teamList(teams);
-    //     reply.send({
-    //         count: result.length,
-    //         teams:result
-    //     })
-    //
-    //
-    // })
 
     app.put('/:teamId', { preHandler: app.needsPermission('team:edit') }, async (request, reply) => {
         try {
