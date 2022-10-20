@@ -1,14 +1,22 @@
 <template>
     <form>
         <SectionTopMenu hero="Teams" />
-        <ff-loading v-if="loading" message="Loading Teams..." />
-        <ff-data-table v-if="!loading" :columns="columns" :rows="teams"
-                       :rows-selectable="true" @row-selected="viewTeam"
-                       :show-search="true" search-placeholder="Search Teams..."
-                       :search-fields="['name', 'id']" data-el="teams-table" />
-        <div v-if="nextCursor">
-            <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
-        </div>
+        <ff-data-table
+            :columns="columns"
+            :rows="teams"
+            :rows-selectable="true"
+            @row-selected="viewTeam"
+            :show-search="true"
+            v-model:search="teamSearch"
+            search-placeholder="Search Teams..."
+            :search-fields="['name', 'id']"
+            :show-load-more="!!nextCursor"
+            :loading="loading"
+            loading-message="Loading Teams"
+            @load-more="loadItems"
+            no-data-message="No Teams Found"
+            data-el="teams-table"
+        />
     </form>
 </template>
 
@@ -26,6 +34,7 @@ export default {
     data () {
         return {
             teams: [],
+            teamSearch: '',
             loading: false,
             nextCursor: null,
             columns: [
@@ -37,12 +46,33 @@ export default {
         }
     },
     async created () {
-        await this.loadItems()
+        await this.loadItems(true)
+    },
+    watch: {
+        teamSearch (v) {
+            if (this.pendingSearch) {
+                clearTimeout(this.pendingSearch)
+            }
+            if (!v) {
+                this.loadItems(true)
+            } else {
+                this.loading = true
+                this.pendingSearch = setTimeout(() => {
+                    this.loadItems(true)
+                }, 300)
+            }
+        }
     },
     methods: {
-        loadItems: async function () {
-            this.loading = true
-            const result = await teamsApi.getTeams(this.nextCursor, 30)
+        loadItems: async function (reload) {
+            if (reload) {
+                this.loading = true
+                this.nextCursor = null
+            }
+            const result = await teamsApi.getTeams(this.nextCursor, 30, this.teamSearch)
+            if (reload) {
+                this.teams = []
+            }
             this.nextCursor = result.meta.next_cursor
             result.teams.forEach(v => {
                 this.teams.push(v)
