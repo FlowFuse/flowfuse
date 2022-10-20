@@ -5,7 +5,7 @@
         <ff-data-table v-if="!loading" :columns="columns" :rows="teams"
                        :rows-selectable="true" @row-selected="viewTeam"
                        :show-search="true" search-placeholder="Search Teams..."
-                       :search-fields="['name', 'id']"/>
+                       :search-fields="['name', 'id']" data-el="teams-table" />
         <div v-if="nextCursor">
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
         </div>

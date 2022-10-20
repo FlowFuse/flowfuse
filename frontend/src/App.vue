@@ -15,7 +15,7 @@
             </main>
         </template>
         <!-- Platform Entry Point -->
-        <template v-else-if="user && !user.password_expired && !termsAndConditionsRequired">
+        <template v-else-if="user && !user.password_expired && !termsAndConditionsRequired && user.email_verified !== false">
             <ff-layout-platform>
                 <router-view></router-view>
             </ff-layout-platform>
@@ -24,11 +24,11 @@
         <template v-else-if="user && user.password_expired">
             <PasswordExpired/>
         </template>
-        <!-- Email Verification Required -->
-        <template v-else-if="user && !user.email_verified">
+        <!-- Email Verification Required (Show "Resend")-->
+        <template v-else-if="user && user.email_verified === false && !isEmailVerificationPage">
             <UnverifiedEmail/>
         </template>
-        <!-- Email Verification Required -->
+        <!-- T+Cs Acceptance Required -->
         <template v-else-if="user && termsAndConditionsRequired">
             <TermsAndConditions/>
         </template>
@@ -58,6 +58,11 @@ export default {
         ...mapState('account', ['pending', 'user', 'team', 'offline', 'settings']),
         loginRequired () {
             return this.$route.meta.requiresLogin !== false
+        },
+        isEmailVerificationPage () {
+            // This is the one page a user with email_verified === false is allowed
+            // to access (so that they can get verified)
+            return this.$route.name === 'VerifyEmail'
         },
         termsAndConditionsRequired () {
             if (!this.user || !this.settings || !this.settings['user:tcs-required']) {

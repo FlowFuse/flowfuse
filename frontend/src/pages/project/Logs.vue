@@ -23,6 +23,7 @@ export default {
     props: ['project'],
     data () {
         return {
+            doneInitialLoad: false,
             loading: true,
             logEntries: [],
             prevCursor: null,
@@ -53,7 +54,6 @@ export default {
         fetchData: async function () {
             if (this.project.id) {
                 if (this.project.meta.state !== 'suspended') {
-                    this.loading = true
                     await this.loadItems(this.project.id)
                     this.loading = false
                 } else {

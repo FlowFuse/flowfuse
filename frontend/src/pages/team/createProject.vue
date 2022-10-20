@@ -48,7 +48,7 @@
                     <label v-if="errors.stack" class="text-sm text-gray-400">{{ errors.stack }}</label>
                     <ff-tile-selection v-if="input.projectType" v-model="input.stack" >
                         <ff-tile-selection-option v-for="(stack, index) in stacks" :key="index"
-                                                  :value="stack.id" :label="stack.name"/>
+                                                  :value="stack.id" :label="stack.label || stack.name"/>
                     </ff-tile-selection>
                 </div>
                 <!-- Template -->

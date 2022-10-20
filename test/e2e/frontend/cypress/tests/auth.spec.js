@@ -1,4 +1,4 @@
-describe('FlowForge', () => {
+describe('FlowForge - Auth', () => {
     it('successfully loads', () => {
         cy.visit('/')
     })
@@ -8,11 +8,11 @@ describe('FlowForge', () => {
         cy.get('div[label=username] input').type('wrongusername')
         cy.get('div[label=password] input').type('wrongpassword')
         // Ensure no error message displayed
-        cy.get('.ff-error-inline').should('not.be.visible')
+        cy.get('[data-el="errors-general"]').should('not.be.visible')
         // click "login"
-        cy.get('.ff-actions button').click()
+        cy.get('[data-action="login"]').click()
         // display "Login Failed"
-        cy.get('.ff-error-inline').should('be.visible')
+        cy.get('[data-el="errors-general"]').should('be.visible')
         // check where we are
         cy.url().should('not.include', '/overview')
     })
@@ -21,10 +21,10 @@ describe('FlowForge', () => {
         // fill out credentials
         cy.get('div[label=username] input').type('wrongusername')
         // click "login"
-        cy.get('.ff-actions button').click()
+        cy.get('[data-action="login"]').click()
         // display "Required Field"
         cy.get('div[label=password]').should('have.class', 'ff-input--error')
-        cy.get('.ff-error-inline').should('be.visible')
+        cy.get('[data-el="errors-password"]').should('be.visible')
         // check where we are
         cy.url().should('not.include', '/overview')
     })
@@ -34,7 +34,7 @@ describe('FlowForge', () => {
         cy.get('div[label=username] input').type('alice')
         cy.get('div[label=password] input').type('aaPassword')
         // click "login"
-        cy.get('.ff-actions button').click()
+        cy.get('[data-action="login"]').click()
         // check where we are
         cy.url().should('include', '/overview')
     })
@@ -46,13 +46,12 @@ describe('FlowForge', () => {
         for (let i = 0; i < 1030; i++) {
             passwd += 'x'
         }
-        console.log(passwd.length)
-        cy.get('div[label=password] input').type(passwd)
+        cy.get('div[label=password] input').type(passwd, { delay: 0.1 })
         // click "login"
-        cy.get('.ff-actions button').click()
+        cy.get('[data-action="login"]').click()
         // should have error
         cy.get('div[label=password]').should('have.class', 'ff-input--error')
-        cy.get('.ff-error-inline').should('be.visible')
+        cy.get('[data-el="errors-password"]').should('be.visible')
         // check where we are
         cy.url().should('not.include', '/overview')
     })

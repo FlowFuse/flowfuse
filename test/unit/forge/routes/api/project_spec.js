@@ -120,10 +120,10 @@ describe('Project API', function () {
             url: '/api/v1/projects',
             payload: {
                 name: name || 'project2',
-                team: team,
+                team,
                 projectType: TestObjects.projectType1.hashid,
-                template: template,
-                stack: stack,
+                template,
+                stack,
                 sourceProject: {
                     id: srcId,
                     options: duplicateOpts
@@ -339,6 +339,8 @@ describe('Project API', function () {
             result.should.have.property('safeName', 'test-project')
             result.should.have.property('team')
             result.should.have.property('projectType')
+            result.should.have.property('url')
+            result.url.should.not.be.empty()
             result.projectType.should.have.property('id', TestObjects.projectType1.hashid)
             result.should.have.property('template')
             result.template.should.have.property('id', TestObjects.template1.hashid)

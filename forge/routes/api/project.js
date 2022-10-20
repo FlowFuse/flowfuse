@@ -191,7 +191,7 @@ module.exports = async function (app) {
         let project
         try {
             project = await app.db.models.Project.create({
-                name: name,
+                name,
                 type: '',
                 url: ''
             })

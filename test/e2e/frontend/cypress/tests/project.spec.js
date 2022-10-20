@@ -8,6 +8,25 @@ describe('FlowForge - Projects', () => {
         cy.wait('@getProjectTypes')
     })
 
+    it('can be viewed', () => {
+        cy.intercept('GET', '/api/*/projects/*').as('getProject')
+
+        cy.visit('/')
+
+        cy.get('[data-nav="team-projects"]')
+
+        cy.wait('@getTeamProjects')
+
+        cy.contains('project1').click()
+
+        cy.wait('@getProject')
+
+        cy.get('[data-el="banner-project-as-admin"]').should('not.exist')
+
+        cy.get('[data-action="open-editor"]').should('exist')
+        cy.get('[data-el="editor-link"]').should('exist')
+    })
+
     it('can be deleted', () => {
         const PROJECT_NAME = 'my-project'
 

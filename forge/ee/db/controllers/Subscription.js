@@ -2,8 +2,8 @@
 module.exports = {
     createSubscription: async function (app, team, subscription, customer) {
         const newSubscription = await app.db.models.Subscription.create({
-            customer: customer,
-            subscription: subscription
+            customer,
+            subscription
         })
         await newSubscription.setTeam(team)
 

@@ -24,7 +24,7 @@ If you are developing FlowForge having checked it out from GitHub then you can r
 the following command in the project root
 
 ```bash
-npm run install-stack --vers=2.2.2
+npm run install-stack --vers=3.0.2
 ```
 
 ### Production
@@ -35,22 +35,22 @@ commands where `bin` is in the FlowForge Home directory
 
 Linux/Mac
 ```
-bin/ff-install-stack.sh 2.2.2
+bin/ff-install-stack.sh 3.0.2
 ```
 
 Windows:
 ```
-bin\ff-install-stack.bat 2.2.2
+bin\ff-install-stack.bat 3.0.2
 ```
 
 These scripts will automate the following steps
 
 1. In the `var` directory in your FlowForge home directory, create a directory
    called `stacks`
-2. In the `var/stacks` directory create a directory called `2.2.2`
-3. In the `var/stacks/2.2.2` directory run `npm install --prefix . node-red@2.2.2`
+2. In the `var/stacks` directory create a directory called `3.0.2`
+3. In the `var/stacks/3.0.2` directory run `npm install --prefix . node-red@3.0.2`
 4. Create a new Stack under the Admin Settings section of the FlowForge web console.
-   1. Enter `2.2.2` under the Node-RED version - this *must* match the directory
+   1. Enter `3.0.2` under the Node-RED version - this *must* match the directory
       name created under `var/stacks`.
 
 At this point, projects can select the new Stack in order to use the new version

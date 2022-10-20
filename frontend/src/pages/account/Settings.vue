@@ -58,7 +58,7 @@ export default {
                 email: currentUser.email,
                 defaultTeam: currentUser.defaultTeam
             },
-            defaultTeamName: defaultTeamName,
+            defaultTeamName,
             changed: {},
             teams: teamOptions
         }

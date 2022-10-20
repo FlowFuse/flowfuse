@@ -67,7 +67,7 @@ class DeviceCommsHandler {
     sendCommandToProjectDevices (teamId, projectId, command, payload) {
         const topic = `ff/v1/${teamId}/p/${projectId}/command`
         this.client.publish(topic, JSON.stringify({
-            command: command,
+            command,
             ...payload
         }))
     }
@@ -82,7 +82,7 @@ class DeviceCommsHandler {
     sendCommand (teamId, deviceId, command, payload) {
         const topic = `ff/v1/${teamId}/d/${deviceId}/command`
         this.client.publish(topic, JSON.stringify({
-            command: command,
+            command,
             ...payload
         }))
     }

@@ -151,12 +151,18 @@ const actions = {
             const user = await userApi.getUser()
             state.commit('login', user)
 
-            if (router.currentRoute.value.meta.requiresLogin === false) {
+            // User is logged in
+            if (router.currentRoute.value.name === 'VerifyEmail' && user.email_verified === false) {
+                // This page has `meta.requiresLogin = false` as it needs to be
+                // accessible to non-logged-in users.
+                // By default, we redirect away from those pages for logged in users,
+                // however this is the one exception that should be allowed to
+                // continue.
+            } else if (router.currentRoute.value.meta.requiresLogin === false) {
                 // This is only for logged-out users
                 window.location = '/'
                 return
-            }
-            if (user.email_verified === false || user.password_expired) {
+            } else if (user.email_verified === false || user.password_expired) {
                 state.commit('clearPending')
                 router.push({ name: 'Home' })
                 return

@@ -5,6 +5,9 @@
         "es2021": true,
         "mocha": true
     },
+    "plugins": [
+        "no-only-tests"
+    ],
     "extends": [
         "standard",
         "plugin:vue/vue3-essential"
@@ -14,7 +17,9 @@
     },
     "rules": {
         "indent": ["error", 4],
-         "vue/html-indent": ["error", 4]
+        "vue/html-indent": ["error", 4],
+        "no-only-tests/no-only-tests": "error",
+        "object-shorthand": ["error"]
     },
     "globals": {
         "cy": true,

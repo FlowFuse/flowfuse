@@ -146,8 +146,8 @@ describe('Storage API', function () {
         should(settings).eqls({})
     })
 
-    it('Save Settings', async function () {
-        const newSettings = [{ id: '1', type: 'tab', label: 'tab1', disabled: false, info: '' }]
+    it('Runtime Settings', async function () {
+        const newSettings = JSON.parse('{"nodes":{"node-red":{"name":"node-red","version":"3.0.0","local":false,"user":false},"@flowforge/nr-project-nodes":{"name":"@flowforge/nr-project-nodes","version":"0.1.0","local":false,"user":false},"node-red-node-random":{"name":"node-red-node-random","version":"1.2.3","local":true}}}')
         const settingsURL = `/storage/${project.id}/settings`
         await app.inject({
             method: 'POST',
@@ -167,6 +167,14 @@ describe('Storage API', function () {
         })
         const creds = response.json()
         should(creds).eqls(newSettings)
+        // Reload the project to ensure it is fully populated
+        const localProject = await app.db.models.Project.byId(project.id)
+        const projectSettings = await app.db.controllers.Project.getRuntimeSettings(localProject)
+        projectSettings.should.have.property('palette')
+        projectSettings.palette.should.have.property('modules')
+        projectSettings.palette.modules.should.have.property('node-red-node-random', '~1.2.3')
+        projectSettings.palette.modules.should.not.have.property('node-red')
+        projectSettings.palette.modules.should.not.have.property('@flowforge/nr-project-nodes')
     })
 
     it('Get Sessions', async function () {

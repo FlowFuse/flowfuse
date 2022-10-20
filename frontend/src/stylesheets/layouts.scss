@@ -161,19 +161,19 @@ $nav_height: 60px;
     margin-bottom: $ff-unit-md;
 }
 
-.notifictions-list-move,
-.notifictions-list-enter-active,
-.notifictions-list-leave-active {
+.notifications-list-move,
+.notifications-list-enter-active,
+.notifications-list-leave-active {
     transition: all 0.3s ease;
 }
 
-.notifictions-list-enter-from,
-.notifictions-list-leave-to {
+.notifications-list-enter-from,
+.notifications-list-leave-to {
     opacity: 0;
     transform: translateX(200px);
 }
 
-.notifictions-list-leave-active {
+.notifications-list-leave-active {
     position: absolute;
 }
 

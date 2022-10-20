@@ -13,11 +13,13 @@ const templateFields = [
     'palette_allowInstall',
     'palette_nodesExcludes',
     'palette_denyList',
+    'palette_modules',
     'modules_allowInstall',
     'modules_denyList',
     'httpNodeAuth_user',
     'httpNodeAuth_pass'
 ]
+
 const defaultTemplateValues = {
     disableEditor: false,
     disableTours: false,
@@ -33,10 +35,33 @@ const defaultTemplateValues = {
     palette_allowInstall: true,
     palette_nodesExcludes: '',
     palette_denyList: '',
+    palette_modules: [],
     modules_allowInstall: true,
     modules_denyList: '',
     httpNodeAuth_user: '',
     httpNodeAuth_pass: ''
+}
+
+const defaultTemplatePolicy = {
+    disableEditor: false,
+    disableTours: false,
+    httpAdminRoot: false,
+    dashboardUI: false,
+    codeEditor: false,
+    theme: false,
+    page_title: false,
+    page_favicon: false,
+    header_title: false,
+    header_url: false,
+    timeZone: false,
+    palette_allowInstall: false,
+    palette_nodesExcludes: false,
+    palette_denyList: false,
+    palette_modules: true,
+    modules_allowInstall: false,
+    modules_denyList: false,
+    httpNodeAuth_user: false,
+    httpNodeAuth_pass: false
 }
 
 const passwordTypes = [
@@ -96,7 +121,27 @@ const templateEncoders = {
                 .map((fn) => fn.trim())
                 .filter((fn) => fn.length > 0)
         }
+    },
+    palette_modules: {
+        decode: (v) => {
+            return v
+        },
+        encode: (v) => {
+            // Ensure the internal properties are stripped off when writing
+            // back value
+            if (v) {
+                return v.map(field => {
+                    return {
+                        name: field.name,
+                        version: field.version,
+                        local: field.local
+                    }
+                })
+            }
+            return v
+        }
     }
+
 }
 
 const templateValidators = {
@@ -256,8 +301,13 @@ function prepareTemplateForEdit (template) {
     templateFields.forEach((field) => {
         const templateValue = getTemplateValue(template.settings, field)
         if (templateValue !== undefined) {
-            result.editable.settings[field] = templateValue
-            result.original.settings[field] = templateValue
+            if (typeof templateValue === 'object') {
+                result.editable.settings[field] = JSON.parse(JSON.stringify(templateValue))
+                result.original.settings[field] = JSON.parse(JSON.stringify(templateValue))
+            } else {
+                result.editable.settings[field] = templateValue
+                result.original.settings[field] = templateValue
+            }
         } else {
             result.editable.settings[field] = defaultTemplateValues[field]
             result.original.settings[field] = defaultTemplateValues[field]
@@ -270,8 +320,8 @@ function prepareTemplateForEdit (template) {
             result.original.policy[field] = policyValue
         } else {
             // By default, policy should be to lock values
-            result.editable.policy[field] = false
-            result.original.policy[field] = false
+            result.editable.policy[field] = defaultTemplatePolicy[field]
+            result.original.policy[field] = defaultTemplatePolicy[field]
         }
         result.editable.changed.policy[field] = false
     })

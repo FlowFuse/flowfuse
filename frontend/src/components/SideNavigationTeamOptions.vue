@@ -85,7 +85,7 @@ export default {
         return {
             closeNested: false,
             loaded: false,
-            routes: routes
+            routes
         }
     },
     mounted () {
@@ -133,6 +133,7 @@ export default {
                 this.routes.admin.splice(1, 0, {
                     label: 'Billing',
                     to: '/billing',
+                    tag: 'team-billing',
                     icon: CurrencyDollarIcon
                 })
             }
@@ -140,6 +141,7 @@ export default {
                 this.routes.general.splice(2, 0, {
                     label: 'Devices',
                     to: '/devices',
+                    tag: 'team-devices',
                     icon: ChipIcon
                 })
             }

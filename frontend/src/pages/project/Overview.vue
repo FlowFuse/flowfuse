@@ -8,7 +8,15 @@
                     <tr class="border-b">
                         <td class="w-1/4 font-medium">Editor</td>
                         <td>
-                            <a v-if="editorAvailable" :href="project.url" target="_blank" class="forge-button-secondary py-1 mb-1"><span class="ml-r">{{project.url}}</span><ExternalLinkIcon class="w-4 ml-3" /></a>
+                            <div v-if="editorAvailable">
+                                <div v-if="isVisitingAdmin" class="my-2">
+                                    {{project.url}}
+                                </div>
+                                <a v-else :href="project.url" target="_blank" class="forge-button-secondary py-1 mb-1" data-el="editor-link">
+                                    <span class="ml-r">{{project.url}}</span>
+                                    <ExternalLinkIcon class="w-4 ml-3" />
+                                </a>
+                            </div>
                             <div v-else class="my-2">Unavailable</div>
                         </td>
                     </tr>
@@ -19,7 +27,7 @@
                     <tr class="border-b">
                         <td class="font-medium">Type</td>
                         <td class="flex items-center">
-                            <div class="py-2 flex-grow">{{project.projectType?.name || 'none'}} / {{project.stack?.name || 'none'}}</div>
+                            <div class="py-2 flex-grow">{{project.projectType?.name || 'none'}} / {{project.stack?.label || project.stack?.name || 'none'}}</div>
                             <div v-if="project.stack.replacedBy">
                                 <ff-button size="small" to="./settings/danger">Update</ff-button>
                             </div>
@@ -62,7 +70,7 @@ import AuditLog from '@/components/AuditLog'
 
 export default {
     name: 'ProjectOverview',
-    props: ['project'],
+    props: ['project', 'isVisitingAdmin'],
     computed: {
         options: function () {
             return [

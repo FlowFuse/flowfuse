@@ -1,4 +1,5 @@
 const crypto = require('crypto')
+const semver = require('semver')
 
 /**
  * inflightProjectState - when projects are transitioning between states, there
@@ -67,7 +68,16 @@ module.exports = {
                 })
             }
         }
-
+        // If we don't have any modules listed in project settings. We should
+        // look them up from StorageSettings in case this is a pre-existing project
+        // that has nodes installed from before we started tracking them ourselves
+        const moduleList = result.palette?.modules || await app.db.controllers.StorageSettings.getProjectModules(project) || []
+        const modules = {}
+        moduleList.forEach(module => {
+            modules[module.name] = module.version
+        })
+        result.palette = result.palette || {}
+        result.palette.modules = modules
         result.env = env
         return result
     },
@@ -222,6 +232,68 @@ module.exports = {
             const result = await app.containers.restartFlows(project)
             app.db.controllers.Project.clearInflightState(project)
             return result
+        }
+    }
+
+    /**
+     * Updates the project settings.palette.modules value based on the
+     * module list Node-RED has provided to the StorageSettings api.
+     */
+    mergeProjectModules: async function (app, project, moduleList) {
+        let changed = false
+        let newProjectModuleList
+        const currentProjectSettings = await project.getSetting('settings') || {}
+        if (currentProjectSettings?.palette?.modules) {
+            // The project has an existing list of modules - need to resolve any
+            // changes between the two lists
+
+            // As the moduleList comes from Node-RED's runtimeSettings object,
+            // it will only contain the modules that include Node-RED nodes.
+            // Regular npm modules that do not include nodes (nrlint for eg)
+            // will not be included.
+            // So we don't want to remove anything from the current list just
+            // because it isn't listed in what moduleList provides.
+
+            // This is the list of modules from ProjectSettings
+            const existingModulesList = currentProjectSettings?.palette?.modules
+            const existingModules = {}
+            existingModulesList.forEach(m => { existingModules[m.name] = m })
+
+            const newModules = {}
+            moduleList.forEach(m => {
+                newModules[m.name] = m
+                if (!existingModules[m.name]) {
+                    // Newly installed module - add to the list
+                    changed = true
+                    existingModules[m.name] = m
+                    if (/^\d/.test(m.version)) {
+                        m.version = `~${m.version}`
+                    }
+                } else if (!semver.satisfies(m.version, existingModules[m.name].version)) {
+                    // The installed version does not match what we thought semver wanted.
+                    // Defer to what has been installed - but with '~' prepended
+                    // as is the default Node-RED/npm behaviour
+                    if (/^\d/.test(m.version)) {
+                        m.version = `~${m.version}`
+                    }
+                    existingModules[m.name] = m
+                }
+            })
+            newProjectModuleList = Object.values(existingModules)
+        } else {
+            // No existing modules - so updated with the list as provided
+            changed = true
+            newProjectModuleList = moduleList.map(m => {
+                if (/^\d/.test(m.version)) {
+                    m.version = `~${m.version}`
+                }
+                return m
+            })
+        }
+        if (changed) {
+            currentProjectSettings.palette = currentProjectSettings.palette || {}
+            currentProjectSettings.palette.modules = newProjectModuleList
+            await project.updateSetting('settings', currentProjectSettings)
         }
     }
 }

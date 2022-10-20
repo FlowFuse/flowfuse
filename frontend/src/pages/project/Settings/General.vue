@@ -4,7 +4,7 @@
             Project ID
         </FormRow>
 
-        <FormRow v-model="input.projectName" :type="editing.projectName?'text':'uneditable'" id="projectName">
+        <FormRow v-model="input.projectName" type="uneditable" id="projectName">
             Name
         </FormRow>
 
@@ -28,7 +28,6 @@
 </template>
 
 <script>
-import projectApi from '@/api/project'
 import FormRow from '@/components/FormRow'
 
 export default {
@@ -58,38 +57,11 @@ export default {
     mounted () {
         this.fetchData()
     },
-    // beforeRouteLeave(to, from, next) {
-    //     console.log(to,from);
-    //     if (this.editing.projectName) {
-    //         next(false);
-    //     } else {
-    //         next();
-    //     }
-    // },
     methods: {
-        copyProjectId () {
-
-        },
-        editName () {
-            this.original.projectName = this.input.projectName
-            this.editing.projectName = true
-            setTimeout(() => {
-                document.getElementById('projectName').focus()
-            }, 0)
-        },
-        async saveEditName () {
-            this.editing.projectName = false
-            await projectApi.updateProject(this.project.id, { name: this.input.projectName })
-            this.$emit('projectUpdated')
-        },
-        cancelEditName () {
-            this.editing.projectName = false
-            this.input.projectName = this.original.projectName
-        },
         fetchData () {
             this.input.projectId = this.project.id
             if (this.project.stack) {
-                this.input.stackDescription = this.project.stack.name
+                this.input.stackDescription = this.project.stack.label || this.project.stack.name
             } else {
                 this.input.stackDescription = 'none'
             }

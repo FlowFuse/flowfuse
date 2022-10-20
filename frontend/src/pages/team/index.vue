@@ -8,7 +8,7 @@
         </template>
         <div v-else-if="team">
             <Teleport v-if="mounted && isVisitingAdmin" to="#platform-banner">
-                <div class="ff-banner">You are viewing this team as an Administrator</div>
+                <div class="ff-banner" data-el="banner-team-as-admin">You are viewing this team as an Administrator</div>
             </Teleport>
             <router-view :team="team" :teamMembership="teamMembership"></router-view>
         </div>
