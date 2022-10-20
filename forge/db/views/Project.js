@@ -1,5 +1,5 @@
 module.exports = {
-    project: function (app, project) {
+    project: async function (app, project) {
         const proj = project.toJSON()
         const result = {
             id: proj.id,
@@ -17,6 +17,12 @@ module.exports = {
             }
         } else {
             result.settings = {}
+        }
+        if (!result.settings.palette?.modules) {
+            // If there are no modules listed in settings, check the StorageSettings
+            // for the project to see what Node-RED may already think is installed
+            result.settings.palette = result.settings.palette || {}
+            result.settings.palette.modules = await app.db.controllers.StorageSettings.getProjectModules(project)
         }
         if (proj.Team) {
             result.team = {
@@ -59,15 +65,18 @@ module.exports = {
         result.links = proj.links
         return result
     },
-    teamProjectList: function (app, projectList) {
-        return projectList.map((t) => {
-            const r = app.db.views.Project.project(t)
+    teamProjectList: async function (app, projectList) {
+        const result = new Array(projectList.length)
+        for (let i = 0; i < projectList.length; i++) {
+            const p = projectList[i]
+            const r = await app.db.views.Project.project(p)
             // A limitation of how httpAdminRoot is applied to the url property
             // means we can't return the raw url from a projectList that won't
             // include the Template/Settings values with additional db lookups
             delete r.url
-            return r
-        })
+            result[i] = r
+        }
+        return result
     },
     projectSummary: function (app, project) {
         return {

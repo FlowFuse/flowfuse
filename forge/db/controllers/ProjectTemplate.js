@@ -14,11 +14,34 @@ const validSettings = [
     'palette_allowInstall',
     'palette_nodesExcludes',
     'palette_denyList',
+    'palette_modules',
     'modules_allowInstall',
     'httpNodeAuth_user',
     'httpNodeAuth_pass'
     // 'env' // Handled separately
 ]
+
+const defaultTemplatePolicy = {
+    disableEditor: false,
+    disableTours: false,
+    httpAdminRoot: false,
+    dashboardUI: false,
+    codeEditor: false,
+    theme: false,
+    page_title: false,
+    page_favicon: false,
+    header_title: false,
+    header_url: false,
+    timeZone: false,
+    palette_allowInstall: false,
+    palette_nodesExcludes: false,
+    palette_denyList: false,
+    palette_modules: true,
+    modules_allowInstall: false,
+    modules_denyList: false,
+    httpNodeAuth_user: false,
+    httpNodeAuth_pass: false
+}
 
 function getTemplateValue (template, path) {
     const parts = path.split('_')
@@ -61,12 +84,13 @@ module.exports = {
    */
     validateSettings: function (app, settings, template) {
         const result = {}
-
         // First pass - copy over only the known and policy-permitted settings
         validSettings.forEach((name) => {
             const value = getTemplateValue(settings, name)
             if (value !== undefined) {
-                if (!template || getTemplateValue(template.policy, name)) {
+                let policy = !template || getTemplateValue(template.policy, name)
+                if (policy === undefined) { policy = defaultTemplatePolicy[name] }
+                if (!template || policy) {
                     setTemplateValue(result, name, value)
                 }
             }
@@ -187,7 +211,7 @@ module.exports = {
    * @param {*} settings the new settings to merge in
    */
     mergeSettings: function (app, existingSettings, settings) {
-    // Quick deep clone that is safe as we know settings are JSON-safe
+        // Quick deep clone that is safe as we know settings are JSON-safe
         const result = JSON.parse(JSON.stringify(existingSettings))
         validSettings.forEach((name) => {
             const value = getTemplateValue(settings, name)
