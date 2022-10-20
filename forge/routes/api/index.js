@@ -27,6 +27,9 @@ module.exports = async function (app) {
         if (request.query.cursor !== undefined) {
             result.cursor = request.query.cursor
         }
+        if (request.query.query !== undefined) {
+            result.query = request.query.query.trim()
+        }
         return result
     })
 

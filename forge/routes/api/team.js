@@ -251,17 +251,6 @@ module.exports = async function (app) {
         }
     })
 
-    // app.get('/teams', async (request, reply) => {
-    //     const teams = await app.db.models.Team.forUser(request.session.User);
-    //     const result = await app.db.views.Team.teamList(teams);
-    //     reply.send({
-    //         count: result.length,
-    //         teams:result
-    //     })
-    //
-    //
-    // })
-
     app.put('/:teamId', { preHandler: app.needsPermission('team:edit') }, async (request, reply) => {
         try {
             if (request.body.name) {

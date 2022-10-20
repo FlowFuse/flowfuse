@@ -141,10 +141,13 @@ should be:
 For example: `invalid_project_name`.
 
 
-## Pagination
+## Pagination & Search
 
 All routes that return collections of things must use pagination to allow for
-future growth.
+future growth, and provide a way to search the collection.
+
+
+### Pagination
 
 We use a cursor-based approach to our pagination. A cursor is a pointer to an entity
 in the collection and provides the starting point for what should be returned.
@@ -182,7 +185,7 @@ End-points *should* include it if the number is known and is of material use. It
 returned by end-points used to query logs etc as the total count is a constantly changing
 value.
 
-### Cursor design
+#### Cursor design
 
 A cursor should be able to point directly at an entity in the collection. It could
 be the entity hashid, or a timestamp if it is a time-series collection such as the
@@ -195,7 +198,13 @@ If an end-point supports navigating the collection in reverse (by returning `pre
 the cursor should be prefixed with `-` to indicate the query should be in the opposite
 direction to the collection's natural order.
 
-### Implementing pagination
+### Search
+
+Search is done as simple case-insensitive text-based queries against string columns
+in the database model. This is a crude but effective way to implement search, but
+may need a more comprehensive approach in the future.
+
+### Implementing pagination & search
 
 Within a route handler for a paginated end-point, the following helper function
 can be used to get the pagination options from the request, as well as specifying
@@ -206,8 +215,48 @@ const paginationOptions = app.getPaginationOptions(request, {limit: 30})
 
 // paginationOptions.limit = how many results to return
 // paginationOptions.cursor = starting cursor
+// paginationOptions.query = search string to use
 
 ```
 
-Wherever possible, the pagination options should be applied as part of the database
-query, using the `where` and `limit` options.
+Typically these properties will be passed to the appropriate database model's `getAll`
+function.
+
+For example, the imaginary `Thing` model:
+
+```
+const { buildPaginationSearchClause } = require('../utils')
+
+...
+
+getAll: async (pagination = {}, where = {}) => {
+    // Ensure a sensible default limit for this particular type of thing
+    const limit = parseInt(pagination.limit) || 30
+
+    // Decode the cursor from hashid to database id
+    if (pagination.cursor) {
+        pagination.cursor = M.Thing.decodeHashid(pagination.cursor)
+    }
+
+    // Build the full where query using the buildPaginationSearchClause utility.
+    // We pass in the list of columns that should be searched against
+    where = buildPaginationSearchClause(pagination, where, ['Thing.name'])
+
+    // Run the query
+    const { count, rows } = await this.findAndCountAll({
+        where,
+        order: [['id', 'ASC']],
+        limit
+    })
+
+    // Return the results with the additional metadata
+    return {
+        meta: {
+            next_cursor: rows.length === limit ? rows[rows.length - 1].hashid : undefined
+        },
+        count,
+        things: rows
+    }
+}
+```
+
