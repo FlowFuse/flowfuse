@@ -14,8 +14,8 @@ The install script has been tested against the following operating systems:
  - Fedora 35
  - Ubuntu 20.04
  - CentOS 8/RHEL 8/Amazon Linux 2
- - MacOS Big Sur
- - Windows 10
+ - MacOS Big Sur & Monterey on Intel & Apple M processors
+ - Windows 10 & 11
 
 [^1]: Arm6 devices, such as the original Raspberry Pi Zero and Zero W are not supported.
 

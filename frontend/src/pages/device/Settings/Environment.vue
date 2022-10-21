@@ -29,11 +29,11 @@ export default {
 
                 this.editable.settings?.env.forEach(field => {
                     // if we do not recognise the env var name from our original settings,
-                    // or if we do recongise it, but the value is different
+                    // or if we do recognise it, but the value is different
                     if (!this.original.settings.envMap[field.name] || field.value !== this.original.settings.envMap[field.name].value) {
                         changed = true
                     }
-                    // there is an issue witht he key/value
+                    // there is an issue with he key/value
                     if (field.error) {
                         error = true
                     }

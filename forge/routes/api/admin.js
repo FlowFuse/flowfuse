@@ -4,13 +4,18 @@ module.exports = async function (app) {
     app.get('/stats', async (request, reply) => {
         const userCount = await app.db.models.User.count({ attributes: ['admin'], group: 'admin' })
         const projectStateCounts = await app.db.models.Project.count({ attributes: ['state'], group: 'state' })
+        const license = await app.license.get() || app.license.defaults
         const result = {
             userCount: 0,
+            maxUsers: license.users,
             deviceCount: await app.db.models.Device.count(),
+            maxDevices: license.devices,
             inviteCount: await app.db.models.Invitation.count(),
             adminCount: 0,
             teamCount: await app.db.models.Team.count(),
+            maxTeams: license.teams,
             projectCount: 0,
+            maxProjects: license.projects,
             projectsByState: {}
         }
         userCount.forEach(u => {

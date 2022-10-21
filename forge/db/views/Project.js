@@ -18,6 +18,7 @@ module.exports = {
         } else {
             result.settings = {}
         }
+        result.settings.env = app.db.controllers.Project.insertPlatformSpecificEnvVars(proj, result.settings.env)
         if (!result.settings.palette?.modules) {
             // If there are no modules listed in settings, check the StorageSettings
             // for the project to see what Node-RED may already think is installed

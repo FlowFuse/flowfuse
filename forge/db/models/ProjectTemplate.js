@@ -2,7 +2,8 @@
  * A Project Template definition
  * @namespace forge.db.models.ProjectTemplate
  */
-const { DataTypes, Op, literal } = require('sequelize')
+const { DataTypes, literal } = require('sequelize')
+const { buildPaginationSearchClause } = require('../utils')
 
 module.exports = {
     name: 'ProjectTemplate',
@@ -80,35 +81,36 @@ module.exports = {
                         }
                     })
                 },
-                getAll: async (pagination = {}) => {
+                getAll: async (pagination = {}, where = {}) => {
                     const limit = parseInt(pagination.limit) || 30
-                    const where = {}
                     if (pagination.cursor) {
-                        where.id = {
-                            [Op.gt]: M.ProjectTemplate.decodeHashid(pagination.cursor)
-                        }
+                        pagination.cursor = M.ProjectTemplate.decodeHashid(pagination.cursor)
                     }
-                    const { count, rows } = await this.findAndCountAll({
-                        where,
-                        order: [['id', 'ASC']],
-                        limit,
-                        include: [
-                            { model: M.User, as: 'owner' }
-                        ],
-                        attributes: {
+
+                    const [rows, count] = await Promise.all([
+                        this.findAll({
+                            where: buildPaginationSearchClause(pagination, where, ['ProjectTemplate.name']),
+                            order: [['id', 'ASC']],
+                            limit,
                             include: [
-                                [
-                                    literal(`(
-                                        SELECT COUNT(*)
-                                        FROM "Projects" AS "project"
-                                        WHERE
-                                        "project"."ProjectTemplateId" = "ProjectTemplate"."id"
-                                    )`),
-                                    'projectCount'
+                                { model: M.User, as: 'owner' }
+                            ],
+                            attributes: {
+                                include: [
+                                    [
+                                        literal(`(
+                                            SELECT COUNT(*)
+                                            FROM "Projects" AS "project"
+                                            WHERE
+                                            "project"."ProjectTemplateId" = "ProjectTemplate"."id"
+                                        )`),
+                                        'projectCount'
+                                    ]
                                 ]
-                            ]
-                        }
-                    })
+                            }
+                        }),
+                        this.count({ where })
+                    ])
                     return {
                         meta: {
                             next_cursor: rows.length === limit ? rows[rows.length - 1].hashid : undefined

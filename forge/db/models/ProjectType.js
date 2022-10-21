@@ -2,7 +2,8 @@
  * A Project Type definition
  * @namespace forge.db.models.ProjectType
  */
-const { DataTypes, literal, Op } = require('sequelize')
+const { DataTypes, literal } = require('sequelize')
+const { buildPaginationSearchClause } = require('../utils')
 
 module.exports = {
     name: 'ProjectType',
@@ -76,38 +77,42 @@ module.exports = {
                 },
                 getAll: async (pagination = {}, where = {}) => {
                     const limit = parseInt(pagination.limit) || 30
+
                     if (pagination.cursor) {
-                        where.id = { [Op.gt]: M.ProjectType.decodeHashid(pagination.cursor) }
+                        pagination.cursor = M.ProjectType.decodeHashid(pagination.cursor)
                     }
-                    const { count, rows } = await this.findAndCountAll({
-                        where,
-                        order: [['id', 'ASC']],
-                        limit,
-                        attributes: {
-                            include: [
-                                [
-                                    literal(`(
-                                         SELECT COUNT(*)
-                                         FROM "Projects" AS "project"
-                                         WHERE
-                                         "project"."ProjectTypeId" = "ProjectType"."id"
-                                     )`),
-                                    'projectCount'
-                                ],
-                                [
-                                    literal(`(
-                                         SELECT COUNT(*)
-                                         FROM "ProjectStacks" AS "stack"
-                                         WHERE
-                                         "stack"."ProjectTypeId" = "ProjectType"."id"
-                                         AND
-                                         "stack"."active" = TRUE
-                                     )`),
-                                    'stackCount'
+                    const [rows, count] = await Promise.all([
+                        this.findAll({
+                            where: buildPaginationSearchClause(pagination, where, ['ProjectType.name', 'ProjectType.description']),
+                            order: [['id', 'ASC']],
+                            limit,
+                            attributes: {
+                                include: [
+                                    [
+                                        literal(`(
+                                            SELECT COUNT(*)
+                                            FROM "Projects" AS "project"
+                                            WHERE
+                                            "project"."ProjectTypeId" = "ProjectType"."id"
+                                        )`),
+                                        'projectCount'
+                                    ],
+                                    [
+                                        literal(`(
+                                            SELECT COUNT(*)
+                                            FROM "ProjectStacks" AS "stack"
+                                            WHERE
+                                            "stack"."ProjectTypeId" = "ProjectType"."id"
+                                            AND
+                                            "stack"."active" = TRUE
+                                        )`),
+                                        'stackCount'
+                                    ]
                                 ]
-                            ]
-                        }
-                    })
+                            }
+                        }),
+                        this.count({ where })
+                    ])
                     return {
                         meta: {
                             next_cursor: rows.length === limit ? rows[rows.length - 1].hashid : undefined

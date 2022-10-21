@@ -3,7 +3,7 @@ const setup = require('../setup')
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 const dbUtils = FF_UTIL.require('forge/db/utils')
-
+/** @type {import("mocha").describe} */
 describe('Device API', async function () {
     let app
     const TestObjects = {}
@@ -23,7 +23,7 @@ describe('Device API', async function () {
     }
 
     beforeEach(async function () {
-        const setupConfig = { features: { devices: true } }
+        const setupConfig = { }
         if (this.currentTest.license) {
             setupConfig.license = this.currentTest.license
         }
@@ -426,10 +426,10 @@ describe('Device API', async function () {
 
                 const settings = settingsResponse.json()
                 settings.should.have.property('env')
-                settings.env.should.have.length(1)
-                settings.env[0].should.have.property('name', 'a')
-                settings.env[0].should.have.property('value', 'foo')
-
+                const nonPlatformVars = settings.env.filter(e => !e.name.startsWith('FF_')) // ignore platform defined vars
+                nonPlatformVars.should.have.length(1)
+                nonPlatformVars[0].should.have.property('name', 'a')
+                nonPlatformVars[0].should.have.property('value', 'foo')
                 settings.should.not.have.property('invalid')
             })
             it('non team owner can set env vars for the device', async function () {
@@ -454,10 +454,10 @@ describe('Device API', async function () {
 
                 const settings = settingsResponse.json()
                 settings.should.have.property('env')
-                settings.env.should.have.length(1)
-                settings.env[0].should.have.property('name', 'a')
-                settings.env[0].should.have.property('value', 'foo')
-
+                const nonPlatformVars = settings.env.filter(e => !e.name.startsWith('FF_')) // ignore platform defined vars
+                nonPlatformVars.should.have.length(1)
+                nonPlatformVars[0].should.have.property('name', 'a')
+                nonPlatformVars[0].should.have.property('value', 'foo')
                 settings.should.not.have.property('invalid')
             })
         })
@@ -643,7 +643,7 @@ describe('Device API', async function () {
         it('device downloads settings', async function () {
             await setupProjectWithSnapshot(true)
 
-            const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const device = await createDevice({ name: 'Ad1', type: 'Ad1_type', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
             const dbDevice = await app.db.models.Device.byId(device.id)
             dbDevice.updateSettings({ env: [{ name: 'FOO', value: 'BAR' }] })
             dbDevice.setProject(TestObjects.deviceProject)
@@ -663,6 +663,9 @@ describe('Device API', async function () {
             response.statusCode.should.equal(200)
             body.should.have.property('hash').which.equal(dbDevice.settingsHash)
             body.should.have.property('env').which.have.property('FOO')
+            body.should.have.property('env').which.have.property('FF_DEVICE_ID', device.id)
+            body.should.have.property('env').which.have.property('FF_DEVICE_NAME', 'Ad1')
+            body.should.have.property('env').which.have.property('FF_DEVICE_TYPE', 'Ad1_type')
         })
     })
 

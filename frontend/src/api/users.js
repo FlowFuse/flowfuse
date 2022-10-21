@@ -13,8 +13,8 @@ const deleteUser = async (userId) => {
     })
 }
 
-const getUsers = (cursor, limit) => {
-    const url = paginateUrl('/api/v1/users', cursor, limit)
+const getUsers = (cursor, limit, query) => {
+    const url = paginateUrl('/api/v1/users', cursor, limit, query)
     return client.get(url).then(res => res.data)
 }
 

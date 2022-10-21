@@ -62,11 +62,11 @@ module.exports = {
         if (project.ProjectSettings[0]?.key === 'settings') {
             const projectSettings = project.ProjectSettings[0].value
             result = app.db.controllers.ProjectTemplate.mergeSettings(result, projectSettings)
-            if (result.env) {
-                result.env.forEach(envVar => {
-                    env[envVar.name] = envVar.value
-                })
-            }
+            const envVars = app.db.controllers.Project.insertPlatformSpecificEnvVars(project, result.env)
+            // convert  [{name: 'a', value: '1'}, {name: 'b', value: '2'}]  >> to >>  { a: 1, b: 2 }
+            envVars.forEach(envVar => {
+                env[envVar.name] = envVar.value
+            })
         }
         // If we don't have any modules listed in project settings. We should
         // look them up from StorageSettings in case this is a pre-existing project
@@ -180,6 +180,88 @@ module.exports = {
         const newHash = crypto.createHash('sha256').update(newKey).digest()
         const oldHash = crypto.createHash('sha256').update(oldKey).digest()
         return encryptCreds(newHash, decryptCreds(oldHash, original))
+    },
+
+    /**
+     * Remove platform specific environment variables
+     * @param {[{name:string, value:string}]} envVars Environment variables array
+     */
+    removePlatformSpecificEnvVars: function (app, envVars) {
+        if (!envVars || !Array.isArray(envVars)) {
+            return []
+        }
+        return [...envVars.filter(e => e.name.startsWith('FF_') === false)]
+    },
+    /**
+     * Insert platform specific environment variables
+     * @param {Project} project The device
+     * @param {[{name:string, value:string}]} envVars Environment variables array
+     */
+    insertPlatformSpecificEnvVars: function (app, project, envVars) {
+        if (!envVars || !Array.isArray(envVars)) {
+            envVars = []
+        }
+        const makeVar = (name, value) => {
+            return { name, value: value || '', platform: true } // add `platform` flag for UI
+        }
+        const result = []
+        result.push(makeVar('FF_PROJECT_ID', project.id || ''))
+        result.push(makeVar('FF_PROJECT_NAME', project.name || ''))
+        result.push(...app.db.controllers.Project.removePlatformSpecificEnvVars(envVars))
+        return result
+    },
+
+    /**
+     *
+     * @param {*} app
+     * @param {*} project
+     * @param {*} components
+     */
+    importProject: async function (app, project, components) {
+        const t = await app.db.sequelize.transaction()
+        try {
+            if (components.flows) {
+                let currentProjectFlows = await app.db.models.StorageFlow.byProject(project.id)
+                if (currentProjectFlows) {
+                    currentProjectFlows.flows = components.flows
+                    await currentProjectFlows.save({ transaction: t })
+                } else {
+                    currentProjectFlows = await app.db.models.StorageFlow.create({
+                        ProjectId: project.id,
+                        flow: components.flows
+                    }, { transaction: t })
+                }
+            }
+            if (components.credentials) {
+                const projectSecret = await project.getCredentialSecret()
+                const credSecretsHash = crypto.createHash('sha256').update(components.credsSecret).digest()
+                const projectSecretHash = crypto.createHash('sha256').update(projectSecret).digest()
+                const decryptedCreds = decryptCreds(credSecretsHash, JSON.parse(components.credentials))
+                const encryptedCreds = encryptCreds(projectSecretHash, decryptedCreds)
+                let origCredentials = await app.db.models.StorageCredentials.byProject(project.id)
+                if (origCredentials) {
+                    origCredentials.credentials = JSON.stringify(encryptedCreds)
+                    await origCredentials.save({ transaction: t })
+                } else {
+                    origCredentials = await app.db.models.StorageCredentials.create({
+                        ProjectId: project.id,
+                        credentials: JSON.stringify(encryptedCreds)
+                    }, { transaction: t })
+                }
+            }
+            await t.commit()
+        } catch (error) {
+            t.rollback()
+            throw error
+        }
+        if (project.state === 'running') {
+            app.db.controllers.Project.setInflightState(project, 'restarting')
+            project.state = 'running'
+            await project.save()
+            const result = await app.containers.restartFlows(project)
+            app.db.controllers.Project.clearInflightState(project)
+            return result
+        }
     },
 
     /**

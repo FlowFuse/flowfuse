@@ -58,8 +58,6 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-import { useRoute, useRouter } from 'vue-router'
 import { markRaw } from 'vue'
 
 import permissionsMixin from '@/mixins/Permissions'
@@ -121,17 +119,13 @@ export default {
         project: 'fetchData'
     },
     mounted () {
-        if (!this.features.devices) {
-            useRouter().push({ path: `/team/${useRoute().params.team_slug}` })
-        } else {
-            // Set loading flag to true for initial page load
-            this.loading = true
+        // Set loading flag to true for initial page load
+        this.loading = true
+        this.fetchData()
+        this.checkInterval = setInterval(() => {
+            // Do not set loading flag so the refresh happens in the background
             this.fetchData()
-            this.checkInterval = setInterval(() => {
-                // Do not set loading flag so the refresh happens in the background
-                this.fetchData()
-            }, 10000)
-        }
+        }, 10000)
     },
     unmounted () {
         clearInterval(this.checkInterval)
@@ -225,7 +219,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features']),
         isProjectDeviceView: function () {
             return this.project && this.project.id
         },

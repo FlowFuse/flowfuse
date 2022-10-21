@@ -1,7 +1,5 @@
 const should = require('should') // eslint-disable-line
 const setup = require('../setup')
-const FF_UTIL = require('flowforge-test-utils')
-const { Roles } = FF_UTIL.require('forge/lib/roles')
 
 describe('Team API', function () {
     let app
@@ -20,8 +18,8 @@ describe('Team API', function () {
 
         TestObjects.ATeam = await app.db.models.Team.byName('ATeam')
         TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: app.defaultTeamType.id })
-
-        await TestObjects.BTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+        TestObjects.CTeam = await app.db.models.Team.create({ name: 'CTeam abc', TeamTypeId: app.defaultTeamType.id })
+        TestObjects.DTeam = await app.db.models.Team.create({ name: 'DTeAbCam', TeamTypeId: app.defaultTeamType.id })
 
         TestObjects.tokens = {}
         await login('alice', 'aaPassword')
@@ -47,20 +45,6 @@ describe('Team API', function () {
         }
     })
     describe('Team API', function async () {
-        // beforeEach(async function () {
-        //     app = await setup()
-
-        //     // Alice create in setup()
-        //     TestObjects.alice = await app.db.models.User.byUsername('alice')
-        //     TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
-        //     TestObjects.chris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', email_verified: true, password: 'ccPassword' })
-
-        //     TestObjects.tokens = {}
-        //     await login('alice', 'aaPassword')
-        //     await login('bob', 'bbPassword')
-        //     await login('chris', 'ccPassword')
-        // })
-
         describe('Get team details', async function () {
             // GET /api/v1/teams/:teamId
             // - Must be admin or team owner/member
@@ -73,7 +57,59 @@ describe('Team API', function () {
 
         describe('Get list of teams', async function () {
             // GET /api/v1/teams/:teamId
-            // - Admin only
+
+            const getTeams = async (limit, cursor, search) => {
+                const query = {}
+                // app.inject will inject undefined values as the string 'undefined' rather
+                // than ignore them. So need to build-up the query object the long way
+                if (limit !== undefined) {
+                    query.limit = limit
+                }
+                if (cursor !== undefined) {
+                    query.cursor = cursor
+                }
+                if (search !== undefined) {
+                    query.query = search
+                }
+                const response = await app.inject({
+                    method: 'GET',
+                    url: '/api/v1/teams',
+                    query,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                return response.json()
+            }
+
+            it('returns a list of all teams', async function () {
+                const result = await getTeams()
+                result.teams.should.have.length(4)
+            })
+
+            it('can page through list', async function () {
+                const firstPage = await getTeams(2)
+                firstPage.should.have.property('meta')
+                firstPage.meta.should.have.property('next_cursor', TestObjects.BTeam.hashid)
+                firstPage.teams.should.have.length(2)
+                firstPage.teams[0].should.have.property('name', 'ATeam')
+                firstPage.teams[1].should.have.property('name', 'BTeam')
+
+                const secondPage = await getTeams(2, firstPage.meta.next_cursor)
+                secondPage.meta.should.have.property('next_cursor', TestObjects.DTeam.hashid)
+                secondPage.teams.should.have.length(2)
+                secondPage.teams[0].should.have.property('name', 'CTeam abc')
+                secondPage.teams[1].should.have.property('name', 'DTeAbCam')
+
+                const thirdPage = await getTeams(2, secondPage.meta.next_cursor)
+                thirdPage.meta.should.not.have.property('next_cursor')
+                thirdPage.teams.should.have.length(0)
+            })
+            it('can search for teams - name', async function () {
+                const firstPage = await getTeams(undefined, undefined, 'aBC')
+                firstPage.meta.should.not.have.property('next_cursor')
+                firstPage.teams.should.have.length(2)
+                firstPage.teams[0].should.have.property('name', 'CTeam abc')
+                firstPage.teams[1].should.have.property('name', 'DTeAbCam')
+            })
         })
 
         describe('Get list of a teams projects', async function () {
@@ -113,7 +149,9 @@ describe('Team API', function () {
             TestObjects.tokens = {}
             await login('alice', 'aaPassword')
 
-            // Check we're at the starting point we expect
+            // Check we're at the starting point we expect - want 2 teams
+            await TestObjects.CTeam.destroy()
+            await TestObjects.DTeam.destroy()
             ;(await app.db.models.Team.count()).should.equal(2)
 
             for (let i = 0; i < 2; i++) {

@@ -23,6 +23,7 @@
                             v-model="item.name"
                             :error="item.error"
                             :disabled="item.encrypted"
+                            value-empty-text=""
                             :type="(!readOnly && (editTemplate || item.policy === undefined))?'text':'uneditable'"></FormRow>
                         <!-- <ff-text-input  v-model="item.name" :disabled="item.encrypted"  /> -->
                     </td>
@@ -31,6 +32,7 @@
                             <FormRow
                                 class="font-mono"
                                 v-model="item.value"
+                                value-empty-text=""
                                 :type="(!readOnly && (editTemplate || item.policy === undefined || item.policy))?'text':'uneditable'"></FormRow>
                         </div>
                         <div v-else class="pt-1 text-gray-400"><LockClosedIcon class="inline w-4" /> encrypted</div>
@@ -42,6 +44,9 @@
                                     <TrashIcon />
                                 </template>
                             </ff-button>
+                        </div>
+                        <div v-else-if="(item.platform === true)" class="flex justify-center ">
+                            <LockClosedIcon class="inline w-4" />
                         </div>
                     </td>
                     <td v-if="!readOnly && editTemplate" class="px-4 py-4 align-middle">
@@ -114,6 +119,8 @@ export default {
         'input.name' () {
             if (/ /.test(this.input.name)) {
                 this.input.error = 'Invalid name'
+            } else if (this.input.name.startsWith('FF_')) {
+                this.input.error = 'Reserved name'
             } else if (this.envVarNames[this.input.name] !== undefined) {
                 this.input.error = 'Duplicate name'
             } else {
@@ -135,7 +142,9 @@ export default {
                     if (this.envVarNames[field.name] === undefined) {
                         this.envVarNames[field.name] = i
                     }
-
+                    if (field.policy === undefined && field.platform === true) {
+                        field.policy = false
+                    }
                     if (field.policy === undefined && this.envVarNames[field.name] !== i) {
                         field.error = 'Field has duplicate name'
                     } else if (/ /.test(field.name)) {

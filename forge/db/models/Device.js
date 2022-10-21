@@ -2,9 +2,10 @@
  * A Device
  * @namespace forge.db.models.Device
  */
-const { DataTypes, Op } = require('sequelize')
+const { DataTypes } = require('sequelize')
 const crypto = require('crypto')
 const Controllers = require('../controllers')
+const { buildPaginationSearchClause } = require('../utils')
 
 const ALLOWED_SETTINGS = {
     env: 1
@@ -41,6 +42,13 @@ module.exports = {
                 const deviceCount = await M.Device.count()
                 if (deviceCount >= deviceLimit) {
                     throw new Error('license limit reached')
+                }
+            },
+            beforeSave: async (device, options) => {
+                // since `id`, `name` and `type` are added as FF_DEVICE_xx env vars, we
+                // should update the settings checksum if they are modified
+                if (device.changed('name') || device.changed('type') || device.changed('id')) {
+                    await device.updateSettingsHash()
                 }
             },
             afterDestroy: async (device, opts) => {
@@ -87,31 +95,40 @@ module.exports = {
                         where: { ownerId: '' + this.id }
                     })
                 },
+                async updateSettingsHash (settings) {
+                    const _settings = settings || await this.getAllSettings()
+                    this.settingsHash = hashSettings(_settings)
+                },
                 async getAllSettings () {
                     const result = {}
                     const settings = await this.getDeviceSettings()
                     settings.forEach(setting => {
                         result[setting.key] = setting.value
                     })
+                    result.env = Controllers.Device.insertPlatformSpecificEnvVars(this, result.env) // add platform specific device env vars
                     return result
                 },
                 async updateSettings (obj) {
                     const updates = []
-                    for (const [key, value] of Object.entries(obj)) {
+                    for (let [key, value] of Object.entries(obj)) {
                         if (ALLOWED_SETTINGS[key]) {
+                            if (key === 'env' && value && Array.isArray(value)) {
+                                value = Controllers.Device.removePlatformSpecificEnvVars(value) // remove platform specific values
+                            }
                             updates.push({ DeviceId: this.id, key, value })
                         }
                     }
                     await M.DeviceSettings.bulkCreate(updates, { updateOnDuplicate: ['value'] })
-                    const settings = await this.getAllSettings()
-                    this.settingsHash = hashSettings(settings)
+                    await this.updateSettingsHash()
                     await this.save()
                 },
                 async updateSetting (key, value) {
                     if (ALLOWED_SETTINGS[key]) {
+                        if (key === 'env' && value && Array.isArray(value)) {
+                            value = Controllers.Device.removePlatformSpecificEnvVars(value) // remove platform specific values
+                        }
                         const result = await M.ProjectSettings.upsert({ DeviceId: this.id, key, value })
-                        const settings = await this.getAllSettings()
-                        this.settingsHash = hashSettings(settings)
+                        await this.updateSettingsHash()
                         await this.save()
                         return result
                     } else {
@@ -121,6 +138,9 @@ module.exports = {
                 async getSetting (key) {
                     const result = await M.DeviceSettings.findOne({ where: { DeviceId: this.id, key } })
                     if (result) {
+                        if (key === 'env' && result.value && Array.isArray(result.value)) {
+                            return Controllers.Device.insertPlatformSpecificEnvVars(this, result.value)
+                        }
                         return result.value
                     }
                     return undefined
@@ -190,25 +210,28 @@ module.exports = {
                         limit = 30
                     }
                     if (pagination.cursor) {
-                        where.id = { [Op.gt]: M.Device.decodeHashid(pagination.cursor) }
+                        pagination.cursor = M.Device.decodeHashid(pagination.cursor)
                     }
-                    const { count, rows } = await this.findAndCountAll({
-                        where,
-                        include: [
-                            {
-                                model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links']
-                            },
-                            {
-                                model: M.Project,
-                                attributes: ['id', 'name', 'links']
-                            },
-                            { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
-                            { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
-                        ],
-                        order: [['id', 'ASC']],
-                        limit
-                    })
+                    const [rows, count] = await Promise.all([
+                        this.findAll({
+                            where: buildPaginationSearchClause(pagination, where, ['Device.name', 'Device.type']),
+                            include: [
+                                {
+                                    model: M.Team,
+                                    attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                                },
+                                {
+                                    model: M.Project,
+                                    attributes: ['id', 'name', 'links']
+                                },
+                                { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
+                                { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
+                            ],
+                            order: [['id', 'ASC']],
+                            limit
+                        }),
+                        this.count({ where })
+                    ])
                     return {
                         meta: {
                             next_cursor: (rows.length === limit && limit > 0) ? rows[rows.length - 1].hashid : undefined
@@ -253,6 +276,26 @@ module.exports = {
                     })
                     if (device) {
                         return device.ProjectId
+                    }
+                },
+                /**
+                 * Recalculate the `settingsHash` for all devices
+                 * @param {boolean} [all=false] If `false` (or omitted), only devices where `settingsHash` == `null` will be recalculated. If `true`, all devices are updated.
+                 */
+                recalculateSettingsHashes: async (all) => {
+                    const findOpts = {
+                        where: { settingsHash: null },
+                        attributes: ['hashid', 'id', 'name', 'type', 'targetSnapshotId', 'settingsHash']
+                    }
+                    if (all) {
+                        delete findOpts.where
+                    }
+                    const devices = await this.findAll(findOpts)
+                    if (devices && devices.length) {
+                        devices.forEach(async (device) => {
+                            await device.updateSettingsHash()
+                            await device.save()
+                        })
                     }
                 }
             }

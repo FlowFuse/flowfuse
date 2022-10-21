@@ -54,3 +54,8 @@ label {
     color: $ff-grey-400 !important;
     opacity: 1; /* Firefox */
 }
+
+/* Ensure headlessui MenuItem pointer for active `menuitem` anchors */
+[role="menu"] a[role="menuitem"] {
+    cursor: pointer
+}

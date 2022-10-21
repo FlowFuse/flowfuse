@@ -85,18 +85,18 @@ module.exports = fp(async function (app, opts, done) {
         if (request.sid) {
             request.session = await app.db.controllers.Session.getOrExpire(request.sid)
             if (request.session && request.session.User) {
-                const emailVerified = !app.postoffice.enabled() || request.session.User.email_verified || request.context.config.allowUnverifiedEmail
-                const passwordNotExpired = !request.session.User.password_expired || request.context.config.allowExpiredPassword
+                const emailVerified = !app.postoffice.enabled() || request.session.User.email_verified || request.routeConfig.allowUnverifiedEmail
+                const passwordNotExpired = !request.session.User.password_expired || request.routeConfig.allowExpiredPassword
                 const suspended = request.session.User.suspended
                 if (emailVerified && passwordNotExpired && !suspended) {
                     return
                 }
             }
         }
-        if (request.context.config.allowAnonymous) {
+        if (request.routeConfig.allowAnonymous) {
             return
         }
-        if (request.context.config.allowToken) {
+        if (request.routeConfig.allowToken) {
             await verifyToken(request, reply)
             return
         }
@@ -338,7 +338,8 @@ module.exports = fp(async function (app, opts, done) {
                 return
             }
 
-            if (app.settings.get('user:team:auto-create')) {
+            // only create a personal team if no other teams exist
+            if (app.settings.get('user:team:auto-create') && !((await app.db.models.Team.forUser(verifiedUser)).length)) {
                 await app.db.controllers.Team.createTeamForUser({
                     name: `Team ${verifiedUser.name}`,
                     slug: verifiedUser.username,
