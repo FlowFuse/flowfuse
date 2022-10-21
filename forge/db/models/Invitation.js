@@ -116,7 +116,7 @@ module.exports = {
                     return this.findAll({
                         where: {
                             external: true,
-                            email: email
+                            email
                         },
                         include: [
                             { model: M.Team, as: 'team' },

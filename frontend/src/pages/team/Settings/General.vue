@@ -1,6 +1,6 @@
 <template>
     <form class="space-y-6">
-        <FormRow v-model="input.teamName" :type="editing.teamName?'text':'uneditable'" :error="errors.teamName" id="teamName">
+        <FormRow v-model="input.teamName" :type="editing.teamName?'text':'uneditable'" :error="errors.teamName" id="teamName" ref="name-row">
             <template #default>Name</template>
             <template #description>
                 <div v-if="editing.teamName">eg. 'Development'</div>
@@ -96,11 +96,7 @@ export default {
     methods: {
         editName () {
             this.editing.teamName = true
-            setTimeout(() => {
-                // Until https://github.com/flowforge/forge-ui-components/issues/42 is resolved,
-                // this is what it takes to focus the right input
-                document.querySelector('label[for="teamName"]').parentNode.querySelector('input').focus()
-            }, 0)
+            this.$refs['name-row'].focus()
         },
         async saveEditName () {
             let changed = false

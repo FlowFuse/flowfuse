@@ -3,8 +3,8 @@
  * @namespace forge.db.models.Team
  */
 
-const { DataTypes, literal, Op } = require('sequelize')
-const { slugify, generateTeamAvatar } = require('../utils')
+const { DataTypes, literal } = require('sequelize')
+const { slugify, generateTeamAvatar, buildPaginationSearchClause } = require('../utils')
 const { Roles } = require('../../lib/roles')
 
 module.exports = {
@@ -171,45 +171,47 @@ module.exports = {
                         }
                     })
                 },
-                getAll: async (pagination = {}) => {
+                getAll: async (pagination = {}, where = {}) => {
                     const limit = parseInt(pagination.limit) || 30
-                    const where = {}
                     if (pagination.cursor) {
-                        where.id = { [Op.gt]: M.Team.decodeHashid(pagination.cursor) }
+                        pagination.cursor = M.Team.decodeHashid(pagination.cursor)
                     }
-                    const { count, rows } = await this.findAndCountAll({
-                        where,
-                        order: [['id', 'ASC']],
-                        limit,
-                        include: { model: M.TeamType, attributes: ['hashid', 'id', 'name'] },
-                        attributes: {
-                            include: [
-                                [
-                                    literal(`(
-                                        SELECT COUNT(*)
-                                        FROM "Projects" AS "project"
-                                        WHERE
-                                        "project"."TeamId" = "Team"."id"
-                                    )`),
-                                    'projectCount'
-                                ],
-                                [
-                                    literal(`(
-                                        SELECT COUNT(*)
-                                        FROM "TeamMembers" AS "members"
-                                        WHERE
-                                        "members"."TeamId" = "Team"."id"
-                                    )`),
-                                    'memberCount'
+                    const [rows, count] = await Promise.all([
+                        this.findAll({
+                            where: buildPaginationSearchClause(pagination, where, ['Team.name']),
+                            order: [['id', 'ASC']],
+                            limit,
+                            include: { model: M.TeamType, attributes: ['hashid', 'id', 'name'] },
+                            attributes: {
+                                include: [
+                                    [
+                                        literal(`(
+                                            SELECT COUNT(*)
+                                            FROM "Projects" AS "project"
+                                            WHERE
+                                            "project"."TeamId" = "Team"."id"
+                                        )`),
+                                        'projectCount'
+                                    ],
+                                    [
+                                        literal(`(
+                                            SELECT COUNT(*)
+                                            FROM "TeamMembers" AS "members"
+                                            WHERE
+                                            "members"."TeamId" = "Team"."id"
+                                        )`),
+                                        'memberCount'
+                                    ]
                                 ]
-                            ]
-                        }
-                    })
+                            }
+                        }),
+                        this.count({ where })
+                    ])
                     return {
                         meta: {
                             next_cursor: rows.length === limit ? rows[rows.length - 1].hashid : undefined
                         },
-                        count: count,
+                        count,
                         teams: rows
                     }
                 }

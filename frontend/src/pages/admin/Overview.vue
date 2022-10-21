@@ -3,7 +3,7 @@
     <div class="grid grid-cols-4 gap-4 text-gray-700">
         <div class="border rounded px-4 py-2 text-center">
             <router-link to="/admin/users/general">
-                <div class="text-xl">{{stats.userCount}}</div>
+                <div class="text-xl">{{stats.userCount}}/{{stats.maxUsers}}</div>
                 <div>Users</div>
             </router-link>
             <div class="w-full grid grid-cols-2 pt-1 mt-2 border-t">
@@ -13,14 +13,14 @@
         </div>
         <div class="border rounded p-4 text-center">
             <router-link to="/admin/teams">
-                <div class="text-xl">{{stats.teamCount}}</div>
+                <div class="text-xl">{{stats.teamCount}}/{{stats.maxProjects}}</div>
                 <div>{{ $filters.pluralize(stats.teamCount,'Team')}}</div>
             </router-link>
         </div>
         <div class="border rounded p-4 text-center">
-            <div class="text-xl">{{stats.projectCount}}</div>
+            <div class="text-xl">{{stats.projectCount}}/{{stats.maxProjects}}</div>
             <div>{{ $filters.pluralize(stats.projectCount,'Project')}}</div>
-            <div class="w-full grid grid-cols-1 pt-1 mt-2 border-t">
+            <div v-if="stats.projectsByState && Object.keys(stats.projectsByState).length > 0" class="w-full grid grid-cols-1 pt-1 mt-2 border-t">
                 <div v-for="(count, state) in stats.projectsByState" :key="state">
                     {{ count }} {{ state }}
                 </div>
@@ -28,10 +28,9 @@
         </div>
 
         <div class="border rounded p-4 text-center">
-            <div class="text-xl">{{stats.deviceCount}}</div>
+            <div class="text-xl">{{stats.deviceCount}}/{{stats.maxDevices}}</div>
             <div>{{ $filters.pluralize(stats.deviceCount,'Device')}}</div>
         </div>
-
         <div class="border rounded p-4 col-span-4">
             <div class="text-xl mb-1 border-b">License</div>
             <table v-if="license">

@@ -9,12 +9,12 @@
                 <div id="platform-banner"></div>
                 <slot></slot>
             </div>
-            <TransitionGroup class="ff-notifications" name="notifictions-list" tag="div">
+            <TransitionGroup class="ff-notifications" name="notifications-list" tag="div">
                 <ff-notification-toast v-for="(a, $index) in alertsReversed" :key="a.timestamp"
                                        :type="a.type" :message="a.message"
                                        :countdown="a.countdown || 3000" @close="clear($index)"></ff-notification-toast>
             </TransitionGroup>
-            <ff-dialog ref="dialog" :header="dialog.header" :kind="dialog.kind" :disable-primary="dialog.disablePrimary" :confirm-label="dialog.confirmLabel" @cancel="clearDialog" @confirm="dialog.onConfirm">
+            <ff-dialog ref="dialog" data-el="platform-dialog" :header="dialog.header" :kind="dialog.kind" :disable-primary="dialog.disablePrimary" :confirm-label="dialog.confirmLabel" @cancel="clearDialog" @confirm="dialog.onConfirm">
                 <p v-if="dialog.text">{{ dialog.text }}</p>
                 <div class="space-y-2" v-html="dialog.html"></div>
             </ff-dialog>
@@ -79,8 +79,8 @@ export default {
         alertReceived (msg, type, countdown) {
             this.alerts.push({
                 message: msg,
-                type: type,
-                countdown: countdown,
+                type,
+                countdown,
                 timestamp: Date.now()
             })
         },

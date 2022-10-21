@@ -8,7 +8,7 @@ import AccountTeamTeams from '@/pages/account/Teams/Teams.vue'
 import AccountTeamInvitations from '@/pages/account/Teams/Invitations.vue'
 import AccessRequest from '@/pages/AccessRequest.vue'
 import AccountCreate from '@/pages/account/Create.vue'
-
+import VerifyEmail from '@/pages/account/VerifyEmail.vue'
 import ForgotPassword from '@/pages/account/ForgotPassword'
 import PasswordReset from '@/pages/account/PasswordReset'
 
@@ -94,12 +94,13 @@ export default [
         component: AccountCreate
     },
     {
+        name: 'VerifyEmail',
         path: '/account/verify/:token',
-        name: 'Verify Email',
+        props: true,
         meta: {
             requiresLogin: false
         },
-        component: AccountCreate
+        component: VerifyEmail
     },
     {
         profileLink: true,

@@ -49,7 +49,7 @@ export default {
             input: {
                 role: ''
             },
-            Roles: Roles
+            Roles
         }
     },
     methods: {

@@ -34,7 +34,7 @@ module.exports = {
                     const limit = parseInt(pagination.limit) || 30
                     const where = {
                         entityId: projectId.toString(),
-                        entityType: entityType
+                        entityType
                     }
                     if (pagination.cursor) {
                         where.id = { [Op.lt]: M.AuditLog.decodeHashid(pagination.cursor) }

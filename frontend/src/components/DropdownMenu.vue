@@ -1,5 +1,5 @@
 <template>
-    <Menu as="div" class="relative inline-block text-left">
+    <HeadlessUIMenu as="div" class="relative inline-block text-left">
         <div>
             <MenuButton :class="[buttonClass ? buttonClass : 'forge-button', !hasLabel?'px-1':'']">
                 <slot></slot>
@@ -17,7 +17,7 @@
         >
             <MenuItems :class="[edge === 'left' ? 'left-0 origin-top-left' : 'right-0 origin-top-right','z-50 absolute w-56 mt-1 bg-white divide-y divide-gray-100 rounded overflow-hidden shadow-lg ring-1 ring-black ring-opacity-10 focus:outline-none']">
                 <div class="apx-1 apy-1">
-                    <MenuItem v-for="(item, $index) in options" v-slot="{ active }" :key="$index">
+                    <MenuItem v-for="(item, $index) in options" v-slot="{ active }" :key="$index" :disabled="!item || item.disabled == true ? true : false">
                         <template v-if="item == null">
                             <hr/>
                         </template>
@@ -50,7 +50,7 @@
                 </div>
             </MenuItems>
         </transition>
-    </Menu>
+    </HeadlessUIMenu>
 </template>
 <script>
 
@@ -62,7 +62,7 @@ export default {
     name: 'DropdownMenu',
     props: ['alt', 'options', 'buttonClass', 'edge'],
     components: {
-        Menu,
+        HeadlessUIMenu: Menu,
         MenuButton,
         MenuItems,
         MenuItem,

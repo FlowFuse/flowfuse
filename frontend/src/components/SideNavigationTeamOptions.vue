@@ -64,6 +64,11 @@ export default {
                 tag: 'team-projects',
                 icon: ProjectsIcon
             }, {
+                label: 'Devices',
+                to: '/devices',
+                tag: 'team-devices',
+                icon: ChipIcon
+            }, {
                 label: 'Members',
                 to: '/members',
                 tag: 'team-members',
@@ -85,7 +90,7 @@ export default {
         return {
             closeNested: false,
             loaded: false,
-            routes: routes
+            routes
         }
     },
     mounted () {
@@ -133,14 +138,8 @@ export default {
                 this.routes.admin.splice(1, 0, {
                     label: 'Billing',
                     to: '/billing',
+                    tag: 'team-billing',
                     icon: CurrencyDollarIcon
-                })
-            }
-            if (this.features.devices) {
-                this.routes.general.splice(2, 0, {
-                    label: 'Devices',
-                    to: '/devices',
-                    icon: ChipIcon
                 })
             }
         },

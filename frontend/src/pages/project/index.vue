@@ -1,4 +1,6 @@
 <template>
+    <ff-loading v-if="loading.deleting" message="Deleting Project..." />
+    <ff-loading v-if="loading.suspend" message="Suspending Project..." />
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigationTeamOptions>
             <template v-slot:nested-menu>
@@ -11,6 +13,7 @@
         </SideNavigationTeamOptions>
     </Teleport>
     <main>
+        <ConfirmProjectDeleteDialog @confirm="deleteProject" ref="confirmProjectDeleteDialog"/>
         <SectionTopMenu>
             <template #hero>
                 <div class="flex-grow space-x-6 items-center inline-flex">
@@ -22,7 +25,7 @@
             </template>
             <template v-slot:tools>
                 <div class="space-x-2 flex">
-                    <a v-if="editorAvailable" :href="project.url" target="_blank" class="ff-btn ff-btn--secondary" data-action="open-editor">
+                    <a v-if="editorAvailable && !isVisitingAdmin" :href="project.url" target="_blank" class="ff-btn ff-btn--secondary" data-action="open-editor">
                         Open Editor
                         <span class="ff-btn--icon ff-btn--icon-right">
                             <ExternalLinkIcon />
@@ -34,9 +37,9 @@
         </SectionTopMenu>
         <div class="text-sm mt-4 sm:mt-8">
             <Teleport v-if="mounted && isVisitingAdmin" to="#platform-banner">
-                <div class="ff-banner">You are viewing this project as an Administrator</div>
+                <div class="ff-banner" data-el="banner-project-as-admin">You are viewing this project as an Administrator</div>
             </Teleport>
-            <router-view :project="project" @projectUpdated="updateProject"></router-view>
+            <router-view :project="project" :isVisitingAdmin="isVisitingAdmin" @projectUpdated="updateProject"></router-view>
         </div>
     </main>
 </template>
@@ -59,6 +62,9 @@ import permissionsMixin from '@/mixins/Permissions'
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
 import ProjectsIcon from '@/components/icons/Projects'
 import { ChevronLeftIcon, CogIcon, ClockIcon, ChipIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
+import ConfirmProjectDeleteDialog from './Settings/dialogs/ConfirmProjectDeleteDialog'
+import Dialog from '@/services/dialog'
+import alerts from '@/services/alerts'
 
 const projectTransitionStates = [
     'starting',
@@ -77,7 +83,11 @@ export default {
             },
             project: {},
             navigation: [],
-            checkInterval: null
+            checkInterval: null,
+            loading: {
+                deleting: false,
+                suspend: false
+            }
         }
     },
     mixins: [permissionsMixin],
@@ -85,9 +95,12 @@ export default {
         await this.updateProject()
     },
     computed: {
-        ...mapState('account', ['teamMembership', 'team', 'features']),
+        ...mapState('account', ['teamMembership', 'team']),
         isVisitingAdmin: function () {
             return this.teamMembership.role === Roles.Admin
+        },
+        isLoading: function () {
+            return this.loading.deleting || this.loading.suspend
         },
         options: function () {
             const flowActionsDisabled = !(this.project.meta && this.project.meta.state !== 'suspended')
@@ -95,19 +108,11 @@ export default {
             const result = [
                 { name: 'Start', action: async () => { this.project.pendingStateChange = true; await projectApi.startProject(this.project.id) } },
                 { name: 'Restart', action: async () => { this.project.pendingRestart = true; this.project.pendingStateChange = true; await projectApi.restartProject(this.project.id) }, disabled: flowActionsDisabled },
-                { name: 'Suspend', class: ['text-red-700'], action: () => { this.$router.push({ path: `/project/${this.project.id}/settings/danger` }) }, disabled: flowActionsDisabled }
+                { name: 'Suspend', class: ['text-red-700'], action: () => { this.showConfirmSuspendDialog() }, disabled: flowActionsDisabled }
             ]
             if (this.hasPermission('project:delete')) {
-                result.push(
-                    null,
-                    {
-                        name: 'Delete',
-                        class: ['text-red-700'],
-                        action: () => {
-                            this.$router.push({ path: `/project/${this.project.id}/settings/danger` })
-                        }
-                    }
-                )
+                result.push(null)
+                result.push({ name: 'Delete', class: ['text-red-700'], action: () => { this.showConfirmDeleteDialog() } })
             }
             return result
         },
@@ -132,14 +137,9 @@ export default {
             const projectId = this.$route.params.id
             try {
                 const data = await projectApi.getProject(projectId)
-                if (this.features.devices) {
-                    data.deviceSettings = {}
-                }
-                this.project = data
+                this.project = Object.assign(data, { deviceSettings: {} })
                 this.$store.dispatch('account/setTeam', this.project.team.slug)
-                if (this.features.devices) {
-                    this.project.deviceSettings = await projectApi.getProjectDeviceSettings(projectId)
-                }
+                this.project.deviceSettings = await projectApi.getProjectDeviceSettings(projectId)
             } catch (err) {
                 this.$router.push({
                     name: 'PageNotFound',
@@ -169,18 +169,50 @@ export default {
             this.navigation = [
                 { label: 'Overview', path: `/project/${this.project.id}/overview`, tag: 'project-overview', icon: ProjectsIcon },
                 { label: 'Activity', path: `/project/${this.project.id}/activity`, tag: 'project-activity', icon: ViewListIcon },
+                { label: 'Devices', path: `/project/${this.project.id}/devices`, tag: 'project-devices', icon: ChipIcon },
                 { label: 'Snapshots', path: `/project/${this.project.id}/snapshots`, tag: 'project-snapshots', icon: ClockIcon },
                 { label: 'Logs', path: `/project/${this.project.id}/logs`, tag: 'project-logs', icon: TerminalIcon },
                 { label: 'Settings', path: `/project/${this.project.id}/settings`, tag: 'project-settings', icon: CogIcon }
             ]
-            if (this.features.devices) {
-                this.navigation.splice(3, 0, { label: 'Devices', path: `/project/${this.project.id}/devices`, tag: 'project-devices', icon: ChipIcon })
-            }
 
             if (this.project.meta && (this.project.pendingRestart || projectTransitionStates.includes(this.project.meta.state))) {
                 this.project.pendingStateChange = true
                 this.refreshProject()
             }
+        },
+        showConfirmDeleteDialog () {
+            this.$refs.confirmProjectDeleteDialog.show(this.project)
+        },
+        deleteProject () {
+            this.loading.deleting = true
+            projectApi.deleteProject(this.project.id).then(() => {
+                this.$router.push({ name: 'Home' })
+                alerts.emit('Project successfully deleted.', 'confirmation')
+            }).catch(err => {
+                console.warn(err)
+                alerts.emit('Project failed to delete.', 'warning')
+            }).finally(() => {
+                this.loading.deleting = false
+            })
+        },
+        showConfirmSuspendDialog () {
+            Dialog.show({
+                header: 'Suspend Project',
+                text: 'Are you sure you want to suspend this project?',
+                confirmLabel: 'Suspend',
+                kind: 'danger'
+            }, () => {
+                this.loading.suspend = true
+                projectApi.suspendProject(this.project.id).then(() => {
+                    this.$router.push({ name: 'Home' })
+                    alerts.emit('Project successfully suspended.', 'confirmation')
+                }).catch(err => {
+                    console.warn(err)
+                    alerts.emit('Project failed to suspend.', 'warning')
+                }).finally(() => {
+                    this.loading.suspend = false
+                })
+            })
         }
     },
     components: {
@@ -189,7 +221,8 @@ export default {
         DropdownMenu,
         ProjectStatusBadge,
         SideNavigationTeamOptions,
-        SectionTopMenu
+        SectionTopMenu,
+        ConfirmProjectDeleteDialog
     }
 }
 </script>

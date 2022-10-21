@@ -13,6 +13,7 @@
                     be modified, other than to change its active state.
                 </div>
                 <FormRow v-model="input.name" :error="errors.name" :disabled="editDisabled">Name</FormRow>
+                <FormRow v-model="input.label" :error="errors.label" :disabled="editDisabled">Label</FormRow>
                 <FormRow v-model="input.active" type="checkbox">Active</FormRow>
                 <FormRow :options="projectTypes" :disabled="editTypeDisabled" :error="errors.projectType" v-model="input.projectType" id="projectType">Project Type
                     <template v-slot:description>
@@ -52,6 +53,7 @@ export default {
             loading: false,
             input: {
                 name: '',
+                label: '',
                 active: true,
                 properties: {},
                 replaces: null
@@ -142,6 +144,7 @@ export default {
                 this.loading = true
                 let opts = {
                     name: this.input.name,
+                    label: this.input.label,
                     active: this.input.active,
                     projectType: this.input.projectType,
                     properties: {}
@@ -214,6 +217,7 @@ export default {
                 this.editTypeDisabled = !!stack.projectType
                 this.input = {
                     name: stack.name,
+                    label: stack.label,
                     active: stack.active,
                     properties: stack.properties,
                     replaces: null,
@@ -229,6 +233,7 @@ export default {
                 this.input = {
                     active: true,
                     name: stack.name + '-copy',
+                    label: stack.label,
                     properties: { },
                     projectType: stack.projectType,
                     replaces: stack

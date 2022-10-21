@@ -126,7 +126,7 @@ module.exports.init = async function (app) {
                 try {
                     await stripe.subscriptionItems.update(projectItem.id, update)
                     await stripe.subscriptions.update(subscription.subscription, {
-                        metadata: metadata
+                        metadata
                     })
                 } catch (error) {
                     app.log.warn(`Problem adding project to subscription\n${error.message}`)
@@ -140,7 +140,7 @@ module.exports.init = async function (app) {
                         price: projectPrice,
                         quantity: 1
                     }],
-                    metadata: metadata
+                    metadata
                 }
                 try {
                     await stripe.subscriptions.update(subscription.subscription, update)
@@ -187,7 +187,7 @@ module.exports.init = async function (app) {
                 try {
                     await stripe.subscriptionItems.update(projectItem.id, update)
                     await stripe.subscriptions.update(subscription.subscription, {
-                        metadata: metadata
+                        metadata
                     })
                 } catch (err) {
                     app.log.warn(`failed removing project from subscription\n${err.message}`)

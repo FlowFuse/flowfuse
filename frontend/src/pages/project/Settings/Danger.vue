@@ -79,6 +79,20 @@
             </div>
         </div>
 
+        <FormHeading>Import Project</FormHeading>
+
+        <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
+            <div class="flex-grow">
+                <div class="max-w-sm pt-2">
+                    Import an existing Node-RED project.
+                </div>
+            </div>
+            <div class="min-w-fit flex-shrink-0">
+                <ff-button kind="secondary" @click="showImportProjectDialog()">Import Project</ff-button>
+                <ImportProjectDialog @confirm="importProject" ref="importProjectDialog"/>
+            </div>
+        </div>
+
         <FormHeading class="text-red-700">Suspend Project</FormHeading>
         <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
             <div class="flex-grow">
@@ -103,7 +117,7 @@
             </div>
             <div class="min-w-fit flex-shrink-0">
                 <ff-button data-action="delete-project" kind="danger" @click="showConfirmDeleteDialog()">Delete Project</ff-button>
-                <ConfirmProjectDeleteDialog @confirm="deleteProject" ref="confirmProjectDeleteDialog"/>
+                <ConfirmProjectDeleteDialog data-el="delete-project" @confirm="deleteProject" ref="confirmProjectDeleteDialog"/>
             </div>
         </div>
     </form>
@@ -121,6 +135,7 @@ import ConfirmProjectDeleteDialog from './dialogs/ConfirmProjectDeleteDialog'
 import ChangeStackDialog from './dialogs/ChangeStackDialog'
 import ChangeTypeDialog from './dialogs/ChangeTypeDialog'
 import ExportToProjectDialog from './dialogs/ExportToProjectDialog'
+import ImportProjectDialog from './dialogs/ImportProjectDialog'
 import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
 
@@ -196,6 +211,9 @@ export default {
         showExportToProjectDialog () {
             this.$refs.exportToProjectDialog.show(this.project)
         },
+        showImportProjectDialog () {
+            this.$refs.importProjectDialog.show(this.project)
+        },
         upgradeStack () {
             this.changeStack(this.project.stack.replacedBy)
         },
@@ -220,6 +238,9 @@ export default {
                 sourceProject: parts.sourceProject
             }
             projectApi.updateProject(parts.target, options)
+        },
+        importProject (parts) {
+            projectApi.importProject(this.project.id, parts)
         },
         deleteProject () {
             this.loading.deleting = true
@@ -268,7 +289,8 @@ export default {
         ChangeStackDialog,
         ChangeTypeDialog,
         // ExportProjectDialog,
-        ExportToProjectDialog
+        ExportToProjectDialog,
+        ImportProjectDialog
     }
 }
 </script>

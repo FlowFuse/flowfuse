@@ -2,12 +2,14 @@
  * A Project Stack definition
  * @namespace forge.db.models.ProjectStack
  */
-const { DataTypes, literal, Op } = require('sequelize')
+const { DataTypes, literal } = require('sequelize')
+const { buildPaginationSearchClause } = require('../utils')
 
 module.exports = {
     name: 'ProjectStack',
     schema: {
         name: { type: DataTypes.STRING, allowNull: false, unique: true },
+        label: { type: DataTypes.STRING },
         active: { type: DataTypes.BOOLEAN, defaultValue: true },
         properties: {
             type: DataTypes.TEXT,
@@ -70,31 +72,34 @@ module.exports = {
                 getAll: async (pagination = {}, where = {}) => {
                     const limit = parseInt(pagination.limit) || 30
                     if (pagination.cursor) {
-                        where.id = { [Op.gt]: M.ProjectStack.decodeHashid(pagination.cursor) }
+                        pagination.cursor = M.ProjectStack.decodeHashid(pagination.cursor)
                     }
-                    const { count, rows } = await this.findAndCountAll({
-                        where,
-                        order: [['id', 'ASC']],
-                        limit,
-                        attributes: {
-                            include: [
-                                [
-                                    literal(`(
-                                        SELECT COUNT(*)
-                                        FROM "Projects" AS "project"
-                                        WHERE
-                                        "project"."ProjectStackId" = "ProjectStack"."id"
-                                    )`),
-                                    'projectCount'
+                    const [rows, count] = await Promise.all([
+                        await this.findAll({
+                            where: buildPaginationSearchClause(pagination, where, ['ProjectStack.name']),
+                            order: [['id', 'ASC']],
+                            limit,
+                            attributes: {
+                                include: [
+                                    [
+                                        literal(`(
+                                            SELECT COUNT(*)
+                                            FROM "Projects" AS "project"
+                                            WHERE
+                                            "project"."ProjectStackId" = "ProjectStack"."id"
+                                        )`),
+                                        'projectCount'
+                                    ]
                                 ]
-                            ]
-                        }
-                    })
+                            }
+                        }),
+                        this.count({ where })
+                    ])
                     return {
                         meta: {
                             next_cursor: rows.length === limit ? rows[rows.length - 1].hashid : undefined
                         },
-                        count: count,
+                        count,
                         stacks: rows
                     }
                 }

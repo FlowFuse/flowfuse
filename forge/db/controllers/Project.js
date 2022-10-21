@@ -1,4 +1,5 @@
 const crypto = require('crypto')
+const semver = require('semver')
 
 /**
  * inflightProjectState - when projects are transitioning between states, there
@@ -67,6 +68,16 @@ module.exports = {
                 env[envVar.name] = envVar.value
             })
         }
+        // If we don't have any modules listed in project settings. We should
+        // look them up from StorageSettings in case this is a pre-existing project
+        // that has nodes installed from before we started tracking them ourselves
+        const moduleList = result.palette?.modules || await app.db.controllers.StorageSettings.getProjectModules(project) || []
+        const modules = {}
+        moduleList.forEach(module => {
+            modules[module.name] = module.version
+        })
+        result.palette = result.palette || {}
+        result.palette.modules = modules
         result.env = env
         return result
     },
@@ -198,6 +209,121 @@ module.exports = {
         result.push(makeVar('FF_PROJECT_NAME', project.name || ''))
         result.push(...app.db.controllers.Project.removePlatformSpecificEnvVars(envVars))
         return result
+    }
+
+    /**
+     *
+     * @param {*} app
+     * @param {*} project
+     * @param {*} components
+     */
+    importProject: async function (app, project, components) {
+        const t = await app.db.sequelize.transaction()
+        try {
+            if (components.flows) {
+                let currentProjectFlows = await app.db.models.StorageFlow.byProject(project.id)
+                if (currentProjectFlows) {
+                    currentProjectFlows.flows = components.flows
+                    await currentProjectFlows.save({ transaction: t })
+                } else {
+                    currentProjectFlows = await app.db.models.StorageFlow.create({
+                        ProjectId: project.id,
+                        flow: components.flows
+                    }, { transaction: t })
+                }
+            }
+            if (components.credentials) {
+                const projectSecret = await project.getCredentialSecret()
+                const credSecretsHash = crypto.createHash('sha256').update(components.credsSecret).digest()
+                const projectSecretHash = crypto.createHash('sha256').update(projectSecret).digest()
+                const decryptedCreds = decryptCreds(credSecretsHash, JSON.parse(components.credentials))
+                const encryptedCreds = encryptCreds(projectSecretHash, decryptedCreds)
+                let origCredentials = await app.db.models.StorageCredentials.byProject(project.id)
+                if (origCredentials) {
+                    origCredentials.credentials = JSON.stringify(encryptedCreds)
+                    await origCredentials.save({ transaction: t })
+                } else {
+                    origCredentials = await app.db.models.StorageCredentials.create({
+                        ProjectId: project.id,
+                        credentials: JSON.stringify(encryptedCreds)
+                    }, { transaction: t })
+                }
+            }
+            await t.commit()
+        } catch (error) {
+            t.rollback()
+            throw error
+        }
+        if (project.state === 'running') {
+            app.db.controllers.Project.setInflightState(project, 'restarting')
+            project.state = 'running'
+            await project.save()
+            const result = await app.containers.restartFlows(project)
+            app.db.controllers.Project.clearInflightState(project)
+            return result
+        }
+    },
+
+    /**
+     * Updates the project settings.palette.modules value based on the
+     * module list Node-RED has provided to the StorageSettings api.
+     */
+    mergeProjectModules: async function (app, project, moduleList) {
+        let changed = false
+        let newProjectModuleList
+        const currentProjectSettings = await project.getSetting('settings') || {}
+        if (currentProjectSettings?.palette?.modules) {
+            // The project has an existing list of modules - need to resolve any
+            // changes between the two lists
+
+            // As the moduleList comes from Node-RED's runtimeSettings object,
+            // it will only contain the modules that include Node-RED nodes.
+            // Regular npm modules that do not include nodes (nrlint for eg)
+            // will not be included.
+            // So we don't want to remove anything from the current list just
+            // because it isn't listed in what moduleList provides.
+
+            // This is the list of modules from ProjectSettings
+            const existingModulesList = currentProjectSettings?.palette?.modules
+            const existingModules = {}
+            existingModulesList.forEach(m => { existingModules[m.name] = m })
+
+            const newModules = {}
+            moduleList.forEach(m => {
+                newModules[m.name] = m
+                if (!existingModules[m.name]) {
+                    // Newly installed module - add to the list
+                    changed = true
+                    existingModules[m.name] = m
+                    if (/^\d/.test(m.version)) {
+                        m.version = `~${m.version}`
+                    }
+                } else if (!semver.satisfies(m.version, existingModules[m.name].version)) {
+                    // The installed version does not match what we thought semver wanted.
+                    // Defer to what has been installed - but with '~' prepended
+                    // as is the default Node-RED/npm behaviour
+                    if (/^\d/.test(m.version)) {
+                        m.version = `~${m.version}`
+                    }
+                    existingModules[m.name] = m
+                }
+            })
+            newProjectModuleList = Object.values(existingModules)
+        } else {
+            // No existing modules - so updated with the list as provided
+            changed = true
+            newProjectModuleList = moduleList.map(m => {
+                if (/^\d/.test(m.version)) {
+                    m.version = `~${m.version}`
+                }
+                return m
+            })
+        }
+        if (changed) {
+            currentProjectSettings.palette = currentProjectSettings.palette || {}
+            currentProjectSettings.palette.modules = newProjectModuleList
+            await project.updateSetting('settings', currentProjectSettings)
+        }
     }
 }
 

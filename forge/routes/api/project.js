@@ -63,9 +63,7 @@ module.exports = async function (app) {
         }
     })
 
-    if (app.config.features.enabled('devices')) {
-        app.register(ProjectDevices, { prefix: '/:projectId/devices' })
-    }
+    app.register(ProjectDevices, { prefix: '/:projectId/devices' })
     app.register(ProjectActions, { prefix: '/:projectId/actions' })
     app.register(ProjectSnapshots, { prefix: '/:projectId/snapshots' })
 
@@ -191,7 +189,7 @@ module.exports = async function (app) {
         let project
         try {
             project = await app.db.models.Project.create({
-                name: name,
+                name,
                 type: '',
                 url: ''
             })
@@ -793,6 +791,40 @@ module.exports = async function (app) {
     //     const projectExport = await app.db.controllers.Project.exportProject(request.project, components)
     //     reply.send(projectExport)
     // })
+
+    /**
+     *
+     * @name /api/v1/project/:id/import
+     * @memberof forge.routs.api.project
+     */
+    app.post('/:projectId/import', {
+        schema: {
+            body: {
+                type: 'object',
+                properties: {
+                    flows: { type: 'string' },
+                    credentials: { type: 'string' },
+                    credsSecret: { type: 'string' }
+                }
+            }
+        }
+    }, async (request, reply) => {
+        try {
+            const projectImport = await app.db.controllers.Project.importProject(request.project, request.body)
+            await app.db.controllers.AuditLog.projectLog(
+                request.project.id,
+                request.session.User.id,
+                'project.flow-imported'
+            )
+            reply.send(projectImport)
+        } catch (err) {
+            if (err.name === 'SyntaxError') {
+                reply.code(403).send({ code: 'credentials_bad_secret', error: 'incorrect credential secret' })
+            } else {
+                reply.code(500).send({ code: 'unknown_error', error: 'unknown error' })
+            }
+        }
+    })
 
     /**
      * Merge env vars from 2 arrays.

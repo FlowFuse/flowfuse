@@ -4,6 +4,7 @@
             <div class="flex" :class="(wrapperClass ? wrapperClass : 'items-center')">
                 <div :class="(disabled ? ' cursor-not-allowed' : '')">
                     <input :id="inputId"
+                           ref="input"
                            type="checkbox"
                            :class="inputClass"
                            v-model="localModelValue"
@@ -20,6 +21,7 @@
         <template v-else-if="type==='radio'">
             <div class="flex" :class="(wrapperClass ? wrapperClass : 'items-center')  + (disabled ? ' cursor-not-allowed' : '')">
                 <input :id="inputId"
+                       ref="input"
                        type="radio"
                        :class="inputClass"
                        v-model="localModelValue"
@@ -33,12 +35,31 @@
             <div v-if="error" class="ml-9 text-red-400 inline text-xs">{{error}}</div>
             <div v-if="hasDescription" class="mt-1 text-xs text-gray-400 mb-2 ml-9 space-y-1"><slot name="description"></slot></div>
         </template>
+        <template v-else-if="type==='file'">
+            <label v-if="hasTitle" :for="inputId" class="text-sm font-medium text-gray-700"><slot></slot></label>
+            <div class="flex" :class="(wrapperClass ? wrapperClass : 'items-center')">
+                <div class="ff-input ff-text-input">
+                    <input :id="inputId"
+                           type="file"
+                           :class="inputClass"
+                           :accept="accept"
+                           :name="name"
+                           :placeholder="placeholder"
+                           :disabled="disabled"
+                           @change="$emit('update:modelValue', { obj: $event.target, val: $event.target.value})"
+                    >
+                </div>
+            </div>
+            <div v-if="error" class="ml-9 text-red-400 inline text-xs">{{error}}</div>
+            <div v-if="hasDescription" class="mt-1 text-xs text-gray-400 mb-2 ml-9 space-y-1"><slot name="description"></slot></div>
+        </template>
         <template v-else>
             <label v-if="hasTitle" :for="inputId" class="block text-sm font-medium text-gray-700 mb-1"><slot></slot></label>
             <div v-if="hasDescription" class="text-xs text-gray-400 mb-2 space-y-1"><slot name="description"></slot></div>
             <div :class="(wrapperClass ? wrapperClass : 'flex flex-col sm:flex-row relative')">
                 <template v-if="options && type !== 'uneditable'">
                     <select :id="inputId"
+                            ref="input"
                             class="w-full"
                             :class="inputClass"
                             :value="modelValue"
@@ -58,13 +79,13 @@
                 </template>
                 <template v-else>
                     <ff-text-input
-                        ref="text_input"
+                        ref="input"
                         v-model="localModelValue"
                         :placeholder="placeholder"
                         :disabled="disabled"
                         :type="type"
-                        @keyup.enter.prevent="$emit('enter')"
-                        @blur="$emit('blur')"/>
+                        @enter="$emit('enter')"
+                        @blur="$emit('blur')" />
                 </template>
                 <template v-if="hasAppend">
                     <div :class="appendClass ? appendClass : 'block sm:inline sm:absolute sm:left-full sm:ml-4 mt-2 sm:mt-0'"><slot name="append"></slot></div>
@@ -79,7 +100,7 @@ import { ref } from 'vue'
 let instanceCount = 0
 export default {
     name: 'FormRow',
-    props: ['id', 'type', 'name', 'value', 'disabled', 'modelValue', 'valueEmptyText', 'error', 'options', 'placeholder', 'containerClass', 'wrapperClass', 'inputClass', 'appendClass'],
+    props: ['id', 'type', 'name', 'value', 'disabled', 'modelValue', 'valueEmptyText', 'error', 'options', 'placeholder', 'containerClass', 'wrapperClass', 'inputClass', 'appendClass', 'accept'],
     emits: ['update:modelValue', 'blur', 'enter'],
     computed: {
         inputId: function () {
@@ -117,6 +138,13 @@ export default {
             hasDescription,
             hasAppend,
             hasCustomInput
+        }
+    },
+    methods: {
+        focus () {
+            this.$nextTick(() => {
+                this.$refs.input?.focus()
+            })
         }
     }
 }
