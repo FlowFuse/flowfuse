@@ -10,6 +10,7 @@ const requestCache = new LRU({
 })
 
 function badRequest (reply, error, description) {
+    // This format is defined by the OAuth standard - do not change
     reply.code(400).send({
         error,
         description
@@ -155,6 +156,7 @@ module.exports = async function (app) {
                     // Older versions of nr-auth do not know how to apply read-only
                     // access. We know it is an older version because it set scope to `editor`.
                     // Versions that support viewer will have a scope of `editor-<version>`.
+                    // This should be sent as plain text as the user will see it in the browser window.
                     reply.code(400).send('Please ask the team owner to update this project to the latest stack to support viewer access')
                     return
                 }

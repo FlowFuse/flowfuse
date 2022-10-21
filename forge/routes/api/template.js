@@ -31,7 +31,7 @@ module.exports = async function (app) {
         if (template) {
             reply.send(app.db.views.ProjectTemplate.template(template))
         } else {
-            reply.code(404).type('text/html').send('Not Found')
+            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
     })
 

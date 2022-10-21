@@ -16,17 +16,17 @@ module.exports = async function (app) {
                 try {
                     request.device = await app.db.models.Device.byId(request.params.deviceId)
                     if (!request.device) {
-                        reply.code(404).type('text/html').send('Not Found')
+                        reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return
                     }
                     if (request.session.User) {
                         request.teamMembership = await request.session.User.getTeamMembership(request.device.Team.id)
                     }
                 } catch (err) {
-                    reply.code(404).type('text/html').send('Not Found')
+                    reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                 }
             } else {
-                reply.code(404).type('text/html').send('Not Found')
+                reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             }
         }
     })

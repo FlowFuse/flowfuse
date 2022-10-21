@@ -41,24 +41,24 @@ module.exports = async function (app) {
                 try {
                     request.project = await app.db.models.Project.byId(request.params.projectId)
                     if (!request.project) {
-                        reply.code(404).type('text/html').send('Not Found')
+                        reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return
                     }
                     if (request.session.User) {
                         request.teamMembership = await request.session.User.getTeamMembership(request.project.Team.id)
                         if (!request.teamMembership && !request.session.User.admin) {
-                            reply.code(404).type('text/html').send('Not Found')
+                            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                             return
                         }
                     } else if (request.session.ownerId !== request.params.projectId) {
-                        reply.code(404).type('text/html').send('Not Found')
+                        reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return
                     }
                 } catch (err) {
-                    reply.code(404).type('text/html').send('Not Found')
+                    reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                 }
             } else {
-                reply.code(404).type('text/html').send('Not Found')
+                reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             }
         }
     })
