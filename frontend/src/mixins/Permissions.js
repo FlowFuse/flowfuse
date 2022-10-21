@@ -7,12 +7,6 @@ export default {
                 throw new Error(`Unrecognised scope requested: '${scope}'`)
             }
             const permission = Permissions[scope]
-            if (scope.startsWith('platform:')) {
-                if (this.user?.admin) {
-                    return true
-                }
-                return false
-            }
             // if (<check settings>) {
             if (permission.role) {
                 if (!this.teamMembership) {
