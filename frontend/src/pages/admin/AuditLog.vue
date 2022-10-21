@@ -7,12 +7,10 @@
 import { mapState } from 'vuex'
 import SectionTopMenu from '@/components/SectionTopMenu'
 import AuditLog from '@/components/AuditLog'
-import permissionsMixin from '@/mixins/Permissions'
 import adminApi from '@/api/admin'
 
 export default {
     name: 'PlatformAuditLog',
-    mixins: [permissionsMixin],
     data () {
         return {
             entity: null
