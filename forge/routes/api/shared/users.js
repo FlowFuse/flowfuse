@@ -29,8 +29,6 @@ module.exports = {
         userLog = userLog || noop
         const logUserInfo = {
             username: user.username,
-            name: user.name,
-            email: user.email
         }
         try {
             const oldProfile = app.db.views.User.userProfile(user)
