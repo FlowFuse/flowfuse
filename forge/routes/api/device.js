@@ -259,10 +259,12 @@ module.exports = async function (app) {
             let changed = false
             if (request.body.name !== undefined && request.body.name !== request.device.name) {
                 request.device.name = request.body.name
+                sendDeviceUpdate = true
                 changed = true
             }
             if (request.body.type !== undefined && request.body.type !== request.device.type) {
                 request.device.type = request.body.type
+                sendDeviceUpdate = true
                 changed = true
             }
             if (changed) {
@@ -277,12 +279,8 @@ module.exports = async function (app) {
         await request.device.save()
 
         const updatedDevice = await app.db.models.Device.byId(request.device.id)
-        if (app.comms && sendDeviceUpdate) {
-            app.comms.devices.sendCommand(updatedDevice.Team.hashid, updatedDevice.hashid, 'update', {
-                project: updatedDevice.Project?.id || null,
-                snapshot: updatedDevice.targetSnapshot?.hashid || null,
-                settings: updatedDevice.settingsHash || null
-            })
+        if (sendDeviceUpdate) {
+            app.db.controllers.Device.sendDeviceUpdateCommand(updatedDevice)
         }
         reply.send(app.db.views.Device.device(updatedDevice))
     })
@@ -311,13 +309,7 @@ module.exports = async function (app) {
             }
             await request.device.updateSettings(bodySettingsEnvOnly)
         }
-        if (app.comms) {
-            app.comms.devices.sendCommand(request.device.Team.hashid, request.device.hashid, 'update', {
-                project: request.device.Project?.id || null,
-                snapshot: request.device.targetSnapshot?.hashid || null,
-                settings: request.device.settingsHash || null
-            })
-        }
+        app.db.controllers.Device.sendDeviceUpdateCommand(request.device)
         reply.send({ status: 'okay' })
     })
 

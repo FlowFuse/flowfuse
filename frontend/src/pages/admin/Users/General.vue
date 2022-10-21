@@ -1,7 +1,18 @@
 <template>
 
     <form class="space-y-6">
-        <ff-data-table :columns="columns" :rows="users" :show-search="true" search-placeholder="Search Users...">
+        <ff-data-table
+            :columns="columns"
+            :rows="users"
+            :show-search="true"
+            v-model:search="userSearch"
+            search-placeholder="Search Users..."
+            :show-load-more="!!nextCursor"
+            :loading="loading"
+            loading-message="Loading Users"
+            @load-more="loadItems"
+            no-data-message="No Users Found"
+        >
             <template v-slot:actions>
                 <ff-button to="./create">
                     <template v-slot:icon-left>
@@ -14,9 +25,6 @@
                 <ff-list-item label="Edit User" @click="showEditUserDialog(row)"></ff-list-item>
             </template>
         </ff-data-table>
-        <div v-if="nextCursor">
-            <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
-        </div>
         <AdminUserEditDialog @userUpdated="userUpdated" @userDeleted="userDeleted" ref="adminUserEditDialog"/>
     </form>
 </template>
@@ -35,6 +43,7 @@ export default {
     data () {
         return {
             users: [],
+            userSearch: '',
             loading: false,
             nextCursor: null,
             columns: [
@@ -47,7 +56,22 @@ export default {
         }
     },
     async created () {
-        await this.loadItems()
+        await this.loadItems(true)
+    },
+    watch: {
+        userSearch (v) {
+            if (this.pendingSearch) {
+                clearTimeout(this.pendingSearch)
+            }
+            if (!v) {
+                this.loadItems(true)
+            } else {
+                this.loading = true
+                this.pendingSearch = setTimeout(() => {
+                    this.loadItems(true)
+                }, 300)
+            }
+        }
     },
     methods: {
         showEditUserDialog (user) {
@@ -68,9 +92,15 @@ export default {
                 this.users.splice(index, 1)
             }
         },
-        loadItems: async function () {
-            this.loading = true
-            const result = await usersApi.getUsers(this.nextCursor, 30)
+        loadItems: async function (reload) {
+            if (reload) {
+                this.loading = true
+                this.nextCursor = null
+            }
+            const result = await usersApi.getUsers(this.nextCursor, 30, this.userSearch)
+            if (reload) {
+                this.users = []
+            }
             this.nextCursor = result.meta.next_cursor
             result.users.forEach(v => {
                 v.onedit = (data) => { this.showEditUserDialog(v) }

@@ -66,11 +66,83 @@ describe('Users API', async function () {
         response.cookies[0].should.have.property('name', 'sid')
         TestObjects.tokens[username] = response.cookies[0].value
     }
+    const getUsers = async (limit, cursor, search) => {
+        const query = {}
+        // app.inject will inject undefined values as the string 'undefined' rather
+        // than ignore them. So need to build-up the query object the long way
+        if (limit !== undefined) {
+            query.limit = limit
+        }
+        if (cursor !== undefined) {
+            query.cursor = cursor
+        }
+        if (search !== undefined) {
+            query.query = search
+        }
+        const response = await app.inject({
+            method: 'GET',
+            url: '/api/v1/users',
+            query,
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+        return response.json()
+    }
 
     afterEach(async function () {
         await app.close()
     })
+    describe('List users', async function () {
+        it('returns a list of all users', async function () {
+            const result = await getUsers()
+            result.users.should.have.length(5)
+        })
 
+        it('can page through list', async function () {
+            const firstPage = await getUsers(2)
+            firstPage.should.have.property('meta')
+            firstPage.meta.should.have.property('next_cursor', TestObjects.bob.hashid)
+            firstPage.users.should.have.length(2)
+            firstPage.users[0].should.have.property('username', 'alice')
+            firstPage.users[1].should.have.property('username', 'bob')
+
+            const secondPage = await getUsers(2, firstPage.meta.next_cursor)
+            secondPage.should.have.property('meta')
+            secondPage.meta.should.have.property('next_cursor', TestObjects.dave.hashid)
+            secondPage.users.should.have.length(2)
+            secondPage.users[0].should.have.property('username', 'chris')
+            secondPage.users[1].should.have.property('username', 'dave')
+
+            const thirdPage = await getUsers(2, secondPage.meta.next_cursor)
+            thirdPage.should.have.property('meta')
+            thirdPage.meta.should.not.have.property('next_cursor')
+            thirdPage.users.should.have.length(1)
+            thirdPage.users[0].should.have.property('username', 'elvis')
+        })
+        it('can search for users - name', async function () {
+            const firstPage = await getUsers(undefined, undefined, 'kE')
+            firstPage.should.have.property('meta')
+            firstPage.meta.should.not.have.property('next_cursor')
+            firstPage.users.should.have.length(2)
+            firstPage.users[0].should.have.property('username', 'alice') // skywalKEr
+            firstPage.users[1].should.have.property('username', 'chris') // KEnobi
+        })
+        it('can search for users - username', async function () {
+            const firstPage = await getUsers(undefined, undefined, 'is')
+            firstPage.should.have.property('meta')
+            firstPage.meta.should.not.have.property('next_cursor')
+            firstPage.users.should.have.length(2)
+            firstPage.users[0].should.have.property('username', 'chris')
+            firstPage.users[1].should.have.property('username', 'elvis')
+        })
+        it('can search for users - email', async function () {
+            const firstPage = await getUsers(undefined, undefined, 'E@')
+            firstPage.should.have.property('meta')
+            firstPage.meta.should.not.have.property('next_cursor')
+            firstPage.users.should.have.length(2)
+            firstPage.users[0].should.have.property('username', 'alice')
+            firstPage.users[1].should.have.property('username', 'dave')
+        })
+    })
     describe('Update user settings', async function () {
         describe('Default Team', async function () {
             // PUT /api/v1/users/:userId

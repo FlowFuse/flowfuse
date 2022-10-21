@@ -73,6 +73,12 @@ const changeStack = async (projectId, stackId) => {
 //     })
 // }
 
+const importProject = async (projectId, components) => {
+    return client.post(`/api/v1/projects/${projectId}/import`, components).then(res => {
+
+    })
+}
+
 const getProjectDevices = async (projectId, cursor, limit) => {
     const url = paginateUrl(`/api/v1/projects/${projectId}/devices`, cursor, limit)
     const res = await client.get(url)
@@ -102,6 +108,7 @@ export default {
     updateProject,
     rollbackProject,
     changeStack,
+    importProject,
     getProjectDevices,
     getProjectDeviceSettings,
     updateProjectDeviceSettings
