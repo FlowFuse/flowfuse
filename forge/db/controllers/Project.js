@@ -209,7 +209,7 @@ module.exports = {
         result.push(makeVar('FF_PROJECT_NAME', project.name || ''))
         result.push(...app.db.controllers.Project.removePlatformSpecificEnvVars(envVars))
         return result
-    }
+    },
 
     /**
      *
