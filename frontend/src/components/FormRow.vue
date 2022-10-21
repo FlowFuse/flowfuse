@@ -75,7 +75,7 @@
                     <slot name="input"></slot>
                 </template>
                 <template v-else-if="type==='uneditable'">
-                    <div class="w-full uneditable" :class="inputClass">{{ modelValue || 'No Value' }}</div>
+                    <div class="w-full uneditable" :class="inputClass">{{ modelValue || (valueEmptyText == null ? 'No Value' : valueEmptyText ) }}</div>
                 </template>
                 <template v-else>
                     <ff-text-input
@@ -100,7 +100,7 @@ import { ref } from 'vue'
 let instanceCount = 0
 export default {
     name: 'FormRow',
-    props: ['id', 'type', 'name', 'value', 'disabled', 'modelValue', 'error', 'options', 'placeholder', 'containerClass', 'wrapperClass', 'inputClass', 'appendClass', 'accept'],
+    props: ['id', 'type', 'name', 'value', 'disabled', 'modelValue', 'valueEmptyText', 'error', 'options', 'placeholder', 'containerClass', 'wrapperClass', 'inputClass', 'appendClass', 'accept'],
     emits: ['update:modelValue', 'blur', 'enter'],
     computed: {
         inputId: function () {

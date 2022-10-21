@@ -1,7 +1,7 @@
 const should = require('should') // eslint-disable-line
 const setup = require('../setup')
 
-describe('Project API', function () {
+describe('Settings API', function () {
     let app
     const settingsURL = '/api/v1/settings'
     const TestObjects = {}

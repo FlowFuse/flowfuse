@@ -44,11 +44,7 @@ class DeviceCommsHandler {
                 }
 
                 if (sendUpdateCommand) {
-                    this.sendCommand(device.Team.hashid, deviceId, 'update', {
-                        project: device.Project?.id || null,
-                        snapshot: device.targetSnapshot?.hashid || null,
-                        settings: device.settingsHash || null
-                    })
+                    this.app.db.controllers.Device.sendDeviceUpdateCommand(device)
                 }
             } catch (err) {
                 // Not a JSON payload - ignore
