@@ -1,4 +1,4 @@
-name: Lint Components
+name: Lint and Test Components
 on:
   pull_request:
     branches: [ main ]
@@ -18,3 +18,4 @@ jobs:
           node-version: '16'
       - run: npm install
       - run: npm run lint
+      - run: npm run test:unit
