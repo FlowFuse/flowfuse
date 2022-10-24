@@ -81,7 +81,7 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const logUserInfo = {
             username: request.body.username,
-            admin: !!request.body.isAdmin,
+            admin: !!request.body.isAdmin
         }
         if (/^(admin|root)$/.test(request.body.username)) {
             const resp = { code: 'invalid_username', error: 'invalid username' }
