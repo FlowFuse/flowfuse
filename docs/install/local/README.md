@@ -70,7 +70,7 @@ Once installed, you will need to build and install the authentication plugin.
 
 3. This should result in a file called `go-auth.so` being generated
 
-4. Run mosquitto with a configuration file with the following contents:
+4. (Optional) Run mosquitto with a configuration file with the following contents:
     ```
     per_listener_settings false
     allow_anonymous false
@@ -108,7 +108,7 @@ you can use a pre-built docker image that provides everything needed.
     docker pull iegomez/mosquitto-go-auth
     ```
 
-2. Create a mosquitto.conf file with the following values:
+2. (Optional) Create a mosquitto.conf file with the following values:
     ```
     per_listener_settings false
     allow_anonymous false
