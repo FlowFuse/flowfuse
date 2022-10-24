@@ -158,7 +158,7 @@ export default {
                         typeof aValue === 'boolean' &&
                         typeof bValue === 'boolean'
                     ) {
-                        return aValue === bValue ? 0 : aValue < bValue ? 1 : -1
+                        return aValue === bValue ? 0 : (aValue > bValue ? 1 : -1)
                     } else if (
                         typeof aValue === 'boolean' ||
                         typeof bValue === 'boolean'

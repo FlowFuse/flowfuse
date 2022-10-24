@@ -195,10 +195,30 @@ describe('DataTable', () => {
 
             expect(
                 DataTable.computed.filteredRows.call(localThis).map((row) => row.value)
+            ).toEqual([true, true, false])
+        })
+
+        it('Sorts booleans ascending', () => {
+            const localThis = {
+                lookupProperty: DataTable.methods.lookupProperty,
+                filterRows: DataTable.methods.filterRows,
+                rows: [
+                    { value: true },
+                    { value: false },
+                    { value: true }
+                ],
+                sort: {
+                    key: 'value',
+                    order: 'asc'
+                }
+            }
+
+            expect(
+                DataTable.computed.filteredRows.call(localThis).map((row) => row.value)
             ).toEqual([false, true, true])
         })
 
-        it('Groups booleans together by treating them as strings', () => {
+        it('Groups booleans together by treating them as strings ascending', () => {
             const localThis = {
                 lookupProperty: DataTable.methods.lookupProperty,
                 filterRows: DataTable.methods.filterRows,
@@ -220,7 +240,8 @@ describe('DataTable', () => {
 
             expect(
                 DataTable.computed.filteredRows.call(localThis).map((row) => row.value)
-            ).toEqual([true, true, false, 0, 1, 2, 'a-string', 'z-string'])
+            ).toEqual([false, true, true, 0, 1, 2, 'a-string', 'z-string'])
+        })
         })
     })
 })
