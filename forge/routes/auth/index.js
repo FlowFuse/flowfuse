@@ -328,7 +328,7 @@ module.exports = fp(async function (app, opts, done) {
             let sessionUser
             if (request.sid) {
                 request.session = await app.db.controllers.Session.getOrExpire(request.sid)
-                sessionUser = request.session.User
+                sessionUser = request.session?.User
             }
             let verifiedUser
             try {
