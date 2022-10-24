@@ -138,9 +138,10 @@ export default {
             const rows = this.filterRows([...this.rows])
             if (this.sort.key) {
                 return rows.sort((a, b) => {
-                    // catch the undefined use case, by making undefined = 0
-                    const aProp = this.lookupProperty(a, this.sort.key) || 0
-                    const bProp = this.lookupProperty(b, this.sort.key) || 0
+                    // Catch undefined and null, swapping to ''
+                    const aProp = this.lookupProperty(a, this.sort.key) ?? ''
+                    const bProp = this.lookupProperty(b, this.sort.key) ?? ''
+
 
                     // Ordering
                     const [aValue, bValue] =
