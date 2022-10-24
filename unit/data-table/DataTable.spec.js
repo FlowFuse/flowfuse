@@ -240,7 +240,7 @@ describe('DataTable', () => {
 
             expect(
                 DataTable.computed.filteredRows.call(localThis).map((row) => row.value)
-            ).toEqual([false, true, true, 0, 1, 2, 'a-string', 'z-string'])
+            ).toEqual([0, 1, 2, 'a-string', 'z-string', false, true, true])
         })
 
         it('Groups booleans together by treating them as strings descending', () => {
@@ -265,7 +265,7 @@ describe('DataTable', () => {
 
             expect(
                 DataTable.computed.filteredRows.call(localThis).map((row) => row.value)
-            ).toEqual(['z-string', 'a-string', 2, 1, 0, true, true, false])
+            ).toEqual([true, true, false, 'z-string', 'a-string', 2, 1, 0])
         })
     })
 })
