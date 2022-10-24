@@ -35,4 +35,41 @@ describe('Device model', function () {
             ;(await app.db.models.Device.count()).should.equal(2)
         })
     })
+    describe('Settings hash', function () {
+        it('is updated when the device name is changed', async function () {
+            app = await setup()
+            const device = await app.db.models.Device.create({ name: 'D1', type: 'PI', credentialSecret: '' })
+            await device.save()
+            const initialSettingsHash = device.settingsHash
+            // make a change - change name
+            device.name = 'D2'
+            await device.save()
+            device.settingsHash.should.not.equal(initialSettingsHash)
+        })
+        it('is updated when the device type is changed', async function () {
+            app = await setup()
+            const device = await app.db.models.Device.create({ name: 'D1', type: 'PI', credentialSecret: '' })
+            await device.save()
+            const initialSettingsHash = device.settingsHash
+            // make a change - change type
+            device.type = 'RPi'
+            await device.save()
+            device.settingsHash.should.not.equal(initialSettingsHash)
+        })
+        it('is updated when the device env vars are changed', async function () {
+            app = await setup()
+            const device = await app.db.models.Device.create({ name: 'D1', type: 'PI', credentialSecret: '' })
+            await device.save()
+            const initialSettingsHash = device.settingsHash
+            const initialSettings = await device.getAllSettings()
+            initialSettings.should.have.a.property('env').and.be.an.Array()
+            const initialEnvCount = initialSettings.env.length // count of current env vars (includes platform env vars FF_DEVICE_XX)
+            // make a change - add 1 env var
+            await device.updateSettings({ env: [{ name: 'ev1', value: 'ev1-val' }] })
+            device.settingsHash.should.not.equal(initialSettingsHash)
+            const settings = await device.getAllSettings()
+            should(settings).be.an.Object().and.have.a.property('env').of.Array()
+            settings.env.length.should.equal(initialEnvCount + 1) // count should be +1
+        })
+    })
 })

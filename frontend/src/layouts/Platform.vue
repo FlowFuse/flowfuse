@@ -14,7 +14,7 @@
                                        :type="a.type" :message="a.message"
                                        :countdown="a.countdown || 3000" @close="clear($index)"></ff-notification-toast>
             </TransitionGroup>
-            <ff-dialog ref="dialog" :header="dialog.header" :kind="dialog.kind" :disable-primary="dialog.disablePrimary" :confirm-label="dialog.confirmLabel" @cancel="clearDialog" @confirm="dialog.onConfirm">
+            <ff-dialog ref="dialog" data-el="platform-dialog" :header="dialog.header" :kind="dialog.kind" :disable-primary="dialog.disablePrimary" :confirm-label="dialog.confirmLabel" @cancel="clearDialog" @confirm="dialog.onConfirm">
                 <p v-if="dialog.text">{{ dialog.text }}</p>
                 <div class="space-y-2" v-html="dialog.html"></div>
             </ff-dialog>

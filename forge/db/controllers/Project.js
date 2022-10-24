@@ -62,11 +62,11 @@ module.exports = {
         if (project.ProjectSettings[0]?.key === 'settings') {
             const projectSettings = project.ProjectSettings[0].value
             result = app.db.controllers.ProjectTemplate.mergeSettings(result, projectSettings)
-            if (result.env) {
-                result.env.forEach(envVar => {
-                    env[envVar.name] = envVar.value
-                })
-            }
+            const envVars = app.db.controllers.Project.insertPlatformSpecificEnvVars(project, result.env)
+            // convert  [{name: 'a', value: '1'}, {name: 'b', value: '2'}]  >> to >>  { a: 1, b: 2 }
+            envVars.forEach(envVar => {
+                env[envVar.name] = envVar.value
+            })
         }
         // If we don't have any modules listed in project settings. We should
         // look them up from StorageSettings in case this is a pre-existing project
@@ -180,6 +180,35 @@ module.exports = {
         const newHash = crypto.createHash('sha256').update(newKey).digest()
         const oldHash = crypto.createHash('sha256').update(oldKey).digest()
         return encryptCreds(newHash, decryptCreds(oldHash, original))
+    },
+
+    /**
+     * Remove platform specific environment variables
+     * @param {[{name:string, value:string}]} envVars Environment variables array
+     */
+    removePlatformSpecificEnvVars: function (app, envVars) {
+        if (!envVars || !Array.isArray(envVars)) {
+            return []
+        }
+        return [...envVars.filter(e => e.name.startsWith('FF_') === false)]
+    },
+    /**
+     * Insert platform specific environment variables
+     * @param {Project} project The device
+     * @param {[{name:string, value:string}]} envVars Environment variables array
+     */
+    insertPlatformSpecificEnvVars: function (app, project, envVars) {
+        if (!envVars || !Array.isArray(envVars)) {
+            envVars = []
+        }
+        const makeVar = (name, value) => {
+            return { name, value: value || '', platform: true } // add `platform` flag for UI
+        }
+        const result = []
+        result.push(makeVar('FF_PROJECT_ID', project.id || ''))
+        result.push(makeVar('FF_PROJECT_NAME', project.name || ''))
+        result.push(...app.db.controllers.Project.removePlatformSpecificEnvVars(envVars))
+        return result
     },
 
     /**

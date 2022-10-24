@@ -32,6 +32,7 @@ module.exports = {
         }
         try {
             const oldProfile = app.db.views.User.userProfile(user)
+            const wasVerified = user.email_verified
             if (request.body.name && user.name !== request.body.name) {
                 user.name = request.body.name
             } else if (request.body.name === '') {
@@ -110,6 +111,22 @@ module.exports = {
                 }
             }
             await user.save()
+
+            // re-send verification email if a user was previously verifed and is now not verified
+            if (wasVerified && user.email_verified === false && request.session.User.id !== user.id) {
+                try {
+                    const verifyToken = await app.db.controllers.User.generateEmailVerificationToken(user)
+                    await app.postoffice.send(
+                        user,
+                        'VerifyEmail',
+                        {
+                            confirmEmailLink: `${app.config.base_url}/account/verify/${verifyToken}`
+                        }
+                    )
+                } catch (error) {
+                    console.warn('Unable to re-send verify email', error)
+                }
+            }
             // diff profile before and after for log
             const newProfile = app.db.views.User.userProfile(user)
             const newValues = Object.fromEntries(Object.entries(newProfile).filter(([k, v]) => oldProfile[k] !== v))
