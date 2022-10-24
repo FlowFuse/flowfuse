@@ -25,7 +25,7 @@
             </template>
             <template v-slot:tools>
                 <div class="space-x-2 flex">
-                    <a v-if="editorAvailable && !isVisitingAdmin" :href="project.url" target="_blank" class="ff-btn ff-btn--secondary" data-action="open-editor">
+                    <a v-if="projectRunning && !isVisitingAdmin" :href="project.url" target="_blank" class="ff-btn ff-btn--secondary" data-action="open-editor">
                         Open Editor
                         <span class="ff-btn--icon ff-btn--icon-right">
                             <ExternalLinkIcon />
@@ -106,7 +106,14 @@ export default {
             const flowActionsDisabled = !(this.project.meta && this.project.meta.state !== 'suspended')
 
             const result = [
-                { name: 'Start', action: async () => { this.project.pendingStateChange = true; await projectApi.startProject(this.project.id) } },
+                {
+                    name: 'Start',
+                    action: async () => {
+                        this.project.pendingStateChange = true
+                        await projectApi.startProject(this.project.id)
+                    },
+                    disabled: this.project.pendingStateChange || this.projectRunning
+                },
                 { name: 'Restart', action: async () => { this.project.pendingRestart = true; this.project.pendingStateChange = true; await projectApi.restartProject(this.project.id) }, disabled: flowActionsDisabled },
                 { name: 'Suspend', class: ['text-red-700'], action: () => { this.showConfirmSuspendDialog() }, disabled: flowActionsDisabled }
             ]
@@ -116,8 +123,8 @@ export default {
             }
             return result
         },
-        editorAvailable: function () {
-            return this.project.meta && this.project.meta.state === 'running'
+        projectRunning () {
+            return this.project.meta?.state === 'running'
         }
     },
     watch: {
