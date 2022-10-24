@@ -1,6 +1,125 @@
 import DataTable from '@/components/data-table/DataTable.vue'
 
 describe('DataTable', () => {
+    describe('filterRows', () => {
+        it('searches all properties and returns matching subset of rows', () => {
+            const rows = [{
+                name: 'Apple',
+                desc: 'Is Green'
+            }, {
+                name: 'Banana',
+                desc: 'Not as good as an Apple'
+            }, {
+                name: 'Pear',
+                color: 'Green'
+            }]
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'Apple' }, rows)
+            ).toEqual([{
+                name: 'Apple',
+                desc: 'Is Green'
+            }, {
+                name: 'Banana',
+                desc: 'Not as good as an Apple'
+            }])
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'Green' }, rows)
+            ).toEqual([{
+                name: 'Apple',
+                desc: 'Is Green'
+            }, {
+                name: 'Pear',
+                color: 'Green'
+            }])
+        })
+
+        it('searches case-insensitively', () => {
+            const rows = [{
+                name: 'Apple',
+                desc: 'green'
+            }]
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'Green' }, rows)
+            ).toEqual([{
+                name: 'Apple',
+                desc: 'green'
+            }])
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'apple' }, rows)
+            ).toEqual([{
+                name: 'Apple',
+                desc: 'green'
+            }])
+        })
+
+        it('searches numbers as if they were strings', () => {
+            const rows = [{
+                number: '123'
+            },
+            {
+                number: 23
+            },
+            {
+                number: 12
+            }]
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: '23' }, rows)
+            ).toEqual([{
+                number: '123'
+            },
+            {
+                number: 23
+            }])
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: '12' }, rows)
+            ).toEqual([{
+                number: '123'
+            },
+            {
+                number: 12
+            }])
+        })
+
+        describe('with searchFields prop set', () => {
+            it('only searches matching properties', () => {
+                const rows = [{
+                    name: 'Apple',
+                    desc: 'Is Green'
+                }, {
+                    name: 'Banana',
+                    desc: 'Not as good as an Apple'
+                }, {
+                    name: 'Pear',
+                    color: 'Green'
+                }]
+
+                expect(
+                    DataTable.methods.filterRows.call({ internalSearch: 'Green', searchFields: ['desc'] }, rows)
+                ).toEqual([{
+                    name: 'Apple',
+                    desc: 'Is Green'
+                }])
+
+                expect(
+                    DataTable.methods.filterRows.call({ internalSearch: 'Green', searchFields: ['desc', 'color'] }, rows)
+                ).toEqual([{
+                    name: 'Apple',
+                    desc: 'Is Green'
+                },
+                {
+                    name: 'Pear',
+                    color: 'Green'
+                }])
+            })
+        })
+    })
+
     describe('filteredRows', () => {
         it('Sorts numbers descending', () => {
             const localThis = {
