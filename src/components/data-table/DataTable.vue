@@ -163,7 +163,7 @@ export default {
                         typeof aValue === 'boolean' ||
                         typeof bValue === 'boolean'
                     ) {
-                        return this.sort.order === 'asc' ? 1 : -1
+                        return this.sort.order === 'asc' ? -1 : 1
                     }
 
                     return collator.compare(aValue, bValue)
