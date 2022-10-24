@@ -191,28 +191,32 @@ export default {
     methods: {
         filterRows (rows) {
             const search = this.internalSearch
-            if (search) {
-                const filtered = rows.filter((cell, index) => {
-                    const props = Object.entries(cell)
-                    for (let i = 0; i < props.length; i++) {
-                        let [prop, value] = props[i]
-                        if (!this.searchFields || (this.searchFields?.indexOf(prop) > -1)) {
-                            if (typeof value === 'number') {
-                                value = value.toString()
-                            }
-                            if (typeof value === 'string') {
-                                if (value.toLowerCase().indexOf(search.toLowerCase()) > -1) {
-                                    return true
-                                }
-                            }
-                        }
-                    }
-                    return false
-                })
-                return filtered
-            } else {
+            if (!search) {
                 return rows
             }
+
+            const searchString = search.toLowerCase()
+
+            return rows.filter((row) =>
+                Object.entries(row).some(([propName, propValue]) => {
+                    // Skip props that aren't being considered
+                    if (
+                        this.searchFields?.length > 0 && !this.searchFields.includes(propName)
+                    ) {
+                        return false
+                    }
+
+                    // Skip non numeric strings (bool, undefined, null, etc)
+                    if (typeof propValue === 'number') {
+                        propValue = propValue.toString()
+                    }
+                    if (typeof propValue !== 'string') {
+                        return false
+                    }
+
+                    return propValue.toLowerCase().includes(searchString)
+                })
+            )
         },
         rowClick (row) {
             if (this.rowsSelectable) {
