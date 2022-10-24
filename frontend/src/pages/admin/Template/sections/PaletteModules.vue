@@ -210,7 +210,10 @@ export default {
     },
     methods: {
         validateModuleName (name) {
-            return /^(@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/.test(name)
+            const BUILT_IN_MODULES = [
+                '@flowforge/nr-project-nodes'
+            ]
+            return /^(@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/.test(name) && !BUILT_IN_MODULES.includes(name)
         },
         validateModuleVersion (version) {
             return /^\*$|x|(?:[\^~]?(0|[1-9]\d*)\.(x$|0|[1-9]\d*)(?:\.(x$|0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)?)$/.test(version)
