@@ -134,7 +134,7 @@ describe('DataTable', () => {
             ).toEqual(['device 21', 'device 3', 'device 1'])
         })
 
-        it('Treats null and undefined as equivalent to empty string', () => {
+        it('Treats null and undefined as equivalent to empty string ascending', () => {
             const localThis = {
                 lookupProperty: DataTable.methods.lookupProperty,
                 filterRows: DataTable.methods.filterRows,
@@ -154,6 +154,28 @@ describe('DataTable', () => {
             expect(
                 DataTable.computed.filteredRows.call(localThis).map((row) => row.value)
             ).toEqual([undefined, null, '', 'apple', 'zebra'])
+        })
+
+        it('Treats null and undefined as equivalent to empty string descending', () => {
+            const localThis = {
+                lookupProperty: DataTable.methods.lookupProperty,
+                filterRows: DataTable.methods.filterRows,
+                rows: [
+                    {},
+                    { value: 'zebra' },
+                    { value: null },
+                    { value: 'apple' },
+                    { value: '' }
+                ],
+                sort: {
+                    key: 'value',
+                    order: 'desc'
+                }
+            }
+
+            expect(
+                DataTable.computed.filteredRows.call(localThis).map((row) => row.value)
+            ).toEqual(['zebra', 'apple', undefined, null, ''])
         })
 
         it('Sorts booleans descending', () => {
