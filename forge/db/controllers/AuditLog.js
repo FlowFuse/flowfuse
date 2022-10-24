@@ -8,6 +8,24 @@ function encodeBody (body) {
 }
 
 module.exports = {
+    platformLog: async function (app, UserId, event, body) {
+        await app.db.models.AuditLog.create({
+            entityType: 'platform',
+            entityId: null,
+            UserId,
+            event,
+            body: encodeBody(body)
+        })
+    },
+    userLog: async function (app, UserId, event, body, entityId) {
+        await app.db.models.AuditLog.create({
+            entityType: 'user',
+            entityId: entityId || null,
+            UserId,
+            event,
+            body: encodeBody(body)
+        })
+    },
     projectLog: async function (app, ProjectId, UserId, event, body) {
         await app.db.models.AuditLog.create({
             entityType: 'project',
@@ -26,5 +44,4 @@ module.exports = {
             body: encodeBody(body)
         })
     }
-
 }

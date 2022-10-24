@@ -21,6 +21,12 @@ describe('Platform Settings', function () {
             tcsDate: forge.settings.get(TCS_DATE)
         }
     }
+    async function getAuditLog (limit = 1) {
+        const logEntries = await forge.db.models.AuditLog.forPlatform({ limit: limit || 1 })
+        const logRaw = [...(logEntries.log || [])]
+        const result = forge.db.views.AuditLog.auditLog(logEntries)
+        return { log: result.log, logRaw }
+    }
 
     before(async function () {
         // Create the FF application with a suitable test configuration
@@ -109,6 +115,15 @@ describe('Platform Settings', function () {
         should(pass2.tcsRequired).be.true()
         should(pass2.tcsUrl).be.eql('http://a.b.c')
         should(pass2.tcsDate).be.greaterThanOrEqual(testStartTime)
+
+        // ensure platform audit log entry is made
+        const auditLogs = await getAuditLog(1)
+        auditLogs.log[0].should.have.a.property('body').and.be.a.String()
+        const body = JSON.parse(auditLogs.log[0].body)
+        body.should.have.a.property('changes').and.be.an.Object()
+        auditLogs.log[0].should.have.a.property('event', 'platform.settings.update')
+        auditLogs.log[0].should.have.a.property('username', 'alice') // admin user
+        auditLogs.logRaw[0].should.have.a.property('entityId', null) // should be null
     })
 
     it('non-admin can not setup terms and conditions', async function () {
