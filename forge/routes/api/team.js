@@ -42,23 +42,23 @@ module.exports = async function (app) {
                                 return
                             }
                         }
-                        reply.code(404).type('text/html').send('Not Found')
+                        reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return
                     }
                     request.teamMembership = await request.session.User.getTeamMembership(request.params.teamId)
                     if (!request.teamMembership && !request.session.User.admin) {
-                        reply.code(404).type('text/html').send('Not Found')
+                        reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return
                     }
                     request.team = await app.db.models.Team.byId(request.params.teamId)
                     if (!request.team) {
-                        reply.code(404).type('text/html').send('Not Found')
+                        reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                     }
                 } catch (err) {
-                    reply.code(404).type('text/html').send('Not Found')
+                    reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                 }
             } else {
-                reply.code(404).type('text/html').send('Not Found')
+                reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             }
         }
     })
@@ -101,12 +101,12 @@ module.exports = async function (app) {
             if (team) {
                 const teamMembership = await request.session.User.getTeamMembership(team.id)
                 if (!teamMembership && !request.session.User.admin) {
-                    reply.code(404).type('text/html').send('Not Found')
+                    reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                     return
                 }
                 await getTeamDetails(request, reply, team)
             } else {
-                reply.code(404).type('text/html').send('Not Found')
+                reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             }
         } else if (!request.session.User.admin) {
             reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
@@ -135,7 +135,7 @@ module.exports = async function (app) {
                 projects: result
             })
         } else {
-            reply.code(404).type('text/html').send('Not Found')
+            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
     })
 
@@ -306,7 +306,7 @@ module.exports = async function (app) {
             })
             return
         }
-        reply.code(404).type('text/html').send('Not Found')
+        reply.code(404).send({ code: 'not_found', error: 'Not Found' })
     })
 
     /**

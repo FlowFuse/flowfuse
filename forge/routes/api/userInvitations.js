@@ -30,7 +30,7 @@ module.exports = async function (app) {
             await userLog(request.session.User.id, 'accept-invite', null, invitation.inviteeId)
             reply.send({ status: 'okay' })
         } else {
-            reply.code(404).type('text/html').send('Not Found')
+            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
     })
 
@@ -45,7 +45,7 @@ module.exports = async function (app) {
             await userLog(request.session.User.id, 'delete-invite', null, invitation.inviteeId)
             reply.send({ status: 'okay' })
         } else {
-            reply.code(404).type('text/html').send('Not Found')
+            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
     })
 

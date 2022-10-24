@@ -17,14 +17,14 @@ module.exports = async function (app) {
                 try {
                     request.user = await app.db.models.User.byId(request.params.userId)
                     if (!request.user) {
-                        reply.code(404).type('text/html').send('Not Found')
+                        reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return
                     }
                 } catch (err) {
-                    reply.code(404).type('text/html').send('Not Found')
+                    reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                 }
             } else {
-                reply.code(404).type('text/html').send('Not Found')
+                reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             }
         }
     })

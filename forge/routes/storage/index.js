@@ -28,7 +28,7 @@ module.exports = async function (app) {
             }
             response.send(request.body)
         } else {
-            response.status(404).send()
+            response.status(404).send({ code: 'not_found', error: 'Not Found' })
         }
     })
 
@@ -43,7 +43,7 @@ module.exports = async function (app) {
                 response.send([])
             }
         } else {
-            response.status(404).send()
+            response.status(404).send({ code: 'not_found', error: 'Not Found' })
         }
     })
 
@@ -65,7 +65,7 @@ module.exports = async function (app) {
             }
             response.send(request.body)
         } else {
-            response.status(404).send()
+            response.status(404).send({ code: 'not_found', error: 'Not Found' })
         }
     })
 
@@ -101,7 +101,7 @@ module.exports = async function (app) {
             await app.db.controllers.Project.mergeProjectModules(project, await app.db.controllers.StorageSettings.getProjectModules(project))
             response.send(request.body)
         } else {
-            response.status(404).send()
+            response.status(404).send({ code: 'not_found', error: 'Not Found' })
         }
     })
 
@@ -136,7 +136,7 @@ module.exports = async function (app) {
             }
             response.send(request.body)
         } else {
-            response.status(404).send()
+            response.status(404).send({ code: 'not_found', error: 'Not Found' })
         }
     })
 
@@ -151,7 +151,7 @@ module.exports = async function (app) {
                 response.send({})
             }
         } else {
-            response.status(404).send()
+            response.status(404).send({ code: 'not_found', error: 'Not Found' })
         }
     })
 

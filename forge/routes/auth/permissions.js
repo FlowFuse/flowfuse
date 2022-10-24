@@ -29,17 +29,17 @@ module.exports = fp(async function (app, opts, done) {
             if (permission.admin) {
                 // Requires admin user - which would have already been approved
                 // if they were an admin
-                reply.code(403).send({ error: 'unauthorized' })
+                reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
                 throw new Error()
             } else if (app.settings.get(scope) === false) {
                 // Permission disabled via admin settings
-                reply.code(403).send({ error: 'unauthorized' })
+                reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
                 throw new Error()
             } else if (permission.role) {
                 // The user is required to have a role in the team associated with
                 // this request
                 if (!request.teamMembership) {
-                    reply.code(403).send({ error: 'unauthorized' })
+                    reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
                     throw new Error()
                 }
                 if (permission.self && request.user.id === request.session.User.id) {
@@ -47,7 +47,7 @@ module.exports = fp(async function (app, opts, done) {
                     return
                 }
                 if (request.teamMembership.role < permission.role) {
-                    reply.code(403).send({ error: 'unauthorized' })
+                    reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
                     throw new Error()
                 }
             }

@@ -40,7 +40,7 @@ module.exports = async function (app) {
         if (projectType) {
             reply.send(app.db.views.ProjectType.projectType(projectType, request.session.User.admin))
         } else {
-            reply.code(404).type('text/html').send('Not Found')
+            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
     })
 
