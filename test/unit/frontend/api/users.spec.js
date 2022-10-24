@@ -40,7 +40,7 @@ describe('Users API', async () => {
         const limit = 10
         UsersAPI.default.getUsers(cursor, limit)
         expect(mockPaginateUrl).toHaveBeenCalledOnce()
-        expect(mockPaginateUrl).toHaveBeenCalledWith('/api/v1/users', cursor, limit)
+        expect(mockPaginateUrl).toHaveBeenCalledWith('/api/v1/users', cursor, limit, undefined)
     })
 
     test('getUsers calls the correct API endpoint', () => {
