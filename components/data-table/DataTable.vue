@@ -153,6 +153,19 @@ export default {
                             ? [aProp, bProp]
                             : [bProp, aProp]
 
+                    // Booleans are grouped together, sorted as booleans, not strings
+                    if (
+                        typeof aValue === 'boolean' &&
+                        typeof bValue === 'boolean'
+                    ) {
+                        return aValue === bValue ? 0 : aValue < bValue ? 1 : -1
+                    } else if (
+                        typeof aValue === 'boolean' ||
+                        typeof bValue === 'boolean'
+                    ) {
+                        return 1
+                    }
+
                     return collator.compare(aValue, bValue)
                 })
             } else {
