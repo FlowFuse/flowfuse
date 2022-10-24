@@ -142,6 +142,10 @@ export default {
                     const aProp = this.lookupProperty(a, this.sort.key) ?? ''
                     const bProp = this.lookupProperty(b, this.sort.key) ?? ''
 
+                    const collator = new Intl.Collator(undefined, {
+                        numeric: true,
+                        sensitivity: 'base'
+                    })
 
                     // Ordering
                     const [aValue, bValue] =
@@ -149,14 +153,7 @@ export default {
                             ? [aProp, bProp]
                             : [bProp, aProp]
 
-                    if (aValue < bValue) {
-                        return 1
-                    } else if (aValue > bValue) {
-                        return -1
-                    } else {
-                        return 0
-                    }
-                    }
+                    return collator.compare(aValue, bValue)
                 })
             } else {
                 return rows
