@@ -212,7 +212,7 @@ export default {
         validateModuleName (name) {
             const BUILT_IN_MODULES = [
                 '@flowforge/nr-project-nodes'
-            ] 
+            ]
             return /^(@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/.test(name) && !BUILT_IN_MODULES.includes(name)
         },
         validateModuleVersion (version) {
