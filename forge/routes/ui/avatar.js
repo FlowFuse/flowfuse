@@ -2,9 +2,11 @@ module.exports = async function (app) {
     app.get('/:id', async (request, reply) => {
         const identifier = request.params.id
         const key = Buffer.from(identifier, 'base64').toString()
-
+        const supportedCharacters = Object.keys(font).join('')
+        const rx = new RegExp('[^' + supportedCharacters + ']', 'g')
+        const supportedString = key.toLowerCase().replace(rx, '')
+        const parts = supportedString.trim().split(/ +/)
         const letters = []
-        const parts = key.toLowerCase().trim().split(/ +/)
         if (parts.length > 1) {
             letters.push(parts[0][0])
             letters.push(parts[parts.length - 1][0])
