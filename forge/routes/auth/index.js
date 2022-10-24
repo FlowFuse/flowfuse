@@ -175,14 +175,19 @@ module.exports = fp(async function (app, opts, done) {
                 const cookieOptions = { ...SESSION_COOKIE_OPTIONS }
                 cookieOptions.maxAge = SESSION_MAX_AGE
                 reply.setCookie('sid', session.sid, cookieOptions)
+                await userLog(session.UserId, 'login', { user: { username: request.body.username } }, session.UserId)
                 reply.send({ status: 'okay' })
                 return
             } else {
-                reply.code(403).send({ error: 'User Suspended' })
+                const resp = { code: 'user_suspended', error: 'User Suspended' }
+                await userLog(null, 'login', { ...resp, user: { username: request.body.username } }, null)
+                reply.code(403).send(resp)
                 return
             }
         }
-        reply.code(401).send({ error: 'unauthorized' })
+        const resp = { code: 'unauthorized', error: 'unauthorized' }
+        await userLog(null, 'login', { ...resp, user: { username: request.body.username } })
+        reply.code(401).send(resp)
     })
 
     /**
@@ -191,13 +196,14 @@ module.exports = fp(async function (app, opts, done) {
      * @memberof forge.routes.session
      */
     app.post('/account/logout', async (request, reply) => {
+        let userId = null
         if (request.sid) {
             // logout:nodered(step-1)
             const thisSession = await app.db.models.Session.findOne({
                 where: { sid: request.sid },
                 include: app.db.models.User
             })
-            const userId = thisSession?.UserId
+            userId = thisSession?.UserId
             if (userId != null) {
                 const user = await app.db.models.User.byId(userId)
                 const sessions = await app.db.models.StorageSession.byUsername(user.username)
@@ -218,6 +224,7 @@ module.exports = fp(async function (app, opts, done) {
             await app.db.controllers.Session.deleteSession(request.sid)
         }
         reply.clearCookie('sid')
+        await userLog(userId, 'logout', { user: { id: userId } }, userId)
         reply.send({ status: 'okay' })
     })
 
@@ -241,8 +248,15 @@ module.exports = fp(async function (app, opts, done) {
         },
         logLevel: app.config.logging.http
     }, async (request, reply) => {
+        const userInfo = {
+            username: request.body.username,
+            name: request.body.name,
+            email: request.body.email
+        }
         if (!app.settings.get('user:signup') && !app.settings.get('team:user:invite:external')) {
-            reply.code(400).send({ error: 'user registration not enabled' })
+            const resp = { code: 'not_enabled', error: 'user registration not enabled' }
+            await userLog(null, 'register', { ...resp, user: userInfo })
+            reply.code(400).send(resp)
             return
         }
         if (!app.settings.get('user:signup') && app.settings.get('team:user:invite:external')) {
@@ -250,23 +264,31 @@ module.exports = fp(async function (app, opts, done) {
             const invite = await app.db.models.Invitation.forExternalEmail(request.body.email)
             if (!invite || invite.length === 0) {
                 // reusing error message so as not to leak invited users
-                reply.code(400).send({ error: 'user registration not enabled' })
+                const resp = { code: 'not_enabled', error: 'user registration not enabled' }
+                await userLog(null, 'register', { ...resp, user: userInfo })
+                reply.code(400).send(resp)
                 return
             } else {
                 app.log.info(`Invited user found ${request.body.email}`)
             }
         }
         if (!app.postoffice.enabled()) {
-            reply.code(400).send({ error: 'user registration not enabled - email not configured' })
+            const resp = { code: 'invalid_request', error: 'user registration not enabled - email not configured' }
+            await userLog(null, 'register', { ...resp, user: userInfo })
+            reply.code(400).send(resp)
             return
         }
 
         if (/^(admin|root)$/.test(request.body.username)) {
-            reply.code(400).send({ error: 'invalid username' })
+            const resp = { code: 'invalid_request', error: 'invalid username' }
+            await userLog(null, 'register', { ...resp, user: userInfo })
+            reply.code(400).send(resp)
             return
         }
         if (app.settings.get('user:tcs-required') && !request.body.tcs_accepted) {
-            reply.code(400).send({ error: 'terms and conditions not accepted' })
+            const resp = { code: 'invalid_request', error: 'terms and conditions not accepted' }
+            await userLog(null, 'register', { ...resp, user: userInfo })
+            reply.code(400).send(resp)
             return
         }
         try {
@@ -279,6 +301,7 @@ module.exports = fp(async function (app, opts, done) {
                 admin: false,
                 tcs_accepted: new Date()
             })
+            userInfo.id = newUser.id
             const verifyToken = await app.db.controllers.User.generateEmailVerificationToken(newUser)
             await app.postoffice.send(
                 newUser,
@@ -296,19 +319,25 @@ module.exports = fp(async function (app, opts, done) {
                     secure: 'auto'
                 })
             }
+            await userLog(userInfo.id, 'register', { user: userInfo }, userInfo.id)
             reply.send({ status: 'okay' })
         } catch (err) {
             let responseMessage
+            let responseCode = 'unexpected_error'
             if (/user_username_lower_unique|Users_username_key/.test(err.parent?.toString())) {
                 responseMessage = 'username not available'
+                responseCode = 'not_available'
             } else if (/user_email_lower_unique|Users_email_key/.test(err.parent?.toString())) {
                 responseMessage = 'email not available'
+                responseCode = 'not_available'
             } else if (err.errors) {
                 responseMessage = err.errors.map(err => err.message).join(',')
             } else {
                 responseMessage = err.toString()
             }
-            reply.code(400).send({ error: responseMessage })
+            const resp = { code: responseCode, error: responseMessage }
+            await userLog(userInfo.id, 'register', { ...resp, user: userInfo }, userInfo.id)
+            reply.code(400).send(resp)
         }
     })
 
@@ -321,7 +350,9 @@ module.exports = fp(async function (app, opts, done) {
                 const teamLimit = app.license.get('teams')
                 const teamCount = await app.db.models.Team.count()
                 if (teamCount >= teamLimit) {
-                    reply.code(400).send({ code: 'team_limit_reached', error: 'Unable to create user team: license limit reached' })
+                    const resp = { code: 'team_limit_reached', error: 'Unable to create user team: license limit reached' }
+                    await userLog(request.session?.User?.id, 'verify.verify-token')
+                    reply.code(400).send(resp)
                     return
                 }
             }
@@ -334,7 +365,9 @@ module.exports = fp(async function (app, opts, done) {
             try {
                 verifiedUser = await app.db.controllers.User.verifyEmailToken(sessionUser, request.params.token)
             } catch (err) {
-                reply.code(400).send({ code: 'invalid_request', error: err.toString() })
+                const resp = { code: 'invalid_request', error: err.toString() }
+                await userLog(request.session?.User?.id, 'verify.verify-token', resp, sessionUser?.id)
+                reply.code(400).send(resp)
                 return
             }
 
@@ -345,6 +378,12 @@ module.exports = fp(async function (app, opts, done) {
                     slug: verifiedUser.username,
                     TeamTypeId: (await app.db.models.TeamType.byName('starter')).id
                 }, verifiedUser)
+                await userLog(request.session?.User?.id, 'verify.auto-create-team', {
+                    team: {
+                        name: `Team ${verifiedUser.name}`,
+                        type: 'starter'
+                    }
+                }, verifiedUser.id)
             }
 
             const pendingInvitations = await app.db.models.Invitation.forExternalEmail(verifiedUser.email)
@@ -360,10 +399,20 @@ module.exports = fp(async function (app, opts, done) {
                 // invite.inviteeId = verifiedUser.id
                 // await invite.save()
             }
+            await userLog(request.session.User.id, 'verify.verify-token', {
+                user: {
+                    username: verifiedUser.username,
+                    name: verifiedUser.name,
+                    email: verifiedUser.email,
+                    admin: !!verifiedUser.isAdmin
+                }
+            })
             reply.send({ status: 'okay' })
         } catch (err) {
             app.log.error(`/account/verify/token error - ${err.toString()}`)
-            reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
+            const resp = { code: 'unexpected_error', error: err.toString() }
+            await userLog(request.session?.User?.id, 'verify.verify-token', resp)
+            reply.code(400).send(resp)
         }
     })
 
@@ -372,7 +421,9 @@ module.exports = fp(async function (app, opts, done) {
      */
     app.post('/account/verify', { preHandler: app.verifySession, config: { allowUnverifiedEmail: true } }, async (request, reply) => {
         if (!app.postoffice.enabled()) {
-            reply.code(400).send({ code: 'invalid_request', error: 'email not configured' })
+            const resp = { code: 'invalid_request', error: 'email not configured' }
+            await userLog(request.session?.User?.id, 'verify.request-token', resp)
+            reply.code(400).send(resp)
             return
         }
         if (!request.session.User.email_verified) {
@@ -384,9 +435,12 @@ module.exports = fp(async function (app, opts, done) {
                     confirmEmailLink: `${app.config.base_url}/account/verify/${verifyToken}`
                 }
             )
+            await userLog(request.session.User.id, 'verify.request-token', { info: 'Verify email password sent' })
             reply.send({ status: 'okay' })
         } else {
-            reply.code(400).send({ code: 'invalid_request', error: 'Email already verified' })
+            const resp = { code: 'invalid_request', error: 'email already verified' }
+            await userLog(request.session?.User?.id, 'verify.request-token', resp)
+            reply.code(400).send(resp)
         }
     })
 
@@ -403,7 +457,12 @@ module.exports = fp(async function (app, opts, done) {
         logLevel: app.config.logging.http
     }, async (request, reply) => {
         if (!app.settings.get('user:reset-password')) {
-            reply.code(400).send({ error: 'password reset not enabled' })
+            const resp = { code: 'not_enabled', error: 'password reset not enabled' }
+            await userLog(request.session?.User?.id, 'forgot-password', {
+                ...resp,
+                user: { email: request.body.email }
+            })
+            reply.code(400).send(resp)
             return
         }
         const user = await app.db.models.User.byEmail(request.body.email)
@@ -417,9 +476,13 @@ module.exports = fp(async function (app, opts, done) {
                         resetLink: `${app.config.base_url}/account/change-password/${token.token}`
                     }
                 )
-                app.log.info(`Password reset request for ${user.hashid}`)
+                const info = `Password reset request for ${user.hashid}`
+                app.log.info(info)
+                await userLog(user.id, 'forgot-password', { info }, user.id)
             } else {
-                reply.code(400).send({ status: 'error', message: 'Email not enabled - cannot reset password' })
+                const resp = { code: 'not_enabled', error: 'Email not enabled - cannot reset password' }
+                await userLog(user.id, 'forgot-password', resp, user.id)
+                reply.code(400).send({ status: 'error', message: resp.error, ...resp })
                 return
             }
         }
@@ -439,7 +502,9 @@ module.exports = fp(async function (app, opts, done) {
         logLevel: app.config.logging.http
     }, async (request, reply) => {
         if (!app.settings.get('user:reset-password')) {
-            reply.code(400).send({ error: 'password reset not enabled' })
+            const resp = { code: 'not_enabled', error: 'password reset not enabled' }
+            await userLog(request.session?.User?.id, 'reset-password', resp)
+            reply.code(400).send(resp)
             return
         }
 
@@ -448,10 +513,13 @@ module.exports = fp(async function (app, opts, done) {
 
         const token = await app.db.controllers.AccessToken.getOrExpirePasswordResetToken(request.params.token)
         let success = false
+        let userId = null
         if (token) {
+            userId = token.ownerId
             // This is a valid password reset token
             const user = await app.db.models.User.byId(token.ownerId)
             if (user) {
+                userId = user.id
                 try {
                     await app.db.controllers.User.resetPassword(user, request.body.password)
                     success = true
@@ -462,11 +530,35 @@ module.exports = fp(async function (app, opts, done) {
             await token.destroy()
         }
         if (success) {
+            await userLog(request.session?.User?.id, 'reset-password', null, userId)
             reply.code(200).send({})
         } else {
-            reply.code(400).send({ status: 'error', message: 'Password reset failed' })
+            const resp = { code: 'unexpected_error', error: 'Password reset failed' }
+            await userLog(request.session?.User?.id, 'reset-password', resp, userId)
+            reply.code(400).send({ status: 'error', message: resp.error, ...resp })
         }
     })
 
     done()
+
+    /**
+     * Log events against the entityType `users.x.y`
+     * @param {number} userId User performing the action
+     * @param {string} event The name of the event
+     * @param {*} body The body/data for the log entry
+     * @param {string|number} [entityId] The id of the user on which the action occurs (where available)
+     */
+    async function userLog (userId, event, body, entityId) {
+        try {
+            // function userLog (app, UserId, event, body, [entityId])
+            await app.db.controllers.AuditLog.userLog(
+                userId,
+                `account.${event}`,
+                body,
+                entityId || userId
+            )
+        } catch (error) {
+            console.error(error)
+        }
+    }
 })

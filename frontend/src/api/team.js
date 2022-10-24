@@ -118,6 +118,10 @@ const getTeamDevices = async (teamId, cursor, limit) => {
     return res.data
 }
 
+/**
+ * Calls api routes in team.js
+ * See [routes/api/team.js](../../../forge/routes/api/team.js)
+*/
 export default {
     create,
     getTeam,

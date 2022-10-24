@@ -85,10 +85,21 @@ const verifyEmailToken = async (token) => {
         return res.data
     })
 }
-
+/**
+ * Helper function to request password reset.
+ * See [routes/api/account.js](../../../forge/routes/auth/index.js)
+ * @param {string} email The users email address
+ * @returns {Promise}
+ */
 const requestPasswordReset = async (email) => {
     return client.post('/account/forgot_password', email).then(res => res.data)
 }
+/**
+ * Helper function to perform password reset.
+ * See [routes/api/account.js](../../../forge/routes/auth/index.js)
+ * @param {string} token The reset token
+ * @param {string} password The new password
+ */
 const resetPassword = async (token, password) => {
     return client.post(`/account/reset_password/${token}`, password).then(res => res.data)
 }
