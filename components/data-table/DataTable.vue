@@ -139,24 +139,22 @@ export default {
             if (this.sort.key) {
                 return rows.sort((a, b) => {
                     // catch the undefined use case, by making undefined = 0
-                    const aValue = this.lookupProperty(a, this.sort.key) || 0
-                    const bValue = this.lookupProperty(b, this.sort.key) || 0
-                    if (this.sort.order === 'asc') {
-                        if (aValue < bValue) {
-                            return 1
-                        } else if (aValue > bValue) {
-                            return -1
-                        } else {
-                            return 0
-                        }
+                    const aProp = this.lookupProperty(a, this.sort.key) || 0
+                    const bProp = this.lookupProperty(b, this.sort.key) || 0
+
+                    // Ordering
+                    const [aValue, bValue] =
+                        this.sort.order === 'asc'
+                            ? [aProp, bProp]
+                            : [bProp, aProp]
+
+                    if (aValue < bValue) {
+                        return 1
+                    } else if (aValue > bValue) {
+                        return -1
                     } else {
-                        if (aValue < bValue) {
-                            return -1
-                        } else if (aValue > bValue) {
-                            return 1
-                        } else {
-                            return 0
-                        }
+                        return 0
+                    }
                     }
                 })
             } else {
