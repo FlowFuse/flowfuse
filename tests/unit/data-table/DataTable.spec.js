@@ -242,6 +242,30 @@ describe('DataTable', () => {
                 DataTable.computed.filteredRows.call(localThis).map((row) => row.value)
             ).toEqual([false, true, true, 0, 1, 2, 'a-string', 'z-string'])
         })
+
+        it('Groups booleans together by treating them as strings descending', () => {
+            const localThis = {
+                lookupProperty: DataTable.methods.lookupProperty,
+                filterRows: DataTable.methods.filterRows,
+                rows: [
+                    { value: true },
+                    { value: false },
+                    { value: true },
+                    { value: 'a-string' },
+                    { value: 'z-string' },
+                    { value: 2 },
+                    { value: 1 },
+                    { value: 0 }
+                ],
+                sort: {
+                    key: 'value',
+                    order: 'desc'
+                }
+            }
+
+            expect(
+                DataTable.computed.filteredRows.call(localThis).map((row) => row.value)
+            ).toEqual(['z-string', 'a-string', 2, 1, 0, true, true, false])
         })
     })
 })
