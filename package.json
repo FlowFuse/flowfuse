@@ -30,12 +30,17 @@
         "@babel/eslint-parser": "^7.12.16",
         "@vue/cli-plugin-babel": "~5.0.0",
         "@vue/cli-plugin-eslint": "~5.0.0",
+        "@vue/cli-plugin-unit-jest": "~5.0.0",
         "@vue/cli-service": "~5.0.0",
+        "@vue/test-utils": "^2.0.0-0",
+        "@vue/vue3-jest": "^27.0.0-alpha.1",
         "autoprefixer": "^10.4.2",
+        "babel-jest": "^27.0.6",
         "dotenv-webpack": "^7.1.0",
         "eslint": "^8.25.0",
         "eslint-config-standard": "^17.0.0",
         "eslint-plugin-vue": "^8.0.3",
+        "jest": "^27.0.5",
         "marked": "^4.0.12",
         "node-sass": "^7.0.1",
         "postcss": "^8.4.7",
@@ -54,7 +59,9 @@
         "serve": "vue-cli-service serve",
         "build": "rollup -c",
         "build-docs": "vue-cli-service build",
-        "lint": "eslint --ext .js,.vue src/"
+        "lint": "eslint --ext .js,.vue src/ tests/",
+        "test": "npm run test:unit",
+        "test:unit": "vue-cli-service test:unit"
     },
     "dependencies": {
         "underscore": "^1.13.2"
