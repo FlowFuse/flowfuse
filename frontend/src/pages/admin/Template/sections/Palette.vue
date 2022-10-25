@@ -12,7 +12,7 @@
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
-                <FormRow v-model="editable.settings.palette_nodesExcludes" :error="editable.errors.palette_nodesExcludes" :type="(editTemplate||editable.policy.palette_nodesExcludes)?'text':'uneditable'">
+                <FormRow v-model="editable.settings.palette_nodesExcludes" :disabled="!editTemplate && !editable.policy.palette_nodesExcludes" :error="editable.errors.palette_nodesExcludes" :type="(editTemplate||editable.policy.palette_nodesExcludes)?'text':'uneditable'">
                     Exclude nodes by filename
                     <template #description>
                         This can be used to disable any of the default Node-RED nodes. Provide a comma-separated list of the corresponding
@@ -25,7 +25,7 @@
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
-                <FormRow :disabled="!editable.settings.palette_allowInstall" v-model="editable.settings.palette_denyList" :error="editable.errors.palette_denyList" :type="(editTemplate||editable.policy.palette_denyList)?'text':'uneditable'">
+                <FormRow :disabled="!editable.settings.palette_denyList" v-model="editable.settings.palette_denyList" :error="editable.errors.palette_denyList" :type="(editTemplate||editable.policy.palette_denyList)?'text':'uneditable'">
                     Prevent Install of External nodes
                     <template #description>
                         This can be used to prevent the installation of nodes from the Palette Manager. A comma-seperated list of the form e.g. <pre>'package-name@semVer, foo@^0.1.0, @scope/*'</pre>

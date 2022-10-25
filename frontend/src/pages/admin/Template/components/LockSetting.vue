@@ -1,6 +1,6 @@
 <template>
     <div class="">
-        <div v-if="locked">
+        <div v-if="locked" v-ff-tooltip="'This setting has been locked.'">
             <LockClosedIcon class="w-4" />
         </div>
         <FormRow v-else-if="editTemplate" class="w-24" v-model="localValue" type="select" :options="[{label:'Editable', value:true},{label:'Locked', value:false}]">
