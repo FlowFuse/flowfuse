@@ -20,6 +20,7 @@ import { DotsVerticalIcon } from '@heroicons/vue/solid'
 export default {
     name: 'ff-kebab-menu',
     props: {
+        // eslint-disable-next-line vue/prop-name-casing
         'menu-align': {
             type: String,
             default: 'right'
