@@ -7,13 +7,18 @@
             </div>
         </FormHeading>
 
+        <div class="text-red-400 space-y-1" v-if="!projectLauncherCompatible">
+            <p>You will need to update your Project Stack to use this feature.</p>
+            <div v-if="project.stack.replacedBy">
+                <ff-button size="small" to="./settings/danger">Update</ff-button>
+            </div>
+        </div>
         <div class="text-gray-400 space-y-1">
             <p>This is the list of modules that will be installed into the project.</p>
             <div v-if="editable.settings.palette_allowInstall" class="space-y-1">
                 <p>Any changes to this list will require restarting the project to apply.</p>
                 <p>You can also install modules using the palette manager in the editor.</p>
             </div>
-
         </div>
 
         <table class="w-full max-w-2xl table-fixed text-sm rounded overflow-hidden">
@@ -136,7 +141,7 @@ import { TrashIcon, PlusSmIcon, LockClosedIcon, PencilIcon, XIcon, CheckIcon } f
 
 export default {
     name: 'TemplatePaletteModulesEditor',
-    props: ['editTemplate', 'modelValue', 'readOnly'],
+    props: ['editTemplate', 'modelValue', 'readOnly', 'project'],
     emits: ['update:modelValue'],
     data () {
         return {
@@ -153,6 +158,15 @@ export default {
         editable: {
             get () { return this.modelValue },
             set (localValue) { this.$emit('update:modelValue', localValue) }
+        },
+        projectLauncherCompatible () {
+            const launcherVersion = this.project?.meta?.versions?.launcher
+            if (!launcherVersion) {
+                // We won't have this for a suspended project - so err on the side
+                // of permissive
+                return true
+            }
+            return !/^0\./.test(launcherVersion)
         },
         addEnabled () {
             return this.input.name && this.input.version && !this.input.error && !this.input.errorVersion
