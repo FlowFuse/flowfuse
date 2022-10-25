@@ -66,6 +66,46 @@
 // icons
 import { SearchIcon, SwitchVerticalIcon, SortAscendingIcon, SortDescendingIcon } from '@heroicons/vue/outline'
 
+function searchObjectProps (object, searchTerm, searchProps = []) {
+    const searchPropsMap = searchProps
+        .map((prop) => {
+            const [first, ...rest] = prop.split('.')
+
+            return [first, rest.join('.')]
+        })
+        .reduce((map, [propName, subProp]) => {
+            if (!map.has(propName)) {
+                map.set(propName, [subProp])
+            } else {
+                map.get(propName).push(subProp)
+            }
+
+            return map
+        }, new Map())
+
+    return Object.entries(object).some(([propName, propValue]) => {
+        // Skip props that aren't being considered
+        if (searchPropsMap?.size > 0 && !searchPropsMap.has(propName)) {
+            return false
+        }
+
+        // Search recursively inside of objects
+        if (typeof propValue === 'object') {
+            return searchObjectProps(propValue, searchTerm, searchPropsMap.get(propName))
+        }
+
+        // Skip non numeric strings (bool, undefined, null, etc)
+        if (typeof propValue === 'number') {
+            propValue = propValue.toString()
+        }
+        if (typeof propValue !== 'string') {
+            return false
+        }
+
+        return propValue.toLowerCase().includes(searchTerm)
+    })
+}
+
 export default {
     name: 'ff-data-table',
     emits: ['update:search', 'load-more', 'row-selected'],
@@ -195,28 +235,9 @@ export default {
                 return rows
             }
 
-            const searchString = search.toLowerCase()
-
-            return rows.filter((row) =>
-                Object.entries(row).some(([propName, propValue]) => {
-                    // Skip props that aren't being considered
-                    if (
-                        this.searchFields?.length > 0 && !this.searchFields.includes(propName)
-                    ) {
-                        return false
-                    }
-
-                    // Skip non numeric strings (bool, undefined, null, etc)
-                    if (typeof propValue === 'number') {
-                        propValue = propValue.toString()
-                    }
-                    if (typeof propValue !== 'string') {
-                        return false
-                    }
-
-                    return propValue.toLowerCase().includes(searchString)
-                })
-            )
+            return rows.filter((row) => {
+                return searchObjectProps(row, search.toLowerCase(), this.searchFields)
+            })
         },
         rowClick (row) {
             if (this.rowsSelectable) {
