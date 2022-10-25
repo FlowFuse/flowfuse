@@ -2,6 +2,7 @@ import settingsApi from '@/api/settings'
 import userApi from '@/api/user'
 import teamApi from '@/api/team'
 import router from '@/routes'
+import { nextTick } from 'vue'
 
 // initial state
 const state = () => ({
@@ -89,7 +90,6 @@ const mutations = {
     },
     login (state, user) {
         state.loginInflight = false
-        state.redirectUrlAfterLogin = null
         state.user = user
     },
     logout (state) {
@@ -202,6 +202,8 @@ const actions = {
                 if (redirectUrlAfterLogin) {
                     // If this is a user-driven login, take them to the profile page
                     router.push(redirectUrlAfterLogin)
+                    // Clear the redirectUrl on nextTick
+                    nextTick(() => { state.commit('setRedirectUrl', null) })
                 }
             } catch (teamLoadErr) {
                 state.commit('clearPending')
@@ -218,7 +220,10 @@ const actions = {
             // Not logged in
             state.commit('clearPending')
             if (router.currentRoute.value.meta.requiresLogin !== false) {
-                state.commit('setRedirectUrl', router.currentRoute.value.fullPath)
+                if (router.currentRoute.value.path !== '/') {
+                    // Only remember the url if it isn't the default / path
+                    state.commit('setRedirectUrl', router.currentRoute.value.fullPath)
+                }
                 router.push({ name: 'Home' })
             }
         }

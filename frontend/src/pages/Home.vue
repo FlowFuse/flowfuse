@@ -20,7 +20,7 @@ import NoTeamsUser from './account/NoTeamsUser'
 export default {
     name: 'HomePage',
     computed: {
-        ...mapState('account', ['pending', 'user', 'team', 'teams'])
+        ...mapState('account', ['pending', 'user', 'team', 'teams', 'redirectUrlAfterLogin'])
     },
     data () {
         return {
@@ -36,7 +36,8 @@ export default {
     },
     methods: {
         redirectOnLoad () {
-            if (this.user.email_verified) {
+            // Only bounce to team view if there's no redirectUrlAfterLogin set
+            if (!this.redirectUrlAfterLogin && this.user.email_verified) {
                 if (this.team) {
                     this.$router.push({
                         name: 'Team',
