@@ -37,5 +37,11 @@
             "vue/multiline-html-element-content-newline": "off",
             "vue/v-slot-style": "off",
         }
+    },
+    {
+        "files": "tests/**",
+        "env": {
+            "jest": true
+        }
     }]
 }
