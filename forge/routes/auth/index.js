@@ -378,7 +378,7 @@ module.exports = fp(async function (app, opts, done) {
                     slug: verifiedUser.username,
                     TeamTypeId: (await app.db.models.TeamType.byName('starter')).id
                 }, verifiedUser)
-                await userLog(request.session?.User?.id, 'verify.auto-create-team', {
+                await userLog(request.session?.User?.id || verifiedUser.id, 'verify.auto-create-team', {
                     team: {
                         name: `Team ${verifiedUser.name}`,
                         type: 'starter'
@@ -406,7 +406,7 @@ module.exports = fp(async function (app, opts, done) {
                     email: verifiedUser.email,
                     admin: !!verifiedUser.isAdmin
                 }
-            })
+            }, verifiedUser?.id)
             reply.send({ status: 'okay' })
         } catch (err) {
             app.log.error(`/account/verify/token error - ${err.toString()}`)
