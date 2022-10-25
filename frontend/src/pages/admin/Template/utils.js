@@ -43,25 +43,25 @@ const defaultTemplateValues = {
 }
 
 const defaultTemplatePolicy = {
-    disableEditor: false,
-    disableTours: false,
-    httpAdminRoot: false,
-    dashboardUI: false,
-    codeEditor: false,
-    theme: false,
+    disableEditor: true,
+    disableTours: true,
+    httpAdminRoot: true,
+    dashboardUI: true,
+    codeEditor: true,
+    theme: true,
     page_title: false,
     page_favicon: false,
-    header_title: false,
+    header_title: true,
     header_url: false,
-    timeZone: false,
-    palette_allowInstall: false,
+    timeZone: true,
+    palette_allowInstall: true,
     palette_nodesExcludes: false,
     palette_denyList: false,
     palette_modules: true,
-    modules_allowInstall: false,
+    modules_allowInstall: true,
     modules_denyList: false,
-    httpNodeAuth_user: false,
-    httpNodeAuth_pass: false
+    httpNodeAuth_user: true,
+    httpNodeAuth_pass: true
 }
 
 const passwordTypes = [
