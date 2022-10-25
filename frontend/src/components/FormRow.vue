@@ -103,7 +103,7 @@ export default {
     props: ['id', 'type', 'name', 'value', 'disabled', 'modelValue', 'valueEmptyText', 'error', 'options', 'placeholder', 'containerClass', 'wrapperClass', 'inputClass', 'appendClass', 'accept'],
     emits: ['update:modelValue', 'blur', 'enter'],
     computed: {
-        inputId: function () {
+        inputId () {
             return this.id || 'formRow-instance-' + (instanceCount++)
         },
         localModelValue: {
