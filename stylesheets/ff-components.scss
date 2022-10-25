@@ -558,20 +558,20 @@ li.ff-list-item {
             justify-content: space-between;
             gap: $ff-unit-md;
           }
-          .ff-icon, .ff-icon-sm, .ff-icon-lg {
+          .ff-icon {
             opacity: 0.2;
           }
           &:hover {
             background-color: $ff-grey-200;
             cursor: pointer;
-            .ff-icon, .ff-icon-sm, .ff-icon-lg {
+            .ff-icon {
               opacity: 0.5;
             }
           }
         }
         &.sorted {
           background-color: $ff-grey-200;
-          .ff-icon.icon-sorted, .ff-icon-sm.icon-sorted, .ff-icon-lg.icon-sorted {
+          .ff-icon.icon-sorted {
             opacity: 1;
           }
         }
