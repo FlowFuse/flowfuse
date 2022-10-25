@@ -10,9 +10,9 @@ export default {
     name: 'ff-tile-selection',
     emits: ['update:modelValue'],
     props: {
-        // eslint-disable-next-line vue/require-prop-types
         modelValue: {
-            default: null
+            default: null,
+            type: [String, Number]
         }
     },
     watch: {
