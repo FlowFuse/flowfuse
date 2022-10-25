@@ -406,7 +406,7 @@ module.exports = fp(async function (app, opts, done) {
                     email: verifiedUser.email,
                     admin: !!verifiedUser.isAdmin
                 }
-            }, verifiedUser?.id)
+            }, verifiedUser.id)
             reply.send({ status: 'okay' })
         } catch (err) {
             app.log.error(`/account/verify/token error - ${err.toString()}`)
