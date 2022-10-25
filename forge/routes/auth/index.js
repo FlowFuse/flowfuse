@@ -399,7 +399,7 @@ module.exports = fp(async function (app, opts, done) {
                 // invite.inviteeId = verifiedUser.id
                 // await invite.save()
             }
-            await userLog(request.session.User.id, 'verify.verify-token', {
+            await userLog(request.session?.User?.id || verifiedUser.id, 'verify.verify-token', {
                 user: {
                     username: verifiedUser.username,
                     name: verifiedUser.name,
