@@ -1,72 +1,9 @@
-const templateFields = [
-    'disableEditor',
-    'disableTours',
-    'httpAdminRoot',
-    'dashboardUI',
-    'codeEditor',
-    'theme',
-    'page_title',
-    'page_favicon',
-    'header_title',
-    'header_url',
-    'timeZone',
-    'palette_allowInstall',
-    'palette_nodesExcludes',
-    'palette_denyList',
-    'palette_modules',
-    'modules_allowInstall',
-    'modules_denyList',
-    'httpNodeAuth_user',
-    'httpNodeAuth_pass'
-]
-
-const defaultTemplateValues = {
-    disableEditor: false,
-    disableTours: false,
-    httpAdminRoot: '',
-    dashboardUI: '/ui',
-    codeEditor: 'monaco',
-    theme: 'forge-light',
-    page_title: 'FlowForge',
-    page_favicon: '',
-    header_title: 'FlowForge',
-    header_url: '',
-    timeZone: 'UTC',
-    palette_allowInstall: true,
-    palette_nodesExcludes: '',
-    palette_denyList: '',
-    palette_modules: [],
-    modules_allowInstall: true,
-    modules_denyList: '',
-    httpNodeAuth_user: '',
-    httpNodeAuth_pass: ''
-}
-
-const defaultTemplatePolicy = {
-    disableEditor: false,
-    disableTours: false,
-    httpAdminRoot: false,
-    dashboardUI: false,
-    codeEditor: false,
-    theme: false,
-    page_title: false,
-    page_favicon: false,
-    header_title: false,
-    header_url: false,
-    timeZone: false,
-    palette_allowInstall: false,
-    palette_nodesExcludes: false,
-    palette_denyList: false,
-    palette_modules: true,
-    modules_allowInstall: false,
-    modules_denyList: false,
-    httpNodeAuth_user: false,
-    httpNodeAuth_pass: false
-}
-
-const passwordTypes = [
-    'httpNodeAuth_pass'
-]
+const {
+    templateFields,
+    passwordTypes,
+    defaultTemplateValues,
+    defaultTemplatePolicy
+} = require('@core/lib/templates')
 
 // Functions to map template values to a string for editing
 //

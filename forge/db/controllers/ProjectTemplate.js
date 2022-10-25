@@ -1,47 +1,5 @@
 const { hash } = require('../utils')
-const validSettings = [
-    'disableEditor',
-    'httpAdminRoot',
-    'dashboardUI',
-    'codeEditor',
-    'theme',
-    'page_title',
-    'page_favicon',
-    'header_title',
-    'header_url',
-    'timeZone',
-    'disableTours',
-    'palette_allowInstall',
-    'palette_nodesExcludes',
-    'palette_denyList',
-    'palette_modules',
-    'modules_allowInstall',
-    'httpNodeAuth_user',
-    'httpNodeAuth_pass'
-    // 'env' // Handled separately
-]
-
-const defaultTemplatePolicy = {
-    disableEditor: false,
-    disableTours: false,
-    httpAdminRoot: false,
-    dashboardUI: false,
-    codeEditor: false,
-    theme: false,
-    page_title: false,
-    page_favicon: false,
-    header_title: false,
-    header_url: false,
-    timeZone: false,
-    palette_allowInstall: false,
-    palette_nodesExcludes: false,
-    palette_denyList: false,
-    palette_modules: true,
-    modules_allowInstall: false,
-    modules_denyList: false,
-    httpNodeAuth_user: false,
-    httpNodeAuth_pass: false
-}
+const { templateFields, defaultTemplatePolicy } = require('../../lib/templates')
 
 function getTemplateValue (template, path) {
     const parts = path.split('_')
@@ -85,7 +43,7 @@ module.exports = {
     validateSettings: function (app, settings, template) {
         const result = {}
         // First pass - copy over only the known and policy-permitted settings
-        validSettings.forEach((name) => {
+        templateFields.forEach((name) => {
             const value = getTemplateValue(settings, name)
             if (value !== undefined) {
                 let policy = !template || getTemplateValue(template.policy, name)
@@ -204,7 +162,7 @@ module.exports = {
    *
    * TODO: This probably doesn't belong in the ProjectTemplate controller
    * as it doesn't do anything with the template itself. However it makes use of
-   * validSettings/getTemplateValue/setTemplateValue from this file which
+   * templateFields/getTemplateValue/setTemplateValue from this file which
    * aren't otherwise exposed.
    * @param {*} app the forge app
    * @param {*} existingSettings the existing project settings
@@ -213,7 +171,7 @@ module.exports = {
     mergeSettings: function (app, existingSettings, settings) {
         // Quick deep clone that is safe as we know settings are JSON-safe
         const result = JSON.parse(JSON.stringify(existingSettings))
-        validSettings.forEach((name) => {
+        templateFields.forEach((name) => {
             const value = getTemplateValue(settings, name)
             if (value !== undefined) {
                 setTemplateValue(result, name, value)
