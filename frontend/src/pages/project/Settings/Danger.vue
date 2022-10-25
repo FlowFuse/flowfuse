@@ -146,7 +146,7 @@ export default {
     mixins: [permissionsMixin],
     computed: {
         ...mapState('account', ['team', 'features', 'teamMembership']),
-        isLoading: function () {
+        isLoading () {
             return this.loading.deleting || this.loading.suspend || this.loading.changingStack || this.loading.duplicating || this.loading.settingType
         }
     },
@@ -165,7 +165,7 @@ export default {
         this.checkAccess()
     },
     methods: {
-        checkAccess: async function () {
+        async checkAccess () {
             if (!this.hasPermission('project:edit')) {
                 useRouter().push({ replace: true, path: 'general' })
             }

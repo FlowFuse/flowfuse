@@ -45,7 +45,7 @@ export default {
     watch: {
         localData: {
             deep: true,
-            handler: function (value) {
+            handler (value) {
                 if (value.flows?.val) {
                     this.getFlowFile(value.flows.obj.files[0])
                 }
