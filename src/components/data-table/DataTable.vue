@@ -2,8 +2,9 @@
     <div class="ff-data-table">
         <div v-if="showOptions" class="ff-data-table--options">
             <ff-text-input v-if="showSearch" class="ff-data-table--search"
-                :placeholder="searchPlaceholder" v-model="filterTerm">
-                <template v-slot:icon><SearchIcon /></template>
+                :placeholder="searchPlaceholder" v-model="filterTerm"
+            >
+                <template #icon><SearchIcon /></template>
             </ff-text-input>
             <div class="ff-data-table--actions" v-if="$slots.actions">
                 <slot name="actions"></slot>
@@ -18,13 +19,14 @@
                             <ff-data-table-cell v-for="(col, $index) in columns" :key="$index"
                                 :class="[sort.key === col.key ? 'sorted' : '', col.sortable ? 'sortable' : ''].concat(col.class)"
                                 :style="col.style"
-                                @click="sortBy(col, $index)">
+                                @click="sortBy(col, $index)"
+                            >
                                 <!-- Internal div required to have flex w/sorting icons -->
                                 <div>
                                     {{ col.label }}
-                                    <SwitchVerticalIcon class="ff-icon-sm" v-if="col.sortable && col.key !== sort.key"/>
-                                    <SortAscendingIcon class="ff-icon-sm icon-sorted" v-if="col.sortable && col.key === sort.key && sort.order === 'asc'"/>
-                                    <SortDescendingIcon class="ff-icon-sm icon-sorted" v-if="col.sortable && col.key === sort.key && sort.order === 'desc'"/>
+                                    <SwitchVerticalIcon class="ff-icon-sm" v-if="col.sortable && col.key !== sort.key" />
+                                    <SortAscendingIcon class="ff-icon-sm icon-sorted" v-if="col.sortable && col.key === sort.key && sort.order === 'asc'" />
+                                    <SortDescendingIcon class="ff-icon-sm icon-sorted" v-if="col.sortable && col.key === sort.key && sort.order === 'desc'" />
                                 </div>
                             </ff-data-table-cell>
                             <ff-data-table-cell v-if="hasContextMenu"></ff-data-table-cell>
@@ -39,8 +41,9 @@
                         </ff-data-table-row>
                         <template v-if="!loading">
                             <ff-data-table-row v-for="(r, $index) in filteredRows" :key="$index" :data="r" :columns="columns"
-                                :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn" @click="rowClick(r)">
-                                <template v-if="hasContextMenu" v-slot:context-menu="{row}">
+                                :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn" @click="rowClick(r)"
+                            >
+                                <template v-if="hasContextMenu" #context-menu="{row}">
                                     <slot name="context-menu" :row="row"></slot>
                                 </template>
                             </ff-data-table-row>

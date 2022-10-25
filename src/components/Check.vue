@@ -1,6 +1,6 @@
 <template>
     <i class="ff-icon-lg">
-        <CheckIcon v-if="value" class="ff-icon-lg"/>
+        <CheckIcon v-if="value" class="ff-icon-lg" />
     </i>
 </template>
 
