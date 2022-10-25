@@ -2,7 +2,7 @@
     <div :class="containerClass ? containerClass : 'max-w-sm'">
         <template v-if="type==='checkbox'">
             <div class="flex" :class="(wrapperClass ? wrapperClass : 'items-center')">
-                <div :class="(disabled ? ' cursor-not-allowed' : '')">
+                <div :class="(disabled ? ' cursor-not-allowed text-gray-400' : 'text-gray-700')">
                     <input :id="inputId"
                            ref="input"
                            type="checkbox"
@@ -11,7 +11,7 @@
                            :disabled="disabled"
                            @change="$emit('update:modelValue', $event.target.checked)"
                     >
-                    <label v-if="hasTitle" :for="inputId" class="text-sm font-medium text-gray-700"><slot></slot></label>
+                    <label v-if="hasTitle" :for="inputId" class="text-sm font-medium"><slot></slot></label>
                 </div>
                 <div v-if="hasAppend" :class="appendClass ? appendClass : 'inline ml-2'"><slot name="append"></slot></div>
             </div>
@@ -54,7 +54,7 @@
             <div v-if="hasDescription" class="mt-1 text-xs text-gray-400 mb-2 ml-9 space-y-1"><slot name="description"></slot></div>
         </template>
         <template v-else>
-            <label v-if="hasTitle" :for="inputId" class="block text-sm font-medium text-gray-700 mb-1"><slot></slot></label>
+            <label v-if="hasTitle" :for="inputId" :class="(disabled ? 'text-gray-400' : 'text-gray-700')" class="block text-sm font-medium mb-1"><slot></slot></label>
             <div v-if="hasDescription" class="text-xs text-gray-400 mb-2 space-y-1"><slot name="description"></slot></div>
             <div :class="(wrapperClass ? wrapperClass : 'flex flex-col sm:flex-row relative')">
                 <template v-if="options && type !== 'uneditable'">
@@ -75,7 +75,7 @@
                     <slot name="input"></slot>
                 </template>
                 <template v-else-if="type==='uneditable'">
-                    <div class="w-full uneditable" :class="inputClass">{{ modelValue || (valueEmptyText == null ? 'No Value' : valueEmptyText ) }}</div>
+                    <div class="w-full uneditable" :class="inputClass + (disabled ? ' text-gray-400' : ' text-gray-700')">{{ modelValue || (valueEmptyText == null ? 'No Value' : valueEmptyText ) }}</div>
                 </template>
                 <template v-else>
                     <ff-text-input
@@ -103,7 +103,7 @@ export default {
     props: ['id', 'type', 'name', 'value', 'disabled', 'modelValue', 'valueEmptyText', 'error', 'options', 'placeholder', 'containerClass', 'wrapperClass', 'inputClass', 'appendClass', 'accept'],
     emits: ['update:modelValue', 'blur', 'enter'],
     computed: {
-        inputId: function () {
+        inputId () {
             return this.id || 'formRow-instance-' + (instanceCount++)
         },
         localModelValue: {
