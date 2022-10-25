@@ -67,6 +67,7 @@ import Dialog from '@/services/dialog'
 import alerts from '@/services/alerts'
 
 const projectTransitionStates = [
+    'installing',
     'starting',
     'stopping',
     'restarting',
