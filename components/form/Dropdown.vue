@@ -27,12 +27,15 @@ export default {
         ChevronDownIcon
     },
     props: {
+        // eslint-disable-next-line vue/require-prop-types
         modelValue: {
             default: null
         },
+        // eslint-disable-next-line vue/require-prop-types
         placeholder: {
             default: 'Please Select'
         },
+        // eslint-disable-next-line vue/require-prop-types
         dropdownStyle: {
             default: 'select' // 'button' or 'select'
         },
@@ -54,6 +57,7 @@ export default {
             },
             set (selected) {
                 this.selected = selected
+                // eslint-disable-next-line vue/require-explicit-emits
                 this.$emit('update:modelValue', selected.value)
                 this.isOpen = false
             }

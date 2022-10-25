@@ -32,6 +32,7 @@ export default {
     name: 'ff-tile-selection-option',
     emits: ['edit'],
     props: {
+        // eslint-disable-next-line vue/require-default-prop
         value: null,
         editable: {
             default: false,

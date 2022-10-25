@@ -9,6 +9,7 @@
 export default {
     name: 'ff-list-item',
     props: {
+        // eslint-disable-next-line vue/require-default-prop
         icon: {
             type: Function
         },
