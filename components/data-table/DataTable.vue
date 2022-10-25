@@ -138,26 +138,35 @@ export default {
             const rows = this.filterRows([...this.rows])
             if (this.sort.key) {
                 return rows.sort((a, b) => {
-                    // catch the undefined use case, by making undefined = 0
-                    const aValue = this.lookupProperty(a, this.sort.key) || 0
-                    const bValue = this.lookupProperty(b, this.sort.key) || 0
-                    if (this.sort.order === 'asc') {
-                        if (aValue < bValue) {
-                            return 1
-                        } else if (aValue > bValue) {
-                            return -1
-                        } else {
-                            return 0
-                        }
-                    } else {
-                        if (aValue < bValue) {
-                            return -1
-                        } else if (aValue > bValue) {
-                            return 1
-                        } else {
-                            return 0
-                        }
+                    // Catch undefined and null, swapping to ''
+                    const aProp = this.lookupProperty(a, this.sort.key) ?? ''
+                    const bProp = this.lookupProperty(b, this.sort.key) ?? ''
+
+                    const collator = new Intl.Collator(undefined, {
+                        numeric: true,
+                        sensitivity: 'base'
+                    })
+
+                    // Ordering
+                    const [aValue, bValue] =
+                        this.sort.order === 'asc'
+                            ? [aProp, bProp]
+                            : [bProp, aProp]
+
+                    // Booleans are grouped together, sorted as booleans, not strings
+                    if (
+                        typeof aValue === 'boolean' &&
+                        typeof bValue === 'boolean'
+                    ) {
+                        return aValue === bValue ? 0 : (aValue > bValue ? 1 : -1)
+                    } else if (
+                        typeof aValue === 'boolean' ||
+                        typeof bValue === 'boolean'
+                    ) {
+                        return this.sort.order === 'asc' ? -1 : 1
                     }
+
+                    return collator.compare(aValue, bValue)
                 })
             } else {
                 return rows
