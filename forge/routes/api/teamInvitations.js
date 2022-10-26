@@ -66,7 +66,7 @@ module.exports = async function (app) {
                             'UnknownUserInvitation',
                             {
                                 invite,
-                                signupLink: `${app.config.base_url}/account/create?email=${invite.email}`
+                                signupLink: `${app.config.base_url}/account/create?email=${encodeURIComponent(invite.email)}`
                             }
                         )
                         successfulInvites.push(invite.email)
