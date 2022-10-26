@@ -1,7 +1,7 @@
 <template>
     <div class="ff-data-table">
         <div v-if="showOptions" class="ff-data-table--options">
-            <ff-text-input v-if="showSearch" class="ff-data-table--search"
+            <ff-text-input v-if="showSearch" class="ff-data-table--search" data-form="search"
                 :placeholder="searchPlaceholder" v-model="filterTerm"
             >
                 <template #icon><SearchIcon /></template>
