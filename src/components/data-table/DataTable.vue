@@ -120,11 +120,11 @@ export default {
     props: {
         columns: {
             type: Array,
-            default: null
+            default: () => []
         },
         rows: {
             type: Array,
-            default: null
+            default: () => []
         },
         rowsSelectable: {
             type: Boolean,
@@ -144,7 +144,7 @@ export default {
         },
         searchFields: {
             type: Array,
-            default: null
+            default: () => []
         },
         showLoadMore: {
             type: Boolean,
