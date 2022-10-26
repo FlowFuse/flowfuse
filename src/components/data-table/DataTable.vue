@@ -70,7 +70,7 @@
 import { SearchIcon, SwitchVerticalIcon, SortAscendingIcon, SortDescendingIcon } from '@heroicons/vue/outline'
 
 function searchObjectProps (object, searchTerm, searchProps = []) {
-    const searchPropsMap = searchProps
+    const searchPropsMap = (searchProps ?? [])
         .map((prop) => {
             const [first, ...rest] = prop.split('.')
 
