@@ -92,6 +92,11 @@ function searchObjectProps (object, searchTerm, searchProps = []) {
             return false
         }
 
+        // Skip null, undefined, or empty props (inc arrays) since they'll never match
+        if (propValue === null || propValue === undefined || propValue.length === 0) {
+            return false
+        }
+
         // Search recursively inside of objects
         if (typeof propValue === 'object') {
             return searchObjectProps(propValue, searchTerm, searchPropsMap.get(propName))
