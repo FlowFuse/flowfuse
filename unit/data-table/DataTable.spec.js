@@ -175,12 +175,12 @@ describe('DataTable', () => {
             }]
 
             expect(
-                DataTable.methods.filterRows.call({ internalSearch: 'pear' }, rows).map((row) => row.name)
-            ).toEqual(['Pear'])
+                DataTable.methods.filterRows.call({ internalSearch: 'apple' }, rows).map((row) => row.name)
+            ).toEqual(['Apple'])
 
             expect(
-                DataTable.methods.filterRows.call({ internalSearch: 'pear' }, rows).map((row) => row.name)
-            ).toEqual(['Pear'])
+                DataTable.methods.filterRows.call({ internalSearch: 'banana' }, rows).map((row) => row.name)
+            ).toEqual(['Banana'])
 
             expect(
                 DataTable.methods.filterRows.call({ internalSearch: 'pear' }, rows).map((row) => row.name)
