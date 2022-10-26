@@ -39,7 +39,7 @@ module.exports = {
                 },
                 forTeam: async (teamId, pagination = {}) => {
                     const where = {
-                        entityId: teamId,
+                        entityId: teamId.toString(),
                         entityType: 'team'
                     }
                     return M.AuditLog.forEntity(where, pagination)
