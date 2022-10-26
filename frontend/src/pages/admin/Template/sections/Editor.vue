@@ -27,7 +27,7 @@
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
-                <FormRow v-model="editable.settings.httpAdminRoot" :error="editable.errors.httpAdminRoot" :type="(editTemplate||editable.policy.httpAdminRoot)?'text':'uneditable'">
+                <FormRow v-model="editable.settings.httpAdminRoot" :error="editable.errors.httpAdminRoot" :disabled="!editTemplate && !editable.policy.httpAdminRoot === false" type="text">
                     Editor URL Path
                     <template #description>
                         The path used to serve the editor
@@ -39,7 +39,7 @@
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
-                <FormRow v-model="editable.settings.dashboardUI" :error="editable.errors.dashboardUI" :type="(editTemplate||editable.policy.dashboardUI)?'text':'uneditable'">
+                <FormRow v-model="editable.settings.dashboardUI" :error="editable.errors.dashboardUI" :disabled="!editTemplate && !editable.policy.dashboardUI" type="text">
                     Dashboard URL Path
                     <template #description>
                         The path used to serve the node-red-dashboard UI
@@ -51,7 +51,7 @@
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
-                <FormRow v-model="editable.settings.codeEditor" :type="(editTemplate||editable.policy.codeEditor)?'select':'uneditable'" :options="[{label:'monaco', value:'monaco'},{label:'ace', value:'ace'}]">
+                <FormRow v-model="editable.settings.codeEditor" :disabled="!editTemplate && !editable.policy.codeEditor" type="select" :options="[{label:'monaco', value:'monaco'},{label:'ace', value:'ace'}]">
                     Code Editor
                     <template #append><ChangeIndicator :value="editable.changed.settings.codeEditor"></ChangeIndicator></template>
                 </FormRow>
@@ -60,7 +60,7 @@
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
-                <FormRow v-model="editable.settings.header_title" :error="editable.errors.header_title" :type="(editTemplate||editable.policy.header_title)?'text':'uneditable'">
+                <FormRow v-model="editable.settings.header_title" :error="editable.errors.header_title" :disabled="!editTemplate && !editable.policy.header_title" type="text">
                     Editor Title
                     <template #description>
                         The title to show in the header
@@ -72,7 +72,7 @@
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
-                <FormRow v-model="editable.settings.timeZone" :type="(editTemplate||editable.policy.timeZone)?'select':'uneditable'" :options="timezones">
+                <FormRow v-model="editable.settings.timeZone" :disabled="!editTemplate && !editable.policy.timeZone" type="select" :options="timezones">
                     Time Zone
                     <template #append><ChangeIndicator :value="editable.changed.settings.timeZone"></ChangeIndicator></template>
                 </FormRow>
@@ -82,7 +82,7 @@
         <FormHeading class="pt-8">HTTP Nodes</FormHeading>
         <div class="flex flex-col sm:flex-row">
             <div class="space-y-4 w-full max-w-md sm:mr-8">
-                <FormRow v-model="editable.settings.httpNodeAuth_user" :type="(editTemplate||editable.policy.httpNodeAuth_user)?'text':'uneditable'">
+                <FormRow v-model="editable.settings.httpNodeAuth_user" :disabled="!editTemplate && !editable.policy.httpNodeAuth_user" :type="(editTemplate||editable.policy.httpNodeAuth_user)?'text':'uneditable'">
                     HTTP Auth Username
                     <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeAuth_user"></ChangeIndicator></template>
                 </FormRow>
@@ -91,7 +91,7 @@
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="space-y-4 w-full max-w-md sm:mr-8">
-                <FormRow v-model="editable.settings.httpNodeAuth_pass" :type="(editTemplate||editable.policy.httpNodeAuth_pass)?'password':'uneditable'">
+                <FormRow v-model="editable.settings.httpNodeAuth_pass" :disabled="!editTemplate && !editable.policy.httpNodeAuth_pass" :type="(editTemplate||editable.policy.httpNodeAuth_pass)?'password':'uneditable'">
                     HTTP Auth Password
                     <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeAuth_pass"></ChangeIndicator></template>
                 </FormRow>
@@ -111,7 +111,7 @@
 
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
-                <FormRow :disabled="!editable.settings.modules_allowInstall" v-model="editable.settings.modules_denyList" :error="editable.errors.modules_denyList" :type="(editTemplate||editable.policy.modules_denyList)?'text':'uneditable'">
+                <FormRow v-model="editable.settings.modules_denyList" :disabled="!editTemplate && !editable.policy.modules_denyList" :error="editable.errors.modules_denyList" :type="(editTemplate||editable.policy.modules_denyList)?'text':'uneditable'">
                     Prevent Install of External modules
                     <template #description>
                         This can be used to prevent the installation of modules in Function nodes. A comma-seperated list of the form e.g. <pre>'package-name@semVer, foo@^0.1.0, @scope/*'</pre>

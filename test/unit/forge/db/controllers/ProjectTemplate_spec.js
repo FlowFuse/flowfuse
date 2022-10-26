@@ -65,8 +65,15 @@ describe('Project Template controller', function () {
                 },
                 policy: {
                     disableEditor: true,
+                    httpAdminRoot: false,
+                    dashboardUI: false,
+                    codeEditor: false,
                     palette: {
+                        allowInstall: false,
                         nodesExcludes: true
+                    },
+                    modules: {
+                        allowInstall: false
                     }
                 }
             }
