@@ -1,5 +1,5 @@
 <template>
-    <form class="space-y-6">
+    <div class="space-y-6">
         <FormRow v-model="input.projectId" type="uneditable" id="projectId" inputClass="font-mono">
             Project ID
         </FormRow>
@@ -24,7 +24,7 @@
             Template
         </FormRow>
 
-    </form>
+    </div>
 </template>
 
 <script>

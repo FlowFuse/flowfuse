@@ -4,7 +4,7 @@
             <ff-button v-if="addDeviceEnabled" kind="primary" size="small" @click="showCreateDeviceDialog"><template v-slot:icon-left><PlusSmIcon /></template>Register Device</ff-button>
         </template>
     </SectionTopMenu>
-    <form class="space-y-6">
+    <div class="space-y-6">
         <ff-loading v-if="loading" message="Loading Devices..." />
         <ff-loading v-else-if="creatingDevice" message="Creating Device..." />
         <ff-loading v-else-if="deletingDevice" message="Deleting Device..." />
@@ -51,7 +51,7 @@
                 </div>
             </template>
         </template>
-    </form>
+    </div>
     <TeamDeviceCreateDialog :team="team" @deviceCreating="deviceCreating" @deviceCreated="deviceCreated" @deviceUpdated="deviceUpdated" ref="teamDeviceCreateDialog"/>
     <DeviceCredentialsDialog ref="deviceCredentialsDialog" />
     <DeviceAssignProjectDialog :team="team" @assignDevice="assignDevice" ref="deviceAssignProjectDialog" />

@@ -1,5 +1,5 @@
 <template>
-    <form class="space-y-6">
+    <div class="space-y-6">
         <FormHeading>Project Types
             <template v-slot:tools>
                 <ff-button size="small" @click="showCreateProjectTypeDialog" data-action="create-type">
@@ -30,7 +30,7 @@
         <div v-if="nextCursor">
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
         </div>
-    </form>
+    </div>
     <ProjectTypeEditDialog ref="adminProjectTypeEditDialog" @projectTypeCreated="projectTypeCreated"
                            @projectTypeUpdated="projectTypeUpdated" @showDeleteDialog="showConfirmProjectTypeDeleteDialog"/>
 </template>

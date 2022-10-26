@@ -4,7 +4,7 @@
             <ff-button data-action="create-project-1" v-if="hasPermission('project:create')" kind="primary" size="small" to="./projects/create" data-nav="create-project"><template v-slot:icon-left><PlusSmIcon /></template>Create Project</ff-button>
         </template>
     </SectionTopMenu>
-    <form class="space-y-6">
+    <div class="space-y-6">
         <ff-loading v-if="loading" message="Loading Projects..." />
         <template v-else-if="projects.length > 0">
             <ff-data-table data-el="projects-table" :columns="columns" :rows="projects" :show-search="true" search-placeholder="Search Projects..."
@@ -25,7 +25,7 @@
                 You don't have any projects yet
             </div>
         </template>
-    </form>
+    </div>
     <router-view></router-view>
 </template>
 

@@ -1,6 +1,6 @@
 <template>
 
-    <form class="space-y-6">
+    <div class="space-y-6">
         <ff-data-table
             :columns="columns"
             :rows="users"
@@ -26,7 +26,7 @@
             </template>
         </ff-data-table>
         <AdminUserEditDialog @userUpdated="userUpdated" @userDeleted="userDeleted" ref="adminUserEditDialog"/>
-    </form>
+    </div>
 </template>
 
 <script>
