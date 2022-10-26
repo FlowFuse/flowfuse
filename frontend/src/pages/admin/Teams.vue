@@ -1,5 +1,5 @@
 <template>
-    <form>
+    <div>
         <SectionTopMenu hero="Teams" />
         <ff-data-table
             :columns="columns"
@@ -17,7 +17,7 @@
             no-data-message="No Teams Found"
             data-el="teams-table"
         />
-    </form>
+    </div>
 </template>
 
 <script>
