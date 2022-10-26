@@ -678,6 +678,12 @@ describe('Broker Auth API', async function () {
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectB.id}/out/foo`
                         })
                     })
+                    it('cannot subscribe to all broadcast if unassigned', async function () {
+                        await denyRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/out/foo`
+                        })
+                    })
                     it('cannot publish to project inbox if unassigned', async function () {
                         await denyWrite({
                             username: deviceUsername,
@@ -724,6 +730,12 @@ describe('Broker Auth API', async function () {
                         await allowRead({
                             username: deviceUsername,
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectB.id}/out/foo`
+                        })
+                    })
+                    it('can subscribe to all broadcast if assigned', async function () {
+                        await allowRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/out/foo`
                         })
                     })
                     it('can publish to project inbox if assigned', async function () {

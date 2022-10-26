@@ -19,6 +19,17 @@ module.exports = function (app) {
             // ids = [ 'project', <teamid>, <projectid> ]
             return requestParts[1] === ids[1]
         },
+        checkDeviceIsAssigned: async function (requestParts, ids) {
+            // requestParts = [ _ , <teamid>, <projectid> ]
+            // ids = [ 'device', <teamid>, <deviceid> ]
+
+            // Do the simple team id check
+            if (requestParts[1] !== ids[1]) {
+                return false
+            }
+            const assignedProject = await app.db.models.Device.getDeviceProjectId(ids[2])
+            return !!assignedProject
+        },
         checkDeviceAssignedToProject: async function (requestParts, ids) {
             // requestParts = [ _ , <teamid>, <projectid> ]
             // ids = [ 'device', <teamid>, <deviceid> ]
