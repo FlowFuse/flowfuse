@@ -33,6 +33,10 @@
                             </div>
                         </td>
                     </tr>
+                    <tr v-if="project.template?.name" class="border-b">
+                        <td class="font-medium">Template</td>
+                        <td><div class="py-2">{{project.template?.name}}</div></td>
+                    </tr>
                     <template v-if="project.meta.versions">
                         <tr class="border-b">
                             <td class="font-medium">Node-RED Version</td>
