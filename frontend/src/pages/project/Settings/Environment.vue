@@ -1,10 +1,10 @@
 <template>
-    <div class="space-y-6">
+    <form class="space-y-6">
         <TemplateSettingsEnvironment :readOnly="!hasPermission('device:edit-env')" v-model="editable" :editTemplate="false" />
         <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
             <ff-button size="small" :disabled="!unsavedChanges" @click="saveSettings()">Save settings</ff-button>
         </div>
-    </div>
+    </form>
 </template>
 
 <script>

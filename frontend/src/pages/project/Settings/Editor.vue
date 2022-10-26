@@ -1,10 +1,10 @@
 <template>
-    <div class="space-y-6">
+    <form class="space-y-6">
         <TemplateSettingsEditor v-model="editable" :editTemplate="false" />
         <div class="space-x-4 whitespace-nowrap">
             <ff-button size="small" :disabled="!unsavedChanges" @click="saveSettings()">Save settings</ff-button>
         </div>
-    </div>
+    </form>
 </template>
 
 <script>

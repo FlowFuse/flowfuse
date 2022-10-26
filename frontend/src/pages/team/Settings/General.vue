@@ -1,5 +1,5 @@
 <template>
-    <div class="space-y-6">
+    <form class="space-y-6">
         <FormRow v-model="input.teamName" :type="editing.teamName?'text':'uneditable'" :error="errors.teamName" id="teamName" ref="name-row">
             <template #default>Name</template>
             <template #description>
@@ -37,7 +37,7 @@
                 </div>
             </template>
         </div>
-    </div>
+    </form>
 </template>
 
 <script>

@@ -1,11 +1,11 @@
 <template>
-    <div class="space-y-6">
+    <form class="space-y-6">
         <TemplateSettingsPalette v-model="editable" :editTemplate="false" />
         <TemplatePaletteModulesEditor v-model="editable" :editTemplate="false" :readOnly="!paletteEditable" :project="project"/>
         <div class="space-x-4 whitespace-nowrap">
             <ff-button size="small" :disabled="!unsavedChanges && !modulesChanged" @click="saveSettings()">Save settings</ff-button>
         </div>
-    </div>
+    </form>
 </template>
 
 <script>
