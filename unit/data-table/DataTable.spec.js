@@ -134,7 +134,7 @@ describe('DataTable', () => {
             ).toEqual(['Banana'])
         })
 
-        it('handles searchFields prop being explicitly null, undefined or empty', () => {
+        it('handles searchFields prop being empty or undefined', () => {
             const rows = [{
                 name: 'Apple',
                 desc: 'Is Green'
@@ -145,10 +145,6 @@ describe('DataTable', () => {
                 name: 'Pear',
                 color: 'Green'
             }]
-
-            expect(
-                DataTable.methods.filterRows.call({ internalSearch: 'green', searchFields: null }, rows).map((row) => row.name)
-            ).toEqual(['Apple', 'Pear'])
 
             expect(
                 DataTable.methods.filterRows.call({ internalSearch: 'green', searchFields: undefined }, rows).map((row) => row.name)
