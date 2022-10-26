@@ -52,7 +52,7 @@
         "@fastify/csrf-protection": "^6.0.0",
         "@fastify/helmet": "^10.0.2",
         "@fastify/static": "^6.5.0",
-        "@flowforge/forge-ui-components": "^0.4.0",
+        "@flowforge/forge-ui-components": "^0.4.1",
         "@flowforge/localfs": "^0.10.0",
         "@headlessui/vue": "1.7.3",
         "@heroicons/vue": "1.0.6",
