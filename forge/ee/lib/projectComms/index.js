@@ -57,7 +57,7 @@ module.exports.init = function (app) {
         app.comms.aclManager.addACL(
             'device',
             'sub',
-            { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/out\/[^/]+($|\/.*$)/, verify: 'checkDeviceCanAccessProject' }
+            { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/out\/[^/]+($|\/.*$)/, verify: 'checkDeviceIsAssigned' }
         )
         // Receive messages sent to this project
         // - ff/v1/<team>/p/<project>/in/+/#
