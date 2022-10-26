@@ -1,4 +1,70 @@
+import { mount } from '@vue/test-utils'
 import DataTable from '@/components/data-table/DataTable.vue'
+
+import FfDataTableRow from '@/components/data-table/DataTableRow.vue'
+import FfDataTableCell from '@/components/data-table/DataTableCell.vue'
+import FfKebabMenu from '@/components/KebabMenu.vue'
+import FfTextInput from '@/components/form/TextInput.vue'
+import FfCheck from '@/components/Check.vue'
+
+describe('DataTable UX', () => {
+    it('supports searching rows by values', async () => {
+        const wrapper = mount(DataTable, {
+            props: {
+                columns: [{
+                    key: 'name',
+                    label: 'Name'
+                }],
+                rows: [
+                    { name: 'Apple' },
+                    { name: 'Orange', details: null },
+                    { name: 'Grapefruit', details: { color: 'Orangey' } }
+                ],
+                showSearch: true
+            },
+            global: {
+                components: {
+                    FfDataTableRow, FfDataTableCell, FfTextInput, FfCheck, FfKebabMenu
+                }
+            }
+        })
+
+        expect(wrapper.find('tbody').text()).toBe('AppleOrangeGrapefruit')
+
+        await wrapper.find('[data-form="search"] input').setValue('Orange')
+
+        expect(wrapper.find('tbody').text()).toBe('OrangeGrapefruit')
+    })
+
+    it('supports searching rows by values in specific fields only', async () => {
+        const wrapper = mount(DataTable, {
+            props: {
+                columns: [{
+                    key: 'name',
+                    label: 'Name'
+                }],
+                rows: [
+                    { name: 'Apple' },
+                    { name: 'Orange' },
+                    { name: 'Grapefruit', details: { color: 'Orangey' } }
+                ],
+                showSearch: true,
+                searchFields: ['name']
+            },
+            global: {
+                components: {
+                    FfDataTableRow, FfDataTableCell, FfTextInput, FfCheck, FfKebabMenu
+                }
+            }
+        })
+
+        expect(wrapper.find('tbody').text()).toBe('AppleOrangeGrapefruit')
+
+        await wrapper.find('[data-form="search"] input').setValue('Orange')
+
+        expect(wrapper.find('tbody').text()).toBe('Orange')
+    })
+})
 
 describe('DataTable', () => {
     describe('filterRows', () => {
@@ -112,6 +178,75 @@ describe('DataTable', () => {
             expect(
                 DataTable.methods.filterRows.call({ internalSearch: 'Musaceae' }, rows)[0]?.name
             ).toEqual('Banana')
+        })
+
+        it('searches (nested) arrays', () => {
+            const rows = [{
+                name: 'Apple',
+                colors: ['green', 'red']
+            }, {
+                name: 'Banana',
+                details: {
+                    colors: [{ name: 'yellow' }]
+                }
+            }]
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'green' }, rows).map((row) => row.name)
+            ).toEqual(['Apple'])
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'yellow' }, rows).map((row) => row.name)
+            ).toEqual(['Banana'])
+        })
+
+        it('handles searchFields prop being empty or undefined', () => {
+            const rows = [{
+                name: 'Apple',
+                desc: 'Is Green'
+            }, {
+                name: 'Banana',
+                desc: 'Not as good as an Apple'
+            }, {
+                name: 'Pear',
+                color: 'Green'
+            }]
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'green', searchFields: undefined }, rows).map((row) => row.name)
+            ).toEqual(['Apple', 'Pear'])
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'green', searchFields: [] }, rows).map((row) => row.name)
+            ).toEqual(['Apple', 'Pear'])
+        })
+
+        it('handles prop values being being explicitly null, undefined or empty', () => {
+            const rows = [{
+                name: 'Apple',
+                meta: null
+            }, {
+                name: 'Banana',
+                meta: undefined
+            }, {
+                name: 'Pear',
+                meta: []
+            }, {
+                name: 'Orange',
+                meta: ''
+            }]
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'apple' }, rows).map((row) => row.name)
+            ).toEqual(['Apple'])
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'banana' }, rows).map((row) => row.name)
+            ).toEqual(['Banana'])
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'pear' }, rows).map((row) => row.name)
+            ).toEqual(['Pear'])
         })
 
         describe('with searchFields prop set', () => {

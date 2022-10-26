@@ -1,7 +1,7 @@
 <template>
     <div class="ff-data-table">
         <div v-if="showOptions" class="ff-data-table--options">
-            <ff-text-input v-if="showSearch" class="ff-data-table--search"
+            <ff-text-input v-if="showSearch" class="ff-data-table--search" data-form="search"
                 :placeholder="searchPlaceholder" v-model="filterTerm"
             >
                 <template #icon><SearchIcon /></template>
@@ -92,6 +92,11 @@ function searchObjectProps (object, searchTerm, searchProps = []) {
             return false
         }
 
+        // Skip null, undefined, or empty props (inc arrays) since they'll never match
+        if (propValue === null || propValue === undefined || propValue.length === 0) {
+            return false
+        }
+
         // Search recursively inside of objects
         if (typeof propValue === 'object') {
             return searchObjectProps(propValue, searchTerm, searchPropsMap.get(propName))
@@ -115,11 +120,11 @@ export default {
     props: {
         columns: {
             type: Array,
-            default: null
+            default: () => []
         },
         rows: {
             type: Array,
-            default: null
+            default: () => []
         },
         rowsSelectable: {
             type: Boolean,
@@ -139,7 +144,7 @@ export default {
         },
         searchFields: {
             type: Array,
-            default: null
+            default: () => []
         },
         showLoadMore: {
             type: Boolean,
