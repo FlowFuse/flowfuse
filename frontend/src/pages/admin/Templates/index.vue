@@ -1,5 +1,5 @@
 <template>
-    <form class="space-y-6">
+    <div class="space-y-6">
         <FormHeading>
             <div class="text-xl font-bold flex">Templates</div>
             <template v-slot:tools>
@@ -25,7 +25,7 @@
         <div v-if="nextCursor">
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
         </div>
-    </form>
+    </div>
 </template>
 
 <script>

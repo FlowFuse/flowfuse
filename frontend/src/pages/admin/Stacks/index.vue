@@ -1,5 +1,5 @@
 <template>
-    <form class="space-y-6">
+    <div class="space-y-6">
         <FormHeading>Active Stacks
         </FormHeading>
         <ff-loading v-if="loadingActive" message="Loading Stacks..." />
@@ -35,7 +35,7 @@
         <div v-if="nextInactiveCursor">
             <a v-if="!loadingInactive" @click.stop="loadInactiveItems" class="forge-button-inline">Load more...</a>
         </div>
-    </form>
+    </div>
     <AdminStackEditDialog @stackCreated="stackCreated" @stackUpdated="stackUpdated" ref="adminStackEditDialog"/>
 </template>
 

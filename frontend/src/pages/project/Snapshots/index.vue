@@ -1,5 +1,5 @@
 <template>
-    <form class="space-y-6">
+    <div class="space-y-6">
         <ff-loading v-if="loading" message="Loading Snapshots..." />
         <template v-if="snapshots.length > 0">
             <ff-data-table data-el="snapshots" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
@@ -22,7 +22,7 @@
             </div>
         </template>
         <SnapshotCreateDialog :project="project" @snapshotCreated="snapshotCreated" ref="snapshotCreateDialog" />
-    </form>
+    </div>
 </template>
 
 <script>

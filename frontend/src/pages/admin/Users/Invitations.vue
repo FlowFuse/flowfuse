@@ -1,13 +1,13 @@
 <template>
     <div>
-        <form class="space-y-6">
+        <div class="space-y-6">
             <div class="text-right"></div>
             <ff-data-table :columns="inviteColumns" :rows="invitations" :show-search="true" search-placeholder="Search Invites...">
                 <template v-slot:context-menu="{row}">
                     <ff-list-item label="Remove Invite" kind="danger" @click="removeInvite(row)"/>
                 </template>
             </ff-data-table>
-        </form>
+        </div>
     </div>
 </template>
 

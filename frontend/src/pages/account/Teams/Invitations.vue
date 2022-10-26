@@ -1,12 +1,12 @@
 <template>
-    <form class="space-y-6">
+    <div class="space-y-6">
         <ff-data-table data-el="table" :columns="inviteColumns" :rows="invitations">
             <template v-slot:context-menu="{row}">
                 <ff-list-item data-action="accept" label="Accept" @click="acceptInvite(row.id)"/>
                 <ff-list-item data-action="reject" label="Reject" kind="danger" @click="rejectInvite(row.id)"/>
             </template>
         </ff-data-table>
-    </form>
+    </div>
 </template>
 
 <script>

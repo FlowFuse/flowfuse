@@ -1,5 +1,5 @@
 <template>
-    <form class="space-y-6">
+    <div class="space-y-6">
         <FormHeading class="text-red-700">Delete Team</FormHeading>
         <div>
             <div class="max-w-sm pr-2">{{deleteDescription}}</div>
@@ -8,7 +8,7 @@
                 <ConfirmTeamDeleteDialog @deleteTeam="deleteTeam" ref="confirmTeamDeleteDialog"/>
             </div>
         </div>
-    </form>
+    </div>
 </template>
 
 <script>

@@ -1,5 +1,5 @@
 <template>
-    <form class="space-y-6">
+    <div class="space-y-6">
         <FormRow v-model="input.deviceId" type="uneditable" id="deviceId" inputClass="font-mono">
             Device ID
         </FormRow>
@@ -12,7 +12,7 @@
             <ff-button v-if="!editing.deviceName" kind="primary" @click="editDevice">Edit Device</ff-button>
             <ff-button v-else kind="primary" @click="updateDevice">Save Changes</ff-button>
         </div>
-    </form>
+    </div>
 </template>
 
 <script>
