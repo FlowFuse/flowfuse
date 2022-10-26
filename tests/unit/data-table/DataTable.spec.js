@@ -1,6 +1,279 @@
 import DataTable from '@/components/data-table/DataTable.vue'
 
 describe('DataTable', () => {
+    describe('filterRows', () => {
+        it('searches all properties and returns matching subset of rows', () => {
+            const rows = [{
+                name: 'Apple',
+                desc: 'Is Green'
+            }, {
+                name: 'Banana',
+                desc: 'Not as good as an Apple'
+            }, {
+                name: 'Pear',
+                color: 'Green'
+            }]
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'Apple' }, rows)
+            ).toEqual([{
+                name: 'Apple',
+                desc: 'Is Green'
+            }, {
+                name: 'Banana',
+                desc: 'Not as good as an Apple'
+            }])
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'Green' }, rows)
+            ).toEqual([{
+                name: 'Apple',
+                desc: 'Is Green'
+            }, {
+                name: 'Pear',
+                color: 'Green'
+            }])
+        })
+
+        it('searches case-insensitively', () => {
+            const rows = [{
+                name: 'Apple',
+                desc: 'green'
+            }]
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'Green' }, rows)
+            ).toEqual([{
+                name: 'Apple',
+                desc: 'green'
+            }])
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'apple' }, rows)
+            ).toEqual([{
+                name: 'Apple',
+                desc: 'green'
+            }])
+        })
+
+        it('searches numbers as if they were strings', () => {
+            const rows = [{
+                number: '123'
+            },
+            {
+                number: 23
+            },
+            {
+                number: 12
+            }]
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: '23' }, rows)
+            ).toEqual([{
+                number: '123'
+            },
+            {
+                number: 23
+            }])
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: '12' }, rows)
+            ).toEqual([{
+                number: '123'
+            },
+            {
+                number: 12
+            }])
+        })
+
+        it('searches nested objects recursively', () => {
+            const rows = [{
+                name: 'Apple',
+                details: {
+                    color: 'Green',
+                    scientific: {
+                        name: 'Malus domestica'
+                    }
+                }
+            }, {
+                name: 'Banana',
+                details: {
+                    color: 'Yellow',
+                    scientific: {
+                        name: 'Musaceae'
+                    }
+                }
+            }]
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'Green' }, rows)[0]?.name
+            ).toEqual('Apple')
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'Musaceae' }, rows)[0]?.name
+            ).toEqual('Banana')
+        })
+
+        describe('with searchFields prop set', () => {
+            it('only searches matching properties', () => {
+                const rows = [{
+                    name: 'Apple',
+                    desc: 'Is Green'
+                }, {
+                    name: 'Banana',
+                    desc: 'Not as good as an Apple'
+                }, {
+                    name: 'Pear',
+                    color: 'Green'
+                }]
+
+                expect(
+                    DataTable.methods.filterRows.call({ internalSearch: 'Green', searchFields: ['desc'] }, rows)
+                ).toEqual([{
+                    name: 'Apple',
+                    desc: 'Is Green'
+                }])
+
+                expect(
+                    DataTable.methods.filterRows.call({ internalSearch: 'Green', searchFields: ['desc', 'color'] }, rows)
+                ).toEqual([{
+                    name: 'Apple',
+                    desc: 'Is Green'
+                },
+                {
+                    name: 'Pear',
+                    color: 'Green'
+                }])
+            })
+
+            it('only searches nested matching properties', () => {
+                const rows = [{
+                    name: 'Apple',
+                    details: {
+                        color: 'Green',
+                        antiColor: 'Not Yellow',
+                        scientific: {
+                            name: 'Non-Banana'
+                        }
+                    }
+                }, {
+                    name: 'Banana',
+                    details: {
+                        color: 'Yellow',
+                        antiColor: 'Not Green',
+                        scientific: {
+                            ignored: 'Still a Banana'
+                        }
+                    }
+                }]
+
+                expect(
+                    DataTable.methods.filterRows.call({ internalSearch: 'Green', searchFields: ['details.color'] }, rows)[0]?.name
+                ).toEqual('Apple')
+
+                expect(
+                    DataTable.methods.filterRows.call({ internalSearch: 'Banana', searchFields: ['details.scientific.name'] }, rows)[0]?.name
+                ).toEqual('Apple')
+            })
+
+            it('can search very nested properties', () => {
+                const rows = [{
+                    a: { b: { c: { d: { e: { f: 'Apple' } } } } }, name: 'Row 1'
+                }]
+
+                expect(
+                    DataTable.methods.filterRows.call({ internalSearch: 'Apple', searchFields: ['a.b.c.d.e.f'] }, rows)[0]?.name
+                ).toEqual('Row 1')
+
+                expect(
+                    DataTable.methods.filterRows.call({ internalSearch: 'Apple', searchFields: ['a.b.c.d.e.none'] }, rows)
+                ).toEqual([])
+            })
+
+            it('can search a mix of lightly and deeply nested properties', () => {
+                const rows = [{
+                    a: { b: { c: 'Apple' } }, name: 'Row 1'
+                }, {
+                    a: 'Apple', name: 'Row 2'
+                }, {
+                    description: 'apple', name: 'Row 3'
+                }, {
+                    details: { name: 'apple' }, name: 'Row 4'
+                }, {
+                    details: { type: 'apple' }, name: 'Row 5'
+                }, {
+                    name: 'Does not match'
+                }]
+
+                expect(
+                    DataTable.methods.filterRows
+                        .call(
+                            {
+                                internalSearch: 'Apple',
+                                searchFields: ['a.b.c', 'description']
+                            },
+                            rows
+                        )
+                        .map((row) => row.name)
+                ).toEqual(['Row 1', 'Row 2', 'Row 3'])
+
+                expect(
+                    DataTable.methods.filterRows
+                        .call(
+                            {
+                                internalSearch: 'Apple',
+                                searchFields: [
+                                    'details.name',
+                                    'details.type',
+                                    'description'
+                                ]
+                            },
+                            rows
+                        )
+                        .map((row) => row.name)
+                ).toEqual(['Row 3', 'Row 4', 'Row 5'])
+            })
+
+            it('can search multiple sub-properties of the same property', () => {
+                const rows = [{
+                    details: {
+                        name: 'Apple',
+                        color: 'Green'
+                    }
+                }, {
+                    details: {
+                        name: 'Green Banana',
+                        color: 'Not Yellow'
+                    }
+                }]
+
+                expect(
+                    DataTable.methods.filterRows
+                        .call(
+                            {
+                                internalSearch: 'Green',
+                                searchFields: ['details.name', 'details.color']
+                            },
+                            rows
+                        )
+                        .map((row) => row.details.name)
+                ).toEqual(['Apple', 'Green Banana'])
+
+                expect(
+                    DataTable.methods.filterRows
+                        .call(
+                            {
+                                internalSearch: 'Yellow',
+                                searchFields: ['details.name', 'details.color']
+                            },
+                            rows
+                        )
+                        .map((row) => row.details.name)
+                ).toEqual(['Green Banana'])
+            })
+        })
+    })
+
     describe('filteredRows', () => {
         it('Sorts numbers descending', () => {
             const localThis = {
