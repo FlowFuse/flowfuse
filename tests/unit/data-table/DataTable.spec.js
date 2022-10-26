@@ -114,6 +114,79 @@ describe('DataTable', () => {
             ).toEqual('Banana')
         })
 
+        it('searches (nested) arrays', () => {
+            const rows = [{
+                name: 'Apple',
+                colors: ['green', 'red']
+            }, {
+                name: 'Banana',
+                details: {
+                    colors: [{ name: 'yellow' }]
+                }
+            }]
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'green' }, rows).map((row) => row.name)
+            ).toEqual(['Apple'])
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'yellow' }, rows).map((row) => row.name)
+            ).toEqual(['Banana'])
+        })
+
+        it('handles searchFields prop being explicitly null, undefined or empty', () => {
+            const rows = [{
+                name: 'Apple',
+                desc: 'Is Green'
+            }, {
+                name: 'Banana',
+                desc: 'Not as good as an Apple'
+            }, {
+                name: 'Pear',
+                color: 'Green'
+            }]
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'green', searchFields: null }, rows).map((row) => row.name)
+            ).toEqual(['Apple', 'Pear'])
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'green', searchFields: undefined }, rows).map((row) => row.name)
+            ).toEqual(['Apple', 'Pear'])
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'green', searchFields: [] }, rows).map((row) => row.name)
+            ).toEqual(['Apple', 'Pear'])
+        })
+
+        it('handles prop values being being explicitly null, undefined or empty', () => {
+            const rows = [{
+                name: 'Apple',
+                meta: null
+            }, {
+                name: 'Banana',
+                meta: undefined
+            }, {
+                name: 'Pear',
+                meta: []
+            }, {
+                name: 'Orange',
+                meta: ''
+            }]
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'pear' }, rows).map((row) => row.name)
+            ).toEqual(['Pear'])
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'pear' }, rows).map((row) => row.name)
+            ).toEqual(['Pear'])
+
+            expect(
+                DataTable.methods.filterRows.call({ internalSearch: 'pear' }, rows).map((row) => row.name)
+            ).toEqual(['Pear'])
+        })
+
         describe('with searchFields prop set', () => {
             it('only searches matching properties', () => {
                 const rows = [{
