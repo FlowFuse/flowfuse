@@ -8,25 +8,33 @@
                     The existing stack will be marked inactive and will not be
                     available for use by new projects.
                 </div>
-                <div v-if="this.editDisabled">
-                    This stack is being used by projects. Its properties cannot
-                    be modified, other than to change its active state.
-                </div>
-                <FormRow v-model="input.name" :error="errors.name" :disabled="editDisabled">Name</FormRow>
-                <FormRow v-model="input.label" :error="errors.label" :disabled="editDisabled">Label</FormRow>
-                <FormRow v-model="input.active" type="checkbox">Active</FormRow>
-                <FormRow :options="projectTypes" :disabled="editTypeDisabled" :error="errors.projectType" v-model="input.projectType" id="projectType">Project Type
-                    <template v-slot:description>
-                        <div v-if="editTypeDisabled">Stacks cannot be moved to a different project type</div>
-                        <div v-else-if="stack && !stack.projectType">You can assign this stack to a project type as a one-time action. Once assigned you cannot move it.</div>
-                    </template>
+                <FormRow v-model="input.name" :error="errors.name" :disabled="editDisabled">
+                    Name
+                    <template v-slot:description>An internal name for the stack. This must be unique and can only contain a-z 0-9 - _ / @ .</template>
                 </FormRow>
-                <template v-for="(prop) in stackProperties" :key="prop.name">
-                    <FormRow v-model="input.properties[prop.name]" :error="errors[prop.name]" :disabled="editDisabled">
-                        {{prop.label}}
-                        <template v-if="prop.description" #description>{{prop.description}}</template>
+                <FormRow v-model="input.label" :error="errors.label">
+                    Label
+                    <template v-slot:description>This is how the stack is shown to users.</template>
+                </FormRow>
+                <FormRow v-model="input.active" type="checkbox">Active</FormRow>
+                <template v-if="!this.editDisabled">
+                    <FormRow :options="projectTypes" :disabled="editTypeDisabled" :error="errors.projectType" v-model="input.projectType" id="projectType">Project Type
+                        <template v-slot:description>
+                            <div v-if="editTypeDisabled">Stacks cannot be moved to a different project type</div>
+                            <div v-else-if="stack && !stack.projectType">You can assign this stack to a project type as a one-time action. Once assigned you cannot move it.</div>
+                        </template>
                     </FormRow>
+                    <template v-for="(prop) in stackProperties" :key="prop.name">
+                        <FormRow v-model="input.properties[prop.name]" :error="errors[prop.name]" :disabled="editDisabled">
+                            {{prop.label}}
+                            <template v-if="prop.description" #description>{{prop.description}}</template>
+                        </FormRow>
+                    </template>
                 </template>
+                <div v-else>
+                    This stack is being used by projects. Its properties cannot
+                    be modified, other than to change its active state and label
+                </div>
             </form>
         </template>
     </ff-dialog>
@@ -158,7 +166,10 @@ export default {
 
                 if (this.stack) {
                     if (this.editDisabled) {
-                        opts = { active: this.input.active }
+                        opts = {
+                            active: this.input.active,
+                            label: this.input.label
+                        }
                         if (!this.editTypeDisabled && this.input.projectType) {
                             opts.projectType = this.input.projectType
                         }
@@ -219,9 +230,14 @@ export default {
                     name: stack.name,
                     label: stack.label,
                     active: stack.active,
-                    properties: stack.properties,
+                    properties: {},
                     replaces: null,
                     projectType: stack.projectType
+                }
+                if (stack.properties) {
+                    Object.entries(stack.properties).forEach(([key, value]) => {
+                        this.input.properties[key] = value
+                    })
                 }
                 this.errors = {}
             },
