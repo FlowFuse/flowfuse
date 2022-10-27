@@ -172,6 +172,8 @@ export default {
             this.sortStacks(this.inactiveStacks)
         },
         async stackUpdated (stack) {
+            this.allStacks[stack.id] = stack
+
             // This stack might have moved between the active/inactive lists.
             const activeIndex = this.activeStacks.findIndex(s => s.id === stack.id)
             if (activeIndex > -1) {
