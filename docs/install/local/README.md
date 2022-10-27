@@ -51,95 +51,15 @@ be done by running the following command:
 xcode-select --install
 ```
 
-##### Manual install
+#### Mosquitto
 
-**Note**: if you are running on Windows, you will need to follow the [Docker install](#docker-install)
-instructions below due to a limitation of the authentication plugin we use.
+The platform depends on the [Mosquitto MQTT Broker](https://mosquitto.org/) to
+provide real-time messaging between devices and the platform.
 
-Follow the appropriate [install instructions](https://mosquitto.org/download/) for
-your operating system.
+This is currently an *optional* component - the platform will work without the
+broker, but some features will not be available.
 
-Once installed, you will need to build and install the authentication plugin.
-
-1. Clone the plugin repository
-    ```
-    git clone https://github.com/iegomez/mosquitto-go-auth.git
-    ```
-
-2. Follow the instructions on [building the plugin](https://github.com/iegomez/mosquitto-go-auth#building-the-plugin)
-
-3. This should result in a file called `go-auth.so` being generated
-
-4. ([Optional](#mosquitto)) Run mosquitto with a configuration file with the following contents:
-    ```
-    per_listener_settings false
-    allow_anonymous false
-    listener 1883 0.0.0.0
-    listener 1884 0.0.0.0
-    protocol websockets
-    auth_plugin /mosquitto/go-auth.so
-    auth_opt_backends http
-    auth_opt_hasher bcrypt
-    auth_opt_cache true
-    auth_opt_auth_cache_seconds 30
-    auth_opt_acl_cache_seconds 90
-    auth_opt_auth_jitter_second 3
-    auth_opt_acl_jitter_seconds 5
-    auth_opt_http_host localhost
-    auth_opt_http_port 3000
-    auth_opt_http_getuser_uri /api/comms/auth/client
-    auth_opt_http_aclcheck_uri /api/comms/auth/acl
-    ```
-
-   You will need to customise the values to match your local configuration:
-      - `auth_plugin` - set to the path of the `go-auth.so` file built in the previous step
-      - `listener 1883/1884` - if you already have mosquitto running locally, you'll need to
-        change these ports to something else.
-      - `auth_opt_http_host` / `auth_opt_http_port` - if you plan to run the platform
-        on a different port, change these settings to match.
-
-##### Docker Install
-
-Instead of installing and building mosquitto and the authentication plugin from source,
-you can use a pre-built docker image that provides everything needed.
-
-1. First pull the latest version of the pre-built container
-    ```
-    docker pull iegomez/mosquitto-go-auth
-    ```
-
-2. ([Optional](#mosquitto)) Create a mosquitto.conf file with the following values:
-    ```
-    per_listener_settings false
-    allow_anonymous false
-    listener 1883 0.0.0.0
-    listener 1884 0.0.0.0
-    protocol websockets
-    auth_plugin /mosquitto/go-auth.so
-    auth_opt_backends http
-    auth_opt_hasher bcrypt
-    auth_opt_cache true
-    auth_opt_auth_cache_seconds 30
-    auth_opt_acl_cache_seconds 90
-    auth_opt_auth_jitter_second 3
-    auth_opt_acl_jitter_seconds 5
-    auth_opt_http_host 172.17.0.1
-    auth_opt_http_port 3000
-    auth_opt_http_getuser_uri /api/comms/auth/client
-    auth_opt_http_aclcheck_uri /api/comms/auth/acl
-    ```
-
-    You will need to customise the values to match your local configuration:
-     - `auth_opt_http_host` value to match the IP address of either the docker0 interface or the external IP address of the machine running the Forge platform
-     - `auth_opt_http_port` if you have changed the port the Forge platform is running on
-
-3. Start the container with the following command
-    ```
-    docker run -d -v /full/path/to/mosquitto.conf:/etc/mosquitto/mosquitto.conf -p 1883:1883 -p 1884:1884 --name flowforge-broker iegomez/mosquitto-go-auth
-    ```
-
-    This will map the `1883`/`1884` ports to the host machine so they can be accessed outside of the container. If you already have an MQTT broker running on port 1883, then you'll need to modify the `-p` options to use a different set of ports. For example: `-p 9883:1883 -p 9884:1884`.
-
+For full details on how to setup mosquitto for FlowForge, follow the steps [here](#setting-up-mosquitto).
 
 ### Installing FlowForge
 
@@ -234,7 +154,7 @@ administrator for the platform and other configuration options.
 
 For more information, follow [this guide](../first-run.md).
 
-### Mosquitto
+### Setting up mosquitto
 
 The platform depends on the [Mosquitto MQTT Broker](https://mosquitto.org/) to
 provide real-time messaging between devices and the platform.
@@ -250,21 +170,108 @@ You can either follow the manual install steps, which involve building the authe
 plugin from scratch, or make use of the [Docker install](#docker-install).
 
 
+##### Manual install
+
+**Note**: if you are running on Windows, you will need to follow the [Docker install](#docker-install)
+instructions below due to a limitation of the authentication plugin we use.
+
+Follow the appropriate [install instructions](https://mosquitto.org/download/) for
+your operating system.
+
+Once installed, you will need to build and install the authentication plugin.
+
+1. Clone the plugin repository
+    ```
+    git clone https://github.com/iegomez/mosquitto-go-auth.git
+    ```
+
+2. Follow the instructions on [building the plugin](https://github.com/iegomez/mosquitto-go-auth#building-the-plugin)
+
+3. This should result in a file called `go-auth.so` being generated
+
+4. ([Optional](#mosquitto)) Run mosquitto with a configuration file with the following contents:
+    ```
+    per_listener_settings false
+    allow_anonymous false
+    listener 1883 0.0.0.0
+    listener 1884 0.0.0.0
+    protocol websockets
+    auth_plugin /mosquitto/go-auth.so
+    auth_opt_backends http
+    auth_opt_hasher bcrypt
+    auth_opt_cache true
+    auth_opt_auth_cache_seconds 30
+    auth_opt_acl_cache_seconds 90
+    auth_opt_auth_jitter_second 3
+    auth_opt_acl_jitter_seconds 5
+    auth_opt_http_host localhost
+    auth_opt_http_port 3000
+    auth_opt_http_getuser_uri /api/comms/auth/client
+    auth_opt_http_aclcheck_uri /api/comms/auth/acl
+    ```
+
+   You will need to customise the values to match your local configuration:
+      - `auth_plugin` - set to the path of the `go-auth.so` file built in the previous step
+      - `listener 1883/1884` - if you already have mosquitto running locally, you'll need to
+        change these ports to something else.
+      - `auth_opt_http_host` / `auth_opt_http_port` - if you plan to run the platform
+        on a different port, change these settings to match.
+
+##### Docker Install
+
+Instead of installing and building mosquitto and the authentication plugin from source,
+you can use a pre-built docker image that provides everything needed.
+
+1. First pull the latest version of the pre-built container
+    ```
+    docker pull iegomez/mosquitto-go-auth
+    ```
+
+2. ([Optional](#mosquitto)) Create a mosquitto.conf file with the following values:
+    ```
+    per_listener_settings false
+    allow_anonymous false
+    listener 1883 0.0.0.0
+    listener 1884 0.0.0.0
+    protocol websockets
+    auth_plugin /mosquitto/go-auth.so
+    auth_opt_backends http
+    auth_opt_hasher bcrypt
+    auth_opt_cache true
+    auth_opt_auth_cache_seconds 30
+    auth_opt_acl_cache_seconds 90
+    auth_opt_auth_jitter_second 3
+    auth_opt_acl_jitter_seconds 5
+    auth_opt_http_host 172.17.0.1
+    auth_opt_http_port 3000
+    auth_opt_http_getuser_uri /api/comms/auth/client
+    auth_opt_http_aclcheck_uri /api/comms/auth/acl
+    ```
+
+    You will need to customise the values to match your local configuration:
+     - `auth_opt_http_host` value to match the IP address of either the docker0 interface or the external IP address of the machine running the Forge platform
+     - `auth_opt_http_port` if you have changed the port the Forge platform is running on
+
+3. Start the container with the following command
+    ```
+    docker run -d -v /full/path/to/mosquitto.conf:/etc/mosquitto/mosquitto.conf -p 1883:1883 -p 1884:1884 --name flowforge-broker iegomez/mosquitto-go-auth
+    ```
+
+    This will map the `1883`/`1884` ports to the host machine so they can be accessed outside of the container. If you already have an MQTT broker running on port 1883, then you'll need to modify the `-p` options to use a different set of ports. For example: `-p 9883:1883 -p 9884:1884`.
+
+
 ### Upgrade
 
-To upgrade to v0.3 you can follow these steps.
+To upgrade to the latest release you can follow these steps. Replace `x.y.z` with the
+version you are upgrading to.
 
  1. Stop FlowForge `sudo service flowforge stop` [^2]
  2. `cd /opt/flowforge/app`
- 3. `sudo -u flowforge npm install @flowforge/flowforge@0.3.0` [^3]
- 4. Use the editor of your choice to update `/opt/flowforge/etc/flowforge.yml` to add `host: 0.0.0.0`  (if you need to access from other than localhost)
+ 3. `sudo -u flowforge npm install @flowforge/flowforge@x.y.z` [^3]
+ 4. Check the release notes for any additional steps needed to upgrade the particular version
  5. Restart FlowForge `sudo service flowforge start` [^2]
  
-You will then need to create a Project Stack and Project Template before you can
-create any more projects. See [this guide](../first-run.md#next-steps) for more information.
-
-
-If you are running as your normal user you can drop the `sudo -u flowforge` and just run `npm install @flowforge/flowforge@0.2.0`
+If you are running as your normal user you can drop the `sudo -u flowforge` and just run `npm install @flowforge/flowforge@x.y.z`
 
 ---
 

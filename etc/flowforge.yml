@@ -2,6 +2,7 @@ port: 3000
 host: localhost
 domain: example.com
 base_url: http://localhost:3000
+# support_contact: mailto:support@example.com
 
 #################################################
 # Database Configuration                        #
@@ -11,6 +12,7 @@ db:
   logging: false
   ## The database type: sqlite|postgres
   type: sqlite
+  
   ### SQLite options
 
   ## The database filename. Relative to $FLOWFORGE_HOME/var/
@@ -47,13 +49,22 @@ driver:
 
     ## Docker socket path
     # socket: /var/run/docker.sock
-    # registry: hub.flowforge.com
 
     ### K8S options
 
     ## Kubectl conf file to contact the cluster
     # config_file: /opt/share/projects/flowforge/test/config
-    # regsitry: hub.flowforge.com
+
+
+#################################################
+# MQTT Broker Configuration                     #
+#################################################
+
+# broker:
+  ## Internal url used by the platform to connect to the broker
+  # url: mqtt://localhost:4880
+  ## External url used by devices to connect to the broker, if different
+  # public_url: ws://localhost:4881
 
 #################################################
 # Email Configuration                           #
