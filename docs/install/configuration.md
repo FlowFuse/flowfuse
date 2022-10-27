@@ -51,6 +51,17 @@ Option        | Description
 `driver.options.start_port` | The port number to start assigning to projects as they are created. Default: `7880`
 `driver.options.node_path` | The path to find the node.js executable - useful if Node.js has been installed with `nvm` so isn't necessarily on the system path.
 
+## MQTT Broker configuration
+
+By default, the platform runs without an MQTT broker. This restricts some features
+in the platform, such as the Project Nodes.
+
+If a broker has been setup in the platform, the following configuration is required:
+
+Option        | Description
+--------------|------------
+`broker.url`  | The url for the platform to access the broker. For example: `mqtt://localhost:4800`.
+`broker.public_url` | The url used by devices to connect to the broker, if different to `broker.url`. For example, this may require devices to use WebSockets instead: `ws://localhost:4881`.
 
 ## Email configuration
 
