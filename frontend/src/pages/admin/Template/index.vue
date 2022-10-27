@@ -270,6 +270,8 @@ export default {
         async createTemplate () {
             const template = {
                 name: this.editable.name,
+                active: this.editable.active,
+                description: this.editable.description,
                 settings: {},
                 policy: {}
             }
