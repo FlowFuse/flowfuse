@@ -218,40 +218,38 @@ module.exports = {
      * @param {*} components
      */
     importProject: async function (app, project, components) {
-        const t = await app.db.sequelize.transaction()
+        const transaction = await app.db.sequelize.transaction()
         try {
             if (components.flows) {
                 let currentProjectFlows = await app.db.models.StorageFlow.byProject(project.id)
                 if (currentProjectFlows) {
-                    currentProjectFlows.flows = components.flows
-                    await currentProjectFlows.save({ transaction: t })
+                    // Note StorageFlow.flow not .flows
+                    currentProjectFlows.flow = components.flows
+                    await currentProjectFlows.save({ transaction })
                 } else {
                     currentProjectFlows = await app.db.models.StorageFlow.create({
                         ProjectId: project.id,
                         flow: components.flows
-                    }, { transaction: t })
+                    }, { transaction })
                 }
             }
             if (components.credentials) {
                 const projectSecret = await project.getCredentialSecret()
-                const credSecretsHash = crypto.createHash('sha256').update(components.credsSecret).digest()
-                const projectSecretHash = crypto.createHash('sha256').update(projectSecret).digest()
-                const decryptedCreds = decryptCreds(credSecretsHash, JSON.parse(components.credentials))
-                const encryptedCreds = encryptCreds(projectSecretHash, decryptedCreds)
+                const encryptedCreds = app.db.controllers.Project.exportCredentials(JSON.parse(components.credentials), components.credsSecret, projectSecret)
                 let origCredentials = await app.db.models.StorageCredentials.byProject(project.id)
                 if (origCredentials) {
                     origCredentials.credentials = JSON.stringify(encryptedCreds)
-                    await origCredentials.save({ transaction: t })
+                    await origCredentials.save({ transaction })
                 } else {
                     origCredentials = await app.db.models.StorageCredentials.create({
                         ProjectId: project.id,
                         credentials: JSON.stringify(encryptedCreds)
-                    }, { transaction: t })
+                    }, { transaction })
                 }
             }
-            await t.commit()
+            await transaction.commit()
         } catch (error) {
-            t.rollback()
+            transaction.rollback()
             throw error
         }
         if (project.state === 'running') {

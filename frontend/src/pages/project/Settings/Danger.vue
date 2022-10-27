@@ -4,6 +4,7 @@
     <ff-loading v-if="loading.changingStack" message="Changing Stack..." />
     <ff-loading v-if="loading.settingType" message="Setting Type..." />
     <ff-loading v-if="loading.suspend" message="Suspending Project..." />
+    <ff-loading v-if="loading.importing" message="Importing Project..." />
     <form v-if="!isLoading" class="space-y-6">
         <template v-if="!project.projectType">
             <FormHeading>Set Project Type</FormHeading>
@@ -157,7 +158,8 @@ export default {
                 deleting: false,
                 changingStack: false,
                 duplicating: false,
-                suspend: false
+                suspend: false,
+                importing: false
             }
         }
     },
@@ -240,7 +242,16 @@ export default {
             projectApi.updateProject(parts.target, options)
         },
         importProject (parts) {
-            projectApi.importProject(this.project.id, parts)
+            this.loading.importing = true
+            projectApi.importProject(this.project.id, parts).then(result => {
+                this.$router.push({ name: 'Project', params: { id: this.project.id } })
+                alerts.emit('Project flows imported.', 'confirmation')
+            }).catch(err => {
+                console.log(err)
+                alerts.emit('Failed to import flows.', 'warning')
+            }).finally(() => {
+                this.loading.importing = false
+            })
         },
         deleteProject () {
             this.loading.deleting = true
