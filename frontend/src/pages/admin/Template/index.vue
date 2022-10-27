@@ -108,6 +108,11 @@ export default {
                     changed = changed || this.editable.changed.description
 
                     templateFields.forEach(field => {
+                        if (field === 'palette_modules') {
+                            // Don't check `palette_modules` for changes.
+                            // They are part of the template but are not edited here in admin/settings
+                            return
+                        }
                         this.editable.changed.settings[field] = this.editable.settings[field] !== this.original.settings[field]
                         this.editable.changed.policy[field] = this.editable.policy[field] !== this.original.policy[field]
                         changed = changed || this.editable.changed.settings[field] || this.editable.changed.policy[field]
