@@ -133,7 +133,7 @@ const templateValidators = {
         for (let i = 0; i < parts.length; i++) {
             const fn = parts[i]
             if (!/^((@[a-z0-9-~][a-z0-9-._~]*\/)?([a-z0-9-~][a-z0-9-._~]*|\*))(@([~^><]|<=|>=)?((0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?))?$/i.test(fn)) {
-                return 'Must be a comma-seperated list of nodes[@version]'
+                return 'Must be a comma-separated list of nodes[@version]'
             }
         }
     }
