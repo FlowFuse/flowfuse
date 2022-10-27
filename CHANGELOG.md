@@ -1,3 +1,72 @@
+#### 1.0.0: Release
+
+ - Update mosquitto docs and add placeholder to platform yml (#1152) @knolleary
+ - Fix template create and edit (#1151) @Steve-Mcl
+ - Ensure that changes to stack are immediately recorded (#1150) @Pezmc
+ - Ensure email is uri encoded when sent in sign-up invitation email (#1147) @knolleary
+ - Ensure entityId is a string in AuditLog query (#1146) @knolleary
+ - Replace redundant <form> tags with <div>s (#1144) @joepavitt
+ - Update forge-ui-components (#1139) @Pezmc
+ - Have Admin view use Stack labels (#1140) @hardillb
+ - Show project template (if present) (#1142) @Steve-Mcl
+ - Update FormRow styling for disabled state in Project Settings (#1135) @joepavitt
+ - Allow device to subscribe to all-project broadcast (#1141) @knolleary
+ - Redirect user to full URL they were accessing before being asked to login (#1138) @knolleary
+ - Add warning on Palette Modules settings if launcher detected as old (#1136) @knolleary
+ - Add missing guard for user id on audit log entry (#1132) @Steve-Mcl
+ - Ensure page polls status when "installing" state (#1131) @Steve-Mcl
+ - Anon fcn re-writes (#1130) @joepavitt
+ - Fix vue router warning on invalid params (#1129) @knolleary
+ - Disable the start button for projects running or changing state (#1125) @Pezmc
+ - Ensure built-in modules are not listed in project modules (#1124) @knolleary
+ - Add an installing state to projects (#1123) @hardillb
+ - Standardize 404 response format (#1115) @knolleary
+ - Add platform logging and view (#1084) @Steve-Mcl
+ - Fix users frontend unit test (#1122) @knolleary
+ - Resend verify email when an admin un-verifies a user (#1120) @Steve-Mcl
+ - Fix alignment of single letter avatar (#1117) @Steve-Mcl
+ - Update README.md (#1108) @robmarcer
+ - Fix merge conflict error (#1119) @knolleary
+ - add platform env vars for devices (#1039) @Steve-Mcl
+ - show proj suspend/delete dialog direct from menu (#1106) @Steve-Mcl
+ - Add backend search to Admin Users/Teams tables (#1110) @knolleary
+ - Consistent Menu Item pointers (#1114) @Steve-Mcl
+ - Update dependencies (#1111) @knolleary
+ - Remove the devices feature flag (#1101) @Pezmc
+ - Only create personal team on first verify (#1109) @hardillb
+ - Adds query capability to all paginated apis (#1104) @knolleary
+ - Added limits to admin panel (#1082) @Jozefik
+ - Update README.md (#1105) @robmarcer
+ - Allow Flows/Credential to be imported to a project (#1056) @hardillb
+ - Add project name to docker-compose up (#1066) @hardillb
+ - Add palette.modules to Project Settings (#1090) @knolleary
+ - Stack label (redo of 1088) (#1103) @hardillb
+ - Scope the E2E auth tests to be slightly more specific (#1097) @Pezmc
+ - Update eslint and fixup errors (#1099) @knolleary
+ - improve UI/UX around new/edit admin templates (#1068) @Steve-Mcl
+ - Implement FormRow.focus and fix focus throughout the app (#1092) @Pezmc
+ - Bump ui-components library (#1095) @Pezmc
+ - Remove the edit project name page (#1091) @Pezmc
+ - Move tests into groups based on app section (#1093) @Pezmc
+ - Upgrade actions to drop NodeJS v12 (#1089) @hardillb
+ - Explain what FlowForge offers over Node-RED in the README.md (#1060) @robmarcer
+ - Update K8s Stack creation doc (#1087) @hardillb
+ - Update Docker Stack docs to NR 3.0.2 (#1086) @hardillb
+ - Update NR version in the stack docs (#1085) @hardillb
+ - Hide the projects stats if empty or undefined (#1080) @Pezmc
+ - Catch any unhandled XHR errors that bubble up to the view (#1079) @Pezmc
+ - Update Docker README.md (#1069) @robmarcer
+ - add manual step (verify page) between email and verification API call (#1037) @Steve-Mcl
+ - Fix intermittently failing async project creation test (#1063) @Pezmc
+ - E2E Coverage of Platform Admins viewing teams/projects/devices (#1062) @Pezmc
+ - Set project.url in the stub driver (#1061) @Pezmc
+ - Hide editor links if viewing the project as a platform admin (#1054) @Pezmc
+ - /s/notifictions/notifications/ (#1052) @Pezmc
+ - No only tests (#1051) @Steve-Mcl
+ - Handle postgres constraint errors with username/email uniqueness (#1050) @knolleary
+ - Add Postgres DB config options (#1047) @hardillb
+ - Add note on db migration considerations (#1036) @knolleary
+
 #### 0.10.0: Release
 
  - Correct IP address
