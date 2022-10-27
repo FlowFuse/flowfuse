@@ -27,7 +27,7 @@ import { mapState } from 'vuex'
 import permissionsMixin from '@/mixins/Permissions'
 
 export default {
-    name: 'ProjectSettingsEditor',
+    name: 'ProjectSettingsPalette',
     data () {
         return {
             unsavedChanges: false,
