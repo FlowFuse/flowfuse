@@ -1,3 +1,7 @@
+#### 1.0.1: Release
+
+ - Fix flow import (#1157) @knolleary
+
 #### 1.0.0: Release
 
  - Update mosquitto docs and add placeholder to platform yml (#1152) @knolleary
