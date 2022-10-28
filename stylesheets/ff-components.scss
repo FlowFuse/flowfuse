@@ -222,6 +222,7 @@ li.ff-list-item {
       background: none;
       height: 100%;
       border-width: 0;
+      min-width: 0;
       &:focus-visible {
         border: none;
         outline: none;
