@@ -20,7 +20,7 @@
             </template>
         </ff-data-table>
         <div v-if="nextActiveCursor">
-            <a v-if="!loadingActive" @click.stop="loadActiveItems" class="forge-button-inline">Load more...</a>
+            <a v-if="!loadingActive" @click.stop="loadActiveItems" class="forge-button-inline" data-action="load-more-active">Load more...</a>
         </div>
         <FormHeading>Inactive Stacks</FormHeading>
         <ff-loading v-if="loadingInactive" message="Loading Stacks..." />
@@ -33,7 +33,7 @@
             </template>
         </ff-data-table>
         <div v-if="nextInactiveCursor">
-            <a v-if="!loadingInactive" @click.stop="loadInactiveItems" class="forge-button-inline">Load more...</a>
+            <a v-if="!loadingInactive" @click.stop="loadInactiveItems" class="forge-button-inline" data-action="load-more-inactive">Load more...</a>
         </div>
     </div>
     <AdminStackEditDialog @stackCreated="stackCreated" @stackUpdated="stackUpdated" ref="adminStackEditDialog"/>
