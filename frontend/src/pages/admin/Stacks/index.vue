@@ -4,7 +4,7 @@
         </FormHeading>
         <ff-loading v-if="loadingActive" message="Loading Stacks..." />
         <ff-data-table v-if="!loadingActive" data-el="active-stacks" :columns="activeColumns" :rows="activeStacks"
-                       :show-search="true" search-placeholder="Search by Stack Name..."  no-data-message="No Inactive Stacks Found">
+                       :show-search="true" search-placeholder="Search by Stack Name..."  no-data-message="No Active Stacks Found">
             <template v-slot:actions>
                 <ff-button @click="showCreateStackDialog">
                     <template v-slot:icon-right>
