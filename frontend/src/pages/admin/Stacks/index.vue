@@ -207,7 +207,7 @@ export default {
         },
         loadActiveItems: async function () {
             this.loadingActive = true
-            const result = await stacksApi.getStacks(this.nextCursor, 30, 'active')
+            const result = await stacksApi.getStacks(this.nextActiveCursor, 30, 'active')
             this.nextActiveCursor = result.meta.next_cursor
             result.stacks.forEach(v => {
                 if (v.projectType) {
@@ -221,7 +221,7 @@ export default {
         },
         loadInactiveItems: async function () {
             this.loadingInactive = true
-            const result = await stacksApi.getStacks(this.nextCursor, 30, 'inactive')
+            const result = await stacksApi.getStacks(this.nextInactiveCursor, 30, 'inactive')
             this.nextInactiveCursor = result.meta.next_cursor
             result.stacks.forEach(v => {
                 if (v.projectType) {
