@@ -49,7 +49,7 @@ export default {
                     .map(stack => {
                         return {
                             value: stack.id,
-                            label: stack.name + (stack.id === this.project.stack?.id ? ' (current)' : '')
+                            label: (stack.label || stack.name) + (stack.id === this.project.stack?.id ? ' (current)' : '')
                         }
                     })
             }
