@@ -113,8 +113,8 @@ export default {
         result.types.forEach(pt => {
             this.projectTypes[pt.id] = pt
         })
-        await this.loadInactiveItems()
-        await this.loadActiveItems()
+        this.loadInactiveItems()
+        this.loadActiveItems()
     },
     computed: {
         ...mapState('account', ['settings']),
