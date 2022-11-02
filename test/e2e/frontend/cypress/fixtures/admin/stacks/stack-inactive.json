@@ -1,0 +1,13 @@
+{
+  "id": 2,
+  "name": "stack-2",
+  "label": "inactive stack",
+  "active": false,
+  "projectType": "dLQqZQ38gG",
+  "properties": {
+    "nodered": "3.1.3"
+  },
+  "replacedBy": 1,
+  "createdAt": "2022-10-19T13:58:45.241Z",
+  "projectCount": 0
+}

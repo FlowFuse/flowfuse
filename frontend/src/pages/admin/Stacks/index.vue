@@ -4,7 +4,7 @@
         </FormHeading>
         <ff-loading v-if="loadingActive" message="Loading Stacks..." />
         <ff-data-table v-if="!loadingActive" data-el="active-stacks" :columns="activeColumns" :rows="activeStacks"
-                       :show-search="true" search-placeholder="Search by Stack Name..."  no-data-message="No Inactive Stacks Found">
+                       :show-search="true" search-placeholder="Search by Stack Name..."  no-data-message="No Active Stacks Found">
             <template v-slot:actions>
                 <ff-button @click="showCreateStackDialog">
                     <template v-slot:icon-right>
@@ -20,7 +20,7 @@
             </template>
         </ff-data-table>
         <div v-if="nextActiveCursor">
-            <a v-if="!loadingActive" @click.stop="loadActiveItems" class="forge-button-inline">Load more...</a>
+            <a v-if="!loadingActive" @click.stop="loadActiveItems" class="forge-button-inline" data-action="load-more-active">Load more...</a>
         </div>
         <FormHeading>Inactive Stacks</FormHeading>
         <ff-loading v-if="loadingInactive" message="Loading Stacks..." />
@@ -33,7 +33,7 @@
             </template>
         </ff-data-table>
         <div v-if="nextInactiveCursor">
-            <a v-if="!loadingInactive" @click.stop="loadInactiveItems" class="forge-button-inline">Load more...</a>
+            <a v-if="!loadingInactive" @click.stop="loadInactiveItems" class="forge-button-inline" data-action="load-more-inactive">Load more...</a>
         </div>
     </div>
     <AdminStackEditDialog @stackCreated="stackCreated" @stackUpdated="stackUpdated" ref="adminStackEditDialog"/>
@@ -207,7 +207,7 @@ export default {
         },
         loadActiveItems: async function () {
             this.loadingActive = true
-            const result = await stacksApi.getStacks(this.nextCursor, 30, 'active')
+            const result = await stacksApi.getStacks(this.nextActiveCursor, 30, 'active')
             this.nextActiveCursor = result.meta.next_cursor
             result.stacks.forEach(v => {
                 if (v.projectType) {
@@ -221,7 +221,7 @@ export default {
         },
         loadInactiveItems: async function () {
             this.loadingInactive = true
-            const result = await stacksApi.getStacks(this.nextCursor, 30, 'inactive')
+            const result = await stacksApi.getStacks(this.nextInactiveCursor, 30, 'inactive')
             this.nextInactiveCursor = result.meta.next_cursor
             result.stacks.forEach(v => {
                 if (v.projectType) {
