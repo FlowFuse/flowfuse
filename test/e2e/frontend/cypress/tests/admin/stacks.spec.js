@@ -66,7 +66,7 @@ describe('FlowForge - Stacks', () => {
         cy.intercept('GET', '/api/*/stacks?*=active', {
             count: 2,
             meta: { next_cursor: null },
-            stacks: [{ ...activeStack, ...{ label: 'second active stack' } }]
+            stacks: [{ ...activeStack, ...{ id: 3, label: 'second active stack' } }]
         }).as('getActiveStacks')
 
         cy.get('[data-action="load-more-active"]').click()
@@ -84,7 +84,7 @@ describe('FlowForge - Stacks', () => {
         cy.intercept('GET', '/api/*/stacks?*=inactive', {
             count: 2,
             meta: { next_cursor: null },
-            stacks: [{ ...inactiveStack, ...{ label: 'second inactive stack' } }]
+            stacks: [{ ...inactiveStack, ...{ id: 4, label: 'second inactive stack' } }]
         }).as('getActiveStacks')
 
         cy.get('[data-action="load-more-inactive"]').click()
