@@ -8,6 +8,19 @@
  */
 module.exports = async function (app) {
     app.addHook('preHandler', app.verifyToken)
+    app.addHook('preHandler', async (request, response) => {
+        // The request has a valid token, but need to check the token is allowed
+        // to access the project
+
+        const id = request.params.id
+        // Check if the project exists first
+        const project = await app.db.models.Project.byId(id)
+        if (project && request.session.ownerType === 'project' && request.session.ownerId === id) {
+            // Project exists and the auth token is for this project
+            return
+        }
+        response.status(404).send({ code: 'not_found', error: 'Not Found' })
+    })
 
     app.post('/:id/flows', async (request, response) => {
         const id = request.params.id
