@@ -201,15 +201,6 @@ module.exports = async function (app) {
             return
         }
 
-        // const authClient = await app.db.controllers.AuthClient.createClientForProject(project);
-        // const projectToken = await app.db.controllers.AccessToken.createTokenForProject(project, null, ["project:flows:view","project:flows:edit"])
-        // const containerOptions = {
-        //     name: request.body.name,
-        //     projectToken: projectToken.token,
-        //     ...request.body.options,
-        //     ...authClient
-        // }
-
         await team.addProject(project)
         await project.setProjectStack(stack)
         await project.setProjectTemplate(template)
