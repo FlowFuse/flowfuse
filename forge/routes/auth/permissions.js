@@ -18,7 +18,6 @@ module.exports = fp(async function (app, opts, done) {
                 // Admins get to have all the fun
                 return
             }
-
             // A user has permission based on:
             // - the resource they are accessing
             // - the action they want to perform
@@ -42,11 +41,18 @@ module.exports = fp(async function (app, opts, done) {
                     reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
                     throw new Error()
                 }
-                if (permission.self && request.user.id === request.session.User.id) {
+                if (permission.self && (request.user && (request.user.id === request.session.User?.id))) {
                     // This permission is permitted if the user is operating on themselves
                     return
                 }
                 if (request.teamMembership.role < permission.role) {
+                    reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
+                    throw new Error()
+                }
+            } else if (permission.self) {
+                // A request outside the context of a team. Currently this covers
+                // /api/v1/user/* routes
+                if (!request.session.User) {
                     reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
                     throw new Error()
                 }

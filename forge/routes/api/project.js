@@ -51,6 +51,7 @@ module.exports = async function (app) {
                             return
                         }
                     } else if (request.session.ownerId !== request.params.projectId) {
+                        // AccesToken being used - but not owned by this project
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return
                     }
@@ -73,7 +74,9 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.project
      */
-    app.get('/:projectId', async (request, reply) => {
+    app.get('/:projectId', {
+        preHandler: app.needsPermission('project:read')
+    }, async (request, reply) => {
         const result = await app.db.views.Project.project(request.project)
         const inflightState = app.db.controllers.Project.getInflightState(request.project)
         if (inflightState) {
@@ -367,27 +370,24 @@ module.exports = async function (app) {
      * @name /api/v1/project/:id
      * @memberof forge.routes.api.project
      */
-    app.put('/:projectId', async (request, reply) => {
-        let changed = false
-        let allSettingsEdit = false
-
-        // First, check what is being set & check permissions accordingly.
-        // * If the only value sent is `request.body.settings.env`, then we only need 'project:edit-env' permission
-        // * Otherwise, everything else requires 'project:edit' permission
-        const bodyKeys = Object.keys(request.body || {})
-        const settingsKeys = Object.keys(request.body?.settings || {})
-        try {
+    app.put('/:projectId', {
+        preHandler: async (request, reply) => {
+            // First, check what is being set & check permissions accordingly.
+            // * If the only value sent is `request.body.settings.env`, then we only need 'project:edit-env' permission
+            // * Otherwise, everything else requires 'project:edit' permission
+            const bodyKeys = Object.keys(request.body || {})
+            const settingsKeys = Object.keys(request.body?.settings || {})
             if (bodyKeys.length === 1 && bodyKeys[0] === 'settings' && settingsKeys.length === 1 && settingsKeys[0] === 'env') {
-                await app.needsPermission('project:edit-env')(request, reply)
+                return app.needsPermission('project:edit-env')(request, reply)
             } else {
-                await app.needsPermission('project:edit')(request, reply)
-                allSettingsEdit = true
+                return app.needsPermission('project:edit')(request, reply).then(res => {
+                    request.allSettingsEdit = true
+                    return res
+                })
             }
-        } catch (err) {
-            // Auth failure. needsPermission will have responded already
-            return
         }
-
+    }, async (request, reply) => {
+        let changed = false
         if (request.body.stack) {
             if (request.body.stack !== request.project.ProjectStack?.id) {
                 const stack = await app.db.models.ProjectStack.byId(request.body.stack)
@@ -623,7 +623,7 @@ module.exports = async function (app) {
             }
             if (request.body.settings) {
                 let bodySettings
-                if (allSettingsEdit) {
+                if (request.allSettingsEdit) {
                     // store all body settings if user is owner
                     bodySettings = request.body.settings
                 } else {
@@ -681,9 +681,9 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.project
      */
     app.get('/:projectId/settings', {
-        config: { allowToken: true },
         preHandler: (request, reply, done) => {
             // check accessToken is project scope
+            // (ownerId already checked at top-level preHandler)
             if (request.session.ownerType !== 'project') {
                 reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
             } else {
@@ -720,7 +720,9 @@ module.exports = async function (app) {
      * @name /api/v1/project/:id/log
      * @memberof forge.routes.api.project
      */
-    app.get('/:projectId/logs', async (request, reply) => {
+    app.get('/:projectId/logs', {
+        preHandler: app.needsPermission('project:log')
+    }, async (request, reply) => {
         if (request.project.state === 'suspended') {
             reply.code(400).send({ code: 'project_suspended', error: 'Project suspended' })
             return
@@ -798,6 +800,7 @@ module.exports = async function (app) {
      * @memberof forge.routs.api.project
      */
     app.post('/:projectId/import', {
+        preHandler: app.needsPermission('project:edit'),
         schema: {
             body: {
                 type: 'object',

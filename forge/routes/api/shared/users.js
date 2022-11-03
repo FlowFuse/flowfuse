@@ -115,12 +115,12 @@ module.exports = {
             // re-send verification email if a user was previously verifed and is now not verified
             if (wasVerified && user.email_verified === false && request.session.User.id !== user.id) {
                 try {
-                    const verifyToken = await app.db.controllers.User.generateEmailVerificationToken(user)
+                    const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
                     await app.postoffice.send(
                         user,
                         'VerifyEmail',
                         {
-                            confirmEmailLink: `${app.config.base_url}/account/verify/${verifyToken}`
+                            confirmEmailLink: `${app.config.base_url}/account/verify/${verificationToken}`
                         }
                     )
                 } catch (error) {

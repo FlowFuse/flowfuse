@@ -34,7 +34,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.get('/', async (request, reply) => {
+    app.get('/', { preHandler: app.needsPermission('team:user:list') }, async (request, reply) => {
         const members = await app.db.models.User.inTeam(request.params.teamId)
         const result = app.db.views.User.teamMemberList(members)
         reply.send({
