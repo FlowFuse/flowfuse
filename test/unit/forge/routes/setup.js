@@ -59,7 +59,7 @@ module.exports = async function (config = {}) {
             { model: forge.db.models.Team }
         ]
     })
-
+    forge.team = team1
     forge.project = project1
     forge.template = template
     forge.stack = stack
