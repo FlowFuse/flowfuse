@@ -12,7 +12,7 @@ module.exports = async function (app) {
         // The request has a valid token, but need to check the token is allowed
         // to access the project
 
-        const id = request.params.id
+        const id = request.params.projectId
         // Check if the project exists first
         const project = await app.db.models.Project.byId(id)
         if (project && request.session.ownerType === 'project' && request.session.ownerId === id) {
@@ -22,8 +22,8 @@ module.exports = async function (app) {
         response.status(404).send({ code: 'not_found', error: 'Not Found' })
     })
 
-    app.post('/:id/flows', async (request, response) => {
-        const id = request.params.id
+    app.post('/:projectId/flows', async (request, response) => {
+        const id = request.params.projectId
         // Check if the project exists first
         const project = await app.db.models.Project.byId(id)
         if (project) {
@@ -45,8 +45,8 @@ module.exports = async function (app) {
         }
     })
 
-    app.get('/:id/flows', async (request, response) => {
-        const id = request.params.id
+    app.get('/:projectId/flows', async (request, response) => {
+        const id = request.params.projectId
         const project = await app.db.models.Project.byId(id)
         if (project) {
             const flow = await app.db.models.StorageFlow.byProject(id)
@@ -60,8 +60,8 @@ module.exports = async function (app) {
         }
     })
 
-    app.post('/:id/credentials', async (request, response) => {
-        const id = request.params.id
+    app.post('/:projectId/credentials', async (request, response) => {
+        const id = request.params.projectId
         // Check if the project exists first
         const project = await app.db.models.Project.byId(id)
         if (project) {
@@ -82,8 +82,8 @@ module.exports = async function (app) {
         }
     })
 
-    app.get('/:id/credentials', async (request, response) => {
-        const id = request.params.id
+    app.get('/:projectId/credentials', async (request, response) => {
+        const id = request.params.projectId
         const project = await app.db.models.Project.byId(id)
         if (project) {
             const creds = await app.db.models.StorageCredentials.byProject(id)
@@ -95,8 +95,8 @@ module.exports = async function (app) {
         }
     })
 
-    app.post('/:id/settings', async (request, response) => {
-        const id = request.params.id
+    app.post('/:projectId/settings', async (request, response) => {
+        const id = request.params.projectId
         // Check if the project exists first
         const project = await app.db.models.Project.byId(id)
         if (project) {
@@ -118,8 +118,8 @@ module.exports = async function (app) {
         }
     })
 
-    app.get('/:id/settings', async (request, response) => {
-        const id = request.params.id
+    app.get('/:projectId/settings', async (request, response) => {
+        const id = request.params.projectId
         const project = await app.db.models.Project.byId(id)
         if (project) {
             const settings = await app.db.models.StorageSettings.byProject(id)
@@ -131,8 +131,8 @@ module.exports = async function (app) {
         }
     })
 
-    app.post('/:id/sessions', async (request, response) => {
-        const id = request.params.id
+    app.post('/:projectId/sessions', async (request, response) => {
+        const id = request.params.projectId
         // Check if the project exists first
         const project = await app.db.models.Project.byId(id)
         if (project) {
@@ -153,8 +153,8 @@ module.exports = async function (app) {
         }
     })
 
-    app.get('/:id/sessions', async (request, response) => {
-        const id = request.params.id
+    app.get('/:projectId/sessions', async (request, response) => {
+        const id = request.params.projectId
         const project = await app.db.models.Project.byId(id)
         if (project) {
             const sessions = await app.db.models.StorageSession.byProject(id)
@@ -168,7 +168,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.post('/:id/library/:type',
+    app.post('/:projectId/library/:type',
         {
             schema: {
                 body: {
@@ -192,7 +192,7 @@ module.exports = async function (app) {
             }
         },
         async (request, response) => {
-            const id = request.params.id
+            const id = request.params.projectId
             const type = request.params.type
             let body = request.body.body
             const name = request.body.name
@@ -222,7 +222,7 @@ module.exports = async function (app) {
         }
     )
 
-    app.get('/:id/library/:type',
+    app.get('/:projectId/library/:type',
         {
             schema: {
                 query: {
@@ -235,7 +235,7 @@ module.exports = async function (app) {
             }
         },
         async (request, response) => {
-            const id = request.params.id
+            const id = request.params.projectId
             const type = request.params.type
             const name = request.query.name
 
