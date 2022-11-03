@@ -44,18 +44,16 @@ module.exports = fp(async function (app, opts, done) {
                 if (scheme !== 'Bearer') {
                     reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
                 }
-                if (/^ff[td]/.test(token)) {
-                    const accessToken = await app.db.controllers.AccessToken.getOrExpire(token)
-                    if (accessToken) {
-                        request.session = {
-                            ownerId: accessToken.ownerId,
-                            ownerType: accessToken.ownerType,
-                            scope: accessToken.scope
-                        }
-                        return
+                const accessToken = await app.db.controllers.AccessToken.getOrExpire(token)
+                if (accessToken) {
+                    request.session = {
+                        ownerId: accessToken.ownerId,
+                        ownerType: accessToken.ownerType,
+                        scope: accessToken.scope
                     }
-                } else if (/^ffp/.test(token)) {
-                    request.session = await app.db.controllers.Session.getOrExpire(token)
+                    if (accessToken.ownerType === 'user') {
+                        request.session.User = await app.db.models.User.findOne({ where: { id: parseInt(accessToken.ownerId) } })
+                    }
                     return
                 }
                 reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })

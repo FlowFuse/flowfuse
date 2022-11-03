@@ -1,9 +1,11 @@
 const { generateToken, sha256 } = require('../utils')
 const { Op } = require('sequelize')
 
+const DEFAULT_TOKEN_SESSION_EXPIRY = 1000 * 60 * 30 // 30 mins session - with refresh token support
+
 module.exports = {
     /**
-     * Create a new auth client for the given project.
+     * Create an AccessToken for the given project.
      * The token is hashed in the database. The only time the
      * true value is available is when it is returned from this function.
      */
@@ -22,6 +24,9 @@ module.exports = {
         })
         return { token }
     },
+    /**
+     * Create an AccessToken for a user's password reset request
+     */
     createTokenForPasswordReset: async function (app, user) {
         const token = generateToken(32, 'ffpr')
         const expiresAt = new Date(Date.now() + (86400 * 1000))
@@ -35,7 +40,7 @@ module.exports = {
         return { token }
     },
     /**
-     * Create a new auth client for the given project.
+     * Create an AccessToken for the given device.
      * The token is hashed in the database. The only time the
      * true value is available is when it is returned from this function.
      */
@@ -49,11 +54,48 @@ module.exports = {
             token,
             expiresAt: null,
             scope: 'device',
-            ownerId: device.id,
+            ownerId: '' + device.id,
             ownerType: 'device'
         })
         return { token }
     },
+
+    /**
+     * Create an AccessToken for the editor.
+     */
+    createTokenForUser: async function (app, user, expiresAt, scope, includeRefresh) {
+        const userId = typeof user === 'number' ? user : user.id
+        const token = generateToken(32, 'ffu')
+        const refreshToken = includeRefresh ? generateToken(32, 'ffu') : null
+        if (refreshToken && !expiresAt) {
+            expiresAt = Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY
+        }
+        await app.db.models.AccessToken.create({
+            token,
+            refreshToken,
+            expiresAt,
+            scope,
+            ownerId: '' + userId,
+            ownerType: 'user'
+        })
+        return { token, expiresAt, refreshToken }
+    },
+
+    refreshToken: async function (app, refreshToken) {
+        const existingToken = await app.db.models.AccessToken.byRefreshToken(refreshToken)
+        if (existingToken) {
+            const [prefix] = refreshToken.split('_')
+            const tokenUpdates = {
+                token: generateToken(32, prefix),
+                refreshToken: generateToken(32, prefix),
+                expiresAt: Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY
+            }
+            await app.db.models.AccessToken.update(tokenUpdates, { where: { refreshToken: existingToken.refreshToken } })
+            return tokenUpdates
+        }
+        return null
+    },
+
     /**
      * Get a token by its id. If the session has expired, it is deleted
      * and nothing returned.
@@ -90,5 +132,16 @@ module.exports = {
             }
         }
         return accessToken
+    },
+
+    destroyToken: async function (app, token) {
+        const accessToken = await app.db.models.AccessToken.findOne({
+            where: {
+                token: sha256(token)
+            }
+        })
+        if (accessToken) {
+            await accessToken.destroy()
+        }
     }
 }
