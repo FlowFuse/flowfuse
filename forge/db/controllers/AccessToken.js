@@ -9,7 +9,7 @@ module.exports = {
      * The token is hashed in the database. The only time the
      * true value is available is when it is returned from this function.
      */
-    createTokenForProject: async function (app, project, expiresAt, scope) {
+    createTokenForProject: async function (app, project, expiresAt, scope = []) {
         const existingProjectToken = await project.getAccessToken()
         if (existingProjectToken) {
             await existingProjectToken.destroy()
@@ -63,7 +63,7 @@ module.exports = {
     /**
      * Create an AccessToken for the editor.
      */
-    createTokenForUser: async function (app, user, expiresAt, scope, includeRefresh) {
+    createTokenForUser: async function (app, user, expiresAt, scope = [], includeRefresh) {
         const userId = typeof user === 'number' ? user : user.id
         const token = generateToken(32, 'ffu')
         const refreshToken = includeRefresh ? generateToken(32, 'ffu') : null
