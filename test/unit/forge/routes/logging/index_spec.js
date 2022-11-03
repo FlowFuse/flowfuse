@@ -1,17 +1,17 @@
-const should = require('should')
+const should = require('should') // eslint-disable-line
 const setup = require('../setup')
 
 describe('Logging API', function () {
     let app
-    let tokens
     let project
+    // let tokens
     let project2
     let tokens2
 
     beforeEach(async function () {
         app = await setup()
         project = app.project
-        tokens = await project.refreshAuthTokens()
+        // tokens = await project.refreshAuthTokens()
 
         project2 = await app.db.models.Project.create({ name: 'project2', type: '', url: '' })
         await app.team.addProject(project2)
