@@ -13,7 +13,7 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.stacks
      */
-    app.get('/', async (request, reply) => {
+    app.get('/', { preHandler: app.needsPermission('stack:list') }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         let filter = { active: true }
         if (request.query.filter === 'all') {
@@ -44,7 +44,7 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.stacks
      */
-    app.get('/:stackId', async (request, reply) => {
+    app.get('/:stackId', { preHandler: app.needsPermission('stack:read') }, async (request, reply) => {
         const stack = await app.db.models.ProjectStack.byId(request.params.stackId)
         if (stack) {
             reply.send(app.db.views.ProjectStack.stack(stack, request.session.User.admin))

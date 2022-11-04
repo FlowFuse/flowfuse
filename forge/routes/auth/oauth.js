@@ -255,7 +255,11 @@ module.exports = async function (app) {
                 return
             }
 
-            const accessToken = await app.db.controllers.AccessToken.createTokenForUser(requestObject.userId, null, ['project:flows:view', 'project:flows:edit'], true)
+            const accessToken = await app.db.controllers.AccessToken.createTokenForUser(requestObject.userId,
+                null,
+                ['user:read', 'project:flows:view', 'project:flows:edit'],
+                true
+            )
 
             const project = await app.db.models.Project.byId(authClient.ownerId)
             const teamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: project.TeamId, UserId: requestObject.userId } })

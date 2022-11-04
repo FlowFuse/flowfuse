@@ -9,6 +9,8 @@
  * @memberof forge.routes.api
  */
 module.exports = async function (app) {
+    app.addHook('preHandler', app.needsPermission('user:edit'))
+
     app.get('/', async (request, reply) => {
         const invitations = await app.db.models.Invitation.forUser(request.session.User)
         const result = app.db.views.Invitation.invitationList(invitations)

@@ -1460,6 +1460,23 @@ describe('Project API', function () {
             should(response).have.property('statusCode')
             should(response.statusCode).eqls(401)
         })
+
+        it('Project token cannot get another project settings', async function () {
+            const settingsURL = `/api/v1/projects/${app.project.id}/settings`
+
+            const project2 = await app.db.models.Project.create({ name: 'project2', type: '', url: '' })
+            await app.team.addProject(project2)
+            const tokens2 = await project2.refreshAuthTokens()
+            const response = await app.inject({
+                method: 'GET',
+                url: settingsURL,
+                headers: {
+                    authorization: `Bearer ${tokens2.token}`
+                }
+            })
+            should(response).have.property('statusCode')
+            should(response.statusCode).eqls(404)
+        })
     })
     describe('Project import flows & credentials', function () {
         const flows = [
