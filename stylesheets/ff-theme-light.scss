@@ -7,8 +7,13 @@
     h1, h2, h3, h4, h5{
         color: $ff-grey-700;
     }
+    
     p {
         color: $ff-grey-800;
+    }
+
+    .ff-description {
+        color: $ff-grey-500;
     }
 
     select {

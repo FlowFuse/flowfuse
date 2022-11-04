@@ -3,6 +3,8 @@
         <label class="ff-radio-group-label" v-if="label">{{ label }}</label>
         <ff-radio-button v-for="option in internalOptions" :key="option.label"
             :value="option.value" :label="option.label" :checked="option.checked"
+            :description="option.description"
+            :show-description="(orientation === 'vertical' && option.description)"
             @select="select"
         ></ff-radio-button>
     </div>
