@@ -18,9 +18,6 @@ export default {
     watch: {
         modelValue: function (value) {
             this.$nextTick(() => {
-                console.log('watch model value')
-                console.log(value)
-                console.log(this.children.length)
                 this.checkState(value)
             })
         }
@@ -55,7 +52,6 @@ export default {
     },
     mounted () {
         this.$nextTick(() => {
-            console.log('mounted')
             for (let i = 0; i < this.children.length; i++) {
                 if (this.modelValue !== this.children[i].value) {
                     this.children[i].selected = false
