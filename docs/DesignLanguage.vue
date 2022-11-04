@@ -388,7 +388,7 @@
                     </div>
                 </div>
                 <!-- Radio -->
-                <h2 ref="ff-radio-group"><pre>ff-radio</pre></h2>
+                <h2 ref="ff-radio-group"><pre>ff-radio-group</pre></h2>
                 <h3>Properties:</h3>
                 <props-table :rows="cGroups['input'].components[3].props"></props-table>
                 <h3>Examples:</h3>
@@ -399,7 +399,7 @@
                         <code>{{ cGroups['input'].components[3].examples[0].code }}</code>
                     </div>
                     <div class="example">
-                        <ff-radio-group v-model="models.radio1" label="We can also provide a label here" :options="[{label: 'Option 1', value: 1, checked: true}, {label: 'Option 2', value: 2}]" orientation="vertical"></ff-radio-group>
+                        <ff-radio-group v-model="models.radio1" label="We can also provide a label here" :options="[{label: 'Option 1', value: 1, checked: true, description: 'This is a description of this particular option'}, {label: 'Option 2', value: 2, description: 'Another description'}]" orientation="vertical"></ff-radio-group>
                         {{ models.radio1 }}
                         <code>{{ cGroups['input'].components[3].examples[1].code }}</code>
                     </div>
