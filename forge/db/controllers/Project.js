@@ -133,6 +133,7 @@ module.exports = {
                 })
             } catch (err) {}
         }
+
         return projectExport
     },
 
@@ -160,6 +161,16 @@ module.exports = {
                             value: snapshot.settings.env[key]
                         })
                     })
+                }
+                if (snapshotSettings.palette?.modules) {
+                    const moduleList = []
+                    for (const [name, version] of Object.entries(snapshotSettings.palette.modules)) {
+                        moduleList.push({ name, version, local: true })
+                    }
+                    snapshotSettings.palette.modules = moduleList
+                } else {
+                    snapshotSettings.palette = snapshotSettings.palette || {}
+                    snapshotSettings.palette.modules = []
                 }
                 const newSettings = app.db.controllers.ProjectTemplate.validateSettings(snapshotSettings, project.ProjectTemplate)
                 const currentProjectSettings = await project.getSetting('settings') || {} // necessary?
