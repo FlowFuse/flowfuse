@@ -1,3 +1,9 @@
+#### 1.0.2: Release
+
+ - Fix project rollback to handle modules object (#1192) @knolleary
+ - Docs: How to cancel your subscription (#1190) @robmarcer
+ - Make sure to use the Stack Label if available (#1170) @hardillb
+
 #### 1.0.1: Release
 
  - Fix flow import (#1157) @knolleary
