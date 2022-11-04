@@ -3,7 +3,7 @@
         <input type="radio" :value="value" />
         <span class="checkbox" :checked="checked"></span>
         <label>{{ label }}</label>
-        <p v-if="showDescription" class="ff-description">{{ description }}</p>
+        <p v-if="description && !hideDescription" class="ff-description">{{ description }}</p>
     </label>
 </template>
 
@@ -27,7 +27,7 @@ export default {
             default: null,
             type: String
         },
-        showDescription: {
+        hideDescription: {
             default: false,
             type: Boolean
         }
