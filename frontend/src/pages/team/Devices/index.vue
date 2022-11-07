@@ -77,12 +77,14 @@ const DeviceLink = {
 }
 
 const ProjectLink = {
-    template: `<template v-if="project">
-        <router-link :to="{ name: 'ProjectDevices', params: { id: project.id }}">{{project.name}}</router-link>
+    template: `
+        <template v-if="project">
+            <router-link :to="{ name: 'ProjectDeployments', params: { id: project.id }}">{{project.name}}</router-link>
         </template>
         <template v-else><span class="italic text-gray-500">unassigned</span></template>`,
     props: ['project']
 }
+
 const LastSeen = {
     template: '<span><span v-if="lastSeenSince">{{lastSeenSince}}</span><span v-else class="italic text-gray-500">never</span></span>',
     props: ['lastSeenSince']
