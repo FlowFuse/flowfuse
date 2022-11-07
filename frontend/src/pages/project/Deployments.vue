@@ -194,9 +194,9 @@ export default {
 
             return [
                 { label: 'Device', class: ['w-64'], key: 'name', sortable: true, component: { is: markRaw(DeviceLink) } },
-                { label: 'Status', class: ['w-20'], key: 'status', sortable: true, component: { is: markRaw(ProjectStatusBadge) } },
-                { label: 'Last Seen', class: ['w-64'], key: 'last seen', sortable: true, component: { is: markRaw(LastSeen) } },
-                { label: 'Deployed Snapshot', class: ['w-64'], component: { is: markRaw(SnapshotComponent) } }
+                { label: 'Last Seen', class: ['w-48'], key: 'last seen', sortable: true, component: { is: markRaw(LastSeen) } },
+                { label: 'Deployed Snapshot', class: ['w-32'], component: { is: markRaw(SnapshotComponent) } },
+                { label: '', class: ['w-20'], key: 'status', sortable: false, component: { is: markRaw(ProjectStatusBadge) } }
             ]
         }
     },
