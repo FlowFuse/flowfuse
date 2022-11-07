@@ -13,34 +13,34 @@
             message="Deleting Device..."
         />
         <template v-else>
-            <div
-                v-if="project?.id"
-                class="flex space-x-8"
-            >
-                <ff-button
-                    v-if="hasPermission('device:create')"
-                    data-action="register-device"
-                    kind="primary"
-                    size="small"
-                    @click="showCreateDeviceDialog"
-                >
-                    <template #icon-left>
-                        <PlusSmIcon />
-                    </template>Register Device
-                </ff-button>
-                <ff-button
-                    kind="tertiary"
-                    size="small"
-                    to="./snapshots"
-                >
-                    <template #icon-left>
-                        <ClockIcon />
-                    </template>
-                    Target Snapshot: {{ project.deviceSettings.targetSnapshot || 'none' }}
-                </ff-button>
-            </div>
-
             <template v-if="devices.length > 0">
+                <div
+                    v-if="project?.id"
+                    class="flex space-x-8"
+                >
+                    <ff-button
+                        v-if="hasPermission('device:create')"
+                        data-action="register-device"
+                        kind="primary"
+                        size="small"
+                        @click="showCreateDeviceDialog"
+                    >
+                        <template #icon-left>
+                            <PlusSmIcon />
+                        </template>Register Device
+                    </ff-button>
+                    <ff-button
+                        kind="tertiary"
+                        size="small"
+                        to="./snapshots"
+                    >
+                        <template #icon-left>
+                            <ClockIcon />
+                        </template>
+                        Target Snapshot: {{ project.deviceSettings.targetSnapshot || 'none' }}
+                    </ff-button>
+                </div>
+
                 <ff-data-table
                     data-el="devices"
                     :columns="columns"
