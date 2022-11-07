@@ -57,7 +57,7 @@ import deviceApi from '@/api/devices'
 import SectionTopMenu from '@/components/SectionTopMenu'
 import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
 
-import { ChipIcon } from '@heroicons/vue/outline'
+import { ChipIcon, PlusSmIcon } from '@heroicons/vue/outline'
 
 import TeamDeviceCreateDialog from './dialogs/TeamDeviceCreateDialog'
 import DeviceCredentialsDialog from './dialogs/DeviceCredentialsDialog'
@@ -213,7 +213,8 @@ export default {
         TeamDeviceCreateDialog,
         DeviceCredentialsDialog,
         DeviceAssignProjectDialog,
-        SectionTopMenu
+        SectionTopMenu,
+        PlusSmIcon
     }
 }
 </script>
