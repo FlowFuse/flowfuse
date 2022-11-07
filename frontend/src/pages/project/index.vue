@@ -177,7 +177,7 @@ export default {
             this.navigation = [
                 { label: 'Overview', path: `/project/${this.project.id}/overview`, tag: 'project-overview', icon: ProjectsIcon },
                 { label: 'Activity', path: `/project/${this.project.id}/activity`, tag: 'project-activity', icon: ViewListIcon },
-                { label: 'Deployments', path: `/project/${this.project.id}/devices`, tag: 'project-devices', icon: CloudIcon },
+                { label: 'Deployments', path: `/project/${this.project.id}/devices`, tag: 'project-deployments', icon: CloudIcon },
                 { label: 'Snapshots', path: `/project/${this.project.id}/snapshots`, tag: 'project-snapshots', icon: ClockIcon },
                 { label: 'Logs', path: `/project/${this.project.id}/logs`, tag: 'project-logs', icon: TerminalIcon },
                 { label: 'Settings', path: `/project/${this.project.id}/settings`, tag: 'project-settings', icon: CogIcon }
