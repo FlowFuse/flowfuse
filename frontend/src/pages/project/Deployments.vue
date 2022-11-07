@@ -1,94 +1,104 @@
 <template>
-    <div class="space-y-6">
-        <ff-loading
-            v-if="loading"
-            message="Loading Devices..."
-        />
-        <ff-loading
-            v-else-if="creatingDevice"
-            message="Creating Device..."
-        />
-        <ff-loading
-            v-else-if="deletingDevice"
-            message="Deleting Device..."
-        />
-        <template v-else>
-            <template v-if="devices.length > 0">
-                <div
-                    v-if="project?.id"
-                    class="flex space-x-8"
-                >
-                    <ff-button
-                        v-if="hasPermission('device:create')"
-                        data-action="register-device"
-                        kind="primary"
-                        size="small"
-                        @click="showCreateDeviceDialog"
-                    >
-                        <template #icon-left>
-                            <PlusSmIcon />
-                        </template>Register Device
-                    </ff-button>
-                    <ff-button
-                        kind="tertiary"
-                        size="small"
-                        to="./snapshots"
-                    >
-                        <template #icon-left>
-                            <ClockIcon />
-                        </template>
-                        Target Snapshot: {{ project.deviceSettings.targetSnapshot || 'none' }}
-                    </ff-button>
+    <div>
+        <div class="border-b border-gray-200 mb-3">
+            <div class="w-full md:w-auto mb-2 mr-8">
+                <div class="text-gray-800 text-lg font-bold">
+                    Devices
                 </div>
-
-                <ff-data-table
-                    data-el="devices"
-                    :columns="columns"
-                    :rows="devices"
-                    :show-search="true"
-                    search-placeholder="Search Devices..."
-                >
-                    <template
-                        v-if="hasPermission('device:edit')"
-                        #context-menu="{row}"
-                    >
-                        <ff-list-item
-                            label="Edit Details"
-                            @click="deviceAction('edit', row.id)"
-                        />
-                        <ff-list-item
-                            label="Remove from Project"
-                            @click="deviceAction('removeFromProject', row.id)"
-                        />
-                        <ff-list-item
-                            kind="danger"
-                            label="Regenerate Credentials"
-                            @click="deviceAction('updateCredentials', row.id)"
-                        />
-                        <ff-list-item
-                            v-if="hasPermission('device:delete')"
-                            kind="danger"
-                            label="Delete Device"
-                            @click="deviceAction('delete', row.id)"
-                        />
-                    </template>
-                </ff-data-table>
-            </template>
+            </div>
+        </div>
+        <div class="space-y-6">
+            <ff-loading
+                v-if="loading"
+                message="Loading Devices..."
+            />
+            <ff-loading
+                v-else-if="creatingDevice"
+                message="Creating Device..."
+            />
+            <ff-loading
+                v-else-if="deletingDevice"
+                message="Deleting Device..."
+            />
             <template v-else>
-                <div class="flex text-gray-500 justify-center italic mb-4 p-8">
-                    <div class="text-center">
-                        <p>You have not added any devices to this team yet.</p>
-                        <p>
-                            To add a device, go to the
-                            <router-link :to="{name: 'TeamDevices', params: {team_slug:team.slug}}">
-                                Team Device
-                            </router-link>
-                            page
-                        </p>
+                <template v-if="devices.length > 0">
+                    <ff-data-table
+                        data-el="devices"
+                        :columns="columns"
+                        :rows="devices"
+                        :show-search="true"
+                        search-placeholder="Search Device Deployments..."
+                    >
+                        <template
+                            v-if="hasPermission('project:snapshot:create')"
+                            #actions
+                        >
+                            <ff-button
+                                kind="secondary"
+                                to="./snapshots"
+                            >
+                                <template #icon-left>
+                                    <ClockIcon />
+                                </template>
+                                <span class="font-normal">
+                                    Target Snapshot: <b>{{ project.deviceSettings.targetSnapshot || 'none' }}</b>
+                                </span>
+                            </ff-button>
+                            <ff-button
+                                v-if="hasPermission('device:create')"
+                                class="font-normal"
+                                data-action="register-device"
+                                kind="primary"
+                                @click="showCreateDeviceDialog"
+                            >
+                                <template #icon-right>
+                                    <PlusSmIcon />
+                                </template>
+                                <span class="font-normal">Add Device</span>
+                            </ff-button>
+                        </template>
+                        <template
+                            v-if="hasPermission('device:edit')"
+                            #context-menu="{row}"
+                        >
+                            <ff-list-item
+                                label="Edit Details"
+                                @click="deviceAction('edit', row.id)"
+                            />
+                            <ff-list-item
+                                label="Remove from Project"
+                                @click="deviceAction('removeFromProject', row.id)"
+                            />
+                            <ff-list-item
+                                kind="danger"
+                                label="Regenerate Credentials"
+                                @click="deviceAction('updateCredentials', row.id)"
+                            />
+                            <ff-list-item
+                                v-if="hasPermission('device:delete')"
+                                kind="danger"
+                                label="Delete Device"
+                                @click="deviceAction('delete', row.id)"
+                            />
+                        </template>
+                    </ff-data-table>
+                </template>
+                <template v-else>
+                    <div class="flex text-gray-500 justify-center italic mb-4 p-8">
+                        <div class="text-center">
+                            <p>You have not added any devices to this team yet.</p>
+                            <p>
+                                To add a device, go to the
+                                <router-link :to="{name: 'TeamDevices', params: {team_slug:team.slug}}">
+                                    Team Device
+                                </router-link>
+                                page
+                            </p>
+                        </div>
                     </div>
-                </div>
+                </template>
             </template>
-        </template>
+        </div>
 
         <TeamDeviceCreateDialog
             ref="teamDeviceCreateDialog"
@@ -103,7 +113,8 @@
 
 <script>
 
-import { ChipIcon, CheckCircleIcon, ExclamationIcon, PlusSmIcon, ClockIcon } from '@heroicons/vue/solid'
+import { ClockIcon } from '@heroicons/vue/outline'
+import { ChipIcon, CheckCircleIcon, ExclamationIcon, PlusSmIcon } from '@heroicons/vue/solid'
 
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
