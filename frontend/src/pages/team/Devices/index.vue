@@ -1,5 +1,5 @@
 <template>
-    <SectionTopMenu v-if="!isProjectDeviceView" hero="Devices">
+    <SectionTopMenu hero="Devices">
         <template v-slot:tools>
             <ff-button v-if="addDeviceEnabled" kind="primary" size="small" @click="showCreateDeviceDialog"><template v-slot:icon-left><PlusSmIcon /></template>Register Device</ff-button>
         </template>
@@ -10,12 +10,6 @@
         <ff-loading v-else-if="deletingDevice" message="Deleting Device..." />
         <template v-else>
             <template v-if="devices.length > 0">
-                <template v-if="isProjectDeviceView">
-                    <div class="flex space-x-8">
-                        <ff-button v-if="hasPermission('device:create')" data-action="register-device" kind="primary" size="small" @click="showCreateDeviceDialog"><template v-slot:icon-left><PlusSmIcon /></template>Register Device</ff-button>
-                        <ff-button kind="tertiary" size="small" to="./snapshots"><template v-slot:icon-left><ClockIcon/></template>Target Snapshot: {{project.deviceSettings.targetSnapshot || 'none'}}</ff-button>
-                    </div>
-                </template>
                 <ff-data-table data-el="devices" :columns="columns" :rows="devices"
                                :show-search="true" search-placeholder="Search Devices...">
                     <template v-if="hasPermission('device:edit')" v-slot:context-menu="{row}">
@@ -39,15 +33,7 @@
             </template>
             <template v-if="devices.length === 0">
                 <div class="flex text-gray-500 justify-center italic mb-4 p-8">
-                    <template v-if="isProjectDeviceView">
-                        <div class="text-center">
-                            <p>You have not added any devices to this team yet.</p>
-                            <p>To add a device, go to the <router-link :to="{name: 'TeamDevices', params: {team_slug:this.team.slug}}">Team Device</router-link> page</p>
-                        </div>
-                    </template>
-                    <template v-else>
-                        You don't have any devices yet
-                    </template>
+                    You don't have any devices yet
                 </div>
             </template>
         </template>
@@ -67,12 +53,11 @@ import Dialog from '@/services/dialog'
 
 import teamApi from '@/api/team'
 import deviceApi from '@/api/devices'
-import projectApi from '@/api/project'
 
 import SectionTopMenu from '@/components/SectionTopMenu'
 import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
 
-import { CheckCircleIcon, ChipIcon, PlusSmIcon, ClockIcon, ExclamationIcon } from '@heroicons/vue/outline'
+import { ChipIcon, PlusSmIcon } from '@heroicons/vue/outline'
 
 import TeamDeviceCreateDialog from './dialogs/TeamDeviceCreateDialog'
 import DeviceCredentialsDialog from './dialogs/DeviceCredentialsDialog'
@@ -90,13 +75,16 @@ const DeviceLink = {
     props: ['id', 'name', 'type'],
     components: { ChipIcon }
 }
+
 const ProjectLink = {
-    template: `<template v-if="project">
-        <router-link :to="{ name: 'ProjectDevices', params: { id: project.id }}">{{project.name}}</router-link>
+    template: `
+        <template v-if="project">
+            <router-link :to="{ name: 'ProjectDeployments', params: { id: project.id }}">{{project.name}}</router-link>
         </template>
         <template v-else><span class="italic text-gray-500">unassigned</span></template>`,
     props: ['project']
 }
+
 const LastSeen = {
     template: '<span><span v-if="lastSeenSince">{{lastSeenSince}}</span><span v-else class="italic text-gray-500">never</span></span>',
     props: ['lastSeenSince']
@@ -115,8 +103,7 @@ export default {
         }
     },
     watch: {
-        team: 'fetchData',
-        project: 'fetchData'
+        team: 'fetchData'
     },
     mounted () {
         // Set loading flag to true for initial page load
@@ -132,12 +119,8 @@ export default {
     },
     methods: {
         fetchData: async function (newVal) {
-            if (this.team.id && !this.project) {
+            if (this.team.id) {
                 const data = await teamApi.getTeamDevices(this.team.id)
-                this.devices.length = 0
-                this.devices = data.devices
-            } else if (this.project.id) {
-                const data = await projectApi.getProjectDevices(this.project.id)
                 this.devices.length = 0
                 this.devices = data.devices
             }
@@ -205,12 +188,6 @@ export default {
                 }, async () => {
                     await deviceApi.updateDevice(device.id, { project: null })
                     delete device.project
-                    // If this component is being used on the Team/Device page - this unassign should
-                    // remove it from the view.
-                    if (this.isProjectDeviceView) {
-                        const index = this.devices.indexOf(device)
-                        this.devices.splice(index, 1)
-                    }
                     Alerts.emit('Successfully unassigned the project from this device.', 'confirmation')
                 })
             } else if (action === 'assignToProject') {
@@ -219,70 +196,25 @@ export default {
         }
     },
     computed: {
-        isProjectDeviceView: function () {
-            return this.project && this.project.id
-        },
         addDeviceEnabled: function () {
-            return !this.isProjectDeviceView && this.hasPermission('device:create')
+            return this.hasPermission('device:create')
         },
         columns: function () {
-            const targetSnapshot = this.project?.deviceSettings.targetSnapshot
-
-            // Because of the limitations of the `ItemTable` component, we need
-            // this SnapshotComponent to know what the Project TargetSnapshot is.
-            // That information is not attached to the devices. So by defining
-            // the component inline here, we have `targetSnapshot` in scope.
-            // This is not good Vue. All of these inline components should be
-            // pulled out - but without a means to attach additional props to
-            // individual cells, we don't have that option right now.
-            const SnapshotComponent = {
-                template: `<span class="flex space-x-4">
-    
-    <span v-if="activeSnapshot?.id || updateNeeded" class="flex items-center space-x-2 text-gray-500 italic">
-        <ExclamationIcon class="text-yellow-600 w-4" v-if="updateNeeded" />
-        <CheckCircleIcon class="text-green-700 w-4" v-else-if="activeSnapshot?.id" />
-    </span>
-    <template v-if="activeSnapshot"><div class="flex flex-col"><span>{{ activeSnapshot?.name }}</span><span class="text-xs text-gray-500">{{ activeSnapshot.id }}</span></div></template>
-    <template v-else><span class="italic text-gray-500">none</span></template>
-</span>`,
-                props: ['activeSnapshot', 'targetSnapshot'],
-                computed: {
-                    updateNeeded: function () {
-                        return !this.activeSnapshot || (this.activeSnapshot?.id !== targetSnapshot)
-                    }
-                },
-                components: {
-                    ExclamationIcon,
-                    CheckCircleIcon
-                }
-            }
-
-            const cols = [
+            return [
                 { label: 'Device', class: ['w-64'], key: 'name', sortable: true, component: { is: markRaw(DeviceLink) } },
                 { label: 'Status', class: ['w-20'], key: 'status', sortable: true, component: { is: markRaw(ProjectStatusBadge) } },
-                { label: 'Last Seen', class: ['w-64'], key: 'last seen', sortable: true, component: { is: markRaw(LastSeen) } }
+                { label: 'Last Seen', class: ['w-64'], key: 'last seen', sortable: true, component: { is: markRaw(LastSeen) } },
+                { label: 'Project', class: ['w-64'], key: 'project', sortable: true, component: { is: markRaw(ProjectLink) } }
             ]
-            if (!this.isProjectDeviceView) {
-                cols.push({
-                    label: 'Project', class: ['w-64'], key: 'project', sortable: true, component: { is: markRaw(ProjectLink) }
-                })
-            } else {
-                cols.push(
-                    { label: 'Deployed Snapshot', class: ['w-64'], component: { is: markRaw(SnapshotComponent) } }
-                    // { name: 'Target', class: ['w-64'], property: 'targetSnapshot', component: { is: markRaw(SnapshotComponent) } }
-                )
-            }
-            return cols
         }
     },
-    props: ['team', 'teamMembership', 'project'],
+    props: ['team', 'teamMembership'],
     components: {
-        PlusSmIcon,
-        ClockIcon,
         TeamDeviceCreateDialog,
         DeviceCredentialsDialog,
         DeviceAssignProjectDialog,
-        SectionTopMenu
+        SectionTopMenu,
+        PlusSmIcon
     }
 }
 </script>
