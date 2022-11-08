@@ -42,11 +42,7 @@ export default {
         },
         checkState (value) {
             for (let i = 0; i < this.children.length; i++) {
-                if (value !== this.children[i].value) {
-                    this.children[i].selected = false
-                } else {
-                    this.children[i].selected = true
-                }
+                this.children[i].selected = value === this.children[i].value
             }
         }
     },
