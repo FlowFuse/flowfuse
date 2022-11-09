@@ -1,5 +1,52 @@
 <template>
     <div>
+        <div class="border-b border-gray-200 mb-3 space-y-6">
+            <div class="w-full md:w-auto mb-2 mr-8">
+                <div class="text-gray-800 text-lg font-bold">
+                    Cloud
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-6 mb-6">
+            <ff-data-table
+                data-el="cloud-deployments"
+                :columns="cloudColumns"
+                :rows="cloudRows"
+            >
+                <template
+                    v-if="hasPermission('device:edit')"
+                    #context-menu
+                >
+                    <ff-list-item
+                        :disabled="project.pendingStateChange || projectRunning"
+                        label="Start"
+                        @click="$emit('project-start')"
+                    />
+
+                    <ff-list-item
+                        :disabled="!projectNotSuspended"
+                        label="Restart"
+                        @click="$emit('project-restart')"
+                    />
+
+                    <ff-list-item
+                        :disabled="!projectNotSuspended"
+                        kind="danger"
+                        label="Suspend"
+                        @click="$emit('project-suspend')"
+                    />
+
+                    <ff-list-item
+                        v-if="hasPermission('project:delete')"
+                        kind="danger"
+                        label="Delete"
+                        @click="$emit('project-delete')"
+                    />
+                </template>
+            </ff-data-table>
+        </div>
+
         <div class="border-b border-gray-200 mb-3">
             <div class="w-full md:w-auto mb-2 mr-8">
                 <div class="text-gray-800 text-lg font-bold">
@@ -113,8 +160,9 @@
 
 <script>
 
-import { ClockIcon } from '@heroicons/vue/outline'
-import { ChipIcon, CheckCircleIcon, ExclamationIcon, PlusSmIcon } from '@heroicons/vue/solid'
+import { Roles } from '@core/lib/roles'
+import { ClockIcon, CloudIcon } from '@heroicons/vue/outline'
+import { CheckCircleIcon, ChipIcon, ExclamationIcon, ExternalLinkIcon, PlusSmIcon } from '@heroicons/vue/solid'
 
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
@@ -129,6 +177,19 @@ import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
 import Alerts from '@/services/alerts'
 import Dialog from '@/services/dialog'
 
+const ProjectEditorLink = {
+    template: `<a v-if="projectRunning && !isVisitingAdmin" :href="url" target="_blank" class="ff-btn ff-btn--secondary" data-action="open-editor">
+        Open Editor
+        <span class="ff-btn--icon ff-btn--icon-right">
+            <ExternalLinkIcon />
+        </span>
+    </a>`,
+    props: ['projectRunning', 'isVisitingAdmin', 'project', 'url'],
+    components: { ExternalLinkIcon }
+}
+
+// <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" alt="Open actions menu" :options="options" data-action="open-actions">Actions</DropdownMenu
+
 const DeviceLink = {
     template: `
         <router-link :to="{ name: 'Device', params: { id: id } }" class="flex">
@@ -141,6 +202,25 @@ const DeviceLink = {
     props: ['id', 'name', 'type'],
     components: { ChipIcon }
 }
+
+const CloudLink = {
+    template: `
+        <a v-if="!disabled" :href="url" target="_blank" class="flex" data-action="open-editor">
+            <CloudIcon class="w-6 mr-2 text-gray-500" />
+            <div class="flex flex-col space-y-1">
+                {{url}}
+            </div>
+        </a>
+        <span class="flex" v-else>
+            <CloudIcon class="w-6 mr-2 text-gray-500" />
+            <div class="flex flex-col space-y-1">
+                {{url}}
+            </div>
+        </span>`,
+    props: ['url', 'disabled'],
+    components: { CloudIcon }
+}
+
 const LastSeen = {
     template: '<span><span v-if="lastSeenSince">{{lastSeenSince}}</span><span v-else class="italic text-gray-500">never</span></span>',
     props: ['lastSeenSince']
@@ -161,9 +241,10 @@ export default {
             required: true
         }
     },
+    emits: ['project-delete', 'project-suspend', 'project-restart', 'project-start'],
     data () {
         return {
-            loading: false,
+            loading: true,
             creatingDevice: false,
             deletingDevice: false,
             devices: [],
@@ -204,11 +285,31 @@ export default {
             }
 
             return [
-                { label: 'Device', class: ['w-64'], key: 'name', sortable: true, component: { is: markRaw(DeviceLink) } },
-                { label: 'Last Seen', class: ['w-48'], key: 'last seen', sortable: true, component: { is: markRaw(LastSeen) } },
+                { label: 'Device', class: ['w-64'], sortable: true, component: { is: markRaw(DeviceLink) } },
+                { label: 'Last Seen', class: ['w-48'], sortable: true, component: { is: markRaw(LastSeen) } },
                 { label: 'Deployed Snapshot', class: ['w-32'], component: { is: markRaw(SnapshotComponent) } },
-                { label: '', class: ['w-20'], key: 'status', sortable: false, component: { is: markRaw(ProjectStatusBadge) } }
+                { label: '', class: ['w-20'], component: { is: markRaw(ProjectStatusBadge) } }
             ]
+        },
+        cloudColumns () {
+            return [
+                { label: 'Location', class: ['w-64'], component: { is: markRaw(CloudLink), extraProps: { disabled: !this.projectRunning || this.isVisitingAdmin } } },
+                { label: 'Last Deployed', class: ['w-48'], component: { is: markRaw(LastSeen), map: { lastSeenSince: 'flowLastUpdatedSince' } } },
+                { label: 'Deployment Status', class: ['w-32'], component: { is: markRaw(ProjectStatusBadge), map: { status: 'meta.state' } } },
+                { label: '', class: ['w-20'], component: { is: markRaw(ProjectEditorLink), extraProps: { projectRunning: this.projectRunning, isVisitingAdmin: this.isVisitingAdmin } } }
+            ]
+        },
+        cloudRows () {
+            return [this.project]
+        },
+        projectRunning () {
+            return this.project.meta?.state === 'running'
+        },
+        projectNotSuspended () {
+            return this.project.meta.state !== 'suspended'
+        },
+        isVisitingAdmin () {
+            return this.teamMembership.role === Roles.Admin
         }
     },
     watch: {
