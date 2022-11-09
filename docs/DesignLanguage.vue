@@ -382,8 +382,15 @@
                 <h3>Examples:</h3>
                 <div class="examples">
                     <div class="example">
+                        <h5>Example 1: Default</h5>
                         <ff-checkbox label="My Checkbox" v-model="models.checkbox0"></ff-checkbox>
                         {{ models.checkbox0 }}
+                        <code>{{ cGroups['input'].components[2].examples[0].code }}</code>
+                    </div>
+                    <div class="example">
+                        <h5>Example 2: Disabled</h5>
+                        <ff-checkbox label="My Checkbox" v-model="models.checkbox1" :disabled="true"></ff-checkbox>
+                        {{ models.checkbox1 }}
                         <code>{{ cGroups['input'].components[2].examples[0].code }}</code>
                     </div>
                 </div>
@@ -407,7 +414,7 @@
                     </div>
                     <div class="example">
                         <h5>Example 3: Disabled Option</h5>
-                        <ff-radio-group v-model="models.radio1" label="We can also provide a label here" :options="[{label: 'Option 1', value: 1, checked: true, description: 'This is a description of this particular option'}, {label: 'Disabled Option', value: 2, description: 'Another description', disabled: true}]" orientation="vertical"></ff-radio-group>
+                        <ff-radio-group v-model="models.radio2" label="We can also provide a label here" :options="[{label: 'Option 1', value: 1, checked: true, description: 'This is a description of this particular option'}, {label: 'Disabled Option', value: 2, description: 'Another description', disabled: true}]" orientation="vertical"></ff-radio-group>
                         {{ models.radio2 }}
                         <code>{{ cGroups['input'].components[3].examples[1].code }}</code>
                     </div>
@@ -637,6 +644,7 @@ export default {
                 dropdown0: null,
                 dropdown1: null,
                 checkbox0: false,
+                checkbox1: false,
                 radio0: null,
                 radio1: null,
                 radio2: null,
