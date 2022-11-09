@@ -225,6 +225,9 @@ li.ff-list-item {
       height: 100%;
       border-width: 0;
       min-width: 0;
+      &[disabled] {
+        background-color: $ff-grey-50;
+      }
       &:focus-visible {
         border: none;
         outline: none;
