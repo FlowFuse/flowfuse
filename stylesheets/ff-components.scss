@@ -306,12 +306,16 @@ li.ff-list-item {
 .ff-radio-btn {
   position: relative;
   padding-left: 25px;
+  display: flex;
   cursor: pointer;
   input[type=checkbox], input[type=radio] {
     display: none;
   }
   label {
     cursor: pointer;
+    font-weight: 500;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
   }
   /* Create a custom checkbox */
   .checkbox {
@@ -372,6 +376,7 @@ li.ff-list-item {
     margin-bottom: 1rem;
   }
   &.ff-radio-group--horizontal {
+    display: flex;
     .ff-radio-btn {
       margin-right: $ff-funit-lg;
     }
