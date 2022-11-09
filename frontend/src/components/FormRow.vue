@@ -10,12 +10,12 @@
                                  :class="inputClass"
                                  v-model="localModelValue"
                                  :disabled="disabled"></ff-checkbox>
-                    <label v-if="hasTitle" :for="inputId" class="inline-block ml-9 -mt-1 font-medium cursor-pointer" @click="localModelValue = !localModelValue"><slot></slot></label>
+                    <label v-if="hasTitle" :for="inputId" class="block ml-8 text-sm font-medium" :class="disabled ? ' cursor-not-allowed text-gray-400': ' cursor-pointer'" @click="toggleValue"><slot></slot></label>
                 </div>
-                <div v-if="hasAppend" :class="appendClass ? appendClass : 'inline ml-2'"><slot name="append"></slot></div>
+                <div v-if="hasAppend" :class="(appendClass ? appendClass : 'inline ml-2')"><slot name="append"></slot></div>
             </div>
-            <div v-if="error" class="inline-block ml-9 text-red-400 inline text-xs">{{error}}</div>
-            <div v-if="hasDescription" class="ff-description pl-9 mt-1"><slot name="description"></slot></div>
+            <div v-if="error" class="inline-block ml-8 text-red-400 inline text-xs">{{error}}</div>
+            <div v-if="hasDescription" class="ff-description pl-8 mt-1"><slot name="description"></slot></div>
         </template>
         <template v-else-if="type==='radio'">
             <div class="flex" :class="(wrapperClass ? wrapperClass : 'items-center')  + (disabled ? ' cursor-not-allowed' : '')">
@@ -57,18 +57,11 @@
             <div v-if="hasDescription" class="text-xs text-gray-400 mb-2 space-y-1"><slot name="description"></slot></div>
             <div :class="(wrapperClass ? wrapperClass : 'flex flex-col sm:flex-row relative')">
                 <template v-if="options && type !== 'uneditable'">
-                    <select :id="inputId"
-                            ref="input"
-                            class="w-full"
-                            :class="inputClass"
-                            :value="modelValue"
-                            :disabled="disabled"
-                            @input="$emit('update:modelValue', $event.target.value)"
-                    >
-                        <option v-for="option in options" :value="option.value" :key="option.label">
+                    <ff-dropdown v-model="localModelValue" class="w-full" :disabled="disabled">
+                        <ff-dropdown-option v-for="option in options" :value="option.value" :label="option.label" :key="option.label" class="text-sm">
                             {{ option.label }}
-                        </option>
-                    </select>
+                        </ff-dropdown-option>
+                    </ff-dropdown>
                 </template>
                 <template v-else-if="hasCustomInput">
                     <slot name="input"></slot>
@@ -144,6 +137,11 @@ export default {
             this.$nextTick(() => {
                 this.$refs.input?.focus()
             })
+        },
+        toggleValue () {
+            if (!this.disabled) {
+                this.localModelValue = !this.localModelValue
+            }
         }
     }
 }

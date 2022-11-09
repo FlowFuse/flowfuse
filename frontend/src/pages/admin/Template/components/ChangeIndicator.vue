@@ -1,5 +1,5 @@
 <template>
-    <div v-if="value" class="flex h-7"><SparklesIcon class="w-4"></SparklesIcon></div>
+    <div v-if="value" class="flex"><SparklesIcon class="w-4"></SparklesIcon></div>
 </template>
 <script>
 import { SparklesIcon } from '@heroicons/vue/outline'
