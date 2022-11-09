@@ -9,11 +9,11 @@ export default {
     name: 'ff-dropdown-option',
     props: {
         value: {
-            required: true,
+            default: null,
             type: [Number, String]
         },
         label: {
-            required: true,
+            default: null,
             type: String
         }
     },

@@ -51,11 +51,25 @@
             "code": "<ff-dropdown v-model=\"mVar\" placeholder=\"Dropdown Button\" dropdown-style=\"button\">\n\t<template v-slot:button>\n\t\t<ff-button>\n\t\t\tButton\n\t\t\t<template v-slot:icon-right>\n\t\t\t\t<ChevronDownIcon />\n\t\t\t</template>\n\t\t</ff-button>\n\t</template>\n\t<template v-slot:default>\n\t\t<ff-dropdown-option label=\"Option 1\" value=\"1\"></ff-dropdown-option>\n\t\t<ff-dropdown-option label=\"Option 2\" value=\"2\"></ff-dropdown-option>\n\t\t<ff-dropdown-option label=\"Option 3\" value=\"3\"></ff-dropdown-option>\n\t</template>\n</ff-dropdown>"
         }, {
             "code": "<ff-dropdown v-model=\"mVar\" placeholder=\"Dropdown Button Right\" dropdown-style=\"button\" options-align=\"right\">\n\t<template v-slot:button>\n\t\t<ff-button>\n\t\t\tButton\n\t\t\t<template v-slot:icon-right>\n\t\t\t\t<ChevronDownIcon />\n\t\t\t</template>\n\t\t</ff-button>\n\t</template>\n\t<template v-slot:default>\n\t\t<ff-dropdown-option label=\"Option 1\" value=\"1\"></ff-dropdown-option>\n\t\t<ff-dropdown-option label=\"Option 2\" value=\"2\"></ff-dropdown-option>\n\t\t<ff-dropdown-option label=\"Option 3\" value=\"3\"></ff-dropdown-option>\n\t</template>\n</ff-dropdown>"
+        }, {
+            "code": "<ff-dropdown v-model=\"mVar\" :disabled=\"true\">\n\t<ff-dropdown-option label=\"Option 1\" value=\"1\"></ff-dropdown-option>\n\t<ff-dropdown-option label=\"Option 2\" value=\"2\"></ff-dropdown-option>\n\t<ff-dropdown-option label=\"Option 3\" value=\"3\"></ff-dropdown-option>\n</ff-dropdown>"
         }],
         "props": [{
             "key": "placeholder",
             "default": "Please Select",
             "description": "Informative text to assist the user with the information required in this input field."
+        }, {
+            "key": "dropdown-style",
+            "default": "select",
+            "description": "(optional) 'select' or 'button'"
+        }, {
+            "key": "options-align",
+            "default": "left",
+            "description": "(optional) 'left' or 'right'"
+        }, {
+            "key": "disabled",
+            "default": "false",
+            "description": "(optional) Whether or not he dropdown should render in a disabled state - preventing user interaction"
         }]
     }, {
         "name": "ff-checkbox",
