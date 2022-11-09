@@ -10,11 +10,11 @@
             {{ placeholder }}
             <template #icon-right><ChevronDownIcon /></template>
         </ff-button>
-        <template v-if="isOpen">
-            <div class="ff-dropdown-options" v-click-outside="close" :class="{'ff-dropdown-options--full-width': dropdownStyle === 'select', 'ff-dropdown-options--fit': dropdownStyle === 'button', 'ff-dropdown-options--align-left': optionsAlign === 'left', 'ff-dropdown-options--align-right': optionsAlign === 'right'}">
+        <div v-show="isOpen">
+            <div class="ff-dropdown-options" ref="options" v-click-outside="close" :class="{'ff-dropdown-options--full-width': dropdownStyle === 'select', 'ff-dropdown-options--fit': dropdownStyle === 'button', 'ff-dropdown-options--align-left': optionsAlign === 'left', 'ff-dropdown-options--align-right': optionsAlign === 'right'}">
                 <slot></slot>
             </div>
-        </template>
+        </div>
     </div>
 </template>
 
@@ -29,7 +29,7 @@ export default {
     props: {
         modelValue: {
             default: null,
-            type: String
+            type: [Number, String]
         },
         placeholder: {
             default: 'Please Select',
@@ -48,7 +48,8 @@ export default {
     data () {
         return {
             isOpen: false,
-            selected: null
+            selected: null,
+            options: []
         }
     },
     computed: {
@@ -69,6 +70,12 @@ export default {
         },
         close: function () {
             this.isOpen = false
+        },
+        registerOption (option) {
+            this.options.push(option)
+            if (this.modelValue === option.value) {
+                this.selected = option
+            }
         }
     }
 }
