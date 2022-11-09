@@ -23,6 +23,22 @@
 /*
   FF Button
 */
+
+// nested element
+.ff-btn--icon,
+.ff-btn--icon svg {
+  width: 20px;
+  height: 20px;
+}
+.ff-btn--icon-left {
+  margin-left: -$ff-unit-xs;
+  margin-right: $ff-unit-sm;
+}
+.ff-btn--icon-right {
+  margin-left: $ff-unit-sm;
+  margin-right: -$ff-unit-xs;
+}
+
 .ff-btn {
   border-radius: $ff-unit-sm;
   display: flex;
@@ -90,20 +106,6 @@
       background-color: $ff-color--danger--dark;
       color: $ff-white;
     }
-  }
-  // nested element
-  .ff-btn--icon,
-  .ff-btn--icon svg {
-    width: 20px;
-    height: 20px;
-  }
-  .ff-btn--icon-left {
-    margin-left: -$ff-unit-xs;
-    margin-right: $ff-unit-sm;
-  }
-  .ff-btn--icon-right {
-    margin-left: $ff-unit-sm;
-    margin-right: -$ff-unit-xs;
   }
 
   &.ff-btn-small {
@@ -250,13 +252,19 @@ li.ff-list-item {
 .ff-dropdown {
   position: relative;
   display: inline-block;
+  background-color: white;
+  cursor: pointer;
+  &[disabled="true"] {
+    cursor: not-allowed;
+    background-color: $ff-grey-50;
+    color: $ff-grey-400;
+  }
   .ff-dropdown-selected {
     border: 1px solid $ff-grey-300;
-    border-radius: $ff-unit-xs;
+    border-radius: $ff-unit-sm;
     padding: $ff-unit-sm $ff-unit-md;
     height: 32px;
     width: 100%;
-    cursor: pointer;
     display: flex;
     justify-content: space-between;
     z-index: 2;
@@ -265,10 +273,13 @@ li.ff-list-item {
     position: absolute;
     top: 100%;
     display: none;
+    max-height: 14rem;
+    overflow-y: auto;
     box-shadow: 0px 6px 9px 0px #00000038;
     .ff-dropdown-option {
       padding: $ff-unit-sm $ff-unit-md;
       background-color: $ff-grey-50;
+      border-bottom: 1px solid $ff-grey-200;
       cursor: pointer;
       &:hover {
         background-color: $ff-grey-200;
@@ -299,6 +310,7 @@ li.ff-list-item {
     }
     .ff-dropdown-options {
       display: block;
+      z-index: 2;
     }
   }
 }

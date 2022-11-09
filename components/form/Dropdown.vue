@@ -1,10 +1,10 @@
 <template>
-    <div class="ff-dropdown" :class="'ff-dropdown--' + (isOpen ? 'open' : 'closed')">
+    <div class="ff-dropdown" :class="'ff-dropdown--' + (isOpen ? 'open' : 'closed')" :disabled="disabled">
         <div v-if="dropdownStyle === 'select'" @click="open()" class="ff-dropdown-selected">
             <slot name="placeholder">
                 {{ selected?.label || placeholder }}
             </slot>
-            <ChevronDownIcon class="ff-icon" />
+            <ChevronDownIcon class="ff-icon ff-btn--icon-right" />
         </div>
         <ff-button v-else-if="dropdownStyle === 'button'" @click="open()">
             {{ placeholder }}
@@ -42,6 +42,10 @@ export default {
         optionsAlign: {
             default: 'left',
             type: String
+        },
+        disabled: {
+            default: false,
+            type: Boolean
         }
     },
     emits: ['update:modelValue'],
@@ -66,7 +70,9 @@ export default {
     },
     methods: {
         open: function () {
-            this.isOpen = !this.isOpen
+            if (!this.disabled) {
+                this.isOpen = !this.isOpen
+            }
         },
         close: function () {
             this.isOpen = false
