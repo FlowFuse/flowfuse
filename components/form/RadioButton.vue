@@ -1,5 +1,5 @@
 <template>
-    <label class="ff-radio-btn" @click="select(value)">
+    <label class="ff-radio-btn" :disabled="disabled" @click="select(value)">
         <input type="radio" :value="value" />
         <span class="checkbox" :checked="checked"></span>
         <label>{{ label }}</label>
@@ -27,6 +27,10 @@ export default {
             default: null,
             type: String
         },
+        disabled: {
+            default: false,
+            type: Boolean
+        },
         hideDescription: {
             default: false,
             type: Boolean
@@ -35,7 +39,9 @@ export default {
     emits: ['select'],
     methods: {
         select: function (value) {
-            this.$emit('select', value)
+            if (!this.disabled) {
+                this.$emit('select', value)
+            }
         }
     }
 }
