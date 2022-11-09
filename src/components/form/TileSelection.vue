@@ -18,13 +18,7 @@ export default {
     watch: {
         modelValue: function (value) {
             this.$nextTick(() => {
-                for (let i = 0; i < this.children.length; i++) {
-                    if (value !== this.children[i].value) {
-                        this.children[i].selected = false
-                    } else {
-                        this.children[i].selected = true
-                    }
-                }
+                this.checkState(value)
             })
         }
     },
@@ -37,12 +31,18 @@ export default {
     methods: {
         registerOption: function (child) {
             this.children.push(child)
+            this.checkState(this.modelValue)
         },
         setSelected (selected) {
             if (selected?.value === this.modelValue) {
                 this.$emit('update:modelValue', null)
             } else {
                 this.$emit('update:modelValue', selected.value)
+            }
+        },
+        checkState (value) {
+            for (let i = 0; i < this.children.length; i++) {
+                this.children[i].selected = value === this.children[i].value
             }
         }
     },
