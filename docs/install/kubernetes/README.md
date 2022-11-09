@@ -98,7 +98,7 @@ This is the container you can customise for your deployment.
 
 ### Configure FlowForge
 
-All the initial configuration is handled by the Helm chart. This is done by creating a `values.yml` file in the `helm` directory that will be passed to the helm along with the chart.
+All the initial configuration is handled by the Helm chart. This is done by creating a `customization.yml` file in the `helm` directory that will be passed to the helm along with the chart.
 
 This is the minimal configuration
 
@@ -134,12 +134,12 @@ A full list of all the configable values can be found in the [Helm Chart README]
 The install can then be started with the following command, should be run from the `helm` dirctory:
 
 ```
-helm upgrade --install flowforge flowforge -f values.yml
+helm upgrade --install flowforge flowforge -f customization.yml
 ```
 
 #### Enabling the MQTT broker
 
-To enable the MQTT broker with Kubernetes install you need to add the following to the `values.yml` file
+To enable the MQTT broker with Kubernetes install you need to add the following to the `customization.yml` file
 
 ```
 forge:
