@@ -269,6 +269,7 @@ li.ff-list-item {
     .ff-dropdown-option {
       padding: $ff-unit-sm $ff-unit-md;
       background-color: $ff-grey-50;
+      cursor: pointer;
       &:hover {
         background-color: $ff-grey-200;
       }

@@ -10,7 +10,7 @@ export default {
     props: {
         value: {
             required: true,
-            type: String
+            type: [Number, String]
         },
         label: {
             required: true,
@@ -23,7 +23,16 @@ export default {
                 value: this.value,
                 label: this.label
             }
+        },
+        registerOption (option) {
+            this.$parent.registerOption(option)
         }
+    },
+    mounted () {
+        this.registerOption({
+            value: this.value,
+            label: this.label
+        })
     }
 }
 </script>
