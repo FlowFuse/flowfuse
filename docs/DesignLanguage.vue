@@ -394,13 +394,21 @@
                 <h3>Examples:</h3>
                 <div class="examples">
                     <div class="example">
+                        <h5>Example 1: Horizontal</h5>
                         <ff-radio-group v-model="models.radio0" :options="[{label: 'Option 1', value: 1, checked: true}, {label: 'Option 2', value: 2}]"></ff-radio-group>
                         {{ models.radio0 }}
                         <code>{{ cGroups['input'].components[3].examples[0].code }}</code>
                     </div>
                     <div class="example">
+                        <h5>Example 2: Vertical &amp; Descriptions</h5>
                         <ff-radio-group v-model="models.radio1" label="We can also provide a label here" :options="[{label: 'Option 1', value: 1, checked: true, description: 'This is a description of this particular option'}, {label: 'Option 2', value: 2, description: 'Another description'}]" orientation="vertical"></ff-radio-group>
                         {{ models.radio1 }}
+                        <code>{{ cGroups['input'].components[3].examples[1].code }}</code>
+                    </div>
+                    <div class="example">
+                        <h5>Example 3: Disabled Option</h5>
+                        <ff-radio-group v-model="models.radio1" label="We can also provide a label here" :options="[{label: 'Option 1', value: 1, checked: true, description: 'This is a description of this particular option'}, {label: 'Disabled Option', value: 2, description: 'Another description', disabled: true}]" orientation="vertical"></ff-radio-group>
+                        {{ models.radio2 }}
                         <code>{{ cGroups['input'].components[3].examples[1].code }}</code>
                     </div>
                 </div>
@@ -631,6 +639,7 @@ export default {
                 checkbox0: false,
                 radio0: null,
                 radio1: null,
+                radio2: null,
                 tiles0: null,
                 tiles1: null,
                 tiles3: 3

@@ -324,10 +324,19 @@ li.ff-list-item {
     background-color: transparent;
     border: 1px solid $ff-grey-400;    
   }
-  &:hover {
+  &:hover:not([disabled=true]) {
     .checkbox {
       background-color: $ff-grey-200;
     }
+  }
+  &[disabled=true] {
+    cursor: not-allowed;
+    label, p {
+      color: $ff-grey-400;
+    }
+  }
+  &[disabled=true] * {
+    pointer-events: none;
   }
   .checkbox {
     &[checked=true] {

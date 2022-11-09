@@ -4,6 +4,7 @@
         <ff-radio-button v-for="option in internalOptions" :key="option.label"
             :value="option.value" :label="option.label" :checked="option.checked"
             :description="option.description"
+            :disabled="option.disabled"
             :hide-description="orientation === 'horizontal'"
             @select="select"
         ></ff-radio-button>
