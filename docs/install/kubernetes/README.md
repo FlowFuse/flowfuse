@@ -131,6 +131,7 @@ TODO: *Detailed walk through for AWS in internal Cloud Project docs. Will add ex
 
 A full list of all the configable values can be found in the [Helm Chart README](https://github.com/flowforge/helm/blob/main/helm/flowforge/README.md).
 
+The install can then be started with the following command, should be run from the `helm` dirctory:
 
 ```
 helm upgrade --install flowforge flowforge -f values.yml
