@@ -66,7 +66,8 @@ xcode-select --install
     mkdir c:\flowforge
     ```
 
-2. Download the Installer zip file from https://github.com/flowforge/installer/releases
+2. Download the lastest [Installer zip file](https://github.com/flowforge/installer/releases/latest).
+
 
 3. Unzip the downloaded file into a temporary location and copy its contents to
    the FlowForge directory
@@ -108,13 +109,11 @@ If you select this option, it will ask if you want to run the service as the
 current user, or create a new `flowforge` user. If you choose to create the
 user, it will also change the ownership of the FlowForge directory to that user.
 
-
 ### Configuring FlowForge
 
 The default FlowForge configuration is provided in the file `/opt/flowforge/etc/flowforge.yml`.
 
 For more details on the options available, see the [configuration guide](../configuration.md).
-
 
 ### Running FlowForge
 
