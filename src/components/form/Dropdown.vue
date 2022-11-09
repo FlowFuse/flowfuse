@@ -29,7 +29,7 @@ export default {
     props: {
         modelValue: {
             default: null,
-            type: [Number, String]
+            type: [Number, String, Boolean]
         },
         placeholder: {
             default: 'Please Select',
@@ -54,6 +54,12 @@ export default {
             isOpen: false,
             selected: null,
             options: []
+        }
+    },
+    watch: {
+        modelValue: function () {
+            // handle async setting of modelvalue where value is set after options have loaded
+            this.checkOptions()
         }
     },
     computed: {
@@ -81,6 +87,13 @@ export default {
             this.options.push(option)
             if (this.modelValue === option.value) {
                 this.selected = option
+            }
+        },
+        checkOptions () {
+            for (let i = 0; i < this.options.length; i++) {
+                if (this.options[i].value === this.modelValue) {
+                    this.selected = this.options[i]
+                }
             }
         }
     }
