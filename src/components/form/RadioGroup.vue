@@ -40,7 +40,6 @@ export default {
     },
     watch: {
         modelValue: function () {
-            console.log('set model value')
             this.checkOptions()
         }
     },
