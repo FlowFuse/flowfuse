@@ -38,23 +38,26 @@ export default {
             internalOptions: this.options
         }
     },
+    watch: {
+        modelValue: function () {
+            console.log('set model value')
+            this.checkOptions()
+        }
+    },
     mounted () {
-        // make sure we don't have two options checked
-        let hasCheck = false
-        this.options.forEach((option, i) => {
-            this.internalOptions[i].checked = (option.checked && !hasCheck) ? option.checked : false
-            if (this.internalOptions[i].checked) {
-                hasCheck = true
-                this.$emit('update:modelValue', option.value)
-            }
-        })
+        this.checkOptions()
     },
     methods: {
         select: function (val) {
-            this.options.forEach((option, i) => {
-                this.internalOptions[i].checked = (option.value === val)
-            })
             this.$emit('update:modelValue', val)
+        },
+        checkOptions () {
+            this.options.forEach((option, i) => {
+                this.internalOptions[i].checked = (option.value === this.modelValue)
+                if (this.internalOptions[i].checked) {
+                    this.$emit('update:modelValue', option.value)
+                }
+            })
         }
     }
 }
