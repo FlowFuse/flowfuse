@@ -1,8 +1,8 @@
 <template>
-    <label class="ff-checkbox">
-        <input type="checkbox" :value="modelValue" v-model="model" />
+    <label class="ff-checkbox" :disabled="disabled">
+        <input type="checkbox" :value="modelValue" :disabled="disabled" v-model="model" />
         <span class="checkbox" :checked="model"></span>
-        <label @click="model = !model">
+        <label @click="toggle">
             <slot>{{ label }}</slot>
         </label>
     </label>
@@ -15,6 +15,10 @@ export default {
         label: {
             required: true,
             type: String
+        },
+        disabled: {
+            default: false,
+            type: Boolean
         },
         modelValue: {
             required: true,
@@ -29,6 +33,13 @@ export default {
             },
             set (value) {
                 this.$emit('update:modelValue', value)
+            }
+        }
+    },
+    methods: {
+        toggle () {
+            if (!this.disabled) {
+                this.model = !this.model
             }
         }
     }
