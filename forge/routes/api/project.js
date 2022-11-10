@@ -74,8 +74,14 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.project
      */
     app.get('/:projectId', async (request, reply) => {
-        const result = await app.db.views.Project.project(request.project)
+        const [result, projectFlow] = await Promise.all([
+            await app.db.views.Project.project(request.project),
+            await app.db.models.StorageFlow.byProject(request.project.id)
+        ])
         const inflightState = app.db.controllers.Project.getInflightState(request.project)
+
+        result.flowLastUpdatedAt = projectFlow?.updatedAt
+
         if (inflightState) {
             result.meta = {
                 state: inflightState

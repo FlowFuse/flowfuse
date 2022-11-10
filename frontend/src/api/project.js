@@ -12,6 +12,7 @@ const getProject = (projectId) => {
     return client.get(`/api/v1/projects/${projectId}`).then(res => {
         res.data.createdSince = daysSince(res.data.createdAt)
         res.data.updatedSince = daysSince(res.data.updatedAt)
+        res.data.flowLastUpdatedSince = daysSince(res.data.flowLastUpdatedAt)
         return res.data
     })
 }
