@@ -354,7 +354,6 @@ export default {
             try {
                 if (this.project.id) {
                     await this.fetchData()
-                    this.loading = false
                 }
             } finally {
                 this.checkInterval = setTimeout(this.pollForData, 10000)
@@ -363,6 +362,7 @@ export default {
         fetchData: async function () {
             const data = await projectApi.getProjectDevices(this.project.id)
             this.devices = data.devices
+            this.loading = false
         },
         deviceAction (action, deviceId) {
             const device = this.devices.find(d => d.id === deviceId)
