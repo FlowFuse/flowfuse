@@ -539,6 +539,12 @@ module.exports = fp(async function (app, opts, done) {
         }
     })
 
+    app.get('/token/test', {
+        onRequest: verifyToken
+    }, async (request, reply) => {
+        reply.code(200).send()
+    })
+
     done()
 
     /**
