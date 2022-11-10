@@ -22,12 +22,7 @@
             Environment Variables
         </FormRow>
         <div :class="['space-y-4', envVarOpts.envVars?'opacity-100':'opacity-30']">
-            <FormRow class="ml-9" :disabled="!envVarOpts.envVars" type="radio" v-model="envVarOpts.envVarsKo" value="all">
-                Keys and Values
-            </FormRow>
-            <FormRow class="ml-9" :disabled="!envVarOpts.envVars" type="radio" v-model="envVarOpts.envVarsKo" value="keys">
-                Keys only
-            </FormRow>
+            <ff-radio-group class="ml-9" v-model="envVarOpts.envVarsKo" orientation="vertical" :options="envVarKeyOptions"></ff-radio-group>
         </div>
     </div>
 </template>
@@ -62,6 +57,17 @@ export default {
         } else {
             this.envVarOpts.envVars = true
             this.envVarOpts.envVarsKo = 'keys'
+        }
+    },
+    setup () {
+        return {
+            envVarKeyOptions: [{
+                label: 'Keys and Values',
+                value: 'all'
+            }, {
+                label: 'Keys Only',
+                value: 'keys'
+            }]
         }
     },
     watch: {

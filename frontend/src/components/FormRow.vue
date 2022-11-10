@@ -1,5 +1,6 @@
 <template>
     <div :class="containerClass ? containerClass : 'max-w-sm'">
+        <!-- Checkbox -->
         <template v-if="type==='checkbox'">
             <div class="flex" :class="(wrapperClass ? wrapperClass : 'items-center')">
                 <div>
@@ -17,23 +18,7 @@
             <div v-if="error" class="inline-block ml-8 text-red-400 inline text-xs">{{error}}</div>
             <div v-if="hasDescription" class="ff-description pl-8 mt-1"><slot name="description"></slot></div>
         </template>
-        <template v-else-if="type==='radio'">
-            <div class="flex" :class="(wrapperClass ? wrapperClass : 'items-center')  + (disabled ? ' cursor-not-allowed' : '')">
-                <input :id="inputId"
-                       ref="input"
-                       type="radio"
-                       :class="inputClass"
-                       v-model="localModelValue"
-                       :name="name"
-                       :value="value"
-                       :disabled="disabled"
-                       @change="$emit('update:modelValue', $event.target.value)"
-                >
-                <label v-if="hasTitle" :for="inputId" class="text-sm font-medium text-gray-700"><slot></slot></label>
-            </div>
-            <div v-if="error" class="ml-9 text-red-400 inline text-xs">{{error}}</div>
-            <div v-if="hasDescription" class="mt-1 text-xs text-gray-400 mb-2 ml-9 space-y-1"><slot name="description"></slot></div>
-        </template>
+        <!-- Single Line File Selection -->
         <template v-else-if="type==='file'">
             <label v-if="hasTitle" :for="inputId" class="text-sm font-medium text-gray-700"><slot></slot></label>
             <div class="flex" :class="(wrapperClass ? wrapperClass : 'items-center')">
@@ -56,6 +41,7 @@
             <label v-if="hasTitle" :for="inputId" :class="(disabled ? 'text-gray-400' : 'text-gray-700')" class="block text-sm font-medium mb-1"><slot></slot></label>
             <div v-if="hasDescription" class="text-xs text-gray-400 mb-2 space-y-1"><slot name="description"></slot></div>
             <div :class="(wrapperClass ? wrapperClass : 'flex flex-col sm:flex-row relative')">
+                <!-- Dropdown -->
                 <template v-if="options && type !== 'uneditable'">
                     <ff-dropdown v-model="localModelValue" class="w-full" :disabled="disabled">
                         <ff-dropdown-option v-for="option in options" :value="option.value" :label="option.label" :key="option.label" class="text-sm">
@@ -63,13 +49,16 @@
                         </ff-dropdown-option>
                     </ff-dropdown>
                 </template>
+                <!-- Custom Input -->
                 <template v-else-if="hasCustomInput">
                     <slot name="input"></slot>
                 </template>
+                <!-- Static/Uneditable -->
                 <template v-else-if="type==='uneditable'">
                     <div class="w-full uneditable" :class="inputClass + (disabled ? ' text-gray-400' : ' text-gray-700')">{{ modelValue || (valueEmptyText == null ? 'No Value' : valueEmptyText ) }}</div>
                 </template>
                 <template v-else>
+                    <!-- Text Input -->
                     <ff-text-input
                         ref="input"
                         v-model="localModelValue"

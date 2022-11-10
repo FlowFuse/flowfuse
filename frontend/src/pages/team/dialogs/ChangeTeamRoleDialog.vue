@@ -2,24 +2,16 @@
     <ff-dialog ref="dialog" header="Change Role" confirm-label="Change" @confirm="confirm()" :disable-primary="ownerCount < 2 && isOwner">
         <template v-slot:default v-if="user">
             <form class="space-y-6" @submit.prevent>
-                <div class="mt-2 space-y-2">
+                <div class="space-y-2">
                     <template v-if="ownerCount < 2 && isOwner">
                         <p class="text-sm text-gray-500">You cannot change the role for <span class="font-bold">{{ user.username }}</span> as
                             they are the only owner of the team.</p>
                     </template>
                     <template v-else>
-                        <p class="text-sm text-gray-500">
+                        <p class="text-sm text-gray-500 mb-6">
                             Select a role for <span class="font-bold">{{ user.username }}</span>:
                         </p>
-                        <FormRow id="role-owner" :value="Roles.Owner" v-model="input.role" type="radio">Owner
-                            <template v-slot:description>Owners can add and remove members to the team and create projects</template>
-                        </FormRow>
-                        <FormRow id="role-member" :value="Roles.Member" v-model="input.role" type="radio">Member
-                            <template v-slot:description>Members can access the team projects</template>
-                        </FormRow>
-                        <FormRow id="role-viewer" :value="Roles.Viewer" v-model="input.role" type="radio">Viewer
-                            <template v-slot:description>Viewers can access the team projects, but not make any changes</template>
-                        </FormRow>
+                        <ff-radio-group v-model="input.role" orientation="vertical" :options="roleOptions"></ff-radio-group>
                     </template>
                 </div>
             </form>
@@ -73,6 +65,19 @@ export default {
     },
     setup () {
         return {
+            roleOptions: [{
+                label: 'Owner',
+                value: Roles.Owner,
+                description: 'Owners can add and remove members to the team and create projects'
+            }, {
+                label: 'Member',
+                value: Roles.Member,
+                description: 'Members can access the team projects'
+            }, {
+                label: 'Viewer',
+                value: Roles.Viewer,
+                description: 'Viewers can access the team projects, but not make any changes'
+            }],
             show (team, user, ownerCount) {
                 this.$refs.dialog.show()
                 this.team = team
