@@ -431,6 +431,7 @@ li.ff-list-item {
     display: flex;
     flex-direction: column;
     background-color: $ff-white;
+    font-size: 0.875rem;
     border: 2px solid $ff-grey-300;
     border-radius: $ff-unit-sm;
     padding: 12px $ff-unit-lg;
@@ -453,7 +454,7 @@ li.ff-list-item {
       justify-content: space-between;
       align-items: center;
       h2 {
-        font-size: 16px;
+        font-size: 14px;
       }
       > h2 {
         display: flex;
@@ -462,8 +463,8 @@ li.ff-list-item {
         padding-right: $ff-unit-xl;
         margin: 0;
         svg {
-          width: 24px;
-          height: 24px;
+          width: 20px;
+          height: 20px;
           fill: $ff-grey-300;
           &.ff-tile-selection-option--edit {
             cursor: pointer;
@@ -487,8 +488,8 @@ li.ff-list-item {
     }
     &--description {
       flex-grow: 1;
-      margin-top: $ff-unit-md;
-      padding-top: $ff-unit-md;
+      margin-top: $ff-unit-sm;
+      padding-top: $ff-unit-sm;
       border-top: 1px solid $ff-grey-300;
     }
     &--meta {
