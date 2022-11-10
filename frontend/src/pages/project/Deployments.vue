@@ -161,14 +161,20 @@
 <script>
 
 import { Roles } from '@core/lib/roles'
-import { ClockIcon, CloudIcon } from '@heroicons/vue/outline'
-import { CheckCircleIcon, ChipIcon, ExclamationIcon, ExternalLinkIcon, PlusSmIcon } from '@heroicons/vue/solid'
+import { ClockIcon } from '@heroicons/vue/outline'
+import { PlusSmIcon } from '@heroicons/vue/solid'
 
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
 import DeviceCredentialsDialog from '../team/Devices/dialogs/DeviceCredentialsDialog'
 import TeamDeviceCreateDialog from '../team/Devices/dialogs/TeamDeviceCreateDialog'
+
+import DeploymentLink from './components/cells/DeploymentLink.vue'
+import DeviceLink from './components/cells/DeviceLink.vue'
+import LastSeen from './components/cells/LastSeen.vue'
+import ProjectEditorLink from './components/cells/ProjectEditorLink.vue'
+import Snapshot from './components/cells/Snapshot.vue'
 
 import deviceApi from '@/api/devices'
 import projectApi from '@/api/project'
@@ -177,54 +183,7 @@ import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
 import Alerts from '@/services/alerts'
 import Dialog from '@/services/dialog'
 
-const ProjectEditorLink = {
-    template: `<a v-if="projectRunning && !isVisitingAdmin" :href="url" target="_blank" class="ff-btn ff-btn--secondary" data-action="open-editor">
-        Open Editor
-        <span class="ff-btn--icon ff-btn--icon-right">
-            <ExternalLinkIcon />
-        </span>
-    </a>`,
-    props: ['projectRunning', 'isVisitingAdmin', 'project', 'url'],
-    components: { ExternalLinkIcon }
-}
-
 // <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" alt="Open actions menu" :options="options" data-action="open-actions">Actions</DropdownMenu
-
-const DeviceLink = {
-    template: `
-        <router-link :to="{ name: 'Device', params: { id: id } }" class="flex">
-            <ChipIcon class="w-6 mr-2 text-gray-500" />
-            <div class="flex flex-col space-y-1">
-                <span class="text-lg">{{name}}</span>
-                <span class="text-xs text-gray-500">id: {{id}}</span>
-            </div>
-        </router-link>`,
-    props: ['id', 'name', 'type'],
-    components: { ChipIcon }
-}
-
-const CloudLink = {
-    template: `
-        <a v-if="!disabled" :href="url" target="_blank" class="flex" data-action="open-editor">
-            <CloudIcon class="w-6 mr-2 text-gray-500" />
-            <div class="flex flex-col space-y-1">
-                {{url}}
-            </div>
-        </a>
-        <span class="flex" v-else>
-            <CloudIcon class="w-6 mr-2 text-gray-500" />
-            <div class="flex flex-col space-y-1">
-                {{url}}
-            </div>
-        </span>`,
-    props: ['url', 'disabled'],
-    components: { CloudIcon }
-}
-
-const LastSeen = {
-    template: '<span><span v-if="lastSeenSince">{{lastSeenSince}}</span><span v-else class="italic text-gray-500">never</span></span>',
-    props: ['lastSeenSince']
-}
 
 export default {
     name: 'ProjectDeployments',
@@ -254,49 +213,19 @@ export default {
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
         columns () {
-            const targetSnapshot = this.project.deviceSettings.targetSnapshot
-
-            // Because of the limitations of the `ItemTable` component, we need
-            // this SnapshotComponent to know what the Project TargetSnapshot is.
-            // That information is not attached to the devices. So by defining
-            // the component inline here, we have `targetSnapshot` in scope.
-            // This is not good Vue. All of these inline components should be
-            // pulled out - but without a means to attach additional props to
-            // individual cells, we don't have that option right now.
-            const SnapshotComponent = {
-                template: `<span class="flex space-x-4">
-    <span v-if="activeSnapshot?.id || updateNeeded" class="flex items-center space-x-2 text-gray-500 italic">
-        <ExclamationIcon class="text-yellow-600 w-4" v-if="updateNeeded" />
-        <CheckCircleIcon class="text-green-700 w-4" v-else-if="activeSnapshot?.id" />
-    </span>
-    <template v-if="activeSnapshot"><div class="flex flex-col"><span>{{ activeSnapshot?.name }}</span><span class="text-xs text-gray-500">{{ activeSnapshot.id }}</span></div></template>
-    <template v-else><span class="italic text-gray-500">none</span></template>
-</span>`,
-                props: ['activeSnapshot', 'targetSnapshot'],
-                computed: {
-                    updateNeeded: function () {
-                        return !this.activeSnapshot || (this.activeSnapshot?.id !== targetSnapshot)
-                    }
-                },
-                components: {
-                    ExclamationIcon,
-                    CheckCircleIcon
-                }
-            }
-
             return [
                 { label: 'Device', class: ['w-64'], sortable: true, component: { is: markRaw(DeviceLink) } },
                 { label: 'Last Seen', class: ['w-48'], sortable: true, component: { is: markRaw(LastSeen) } },
-                { label: 'Deployed Snapshot', class: ['w-32'], component: { is: markRaw(SnapshotComponent) } },
+                { label: 'Deployed Snapshot', class: ['w-32'], component: { is: markRaw(Snapshot), extraProps: { targetSnapshot: this.project.deviceSettings.targetSnapshot } } },
                 { label: '', class: ['w-20'], component: { is: markRaw(ProjectStatusBadge) } }
             ]
         },
         cloudColumns () {
             return [
-                { label: 'Location', class: ['w-64'], component: { is: markRaw(CloudLink), extraProps: { disabled: !this.projectRunning || this.isVisitingAdmin } } },
+                { label: 'Location', class: ['w-64'], component: { is: markRaw(DeploymentLink), extraProps: { disabled: !this.projectRunning || this.isVisitingAdmin } } },
                 { label: 'Last Deployed', class: ['w-48'], component: { is: markRaw(LastSeen), map: { lastSeenSince: 'flowLastUpdatedSince' } } },
                 { label: 'Deployment Status', class: ['w-32'], component: { is: markRaw(ProjectStatusBadge), map: { status: 'meta.state' } } },
-                { label: '', class: ['w-20'], component: { is: markRaw(ProjectEditorLink), extraProps: { projectRunning: this.projectRunning, isVisitingAdmin: this.isVisitingAdmin } } }
+                { label: '', class: ['w-20'], component: { is: markRaw(ProjectEditorLink), extraProps: { disabled: !this.projectRunning || this.isVisitingAdmin } } }
             ]
         },
         cloudRows () {
