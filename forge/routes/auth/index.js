@@ -539,10 +539,14 @@ module.exports = fp(async function (app, opts, done) {
         }
     })
 
-    app.get('/token/test', {
+    app.get('/token/test/:projectId', {
         onRequest: verifyToken
     }, async (request, reply) => {
-        reply.code(200).send()
+        if (request.session.ownerType === 'project' && request.params.projectId === request.session.ownerId) {
+            reply.code(200).send()
+        } else {
+            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+        }
     })
 
     done()
