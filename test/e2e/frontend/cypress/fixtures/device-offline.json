@@ -1,0 +1,22 @@
+{
+  "id": "1",
+  "name": "device-1",
+  "type": "type-1",
+  "createdAt": "2022-11-07T10:44:22.336Z",
+  "updatedAt": "2022-11-10T15:09:16.619Z",
+  "lastSeenAt": null,
+  "activeSnapshot": null,
+  "targetSnapshot": null,
+  "links": {
+      "self": "http://localhost:3000/api/v1/devices/1"
+  },
+  "status": "offline",
+  "team": {
+      "id": "1",
+      "name": "Team-1",
+      "slug": "team-1",
+      "links": {
+          "self": "http://localhost:3000/api/v1/teams/1"
+      }
+  }
+}
