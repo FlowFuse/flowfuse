@@ -11,7 +11,7 @@ describe('FlowForge platform admin users', () => {
     })
 
     it('can view (and click) the "Admin Settings" in user options', () => {
-        cy.get('[data-cy="user-options"]').get('.ff-dropdown-options').should('not.be.visible')
+        cy.get('[data-cy="user-options"]').get('.ff-dropdown-options').should('not.not.exist')
         cy.get('[data-cy="user-options"]').click()
         cy.get('[data-cy="user-options"] .ff-dropdown-options').should('be.visible')
         cy.get('[data-cy="user-options"] .ff-dropdown-options > .ff-dropdown-option').eq(1).contains('Admin Settings').should('be.visible')
@@ -111,7 +111,7 @@ describe('FlowForge platform non-admin users', () => {
     })
 
     it('cannot view the "Admin Settings" in user options', () => {
-        cy.get('[data-cy="user-options"]').get('.ff-dropdown-options').should('not.be.visible')
+        cy.get('[data-cy="user-options"]').get('.ff-dropdown-options').should('not.exist')
         cy.get('[data-cy="user-options"]').click()
         cy.get('[data-cy="user-options"] .ff-dropdown-options').should('be.visible')
         cy.get('[data-cy="user-options"] .ff-dropdown-options > .ff-dropdown-option').eq(1).contains('Admin Settings').should('not.exist')
