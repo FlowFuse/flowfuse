@@ -10,8 +10,15 @@
         <ff-loading v-else-if="deletingDevice" message="Deleting Device..." />
         <template v-else>
             <template v-if="devices.length > 0">
-                <ff-data-table data-el="devices" :columns="columns" :rows="devices"
-                               :show-search="true" search-placeholder="Search Devices...">
+                <ff-data-table
+                    data-el="devices"
+                    :columns="columns"
+                    :rows="devices"
+                    :show-search="true"
+                    search-placeholder="Search Devices..."
+                    :show-load-more="!!nextCursor"
+                    @load-more="loadMore"
+                >
                     <template v-if="hasPermission('device:edit')" v-slot:context-menu="{row}">
                         <ff-list-item label="Edit Details" @click="deviceAction('edit', row.id)"/>
                         <ff-list-item v-if="!row.project" label="Add to Project" @click="deviceAction('assignToProject', row.id)" />
@@ -118,13 +125,19 @@ export default {
         clearInterval(this.checkInterval)
     },
     methods: {
-        fetchData: async function (newVal) {
+        async fetchData (nextCursor = null) {
             if (this.team.id) {
-                const data = await teamApi.getTeamDevices(this.team.id)
-                this.devices.length = 0
-                this.devices = data.devices
+                const data = await teamApi.getTeamDevices(this.team.id, nextCursor)
+                this.nextCursor = data.meta.next_cursor
+                if (!nextCursor || !this.devices) {
+                    this.devices = []
+                }
+                this.devices.push(...data.devices)
             }
             this.loading = false
+        },
+        async loadMore () {
+            await this.fetchData(this.nextCursor)
         },
         showCreateDeviceDialog () {
             this.$refs.teamDeviceCreateDialog.show(null, this.project)
