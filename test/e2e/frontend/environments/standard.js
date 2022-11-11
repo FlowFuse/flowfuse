@@ -42,23 +42,10 @@ module.exports = async function (settings = {}, config = {}) {
     const team1 = await forge.db.models.Team.create({ name: 'ATeam', TeamTypeId: defaultTeamType.id })
     await team1.addUser(userAlice, { through: { role: Roles.Owner } })
     await team1.addUser(userBob, { through: { role: Roles.Owner } })
-
-    // force the DB to populate the TeamType- otherwise it just contains hte type id and falls
-    team1.reload({
-        include: ['TeamType']
-    })
+    // await team1.addUser(userCharlie, { through: { role: Roles.Member } })
 
     const team2 = await forge.db.models.Team.create({ name: 'BTeam', TeamTypeId: defaultTeamType.id })
     await team2.addUser(userBob, { through: { role: Roles.Owner } })
-
-    // force the DB to populate the TeamType- otherwise it just contains hte type id and falls
-    team2.reload({
-        include: ['TeamType']
-    })
-
-    // create a pending invite for Dave to join ATeam
-    await forge.db.controllers.Invitation.createInvitations(userAlice, team1, [userDave.email], Roles.Member)
-    await forge.db.controllers.Invitation.createInvitations(userBob, team2, [userDave.email], Roles.Member)
 
     const templateProperties = {
         name: 'template1',
