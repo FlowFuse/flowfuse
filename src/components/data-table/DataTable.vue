@@ -59,7 +59,7 @@
             </slot>
         </table>
         <div v-if="showLoadMore" class="ff-loadmore">
-            <span @click="$emit('load-more')">Load More...</span>
+            <span @click="$emit('load-more')" data-action="load-more">Load More...</span>
         </div>
     </div>
 </template>
