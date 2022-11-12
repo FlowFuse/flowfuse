@@ -803,6 +803,9 @@ export default {
                             is: markRaw(FFNotificationPill),
                             map: {
                                 count: 'number'
+                            },
+                            extraProps: {
+                                color: 'red'
                             }
                         }
                     }],
@@ -837,6 +840,9 @@ export default {
                             is: 'markRaw(FFNotificationPill)',
                             map: {
                                 count: 'number'
+                            },
+                            extraProps: {
+                                color: 'red'
                             }
                         }
                     }]
