@@ -193,6 +193,13 @@ li.ff-list-item {
     cursor: pointer;
     background-color: $ff-grey-200;
   }
+  &.disabled {
+    pointer-events: none;
+
+    label {
+      opacity: 0.5;
+    }
+  }
 }
 
 /*

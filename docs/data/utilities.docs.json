@@ -1,7 +1,7 @@
 {
     "name": "Utilities",
     "id": "utilities",
-    "description": "A collection of smaller components that can be used in conjuction with, or as child elements, of any of the other components in this library.",
+    "description": "A collection of smaller components that can be used in conjunction with, or as child elements, of any of the other components in this library.",
     "components": [{
         "name": "ff-check",
         "examples": [{
@@ -23,6 +23,10 @@
             "key": "label",
             "default": "",
             "description": "A string label to display in the list item."
+        }, {
+            "key": "disabled",
+            "default": "false",
+            "description": "Should this list item visually disabled"
         }]
     }]
 }
