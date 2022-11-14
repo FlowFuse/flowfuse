@@ -141,4 +141,45 @@ describe('Accounts API', async function () {
             // TODO: check user audit logs - expect 'account.xxx-yyy' { code: '', error, '' }
         })
     })
+
+    describe('Verify FF Tokens', async function () {
+        it('Test token belongs to a project', async function () {
+            app = await setup()
+            const authTokens = await app.project.refreshAuthTokens()
+            const response = await app.inject({
+                method: 'GET',
+                url: `/account/check/project/${app.project.id}`,
+                headers: {
+                    authorization: `Bearer ${authTokens.token}`
+                }
+            })
+            response.statusCode.should.equal(200)
+        })
+
+        it('Fail to verify with random project id', async function () {
+            app = await setup()
+            const authTokens = await app.project.refreshAuthTokens()
+            const response = await app.inject({
+                method: 'GET',
+                url: '/account/check/project/random',
+                headers: {
+                    authorization: `Bearer ${authTokens.token}`
+                }
+            })
+            response.statusCode.should.equal(401)
+        })
+
+        it('Fail to verify with random project id', async function () {
+            app = await setup()
+            const authTokens = await app.project.refreshAuthTokens()
+            const response = await app.inject({
+                method: 'GET',
+                url: `/account/check/team/${app.project.id}`,
+                headers: {
+                    authorization: `Bearer ${authTokens.token}`
+                }
+            })
+            response.statusCode.should.equal(401)
+        })
+    })
 })
