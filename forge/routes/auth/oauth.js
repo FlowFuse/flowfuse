@@ -307,8 +307,6 @@ module.exports = async function (app) {
             await app.verifyToken(request, reply)
         }
     }, async (request, reply) => {
-        console.log(request.params)
-        console.log(request.session)
         if (request.params.ownerType === request.session.ownerType && request.params.ownerId === request.session.ownerId) {
             reply.code(200).send()
         } else {
