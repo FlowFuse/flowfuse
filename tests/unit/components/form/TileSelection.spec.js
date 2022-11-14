@@ -3,7 +3,7 @@ import { mount } from '@vue/test-utils'
 import TileSelection from '@/components/form/TileSelection.vue'
 import TileSelectionOption from '@/components/form/TileSelectionOption.vue'
 
-describe('Form > Tile Selection', () => {
+describe('Form > TileSelection', () => {
     it('should have no children by default', async () => {
         const parent = mount(TileSelection, {
             props: {
