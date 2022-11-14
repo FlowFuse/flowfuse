@@ -21,8 +21,12 @@ export default {
     components: { ExternalLinkIcon },
     props: {
         disabled: {
-            type: Boolean,
-            default: false
+            default: false,
+            type: Boolean
+        },
+        url: {
+            required: true,
+            type: String
         }
     }
 }
