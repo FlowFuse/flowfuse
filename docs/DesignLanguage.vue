@@ -173,7 +173,39 @@
                     </div>
                     <div class="example">
                         <h5>Example 5: Custom Row Content &amp; Components</h5>
-                        <p style="margin-bottom: 12px;">Note, this method requires components to be created that can parse and render the data structure provided to the row.</p>
+                        <p style="margin-bottom: 12px;">
+                            Note, this method requires components to be created that can parse and render the data structure provided to the row.
+                        </p>
+                        <p style="margin-bottom: 12px;">
+                            The data passed to the sub-component can be manipulated using:
+                            <ul style="margin: 12px 24px;list-style: disc;">
+                                <li>
+                                    <pre style="display:inline;">map</pre> - maps row properties to other names
+                                </li>
+                                <li><pre style="display:inline;">extraProps</pre> - passes additional properties into the component</li>
+                            </ul>
+                        </p>
+                        <p style="margin-bottom: 6px;">
+                            <b>Map</b><br />
+                        </p>
+                        <pre style="margin-bottom: 6px;">"map": {
+    "count": "number",
+    "name": "user.name",
+},</pre>
+                        <p style="margin-bottom: 12px;">
+                            Maps the row properties <code style="display:inline;">number</code> and <code style="display:inline;">user.name</code>
+                            to <code style="display:inline;">number</code> and <code style="display:inline;">name</code> respectively.
+                        </p>
+                        <p style="margin-bottom: 6px;">
+                            <b>extraProps</b><br />
+                        </p>
+                        <pre  style="margin-bottom: 6px;">"extraProps": {
+    "total": this.totalRows,
+    "disabled": this.tableDisabled,
+},</pre>
+                        <p style="margin-bottom: 12px;">
+                            Passes the properties <code style="display:inline;">totalRows</code> and <code style="display:inline;">tableDisabled</code> from wherever columns is defined into the component.
+                        </p>
                         <p style="margin-bottom: 12px;">This method does still enable searching and sorting out of the box.</p>
                         <ff-data-table :columns="data.table4.columns" :rows="data.table4.rows"
                             :show-search="true" :search-fields="['sName', 'number']" search-placeholder="search-fields limits which properties the search applies to."></ff-data-table>
