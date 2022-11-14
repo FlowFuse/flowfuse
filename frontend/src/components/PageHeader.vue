@@ -36,7 +36,7 @@
                 <template v-slot:placeholder>
                     <div class="ff-user">
                         <img :src="user.avatar" class="ff-avatar"/>
-                        <ff-notification-pill v-if="notifications.total > 0" class="ml-3" :count="notifications.total"/>
+                        <ff-notification-pill v-if="notifications.total > 0" data-el="notification-pill" class="ml-3" :count="notifications.total"/>
                         <!-- <label>{{ user.name }}</label> -->
                     </div>
                 </template>
