@@ -229,7 +229,7 @@ export default {
             ]
         },
         cloudRows () {
-            return [this.project]
+            return this.project.id ? [this.project] : []
         },
         projectRunning () {
             return this.project.meta?.state === 'running'
