@@ -29,17 +29,17 @@ export default {
     },
     props: {
         activeSnapshot: {
-            default: {},
+            default: null,
             type: Object
         },
         targetSnapshot: {
-            type: String,
-            required: true
+            default: null,
+            type: Object
         }
     },
     computed: {
         updateNeeded: function () {
-            return !this.activeSnapshot || (this.activeSnapshot?.id !== this.targetSnapshot)
+            return !this.activeSnapshot || (this.activeSnapshot?.id !== this.targetSnapshot?.id)
         }
     }
 }
