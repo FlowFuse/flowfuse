@@ -26,7 +26,7 @@
 import { CloudIcon } from '@heroicons/vue/outline'
 
 export default {
-    name: 'CloudLink',
+    name: 'DeploymentLink',
     components: { CloudIcon },
     props: {
         url: {
