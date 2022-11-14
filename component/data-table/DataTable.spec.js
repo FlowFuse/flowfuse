@@ -7,7 +7,7 @@ import FfKebabMenu from '@/components/KebabMenu.vue'
 import FfTextInput from '@/components/form/TextInput.vue'
 import FfCheck from '@/components/Check.vue'
 
-describe('DataTable', () => {
+describe('Data-Table > DataTable', () => {
     it('supports searching rows by values', async () => {
         const wrapper = mount(DataTable, {
             props: {

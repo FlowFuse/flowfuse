@@ -1,6 +1,6 @@
 import DataTable from '@/components/data-table/DataTable.vue'
 
-describe('DataTable', () => {
+describe('Data-Table > DataTable', () => {
     describe('#filterRows', () => {
         it('searches all properties and returns matching subset of rows', () => {
             const rows = [{
