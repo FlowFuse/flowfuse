@@ -3,7 +3,7 @@
         <slot>
             <ff-data-table-cell v-for="(col, $column) in columns" :key="col.label" :class="col.class" :style="col.style" :highlight="highlightCell === $column">
                 <template v-if="col.component">
-                    <component :is="col.component.is" v-bind="getCellData(data, col)"></component>
+                    <component :is="col.component.is" v-bind="{...col.component.extraProps ?? {}, ...getCellData(data, col)}"></component>
                 </template>
                 <template v-else-if="!isBool(lookupProperty(data, col.key))">
                     {{ lookupProperty(data, col.key) }}
