@@ -4,6 +4,7 @@ on:
     branches: [ main ]
     paths:
       - 'src/**'
+      - 'tests/**'
       - 'package.json'
 
 jobs:
