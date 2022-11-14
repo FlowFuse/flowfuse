@@ -29,7 +29,7 @@ module.exports = {
         this._app = app
 
         const projects = await this._app.db.models.Project.findAll()
-        projects.forEach(project => {
+        projects.forEach(async (project) => {
             if (project.state !== 'suspended') {
                 const p = {
                     id: project.id,
@@ -101,6 +101,13 @@ module.exports = {
             if (await project.getSetting('stubProjectToken') === undefined) {
                 const stubProjectToken = forgeUtils.generateToken(8)
                 await project.updateSetting('stubProjectToken', stubProjectToken)
+            }
+            const existingFlow = await this._app.db.models.StorageFlow.byProject(project.id)
+            if (!existingFlow) {
+                await this._app.db.models.StorageFlow.create({
+                    flow: JSON.stringify([]),
+                    ProjectId: project.id
+                })
             }
             if (project.name === 'stub-fail-start') {
                 return new Promise((resolve, reject) => {
