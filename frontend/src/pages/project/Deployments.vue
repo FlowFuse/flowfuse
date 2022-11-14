@@ -216,7 +216,7 @@ export default {
             return [
                 { label: 'Device', class: ['w-64'], sortable: true, component: { is: markRaw(DeviceLink) } },
                 { label: 'Last Seen', class: ['w-48'], sortable: true, component: { is: markRaw(LastSeen) } },
-                { label: 'Deployed Snapshot', class: ['w-32'], component: { is: markRaw(Snapshot), extraProps: { targetSnapshot: this.project.deviceSettings.targetSnapshot } } },
+                { label: 'Deployed Snapshot', class: ['w-32'], component: { is: markRaw(Snapshot) } },
                 { label: '', class: ['w-20'], component: { is: markRaw(ProjectStatusBadge) } }
             ]
         },
