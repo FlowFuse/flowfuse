@@ -1,5 +1,6 @@
 const sharedUser = require('./shared/users')
 const UserInvitations = require('./userInvitations')
+const { getUserLogger } = require('../../lib/audit-logging')
 
 /**
  * User api routes
@@ -13,6 +14,7 @@ const UserInvitations = require('./userInvitations')
  * @memberof forge.routes.api
  */
 module.exports = async function (app) {
+    const userAuditLog = getUserLogger(app)
     app.register(UserInvitations, { prefix: '/invitations' })
 
     /**
@@ -47,11 +49,11 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         try {
             await app.db.controllers.User.changePassword(request.session.User, request.body.old_password, request.body.password)
-            await userLog(request.session.User.id, 'change-password', null, request.session.User.id)
+            await userAuditLog.user.updatePassword(request.session.User, null)
             reply.send({ status: 'okay' })
         } catch (err) {
             const resp = { code: 'password_change_failed', error: 'password change failed' }
-            await userLog(request.session.User.id, 'change-password', resp, request.session.User.id)
+            await userAuditLog.user.updatePassword(request.session.User, resp)
             reply.code(400).send(resp)
         }
     })
@@ -79,28 +81,7 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.user
      */
     app.put('/', async (request, reply) => {
-        sharedUser.updateUser(app, request.session.User, request, reply, userLog)
+        sharedUser.updateUser(app, request.session.User, request, reply, 'user')
         return reply // fix errors in tests "Promise may not be fulfilled with 'undefined' when statusCode is not 204" https://github.com/fastify/help/issues/627
     })
-
-    /**
-     * Log events against the entityType `users.x.y`
-     * @param {number} userId User performing the action
-     * @param {string} event The name of the event
-     * @param {*} body The body/data for the log entry
-     * @param {string|number} [entityId] The ID of the user being affected (where available)
-     */
-    async function userLog (userId, event, body, entityId) {
-        try {
-            // function userLog (app, UserId, event, body, entityId)
-            await app.db.controllers.AuditLog.userLog(
-                userId,
-                `user.${event}`,
-                body,
-                entityId || userId
-            )
-        } catch (error) {
-            console.error(error)
-        }
-    }
 }
