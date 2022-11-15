@@ -9,11 +9,11 @@
         <ff-loading v-else-if="creatingDevice" message="Creating Device..." />
         <ff-loading v-else-if="deletingDevice" message="Deleting Device..." />
         <template v-else>
-            <template v-if="devices.length > 0">
+            <template v-if="this.devices.size > 0">
                 <ff-data-table
                     data-el="devices"
                     :columns="columns"
-                    :rows="devices"
+                    :rows="Array.from(this.devices.values())"
                     :show-search="true"
                     search-placeholder="Search Devices..."
                     :show-load-more="!!nextCursor"
@@ -38,7 +38,7 @@
                     </ff-button>
                 </div>
             </template>
-            <template v-if="devices.length === 0">
+            <template v-if="this.devices.size === 0">
                 <div class="flex text-gray-500 justify-center italic mb-4 p-8">
                     You don't have any devices yet
                 </div>
@@ -102,39 +102,49 @@ export default {
     mixins: [permissionsMixin],
     data () {
         return {
-            loading: false,
+            loading: true,
             creatingDevice: false,
             deletingDevice: false,
-            devices: [],
-            checkInterval: null
+            devices: new Map(),
+            checkInterval: null,
+            nextCursor: null
         }
     },
     watch: {
         team: 'fetchData'
     },
     mounted () {
-        // Set loading flag to true for initial page load
-        this.loading = true
-        this.fetchData()
-        this.checkInterval = setInterval(() => {
-            // Do not set loading flag so the refresh happens in the background
-            this.fetchData()
-        }, 10000)
+        this.pollForData()
     },
     unmounted () {
         clearInterval(this.checkInterval)
     },
     methods: {
-        async fetchData (nextCursor = null) {
-            if (this.team.id) {
-                const data = await teamApi.getTeamDevices(this.team.id, nextCursor)
-                this.nextCursor = data.meta.next_cursor
-                if (!nextCursor || !this.devices) {
-                    this.devices = []
+        async pollForData () {
+            try {
+                if (this.team.id) {
+                    await this.fetchData(null, true) // to-do: For now, this only polls the first page...
+                    this.loading = false
                 }
-                this.devices.push(...data.devices)
+            } finally {
+                this.checkInterval = setTimeout(this.pollForData, 10000)
             }
-            this.loading = false
+        },
+        async fetchData (nextCursor = null, polled = false) {
+            const data = await teamApi.getTeamDevices(this.team.id, nextCursor)
+
+            // Polling never resets the devices list
+            if (!nextCursor && !polled) {
+                this.devices = new Map()
+            }
+            data.devices.forEach(device => {
+                this.devices.set(device.id, device)
+            })
+
+            // to-do: Polling only loads the first page
+            if (!polled) {
+                this.nextCursor = data.meta.next_cursor
+            }
         },
         async loadMore () {
             await this.fetchData(this.nextCursor)
@@ -154,21 +164,18 @@ export default {
                 setTimeout(() => {
                     this.$refs.deviceCredentialsDialog.show(device)
                 }, 500)
-                this.devices.push(device)
+                this.devices.set(device.id, device)
             }
         },
         deviceUpdated (device) {
-            const index = this.devices.findIndex(d => d.id === device.id)
-            if (index > -1) {
-                this.devices[index] = device
-            }
+            this.devices.set(device.id, device)
         },
         async assignDevice (device, projectId) {
             const updatedDevice = await deviceApi.updateDevice(device.id, { project: projectId })
             device.project = updatedDevice.project
         },
         deviceAction (action, deviceId) {
-            const device = this.devices.find(d => d.id === deviceId)
+            const device = this.devices.get(deviceId)
             if (action === 'edit') {
                 this.showEditDeviceDialog(device)
             } else if (action === 'delete') {
@@ -182,8 +189,7 @@ export default {
                     try {
                         await deviceApi.deleteDevice(device.id)
                         Alerts.emit('Successfully deleted the device', 'confirmation')
-                        const index = this.devices.indexOf(device)
-                        this.devices.splice(index, 1)
+                        this.devices.delete(device.id)
                     } catch (err) {
                         Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)
                     } finally {
