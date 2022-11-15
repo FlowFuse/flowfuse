@@ -253,8 +253,8 @@ class UpdatesCollection {
         return [...this.updates]
     }
 
-    pushDifferences (oldObject, newObject) {
-        this.updates.push(...generateUpdates(oldObject, newObject) || [])
+    pushDifferences (oldObject, newObject, sensitiveKeys = ['pass', 'password', 'token', 'secret', 'credentials', 'credentialSecret', 'cookieSecret']) {
+        this.updates.push(...generateUpdates(oldObject, newObject, sensitiveKeys) || [])
     }
     /**
      * A update object
@@ -276,7 +276,8 @@ class UpdatesCollection {
         }
     }
 }
-function generateUpdates (o1, o2) {
+function generateUpdates (o1, o2, sensitiveKeys) {
+    sensitiveKeys = sensitiveKeys || []
     const deepDiffMapper = (() => {
         return {
             VALUE_CREATED: 'created',
@@ -398,7 +399,15 @@ function generateUpdates (o1, o2) {
     const flat1 = toFlatPropertyMap(o1)
     const flat2 = toFlatPropertyMap(o2)
     const diff = deepDiffMapper.map(flat1, flat2)
-    return diffToArray(diff)
+    const diffSansSensitive = diffToArray(diff).map((update) => {
+        const sensitive = sensitiveKeys.some(s => (update.key).endsWith(s))
+        if (sensitive) {
+            update.old = '***'
+            update.new = '***'
+        }
+        return update
+    })
+    return diffSansSensitive
 }
 // #endregion (Updates formatter)
 
