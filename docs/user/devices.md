@@ -16,7 +16,9 @@ command is on the path:
 sudo npm install -g @flowforge/flowforge-device-agent
 ```
 
-### Configuration directory
+## Configuration
+
+### Execution directory
 
 By default the agent uses `/opt/flowforge-device` as its working directory. 
 This can be overridden with the `-d/--dir` option.
@@ -27,6 +29,17 @@ running the agent.
 ```
 sudo mkdir /opt/flowforge-device
 sudo chown -R $USER /opt/flowforge-device
+```
+
+### Listen Port
+
+By default Node-RED will listen to port `1880`. The device agent has a flag to
+change this behaviour and listen on another port of choosing: `--port`. This can
+be useful for custom firewall rules, or when running multiple device agents on
+the same machine.
+
+```
+flowforge-device-agent --port=1881
 ```
 
 ## Register the device
@@ -124,3 +137,4 @@ To delete a device:
 
 The next time the device calls home it will find it is no longer authorised and
 will stop and delete its local copy of the project it was running.
+
