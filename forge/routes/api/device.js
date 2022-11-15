@@ -1,3 +1,4 @@
+const { getProjectLogger } = require('../../lib/audit-logging')
 const { Roles } = require('../../lib/roles')
 const DeviceLive = require('./deviceLive')
 
@@ -10,6 +11,7 @@ const DeviceLive = require('./deviceLive')
  * @memberof forge.routes.api
  */
 module.exports = async function (app) {
+    const projectAuditLog = getProjectLogger(app)
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.deviceId !== undefined) {
             if (request.params.deviceId) {
@@ -208,12 +210,7 @@ module.exports = async function (app) {
                         'team.device.unassigned',
                         { id: request.device.hashid, project: oldProject.id }
                     )
-                    await app.db.controllers.AuditLog.projectLog(
-                        oldProject.id,
-                        request.session.User.id,
-                        'project.device.unassigned',
-                        { id: request.device.hashid }
-                    )
+                    await projectAuditLog.project.device.unassigned(request.session.User, null, oldProject, request.device)
                 } else {
                     // project is already unassigned - nothing to do
                 }
@@ -252,6 +249,7 @@ module.exports = async function (app) {
                         'project.device.assigned',
                         { id: request.device.hashid }
                     )
+                    await projectAuditLog.project.device.assigned(request.session.User, null, project, request.device)
                 }
             }
             // await TestObjects.deviceOne.setProject(TestObjects.deviceProject)
