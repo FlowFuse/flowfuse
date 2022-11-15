@@ -34,7 +34,7 @@ sudo chown -R $USER /opt/flowforge-device
 ### Listen Port
 
 By default Node-RED will listen to port `1880`. The device agent has a flag to
-change this behaviour and listen on another port of choosing: `--port`. This can
+change this behaviour and listen on another port of choosing: `-p/--port`. This can
 be useful for custom firewall rules, or when running multiple device agents on
 the same machine.
 
