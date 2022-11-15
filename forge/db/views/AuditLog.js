@@ -4,8 +4,10 @@ module.exports = {
             return {
                 id: e.hashid,
                 createdAt: e.createdAt,
-                username: e.User ? e.User.username : null,
+                username: e.User ? e.User.username : null, // Kept for compatibility. To remove once UI complete
                 event: e.event,
+                scope: e.scope,
+                trigger: e.trigger,
                 body: e.body
             }
         })
