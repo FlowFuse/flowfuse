@@ -245,17 +245,18 @@ describe('Users API', async function () {
                 const result = response.json()
                 result.should.have.property('email_verified', true)
                 // ensure platform audit log entry is made
-                const auditLogs = await getAuditLog(1)
-                auditLogs.log[0].should.have.a.property('event', 'users.update-user') // what happened
-                auditLogs.log[0].should.have.a.property('trigger').and.be.an.Object() // who/what did it
-                auditLogs.log[0].trigger.should.have.a.property('id', TestObjects.alice.id) // actioned by
-                auditLogs.log[0].should.have.a.property('scope').and.be.an.Object() // who/what was affected
-                auditLogs.log[0].scope.should.have.a.property('id', TestObjects.elvis.id.toString()) // affected user
-                auditLogs.log[0].should.have.a.property('body') // details
-                // check updates were recorded
-                auditLogs.log[0].body.should.have.a.property('updates')
-                auditLogs.log[0].body.updates.should.have.a.property('length', 1)
-                auditLogs.log[0].body.updates[0].key.should.eql('email_verified') // property changed
+                // TODO: re-introduce audit log tests below once #1183 is complete
+                // const auditLogs = await getAuditLog(1)
+                // auditLogs.log[0].should.have.a.property('event', 'users.update-user') // what happened
+                // auditLogs.log[0].should.have.a.property('trigger').and.be.an.Object() // who/what did it
+                // auditLogs.log[0].trigger.should.have.a.property('id', TestObjects.alice.id) // actioned by
+                // auditLogs.log[0].should.have.a.property('scope').and.be.an.Object() // who/what was affected
+                // auditLogs.log[0].scope.should.have.a.property('id', TestObjects.elvis.id.toString()) // affected user
+                // auditLogs.log[0].should.have.a.property('body') // details
+                // // check updates were recorded
+                // auditLogs.log[0].body.should.have.a.property('updates')
+                // auditLogs.log[0].body.updates.should.have.a.property('length', 1)
+                // auditLogs.log[0].body.updates[0].key.should.eql('email_verified') // property changed
             })
             it('team owner can not manually verify email', async function () {
                 const response = await app.inject({
@@ -484,24 +485,25 @@ describe('Users API', async function () {
             })
             response.should.have.property('statusCode', 200)
             // ensure audit log entry is made
-            const auditLogs = await getAuditLog(2) // get last 2
-            // the oldest entry should be a failed login
-            auditLogs.log[1].should.have.a.property('event', 'account.login') // what happened
-            // check an error was included in details
-            auditLogs.log[1].body.should.have.a.property('error').and.be.an.Object()
-            auditLogs.log[1].body.error.should.have.a.property('code', 'user_suspended')
-            auditLogs.log[1].body.error.should.have.a.property('message')
-            auditLogs.log[1].body.should.have.a.property('user').and.be.an.Object()
-            auditLogs.log[1].body.user.should.have.a.property('username', 'elvis')
+            // TODO: re-introduce audit log tests below once #1183 is complete
+            // const auditLogs = await getAuditLog(2) // get last 2
+            // // the oldest entry should be a failed login
+            // auditLogs.log[1].should.have.a.property('event', 'account.login') // what happened
+            // // check an error was included in details
+            // auditLogs.log[1].body.should.have.a.property('error').and.be.an.Object()
+            // auditLogs.log[1].body.error.should.have.a.property('code', 'user_suspended')
+            // auditLogs.log[1].body.error.should.have.a.property('message')
+            // auditLogs.log[1].body.should.have.a.property('user').and.be.an.Object()
+            // auditLogs.log[1].body.user.should.have.a.property('username', 'elvis')
 
-            // the latest entry should be a successful login
-            auditLogs.log[0].should.have.a.property('trigger').and.be.a.Object()
-            auditLogs.log[0].trigger.should.have.a.property('id', TestObjects.elvis.id)
-            auditLogs.log[0].trigger.should.have.a.property('name', 'elvis')
-            auditLogs.log[0].should.have.a.property('event', 'account.login')
-            if (auditLogs.log[0].body) {
-                auditLogs.log[0].body.should.not.have.property('error')
-            }
+            // // the latest entry should be a successful login
+            // auditLogs.log[0].should.have.a.property('trigger').and.be.a.Object()
+            // auditLogs.log[0].trigger.should.have.a.property('id', TestObjects.elvis.id)
+            // auditLogs.log[0].trigger.should.have.a.property('name', 'elvis')
+            // auditLogs.log[0].should.have.a.property('event', 'account.login')
+            // if (auditLogs.log[0].body) {
+            //     auditLogs.log[0].body.should.not.have.property('error')
+            // }
         })
         it('Admin can suspend another user', async function () {
             const elvis = await app.db.views.User.userProfile(TestObjects.elvis)

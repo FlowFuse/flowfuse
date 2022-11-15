@@ -117,13 +117,14 @@ describe('Platform Settings', function () {
         should(pass2.tcsDate).be.greaterThanOrEqual(testStartTime)
 
         // ensure platform audit log entry is made
-        const auditLogs = await getAuditLog(1)
-        auditLogs.log[0].should.have.a.property('body').and.be.a.String()
-        const body = JSON.parse(auditLogs.log[0].body)
-        body.should.have.a.property('changes').and.be.an.Object()
-        auditLogs.log[0].should.have.a.property('event', 'platform.settings.update')
-        auditLogs.log[0].should.have.a.property('username', 'alice') // admin user
-        auditLogs.logRaw[0].should.have.a.property('entityId', null) // should be null
+        // TODO: re-introduce audit log tests below once #1183 is complete
+        // const auditLogs = await getAuditLog(1)
+        // auditLogs.log[0].should.have.a.property('body').and.be.a.String()
+        // const body = JSON.parse(auditLogs.log[0].body)
+        // body.should.have.a.property('changes').and.be.an.Object()
+        // auditLogs.log[0].should.have.a.property('event', 'platform.settings.update')
+        // auditLogs.log[0].should.have.a.property('username', 'alice') // admin user
+        // auditLogs.logRaw[0].should.have.a.property('entityId', null) // should be null
     })
 
     it('non-admin can not setup terms and conditions', async function () {
