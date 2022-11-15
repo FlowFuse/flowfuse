@@ -29,7 +29,7 @@ module.exports = {
         this._app = app
 
         const projects = await this._app.db.models.Project.findAll()
-        projects.forEach(async (project) => {
+        projects.forEach(project => {
             if (project.state !== 'suspended') {
                 const p = {
                     id: project.id,
