@@ -14,6 +14,24 @@ You will need a Kubernetes environment. The deployment has currently been tested
 
  It should run on any Kubernetes platform, but may require some changes for vendor specific Ingress setup.
 
+ By default the Helm chart assumes that the Kubernetes cluster has at least 2 nodes,
+
+ 1. Used to run the FlowForge management infrastructor
+ 2. Used to run the Node-RED Project instances
+
+These are assigned using node labels as follows:
+
+FlowForge management
+```
+kubectl label node <management node name> role=management
+```
+Node-RED projects
+```
+kubectl label node <projects node name> role=projects
+```
+
+It is possible to run on a single node cluster by overiding the values of `forge.managementSelector` and `forge.projectSelector` when configuring the Helm chart. Details are in the Configuring FlowForge section below.
+
 #### Helm
 
 FlowForge uses a Helm Chart to manage deployment. Installation can be done
@@ -127,7 +145,15 @@ forge:
       region: eu-west-1
 ```
 
-TODO: *Detailed walk through for AWS in internal Cloud Project docs. Will add extra page with sanitised version* [AWS setup notes](aws.md)
+A more detailed example for running on AWS can be found [here](aws.md)
+
+As mentioned earlier the Helm chart defaults to expecting at least 2 nodes in the Kubernetes cluster. To overide this you can remove the node selectors with the following which will mean that all pods can run on any nodes.
+
+```yaml
+forge:
+  projectSelector:
+  managementSelector:
+```
 
 A full list of all the configable values can be found in the [Helm Chart README](https://github.com/flowforge/helm/blob/main/helm/flowforge/README.md).
 
