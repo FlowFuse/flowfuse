@@ -23,15 +23,11 @@
 
 import alerts from '@/services/alerts'
 
-import FormRow from '@/components/FormRow'
 import teamApi from '@/api/team'
 import { Roles } from '@core/lib/roles'
 
 export default {
     name: 'ChangeTeamRoleDialog',
-    components: {
-        FormRow
-    },
     emits: ['roleUpdated'],
     data () {
         return {
