@@ -102,13 +102,6 @@ module.exports = {
                 const stubProjectToken = forgeUtils.generateToken(8)
                 await project.updateSetting('stubProjectToken', stubProjectToken)
             }
-            const existingFlow = await this._app.db.models.StorageFlow.byProject(project.id)
-            if (!existingFlow) {
-                await this._app.db.models.StorageFlow.create({
-                    flow: JSON.stringify([]),
-                    ProjectId: project.id
-                })
-            }
             if (project.name === 'stub-fail-start') {
                 return new Promise((resolve, reject) => {
                     setTimeout(() => {
