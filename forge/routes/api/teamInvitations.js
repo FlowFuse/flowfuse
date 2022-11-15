@@ -10,9 +10,12 @@
  * @memberof forge.routes.api
  */
 
-const { TeamRoles, RoleNames, Roles } = require('../../lib/roles')
+const { getTeamLogger } = require('../../lib/audit-logging')
+const { userObject } = require('../../lib/audit-logging/formatters')
+const { TeamRoles, Roles } = require('../../lib/roles')
 
 module.exports = async function (app) {
+    const teamAuditLog = getTeamLogger(app)
     // All routes require user to be owner of team
     app.addHook('preHandler', app.needsPermission('team:user:invite'))
 
@@ -50,7 +53,6 @@ module.exports = async function (app) {
             message: {}
         }
         let errorCount = 0
-        const successfulInvites = []
 
         for (const [user, invite] of Object.entries(invites)) {
             if (typeof invite === 'string') {
@@ -69,7 +71,7 @@ module.exports = async function (app) {
                                 signupLink: `${app.config.base_url}/account/create?email=${encodeURIComponent(invite.email)}`
                             }
                         )
-                        successfulInvites.push(invite.email)
+                        await teamAuditLog.team.user.invited(request.session.User, null, request.team, invite, role)
                     } else {
                         if (app.postoffice.enabled()) {
                             await app.postoffice.send(
@@ -81,7 +83,7 @@ module.exports = async function (app) {
                                 }
                             )
                         }
-                        successfulInvites.push(invite.invitee.username)
+                        await teamAuditLog.team.user.invited(request.session.User, null, request.team, invite.invitee, role)
                     }
                 } catch (err) {
                     errorCount++
@@ -89,18 +91,11 @@ module.exports = async function (app) {
                 }
             }
         }
-        if (successfulInvites.length > 0) {
-            await app.db.controllers.AuditLog.teamLog(
-                request.team.id,
-                request.session.User.id,
-                'user.invited',
-                { users: successfulInvites, role: RoleNames[role] }
-            )
-        }
         if (errorCount > 0) {
             result.code = 'invitation_failed'
             result.error = result.message
             delete result.status
+            await teamAuditLog.team.user.invited(request.session.User, result, request.team, null, role)
         }
         delete result.message
         reply.send(result)
@@ -113,13 +108,10 @@ module.exports = async function (app) {
     app.delete('/:invitationId', async (request, reply) => {
         const invitation = await app.db.models.Invitation.byId(request.params.invitationId)
         if (invitation) {
+            const role = invitation.role || Roles.Member
+            const invitedUser = userObject(invitation.external ? invitation : invitation.invitee)
             await invitation.destroy()
-            await app.db.controllers.AuditLog.teamLog(
-                request.team.id,
-                request.session.User.id,
-                'user.uninvited',
-                { users: [invitation.external ? invitation.email : invitation.invitee.username], role: RoleNames[invitation.role || Roles.Member] }
-            )
+            await teamAuditLog.team.user.uninvited(request.session.User, null, request.team, invitedUser, role)
             reply.send({ status: 'okay' })
         } else {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })

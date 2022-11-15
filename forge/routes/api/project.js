@@ -3,6 +3,7 @@ const { Roles } = require('../../lib/roles')
 const ProjectActions = require('./projectActions')
 const ProjectDevices = require('./projectDevices')
 const ProjectSnapshots = require('./projectSnapshots')
+const { getTeamLogger } = require('../../lib/audit-logging')
 
 /**
  * Instance api routes
@@ -35,6 +36,7 @@ const bannedNameList = [
 ]
 
 module.exports = async function (app) {
+    const teamAuditLog = getTeamLogger(app)
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.projectId !== undefined) {
             if (request.params.projectId) {
@@ -298,24 +300,9 @@ module.exports = async function (app) {
             'project.created'
         )
         if (sourceProject) {
-            await app.db.controllers.AuditLog.teamLog(
-                team.id,
-                request.session.User.id,
-                'project.duplicated',
-                {
-                    sourceId: sourceProject.id,
-                    sourceName: sourceProject.name,
-                    newId: project.id,
-                    newName: project.name
-                }
-            )
+            await teamAuditLog.project.duplicated(request.session.User, null, team, sourceProject, project)
         } else {
-            await app.db.controllers.AuditLog.teamLog(
-                team.id,
-                request.session.User.id,
-                'project.created',
-                { id: project.id, name: project.name }
-            )
+            await teamAuditLog.project.created(request.session.User, null, team, project)
         }
 
         const result = await app.db.views.Project.project(project)
@@ -351,11 +338,7 @@ module.exports = async function (app) {
                 request.session.User.id,
                 'project.deleted'
             )
-            await app.db.controllers.AuditLog.teamLog(
-                request.project.Team.id,
-                request.session.User.id,
-                'project.deleted'
-            )
+            await teamAuditLog.project.deleted(request.session.User, null, request.project.Team, request.project)
             reply.send({ status: 'okay' })
         } catch (err) {
             reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
