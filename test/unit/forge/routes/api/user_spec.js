@@ -72,12 +72,13 @@ describe('User API', async function () {
     })
 
     describe('User settings', async function () {
-        async function getAuditLog (limit = 1) {
-            const logEntries = await app.db.models.AuditLog.forPlatform({ limit: limit || 1 })
-            const logRaw = [...(logEntries.log || [])]
-            const result = app.db.views.AuditLog.auditLog(logEntries)
-            return { log: result.log, logRaw }
-        }
+        // TODO: re-introduce the below once #1183 is complete
+        // async function getAuditLog (limit = 1) {
+        //     const logEntries = await app.db.models.AuditLog.forPlatform({ limit: limit || 1 })
+        //     const logRaw = [...(logEntries.log || [])]
+        //     const result = app.db.views.AuditLog.auditLog(logEntries)
+        //     return { log: result.log, logRaw }
+        // }
         it('returns 401 on /user if not logged in', async function () {
             // await login('alice', 'aaPassword')
             // await login('bob', 'bbPassword')

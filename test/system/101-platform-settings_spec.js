@@ -21,12 +21,14 @@ describe('Platform Settings', function () {
             tcsDate: forge.settings.get(TCS_DATE)
         }
     }
-    async function getAuditLog (limit = 1) {
-        const logEntries = await forge.db.models.AuditLog.forPlatform({ limit: limit || 1 })
-        const logRaw = [...(logEntries.log || [])]
-        const result = forge.db.views.AuditLog.auditLog(logEntries)
-        return { log: result.log, logRaw }
-    }
+
+    // TODO: re-introduce the below once #1183 is complete
+    // async function getAuditLog (limit = 1) {
+    //     const logEntries = await forge.db.models.AuditLog.forPlatform({ limit: limit || 1 })
+    //     const logRaw = [...(logEntries.log || [])]
+    //     const result = forge.db.views.AuditLog.auditLog(logEntries)
+    //     return { log: result.log, logRaw }
+    // }
 
     before(async function () {
         // Create the FF application with a suitable test configuration

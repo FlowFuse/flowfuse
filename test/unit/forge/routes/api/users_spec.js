@@ -6,12 +6,12 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 describe('Users API', async function () {
     let app
     const TestObjects = {}
-    async function getAuditLog (limit = 1) {
-        const logEntries = await app.db.models.AuditLog.forPlatform({ limit: limit || 1 })
-        const logRaw = [...(logEntries.log || [])]
-        const result = app.db.views.AuditLog.auditLog(logEntries)
-        return { log: result.log, logRaw }
-    }
+    // async function getAuditLog (limit = 1) {
+    //     const logEntries = await app.db.models.AuditLog.forPlatform({ limit: limit || 1 })
+    //     const logRaw = [...(logEntries.log || [])]
+    //     const result = app.db.views.AuditLog.auditLog(logEntries)
+    //     return { log: result.log, logRaw }
+    // }
     beforeEach(async function () {
         app = await setup({
             features: { devices: true }
