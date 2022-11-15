@@ -157,7 +157,7 @@ export default {
             if (/^[a-zA-Z][a-zA-Z0-9-]*$/.test(value)) {
                 this.errors.name = ''
             } else {
-                this.errors.name = 'Names must only include a→z, A→Z, -, 0→9'
+                this.errors.name = 'Names must only include a→z, A→Z, -, 0→9 and can not start with 0→9'
             }
         },
         'input.projectType': async function (value, oldValue) {
