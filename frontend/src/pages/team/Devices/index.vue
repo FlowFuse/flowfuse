@@ -113,8 +113,10 @@ export default {
     watch: {
         team: 'fetchData'
     },
-    mounted () {
-        this.pollForData()
+    async mounted () {
+        await this.fetchData()
+        this.loading = false
+        this.checkInterval = setTimeout(this.pollForData, 10000)
     },
     unmounted () {
         clearInterval(this.checkInterval)
@@ -122,10 +124,7 @@ export default {
     methods: {
         async pollForData () {
             try {
-                if (this.team.id) {
-                    await this.fetchData(null, true) // to-do: For now, this only polls the first page...
-                    this.loading = false
-                }
+                await this.fetchData(null, true) // to-do: For now, this only polls the first page...
             } finally {
                 this.checkInterval = setTimeout(this.pollForData, 10000)
             }
@@ -227,7 +226,14 @@ export default {
             ]
         }
     },
-    props: ['team', 'teamMembership'],
+    props: {
+        team: {
+            required: true
+        },
+        teamMembership: {
+            required: true
+        }
+    },
     components: {
         TeamDeviceCreateDialog,
         DeviceCredentialsDialog,
