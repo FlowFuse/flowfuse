@@ -104,7 +104,7 @@ module.exports = async function (app) {
                 // console.log(event)
                 app.log.info(`Created Subscription for team ${team.hashid}`)
                 await app.db.controllers.Subscription.createSubscription(team, subscription, customer)
-                await teamAuditLog.billing.session.completed(request.session?.User || 0, null, team, event.data.object)
+                await teamAuditLog.billing.session.completed(request.session?.User || 'system', null, team, event.data.object)
                 break
             case 'checkout.session.expired':
                 // should remove the team here
