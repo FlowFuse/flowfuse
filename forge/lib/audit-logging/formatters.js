@@ -212,6 +212,7 @@ const triggerObject = (actionedBy, user) => {
         let type = user != null ? 'user' : 'unknown'
         let name = user?.username || user?.email || user?.name || 'Unknown'
         if (typeof actionedBy === 'string') {
+            id = actionedBy
             hashid = actionedBy
             type = 'user'
         } else if (typeof actionedBy === 'number') {
@@ -237,9 +238,23 @@ const triggerObject = (actionedBy, user) => {
  * Creates and `updateObject` for pushing to an `UpdatesCollection`
  * @returns {updateObject}
  */
-const updatesObject = (key, oldValue, newValue, diffKind = 'updated') => {
-    return { key, old: oldValue, new: newValue, dif: diffKind }
+const DIFF_TYPES = {
+    VALUE_CREATED: 'created',
+    VALUE_UPDATED: 'updated',
+    VALUE_DELETED: 'deleted',
+    VALUE_UNCHANGED: '---'
 }
+const updatesObject = (key, oldValue, newValue, diffKind = DIFF_TYPES.VALUE_UPDATED) => {
+    // check if valid type
+    if (Object.values(DIFF_TYPES).includes(diffKind)) {
+        return { key, old: oldValue, new: newValue, dif: diffKind }
+    } else {
+        const err = Error(`${diffKind} is not a valid value of diffKind`)
+        err.code = 'invalid_value'
+        throw err
+    }
+}
+
 class UpdatesCollection {
     constructor () {
         this.updates = []
@@ -280,10 +295,7 @@ function generateUpdates (o1, o2, sensitiveKeys) {
     sensitiveKeys = sensitiveKeys || []
     const deepDiffMapper = (() => {
         return {
-            VALUE_CREATED: 'created',
-            VALUE_UPDATED: 'updated',
-            VALUE_DELETED: 'deleted',
-            VALUE_UNCHANGED: '---',
+            ...DIFF_TYPES,
             map: function (obj1, obj2) {
                 if (this.isFunction(obj1) || this.isFunction(obj2)) {
                     throw new Error('Invalid argument. Function given, object expected.')
