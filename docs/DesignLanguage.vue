@@ -380,31 +380,42 @@
                 <h3>Examples:</h3>
                 <div class="examples">
                     <div class="example">
+                        <h5>Default</h5>
                         <ff-dropdown v-model="models.dropdown0">
-                            <ff-dropdown-option label="Option 1" value="1"></ff-dropdown-option>
-                            <ff-dropdown-option label="Option 2" value="2"></ff-dropdown-option>
-                            <ff-dropdown-option label="Option 3" value="3"></ff-dropdown-option>
+                            <ff-dropdown-option label="Option 1" :value="1"></ff-dropdown-option>
+                            <ff-dropdown-option label="Option 2" :value="2"></ff-dropdown-option>
+                            <ff-dropdown-option label="Option 3" :value="3"></ff-dropdown-option>
                         </ff-dropdown>
                         {{ models.dropdown0 }}
                         <code>{{ cGroups['input'].components[1].examples[0].code }}</code>
                     </div>
                     <div class="example">
+                        <h5>Button Style</h5>
                         <ff-dropdown v-model="models.dropdown1" placeholder="Dropdown Button" dropdown-style="button">
-                            <ff-dropdown-option label="Option 1" value="1"></ff-dropdown-option>
-                            <ff-dropdown-option label="Option 2" value="2"></ff-dropdown-option>
-                            <ff-dropdown-option label="Option 3" value="3"></ff-dropdown-option>
+                            <ff-dropdown-option label="Option 1" :value="1"></ff-dropdown-option>
+                            <ff-dropdown-option label="Option 2" :value="2"></ff-dropdown-option>
+                            <ff-dropdown-option label="Option 3" :value="3"></ff-dropdown-option>
                         </ff-dropdown>
                         {{ models.dropdown1 }}
                         <code>{{ cGroups['input'].components[1].examples[1].code }}</code>
                     </div>
                     <div class="example">
+                        <h5>Button Style &amp; Align Menu: Right</h5>
                         <ff-dropdown v-model="models.dropdown1" placeholder="Dropdown Button Right" dropdown-style="button" options-align="right">
-                            <ff-dropdown-option label="Option 1" value="1"></ff-dropdown-option>
-                            <ff-dropdown-option label="Option 2" value="2"></ff-dropdown-option>
-                            <ff-dropdown-option label="Option 3" value="3"></ff-dropdown-option>
+                            <ff-dropdown-option label="Option 1" :value="1"></ff-dropdown-option>
+                            <ff-dropdown-option label="Option 2" :value="2"></ff-dropdown-option>
+                            <ff-dropdown-option label="Option 3" :value="3"></ff-dropdown-option>
                         </ff-dropdown>
                         {{ models.dropdown2 }}
                         <code>{{ cGroups['input'].components[1].examples[2].code }}</code>
+                    </div>
+                    <div class="example">
+                        <h5>Disabled</h5>
+                        <ff-dropdown v-model="models.dropdown0" :disabled="true">
+                            <ff-dropdown-option label="Option 1" :value="1"></ff-dropdown-option>
+                            <ff-dropdown-option label="Option 2" :value="2"></ff-dropdown-option>
+                        </ff-dropdown>
+                        <code>{{ cGroups['input'].components[1].examples[3].code }}</code>
                     </div>
                 </div>
                 <!-- Checkbox -->
@@ -673,7 +684,7 @@ export default {
             models: {
                 dialog0: '',
                 textInput0: '',
-                dropdown0: null,
+                dropdown0: 1,
                 dropdown1: null,
                 checkbox0: false,
                 checkbox1: false,

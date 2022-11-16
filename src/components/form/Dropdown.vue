@@ -1,20 +1,20 @@
 <template>
-    <div class="ff-dropdown" :class="'ff-dropdown--' + (isOpen ? 'open' : 'closed')">
+    <div class="ff-dropdown" :class="'ff-dropdown--' + (isOpen ? 'open' : 'closed')" :disabled="disabled">
         <div v-if="dropdownStyle === 'select'" @click="open()" class="ff-dropdown-selected">
             <slot name="placeholder">
                 {{ selected?.label || placeholder }}
             </slot>
-            <ChevronDownIcon class="ff-icon" />
+            <ChevronDownIcon class="ff-icon ff-btn--icon-right" />
         </div>
         <ff-button v-else-if="dropdownStyle === 'button'" @click="open()">
             {{ placeholder }}
             <template #icon-right><ChevronDownIcon /></template>
         </ff-button>
-        <template v-if="isOpen">
-            <div class="ff-dropdown-options" v-click-outside="close" :class="{'ff-dropdown-options--full-width': dropdownStyle === 'select', 'ff-dropdown-options--fit': dropdownStyle === 'button', 'ff-dropdown-options--align-left': optionsAlign === 'left', 'ff-dropdown-options--align-right': optionsAlign === 'right'}">
+        <div v-show="isOpen">
+            <div class="ff-dropdown-options" ref="options" v-click-outside="close" :class="{'ff-dropdown-options--full-width': dropdownStyle === 'select', 'ff-dropdown-options--fit': dropdownStyle === 'button', 'ff-dropdown-options--align-left': optionsAlign === 'left', 'ff-dropdown-options--align-right': optionsAlign === 'right'}">
                 <slot></slot>
             </div>
-        </template>
+        </div>
     </div>
 </template>
 
@@ -29,7 +29,7 @@ export default {
     props: {
         modelValue: {
             default: null,
-            type: String
+            type: [Number, String, Boolean]
         },
         placeholder: {
             default: 'Please Select',
@@ -42,13 +42,24 @@ export default {
         optionsAlign: {
             default: 'left',
             type: String
+        },
+        disabled: {
+            default: false,
+            type: Boolean
         }
     },
     emits: ['update:modelValue'],
     data () {
         return {
             isOpen: false,
-            selected: null
+            selected: null,
+            options: []
+        }
+    },
+    watch: {
+        modelValue: function () {
+            // handle async setting of modelvalue where value is set after options have loaded
+            this.checkOptions()
         }
     },
     computed: {
@@ -65,10 +76,25 @@ export default {
     },
     methods: {
         open: function () {
-            this.isOpen = !this.isOpen
+            if (!this.disabled) {
+                this.isOpen = !this.isOpen
+            }
         },
         close: function () {
             this.isOpen = false
+        },
+        registerOption (option) {
+            this.options.push(option)
+            if (this.modelValue === option.value) {
+                this.selected = option
+            }
+        },
+        checkOptions () {
+            for (let i = 0; i < this.options.length; i++) {
+                if (this.options[i].value === this.modelValue) {
+                    this.selected = this.options[i]
+                }
+            }
         }
     }
 }
