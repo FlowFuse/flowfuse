@@ -77,6 +77,12 @@ const formatLogEntry = (auditLogDbRow) => {
                 }
             }
 
+            // if the User is null, see if the body has details of who triggered the event
+            if (!formatted.User && auditLogDbRow.UserId == null && body?.trigger?.id != null) {
+                formatted.trigger = triggerObject(body.trigger.id, body.trigger)
+                formatted.User = { username: formatted.trigger.name } // TODO: Kept for compatibility. Remove once Audit Log UI overhaul complete
+            }
+
             formatted.body = generateBody({
                 error: body?.error,
                 team: body?.team,
@@ -201,7 +207,7 @@ const projectTypeObject = (projectType) => {
 }
 /**
  * Generates the `trigger` part of the audit log report
- * @param {object|number|string} actionedBy A user object or a user id. NOTE: 0 will denote the "system", >0 denotes a user
+ * @param {object|number|'system'} actionedBy A user object or a user id. NOTE: 0 or 'system' can be userd to indicate "system" triggered the event
  * @param {*} [user] If `actionedBy` is an ID, passing a the user object will permit the username to be rendered
  * @returns {{ id:number, type:string, name:string }} { id, type, name }
  */
@@ -212,8 +218,14 @@ const triggerObject = (actionedBy, user) => {
         let type = user != null ? 'user' : 'unknown'
         let name = user?.username || user?.email || user?.name || 'Unknown'
         if (typeof actionedBy === 'string') {
-            hashid = actionedBy
-            type = 'user'
+            if (actionedBy === 'system') {
+                id = 0
+                type = 'system'
+                name = 'Forge Platform'
+            } else {
+                hashid = actionedBy
+                type = 'user'
+            }
         } else if (typeof actionedBy === 'number') {
             id = actionedBy
             if (id === 0) {
