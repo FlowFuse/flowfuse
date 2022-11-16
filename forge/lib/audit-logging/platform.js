@@ -1,8 +1,6 @@
 // Audit Logging of platform scoped events
 
 let app
-
-const { platformLog } = require('../../db/controllers/AuditLog')
 const { generateBody, triggerObject } = require('./formatters')
 
 const platform = {
@@ -50,7 +48,7 @@ const platform = {
 
 const log = async (event, actionedBy, body) => {
     const trigger = triggerObject(actionedBy)
-    await platformLog(app, trigger.id, event, body)
+    await app.db.controllers.AuditLog.platformLog(app, trigger.id, event, body)
 }
 
 module.exports = {
