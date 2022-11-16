@@ -9,11 +9,11 @@ export default {
     name: 'ff-dropdown-option',
     props: {
         value: {
-            required: true,
-            type: String
+            default: null,
+            type: [Number, String, Boolean]
         },
         label: {
-            required: true,
+            default: null,
             type: String
         }
     },
@@ -23,7 +23,16 @@ export default {
                 value: this.value,
                 label: this.label
             }
+        },
+        registerOption (option) {
+            this.$parent.registerOption(option)
         }
+    },
+    mounted () {
+        this.registerOption({
+            value: this.value,
+            label: this.label
+        })
     }
 }
 </script>

@@ -23,6 +23,22 @@
 /*
   FF Button
 */
+
+// nested element
+.ff-btn--icon,
+.ff-btn--icon svg {
+  width: 20px;
+  height: 20px;
+}
+.ff-btn--icon-left {
+  margin-left: -$ff-unit-xs;
+  margin-right: $ff-unit-sm;
+}
+.ff-btn--icon-right {
+  margin-left: $ff-unit-sm;
+  margin-right: -$ff-unit-xs;
+}
+
 .ff-btn {
   border-radius: $ff-unit-sm;
   display: flex;
@@ -90,20 +106,6 @@
       background-color: $ff-color--danger--dark;
       color: $ff-white;
     }
-  }
-  // nested element
-  .ff-btn--icon,
-  .ff-btn--icon svg {
-    width: 20px;
-    height: 20px;
-  }
-  .ff-btn--icon-left {
-    margin-left: -$ff-unit-xs;
-    margin-right: $ff-unit-sm;
-  }
-  .ff-btn--icon-right {
-    margin-left: $ff-unit-sm;
-    margin-right: -$ff-unit-xs;
   }
 
   &.ff-btn-small {
@@ -230,6 +232,9 @@ li.ff-list-item {
       height: 100%;
       border-width: 0;
       min-width: 0;
+      &[disabled] {
+        background-color: $ff-grey-50;
+      }
       &:focus-visible {
         border: none;
         outline: none;
@@ -257,13 +262,19 @@ li.ff-list-item {
 .ff-dropdown {
   position: relative;
   display: inline-block;
+  background-color: white;
+  cursor: pointer;
+  &[disabled="true"] {
+    cursor: not-allowed;
+    background-color: $ff-grey-50;
+    color: $ff-grey-400;
+  }
   .ff-dropdown-selected {
     border: 1px solid $ff-grey-300;
-    border-radius: $ff-unit-xs;
+    border-radius: $ff-unit-sm;
     padding: $ff-unit-sm $ff-unit-md;
     height: 32px;
     width: 100%;
-    cursor: pointer;
     display: flex;
     justify-content: space-between;
     z-index: 2;
@@ -272,10 +283,14 @@ li.ff-list-item {
     position: absolute;
     top: 100%;
     display: none;
+    max-height: 14rem;
+    overflow-y: auto;
     box-shadow: 0px 6px 9px 0px #00000038;
     .ff-dropdown-option {
       padding: $ff-unit-sm $ff-unit-md;
       background-color: $ff-grey-50;
+      border-bottom: 1px solid $ff-grey-200;
+      cursor: pointer;
       &:hover {
         background-color: $ff-grey-200;
       }
@@ -305,6 +320,7 @@ li.ff-list-item {
     }
     .ff-dropdown-options {
       display: block;
+      z-index: 2;
     }
   }
 }
@@ -338,6 +354,11 @@ li.ff-list-item {
   &:hover:not([disabled=true]) {
     .checkbox {
       background-color: $ff-grey-200;
+    }
+  }
+  &:hover:not([disabled=true]) {
+    .checkbox[checked=true] {
+      background-color: $ff-grey-500;
     }
   }
   &[disabled=true] {
@@ -417,6 +438,7 @@ li.ff-list-item {
     display: flex;
     flex-direction: column;
     background-color: $ff-white;
+    font-size: 0.875rem;
     border: 2px solid $ff-grey-300;
     border-radius: $ff-unit-sm;
     padding: 12px $ff-unit-lg;
@@ -439,7 +461,7 @@ li.ff-list-item {
       justify-content: space-between;
       align-items: center;
       h2 {
-        font-size: 16px;
+        font-size: 14px;
       }
       > h2 {
         display: flex;
@@ -448,8 +470,8 @@ li.ff-list-item {
         padding-right: $ff-unit-xl;
         margin: 0;
         svg {
-          width: 24px;
-          height: 24px;
+          width: 20px;
+          height: 20px;
           fill: $ff-grey-300;
           &.ff-tile-selection-option--edit {
             cursor: pointer;
@@ -473,8 +495,8 @@ li.ff-list-item {
     }
     &--description {
       flex-grow: 1;
-      margin-top: $ff-unit-md;
-      padding-top: $ff-unit-md;
+      margin-top: $ff-unit-sm;
+      padding-top: $ff-unit-sm;
       border-top: 1px solid $ff-grey-300;
     }
     &--meta {
