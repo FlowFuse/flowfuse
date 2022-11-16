@@ -14,7 +14,7 @@ You will need a Kubernetes environment. The deployment has currently been tested
 
  It should run on any Kubernetes platform, but may require some changes for vendor specific Ingress setup.
 
- By default the Helm chart assumes that the Kubernetes cluster has at least 2 nodes,
+ By default the Helm chart assumes that the Kubernetes cluster has at least 2 nodes:
 
  1. Used to run the FlowForge management infrastructor
  2. Used to run the Node-RED Project instances
