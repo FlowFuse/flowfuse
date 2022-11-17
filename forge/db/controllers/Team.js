@@ -12,17 +12,6 @@ module.exports = {
         // Reinflate the object now the user has been added
         const team = await app.db.models.Team.bySlug(newTeam.slug)
 
-        await app.db.controllers.AuditLog.teamLog(
-            newTeam.id,
-            user.id,
-            'team.created'
-        )
-        await app.db.controllers.AuditLog.teamLog(
-            newTeam.id,
-            user.id,
-            'user.added',
-            { role: RoleNames[Roles.Owner] }
-        )
         return team
     },
 

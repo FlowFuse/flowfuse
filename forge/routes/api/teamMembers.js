@@ -1,3 +1,6 @@
+const formatters = require('../../lib/audit-logging/formatters.js')
+const { UpdatesCollection } = require('../../lib/audit-logging/formatters.js')
+const { getTeamLogger } = require('../../lib/audit-logging/index.js')
 const { TeamRoles } = require('../../lib/roles.js')
 
 /**
@@ -12,6 +15,7 @@ const { TeamRoles } = require('../../lib/roles.js')
  * @memberof forge.routes.api
  */
 module.exports = async function (app) {
+    const teamAuditLog = getTeamLogger(app)
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.userId) {
             try {
@@ -73,12 +77,7 @@ module.exports = async function (app) {
         try {
             const result = await app.db.controllers.Team.removeUser(request.team, request.user, request.userRole)
             if (result) {
-                await app.db.controllers.AuditLog.teamLog(
-                    request.team.id,
-                    request.session.User.id,
-                    'user.removed',
-                    { user: request.user.username }
-                )
+                await teamAuditLog.team.user.removed(request.session.User, null, request.team, request.user)
             }
             reply.send({ status: 'okay' })
         } catch (err) {
@@ -97,12 +96,11 @@ module.exports = async function (app) {
             try {
                 const result = await app.db.controllers.Team.changeUserRole(request.params.teamId, request.params.userId, newRole)
                 if (result.oldRole !== result.role) {
-                    await app.db.controllers.AuditLog.teamLog(
-                        result.team.id,
-                        request.session.User.id,
-                        'user.roleChanged',
-                        { user: result.user.username, role: result.role }
-                    )
+                    const updates = new UpdatesCollection()
+                    const oldRole = formatters.roleObject(result.oldRole)
+                    const role = formatters.roleObject(result.role)
+                    updates.push('role', oldRole?.role || result.oldRole, role?.role || result.role)
+                    await teamAuditLog.team.user.rollChanged(request.session.User, null, request.team, result.user, updates)
                 }
                 reply.send({ status: 'okay' })
             } catch (err) {

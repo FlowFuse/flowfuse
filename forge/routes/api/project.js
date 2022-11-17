@@ -3,6 +3,7 @@ const { Roles } = require('../../lib/roles')
 const ProjectActions = require('./projectActions')
 const ProjectDevices = require('./projectDevices')
 const ProjectSnapshots = require('./projectSnapshots')
+const { getTeamLogger } = require('../../lib/audit-logging')
 const { getProjectLogger } = require('../../lib/audit-logging')
 const { UpdatesCollection } = require('../../lib/audit-logging/formatters')
 
@@ -37,6 +38,7 @@ const bannedNameList = [
 ]
 
 module.exports = async function (app) {
+    const teamAuditLog = getTeamLogger(app)
     const projectAuditLog = getProjectLogger(app)
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.projectId !== undefined) {
@@ -297,24 +299,9 @@ module.exports = async function (app) {
         await projectAuditLog.project.created(request.session.User, null, team, project)
 
         if (sourceProject) {
-            await app.db.controllers.AuditLog.teamLog(
-                team.id,
-                request.session.User.id,
-                'project.duplicated',
-                {
-                    sourceId: sourceProject.id,
-                    sourceName: sourceProject.name,
-                    newId: project.id,
-                    newName: project.name
-                }
-            )
+            await teamAuditLog.project.duplicated(request.session.User, null, team, sourceProject, project)
         } else {
-            await app.db.controllers.AuditLog.teamLog(
-                team.id,
-                request.session.User.id,
-                'project.created',
-                { id: project.id, name: project.name }
-            )
+            await teamAuditLog.project.created(request.session.User, null, team, project)
         }
 
         const result = await app.db.views.Project.project(project)
@@ -345,12 +332,8 @@ module.exports = async function (app) {
             }
 
             await request.project.destroy()
+            await teamAuditLog.project.deleted(request.session.User, null, request.project.Team, request.project)
             await projectAuditLog.project.deleted(request.session.User, null, request.project.Team, request.project)
-            await app.db.controllers.AuditLog.teamLog(
-                request.project.Team.id,
-                request.session.User.id,
-                'project.deleted'
-            )
             reply.send({ status: 'okay' })
         } catch (err) {
             reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
