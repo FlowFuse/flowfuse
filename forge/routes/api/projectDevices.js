@@ -19,7 +19,7 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.project
      */
-    app.get('/', async (request, reply) => {
+    app.get('/', { preHandler: app.needsPermission('project:read') }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const where = {
             ProjectId: request.project.id
@@ -29,7 +29,7 @@ module.exports = async function (app) {
         reply.send(devices)
     })
 
-    app.get('/settings', async (request, reply) => {
+    app.get('/settings', { preHandler: app.needsPermission('project:read') }, async (request, reply) => {
         const deviceSettings = await request.project.getSetting('deviceSettings') || {
             targetSnapshot: null
         }

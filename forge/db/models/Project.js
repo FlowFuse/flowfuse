@@ -159,7 +159,7 @@ module.exports = {
             instance: {
                 async refreshAuthTokens () {
                     const authClient = await Controllers.AuthClient.createClientForProject(this)
-                    const projectToken = await Controllers.AccessToken.createTokenForProject(this, null, ['project:flows:view', 'project:flows:edit'])
+                    const projectToken = await Controllers.AccessToken.createTokenForProject(this, null)
                     const projectBrokerCredentials = await Controllers.BrokerClient.createClientForProject(this)
                     return {
                         token: projectToken.token,

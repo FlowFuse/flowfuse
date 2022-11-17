@@ -46,7 +46,7 @@ module.exports = async function (app) {
                         return
                     }
                     request.teamMembership = await request.session.User.getTeamMembership(request.params.teamId)
-                    if (!request.teamMembership && !request.session.User.admin) {
+                    if (!request.teamMembership && !request.session.User?.admin) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return
                     }
@@ -81,7 +81,9 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.team
      */
-    app.get('/:teamId', async (request, reply) => {
+    app.get('/:teamId', {
+        preHandler: app.needsPermission('team:read')
+    }, async (request, reply) => {
         await getTeamDetails(request, reply, request.team)
     })
 
@@ -100,7 +102,7 @@ module.exports = async function (app) {
             const team = await app.db.models.Team.bySlug(request.query.slug)
             if (team) {
                 const teamMembership = await request.session.User.getTeamMembership(team.id)
-                if (!teamMembership && !request.session.User.admin) {
+                if (!teamMembership && !request.session.User?.admin) {
                     reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                     return
                 }
@@ -108,7 +110,7 @@ module.exports = async function (app) {
             } else {
                 reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             }
-        } else if (!request.session.User.admin) {
+        } else if (!request.session.User || !request.session.User.admin) {
             reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
         } else {
             // Admin request for all teams
@@ -119,7 +121,9 @@ module.exports = async function (app) {
         }
     })
 
-    app.get('/:teamId/projects', { config: { allowToken: true } }, async (request, reply) => {
+    app.get('/:teamId/projects', {
+        preHandler: app.needsPermission('team:projects:list')
+    }, async (request, reply) => {
         const projects = await app.db.models.Project.byTeam(request.params.teamId)
         if (projects) {
             let result = await app.db.views.Project.teamProjectList(projects)
@@ -300,7 +304,7 @@ module.exports = async function (app) {
                 role: request.teamMembership.role
             })
             return
-        } else if (request.session.User.admin) {
+        } else if (request.session.User?.admin) {
             reply.send({
                 role: Roles.Admin
             })

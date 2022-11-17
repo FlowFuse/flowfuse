@@ -37,47 +37,10 @@ module.exports = fp(async function (app, opts, done) {
     await app.register(require('./oauth'), { logLevel: app.config.logging.http })
     await app.register(require('./permissions'))
 
-    // WIP:
-    async function verifyToken (request, reply) {
-        if (request.headers && request.headers.authorization) {
-            const parts = request.headers.authorization.split(' ')
-            if (parts.length === 2) {
-                const scheme = parts[0]
-                const token = parts[1]
-                if (scheme !== 'Bearer') {
-                    reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
-                }
-                if (/^ff[td]/.test(token)) {
-                    const accessToken = await app.db.controllers.AccessToken.getOrExpire(token)
-                    if (accessToken) {
-                        request.session = {
-                            ownerId: accessToken.ownerId,
-                            ownerType: accessToken.ownerType,
-                            scope: accessToken.scope
-                        }
-                        return
-                    }
-                } else if (/^ffp/.test(token)) {
-                    request.session = await app.db.controllers.Session.getOrExpire(token)
-                    return
-                }
-                reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
-            } else {
-                reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
-            }
-        } else {
-            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
-        }
-    }
-
-    app.decorate('verifyToken', verifyToken)
-
     /**
      * preHandler function that ensures the current request comes from an active
-     * session.
+     * session or token
      *
-     * Currently this is based only on session cookie. This needs expanding
-     * to include authorisation tokens.
      *
      * It sets `request.session` to the active session object.
      * @name verifySession
@@ -95,16 +58,45 @@ module.exports = fp(async function (app, opts, done) {
                     return
                 }
             }
+        } else if (request.headers && request.headers.authorization) {
+            const parts = request.headers.authorization.split(' ')
+            if (parts.length === 2) {
+                const scheme = parts[0]
+                const token = parts[1]
+                if (scheme !== 'Bearer') {
+                    reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                    return
+                }
+                const accessToken = await app.db.controllers.AccessToken.getOrExpire(token)
+                if (accessToken) {
+                    request.session = {
+                        ownerId: accessToken.ownerId,
+                        ownerType: accessToken.ownerType,
+                        scope: accessToken.scope
+                    }
+                    if (accessToken.ownerType === 'user') {
+                        request.session.User = await app.db.models.User.findOne({ where: { id: parseInt(accessToken.ownerId) } })
+                        // Unlike a cookie based session, we'll allow user tokens to continue
+                        // working if password has expired or email isn't verified
+                        // TODO: validate this choice
+                        if (request.session.User.suspended) {
+                            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                            return
+                        }
+                    }
+                    return
+                }
+                reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                return
+            } else {
+                reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                return
+            }
         }
         if (request.routeConfig.allowAnonymous) {
             return
         }
-        if (request.routeConfig.allowToken) {
-            await verifyToken(request, reply)
-            return
-        }
         reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
-        throw new Error()
     }
     app.decorate('verifySession', verifySession)
 
@@ -117,7 +109,7 @@ module.exports = fp(async function (app, opts, done) {
      * @memberof forge
      */
     app.decorate('verifyAdmin', async (request, reply) => {
-        if (request.session && request.session.User.admin) {
+        if (request.session?.User?.admin) {
             return
         }
         reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
@@ -308,12 +300,12 @@ module.exports = fp(async function (app, opts, done) {
                 tcs_accepted: new Date()
             })
             userInfo.id = newUser.id
-            const verifyToken = await app.db.controllers.User.generateEmailVerificationToken(newUser)
+            const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(newUser)
             await app.postoffice.send(
                 newUser,
                 'VerifyEmail',
                 {
-                    confirmEmailLink: `${app.config.base_url}/account/verify/${verifyToken}`
+                    confirmEmailLink: `${app.config.base_url}/account/verify/${verificationToken}`
                 }
             )
             if (request.body.code) {
@@ -421,12 +413,12 @@ module.exports = fp(async function (app, opts, done) {
             return
         }
         if (!request.session.User.email_verified) {
-            const verifyToken = await app.db.controllers.User.generateEmailVerificationToken(request.session.User)
+            const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(request.session.User)
             await app.postoffice.send(
                 request.session.User,
                 'VerifyEmail',
                 {
-                    confirmEmailLink: `${app.config.base_url}/account/verify/${verifyToken}`
+                    confirmEmailLink: `${app.config.base_url}/account/verify/${verificationToken}`
                 }
             )
             await userAuditLog.account.verify.requestToken(request.session.User, null)

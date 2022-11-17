@@ -1,3 +1,5 @@
+import deviceOffline from '../fixtures/device-offline.json'
+
 describe('FlowForge - Devices', () => {
     beforeEach(() => {
         cy.intercept('GET', '/api/*/teams/*/devices').as('getDevices')
@@ -61,5 +63,39 @@ describe('FlowForge - Devices', () => {
         cy.wait('@deleteDevice')
 
         cy.get('main').contains('You don\'t have any devices yet')
+    })
+
+    it('can load multiple pages of devices when the API paginates', function () {
+        // Mock active and inactive stacks having multiple pages
+        cy.intercept('GET', '/api/v1/teams/*/devices', {
+            count: 2,
+            meta: { next_cursor: 'next' },
+            devices: [deviceOffline]
+        }).as('getDevicesPaginated')
+
+        cy.request('GET', '/api/v1/teams/')
+            .then((response) => {
+                const team = response.body.teams[0]
+                cy.visit(`/team/${team.slug}/devices`)
+                cy.wait('@getDevicesPaginated')
+            })
+
+        // Load more active
+        cy.get('[data-el="devices"] tbody').find('tr').should('have.length', 1)
+
+        cy.intercept('GET', '/api/v1/teams/*/devices?cursor=next', {
+            count: 2,
+            meta: { next_cursor: null },
+            devices: [{ ...deviceOffline, ...{ id: 2, name: 'device-2' } }]
+        }).as('getDevicesNextPage')
+
+        cy.get('[data-action="load-more"]').click()
+
+        cy.wait('@getDevicesNextPage')
+
+        cy.get('[data-el="devices"] tbody').find('tr').should('have.length', 2)
+        cy.get('[data-el="devices"] tbody').contains('td', 'device-2')
+
+        cy.get('[data-action="load-more"]').should('not.exist')
     })
 })

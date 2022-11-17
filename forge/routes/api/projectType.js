@@ -17,7 +17,9 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.projectTypes
      */
-    app.get('/', async (request, reply) => {
+    app.get('/', {
+        preHandler: app.needsPermission('project-type:list')
+    }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         let filter = { active: true }
         if (request.query.filter === 'all') {
@@ -39,7 +41,9 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.projectTypes
      */
-    app.get('/:projectTypeId', async (request, reply) => {
+    app.get('/:projectTypeId', {
+        preHandler: app.needsPermission('project-type:read')
+    }, async (request, reply) => {
         const projectType = await app.db.models.ProjectType.byId(request.params.projectTypeId)
         if (projectType) {
             reply.send(app.db.views.ProjectType.projectType(projectType, request.session.User.admin))
