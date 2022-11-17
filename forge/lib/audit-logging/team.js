@@ -105,9 +105,9 @@ const log = async (event, actionedBy, teamId, body) => {
     const trigger = triggerObject(actionedBy)
     if (typeof trigger?.id === 'number' && trigger?.id <= 0) {
         body.trigger = trigger // store trigger in body since it's not a real user
-        await app.db.controllers.AuditLog.teamLog(app, teamId, null, event, body)
+        await app.db.controllers.AuditLog.teamLog(teamId, null, event, body)
     } else {
-        await app.db.controllers.AuditLog.teamLog(app, teamId, trigger.id, event, body)
+        await app.db.controllers.AuditLog.teamLog(teamId, trigger.id, event, body)
     }
 }
 
