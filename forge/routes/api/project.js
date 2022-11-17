@@ -620,7 +620,7 @@ module.exports = async function (app) {
             }
             if (changed) {
                 await request.project.save()
-                await projectAuditLog.project.settings.update(request.session.User.id, null, request.project, updates)
+                await projectAuditLog.project.settings.updated(request.session.User.id, null, request.project, updates)
             }
             const project = await app.db.views.Project.project(request.project)
             let result

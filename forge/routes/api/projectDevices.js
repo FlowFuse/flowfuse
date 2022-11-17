@@ -65,7 +65,7 @@ module.exports = async function (app) {
                     ProjectId: request.project.id
                 }
             })
-            await projectAuditLog.project.snapshot.deviceTarget(request.project, null, request.project, targetSnapshot)
+            await projectAuditLog.project.snapshot.deviceTargetSet(request.project, null, request.project, targetSnapshot)
             if (app.comms) {
                 app.comms.devices.sendCommandToProjectDevices(request.project.Team.hashid, request.project.id, 'update', {
                     snapshot: targetSnapshot.hashid
