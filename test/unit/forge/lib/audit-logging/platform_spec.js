@@ -38,7 +38,12 @@ describe('Audit Log > Platform', async function () {
             db: {
                 controllers: {
                     AuditLog: {
-                        platformLog: function (app, trigger, event, body) {
+                        // The way controller functions get encapsulated, they
+                        // do not get called with 'app' as their first argument,
+                        // even if the implementation of the function expects it.
+                        // Here we're mocking the external API of the controller,
+                        // which doesn't have 'app'
+                        platformLog: function (trigger, event, body) {
                             log.push({ app, trigger, event, body })
                         }
                     }

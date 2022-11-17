@@ -40,9 +40,14 @@ describe('Audit Log > User', async function () {
             db: {
                 controllers: {
                     AuditLog: {
-                        userLog: function (app, triggerId, event, body, userId) {
+                        // The way controller functions get encapsulated, they
+                        // do not get called with 'app' as their first argument,
+                        // even if the implementation of the function expects it.
+                        // Here we're mocking the external API of the controller,
+                        // which doesn't have 'app'
+                        userLog: function (triggerId, event, body, userId) {
                             // create a stub object for easy testing purposes
-                            log.push({ app, triggerId, event, body, userId })
+                            log.push({ triggerId, event, body, userId })
                         }
                     }
                 }
