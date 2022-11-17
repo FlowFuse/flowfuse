@@ -45,7 +45,7 @@ describe('Audit Log > Team', async function () {
                         // even if the implementation of the function expects it.
                         // Here we're mocking the external API of the controller,
                         // which doesn't have 'app'
-                        teamLog: function ( teamId, triggerId, event, body) {
+                        teamLog: function (teamId, triggerId, event, body) {
                             log.push({ teamId, triggerId, event, body })
                         }
                     }
