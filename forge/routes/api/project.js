@@ -3,6 +3,8 @@ const { Roles } = require('../../lib/roles')
 const ProjectActions = require('./projectActions')
 const ProjectDevices = require('./projectDevices')
 const ProjectSnapshots = require('./projectSnapshots')
+const { getProjectLogger } = require('../../lib/audit-logging')
+const { UpdatesCollection } = require('../../lib/audit-logging/formatters')
 
 /**
  * Instance api routes
@@ -35,6 +37,7 @@ const bannedNameList = [
 ]
 
 module.exports = async function (app) {
+    const projectAuditLog = getProjectLogger(app)
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.projectId !== undefined) {
             if (request.params.projectId) {
@@ -291,12 +294,8 @@ module.exports = async function (app) {
         }
 
         await app.containers.start(project)
+        await projectAuditLog.project.created(request.session.User, null, team, project)
 
-        await app.db.controllers.AuditLog.projectLog(
-            project.id,
-            request.session.User.id,
-            'project.created'
-        )
         if (sourceProject) {
             await app.db.controllers.AuditLog.teamLog(
                 team.id,
@@ -346,11 +345,7 @@ module.exports = async function (app) {
             }
 
             await request.project.destroy()
-            await app.db.controllers.AuditLog.projectLog(
-                request.project.id,
-                request.session.User.id,
-                'project.deleted'
-            )
+            await projectAuditLog.project.deleted(request.session.User, null, request.project.Team, request.project)
             await app.db.controllers.AuditLog.teamLog(
                 request.project.Team.id,
                 request.session.User.id,
@@ -413,22 +408,12 @@ module.exports = async function (app) {
                     resumeProject = true
                     app.log.info(`Stopping project ${request.project.id}`)
                     await app.containers.stop(request.project)
-
-                    await app.db.controllers.AuditLog.projectLog(
-                        request.project.id,
-                        request.session.User.id,
-                        'project.suspended'
-                    )
+                    await projectAuditLog.project.suspended(request.session.User, null, request.project)
                 }
                 await request.project.setProjectStack(stack)
                 await request.project.save()
 
-                await app.db.controllers.AuditLog.projectLog(
-                    request.project.id,
-                    request.session.User.id,
-                    'project.stack.changed',
-                    { stack: stack.hashid, name: stack.name }
-                )
+                await projectAuditLog.project.stack.changed(request.session.User, null, request.project, stack)
 
                 if (resumeProject) {
                     app.log.info(`Restarting project ${request.project.id}`)
@@ -438,11 +423,7 @@ module.exports = async function (app) {
                     await request.project.reload()
                     const startResult = await app.containers.start(request.project)
                     startResult.started.then(async () => {
-                        await app.db.controllers.AuditLog.projectLog(
-                            request.project.id,
-                            request.session.User.id,
-                            'project.started'
-                        )
+                        await projectAuditLog.project.started(request.session.User, null, request.project)
                         app.db.controllers.Project.clearInflightState(request.project)
                     })
                 } else {
@@ -467,12 +448,7 @@ module.exports = async function (app) {
                 resumeProject = true
                 app.log.info(`Stopping project ${request.project.id}`)
                 await app.containers.stop(request.project)
-
-                await app.db.controllers.AuditLog.projectLog(
-                    request.project.id,
-                    request.session.User.id,
-                    'project.suspended'
-                )
+                await projectAuditLog.project.suspended(request.session.User, null, request.project)
             }
 
             const sourceSettingsString = ((await app.db.models.StorageSettings.byProject(sourceProject.id))?.settings) || '{}'
@@ -576,11 +552,7 @@ module.exports = async function (app) {
                 await request.project.reload()
                 const startResult = await app.containers.start(request.project)
                 startResult.started.then(async () => {
-                    await app.db.controllers.AuditLog.projectLog(
-                        request.project.id,
-                        request.session.User.id,
-                        'project.started'
-                    )
+                    await projectAuditLog.project.started(request.session.User, null, request.project)
                     app.db.controllers.Project.clearInflightState(request.project)
                 })
             } else {
@@ -609,6 +581,7 @@ module.exports = async function (app) {
             const reqName = request.body.name?.trim()
             const reqSafeName = reqName?.toLowerCase()
             const projectName = request.project.name?.trim()
+            const updates = new UpdatesCollection()
             if (reqName && projectName !== reqName) {
                 if (bannedNameList.includes(reqSafeName)) {
                     reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name not allowed' })
@@ -620,6 +593,7 @@ module.exports = async function (app) {
                 }
                 request.project.name = reqName
                 changed = true
+                updates.push('name', projectName, reqName)
             }
             if (request.body.settings) {
                 let bodySettings
@@ -638,14 +612,15 @@ module.exports = async function (app) {
                 const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings)
                 await request.project.updateSetting('settings', updatedSettings)
                 changed = true
+                if (allSettingsEdit) {
+                    updates.pushDifferences(currentProjectSettings, updatedSettings)
+                } else {
+                    updates.pushDifferences({ env: currentProjectSettings.env }, { env: newSettings.env })
+                }
             }
             if (changed) {
                 await request.project.save()
-                await app.db.controllers.AuditLog.projectLog(
-                    request.project.id,
-                    request.session.User.id,
-                    'project.settings.updated'
-                )
+                await projectAuditLog.project.settings.update(request.session.User.id, null, request.project, updates)
             }
             const project = await app.db.views.Project.project(request.project)
             let result
@@ -795,7 +770,7 @@ module.exports = async function (app) {
     /**
      *
      * @name /api/v1/project/:id/import
-     * @memberof forge.routs.api.project
+     * @memberof forge.routes.api.project
      */
     app.post('/:projectId/import', {
         schema: {
@@ -811,11 +786,7 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         try {
             const projectImport = await app.db.controllers.Project.importProject(request.project, request.body)
-            await app.db.controllers.AuditLog.projectLog(
-                request.project.id,
-                request.session.User.id,
-                'project.flow-imported'
-            )
+            await projectAuditLog.project.flowImported(request.session.User, null, request.project)
             reply.send(projectImport)
         } catch (err) {
             if (err.name === 'SyntaxError') {
