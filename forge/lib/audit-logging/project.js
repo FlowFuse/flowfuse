@@ -61,7 +61,7 @@ const project = {
 
 const log = async (event, actionedBy, projectId, body) => {
     const trigger = triggerObject(actionedBy)
-    await app.db.controllers.AuditLog.projectLog(app, projectId, trigger.id, event, body)
+    await app.db.controllers.AuditLog.projectLog(projectId, trigger.id, event, body)
 }
 
 module.exports = {

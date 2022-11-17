@@ -48,7 +48,7 @@ const platform = {
 
 const log = async (event, actionedBy, body) => {
     const trigger = triggerObject(actionedBy)
-    await app.db.controllers.AuditLog.platformLog(app, trigger.id, event, body)
+    await app.db.controllers.AuditLog.platformLog(trigger.id, event, body)
 }
 
 module.exports = {

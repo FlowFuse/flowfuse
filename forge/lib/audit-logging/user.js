@@ -84,12 +84,12 @@ const users = {
 // log as operation on self
 const log = async (event, actionedBy, body) => {
     const trigger = triggerObject(actionedBy)
-    await app.db.controllers.AuditLog.userLog(app, trigger.id, event, body, trigger.id)
+    await app.db.controllers.AuditLog.userLog(trigger.id, event, body, trigger.id)
 }
 // log as operation on another entity
 const logUser = async (event, actionedBy, body, entityId) => {
     const trigger = triggerObject(actionedBy)
-    await app.db.controllers.AuditLog.userLog(app, trigger.id, event, body, entityId)
+    await app.db.controllers.AuditLog.userLog(trigger.id, event, body, entityId)
 }
 
 module.exports = {

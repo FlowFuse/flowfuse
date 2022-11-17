@@ -103,7 +103,7 @@ const billing = {
 
 const log = async (event, actionedBy, teamId, body) => {
     const trigger = triggerObject(actionedBy)
-    await app.db.controllers.AuditLog.teamLog(app, teamId, trigger.id, event, body)
+    await app.db.controllers.AuditLog.teamLog(teamId, trigger.id, event, body)
 }
 
 module.exports = {
