@@ -35,6 +35,7 @@ exec(npmCmd, (err, stdout, stderr) => {
             const packagePath = path.join(p, 'node_modules/node-red/package.json')
             const packageJSON = JSON.parse(fs.readFileSync(packagePath))
             log(`node-red@latest is currently node-red@${packageJSON.version}`)
+            log(`installed stack node-red@${packageJSON.version}`)
             const newPath = path.join(path.dirname(p), packageJSON.version)
             if (!fs.existsSync(newPath)) {
                 fs.renameSync(p, newPath)
