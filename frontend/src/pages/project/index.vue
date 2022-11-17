@@ -14,70 +14,40 @@
     </Teleport>
     <main>
         <ConfirmProjectDeleteDialog @confirm="deleteProject" ref="confirmProjectDeleteDialog"/>
-        <SectionTopMenu>
-            <template #hero>
-                <div class="flex-grow space-x-6 items-center inline-flex">
-                    <router-link
-                        :to="navigation[0]?.path ?? ''"
-                        class="inline-flex items-center"
-                    >
-                        <div class="text-gray-800 text-xl font-bold">
-                            {{ project.name }}
-                        </div>
-                    </router-link>
-                    <ProjectStatusBadge :status="project.meta.state" :pendingStateChange="project.pendingStateChange" v-if="project.meta" />
-                </div>
-            </template>
-            <template v-slot:tools>
-                <div class="space-x-2 flex">
-                    <a v-if="projectRunning && !isVisitingAdmin" :href="project.url" target="_blank" class="ff-btn ff-btn--secondary" data-action="open-editor">
-                        Open Editor
-                        <span class="ff-btn--icon ff-btn--icon-right">
-                            <ExternalLinkIcon />
-                        </span>
-                    </a>
-                    <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" alt="Open actions menu" :options="options" data-action="open-actions">Actions</DropdownMenu>
-                </div>
-            </template>
-        </SectionTopMenu>
-        <div class="text-sm mt-4 sm:mt-8">
-            <Teleport v-if="mounted && isVisitingAdmin" to="#platform-banner">
-                <div class="ff-banner" data-el="banner-project-as-admin">You are viewing this project as an Administrator</div>
-            </Teleport>
-            <router-view
-                :project="project"
-                :is-visiting-admin="isVisitingAdmin"
-                @projectUpdated="updateProject"
-                @project-start="startProject"
-                @project-restart="restartProject"
-                @project-suspend="showConfirmSuspendDialog"
-                @project-delete="showConfirmDeleteDialog"
-            />
-        </div>
+        <Teleport v-if="mounted && isVisitingAdmin" to="#platform-banner">
+            <div class="ff-banner" data-el="banner-project-as-admin">You are viewing this project as an Administrator</div>
+        </Teleport>
+        <router-view
+            :project="project"
+            :is-visiting-admin="isVisitingAdmin"
+            @projectUpdated="updateProject"
+            @project-start="startProject"
+            @project-restart="restartProject"
+            @project-suspend="showConfirmSuspendDialog"
+            @project-delete="showConfirmDeleteDialog"
+        />
     </main>
 </template>
 
 <script>
+import { Roles } from '@core/lib/roles'
+import { ChevronLeftIcon, ClockIcon, CloudIcon, CogIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
+import { mapState } from 'vuex'
+
+import ConfirmProjectDeleteDialog from './Settings/dialogs/ConfirmProjectDeleteDialog'
+
 import projectApi from '@/api/project'
 
 import NavItem from '@/components/NavItem'
 // import SideNavigation from '@/components/SideNavigation'
 // import SideTeamSelection from '@/components/SideTeamSelection'
 import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vue'
-import DropdownMenu from '@/components/DropdownMenu'
-import ProjectStatusBadge from './components/ProjectStatusBadge'
-import SectionTopMenu from '@/components/SectionTopMenu'
 
-import { mapState } from 'vuex'
-import { Roles } from '@core/lib/roles'
+import ProjectsIcon from '@/components/icons/Projects'
 import permissionsMixin from '@/mixins/Permissions'
 
-import { ExternalLinkIcon } from '@heroicons/vue/outline'
-import ProjectsIcon from '@/components/icons/Projects'
-import { ChevronLeftIcon, CogIcon, ClockIcon, CloudIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
-import ConfirmProjectDeleteDialog from './Settings/dialogs/ConfirmProjectDeleteDialog'
-import Dialog from '@/services/dialog'
 import alerts from '@/services/alerts'
+import Dialog from '@/services/dialog'
 
 const projectTransitionStates = [
     'installing',
@@ -115,27 +85,6 @@ export default {
         },
         isLoading: function () {
             return this.loading.deleting || this.loading.suspend
-        },
-        options: function () {
-            const flowActionsDisabled = !(this.project.meta && this.project.meta.state !== 'suspended')
-
-            const result = [
-                {
-                    name: 'Start',
-                    action: this.startProject,
-                    disabled: this.project.pendingStateChange || this.projectRunning
-                },
-                { name: 'Restart', action: this.restartProject, disabled: flowActionsDisabled },
-                { name: 'Suspend', class: ['text-red-700'], action: () => { this.showConfirmSuspendDialog() }, disabled: flowActionsDisabled }
-            ]
-            if (this.hasPermission('project:delete')) {
-                result.push(null)
-                result.push({ name: 'Delete', class: ['text-red-700'], action: () => { this.showConfirmDeleteDialog() } })
-            }
-            return result
-        },
-        projectRunning () {
-            return this.project.meta?.state === 'running'
         }
     },
     watch: {
@@ -244,11 +193,7 @@ export default {
     },
     components: {
         NavItem,
-        ExternalLinkIcon,
-        DropdownMenu,
-        ProjectStatusBadge,
         SideNavigationTeamOptions,
-        SectionTopMenu,
         ConfirmProjectDeleteDialog
     }
 }
