@@ -1,8 +1,6 @@
 // Audit Logging of project scoped events
 
 let app
-
-const { projectLog } = require('../../db/controllers/AuditLog')
 const { generateBody, triggerObject } = require('./formatters')
 
 const project = {
@@ -29,10 +27,10 @@ const project = {
     },
     device: {
         async unassigned (actionedBy, error, project, device) {
-            await log('project.device.unassigned', actionedBy, project?.id, generateBody({ error, device }))
+            await log('project.device.unassigned', actionedBy, project?.id, generateBody({ error, project, device }))
         },
         async assigned (actionedBy, error, project, device) {
-            await log('project.device.assigned', actionedBy, project?.id, generateBody({ error, device }))
+            await log('project.device.assigned', actionedBy, project?.id, generateBody({ error, project, device }))
         }
     },
     stack: {
@@ -41,8 +39,8 @@ const project = {
         }
     },
     settings: {
-        async update (actionedBy, error, project, updates) {
-            await log('project.settings.update', actionedBy, project?.id, generateBody({ error, project, updates }))
+        async updated (actionedBy, error, project, updates) {
+            await log('project.settings.updated', actionedBy, project?.id, generateBody({ error, project, updates }))
         }
     },
     snapshot: {
@@ -55,15 +53,15 @@ const project = {
         async deleted (actionedBy, error, project, snapshot) {
             await log('project.snapshot.deleted', actionedBy, project?.id, generateBody({ error, project, snapshot }))
         },
-        async deviceTarget (actionedBy, error, project, snapshot) {
-            await log('project.snapshot.deviceTarget', actionedBy, project?.id, generateBody({ error, project, snapshot }))
+        async deviceTargetSet (actionedBy, error, project, snapshot) {
+            await log('project.snapshot.device-target-set', actionedBy, project?.id, generateBody({ error, project, snapshot }))
         }
     }
 }
 
 const log = async (event, actionedBy, projectId, body) => {
     const trigger = triggerObject(actionedBy)
-    await projectLog(app, projectId, trigger.id, event, body)
+    await app.db.controllers.AuditLog.projectLog(app, projectId, trigger.id, event, body)
 }
 
 module.exports = {

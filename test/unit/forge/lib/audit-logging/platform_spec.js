@@ -2,14 +2,11 @@ const sinon = require('sinon')
 
 const should = require('should') // eslint-disable-line
 require('should-sinon')
-// const FF_UTIL = require('flowforge-test-utils')
-// const Formatters = FF_UTIL.require('forge/lib/audit-logging/formatters')
-
-const Formatters = require('../../../../../forge/lib/audit-logging/formatters')
+const FF_UTIL = require('flowforge-test-utils')
+const Formatters = FF_UTIL.require('forge/lib/audit-logging/formatters')
 
 describe('Audit Log > Platform', async function () {
-    // let app = await FF_UTIL.setupApp({})
-
+    let sandbox
     let app
     let log
     let platform
@@ -19,18 +16,19 @@ describe('Audit Log > Platform', async function () {
     let genBodyStub, triggerObjectStub
 
     before(() => {
+        sandbox = sinon.createSandbox()
         // stub the triggerObject and generateBody functions
         // return args so ew can test correct args given to the fcn
-        genBodyStub = sinon.stub(Formatters, 'generateBody').callsFake(function (args) {
+        genBodyStub = sandbox.stub(Formatters, 'generateBody').callsFake(function (args) {
             return args
         })
         // stub the triggerObject and generateBody functions
-        triggerObjectStub = sinon.stub(Formatters, 'triggerObject').callsFake(function () {
+        triggerObjectStub = sandbox.stub(Formatters, 'triggerObject').callsFake(function () {
             return {
                 id: '<id>'
             }
         })
-        getLoggers = require('../../../../../forge/lib/audit-logging/platform').getLoggers
+        getLoggers = FF_UTIL.require('forge/lib/audit-logging/platform').getLoggers
     })
 
     beforeEach(async function () {
@@ -49,6 +47,10 @@ describe('Audit Log > Platform', async function () {
         }
 
         platform = getLoggers(app).platform
+    })
+
+    after(() => {
+        sandbox.restore()
     })
 
     const ACTIONED_BY = {}
