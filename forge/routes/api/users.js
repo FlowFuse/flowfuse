@@ -159,7 +159,7 @@ module.exports = async function (app) {
             reply.send({ status: 'okay' })
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
-            await userAuditLog.users.uderDeleted(request.session.User, resp, request.user)
+            await userAuditLog.users.userDeleted(request.session.User, resp, request.user)
             reply.code(400).send(resp)
         }
     })
