@@ -1,3 +1,5 @@
+const { getProjectLogger } = require('../../lib/audit-logging')
+
 /**
  * Project Snapshot api routes
  *
@@ -9,6 +11,7 @@
  * @memberof forge.routes.api
  */
 module.exports = async function (app) {
+    const projectAuditLog = getProjectLogger(app)
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.snapshotId !== undefined) {
             if (request.params.snapshotId) {
@@ -51,7 +54,6 @@ module.exports = async function (app) {
     app.delete('/:snapshotId', {
         preHandler: app.needsPermission('project:snapshot:delete')
     }, async (request, reply) => {
-        const id = request.snapshot.hashid
         const project = await request.snapshot.getProject()
         const deviceSettings = await project.getSetting('deviceSettings') || {
             targetSnapshot: null
@@ -70,12 +72,7 @@ module.exports = async function (app) {
             }
         }
         await request.snapshot.destroy()
-        await app.db.controllers.AuditLog.projectLog(
-            request.project.id,
-            request.session.User.id,
-            'project.snapshot.deleted',
-            { id }
-        )
+        await projectAuditLog.project.snapshot.deleted(request.session.User, null, request.project, request.snapshot)
         reply.send({ status: 'okay' })
     })
 
@@ -95,12 +92,7 @@ module.exports = async function (app) {
             }
         )
         snapShot.User = request.session.User
-        await app.db.controllers.AuditLog.projectLog(
-            request.project.id,
-            request.session.User.id,
-            'project.snapshot.created',
-            { id: snapShot.hashid }
-        )
+        await projectAuditLog.project.snapshot.created(request.session.User, null, request.project, snapShot)
         reply.send(app.db.views.ProjectSnapshot.snapshot(snapShot))
     })
 }

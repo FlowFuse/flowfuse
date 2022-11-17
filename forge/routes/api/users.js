@@ -1,3 +1,4 @@
+const { getUserLogger } = require('../../lib/audit-logging')
 const sharedUser = require('./shared/users')
 
 /**
@@ -9,6 +10,7 @@ const sharedUser = require('./shared/users')
  * @memberof forge.routes.api
  */
 module.exports = async function (app) {
+    const userAuditLog = getUserLogger(app)
     // Lets assume all apis that access bulk users are admin only.
     app.addHook('preHandler', app.verifyAdmin)
     app.addHook('preHandler', async (request, reply) => {
@@ -58,11 +60,14 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.users
      */
     app.put('/:userId', async (request, reply) => {
-        await sharedUser.updateUser(app, request.user, request, reply, userLog)
+        await sharedUser.updateUser(app, request.user, request, reply, 'users')
     })
 
     /**
      * Create a new user
+     * @name /api/v1/users/:userId
+     * @static
+     * @memberof forge.routes.api.users
      */
     app.post('/', {
         schema: {
@@ -80,12 +85,14 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const logUserInfo = {
+            name: request.body.name,
             username: request.body.username,
+            email: request.body.email,
             admin: !!request.body.isAdmin
         }
         if (/^(admin|root)$/.test(request.body.username)) {
             const resp = { code: 'invalid_username', error: 'invalid username' }
-            await userLog(request.session.User.id, 'create-user', { ...resp, user: logUserInfo })
+            await userAuditLog.users.userCreated(request.session.User, resp, logUserInfo)
             reply.code(400).send(resp)
             return
         }
@@ -94,7 +101,7 @@ module.exports = async function (app) {
             const teamCount = await app.db.models.Team.count()
             if (teamCount >= teamLimit) {
                 const resp = { code: 'team_limit_reached', error: 'Unable to create user team: license limit reached' }
-                await userLog(request.session.User.id, 'create-user', { ...resp, user: logUserInfo })
+                await userAuditLog.users.userCreated(request.session.User, resp, logUserInfo)
                 reply.code(400).send(resp)
                 return
             }
@@ -109,20 +116,14 @@ module.exports = async function (app) {
                 admin: !!request.body.isAdmin
             })
             logUserInfo.id = newUser.id
-            await userLog(request.session.User.id, 'create-user', { user: logUserInfo }, newUser.id)
+            await userAuditLog.users.userCreated(request.session.User, null, logUserInfo)
             if (request.body.createDefaultTeam) {
-                await app.db.controllers.Team.createTeamForUser({
+                const team = await app.db.controllers.Team.createTeamForUser({
                     name: `Team ${request.body.name}`,
                     slug: request.body.username,
                     TeamTypeId: (await app.db.models.TeamType.byName('starter')).id
                 }, newUser)
-                await userLog(request.session.User.id, 'auto-create-team', {
-                    team: {
-                        name: `Team ${request.body.name}`,
-                        type: 'starter'
-                    },
-                    user: logUserInfo
-                }, newUser.id)
+                await userAuditLog.users.teamAutoCreated(request.session.User, null, team, logUserInfo)
             }
             reply.send({ status: 'okay' })
         } catch (err) {
@@ -140,7 +141,7 @@ module.exports = async function (app) {
                 responseMessage = err.toString()
             }
             const resp = { code: responseCode, error: responseMessage }
-            await userLog(request.session.User.id, 'create-user', { ...resp, user: logUserInfo }, logUserInfo?.id)
+            await userAuditLog.users.userCreated(request.session.User, resp, logUserInfo)
             reply.code(400).send(resp)
         }
     })
@@ -152,31 +153,14 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.users
      */
     app.delete('/:userId', async (request, reply) => {
-        const userId = request.params.userId
         try {
             await request.user.destroy()
-            await userLog(request.session.User.id, 'delete-user', { user: request.user }, userId)
+            await userAuditLog.users.userDeleted(request.session.User, null, request.user)
             reply.send({ status: 'okay' })
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
-            await userLog(request.session.User.id, 'delete-user', { ...resp, user: request.user }, userId)
+            await userAuditLog.users.uderDeleted(request.session.User, resp, request.user)
             reply.code(400).send(resp)
         }
     })
-
-    /**
-     * Log events against the entityType `users.x.y`
-     * @param {number} userId User performing the action
-     * @param {string} event The name of the event
-     * @param {*} body The body/data for the log entry
-     * @param {string|number} [entityId] The ID of the user being affected (where available)
-     */
-    async function userLog (userId, event, body, entityId) {
-        try {
-            // function userLog (app, UserId, event, body, entityId)
-            await app.db.controllers.AuditLog.userLog(userId, `users.${event}`, body, entityId)
-        } catch (error) {
-            console.error(error)
-        }
-    }
 }

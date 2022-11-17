@@ -2,7 +2,6 @@
 
 let app
 
-const { teamLog } = require('../../db/controllers/AuditLog')
 const { projectObject, generateBody, triggerObject } = require('./formatters')
 
 const team = {
@@ -30,19 +29,19 @@ const team = {
             await log('team.user.uninvited', actionedBy, team?.id, body)
         },
         invite: {
-            async accept (actionedBy, error, team, user, role) {
-                await log('team.user.invite.accept', actionedBy, team?.id, generateBody({ error, user, role }))
+            async accepted (actionedBy, error, team, user, role) {
+                await log('team.user.invite.accepted', actionedBy, team?.id, generateBody({ error, user, role }))
             },
-            async reject (actionedBy, error, team, user, role) {
-                await log('team.user.invite.reject', actionedBy, team?.id, generateBody({ error, user, role }))
+            async rejected (actionedBy, error, team, user, role) {
+                await log('team.user.invite.rejected', actionedBy, team?.id, generateBody({ error, user, role }))
             }
         },
         rollChanged (actionedBy, error, team, user, updates) {
-            log('team.user.roleChanged', actionedBy, team?.id, generateBody({ error, user, updates }))
+            log('team.user.role-changed', actionedBy, team?.id, generateBody({ error, user, updates }))
         }
     },
     settings: {
-        async update (actionedBy, error, team, updates) {
+        async updated (actionedBy, error, team, updates) {
             await log('team.settings.updated', actionedBy, team?.id, generateBody({ error, team, updates }))
         }
     },
@@ -63,7 +62,7 @@ const team = {
             await log('team.device.assigned', actionedBy, team?.id, generateBody({ error, project, device }))
         },
         async credentialsGenerated (actionedBy, error, team, project, device) {
-            await log('team.device.credentialsGenerated', actionedBy, team?.id, generateBody({ error, project, device }))
+            await log('team.device.credentials-generated', actionedBy, team?.id, generateBody({ error, project, device }))
         }
     }
 }
@@ -106,9 +105,9 @@ const log = async (event, actionedBy, teamId, body) => {
     const trigger = triggerObject(actionedBy)
     if (typeof trigger?.id === 'number' && trigger?.id <= 0) {
         body.trigger = trigger // store trigger in body since it's not a real user
-        await teamLog(app, teamId, null, event, body)
+        await app.db.controllers.AuditLog.teamLog(app, teamId, null, event, body)
     } else {
-        await teamLog(app, teamId, trigger.id, event, body)
+        await app.db.controllers.AuditLog.teamLog(app, teamId, trigger.id, event, body)
     }
 }
 
