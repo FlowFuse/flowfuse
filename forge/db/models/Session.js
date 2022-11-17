@@ -21,15 +21,5 @@ module.exports = {
     },
     associations: function (M) {
         this.belongsTo(M.User)
-    },
-    finders: function (M) {
-        return {
-            static: {
-                byRefreshToken: async (refreshToken) => {
-                    const hashedToken = sha256(refreshToken)
-                    return await this.findOne({ where: { refreshToken: hashedToken } })
-                }
-            }
-        }
     }
 }

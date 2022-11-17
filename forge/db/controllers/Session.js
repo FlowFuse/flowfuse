@@ -9,8 +9,6 @@ const DEFAULT_WEB_SESSION_IDLE_TIMEOUT = HOUR * 32 // 32 hours
 // to idle timeout. That avoids the need to update idle timeout on every single request
 const DEFAULT_WEB_SESSION_IDLE_GRACE = HOUR * 31 // 31 hours
 
-const DEFAULT_TOKEN_SESSION_EXPIRY = 1000 * 60 * 30 // 30 mins session - with refresh token support
-
 module.exports = {
     /**
      * Create a new session for the given username
@@ -24,39 +22,6 @@ module.exports = {
                 idleAt: Date.now() + DEFAULT_WEB_SESSION_IDLE_TIMEOUT,
                 UserId: user.id
             })
-        }
-        return null
-    },
-
-    /**
-     * Create a new oauth session for the given username
-     */
-    createTokenSession: async function (app, username) {
-        const user = await app.db.models.User.byUsernameOrEmail(username)
-        if (user) {
-            const session = {
-                sid: generateToken(32, 'ffp'),
-                refreshToken: generateToken(32, 'ffp'),
-                expiresAt: Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY,
-                UserId: user.id
-            }
-            // Do this in two stages as `refreshToken` is hashed in the db
-            await app.db.models.Session.create(session)
-            return session
-        }
-        return null
-    },
-
-    refreshTokenSession: async function (app, refreshToken) {
-        const existingSession = await app.db.models.Session.byRefreshToken(refreshToken)
-        if (existingSession) {
-            const newSession = {
-                sid: generateToken(32, 'ffp'),
-                refreshToken: generateToken(32, 'ffp'),
-                expiresAt: Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY
-            }
-            await app.db.models.Session.update(newSession, { where: { refreshToken: existingSession.refreshToken } })
-            return newSession
         }
         return null
     },

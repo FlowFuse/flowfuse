@@ -160,7 +160,7 @@ module.exports = async function (app) {
                     reply.code(400).send('Please ask the team owner to update this project to the latest stack to support viewer access')
                     return
                 }
-                requestObject.username = request.session.User.username
+                requestObject.userId = request.session.User.id
                 requestObject.code = base64URLEncode(crypto.randomBytes(32))
                 requestCache.set(requestObject.code, requestObject)
                 const responseUrl = new URL(requestObject.redirect_uri)
@@ -169,11 +169,21 @@ module.exports = async function (app) {
                     code: requestObject.code,
                     state: requestObject.state
                 })
+                console.log('/account/complete redirect', responseUrl.toString())
                 reply.redirect(responseUrl.toString())
                 return
             }
         }
         return badRequest(reply, 'access_denied', 'Access Denied')
+    })
+    app.get('/account/reject/:code', async function (request, reply) {
+        const requestId = request.params.code
+        const requestObject = requestCache.get(requestId)
+        requestCache.delete(requestId)
+        if (!requestObject) {
+            return badRequest(reply, 'invalid_request', 'Invalid request')
+        }
+        return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
     })
 
     app.post('/account/token', {
@@ -228,7 +238,7 @@ module.exports = async function (app) {
                 badRequest(reply, 'invalid_request', 'Invalid code')
                 return
             }
-            if (!requestObject.username) {
+            if (!requestObject.userId) {
                 badRequest(reply, 'access_denied', 'Access Denied - missing user', requestObject.state)
                 return
             }
@@ -245,15 +255,19 @@ module.exports = async function (app) {
                 return
             }
 
-            const sessionTokens = await app.db.controllers.Session.createTokenSession(requestObject.username)
+            const accessToken = await app.db.controllers.AccessToken.createTokenForUser(requestObject.userId,
+                null,
+                ['user:read', 'project:flows:view', 'project:flows:edit'],
+                true
+            )
 
             const project = await app.db.models.Project.byId(authClient.ownerId)
-            const teamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: project.TeamId, UserId: sessionTokens.UserId } })
+            const teamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: project.TeamId, UserId: requestObject.userId } })
             const canReadFlows = app.hasPermission(teamMembership, 'project:flows:view')
             const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit')
 
             if (!canReadFlows && !canWriteFlows) {
-                await sessionTokens.destroy()
+                app.db.controllers.AccessToken.destroyToken(accessToken.token)
                 return badRequest(reply, 'access_denied', 'Access Denied')
             }
 
@@ -263,9 +277,9 @@ module.exports = async function (app) {
             }
 
             const response = {
-                access_token: sessionTokens.sid,
-                expires_in: Math.floor((sessionTokens.expiresAt - Date.now()) / 1000),
-                refresh_token: sessionTokens.refreshToken,
+                access_token: accessToken.token,
+                expires_in: Math.floor((accessToken.expiresAt - Date.now()) / 1000),
+                refresh_token: accessToken.refreshToken,
                 state: requestObject.state,
                 scope
             }
@@ -273,28 +287,31 @@ module.exports = async function (app) {
         } else if (grant_type === 'refresh_token') {
             // We have validated client_id and client_secret by this point.
 
-            const existingSession = await app.db.models.Session.byRefreshToken(refresh_token)
-
+            const existingToken = await app.db.models.AccessToken.byRefreshToken(refresh_token)
+            if (!existingToken) {
+                badRequest(reply, 'invalid_request', 'Invalid refresh_token')
+                return
+            }
             // Check the owner of the existing session still has access to the project
             // this client is owned by
             const project = await app.db.models.Project.byId(authClient.ownerId)
-            const teamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: project.TeamId, UserId: existingSession.UserId } })
+            const teamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: project.TeamId, UserId: parseInt(existingToken.ownerId) } })
             const canReadFlows = app.hasPermission(teamMembership, 'project:flows:view')
             const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit')
 
             if (!canReadFlows && !canWriteFlows) {
                 return badRequest(reply, 'access_denied', 'Access Denied')
             }
-            const sessionTokens = await app.db.controllers.Session.refreshTokenSession(refresh_token)
-            if (!sessionTokens) {
+            const accessToken = await app.db.controllers.AccessToken.refreshToken(refresh_token)
+            if (!accessToken) {
                 badRequest(reply, 'invalid_request', 'Invalid refresh_token')
                 return
             }
 
             const response = {
-                access_token: sessionTokens.sid,
-                expires_in: Math.floor((sessionTokens.expiresAt - Date.now()) / 1000),
-                refresh_token: sessionTokens.refreshToken
+                access_token: accessToken.token,
+                expires_in: Math.floor((accessToken.expiresAt - Date.now()) / 1000),
+                refresh_token: accessToken.refreshToken
             }
             reply.send(response)
         } else {
