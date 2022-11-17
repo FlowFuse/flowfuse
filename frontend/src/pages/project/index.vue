@@ -17,8 +17,13 @@
         <SectionTopMenu>
             <template #hero>
                 <div class="flex-grow space-x-6 items-center inline-flex">
-                    <router-link :to="navigation[0]?navigation[0].path:''" class="inline-flex items-center">
-                        <div class="text-gray-800 text-xl font-bold">{{project.name}}</div>
+                    <router-link
+                        :to="navigation[0]?.path ?? ''"
+                        class="inline-flex items-center"
+                    >
+                        <div class="text-gray-800 text-xl font-bold">
+                            {{ project.name }}
+                        </div>
                     </router-link>
                     <ProjectStatusBadge :status="project.meta.state" :pendingStateChange="project.pendingStateChange" v-if="project.meta" />
                 </div>
@@ -39,7 +44,15 @@
             <Teleport v-if="mounted && isVisitingAdmin" to="#platform-banner">
                 <div class="ff-banner" data-el="banner-project-as-admin">You are viewing this project as an Administrator</div>
             </Teleport>
-            <router-view :project="project" :isVisitingAdmin="isVisitingAdmin" @projectUpdated="updateProject"></router-view>
+            <router-view
+                :project="project"
+                :is-visiting-admin="isVisitingAdmin"
+                @projectUpdated="updateProject"
+                @project-start="startProject"
+                @project-restart="restartProject"
+                @project-suspend="showConfirmSuspendDialog"
+                @project-delete="showConfirmDeleteDialog"
+            />
         </div>
     </main>
 </template>
@@ -109,13 +122,10 @@ export default {
             const result = [
                 {
                     name: 'Start',
-                    action: async () => {
-                        this.project.pendingStateChange = true
-                        await projectApi.startProject(this.project.id)
-                    },
+                    action: this.startProject,
                     disabled: this.project.pendingStateChange || this.projectRunning
                 },
-                { name: 'Restart', action: async () => { this.project.pendingRestart = true; this.project.pendingStateChange = true; await projectApi.restartProject(this.project.id) }, disabled: flowActionsDisabled },
+                { name: 'Restart', action: this.restartProject, disabled: flowActionsDisabled },
                 { name: 'Suspend', class: ['text-red-700'], action: () => { this.showConfirmSuspendDialog() }, disabled: flowActionsDisabled }
             ]
             if (this.hasPermission('project:delete')) {
@@ -187,6 +197,15 @@ export default {
                 this.project.pendingStateChange = true
                 this.refreshProject()
             }
+        },
+        async startProject () {
+            this.project.pendingStateChange = true
+            await projectApi.startProject(this.project.id)
+        },
+        async restartProject () {
+            this.project.pendingRestart = true
+            this.project.pendingStateChange = true
+            await projectApi.restartProject(this.project.id)
         },
         showConfirmDeleteDialog () {
             this.$refs.confirmProjectDeleteDialog.show(this.project)
