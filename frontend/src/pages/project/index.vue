@@ -4,8 +4,7 @@
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigationTeamOptions>
             <template v-slot:nested-menu>
-                <div class="ff-nested-title">Project</div>
-                <!-- <div class="ff-nested-title">{{ project.name }}</div> -->
+                <div class="ff-nested-title">{{ project.name }}</div>
                 <router-link v-for="route in navigation" :key="route.label" :to="route.path">
                     <nav-item :icon="route.icon" :label="route.label" :data-nav="route.tag"></nav-item>
                 </router-link>
