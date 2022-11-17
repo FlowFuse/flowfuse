@@ -66,6 +66,15 @@ driver:
   ## External url used by devices to connect to the broker, if different
   # public_url: ws://localhost:4881
 
+
+#################################################
+# File Server config                            #
+#################################################
+
+fileStore:
+  url: http://localhost:3001
+
+
 #################################################
 # Email Configuration                           #
 #################################################

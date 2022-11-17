@@ -699,6 +699,7 @@ module.exports = async function (app) {
         settings.env = settings.env || {}
         settings.baseURL = request.project.url
         settings.forgeURL = app.config.base_url
+        settings.fileStore = app.config.fileStore ? { ...app.config.fileStore } : null
         settings.teamID = request.project.Team.hashid
         settings.storageURL = request.project.storageURL
         settings.auditURL = request.project.auditURL
