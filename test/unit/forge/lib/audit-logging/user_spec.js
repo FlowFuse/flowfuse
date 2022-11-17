@@ -317,7 +317,7 @@ describe('Audit Log > User', async function () {
         should(log).have.property('length', 1)
         should(log[0]).have.property('triggerId', '<id>')
         should(log[0]).have.property('event', 'users.updated-user')
-        should(log[0]).have.property('userId', '<user-id>')
+        should(log[0]).have.property('userId', '<id>')
         should(log[0]).have.property('body')
         should(log[0].body).have.property('error', null)
         should(log[0].body).have.only.keys('error', 'updates', 'user')
