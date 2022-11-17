@@ -70,13 +70,13 @@ module.exports = {
         await app.db.controllers.Team.addUser(invitation.team, user, role)
         await invitation.destroy()
         const teamAuditLog = getTeamLogger(app)
-        teamAuditLog.team.user.invite.accept(user, null, invitation.team, user, role)
+        teamAuditLog.team.user.invite.accepted(user, null, invitation.team, user, role)
     },
 
     rejectInvitation: async (app, invitation, user) => {
         const role = invitation.role || Roles.Member
         await invitation.destroy()
         const teamAuditLog = getTeamLogger(app)
-        teamAuditLog.team.user.invite.reject(user, null, invitation.team, user, role)
+        teamAuditLog.team.user.invite.rejected(user, null, invitation.team, user, role)
     }
 }
