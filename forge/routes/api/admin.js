@@ -56,11 +56,11 @@ module.exports = async function (app) {
             if (request.body.action === 'apply') {
                 await app.license.apply(request.body.license)
                 const license = app.license.get() || {}
-                await platformAuditLog.platform.license.apply(request.session.User, null, license)
+                await platformAuditLog.platform.license.applied(request.session.User, null, license)
                 reply.send(license)
             } else if (request.body.action === 'inspect') {
                 const license = await app.license.inspect(request.body.license)
-                await platformAuditLog.platform.license.inspect(request.session.User, null, license)
+                await platformAuditLog.platform.license.inspected(request.session.User, null, license)
                 reply.send(license)
             } else {
                 reply.code(400).send({ code: 'invalid_license_action', error: 'Invalid action' })
@@ -72,9 +72,9 @@ module.exports = async function (app) {
             }
             const resp = { code: 'invalid_license', error: responseMessage }
             if (request.body.action === 'apply') {
-                await platformAuditLog.platform.license.apply(request.session.User, resp, request.body.license)
+                await platformAuditLog.platform.license.applied(request.session.User, resp, request.body.license)
             } else if (request.body.action === 'inspect') {
-                await platformAuditLog.platform.license.inspect(request.session.User, resp, request.body.license)
+                await platformAuditLog.platform.license.inspected(request.session.User, resp, request.body.license)
             }
             reply.code(400).send(resp)
         }

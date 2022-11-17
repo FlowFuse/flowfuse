@@ -64,7 +64,7 @@ module.exports = async function (app) {
                 await app.settings.set(key, value)
             }
             if (updates.length > 0) {
-                await platformAuditLog.platform.settings.update(request.session.User, null, updates)
+                await platformAuditLog.platform.settings.updated(request.session.User, null, updates)
             }
             reply.send({ status: 'okay' })
         } else {

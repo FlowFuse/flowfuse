@@ -104,7 +104,7 @@ module.exports = async function (app) {
                 }
             }
             const stack = await app.db.models.ProjectStack.create(stackProperties)
-            await platformAuditLog.platform.stack.create(request.session.User, null, stack)
+            await platformAuditLog.platform.stack.created(request.session.User, null, stack)
             if (replacedStack) {
                 // Update all previous stacks to point to the latest in the chain
                 await app.db.models.ProjectStack.update({ replacedBy: stack.id }, {
@@ -133,7 +133,7 @@ module.exports = async function (app) {
                 responseMessage = err.toString()
             }
             const resp = { code: 'unexpected_error', error: responseMessage }
-            await platformAuditLog.platform.stack.create(request.session.User, resp, stackProperties)
+            await platformAuditLog.platform.stack.created(request.session.User, resp, stackProperties)
             reply.code(400).send(resp)
         }
     })
@@ -153,14 +153,14 @@ module.exports = async function (app) {
         if (stack) {
             try {
                 await stack.destroy()
-                await platformAuditLog.platform.stack.delete(request.session.User, null, stack)
+                await platformAuditLog.platform.stack.deleted(request.session.User, null, stack)
                 reply.send({ status: 'okay' })
             } catch (err) {
                 reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
             }
         } else {
             const resp = { code: 'not_found', status: 'Not Found' }
-            await platformAuditLog.platform.stack.delete(request.session.User, resp, stack)
+            await platformAuditLog.platform.stack.deleted(request.session.User, resp, stack)
             reply.code(404).send(resp)
         }
     })
@@ -178,7 +178,7 @@ module.exports = async function (app) {
         if (request.body.name !== undefined || request.body.properties !== undefined) {
             if (stack.getDataValue('projectCount') > 0) {
                 const resp = { code: 'invalid_request', error: 'Cannot edit in-use stack' }
-                await platformAuditLog.platform.stack.update(request.session.User, resp, stack)
+                await platformAuditLog.platform.stack.updated(request.session.User, resp, stack)
                 reply.code(400).send(resp)
                 return
             }
@@ -223,7 +223,7 @@ module.exports = async function (app) {
         }
 
         await stack.save()
-        await platformAuditLog.platform.stack.update(request.session.User, null, stack, updates)
+        await platformAuditLog.platform.stack.updated(request.session.User, null, stack, updates)
         reply.send(app.db.views.ProjectStack.stack(stack, request.session.User.admin))
     })
 }

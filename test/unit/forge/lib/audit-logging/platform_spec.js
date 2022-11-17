@@ -56,14 +56,14 @@ describe('Audit Log > Platform', async function () {
     const ACTIONED_BY = {}
 
     it('Provides a logger for platform settings', async function () {
-        await platform.settings.update(ACTIONED_BY, null, [{}])
+        await platform.settings.updated(ACTIONED_BY, null, [{}])
         // check dependency fcns are called
         genBodyStub.should.be.called()
         triggerObjectStub.should.be.calledWith(ACTIONED_BY)
         // check log stored
         should(log).have.property('length', 1)
         should(log[0]).have.property('trigger', '<id>')
-        should(log[0]).have.property('event', 'platform.settings.update')
+        should(log[0]).have.property('event', 'platform.settings.updated')
         should(log[0]).have.property('body')
         should(log[0].body).have.property('error', null)
         should(log[0].body).have.property('updates')
@@ -71,112 +71,112 @@ describe('Audit Log > Platform', async function () {
 
     it('Provides a logger for creating platform stacks', async function () {
         // platform - stack - create
-        await platform.stack.create(ACTIONED_BY, null, [{}])
+        await platform.stack.created(ACTIONED_BY, null, [{}])
         // check dependency fcns are called
         genBodyStub.should.be.called()
         triggerObjectStub.should.be.calledWith(ACTIONED_BY)
         // check log stored
         should(log).have.property('length', 1)
         should(log[0]).have.property('trigger', '<id>')
-        should(log[0]).have.property('event', 'platform.stack.create')
+        should(log[0]).have.property('event', 'platform.stack.created')
         should(log[0]).have.property('body')
         should(log[0].body).have.only.keys('error', 'stack')
     })
 
     it('Provides a logger for deleting platform stacks', async function () {
         // platform - stack - delete
-        await platform.stack.delete(ACTIONED_BY, null, [{}])
+        await platform.stack.deleted(ACTIONED_BY, null, [{}])
         // check dependency fcns are called
         genBodyStub.should.be.called()
         triggerObjectStub.should.be.calledWith(ACTIONED_BY)
         // check log stored
         should(log).have.property('length', 1)
         should(log[0]).have.property('trigger', '<id>')
-        should(log[0]).have.property('event', 'platform.stack.delete')
+        should(log[0]).have.property('event', 'platform.stack.deleted')
         should(log[0]).have.property('body')
         should(log[0].body).have.only.keys('error', 'stack')
     })
 
     it('Provides a logger for updating platform stacks', async function () {
         // platform - stack - update
-        await platform.stack.update(ACTIONED_BY, null, {})
+        await platform.stack.updated(ACTIONED_BY, null, {})
         // check dependency fcns are called
         genBodyStub.should.be.called()
         triggerObjectStub.should.be.calledWith(ACTIONED_BY)
         // check log stored
         should(log).have.property('length', 1)
         should(log[0]).have.property('trigger', '<id>')
-        should(log[0]).have.property('event', 'platform.stack.update')
+        should(log[0]).have.property('event', 'platform.stack.updated')
         should(log[0]).have.property('body')
         should(log[0].body).have.only.keys('error', 'stack', 'updates')
     })
 
     it('Provides a logger for creating platform projectTypes', async function () {
         // platform - stack - create
-        await platform.projectType.create(ACTIONED_BY, null, {})
+        await platform.projectType.created(ACTIONED_BY, null, {})
         // check dependency fcns are called
         genBodyStub.should.be.called()
         triggerObjectStub.should.be.calledWith(ACTIONED_BY)
         // check log stored
         should(log).have.property('length', 1)
         should(log[0]).have.property('trigger', '<id>')
-        should(log[0]).have.property('event', 'platform.projectType.create')
+        should(log[0]).have.property('event', 'platform.project-type.created')
         should(log[0]).have.property('body')
         should(log[0].body).have.only.keys('error', 'projectType')
     })
 
     it('Provides a logger for deleting platform projectTypes', async function () {
         // platform - stack - delete
-        await platform.projectType.delete(ACTIONED_BY, null, {})
+        await platform.projectType.deleted(ACTIONED_BY, null, {})
         // check dependency fcns are called
         genBodyStub.should.be.called()
         triggerObjectStub.should.be.calledWith(ACTIONED_BY)
         // check log stored
         should(log).have.property('length', 1)
         should(log[0]).have.property('trigger', '<id>')
-        should(log[0]).have.property('event', 'platform.projectType.delete')
+        should(log[0]).have.property('event', 'platform.project-type.deleted')
         should(log[0]).have.property('body')
         should(log[0].body).have.only.keys('error', 'projectType')
     })
 
     it('Provides a logger for updating platform projectTypes', async function () {
         // platform - stack - update
-        await platform.projectType.update(ACTIONED_BY, null, [{}])
+        await platform.projectType.updated(ACTIONED_BY, null, [{}])
         // check dependency fcns are called
         genBodyStub.should.be.called()
         triggerObjectStub.should.be.calledWith(ACTIONED_BY)
         // check log stored
         should(log).have.property('length', 1)
         should(log[0]).have.property('trigger', '<id>')
-        should(log[0]).have.property('event', 'platform.projectType.update')
+        should(log[0]).have.property('event', 'platform.project-type.updated')
         should(log[0]).have.property('body')
         should(log[0].body).have.only.keys('error', 'projectType', 'updates')
     })
 
     it('Provides a logger for applying a platform license', async function () {
         // platform - stack - update
-        await platform.license.apply(ACTIONED_BY, null, {})
+        await platform.license.applied(ACTIONED_BY, null, {})
         // check dependency fcns are called
         genBodyStub.should.be.called()
         triggerObjectStub.should.be.calledWith(ACTIONED_BY)
         // check log stored
         should(log).have.property('length', 1)
         should(log[0]).have.property('trigger', '<id>')
-        should(log[0]).have.property('event', 'platform.license.apply')
+        should(log[0]).have.property('event', 'platform.license.applied')
         should(log[0]).have.property('body')
         should(log[0].body).have.only.keys('error', 'license')
     })
 
     it('Provides a logger for inspecting a platform license', async function () {
         // platform - stack - update
-        await platform.license.inspect(ACTIONED_BY, null, {})
+        await platform.license.inspected(ACTIONED_BY, null, {})
         // check dependency fcns are called
         genBodyStub.should.be.called()
         triggerObjectStub.should.be.calledWith(ACTIONED_BY)
         // check log stored
         should(log).have.property('length', 1)
         should(log[0]).have.property('trigger', '<id>')
-        should(log[0]).have.property('event', 'platform.license.inspect')
+        should(log[0]).have.property('event', 'platform.license.inspected')
         should(log[0]).have.property('body')
         should(log[0].body).have.only.keys('error', 'license')
     })

@@ -10,38 +10,38 @@ const platform = {
          * @param {number|object} actionedBy A user object or a user id. NOTE: 0 will denote the "system", >0 denotes a user
          * @param {import('./formatters').UpdatesCollection} updates An `UpdatesCollection` or array of `{key: string, old: any, new: any}`
          */
-        async update (actionedBy, error, updates) {
-            await log('platform.settings.update', actionedBy, generateBody({ error, updates }))
+        async updated (actionedBy, error, updates) {
+            await log('platform.settings.updated', actionedBy, generateBody({ error, updates }))
         }
     },
     stack: {
-        async create (actionedBy, error, stack) {
-            await log('platform.stack.create', actionedBy, generateBody({ error, stack }))
+        async created (actionedBy, error, stack) {
+            await log('platform.stack.created', actionedBy, generateBody({ error, stack }))
         },
-        async delete (actionedBy, error, stack) {
-            await log('platform.stack.delete', actionedBy, generateBody({ error, stack }))
+        async deleted (actionedBy, error, stack) {
+            await log('platform.stack.deleted', actionedBy, generateBody({ error, stack }))
         },
-        async update (actionedBy, error, stack, updates) {
-            await log('platform.stack.update', actionedBy, generateBody({ error, stack, updates }))
+        async updated (actionedBy, error, stack, updates) {
+            await log('platform.stack.updated', actionedBy, generateBody({ error, stack, updates }))
         }
     },
     projectType: {
-        async create (actionedBy, error, projectType) {
-            await log('platform.projectType.create', actionedBy, generateBody({ error, projectType }))
+        async created (actionedBy, error, projectType) {
+            await log('platform.project-type.created', actionedBy, generateBody({ error, projectType }))
         },
-        async delete (actionedBy, error, projectType) {
-            await log('platform.projectType.delete', actionedBy, generateBody({ error, projectType }))
+        async deleted (actionedBy, error, projectType) {
+            await log('platform.project-type.deleted', actionedBy, generateBody({ error, projectType }))
         },
-        async update (actionedBy, error, projectType, updates) {
-            await log('platform.projectType.update', actionedBy, generateBody({ error, projectType, updates }))
+        async updated (actionedBy, error, projectType, updates) {
+            await log('platform.project-type.updated', actionedBy, generateBody({ error, projectType, updates }))
         }
     },
     license: {
-        async apply (actionedBy, error, license) {
-            await log('platform.license.apply', actionedBy, generateBody({ error, license }))
+        async applied (actionedBy, error, license) {
+            await log('platform.license.applied', actionedBy, generateBody({ error, license }))
         },
-        async inspect (actionedBy, error, license) {
-            await log('platform.license.inspect', actionedBy, generateBody({ error, license }))
+        async inspected (actionedBy, error, license) {
+            await log('platform.license.inspected', actionedBy, generateBody({ error, license }))
         }
     }
 }

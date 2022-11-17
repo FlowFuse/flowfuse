@@ -80,7 +80,7 @@ module.exports = async function (app) {
         }
         try {
             const projectType = await app.db.models.ProjectType.create(properties)
-            await platformAuditLog.platform.projectType.create(request.session.User, null, projectType)
+            await platformAuditLog.platform.projectType.created(request.session.User, null, projectType)
             const response = app.db.views.ProjectType.projectType(projectType, true)
             reply.send(response)
         } catch (err) {
@@ -91,7 +91,7 @@ module.exports = async function (app) {
                 responseMessage = err.toString()
             }
             const resp = { code: 'unexpected_error', error: responseMessage }
-            await platformAuditLog.platform.projectType.create(request.session.User, resp, properties)
+            await platformAuditLog.platform.projectType.created(request.session.User, resp, properties)
             reply.code(400).send(resp)
         }
     })
@@ -155,7 +155,7 @@ module.exports = async function (app) {
                 }
             }
             await projectType.save()
-            await platformAuditLog.platform.projectType.update(request.session.User, null, projectType, updates)
+            await platformAuditLog.platform.projectType.updated(request.session.User, null, projectType, updates)
             reply.send(app.db.views.ProjectType.projectType(projectType, request.session.User.admin))
         } catch (err) {
             let responseMessage
@@ -165,7 +165,7 @@ module.exports = async function (app) {
                 responseMessage = err.toString()
             }
             const resp = { code: 'unexpected_error', error: responseMessage }
-            await platformAuditLog.platform.projectType.update(request.session.User, resp, projectType, updates)
+            await platformAuditLog.platform.projectType.updated(request.session.User, resp, projectType, updates)
             reply.code(400).send(resp)
         }
     })
@@ -185,11 +185,11 @@ module.exports = async function (app) {
         if (projectType) {
             try {
                 await projectType.destroy()
-                await platformAuditLog.platform.projectType.delete(request.session.User, null, projectType)
+                await platformAuditLog.platform.projectType.deleted(request.session.User, null, projectType)
                 reply.send({ status: 'okay' })
             } catch (err) {
                 const resp = { code: 'unexpected_error', error: err.toString() }
-                await platformAuditLog.platform.projectType.delete(request.session.User, resp, projectType)
+                await platformAuditLog.platform.projectType.deleted(request.session.User, resp, projectType)
                 reply.code(400).send(resp)
             }
         } else {
