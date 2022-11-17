@@ -592,7 +592,7 @@ module.exports = async function (app) {
                 const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings)
                 await request.project.updateSetting('settings', updatedSettings)
                 changed = true
-                if (allSettingsEdit) {
+                if (request.allSettingsEdit) {
                     updates.pushDifferences(currentProjectSettings, updatedSettings)
                 } else {
                     updates.pushDifferences({ env: currentProjectSettings.env }, { env: newSettings.env })
