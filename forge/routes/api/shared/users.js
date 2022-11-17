@@ -92,7 +92,7 @@ module.exports = {
                         }
                     } else {
                         const resp = { code: 'invalid_request', error: 'cannot suspend self' }
-                        await auditLog.updateUser(request.session.User, resp, null, user)
+                        await auditLog.updatedUser(request.session.User, resp, null, user)
                         reply.code(400).send(resp)
                         return
                     }
@@ -105,7 +105,7 @@ module.exports = {
                     user.defaultTeamId = membership.TeamId
                 } else {
                     const resp = { code: 'invalid_team', error: 'invalid team', team: request.body.defaultTeam }
-                    await auditLog.updateUser(request.session.User, resp, null, user)
+                    await auditLog.updatedUser(request.session.User, resp, null, user)
                     reply.code(400).send(resp)
                     return
                 }
@@ -131,7 +131,7 @@ module.exports = {
             const newProfile = app.db.views.User.userProfile(user)
             const updates = new UpdatesCollection()
             updates.pushDifferences(oldProfile, newProfile)
-            await auditLog.updateUser(request.session.User, null, updates, user)
+            await auditLog.updatedUser(request.session.User, null, updates, user)
             reply.send(newProfile)
         } catch (err) {
             let responseMessage
@@ -143,7 +143,7 @@ module.exports = {
             console.log(err.toString())
             console.log(responseMessage)
             const resp = { code: 'unexpected_error', error: responseMessage }
-            await auditLog.updateUser(request.session.User, resp, null, user) // log as error
+            await auditLog.updatedUser(request.session.User, resp, null, user) // log as error
             reply.code(400).send(resp)
         }
     }

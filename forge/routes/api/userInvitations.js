@@ -30,11 +30,11 @@ module.exports = async function (app) {
         const invitation = await app.db.models.Invitation.byId(request.params.invitationId, request.session.User)
         if (invitation) {
             await app.db.controllers.Invitation.acceptInvitation(invitation, request.session.User)
-            await userAuditLog.user.invitations.acceptInvite(request.session.User, null)
+            await userAuditLog.user.invitation.accepted(request.session.User, null)
             reply.send({ status: 'okay' })
         } else {
             const resp = { code: 'not_found', error: 'Not Found' }
-            await userAuditLog.user.invitations.acceptInvite(request.session.User, resp)
+            await userAuditLog.user.invitation.accepted(request.session.User, resp)
             reply.code(404).send(resp)
         }
     })
@@ -47,7 +47,7 @@ module.exports = async function (app) {
         const invitation = await app.db.models.Invitation.byId(request.params.invitationId, request.session.User)
         if (invitation) {
             await app.db.controllers.Invitation.rejectInvitation(invitation, request.session.User)
-            await userAuditLog.user.invitations.deleteInvite(request.session.User, null)
+            await userAuditLog.user.invitation.deleted(request.session.User, null)
             reply.send({ status: 'okay' })
         } else {
             const resp = { code: 'not_found', error: 'Not Found' }
