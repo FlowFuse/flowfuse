@@ -14,7 +14,7 @@ if (!vers) {
     }
 }
 
-if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/.test(vers)) {
+if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/.test(vers) && vers !== 'latest') {
     throw new Error('version not valid semantic version')
 }
 
@@ -31,6 +31,20 @@ exec(npmCmd, (err, stdout, stderr) => {
     if (err) {
         error(err)
     } else {
-        log(`installed stack node-red@${vers}`)
+        if (vers === 'latest') {
+            const packagePath = path.join(p, 'node_modules/node-red/package.json')
+            const packageJSON = JSON.parse(fs.readFileSync(packagePath))
+            log(`node-red@latest is currently node-red@${packageJSON.version}`)
+            log(`installed stack node-red@${packageJSON.version}`)
+            const newPath = path.join(path.dirname(p), packageJSON.version)
+            if (!fs.existsSync(newPath)) {
+                fs.renameSync(p, newPath)
+            } else {
+                log(`node-red@${packageJSON.version} already installed`)
+                fs.rmSync(p, { recursive: true, force: true })
+            }
+        } else {
+            log(`installed stack node-red@${vers}`)
+        }
     }
 })
