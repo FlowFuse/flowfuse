@@ -202,6 +202,84 @@ describe('Project Snapshots API', function () {
         })
     })
 
+    describe('Rollback a snapshot', function () {
+        it('Rolls back to a different snapshot', async function () {
+            // Setup an initial configuration
+            await addFlowsToProject(TestObjects.project1.id,
+                TestObjects.tokens.project,
+                [{ id: 'node1' }],
+                { testCreds: 'abc' },
+                'key1',
+                {
+                    httpAdminRoot: '/test-red',
+                    dashboardUI: '/test-dash',
+                    palette: {
+                        modules: [
+                            { name: 'module1', version: 'v1' }
+                        ]
+                    },
+                    env: [
+                        { name: 'one', value: 'a' },
+                        { name: 'two', value: 'b' }
+                    ]
+                }
+            )
+            // Generate a snapshot
+            const response = await createSnapshot(TestObjects.project1.id, 'test-project-snapshot-01', TestObjects.tokens.alice)
+            response.statusCode.should.equal(200)
+            const snapshot1 = response.json()
+
+            // Change lots of things
+            await addFlowsToProject(TestObjects.project1.id,
+                TestObjects.tokens.project,
+                [{ id: 'node2' }],
+                { testCreds: 'def' },
+                'key1',
+                {
+                    httpAdminRoot: '/test-red-2',
+                    dashboardUI: '/test-dash-2',
+                    palette: {
+                        modules: [
+                            { name: 'module2', version: 'v2' }
+                        ]
+                    },
+                    env: [
+                        { name: 'one', value: 'a2' },
+                        { name: 'two', value: 'b2' }
+                    ]
+                }
+            )
+
+            // Rollback to the original snapshot
+            const rollbackResponse = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${app.project.id}/actions/rollback`,
+                payload: {
+                    snapshot: snapshot1.id
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            rollbackResponse.statusCode.should.equal(200)
+
+            // Get the new settings after rollback
+            const settingsURL = `/api/v1/projects/${app.project.id}/settings`
+            const rolledBackSettingsResponse = await app.inject({
+                method: 'GET',
+                url: settingsURL,
+                headers: {
+                    authorization: `Bearer ${TestObjects.tokens.project}`
+                }
+            })
+            const rolledBackSettings = rolledBackSettingsResponse.json()
+
+            // Validate the new settings are correct
+            rolledBackSettings.settings.palette.modules.should.have.property('module1', 'v1')
+            rolledBackSettings.settings.palette.modules.should.not.have.property('module2', 'v2')
+            rolledBackSettings.settings.httpAdminRoot.should.equal('/test-red')
+            rolledBackSettings.env.should.have.property('one', 'a')
+        })
+    })
+
     describe('Get snapshot information', function () {
         it('Non-member cannot get project snapshot', async function () {
             // Chris (non-member) cannot create in ATeam

@@ -5,7 +5,7 @@ through the initial setup.
 
 By default, you can access the platform at [http://localhost:3000](http://localhost:3000).
 
-<img src="images/setup-01.png" width=300 />
+<img src="images/setup-01.png" width=500 />
 
 ## 1. Create an Administrator
 
@@ -17,7 +17,7 @@ configured and enabled the `user:reset-password` option in Admin settings. Other
 make sure you make a note of the password you set. We will provide tools to manage passwords
 outside of the platform in a future release.
 
-<img src="images/setup-02-user.png" width=300 />
+<img src="images/setup-02-user.png" width=500 />
 
 ## 2. Upload a license
 
@@ -25,13 +25,13 @@ FlowForge Community Edition is Open Source and can be used freely without a lice
 
 If you have a FlowForge Enterprise Edition license you can upload it here.
 
-<img src="images/setup-03-license.png" width=300 />
+<img src="images/setup-03-license.png" width=500 />
 
 ## 3. Platform Options
 
 There are some runtime configuration options that can be configured at this stage.
 
-<img src="images/setup-04-options.png" width=300 />
+<img src="images/setup-04-options.png" width=500 />
 
 ### Anonymous usage statistics
 

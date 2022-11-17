@@ -28,7 +28,7 @@
                         <td class="font-medium">Type</td>
                         <td class="flex items-center">
                             <div class="py-2 flex-grow">{{project.projectType?.name || 'none'}} / {{project.stack?.label || project.stack?.name || 'none'}}</div>
-                            <div v-if="project.stack.replacedBy">
+                            <div v-if="project.stack?.replacedBy">
                                 <ff-button size="small" to="./settings/danger">Update</ff-button>
                             </div>
                         </td>

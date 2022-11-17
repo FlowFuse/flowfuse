@@ -51,16 +51,6 @@ be done by running the following command:
 xcode-select --install
 ```
 
-#### Mosquitto
-
-The platform depends on the [Mosquitto MQTT Broker](https://mosquitto.org/) to
-provide real-time messaging between devices and the platform.
-
-This is currently an *optional* component - the platform will work without the
-broker, but some features will not be available.
-
-For full details on how to setup mosquitto for FlowForge, follow the steps [here](#setting-up-mosquitto).
-
 ### Installing FlowForge
 
 1. Create a directory to be the base of your FlowForge install. For example: `/opt/flowforge` or `c:\flowforge`
@@ -76,7 +66,8 @@ For full details on how to setup mosquitto for FlowForge, follow the steps [here
     mkdir c:\flowforge
     ```
 
-2. Download the Installer zip file from https://github.com/flowforge/installer/releases
+2. Download the lastest [Installer zip file](https://github.com/flowforge/installer/releases/latest).
+
 
 3. Unzip the downloaded file into a temporary location and copy its contents to
    the FlowForge directory
@@ -118,13 +109,11 @@ If you select this option, it will ask if you want to run the service as the
 current user, or create a new `flowforge` user. If you choose to create the
 user, it will also change the ownership of the FlowForge directory to that user.
 
-
 ### Configuring FlowForge
 
 The default FlowForge configuration is provided in the file `/opt/flowforge/etc/flowforge.yml`.
 
 For more details on the options available, see the [configuration guide](../configuration.md).
-
 
 ### Running FlowForge
 
@@ -154,21 +143,20 @@ administrator for the platform and other configuration options.
 
 For more information, follow [this guide](../first-run.md).
 
-### Setting up mosquitto
+### Setting up Mosquitto
 
 The platform depends on the [Mosquitto MQTT Broker](https://mosquitto.org/) to
 provide real-time messaging between devices and the platform.
+
+This is currently an *optional* component - the platform will work without the
+broker, but some features will not be available.
 
 We do **not** support sharing a broker with other non-FlowForge applications. If you
 already have mosquitto installed and running, you will need to run a second instance
 dedicated to FlowForge.
 
-This is currently an *optional* component - the platform will work without the
-broker, but some features will not be available.
-
 You can either follow the manual install steps, which involve building the authentication
 plugin from scratch, or make use of the [Docker install](#docker-install).
-
 
 ##### Manual install
 

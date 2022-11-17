@@ -12,7 +12,6 @@ on:
       - 'test/system/**'
       - 'package.json'
   pull_request:
-    branches: [ main ]
     paths:
       - 'forge/**'
       - 'test/unit/**'
