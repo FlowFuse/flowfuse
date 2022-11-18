@@ -82,7 +82,7 @@
                         >
                             <ff-button
                                 kind="secondary"
-                                to="./snapshots"
+                                @click="showSelectTargetSnapshotDialog"
                             >
                                 <template #icon-left>
                                     <ClockIcon />
@@ -155,6 +155,11 @@
             @deviceUpdated="deviceUpdated"
         />
         <DeviceCredentialsDialog ref="deviceCredentialsDialog" />
+        <SnapshotAssignDialog
+            ref="snapshotAssignDialog"
+            :project="project"
+            @snapshot-assigned="$emit('projectUpdated')"
+        />
     </div>
 </template>
 
@@ -169,6 +174,8 @@ import { mapState } from 'vuex'
 
 import DeviceCredentialsDialog from '../team/Devices/dialogs/DeviceCredentialsDialog'
 import TeamDeviceCreateDialog from '../team/Devices/dialogs/TeamDeviceCreateDialog'
+
+import SnapshotAssignDialog from './Snapshots/dialogs/SnapshotAssignDialog'
 
 import DeploymentLink from './components/cells/DeploymentLink.vue'
 import DeviceLink from './components/cells/DeviceLink.vue'
@@ -189,9 +196,10 @@ export default {
     name: 'ProjectDeployments',
     components: {
         ClockIcon,
+        DeviceCredentialsDialog,
         PlusSmIcon,
-        TeamDeviceCreateDialog,
-        DeviceCredentialsDialog
+        SnapshotAssignDialog,
+        TeamDeviceCreateDialog
     },
     mixins: [permissionsMixin],
     props: {
@@ -200,7 +208,7 @@ export default {
             required: true
         }
     },
-    emits: ['project-delete', 'project-suspend', 'project-restart', 'project-start'],
+    emits: ['project-delete', 'project-suspend', 'project-restart', 'project-start', 'projectUpdated'],
     data () {
         return {
             loading: true,
@@ -334,6 +342,10 @@ export default {
                     Alerts.emit('Successfully unassigned the project from this device.', 'confirmation')
                 })
             }
+        },
+
+        showSelectTargetSnapshotDialog () {
+            this.$refs.snapshotAssignDialog.show()
         }
     }
 }
