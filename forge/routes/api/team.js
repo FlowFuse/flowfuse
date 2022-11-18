@@ -2,8 +2,6 @@ const TeamMembers = require('./teamMembers.js')
 const TeamInvitations = require('./teamInvitations.js')
 const TeamDevices = require('./teamDevices.js')
 const { Roles } = require('../../lib/roles')
-const { getTeamLogger } = require('../../lib/audit-logging')
-const { UpdatesCollection } = require('../../lib/audit-logging/formatters.js')
 
 /**
  * Team api routes
@@ -20,8 +18,6 @@ const { UpdatesCollection } = require('../../lib/audit-logging/formatters.js')
  * @memberof forge.routes.api
  */
 module.exports = async function (app) {
-    const teamAuditLog = getTeamLogger(app)
-
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.teamId !== undefined) {
             if (request.params.teamId) {
@@ -196,8 +192,8 @@ module.exports = async function (app) {
                 slug: request.body.slug,
                 TeamTypeId: teamType.id
             }, request.session.User)
-            await teamAuditLog.team.created(request.session.User, null, team)
-            await teamAuditLog.team.user.added(request.session.User, null, team, request.session.User)
+            await app.auditLog.Team.team.created(request.session.User, null, team)
+            await app.auditLog.Team.team.user.added(request.session.User, null, team, request.session.User)
 
             const teamView = app.db.views.Team.team(team)
 
@@ -207,7 +203,7 @@ module.exports = async function (app) {
                     cookie = request.unsignCookie(request.cookies.ff_coupon)?.valid ? request.unsignCookie(request.cookies.ff_coupon).value : undefined
                 }
                 const session = await app.billing.createSubscriptionSession(team, cookie)
-                teamAuditLog.billing.session.created(request.session.User, null, team, session)
+                app.auditLog.Team.billing.session.created(request.session.User, null, team, session)
                 teamView.billingURL = session.url
             }
 
@@ -246,15 +242,15 @@ module.exports = async function (app) {
                 if (subscription) {
                     // const subId = subscription.subscription
                     await app.billing.closeSubscription(subscription)
-                    await teamAuditLog.billing.subscription.deleted(request.session.User, null, request.team, subscription)
+                    await app.auditLog.Team.billing.subscription.deleted(request.session.User, null, request.team, subscription)
                 }
             }
             await request.team.destroy()
-            await teamAuditLog.team.deleted(request.session.User, null, request.team)
+            await app.auditLog.Team.team.deleted(request.session.User, null, request.team)
             reply.send({ status: 'okay' })
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
-            await teamAuditLog.team.deleted(request.session.User, resp, request.team)
+            await app.auditLog.Team.team.deleted(request.session.User, resp, request.team)
             reply.code(400).send(resp)
         }
     })
@@ -267,7 +263,7 @@ module.exports = async function (app) {
      */
     app.put('/:teamId', { preHandler: app.needsPermission('team:edit') }, async (request, reply) => {
         try {
-            const updates = new UpdatesCollection()
+            const updates = new app.auditLog.formatters.UpdatesCollection()
             if (request.body.name) {
                 updates.push('name', request.team.name, request.body.name)
                 request.team.name = request.body.name
@@ -280,7 +276,7 @@ module.exports = async function (app) {
                 updates.push('slug', request.team.slug, request.body.slug)
                 request.team.slug = request.body.slug
             }
-            teamAuditLog.team.settings.update(request.session.User, null, request.team, updates)
+            app.auditLog.Team.team.settings.update(request.session.User, null, request.team, updates)
             await request.team.save()
             reply.send(app.db.views.Team.team(request.team))
         } catch (err) {

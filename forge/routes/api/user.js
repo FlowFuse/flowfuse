@@ -1,6 +1,5 @@
 const sharedUser = require('./shared/users')
 const UserInvitations = require('./userInvitations')
-const { getUserLogger } = require('../../lib/audit-logging')
 
 /**
  * User api routes
@@ -14,7 +13,6 @@ const { getUserLogger } = require('../../lib/audit-logging')
  * @memberof forge.routes.api
  */
 module.exports = async function (app) {
-    const userAuditLog = getUserLogger(app)
     app.register(UserInvitations, { prefix: '/invitations' })
 
     /**
@@ -53,11 +51,11 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         try {
             await app.db.controllers.User.changePassword(request.session.User, request.body.old_password, request.body.password)
-            await userAuditLog.user.updatedPassword(request.session.User, null)
+            await app.auditLog.User.user.updatedPassword(request.session.User, null)
             reply.send({ status: 'okay' })
         } catch (err) {
             const resp = { code: 'password_change_failed', error: 'password change failed' }
-            await userAuditLog.user.updatedPassword(request.session.User, resp)
+            await app.auditLog.User.user.updatedPassword(request.session.User, resp)
             reply.code(400).send(resp)
         }
     })

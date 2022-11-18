@@ -1,4 +1,4 @@
-const { RoleNames } = require('../roles')
+const { RoleNames } = require('../lib/roles')
 
 const isObject = (obj) => {
     return obj !== null && typeof obj === 'object'
@@ -34,8 +34,8 @@ const generateBody = ({ error, team, project, device, user, stack, billingSessio
     if (isObject(billingSession)) {
         body.billingSession = billingSessionObject(billingSession)
     }
-    if (isObject(license)) {
-        body.license = licenseObject(license)
+    if (typeof license === 'string') {
+        body.license = license
     }
     if (updates && updates instanceof UpdatesCollection && updates.length > 0) {
         body.updates = updates.toArray()
@@ -52,6 +52,14 @@ const generateBody = ({ error, team, project, device, user, stack, billingSessio
         body.projectType = projectTypeObject(projectType)
     }
     return body
+}
+
+const sanitiseObjectIds = (obj) => {
+    if (obj && obj.hashid) {
+        obj.id = obj.hashid
+        delete obj.hashid
+    }
+    return obj
 }
 
 const formatLogEntry = (auditLogDbRow) => {
@@ -93,7 +101,8 @@ const formatLogEntry = (auditLogDbRow) => {
                 license: body?.license,
                 snapshot: body?.snapshot,
                 updates: body?.updates,
-                device: body?.device
+                device: body?.device,
+                projectType: body?.projectType
             })
             const roleObj = body?.role && roleObject(body.role)
             if (roleObj) {
@@ -107,8 +116,11 @@ const formatLogEntry = (auditLogDbRow) => {
             if (body?.code && body?.error) {
                 formatted.body.error = errorObject({ code: body.code, error: body.error })
             }
+            for (const [key, value] of Object.entries(formatted.body)) {
+                formatted.body[key] = sanitiseObjectIds(value)
+            }
         } catch (_err) {
-            // console.log('Error parsing audit log body')
+            // console.log('Error parsing audit log body', _err)
         }
     }
     return formatted
@@ -174,11 +186,6 @@ const billingSessionObject = (session) => {
         id: session?.id || null
     }
 }
-const licenseObject = (license) => {
-    return {
-        id: license?.id || null
-    }
-}
 const snapshotObject = (snapshot) => {
     return {
         id: snapshot?.id || null,
@@ -202,6 +209,7 @@ const roleObject = (role) => {
 const projectTypeObject = (projectType) => {
     return {
         id: projectType?.id || null,
+        hashid: projectType?.hashid || null,
         name: projectType?.name || null
     }
 }
@@ -234,6 +242,9 @@ const triggerObject = (actionedBy, user) => {
                 name = 'Forge Platform'
             } else if (id > 0) {
                 type = 'user'
+                if (user) {
+                    hashid = user.hashid
+                }
             }
         } else if (typeof actionedBy === 'object' && actionedBy != null) {
             return sanitise(actionedBy.id, actionedBy)
@@ -443,7 +454,6 @@ module.exports = {
     userObject,
     stackObject,
     billingSessionObject,
-    licenseObject,
     snapshotObject,
     roleObject,
     projectTypeObject,

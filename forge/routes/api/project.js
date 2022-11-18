@@ -3,9 +3,6 @@ const { Roles } = require('../../lib/roles')
 const ProjectActions = require('./projectActions')
 const ProjectDevices = require('./projectDevices')
 const ProjectSnapshots = require('./projectSnapshots')
-const { getTeamLogger } = require('../../lib/audit-logging')
-const { getProjectLogger } = require('../../lib/audit-logging')
-const { UpdatesCollection } = require('../../lib/audit-logging/formatters')
 
 /**
  * Instance api routes
@@ -38,8 +35,6 @@ const bannedNameList = [
 ]
 
 module.exports = async function (app) {
-    const teamAuditLog = getTeamLogger(app)
-    const projectAuditLog = getProjectLogger(app)
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.projectId !== undefined) {
             if (request.params.projectId) {
@@ -296,12 +291,12 @@ module.exports = async function (app) {
         }
 
         await app.containers.start(project)
-        await projectAuditLog.project.created(request.session.User, null, team, project)
+        await app.auditLog.Project.project.created(request.session.User, null, team, project)
 
         if (sourceProject) {
-            await teamAuditLog.project.duplicated(request.session.User, null, team, sourceProject, project)
+            await app.auditLog.Team.project.duplicated(request.session.User, null, team, sourceProject, project)
         } else {
-            await teamAuditLog.project.created(request.session.User, null, team, project)
+            await app.auditLog.Team.project.created(request.session.User, null, team, project)
         }
 
         const result = await app.db.views.Project.project(project)
@@ -332,8 +327,8 @@ module.exports = async function (app) {
             }
 
             await request.project.destroy()
-            await teamAuditLog.project.deleted(request.session.User, null, request.project.Team, request.project)
-            await projectAuditLog.project.deleted(request.session.User, null, request.project.Team, request.project)
+            await app.auditLog.Team.project.deleted(request.session.User, null, request.project.Team, request.project)
+            await app.auditLog.Project.project.deleted(request.session.User, null, request.project.Team, request.project)
             reply.send({ status: 'okay' })
         } catch (err) {
             reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
@@ -388,12 +383,12 @@ module.exports = async function (app) {
                     resumeProject = true
                     app.log.info(`Stopping project ${request.project.id}`)
                     await app.containers.stop(request.project)
-                    await projectAuditLog.project.suspended(request.session.User, null, request.project)
+                    await app.auditLog.Project.project.suspended(request.session.User, null, request.project)
                 }
                 await request.project.setProjectStack(stack)
                 await request.project.save()
 
-                await projectAuditLog.project.stack.changed(request.session.User, null, request.project, stack)
+                await app.auditLog.Project.project.stack.changed(request.session.User, null, request.project, stack)
 
                 if (resumeProject) {
                     app.log.info(`Restarting project ${request.project.id}`)
@@ -403,7 +398,7 @@ module.exports = async function (app) {
                     await request.project.reload()
                     const startResult = await app.containers.start(request.project)
                     startResult.started.then(async () => {
-                        await projectAuditLog.project.started(request.session.User, null, request.project)
+                        await app.auditLog.Project.project.started(request.session.User, null, request.project)
                         app.db.controllers.Project.clearInflightState(request.project)
                     })
                 } else {
@@ -428,7 +423,7 @@ module.exports = async function (app) {
                 resumeProject = true
                 app.log.info(`Stopping project ${request.project.id}`)
                 await app.containers.stop(request.project)
-                await projectAuditLog.project.suspended(request.session.User, null, request.project)
+                await app.auditLog.Project.project.suspended(request.session.User, null, request.project)
             }
 
             const sourceSettingsString = ((await app.db.models.StorageSettings.byProject(sourceProject.id))?.settings) || '{}'
@@ -532,7 +527,7 @@ module.exports = async function (app) {
                 await request.project.reload()
                 const startResult = await app.containers.start(request.project)
                 startResult.started.then(async () => {
-                    await projectAuditLog.project.started(request.session.User, null, request.project)
+                    await app.auditLog.Project.project.started(request.session.User, null, request.project)
                     app.db.controllers.Project.clearInflightState(request.project)
                 })
             } else {
@@ -561,7 +556,7 @@ module.exports = async function (app) {
             const reqName = request.body.name?.trim()
             const reqSafeName = reqName?.toLowerCase()
             const projectName = request.project.name?.trim()
-            const updates = new UpdatesCollection()
+            const updates = new app.auditLog.formatters.UpdatesCollection()
             if (reqName && projectName !== reqName) {
                 if (bannedNameList.includes(reqSafeName)) {
                     reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name not allowed' })
@@ -600,7 +595,7 @@ module.exports = async function (app) {
             }
             if (changed) {
                 await request.project.save()
-                await projectAuditLog.project.settings.updated(request.session.User.id, null, request.project, updates)
+                await app.auditLog.Project.project.settings.updated(request.session.User.id, null, request.project, updates)
             }
             const project = await app.db.views.Project.project(request.project)
             let result
@@ -770,7 +765,7 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         try {
             const projectImport = await app.db.controllers.Project.importProject(request.project, request.body)
-            await projectAuditLog.project.flowImported(request.session.User, null, request.project)
+            await app.auditLog.Project.project.flowImported(request.session.User, null, request.project)
             reply.send(projectImport)
         } catch (err) {
             if (err.name === 'SyntaxError') {

@@ -1,5 +1,3 @@
-const { getUserLogger } = require('../../lib/audit-logging')
-
 /**
  * User Invitations api routes
  *
@@ -12,7 +10,6 @@ const { getUserLogger } = require('../../lib/audit-logging')
  */
 module.exports = async function (app) {
     app.addHook('preHandler', app.needsPermission('user:edit'))
-    const userAuditLog = getUserLogger(app)
 
     app.get('/', async (request, reply) => {
         const invitations = await app.db.models.Invitation.forUser(request.session.User)
@@ -32,11 +29,11 @@ module.exports = async function (app) {
         const invitation = await app.db.models.Invitation.byId(request.params.invitationId, request.session.User)
         if (invitation) {
             await app.db.controllers.Invitation.acceptInvitation(invitation, request.session.User)
-            await userAuditLog.user.invitation.accepted(request.session.User, null)
+            await app.auditLog.User.user.invitation.accepted(request.session.User, null)
             reply.send({ status: 'okay' })
         } else {
             const resp = { code: 'not_found', error: 'Not Found' }
-            await userAuditLog.user.invitation.accepted(request.session.User, resp)
+            await app.auditLog.User.user.invitation.accepted(request.session.User, resp)
             reply.code(404).send(resp)
         }
     })
@@ -49,11 +46,11 @@ module.exports = async function (app) {
         const invitation = await app.db.models.Invitation.byId(request.params.invitationId, request.session.User)
         if (invitation) {
             await app.db.controllers.Invitation.rejectInvitation(invitation, request.session.User)
-            await userAuditLog.user.invitation.deleted(request.session.User, null)
+            await app.auditLog.User.user.invitation.deleted(request.session.User, null)
             reply.send({ status: 'okay' })
         } else {
             const resp = { code: 'not_found', error: 'Not Found' }
-            await userAuditLog.user.invitations.deleteInvite(request.session.User, resp)
+            await app.auditLog.User.user.invitations.deleteInvite(request.session.User, resp)
             reply.code(404).send(resp)
         }
     })

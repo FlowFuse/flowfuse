@@ -1,6 +1,3 @@
-const { getUserLogger } = require('../../../lib/audit-logging')
-const { UpdatesCollection } = require('../../../lib/audit-logging/formatters')
-
 module.exports = {
 
     /**
@@ -27,9 +24,8 @@ module.exports = {
      * @param {'user'|'users'} eventBase The audit log event prefix e.g. user.update or users.update
      */
     updateUser: async (app, user, request, reply, eventBase) => {
-        const userAuditLog = getUserLogger(app)
         const noop = async () => {}
-        const auditLog = userAuditLog[eventBase] || noop
+        const auditLog = app.auditLog.User[eventBase] || noop
         try {
             const oldProfile = app.db.views.User.userProfile(user)
             const wasVerified = user.email_verified
@@ -129,7 +125,7 @@ module.exports = {
             }
             // diff profile before and after for log
             const newProfile = app.db.views.User.userProfile(user)
-            const updates = new UpdatesCollection()
+            const updates = new app.auditLog.formatters.UpdatesCollection()
             updates.pushDifferences(oldProfile, newProfile)
             await auditLog.updatedUser(request.session.User, null, updates, user)
             reply.send(newProfile)

@@ -1,5 +1,5 @@
 const { Roles } = require('../../lib/roles.js')
-const { getTeamLogger } = require('../../lib/audit-logging/index.js')
+
 module.exports = {
     createInvitations: async (app, invitor, team, userList, role) => {
         const externalInvitesPermitted = app.postoffice.enabled() && !!app.settings.get('team:user:invite:external')
@@ -69,14 +69,12 @@ module.exports = {
         const role = invitation.role || Roles.Member
         await app.db.controllers.Team.addUser(invitation.team, user, role)
         await invitation.destroy()
-        const teamAuditLog = getTeamLogger(app)
-        teamAuditLog.team.user.invite.accepted(user, null, invitation.team, user, role)
+        app.auditLog.Team.team.user.invite.accepted(user, null, invitation.team, user, role)
     },
 
     rejectInvitation: async (app, invitation, user) => {
         const role = invitation.role || Roles.Member
         await invitation.destroy()
-        const teamAuditLog = getTeamLogger(app)
-        teamAuditLog.team.user.invite.rejected(user, null, invitation.team, user, role)
+        app.auditLog.Team.team.user.invite.rejected(user, null, invitation.team, user, role)
     }
 }

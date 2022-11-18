@@ -1,8 +1,4 @@
-const { getPlatformLogger } = require('../../lib/audit-logging')
-const { UpdatesCollection } = require('../../lib/audit-logging/formatters')
-
 module.exports = async function (app) {
-    const platformAuditLog = getPlatformLogger(app)
     app.get('/', { config: { allowAnonymous: true, allowUnverifiedEmail: true } }, async (request, reply) => {
         // This isn't as clean as I'd like, but it works for now.
         //
@@ -51,7 +47,7 @@ module.exports = async function (app) {
 
     app.put('/', { preHandler: app.verifyAdmin }, async (request, reply) => {
         if (request.body) {
-            const updates = new UpdatesCollection()
+            const updates = new app.auditLog.formatters.UpdatesCollection()
             for (let [key, value] of Object.entries(request.body)) {
                 if (key === 'user:tcs-updated') {
                     key = 'user:tcs-date'
@@ -64,7 +60,7 @@ module.exports = async function (app) {
                 await app.settings.set(key, value)
             }
             if (updates.length > 0) {
-                await platformAuditLog.platform.settings.updated(request.session.User, null, updates)
+                await app.auditLog.Platform.platform.settings.updated(request.session.User, null, updates)
             }
             reply.send({ status: 'okay' })
         } else {
