@@ -200,6 +200,62 @@ describe('Project Snapshots API', function () {
             snapshot.settings.env.should.have.property('two', 'b')
             snapshot.settings.should.have.property('modules')
         })
+
+        it('Create a project snapshot - externally provided flows/creds/modules real state', async function () {
+            await addFlowsToProject(TestObjects.project1.id,
+                TestObjects.tokens.project,
+                [{ id: 'node1' }],
+                { testCreds: 'abc' },
+                'key1',
+                {
+                    httpAdminRoot: '/test-red',
+                    dashboardUI: '/test-dash',
+                    env: [
+                        { name: 'one', value: 'a' },
+                        { name: 'two', value: 'b' }
+                    ]
+                }
+            )
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${TestObjects.project1.id}/snapshots`,
+                payload: {
+                    name: 'test-project-snapshot-02',
+                    flows: [{ id: 'nodeNew' }],
+                    credentials: { nodeNew: { a: 1 } },
+                    settings: {
+                        modules: {
+                            foo: '1.2'
+                        }
+                    }
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('id')
+            result.should.have.property('name', 'test-project-snapshot-02')
+            result.should.have.property('createdAt')
+            result.should.have.property('updatedAt')
+            result.should.have.property('user')
+            result.user.should.have.property('id', TestObjects.alice.hashid)
+
+            const snapshotObj = await app.db.models.ProjectSnapshot.byId(result.id)
+            const snapshot = snapshotObj.toJSON()
+            snapshot.flows.should.have.property('flows')
+            snapshot.flows.flows.should.have.lengthOf(1)
+            snapshot.flows.flows[0].should.have.property('id', 'nodeNew')
+            snapshot.flows.should.have.property('credentials')
+            snapshot.flows.credentials.should.have.property('$')
+            snapshot.settings.should.have.property('settings')
+            snapshot.settings.settings.should.have.property('httpAdminRoot', '/test-red')
+            snapshot.settings.settings.should.have.property('dashboardUI', '/test-dash')
+            snapshot.settings.should.have.property('env')
+            snapshot.settings.env.should.have.property('one', 'a')
+            snapshot.settings.env.should.have.property('two', 'b')
+            snapshot.settings.should.have.property('modules')
+            snapshot.settings.modules.should.have.property('foo', '1.2')
+        })
     })
 
     describe('Rollback a snapshot', function () {
