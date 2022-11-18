@@ -155,7 +155,7 @@ export default {
             const projectId = this.$route.params.id
             try {
                 const data = await projectApi.getProject(projectId)
-                this.project = Object.assign(data, { deviceSettings: {} })
+                this.project = { ...{ deviceSettings: {} }, ...this.project, ...data }
                 this.$store.dispatch('account/setTeam', this.project.team.slug)
                 this.project.deviceSettings = await projectApi.getProjectDeviceSettings(projectId)
             } catch (err) {
