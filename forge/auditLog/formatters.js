@@ -7,10 +7,10 @@ const isObject = (obj) => {
 /**
  * Generate a standard format body for the audit log display and database.
  * Any items null or missing must not generate a property in the body
- * @param {{ error?, team?, project?, device?, user?, stack?, billingSession?, license?, updates?, snapshot?, role?, projectType? } == {}} objects objects to include in body
- * @returns {{ error?, team?, project?, device?, user?, stack?, billingSession?, license?, updates?, snapshot?, role?, projectType? }
+ * @param {{ error?, team?, project?, sourceProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType? } == {}} objects objects to include in body
+ * @returns {{ error?, team?, project?, sourceProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType? }
  */
-const generateBody = ({ error, team, project, device, user, stack, billingSession, license, updates, snapshot, role, projectType } = {}) => {
+const generateBody = ({ error, team, project, sourceProject, device, user, stack, billingSession, subscription, license, updates, snapshot, role, projectType } = {}) => {
     const body = {}
 
     if (isObject(error) || typeof error === 'string') {
@@ -21,6 +21,9 @@ const generateBody = ({ error, team, project, device, user, stack, billingSessio
     }
     if (isObject(project)) {
         body.project = projectObject(project)
+    }
+    if (isObject(sourceProject)) {
+        body.sourceProject = projectObject(sourceProject)
     }
     if (isObject(device)) {
         body.device = deviceObject(device)
@@ -33,6 +36,9 @@ const generateBody = ({ error, team, project, device, user, stack, billingSessio
     }
     if (isObject(billingSession)) {
         body.billingSession = billingSessionObject(billingSession)
+    }
+    if (isObject(subscription)) {
+        body.subscription = subscriptionObject(subscription)
     }
     if (typeof license === 'string') {
         body.license = license
@@ -55,8 +61,10 @@ const generateBody = ({ error, team, project, device, user, stack, billingSessio
 }
 
 const sanitiseObjectIds = (obj) => {
-    if (obj && obj.hashid) {
-        obj.id = obj.hashid
+    if (obj && obj.hashid !== undefined) {
+        if (obj.hashid) {
+            obj.id = obj.hashid
+        }
         delete obj.hashid
     }
     return obj
@@ -95,9 +103,11 @@ const formatLogEntry = (auditLogDbRow) => {
                 error: body?.error,
                 team: body?.team,
                 project: body?.project,
+                sourceProject: body?.sourceProject,
                 user: body?.user,
                 stack: body?.stack,
                 billingSession: body?.billingSession,
+                subscription: body?.subscription,
                 license: body?.license,
                 snapshot: body?.snapshot,
                 updates: body?.updates,
@@ -184,6 +194,11 @@ const stackObject = (stack, unknownValue = null) => {
 const billingSessionObject = (session) => {
     return {
         id: session?.id || null
+    }
+}
+const subscriptionObject = (subscription) => {
+    return {
+        subscription: subscription?.subscription || null
     }
 }
 const snapshotObject = (snapshot) => {

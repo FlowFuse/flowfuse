@@ -96,7 +96,7 @@ module.exports = async function (app) {
                     const oldRole = app.auditLog.formatters.roleObject(result.oldRole)
                     const role = app.auditLog.formatters.roleObject(result.role)
                     updates.push('role', oldRole?.role || result.oldRole, role?.role || result.role)
-                    await app.auditLog.Team.team.user.rollChanged(request.session.User, null, request.team, result.user, updates)
+                    await app.auditLog.Team.team.user.roleChanged(request.session.User, null, request.team, result.user, updates)
                 }
                 reply.send({ status: 'okay' })
             } catch (err) {

@@ -35,7 +35,7 @@ module.exports = {
                         await log('team.user.invite.rejected', actionedBy, team?.id, generateBody({ error, user, role }))
                     }
                 },
-                rollChanged (actionedBy, error, team, user, updates) {
+                roleChanged (actionedBy, error, team, user, updates) {
                     log('team.user.role-changed', actionedBy, team?.id, generateBody({ error, user, updates }))
                 }
             },
@@ -60,8 +60,8 @@ module.exports = {
                 async assigned (actionedBy, error, team, project, device) {
                     await log('team.device.assigned', actionedBy, team?.id, generateBody({ error, project, device }))
                 },
-                async credentialsGenerated (actionedBy, error, team, project, device) {
-                    await log('team.device.credentials-generated', actionedBy, team?.id, generateBody({ error, project, device }))
+                async credentialsGenerated (actionedBy, error, team, device) {
+                    await log('team.device.credentials-generated', actionedBy, team?.id, generateBody({ error, device }))
                 }
             }
         }

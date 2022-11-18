@@ -34,8 +34,8 @@ module.exports = {
                 }
             },
             stack: {
-                async changed (actionedBy, error, team, project, stack) {
-                    await log('project.stack.changed', actionedBy, project?.id, generateBody({ error, team, project, stack }))
+                async changed (actionedBy, error, project, stack) {
+                    await log('project.stack.changed', actionedBy, project?.id, generateBody({ error, project, stack }))
                 }
             },
             settings: {
@@ -47,8 +47,8 @@ module.exports = {
                 async created (actionedBy, error, project, snapshot) {
                     await log('project.snapshot.created', actionedBy, project?.id, generateBody({ error, project, snapshot }))
                 },
-                async rollback (actionedBy, error, project, snapshot) {
-                    await log('project.snapshot.rollback', actionedBy, project?.id, generateBody({ error, project, snapshot }))
+                async rolledBack (actionedBy, error, project, snapshot) {
+                    await log('project.snapshot.rolled-back', actionedBy, project?.id, generateBody({ error, project, snapshot }))
                 },
                 async deleted (actionedBy, error, project, snapshot) {
                     await log('project.snapshot.deleted', actionedBy, project?.id, generateBody({ error, project, snapshot }))

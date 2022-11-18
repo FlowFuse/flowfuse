@@ -115,14 +115,14 @@ module.exports = async function (app) {
             app.db.controllers.Project.setInflightState(request.project, 'rollback')
             await app.db.controllers.Project.importProjectSnapshot(request.project, snapshot)
             app.db.controllers.Project.clearInflightState(request.project)
-            await app.auditLog.Project.project.snapshot.rollback(request.session.User, null, request.project, snapshot)
+            await app.auditLog.Project.project.snapshot.rolledBack(request.session.User, null, request.project, snapshot)
             if (restartProject) {
                 await app.containers.restartFlows(request.project)
             }
             reply.send({ status: 'okay' })
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
-            await app.auditLog.Project.project.snapshot.rollback(request.session.User, resp, request.project)
+            await app.auditLog.Project.project.snapshot.rolledBack(request.session.User, resp, request.project)
             reply.code(500).send(resp)
         }
     })

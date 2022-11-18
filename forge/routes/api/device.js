@@ -263,7 +263,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('device:edit')
     }, async (request, reply) => {
         const credentials = await request.device.refreshAuthTokens()
-        app.auditLog.Team.team.device.credentialsGenerated(request.session.User, null, request.device?.Team, request.device.Project, request.device)
+        app.auditLog.Team.team.device.credentialsGenerated(request.session.User, null, request.device?.Team, request.device)
         reply.send(credentials)
     })
 

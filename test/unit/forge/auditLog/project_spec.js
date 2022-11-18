@@ -1,178 +1,145 @@
-const sinon = require('sinon')
-
 const should = require('should') // eslint-disable-line
-require('should-sinon')
 const FF_UTIL = require('flowforge-test-utils')
-const Formatters = FF_UTIL.require('forge/lib/audit-logging/formatters')
 
 describe('Audit Log > Project', async function () {
-    let sandbox
-
     let app
-    let log
-    let projectLogger
+    let ACTIONED_BY
+    let TEAM
+    let PROJECT
+    let DEVICE
+    let STACK
+    let SNAPSHOT
 
-    let getLoggers
+    before(async () => {
+        app = await FF_UTIL.setupApp()
+        ACTIONED_BY = await app.db.models.User.create({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
 
-    let genBodyStub, triggerObjectStub
+        const defaultTeamType = await app.db.models.TeamType.findOne()
+        TEAM = await app.db.models.Team.create({ name: 'ATeam', TeamTypeId: defaultTeamType.id })
 
-    before(() => {
-        sandbox = sinon.createSandbox()
-        // stub the triggerObject and generateBody functions
-        // return args so ew can test correct args given to the fcn
-        genBodyStub = sandbox.stub(Formatters, 'generateBody').callsFake(function (args) {
-            return args
+        PROJECT = await app.db.models.Project.create({ name: 'project1', type: '', url: '' })
+        await TEAM.addProject(PROJECT)
+        DEVICE = await app.db.models.Device.create({ name: 'deviceOne', type: 'something', credentialSecret: 'deviceKey' })
+        STACK = await app.db.models.ProjectStack.create({
+            name: 'stack1',
+            active: true,
+            properties: { nodered: '2.2.2' }
         })
-        // stub the triggerObject and generateBody functions
-        triggerObjectStub = sandbox.stub(Formatters, 'triggerObject').callsFake(function () {
-            return {
-                id: '<id>'
-            }
+        SNAPSHOT = await app.db.models.ProjectSnapshot.create({
+            name: 'snapshot',
+            description: '',
+            settings: {},
+            flows: {}
         })
-        getLoggers = FF_UTIL.require('forge/lib/audit-logging/project').getLoggers
     })
-
+    after(async () => {
+        await app.close()
+    })
     beforeEach(async function () {
-        // mock app & log
-        log = []
-        app = {
-            db: {
-                controllers: {
-                    AuditLog: {
-                        // The way controller functions get encapsulated, they
-                        // do not get called with 'app' as their first argument,
-                        // even if the implementation of the function expects it.
-                        // Here we're mocking the external API of the controller,
-                        // which doesn't have 'app'
-                        projectLog: function (projectId, triggerId, event, body) {
-                            log.push({ projectId, triggerId, event, body })
-                        }
-                    }
-                }
-            }
-        }
-
-        projectLogger = getLoggers(app).project
+        await app.db.models.AuditLog.destroy({ truncate: true })
     })
-
-    after(() => {
-        sandbox.restore()
-    })
-
-    const ACTIONED_BY = {}
-    const TEAM = { id: '<team-id>' }
-    const PROJECT = { id: '<project-id>' }
-    const DEVICE = { id: '<device-id>' }
-    const STACK = { id: '<stack-id>' }
-    const SNAPSHOT = { id: '<snapshot-id>' }
-
+    async function getLog () {
+        const logs = await app.db.models.AuditLog.forEntity()
+        logs.log.should.have.length(1)
+        return (await app.db.views.AuditLog.auditLog({ log: logs.log })).log[0]
+    }
     /*
         Project Actions
     */
 
     it('Provides a logger for creating a project', async function () {
-        await projectLogger.created(ACTIONED_BY, null, TEAM, PROJECT)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await app.auditLog.Project.project.created(ACTIONED_BY, null, TEAM, PROJECT)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('projectId', '<project-id>')
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'project.created')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'team', 'project')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'project.created')
+        logEntry.should.have.property('scope', { id: PROJECT.id, type: 'project' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('team', 'project')
+        logEntry.body.team.should.only.have.keys('id', 'name', 'slug', 'type')
+        logEntry.body.team.id.should.equal(TEAM.hashid)
+        logEntry.body.project.should.only.have.keys('id', 'name')
+        logEntry.body.project.id.should.equal(PROJECT.id)
     })
 
     it('Provides a logger for deleting a project', async function () {
-        await projectLogger.deleted(ACTIONED_BY, null, TEAM, PROJECT)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await app.auditLog.Project.project.deleted(ACTIONED_BY, null, TEAM, PROJECT)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('projectId', '<project-id>')
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'project.deleted')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'team', 'project')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'project.deleted')
+        logEntry.should.have.property('scope', { id: PROJECT.id, type: 'project' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('team', 'project')
+        logEntry.body.team.should.only.have.keys('id', 'name', 'slug', 'type')
+        logEntry.body.team.id.should.equal(TEAM.hashid)
+        logEntry.body.project.should.only.have.keys('id', 'name')
+        logEntry.body.project.id.should.equal(PROJECT.id)
     })
 
     it('Provides a logger for starting a project', async function () {
-        await projectLogger.started(ACTIONED_BY, null, PROJECT)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await app.auditLog.Project.project.started(ACTIONED_BY, null, PROJECT)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('projectId', '<project-id>')
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'project.started')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'project')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'project.started')
+        logEntry.should.have.property('scope', { id: PROJECT.id, type: 'project' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('project')
+        logEntry.body.project.should.only.have.keys('id', 'name')
+        logEntry.body.project.id.should.equal(PROJECT.id)
     })
 
     it('Provides a logger for stopping a project', async function () {
-        await projectLogger.stopped(ACTIONED_BY, null, PROJECT)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await app.auditLog.Project.project.stopped(ACTIONED_BY, null, PROJECT)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('projectId', '<project-id>')
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'project.stopped')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'project')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'project.stopped')
+        logEntry.should.have.property('scope', { id: PROJECT.id, type: 'project' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('project')
+        logEntry.body.project.should.only.have.keys('id', 'name')
+        logEntry.body.project.id.should.equal(PROJECT.id)
     })
 
     it('Provides a logger for restarting a project', async function () {
-        await projectLogger.restarted(ACTIONED_BY, null, PROJECT)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await app.auditLog.Project.project.restarted(ACTIONED_BY, null, PROJECT)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('projectId', '<project-id>')
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'project.restarted')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'project')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'project.restarted')
+        logEntry.should.have.property('scope', { id: PROJECT.id, type: 'project' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('project')
+        logEntry.body.project.should.only.have.keys('id', 'name')
+        logEntry.body.project.id.should.equal(PROJECT.id)
     })
 
     it('Provides a logger for suspending a project', async function () {
-        await projectLogger.suspended(ACTIONED_BY, null, PROJECT)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await app.auditLog.Project.project.suspending(ACTIONED_BY, null, PROJECT)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('projectId', '<project-id>')
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'project.suspended')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'project')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'project.suspending')
+        logEntry.should.have.property('scope', { id: PROJECT.id, type: 'project' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('project')
+        logEntry.body.project.should.only.have.keys('id', 'name')
+        logEntry.body.project.id.should.equal(PROJECT.id)
     })
 
     it('Provides a logger for importing flows into a project', async function () {
-        await projectLogger.flowImported(ACTIONED_BY, null, PROJECT)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await app.auditLog.Project.project.flowImported(ACTIONED_BY, null, PROJECT)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('projectId', '<project-id>')
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'project.flow-imported')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'project')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'project.flow-imported')
+        logEntry.should.have.property('scope', { id: PROJECT.id, type: 'project' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('project')
+        logEntry.body.project.should.only.have.keys('id', 'name')
+        logEntry.body.project.id.should.equal(PROJECT.id)
     })
 
     /*
@@ -180,126 +147,126 @@ describe('Audit Log > Project', async function () {
     */
 
     it('Provides a logger for unassigning a device from a project', async function () {
-        await projectLogger.device.unassigned(ACTIONED_BY, null, PROJECT, DEVICE)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await app.auditLog.Project.project.device.unassigned(ACTIONED_BY, null, PROJECT, DEVICE)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('projectId', '<project-id>')
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'project.device.unassigned')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'project', 'device')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'project.device.unassigned')
+        logEntry.should.have.property('scope', { id: PROJECT.id, type: 'project' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('project', 'device')
+        logEntry.body.project.should.only.have.keys('id', 'name')
+        logEntry.body.project.id.should.equal(PROJECT.id)
+        logEntry.body.device.should.only.have.keys('id', 'name')
+        logEntry.body.device.id.should.equal(DEVICE.hashid)
     })
 
     it('Provides a logger for assigning a device from a project', async function () {
-        await projectLogger.device.assigned(ACTIONED_BY, null, PROJECT, DEVICE)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await app.auditLog.Project.project.device.assigned(ACTIONED_BY, null, PROJECT, DEVICE)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('projectId', '<project-id>')
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'project.device.assigned')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'project', 'device')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'project.device.assigned')
+        logEntry.should.have.property('scope', { id: PROJECT.id, type: 'project' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('project', 'device')
+        logEntry.body.project.should.only.have.keys('id', 'name')
+        logEntry.body.project.id.should.equal(PROJECT.id)
+        logEntry.body.device.should.only.have.keys('id', 'name')
+        logEntry.body.device.id.should.equal(DEVICE.hashid)
     })
 
     it('Provides a logger for changing a stack of a project', async function () {
-        await projectLogger.stack.changed(ACTIONED_BY, null, TEAM, PROJECT, STACK)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await app.auditLog.Project.project.stack.changed(ACTIONED_BY, null, PROJECT, STACK)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('projectId', '<project-id>')
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'project.stack.changed')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'team', 'project', 'stack')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'project.stack.changed')
+        logEntry.should.have.property('scope', { id: PROJECT.id, type: 'project' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('project', 'stack')
+        logEntry.body.project.should.only.have.keys('id', 'name')
+        logEntry.body.project.id.should.equal(PROJECT.id)
+        logEntry.body.stack.should.only.have.keys('id', 'name')
+        logEntry.body.stack.id.should.equal(STACK.hashid)
     })
 
-    it('Provides a logger for changing settings of a project', async function () {
-        await projectLogger.settings.updated(ACTIONED_BY, null, PROJECT, [{}])
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+    it('Provides a logger for changing a settings of a project', async function () {
+        await app.auditLog.Project.project.settings.updated(ACTIONED_BY, null, PROJECT, [{ key: 'name', old: 'old', new: 'new' }])
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('projectId', '<project-id>')
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'project.settings.updated')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'project', 'updates')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'project.settings.updated')
+        logEntry.should.have.property('scope', { id: PROJECT.id, type: 'project' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('project', 'updates')
+        logEntry.body.project.should.only.have.keys('id', 'name')
+        logEntry.body.project.id.should.equal(PROJECT.id)
+        logEntry.body.updates.should.have.length(1)
+        logEntry.body.updates[0].should.eql({ key: 'name', old: 'old', new: 'new' })
     })
 
     /*
         Project Snapshots
     */
 
-    it('Provides a logger for recording snapshots of a project', async function () {
-        await projectLogger.snapshot.created(ACTIONED_BY, null, PROJECT, SNAPSHOT)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+    it('Provides a logger for creating snapshots of a project', async function () {
+        await app.auditLog.Project.project.snapshot.created(ACTIONED_BY, null, PROJECT, SNAPSHOT)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('projectId', '<project-id>')
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'project.snapshot.created')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'project', 'snapshot')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'project.snapshot.created')
+        logEntry.should.have.property('scope', { id: PROJECT.id, type: 'project' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('project', 'snapshot')
+        logEntry.body.project.should.only.have.keys('id', 'name')
+        logEntry.body.project.id.should.equal(PROJECT.id)
+        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
     it('Provides a logger for rolling back a snapshot of a project', async function () {
-        await projectLogger.snapshot.rollback(ACTIONED_BY, null, PROJECT, SNAPSHOT)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await app.auditLog.Project.project.snapshot.rolledBack(ACTIONED_BY, null, PROJECT, SNAPSHOT)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('projectId', '<project-id>')
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'project.snapshot.rollback')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'project', 'snapshot')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'project.snapshot.rolled-back')
+        logEntry.should.have.property('scope', { id: PROJECT.id, type: 'project' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('project', 'snapshot')
+        logEntry.body.project.should.only.have.keys('id', 'name')
+        logEntry.body.project.id.should.equal(PROJECT.id)
+        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
-    it('Provides a logger for deleting a snapshot of a project', async function () {
-        await projectLogger.snapshot.deleted(ACTIONED_BY, null, PROJECT, SNAPSHOT)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+    it('Provides a logger for deleteing a snapshot of a project', async function () {
+        await app.auditLog.Project.project.snapshot.deleted(ACTIONED_BY, null, PROJECT, SNAPSHOT)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('projectId', '<project-id>')
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'project.snapshot.deleted')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'project', 'snapshot')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'project.snapshot.deleted')
+        logEntry.should.have.property('scope', { id: PROJECT.id, type: 'project' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('project', 'snapshot')
+        logEntry.body.project.should.only.have.keys('id', 'name')
+        logEntry.body.project.id.should.equal(PROJECT.id)
+        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
     it('Provides a logger for assigning a device target to a snapshot of a project', async function () {
-        await projectLogger.snapshot.deviceTargetSet(ACTIONED_BY, null, PROJECT, SNAPSHOT)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await app.auditLog.Project.project.snapshot.deviceTargetSet(ACTIONED_BY, null, PROJECT, SNAPSHOT)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('projectId', '<project-id>')
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'project.snapshot.device-target-set')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'project', 'snapshot')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'project.snapshot.device-target-set')
+        logEntry.should.have.property('scope', { id: PROJECT.id, type: 'project' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('project', 'snapshot')
+        logEntry.body.project.should.only.have.keys('id', 'name')
+        logEntry.body.project.id.should.equal(PROJECT.id)
+        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 })

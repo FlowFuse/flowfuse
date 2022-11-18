@@ -4,17 +4,17 @@ const FF_UTIL = require('flowforge-test-utils')
 describe('Audit Log > Platform', async function () {
     let app
     let ACTIONED_BY
-    let stack, projectType
+    let STACK, PROJECTTYPE
 
     before(async () => {
         app = await FF_UTIL.setupApp()
         ACTIONED_BY = await app.db.models.User.create({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
-        stack = await app.db.models.ProjectStack.create({
+        STACK = await app.db.models.ProjectStack.create({
             name: 'stack1',
             active: true,
             properties: { nodered: '2.2.2' }
         })
-        projectType = await app.db.models.ProjectType.create({
+        PROJECTTYPE = await app.db.models.ProjectType.create({
             name: 'projectType1',
             description: 'default project type',
             active: true,
@@ -47,7 +47,7 @@ describe('Audit Log > Platform', async function () {
 
     it('Provides a logger for creating platform stacks', async function () {
         // platform - stack - created
-        await app.auditLog.Platform.platform.stack.created(ACTIONED_BY, null, stack)
+        await app.auditLog.Platform.platform.stack.created(ACTIONED_BY, null, STACK)
 
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'platform.stack.created')
@@ -56,13 +56,13 @@ describe('Audit Log > Platform', async function () {
         logEntry.should.have.property('body')
         logEntry.body.should.only.have.keys('stack')
         logEntry.body.stack.should.only.have.keys('id', 'name')
-        logEntry.body.stack.id.should.equal(stack.hashid)
-        logEntry.body.stack.name.should.equal(stack.name)
+        logEntry.body.stack.id.should.equal(STACK.hashid)
+        logEntry.body.stack.name.should.equal(STACK.name)
     })
 
     it('Provides a logger for deleting platform stacks', async function () {
         // platform - stack - deleted
-        await app.auditLog.Platform.platform.stack.deleted(ACTIONED_BY, null, stack)
+        await app.auditLog.Platform.platform.stack.deleted(ACTIONED_BY, null, STACK)
 
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'platform.stack.deleted')
@@ -71,13 +71,13 @@ describe('Audit Log > Platform', async function () {
         logEntry.should.have.property('body')
         logEntry.body.should.only.have.keys('stack')
         logEntry.body.stack.should.only.have.keys('id', 'name')
-        logEntry.body.stack.id.should.equal(stack.hashid)
-        logEntry.body.stack.name.should.equal(stack.name)
+        logEntry.body.stack.id.should.equal(STACK.hashid)
+        logEntry.body.stack.name.should.equal(STACK.name)
     })
 
     it('Provides a logger for updating platform stacks', async function () {
         // platform - stack - updated
-        await app.auditLog.Platform.platform.stack.updated(ACTIONED_BY, null, stack, [{ key: 'name', old: 'old', new: 'new' }])
+        await app.auditLog.Platform.platform.stack.updated(ACTIONED_BY, null, STACK, [{ key: 'name', old: 'old', new: 'new' }])
 
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'platform.stack.updated')
@@ -86,15 +86,15 @@ describe('Audit Log > Platform', async function () {
         logEntry.should.have.property('body')
         logEntry.body.should.only.have.keys('stack', 'updates')
         logEntry.body.stack.should.only.have.keys('id', 'name')
-        logEntry.body.stack.id.should.equal(stack.hashid)
-        logEntry.body.stack.name.should.equal(stack.name)
+        logEntry.body.stack.id.should.equal(STACK.hashid)
+        logEntry.body.stack.name.should.equal(STACK.name)
         logEntry.body.updates.should.have.length(1)
         logEntry.body.updates[0].should.eql({ key: 'name', old: 'old', new: 'new' })
     })
 
     it('Provides a logger for creating platform projectTypes', async function () {
         // platform - projectType - created
-        await app.auditLog.Platform.platform.projectType.created(ACTIONED_BY, null, projectType)
+        await app.auditLog.Platform.platform.projectType.created(ACTIONED_BY, null, PROJECTTYPE)
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'platform.project-type.created')
         logEntry.should.have.property('scope', { id: null, type: 'platform' })
@@ -102,13 +102,13 @@ describe('Audit Log > Platform', async function () {
         logEntry.should.have.property('body')
         logEntry.body.should.only.have.keys('projectType')
         logEntry.body.projectType.should.only.have.keys('id', 'name')
-        logEntry.body.projectType.id.should.equal(projectType.hashid)
-        logEntry.body.projectType.name.should.equal(projectType.name)
+        logEntry.body.projectType.id.should.equal(PROJECTTYPE.hashid)
+        logEntry.body.projectType.name.should.equal(PROJECTTYPE.name)
     })
 
     it('Provides a logger for deleting platform projectTypes', async function () {
         // platform - stack - delete
-        await app.auditLog.Platform.platform.projectType.deleted(ACTIONED_BY, null, projectType)
+        await app.auditLog.Platform.platform.projectType.deleted(ACTIONED_BY, null, PROJECTTYPE)
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'platform.project-type.deleted')
         logEntry.should.have.property('scope', { id: null, type: 'platform' })
@@ -116,13 +116,13 @@ describe('Audit Log > Platform', async function () {
         logEntry.should.have.property('body')
         logEntry.body.should.only.have.keys('projectType')
         logEntry.body.projectType.should.only.have.keys('id', 'name')
-        logEntry.body.projectType.id.should.equal(projectType.hashid)
-        logEntry.body.projectType.name.should.equal(projectType.name)
+        logEntry.body.projectType.id.should.equal(PROJECTTYPE.hashid)
+        logEntry.body.projectType.name.should.equal(PROJECTTYPE.name)
     })
 
     it('Provides a logger for updating platform projectTypes', async function () {
         // platform - projectType - updated
-        await app.auditLog.Platform.platform.projectType.updated(ACTIONED_BY, null, projectType, [{ key: 'name', old: 'old', new: 'new' }])
+        await app.auditLog.Platform.platform.projectType.updated(ACTIONED_BY, null, PROJECTTYPE, [{ key: 'name', old: 'old', new: 'new' }])
 
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'platform.project-type.updated')
@@ -131,8 +131,8 @@ describe('Audit Log > Platform', async function () {
         logEntry.should.have.property('body')
         logEntry.body.should.only.have.keys('projectType', 'updates')
         logEntry.body.projectType.should.only.have.keys('id', 'name')
-        logEntry.body.projectType.id.should.equal(projectType.hashid)
-        logEntry.body.projectType.name.should.equal(projectType.name)
+        logEntry.body.projectType.id.should.equal(PROJECTTYPE.hashid)
+        logEntry.body.projectType.name.should.equal(PROJECTTYPE.name)
         logEntry.body.updates.should.have.length(1)
         logEntry.body.updates[0].should.eql({ key: 'name', old: 'old', new: 'new' })
     })
