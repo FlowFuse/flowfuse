@@ -31,6 +31,13 @@ module.exports = {
             username: user.username
         }
         try {
+            const originalUser = {
+                id: user.id,
+                hashid: user.hashid,
+                username: user.username,
+                email: user.email
+            }
+
             const oldProfile = app.db.views.User.userProfile(user)
             const wasVerified = user.email_verified
             if (request.body.name && user.name !== request.body.name) {
@@ -112,7 +119,12 @@ module.exports = {
             }
             await user.save()
 
-            // re-send verification email if a user was previously verifed and is now not verified
+            if (user.username !== originalUser.username) {
+                await app.postoffice.send(originalUser, 'UsernameChanged', {
+                    oldUsername: originalUser.username,
+                    newUsername: user.username
+                })
+            }
             if (wasVerified && user.email_verified === false && request.session.User.id !== user.id) {
                 try {
                     const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
