@@ -1,6 +1,9 @@
 const should = require('should') // eslint-disable-line
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles, RoleNames } = FF_UTIL.require('forge/lib/roles')
+// Declare a dummy getLoggers function for type hint only
+/** @type {import('../../../../forge/auditLog/team').getLoggers} */
+const getLoggers = (app) => { return {} }
 
 describe('Audit Log > Team', async function () {
     let app
@@ -13,8 +16,15 @@ describe('Audit Log > Team', async function () {
     let BILLING_SESSION
     let SUBSCRIPTION
 
+    // temporarily assign the logger purely for type info & intellisense
+    // so that xxxxxLogger.yyy.zzz function parameters are offered
+    // The real logger is assigned in the before() function
+    let teamLogger = getLoggers(null)
+
     before(async () => {
         app = await FF_UTIL.setupApp()
+        // get Team scope logger
+        teamLogger = app.auditLog.Team
         ACTIONED_BY = await app.db.models.User.create({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
 
         const defaultTeamType = await app.db.models.TeamType.findOne()
@@ -40,11 +50,10 @@ describe('Audit Log > Team', async function () {
         return (await app.db.views.AuditLog.auditLog({ log: logs.log })).log[0]
     }
 
-    /*
-        Team Actions
-    */
+    // #region Team - Team Actions
+
     it('Provides a logger for creating a team', async function () {
-        await app.auditLog.Team.team.created(ACTIONED_BY, null, TEAM)
+        await teamLogger.team.created(ACTIONED_BY, null, TEAM)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'team.created')
@@ -57,7 +66,7 @@ describe('Audit Log > Team', async function () {
     })
 
     it('Provides a logger for deleting a team', async function () {
-        await app.auditLog.Team.team.deleted(ACTIONED_BY, null, TEAM)
+        await teamLogger.team.deleted(ACTIONED_BY, null, TEAM)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'team.deleted')
@@ -69,12 +78,12 @@ describe('Audit Log > Team', async function () {
         logEntry.body.team.id.should.equal(TEAM.hashid)
     })
 
-    /*
-        Team - User Actions
-    */
+    // #endregion
+
+    // #region Team - User Actions
 
     it('Provides a logger for adding a user to team', async function () {
-        await app.auditLog.Team.team.user.added(ACTIONED_BY, null, TEAM, USER)
+        await teamLogger.team.user.added(ACTIONED_BY, null, TEAM, USER)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'team.user.added')
@@ -87,7 +96,7 @@ describe('Audit Log > Team', async function () {
     })
 
     it('Provides a logger for removing a user from a team', async function () {
-        await app.auditLog.Team.team.user.removed(ACTIONED_BY, null, TEAM, USER)
+        await teamLogger.team.user.removed(ACTIONED_BY, null, TEAM, USER)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'team.user.removed')
@@ -100,7 +109,7 @@ describe('Audit Log > Team', async function () {
     })
 
     it('Provides a logger for inviting a user to a team', async function () {
-        await app.auditLog.Team.team.user.invited(ACTIONED_BY, null, TEAM, USER, ROLE)
+        await teamLogger.team.user.invited(ACTIONED_BY, null, TEAM, USER, ROLE)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'team.user.invited')
@@ -114,7 +123,7 @@ describe('Audit Log > Team', async function () {
     })
 
     it('Provides a logger for inviting a user to a team', async function () {
-        await app.auditLog.Team.team.user.uninvited(ACTIONED_BY, null, TEAM, USER, ROLE)
+        await teamLogger.team.user.uninvited(ACTIONED_BY, null, TEAM, USER, ROLE)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'team.user.uninvited')
@@ -128,7 +137,7 @@ describe('Audit Log > Team', async function () {
     })
 
     it('Provides a logger for accepting an invite to a team', async function () {
-        await app.auditLog.Team.team.user.invite.accepted(ACTIONED_BY, null, TEAM, USER, ROLE)
+        await teamLogger.team.user.invite.accepted(ACTIONED_BY, null, TEAM, USER, ROLE)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'team.user.invite.accepted')
@@ -142,7 +151,7 @@ describe('Audit Log > Team', async function () {
     })
 
     it('Provides a logger for rejecting an invite to a team', async function () {
-        await app.auditLog.Team.team.user.invite.rejected(ACTIONED_BY, null, TEAM, USER, ROLE)
+        await teamLogger.team.user.invite.rejected(ACTIONED_BY, null, TEAM, USER, ROLE)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'team.user.invite.rejected')
@@ -156,7 +165,7 @@ describe('Audit Log > Team', async function () {
     })
 
     it('Provides a logger for changing a user role in a team', async function () {
-        await app.auditLog.Team.team.user.roleChanged(ACTIONED_BY, null, TEAM, USER, [{ key: 'name', old: 'old', new: 'new' }])
+        await teamLogger.team.user.roleChanged(ACTIONED_BY, null, TEAM, USER, [{ key: 'name', old: 'old', new: 'new' }])
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'team.user.role-changed')
@@ -170,12 +179,12 @@ describe('Audit Log > Team', async function () {
         logEntry.body.updates[0].should.eql({ key: 'name', old: 'old', new: 'new' })
     })
 
-    /*
-        Team - Settings
-    */
+    // #endregion
+
+    // #region Team - Settings
 
     it('Provides a logger for when settings are updated for a team', async function () {
-        await app.auditLog.Team.team.settings.updated(ACTIONED_BY, null, TEAM, [{ key: 'name', old: 'old', new: 'new' }])
+        await teamLogger.team.settings.updated(ACTIONED_BY, null, TEAM, [{ key: 'name', old: 'old', new: 'new' }])
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'team.settings.updated')
@@ -189,12 +198,12 @@ describe('Audit Log > Team', async function () {
         logEntry.body.updates[0].should.eql({ key: 'name', old: 'old', new: 'new' })
     })
 
-    /*
-        Team - Devices
-    */
+    // #endregion
+
+    // #region Team - Devices
 
     it('Provides a logger for creating a device in a team', async function () {
-        await app.auditLog.Team.team.device.created(ACTIONED_BY, null, TEAM, DEVICE)
+        await teamLogger.team.device.created(ACTIONED_BY, null, TEAM, DEVICE)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'team.device.created')
@@ -207,7 +216,7 @@ describe('Audit Log > Team', async function () {
     })
 
     it('Provides a logger for deleting a device in a team', async function () {
-        await app.auditLog.Team.team.device.deleted(ACTIONED_BY, null, TEAM, DEVICE)
+        await teamLogger.team.device.deleted(ACTIONED_BY, null, TEAM, DEVICE)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'team.device.deleted')
@@ -220,7 +229,7 @@ describe('Audit Log > Team', async function () {
     })
 
     it('Provides a logger for deleting a device in a team', async function () {
-        await app.auditLog.Team.team.device.updated(ACTIONED_BY, null, TEAM, DEVICE, [{ key: 'name', old: 'old', new: 'new' }])
+        await teamLogger.team.device.updated(ACTIONED_BY, null, TEAM, DEVICE, [{ key: 'name', old: 'old', new: 'new' }])
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'team.device.updated')
@@ -235,7 +244,7 @@ describe('Audit Log > Team', async function () {
     })
 
     it('Provides a logger for unassigning a device in a team', async function () {
-        await app.auditLog.Team.team.device.unassigned(ACTIONED_BY, null, TEAM, PROJECT, DEVICE)
+        await teamLogger.team.device.unassigned(ACTIONED_BY, null, TEAM, PROJECT, DEVICE)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'team.device.unassigned')
@@ -250,7 +259,7 @@ describe('Audit Log > Team', async function () {
     })
 
     it('Provides a logger for assigning a device in a team', async function () {
-        await app.auditLog.Team.team.device.assigned(ACTIONED_BY, null, TEAM, PROJECT, DEVICE)
+        await teamLogger.team.device.assigned(ACTIONED_BY, null, TEAM, PROJECT, DEVICE)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'team.device.assigned')
@@ -265,7 +274,7 @@ describe('Audit Log > Team', async function () {
     })
 
     it('Provides a logger for generating device credentials in a team', async function () {
-        await app.auditLog.Team.team.device.credentialsGenerated(ACTIONED_BY, null, TEAM, DEVICE)
+        await teamLogger.team.device.credentialsGenerated(ACTIONED_BY, null, TEAM, DEVICE)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'team.device.credentials-generated')
@@ -277,11 +286,12 @@ describe('Audit Log > Team', async function () {
         logEntry.body.device.id.should.equal(DEVICE.hashid)
     })
 
-    /*
-        Team - Project
-    */
+    // #endregion
+
+    // #region Team - Project
+
     it('Provides a logger for creating a project in a team', async function () {
-        await app.auditLog.Team.project.created(ACTIONED_BY, null, TEAM, PROJECT)
+        await teamLogger.project.created(ACTIONED_BY, null, TEAM, PROJECT)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'project.created')
@@ -296,7 +306,7 @@ describe('Audit Log > Team', async function () {
     })
 
     it('Provides a logger for deleting a project in a team', async function () {
-        await app.auditLog.Team.project.deleted(ACTIONED_BY, null, TEAM, PROJECT)
+        await teamLogger.project.deleted(ACTIONED_BY, null, TEAM, PROJECT)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'project.deleted')
@@ -313,7 +323,7 @@ describe('Audit Log > Team', async function () {
     it('Provides a logger for duplicating a project in a team', async function () {
         const PROJECT2 = await app.db.models.Project.create({ name: 'project2', type: '', url: '' })
 
-        await app.auditLog.Team.project.duplicated(ACTIONED_BY, null, TEAM, PROJECT, PROJECT2)
+        await teamLogger.project.duplicated(ACTIONED_BY, null, TEAM, PROJECT, PROJECT2)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'project.duplicated')
@@ -327,12 +337,12 @@ describe('Audit Log > Team', async function () {
         logEntry.body.sourceProject.id.should.equal(PROJECT.id)
     })
 
-    /*
-        Team - Billing
-    */
+    // #endregion
+
+    // #region Team - Billing
 
     it('Provides a logger for creating a billing session in a team', async function () {
-        await app.auditLog.Team.billing.session.created(ACTIONED_BY, null, TEAM, BILLING_SESSION)
+        await teamLogger.billing.session.created(ACTIONED_BY, null, TEAM, BILLING_SESSION)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'billing.session.created')
@@ -347,7 +357,7 @@ describe('Audit Log > Team', async function () {
     })
 
     it('Provides a logger for completing a billing session in a team', async function () {
-        await app.auditLog.Team.billing.session.completed(ACTIONED_BY, null, TEAM, BILLING_SESSION)
+        await teamLogger.billing.session.completed(ACTIONED_BY, null, TEAM, BILLING_SESSION)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'billing.session.completed')
@@ -362,7 +372,7 @@ describe('Audit Log > Team', async function () {
     })
 
     it('Provides a logger for deleting a billing session in a team', async function () {
-        await app.auditLog.Team.billing.subscription.deleted(ACTIONED_BY, null, TEAM, SUBSCRIPTION)
+        await teamLogger.billing.subscription.deleted(ACTIONED_BY, null, TEAM, SUBSCRIPTION)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'billing.subscription.deleted')
@@ -375,4 +385,6 @@ describe('Audit Log > Team', async function () {
         logEntry.body.team.should.only.have.keys('id', 'name', 'slug', 'type')
         logEntry.body.team.id.should.equal(TEAM.hashid)
     })
+
+    // #endregion
 })

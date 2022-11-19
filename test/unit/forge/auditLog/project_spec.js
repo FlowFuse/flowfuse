@@ -1,5 +1,8 @@
 const should = require('should') // eslint-disable-line
 const FF_UTIL = require('flowforge-test-utils')
+// Declare a dummy getLoggers function for type hint only
+/** @type {import('../../../../forge/auditLog/project').getLoggers} */
+const getLoggers = (app) => { return {} }
 
 describe('Audit Log > Project', async function () {
     let app
@@ -10,8 +13,16 @@ describe('Audit Log > Project', async function () {
     let STACK
     let SNAPSHOT
 
+    // temporarily assign the logger purely for type info & intellisense
+    // so that xxxxxLogger.yyy.zzz function parameters are offered
+    // The real logger is assigned in the before() function
+    let projectLogger = getLoggers(null)
+
     before(async () => {
         app = await FF_UTIL.setupApp()
+        // get Project scope logger
+        projectLogger = app.auditLog.Project
+
         ACTIONED_BY = await app.db.models.User.create({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
 
         const defaultTeamType = await app.db.models.TeamType.findOne()
@@ -43,12 +54,11 @@ describe('Audit Log > Project', async function () {
         logs.log.should.have.length(1)
         return (await app.db.views.AuditLog.auditLog({ log: logs.log })).log[0]
     }
-    /*
-        Project Actions
-    */
+
+    // #region Project - Actions
 
     it('Provides a logger for creating a project', async function () {
-        await app.auditLog.Project.project.created(ACTIONED_BY, null, TEAM, PROJECT)
+        await projectLogger.project.created(ACTIONED_BY, null, TEAM, PROJECT)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'project.created')
@@ -63,7 +73,7 @@ describe('Audit Log > Project', async function () {
     })
 
     it('Provides a logger for deleting a project', async function () {
-        await app.auditLog.Project.project.deleted(ACTIONED_BY, null, TEAM, PROJECT)
+        await projectLogger.project.deleted(ACTIONED_BY, null, TEAM, PROJECT)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'project.deleted')
@@ -78,7 +88,7 @@ describe('Audit Log > Project', async function () {
     })
 
     it('Provides a logger for starting a project', async function () {
-        await app.auditLog.Project.project.started(ACTIONED_BY, null, PROJECT)
+        await projectLogger.project.started(ACTIONED_BY, null, PROJECT)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'project.started')
@@ -91,7 +101,7 @@ describe('Audit Log > Project', async function () {
     })
 
     it('Provides a logger for stopping a project', async function () {
-        await app.auditLog.Project.project.stopped(ACTIONED_BY, null, PROJECT)
+        await projectLogger.project.stopped(ACTIONED_BY, null, PROJECT)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'project.stopped')
@@ -104,7 +114,7 @@ describe('Audit Log > Project', async function () {
     })
 
     it('Provides a logger for restarting a project', async function () {
-        await app.auditLog.Project.project.restarted(ACTIONED_BY, null, PROJECT)
+        await projectLogger.project.restarted(ACTIONED_BY, null, PROJECT)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'project.restarted')
@@ -117,10 +127,10 @@ describe('Audit Log > Project', async function () {
     })
 
     it('Provides a logger for suspending a project', async function () {
-        await app.auditLog.Project.project.suspending(ACTIONED_BY, null, PROJECT)
+        await projectLogger.project.suspended(ACTIONED_BY, null, PROJECT)
         // check log stored
         const logEntry = await getLog()
-        logEntry.should.have.property('event', 'project.suspending')
+        logEntry.should.have.property('event', 'project.suspended')
         logEntry.should.have.property('scope', { id: PROJECT.id, type: 'project' })
         logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
         logEntry.should.have.property('body')
@@ -130,7 +140,7 @@ describe('Audit Log > Project', async function () {
     })
 
     it('Provides a logger for importing flows into a project', async function () {
-        await app.auditLog.Project.project.flowImported(ACTIONED_BY, null, PROJECT)
+        await projectLogger.project.flowImported(ACTIONED_BY, null, PROJECT)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'project.flow-imported')
@@ -142,12 +152,12 @@ describe('Audit Log > Project', async function () {
         logEntry.body.project.id.should.equal(PROJECT.id)
     })
 
-    /*
-        Project Device Actions
-    */
+    // #endregion
+
+    // #region Project Device Actions
 
     it('Provides a logger for unassigning a device from a project', async function () {
-        await app.auditLog.Project.project.device.unassigned(ACTIONED_BY, null, PROJECT, DEVICE)
+        await projectLogger.project.device.unassigned(ACTIONED_BY, null, PROJECT, DEVICE)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'project.device.unassigned')
@@ -162,7 +172,7 @@ describe('Audit Log > Project', async function () {
     })
 
     it('Provides a logger for assigning a device from a project', async function () {
-        await app.auditLog.Project.project.device.assigned(ACTIONED_BY, null, PROJECT, DEVICE)
+        await projectLogger.project.device.assigned(ACTIONED_BY, null, PROJECT, DEVICE)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'project.device.assigned')
@@ -177,7 +187,7 @@ describe('Audit Log > Project', async function () {
     })
 
     it('Provides a logger for changing a stack of a project', async function () {
-        await app.auditLog.Project.project.stack.changed(ACTIONED_BY, null, PROJECT, STACK)
+        await projectLogger.project.stack.changed(ACTIONED_BY, null, PROJECT, STACK)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'project.stack.changed')
@@ -192,7 +202,7 @@ describe('Audit Log > Project', async function () {
     })
 
     it('Provides a logger for changing a settings of a project', async function () {
-        await app.auditLog.Project.project.settings.updated(ACTIONED_BY, null, PROJECT, [{ key: 'name', old: 'old', new: 'new' }])
+        await projectLogger.project.settings.updated(ACTIONED_BY, null, PROJECT, [{ key: 'name', old: 'old', new: 'new' }])
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'project.settings.updated')
@@ -206,12 +216,12 @@ describe('Audit Log > Project', async function () {
         logEntry.body.updates[0].should.eql({ key: 'name', old: 'old', new: 'new' })
     })
 
-    /*
-        Project Snapshots
-    */
+    // #endregion
+
+    // #region Project Snapshots
 
     it('Provides a logger for creating snapshots of a project', async function () {
-        await app.auditLog.Project.project.snapshot.created(ACTIONED_BY, null, PROJECT, SNAPSHOT)
+        await projectLogger.project.snapshot.created(ACTIONED_BY, null, PROJECT, SNAPSHOT)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'project.snapshot.created')
@@ -226,7 +236,7 @@ describe('Audit Log > Project', async function () {
     })
 
     it('Provides a logger for rolling back a snapshot of a project', async function () {
-        await app.auditLog.Project.project.snapshot.rolledBack(ACTIONED_BY, null, PROJECT, SNAPSHOT)
+        await projectLogger.project.snapshot.rolledBack(ACTIONED_BY, null, PROJECT, SNAPSHOT)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'project.snapshot.rolled-back')
@@ -241,7 +251,7 @@ describe('Audit Log > Project', async function () {
     })
 
     it('Provides a logger for deleteing a snapshot of a project', async function () {
-        await app.auditLog.Project.project.snapshot.deleted(ACTIONED_BY, null, PROJECT, SNAPSHOT)
+        await projectLogger.project.snapshot.deleted(ACTIONED_BY, null, PROJECT, SNAPSHOT)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'project.snapshot.deleted')
@@ -256,7 +266,7 @@ describe('Audit Log > Project', async function () {
     })
 
     it('Provides a logger for assigning a device target to a snapshot of a project', async function () {
-        await app.auditLog.Project.project.snapshot.deviceTargetSet(ACTIONED_BY, null, PROJECT, SNAPSHOT)
+        await projectLogger.project.snapshot.deviceTargetSet(ACTIONED_BY, null, PROJECT, SNAPSHOT)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'project.snapshot.device-target-set')
@@ -269,4 +279,6 @@ describe('Audit Log > Project', async function () {
         logEntry.body.snapshot.should.only.have.keys('id', 'name')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
+
+    // #endregion
 })
