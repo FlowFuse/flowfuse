@@ -72,10 +72,8 @@ describe('Audit Log > User', async function () {
     it('Provides a logger for a failed login attempt', async function () {
         // in this case, both user and actionBy are the same person
         await userLogger.account.login({ username: 'zandu' }, TEST_ERR)
-        console.log('after login')
         // check log stored
         const logEntry = await getLog()
-        console.log(logEntry)
         logEntry.should.have.property('event', 'account.login')
         logEntry.should.have.property('scope', { id: '', type: 'user' })
         logEntry.should.have.property('trigger', { id: null, hashid: null, type: 'unknown', name: 'Unknown' })
@@ -89,7 +87,6 @@ describe('Audit Log > User', async function () {
         await userLogger.account.login(ACTIONED_BY, null)
         // check log stored
         const logEntry = await getLog()
-        console.log(logEntry)
         logEntry.should.have.property('event', 'account.login')
         logEntry.should.have.property('scope', { id: ACTIONED_BY.hashid, type: 'user' })
         logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
@@ -101,7 +98,6 @@ describe('Audit Log > User', async function () {
         await userLogger.account.forgotPassword(ACTIONED_BY, null, ACTIONED_BY)
         // check log stored
         const logEntry = await getLog()
-        console.log(logEntry)
         logEntry.should.have.property('event', 'account.forgot-password')
         logEntry.should.have.property('scope', { id: ACTIONED_BY.hashid, type: 'user' })
         logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
@@ -174,7 +170,6 @@ describe('Audit Log > User', async function () {
         logEntry.should.have.property('scope', { id: ACTIONED_BY.hashid, type: 'user' })
         logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
         logEntry.should.have.property('body')
-        console.log(logEntry.body)
         logEntry.body.should.only.have.keys('updates')
         logEntry.body.updates.should.have.length(1)
         logEntry.body.updates[0].should.eql({ key: 'name', old: 'old', new: 'new' })
