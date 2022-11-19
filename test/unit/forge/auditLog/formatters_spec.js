@@ -65,15 +65,25 @@ describe('Audit Log > Formatters', async function () {
         should(body).have.property('updates')
     })
 
-    it('Generated an UpdatesCollection with the appropriate handlers', async function () {
+    it('Generated an UpdatesCollection with push', async function () {
         const updates = new Formatters.UpdatesCollection()
         should(updates.length).be.equal(0)
-        updates.pushDifferences({
-            key1: 1
-        }, {
-            key1: 2
+        updates.push('key1', 1, 2, 'updated')
+        updates.push('key2', 2, undefined, 'deleted')
+        updates.push('key3', undefined, 3, 'created')
+        updates.push('key4[3]', 4, undefined, 'deleted')
+        should(updates.length).be.equal(4)
+
+        const body = Formatters.generateBody({
+            updates
         })
-        should(updates.length).be.equal(1)
+        should(body).have.property('updates')
+        body.updates.find(e => e.key === 'key1').should.deepEqual({ key: 'key1', old: 1, new: 2, dif: 'updated' })
+        body.updates.find(e => e.key === 'key2').should.deepEqual({ key: 'key2', old: 2, new: undefined, dif: 'deleted' })
+        body.updates.find(e => e.key === 'key3').should.deepEqual({ key: 'key3', old: undefined, new: 3, dif: 'created' })
+        body.updates.find(e => e.key === 'key4[3]').should.deepEqual({ key: 'key4[3]', old: 4, new: undefined, dif: 'deleted' })
+    })
+
 
         const body = Formatters.generateBody({
             updates
