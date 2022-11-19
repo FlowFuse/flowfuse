@@ -66,6 +66,14 @@ $nav_height: 60px;
         margin-bottom: 4px;
         font-size: 0.75rem;
     }
+    // Override block -> inline-block on labels that follow an input[checkbox]
+    input[type="checkbox"] + label {
+        display: inline-block;
+    }
+    // Override block -> inline-block on labels that follow an input[radio]
+    input[type="radio"] + label {
+        display: inline-block;
+    }
     p {
         margin-bottom: 1rem;
     }
