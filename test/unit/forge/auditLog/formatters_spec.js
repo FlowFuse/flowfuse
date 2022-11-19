@@ -1,5 +1,7 @@
 const should = require('should') // eslint-disable-line
 const FF_UTIL = require('flowforge-test-utils')
+
+/** @type {import('../../../../forge/auditLog/formatters')} */
 const Formatters = FF_UTIL.require('forge/auditLog/formatters')
 
 describe('Audit Log > Formatters', async function () {
