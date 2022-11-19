@@ -8,7 +8,7 @@ module.exports = {
             async register (actionedBy, error, user) {
                 await log('account.register', actionedBy, generateBody({ error, user }))
             },
-            async logout (actionedBy, error) {
+            async logout (actionedBy, error, user) {
                 await log('account.logout', actionedBy, generateBody({ error, user }))
             },
             async login (actionedBy, error, user) {

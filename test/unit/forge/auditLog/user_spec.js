@@ -1,330 +1,279 @@
-const sinon = require('sinon')
-
 const should = require('should') // eslint-disable-line
-require('should-sinon')
 const FF_UTIL = require('flowforge-test-utils')
-const Formatters = FF_UTIL.require('forge/lib/audit-logging/formatters')
+
+// Declare a dummy getLoggers function for type hint only
+/** @type {import('../../../../forge/auditLog/user').getLoggers} */
+const getLoggers = (app) => { return {} }
 
 describe('Audit Log > User', async function () {
-    let sandbox
-
     let app
-    let log
-    let userLogger, usersLogger, accountLogger
+    let ACTIONED_BY
+    let TEAM
+    let PROJECT
+    let USER
+    const TEST_ERR = { message: 'Test Error', code: 'TEST_ERROR' }
 
-    let getLoggers
+    // temporarily assign the logger purely for type info & intellisense
+    // so that xxxxxLogger.yyy.zzz function parameters are offered
+    // The real logger is assigned in the before() function
+    let userLogger = getLoggers(null)
 
-    let genBodyStub, triggerObjectStub
+    before(async () => {
+        app = await FF_UTIL.setupApp()
+        // get User scope logger
+        userLogger = app.auditLog.User
 
-    before(() => {
-        sandbox = sinon.createSandbox()
-
-        // stub the triggerObject and generateBody functions
-        // return args so ew can test correct args given to the fcn
-        genBodyStub = sandbox.stub(Formatters, 'generateBody').callsFake(function (args) {
-            return args
-        })
-        // stub the triggerObject and generateBody functions
-        triggerObjectStub = sandbox.stub(Formatters, 'triggerObject').callsFake(function () {
-            return {
-                id: '<id>'
-            }
-        })
-        getLoggers = FF_UTIL.require('forge/lib/audit-logging/user').getLoggers
+        ACTIONED_BY = await app.db.models.User.create({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
+        const defaultTeamType = await app.db.models.TeamType.findOne()
+        TEAM = await app.db.models.Team.create({ name: 'ATeam', TeamTypeId: defaultTeamType.id })
+        PROJECT = await app.db.models.Project.create({ name: 'project1', type: '', url: '' })
+        await TEAM.addProject(PROJECT)
+        USER = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword', admin: true })
     })
-
+    after(async () => {
+        await app.close()
+    })
     beforeEach(async function () {
-        // mock app & log
-        log = []
-        app = {
-            db: {
-                controllers: {
-                    AuditLog: {
-                        // The way controller functions get encapsulated, they
-                        // do not get called with 'app' as their first argument,
-                        // even if the implementation of the function expects it.
-                        // Here we're mocking the external API of the controller,
-                        // which doesn't have 'app'
-                        userLog: function (triggerId, event, body, userId) {
-                            // create a stub object for easy testing purposes
-                            log.push({ triggerId, event, body, userId })
-                        }
-                    }
-                }
-            }
-        }
-
-        userLogger = getLoggers(app).user
-        usersLogger = getLoggers(app).users
-        accountLogger = getLoggers(app).account
+        await app.db.models.AuditLog.destroy({ truncate: true })
     })
+    async function getLog () {
+        const logs = await app.db.models.AuditLog.forEntity()
+        logs.log.should.have.length(1)
+        return (await app.db.views.AuditLog.auditLog({ log: logs.log })).log[0]
+    }
 
-    after(() => {
-        sandbox.restore()
-    })
-
-    const ACTIONED_BY = {}
-    const TEAM = { id: '<team-id>' }
-    const USER = { id: '<user-id>' }
-
-    /*
-        User - Account
-    */
+    // #region User - Account
 
     it('Provides a logger for registering an account', async function () {
         // in this case, both user and actionedBy are the same person
-        await accountLogger.register(ACTIONED_BY, null, ACTIONED_BY)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await userLogger.account.register(ACTIONED_BY, null, ACTIONED_BY)
+
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'account.register')
-        should(log[0]).have.property('userId', '<id>')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'user')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'account.register')
+        logEntry.should.have.property('scope', { id: ACTIONED_BY.hashid, type: 'user' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('user')
+        bodyShouldHaveUser(logEntry.body, ACTIONED_BY)
     })
 
     it('Provides a logger for when a user logs out from an account', async function () {
         // in this case, both user and actionBy are the same person
-        await accountLogger.logout(ACTIONED_BY, null)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await userLogger.account.logout(ACTIONED_BY, null)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'account.logout')
-        should(log[0]).have.property('userId', '<id>')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'user')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'account.logout')
+        logEntry.should.have.property('scope', { id: ACTIONED_BY.hashid, type: 'user' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body').and.be.Undefined()
+    })
+
+    it('Provides a logger for a failed login attempt', async function () {
+        // in this case, both user and actionBy are the same person
+        await userLogger.account.login({ username: 'zandu' }, TEST_ERR)
+        console.log('after login')
+        // check log stored
+        const logEntry = await getLog()
+        console.log(logEntry)
+        logEntry.should.have.property('event', 'account.login')
+        logEntry.should.have.property('scope', { id: '', type: 'user' })
+        logEntry.should.have.property('trigger', { id: null, hashid: null, type: 'unknown', name: 'Unknown' })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('error')
+        logEntry.body.should.have.property('error', TEST_ERR)
     })
 
     it('Provides a logger for when a user logs into an account', async function () {
         // in this case, both user and actionBy are the same person
-        await accountLogger.login(ACTIONED_BY, null)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await userLogger.account.login(ACTIONED_BY, null)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'account.login')
-        should(log[0]).have.property('userId', '<id>')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'user')
+        const logEntry = await getLog()
+        console.log(logEntry)
+        logEntry.should.have.property('event', 'account.login')
+        logEntry.should.have.property('scope', { id: ACTIONED_BY.hashid, type: 'user' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body').and.be.Undefined()
     })
 
     it('Provides a logger for when a user forgets their password', async function () {
         // in this case, both user and actionBy are the same person
-        await accountLogger.forgotPassword(ACTIONED_BY, null, ACTIONED_BY)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await userLogger.account.forgotPassword(ACTIONED_BY, null, ACTIONED_BY)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'account.forgot-password')
-        should(log[0]).have.property('userId', '<id>')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'user')
+        const logEntry = await getLog()
+        console.log(logEntry)
+        logEntry.should.have.property('event', 'account.forgot-password')
+        logEntry.should.have.property('scope', { id: ACTIONED_BY.hashid, type: 'user' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body').and.be.an.Object()
+        bodyShouldHaveUser(logEntry.body, ACTIONED_BY)
     })
 
     it('Provides a logger for when a user resets their password', async function () {
         // in this case, both user and actionBy are the same person
-        await accountLogger.resetPassword(ACTIONED_BY, null, ACTIONED_BY)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await userLogger.account.resetPassword(ACTIONED_BY, null, ACTIONED_BY)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'account.reset-password')
-        should(log[0]).have.property('userId', '<id>')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'user')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'account.reset-password')
+        logEntry.should.have.property('scope', { id: ACTIONED_BY.hashid, type: 'user' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body').and.be.an.Object()
+        bodyShouldHaveUser(logEntry.body, ACTIONED_BY)
     })
 
     it('Provides a logger for when verifying a created team', async function () {
-        await accountLogger.verify.autoCreateTeam(ACTIONED_BY, null)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await userLogger.account.verify.autoCreateTeam(ACTIONED_BY, null, TEAM)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'account.verify.auto-create-team')
-        should(log[0]).have.property('userId', '<id>')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'team')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'account.verify.auto-create-team')
+        logEntry.should.have.property('scope', { id: ACTIONED_BY.hashid, type: 'user' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body').and.be.an.Object()
+        bodyShouldHaveTeam(logEntry.body, TEAM)
     })
 
     it('Provides a logger for requesting a token', async function () {
-        await accountLogger.verify.requestToken(ACTIONED_BY, null)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await userLogger.account.verify.requestToken(ACTIONED_BY, null)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'account.verify.request-token')
-        should(log[0]).have.property('userId', '<id>')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'account.verify.request-token')
+        logEntry.should.have.property('scope', { id: ACTIONED_BY.hashid, type: 'user' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body').and.be.Undefined()
     })
 
     it('Provides a logger for verifying a token', async function () {
-        await accountLogger.verify.verifyToken(ACTIONED_BY, null)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await userLogger.account.verify.verifyToken(ACTIONED_BY, null)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'account.verify.verify-token')
-        should(log[0]).have.property('userId', '<id>')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'account.verify.verify-token')
+        logEntry.should.have.property('scope', { id: ACTIONED_BY.hashid, type: 'user' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body').and.be.Undefined()
     })
 
-    /*
-        User
-    */
+    // #endregion
+
+    // #region User - User
 
     it('Provides a logger for when a user updates their password', async function () {
-        await userLogger.updatedPassword(ACTIONED_BY, null)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await userLogger.user.updatedPassword(ACTIONED_BY, null)
+        const logEntry = await getLog()
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'user.updated-password')
-        should(log[0]).have.property('userId', '<id>')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error')
+        logEntry.should.have.property('event', 'user.updated-password')
+        logEntry.should.have.property('scope', { id: ACTIONED_BY.hashid, type: 'user' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body').and.be.Undefined()
     })
 
     it('Provides a logger for when a user updates their own settings and details', async function () {
-        await userLogger.updatedUser(ACTIONED_BY, null, [{}])
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await userLogger.user.updatedUser(ACTIONED_BY, null, [{ key: 'name', old: 'old', new: 'new' }])
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'user.updated-user')
-        should(log[0]).have.property('userId', '<id>')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'updates')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'user.updated-user')
+        logEntry.should.have.property('scope', { id: ACTIONED_BY.hashid, type: 'user' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        console.log(logEntry.body)
+        logEntry.body.should.only.have.keys('updates')
+        logEntry.body.updates.should.have.length(1)
+        logEntry.body.updates[0].should.eql({ key: 'name', old: 'old', new: 'new' })
     })
 
     it('Provides a logger for when a user accepts an invite', async function () {
-        await userLogger.invitation.accepted(ACTIONED_BY, null)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await userLogger.user.invitation.accepted(ACTIONED_BY, null)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'user.invitation.accepted')
-        should(log[0]).have.property('userId', '<id>')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'user.invitation.accepted')
+        logEntry.should.have.property('scope', { id: ACTIONED_BY.hashid, type: 'user' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body').and.be.Undefined()
     })
 
     it('Provides a logger for when a user deletes an invite', async function () {
-        await userLogger.invitation.deleted(ACTIONED_BY, null)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await userLogger.user.invitation.deleted(ACTIONED_BY, null)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'user.invitation.deleted')
-        should(log[0]).have.property('userId', '<id>')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'user.invitation.deleted')
+        logEntry.should.have.property('scope', { id: ACTIONED_BY.hashid, type: 'user' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body').and.be.Undefined()
     })
 
-    /*
-        Users
-    */
+    // #endregion
+
+    // #region User - Users
 
     it('Provides a logger for when a user is created', async function () {
         // actionedBy and user are different users
-        await usersLogger.userCreated(ACTIONED_BY, null, USER)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await userLogger.users.userCreated(ACTIONED_BY, null, USER)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'users.created-user')
-        should(log[0]).have.property('userId', '<user-id>')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'user')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'users.created-user')
+        logEntry.should.have.property('scope', { id: USER.hashid, type: 'user' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('user')
+        bodyShouldHaveUser(logEntry.body, USER)
     })
 
     it('Provides a logger for when a user is deleted', async function () {
         // actionedBy and user are different users
-        await usersLogger.userDeleted(ACTIONED_BY, null, USER)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await userLogger.users.userDeleted(ACTIONED_BY, null, USER)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'users.deleted-user')
-        should(log[0]).have.property('userId', '<user-id>')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'user')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'users.deleted-user')
+        logEntry.should.have.property('scope', { id: USER.hashid, type: 'user' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('user')
+        bodyShouldHaveUser(logEntry.body, USER)
     })
 
     it('Provides a logger for when a team is auto created', async function () {
         // actionedBy and user are different users
-        await usersLogger.teamAutoCreated(ACTIONED_BY, null, TEAM, USER)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await userLogger.users.teamAutoCreated(ACTIONED_BY, null, TEAM, USER)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'users.auto-created-team')
-        should(log[0]).have.property('userId', '<user-id>')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'team', 'user')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'users.auto-created-team')
+        logEntry.should.have.property('scope', { id: USER.hashid, type: 'user' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('user', 'team')
+        bodyShouldHaveUser(logEntry.body, USER)
+        bodyShouldHaveTeam(logEntry.body, TEAM)
     })
 
     it('Provides a logger for when user in a team is updated', async function () {
         // actionedBy and user are different users
-        await usersLogger.updatedUser(ACTIONED_BY, null, [{}], USER)
-        // check dependency fcns are called
-        genBodyStub.should.be.called()
-        triggerObjectStub.should.be.calledWith(ACTIONED_BY)
+        await userLogger.users.updatedUser(ACTIONED_BY, null, [{ key: 'name', old: 'old', new: 'new' }], USER)
         // check log stored
-        should(log).have.property('length', 1)
-        should(log[0]).have.property('triggerId', '<id>')
-        should(log[0]).have.property('event', 'users.updated-user')
-        should(log[0]).have.property('userId', '<user-id>')
-        should(log[0]).have.property('body')
-        should(log[0].body).have.property('error', null)
-        should(log[0].body).have.only.keys('error', 'updates', 'user')
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'users.updated-user')
+        logEntry.should.have.property('scope', { id: USER.hashid, type: 'user' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('user', 'updates')
+        bodyShouldHaveUser(logEntry.body, USER)
+        logEntry.body.updates.should.have.length(1)
+        logEntry.body.updates[0].should.eql({ key: 'name', old: 'old', new: 'new' })
     })
+
+    // #endregion
 })
+
+function bodyShouldHaveUser (body, user) {
+    body.should.have.property('user').and.be.an.Object()
+    body.user.should.only.have.keys('id', 'name', 'username', 'email')
+    if (user) {
+        body.user.should.only.have.property('id', user.hashid)
+    }
+}
+
+function bodyShouldHaveTeam (body, team) {
+    body.should.have.property('team').and.be.an.Object()
+    body.team.should.only.have.keys('id', 'name', 'slug', 'type')
+    if (team) {
+        body.team.should.only.have.property('id', team.hashid)
+    }
+}
