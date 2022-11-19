@@ -102,6 +102,15 @@ describe('Audit Log > Formatters', async function () {
         body.updates.find(e => e.key === 'key3').should.deepEqual({ key: 'key3', old: undefined, new: 3, dif: 'created' })
         body.updates.find(e => e.key === 'key4[3]').should.deepEqual({ key: 'key4[3]', old: 4, new: undefined, dif: 'deleted' })
     })
+
+    it('Throw an error for invalid diff type', async function () {
+        try {
+            Formatters.updatesObject('key1', 1, 2, 'invalid')
+            should.fail('Should have thrown an invalid diff type error')
+        } catch (error) {
+            error.should.have.a.property('code', 'invalid_value')
+            error.should.have.a.property('message')
+        }
     })
 
     it('Generated an errorObject with the correct format', async function () {
