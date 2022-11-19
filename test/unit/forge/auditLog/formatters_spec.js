@@ -84,11 +84,24 @@ describe('Audit Log > Formatters', async function () {
         body.updates.find(e => e.key === 'key4[3]').should.deepEqual({ key: 'key4[3]', old: 4, new: undefined, dif: 'deleted' })
     })
 
+    it('Generated an UpdatesCollection with pushDifferences', async function () {
+        const updates = new Formatters.UpdatesCollection()
+        should(updates.length).be.equal(0)
+        updates.pushDifferences(
+            { key1: 1, key2: 2, key4: [1, 2, 3, 4], key5: 'no change' }, // old settings
+            { key1: 2, key3: 3, key4: [1, 2, 3], key5: 'no change' } // new settings
+        )
+        should(updates.length).be.equal(4)
 
         const body = Formatters.generateBody({
             updates
         })
         should(body).have.property('updates')
+        body.updates.find(e => e.key === 'key1').should.deepEqual({ key: 'key1', old: 1, new: 2, dif: 'updated' })
+        body.updates.find(e => e.key === 'key2').should.deepEqual({ key: 'key2', old: 2, new: undefined, dif: 'deleted' })
+        body.updates.find(e => e.key === 'key3').should.deepEqual({ key: 'key3', old: undefined, new: 3, dif: 'created' })
+        body.updates.find(e => e.key === 'key4[3]').should.deepEqual({ key: 'key4[3]', old: 4, new: undefined, dif: 'deleted' })
+    })
     })
 
     it('Generated an errorObject with the correct format', async function () {
