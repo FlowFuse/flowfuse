@@ -258,7 +258,7 @@ const triggerObject = (actionedBy, user) => {
             } else if (id > 0) {
                 type = 'user'
                 if (user) {
-                    hashid = user.hashid
+                    hashid = user.hashid || null
                 }
             }
         } else if (typeof actionedBy === 'object' && actionedBy != null) {
