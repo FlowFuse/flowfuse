@@ -35,8 +35,8 @@ module.exports = {
                         await log('team.user.invite.rejected', actionedBy, team?.id, generateBody({ error, user, role }))
                     }
                 },
-                roleChanged (actionedBy, error, team, user, updates) {
-                    log('team.user.role-changed', actionedBy, team?.id, generateBody({ error, user, updates }))
+                async roleChanged (actionedBy, error, team, user, updates) {
+                    await log('team.user.role-changed', actionedBy, team?.id, generateBody({ error, user, updates }))
                 }
             },
             settings: {
