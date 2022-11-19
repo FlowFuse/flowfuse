@@ -125,6 +125,14 @@ module.exports = {
                     newUsername: user.username
                 })
             }
+            if (user.email !== originalUser.email) {
+                await app.postoffice.send(originalUser, 'EmailChanged', {
+                    oldEmail: originalUser.email,
+                    newEmail: user.email
+                })
+            }
+
+            // re-send verification email if a user was previously verified and is now not verified
             if (wasVerified && user.email_verified === false && request.session.User.id !== user.id) {
                 try {
                     const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
