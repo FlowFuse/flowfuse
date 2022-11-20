@@ -1,6 +1,3 @@
-const { getPlatformLogger } = require('../../lib/audit-logging')
-const { UpdatesCollection } = require('../../lib/audit-logging/formatters')
-
 /**
  * Project Type api routes
  *
@@ -10,7 +7,6 @@ const { UpdatesCollection } = require('../../lib/audit-logging/formatters')
  * @memberof forge.routes.api
  */
 module.exports = async function (app) {
-    const platformAuditLog = getPlatformLogger(app)
     /**
      * Get a list of all project types
      * @name /api/v1/project-types/
@@ -84,7 +80,7 @@ module.exports = async function (app) {
         }
         try {
             const projectType = await app.db.models.ProjectType.create(properties)
-            await platformAuditLog.platform.projectType.created(request.session.User, null, projectType)
+            await app.auditLog.Platform.platform.projectType.created(request.session.User, null, projectType)
             const response = app.db.views.ProjectType.projectType(projectType, true)
             reply.send(response)
         } catch (err) {
@@ -95,7 +91,7 @@ module.exports = async function (app) {
                 responseMessage = err.toString()
             }
             const resp = { code: 'unexpected_error', error: responseMessage }
-            await platformAuditLog.platform.projectType.created(request.session.User, resp, properties)
+            await app.auditLog.Platform.platform.projectType.created(request.session.User, resp, properties)
             reply.code(400).send(resp)
         }
     })
@@ -112,7 +108,7 @@ module.exports = async function (app) {
         const projectType = await app.db.models.ProjectType.byId(request.params.projectTypeId)
 
         const inUse = projectType.getDataValue('projectCount') > 0
-        const updates = new UpdatesCollection()
+        const updates = new app.auditLog.formatters.UpdatesCollection()
         if (inUse && request.body.properties) {
             // Don't allow the properties to be edited - this contains the billing
             // information and we don't want to have to update live projects
@@ -159,7 +155,7 @@ module.exports = async function (app) {
                 }
             }
             await projectType.save()
-            await platformAuditLog.platform.projectType.updated(request.session.User, null, projectType, updates)
+            await app.auditLog.Platform.platform.projectType.updated(request.session.User, null, projectType, updates)
             reply.send(app.db.views.ProjectType.projectType(projectType, request.session.User.admin))
         } catch (err) {
             let responseMessage
@@ -169,7 +165,7 @@ module.exports = async function (app) {
                 responseMessage = err.toString()
             }
             const resp = { code: 'unexpected_error', error: responseMessage }
-            await platformAuditLog.platform.projectType.updated(request.session.User, resp, projectType, updates)
+            await app.auditLog.Platform.platform.projectType.updated(request.session.User, resp, projectType, updates)
             reply.code(400).send(resp)
         }
     })
@@ -189,11 +185,11 @@ module.exports = async function (app) {
         if (projectType) {
             try {
                 await projectType.destroy()
-                await platformAuditLog.platform.projectType.deleted(request.session.User, null, projectType)
+                await app.auditLog.Platform.platform.projectType.deleted(request.session.User, null, projectType)
                 reply.send({ status: 'okay' })
             } catch (err) {
                 const resp = { code: 'unexpected_error', error: err.toString() }
-                await platformAuditLog.platform.projectType.deleted(request.session.User, resp, projectType)
+                await app.auditLog.Platform.platform.projectType.deleted(request.session.User, resp, projectType)
                 reply.code(400).send(resp)
             }
         } else {

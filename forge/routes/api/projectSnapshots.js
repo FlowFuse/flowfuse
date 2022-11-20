@@ -1,5 +1,3 @@
-const { getProjectLogger } = require('../../lib/audit-logging')
-
 /**
  * Project Snapshot api routes
  *
@@ -11,7 +9,6 @@ const { getProjectLogger } = require('../../lib/audit-logging')
  * @memberof forge.routes.api
  */
 module.exports = async function (app) {
-    const projectAuditLog = getProjectLogger(app)
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.snapshotId !== undefined) {
             if (request.params.snapshotId) {
@@ -76,7 +73,7 @@ module.exports = async function (app) {
             }
         }
         await request.snapshot.destroy()
-        await projectAuditLog.project.snapshot.deleted(request.session.User, null, request.project, request.snapshot)
+        await app.auditLog.Project.project.snapshot.deleted(request.session.User, null, request.project, request.snapshot)
         reply.send({ status: 'okay' })
     })
 
@@ -96,7 +93,7 @@ module.exports = async function (app) {
             }
         )
         snapShot.User = request.session.User
-        await projectAuditLog.project.snapshot.created(request.session.User, null, request.project, snapShot)
+        await app.auditLog.Project.project.snapshot.created(request.session.User, null, request.project, snapShot)
         reply.send(app.db.views.ProjectSnapshot.snapshot(snapShot))
     })
 }

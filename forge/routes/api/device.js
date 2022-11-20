@@ -1,6 +1,3 @@
-const { getTeamLogger } = require('../../lib/audit-logging')
-const { UpdatesCollection } = require('../../lib/audit-logging/formatters')
-const { getProjectLogger } = require('../../lib/audit-logging')
 const { Roles } = require('../../lib/roles')
 const DeviceLive = require('./deviceLive')
 
@@ -13,8 +10,6 @@ const DeviceLive = require('./deviceLive')
  * @memberof forge.routes.api
  */
 module.exports = async function (app) {
-    const teamAuditLog = getTeamLogger(app)
-    const projectAuditLog = getProjectLogger(app)
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.deviceId !== undefined) {
             if (request.params.deviceId) {
@@ -135,7 +130,7 @@ module.exports = async function (app) {
             })
 
             const credentials = await device.refreshAuthTokens()
-            await teamAuditLog.team.device.created(request.session.User, null, team, device)
+            await app.auditLog.Team.team.device.created(request.session.User, null, team, device)
 
             const response = app.db.views.Device.device(device)
             response.credentials = credentials
@@ -166,7 +161,7 @@ module.exports = async function (app) {
                 ]
             })
             await request.device.destroy()
-            await teamAuditLog.team.device.deleted(request.session.User, null, team, request.device)
+            await app.auditLog.Team.team.device.deleted(request.session.User, null, team, request.device)
             if (app.license.active() && app.billing) {
                 await app.billing.updateTeamDeviceCount(team)
             }
@@ -198,8 +193,8 @@ module.exports = async function (app) {
                     await request.device.setTargetSnapshot(null)
                     sendDeviceUpdate = true
 
-                    await teamAuditLog.team.device.unassigned(request.session.User, null, request.device?.Team, oldProject, request.device)
-                    await projectAuditLog.project.device.unassigned(request.session.User, null, oldProject, request.device)
+                    await app.auditLog.Team.team.device.unassigned(request.session.User, null, request.device?.Team, oldProject, request.device)
+                    await app.auditLog.Project.project.device.unassigned(request.session.User, null, oldProject, request.device)
                 } else {
                     // project is already unassigned - nothing to do
                 }
@@ -225,20 +220,20 @@ module.exports = async function (app) {
                     request.device.targetSnapshotId = deviceSettings?.targetSnapshot
 
                     sendDeviceUpdate = true
-                    await teamAuditLog.team.device.assigned(request.session.User, null, request.device.Team, project, request.device)
+                    await app.auditLog.Team.team.device.assigned(request.session.User, null, request.device.Team, project, request.device)
                     await app.db.controllers.AuditLog.projectLog(
                         project.id,
                         request.session.User.id,
                         'project.device.assigned',
                         { id: request.device.hashid }
                     )
-                    await projectAuditLog.project.device.assigned(request.session.User, null, project, request.device)
+                    await app.auditLog.Project.project.device.assigned(request.session.User, null, project, request.device)
                 }
             }
             // await TestObjects.deviceOne.setProject(TestObjects.deviceProject)
         } else {
             let changed = false
-            const updates = new UpdatesCollection()
+            const updates = new app.auditLog.formatters.UpdatesCollection()
             if (request.body.name !== undefined && request.body.name !== request.device.name) {
                 updates.push('name', request.device.name, request.body.name)
                 request.device.name = request.body.name
@@ -252,7 +247,7 @@ module.exports = async function (app) {
                 changed = true
             }
             if (changed) {
-                await teamAuditLog.team.device.updated(request.session.User, null, request.device.Team, request.device, updates)
+                await app.auditLog.Team.team.device.updated(request.session.User, null, request.device.Team, request.device, updates)
             }
         }
         await request.device.save()
@@ -268,7 +263,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('device:edit')
     }, async (request, reply) => {
         const credentials = await request.device.refreshAuthTokens()
-        teamAuditLog.team.device.credentialsGenerated(request.session.User, null, request.device?.Team, request.device.Project, request.device)
+        app.auditLog.Team.team.device.credentialsGenerated(request.session.User, null, request.device?.Team, request.device)
         reply.send(credentials)
     })
 

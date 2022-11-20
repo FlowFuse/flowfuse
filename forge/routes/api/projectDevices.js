@@ -1,5 +1,3 @@
-const { getProjectLogger } = require('../../lib/audit-logging')
-
 /**
  * Project Devices api routes
  *
@@ -12,7 +10,6 @@ const { getProjectLogger } = require('../../lib/audit-logging')
  * @memberof forge.routes.api
  */
 module.exports = async function (app) {
-    const projectAuditLog = getProjectLogger(app)
     /**
      * Get a list of projects assigned to this team
      * @name /api/v1/project/:projectId/devices
@@ -65,7 +62,7 @@ module.exports = async function (app) {
                     ProjectId: request.project.id
                 }
             })
-            await projectAuditLog.project.snapshot.deviceTargetSet(request.session.User, null, request.project, targetSnapshot)
+            await app.auditLog.Project.project.snapshot.deviceTargetSet(request.session.User, null, request.project, targetSnapshot)
             if (app.comms) {
                 app.comms.devices.sendCommandToProjectDevices(request.project.Team.hashid, request.project.id, 'update', {
                     snapshot: targetSnapshot.hashid

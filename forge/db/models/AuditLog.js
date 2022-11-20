@@ -4,7 +4,6 @@
  */
 
 const { DataTypes, Op } = require('sequelize')
-const { formatLogEntry } = require('../../lib/audit-logging/formatters')
 
 module.exports = {
     name: 'AuditLog',
@@ -45,7 +44,7 @@ module.exports = {
                     }
                     return M.AuditLog.forEntity(where, pagination)
                 },
-                forEntity: async (where, pagination = {}) => {
+                forEntity: async (where = {}, pagination = {}) => {
                     const limit = parseInt(pagination.limit) || 30
                     if (pagination.cursor) {
                         where.id = { [Op.lt]: M.AuditLog.decodeHashid(pagination.cursor) }
@@ -55,16 +54,15 @@ module.exports = {
                         order: [['createdAt', 'DESC']],
                         include: {
                             model: M.User,
-                            attributes: ['username']
+                            attributes: ['id', 'hashid', 'username']
                         },
                         limit
                     })
-                    const formattedEntries = entries.map(formatLogEntry)
                     return {
                         meta: {
                             next_cursor: entries.length === limit ? entries[entries.length - 1].hashid : undefined
                         },
-                        log: formattedEntries
+                        log: entries
                     }
                 }
             }

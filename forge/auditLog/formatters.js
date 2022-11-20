@@ -1,4 +1,4 @@
-const { RoleNames } = require('../roles')
+const { RoleNames } = require('../lib/roles')
 
 const isObject = (obj) => {
     return obj !== null && typeof obj === 'object'
@@ -7,10 +7,10 @@ const isObject = (obj) => {
 /**
  * Generate a standard format body for the audit log display and database.
  * Any items null or missing must not generate a property in the body
- * @param {{ error?, team?, project?, device?, user?, stack?, billingSession?, license?, updates?, snapshot?, role?, projectType? } == {}} objects objects to include in body
- * @returns {{ error?, team?, project?, device?, user?, stack?, billingSession?, license?, updates?, snapshot?, role?, projectType? }
+ * @param {{ error?, team?, project?, sourceProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType? } == {}} objects objects to include in body
+ * @returns {{ error?, team?, project?, sourceProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType? }
  */
-const generateBody = ({ error, team, project, device, user, stack, billingSession, license, updates, snapshot, role, projectType } = {}) => {
+const generateBody = ({ error, team, project, sourceProject, device, user, stack, billingSession, subscription, license, updates, snapshot, role, projectType } = {}) => {
     const body = {}
 
     if (isObject(error) || typeof error === 'string') {
@@ -21,6 +21,9 @@ const generateBody = ({ error, team, project, device, user, stack, billingSessio
     }
     if (isObject(project)) {
         body.project = projectObject(project)
+    }
+    if (isObject(sourceProject)) {
+        body.sourceProject = projectObject(sourceProject)
     }
     if (isObject(device)) {
         body.device = deviceObject(device)
@@ -34,8 +37,11 @@ const generateBody = ({ error, team, project, device, user, stack, billingSessio
     if (isObject(billingSession)) {
         body.billingSession = billingSessionObject(billingSession)
     }
-    if (isObject(license)) {
-        body.license = licenseObject(license)
+    if (isObject(subscription)) {
+        body.subscription = subscriptionObject(subscription)
+    }
+    if (typeof license === 'string') {
+        body.license = license
     }
     if (updates && updates instanceof UpdatesCollection && updates.length > 0) {
         body.updates = updates.toArray()
@@ -52,6 +58,16 @@ const generateBody = ({ error, team, project, device, user, stack, billingSessio
         body.projectType = projectTypeObject(projectType)
     }
     return body
+}
+
+const sanitiseObjectIds = (obj) => {
+    if (obj && obj.hashid !== undefined) {
+        if (obj.hashid) {
+            obj.id = obj.hashid
+        }
+        delete obj.hashid
+    }
+    return obj
 }
 
 const formatLogEntry = (auditLogDbRow) => {
@@ -87,13 +103,16 @@ const formatLogEntry = (auditLogDbRow) => {
                 error: body?.error,
                 team: body?.team,
                 project: body?.project,
+                sourceProject: body?.sourceProject,
                 user: body?.user,
                 stack: body?.stack,
                 billingSession: body?.billingSession,
+                subscription: body?.subscription,
                 license: body?.license,
                 snapshot: body?.snapshot,
                 updates: body?.updates,
-                device: body?.device
+                device: body?.device,
+                projectType: body?.projectType
             })
             const roleObj = body?.role && roleObject(body.role)
             if (roleObj) {
@@ -107,8 +126,11 @@ const formatLogEntry = (auditLogDbRow) => {
             if (body?.code && body?.error) {
                 formatted.body.error = errorObject({ code: body.code, error: body.error })
             }
+            for (const [key, value] of Object.entries(formatted.body)) {
+                formatted.body[key] = sanitiseObjectIds(value)
+            }
         } catch (_err) {
-            // console.log('Error parsing audit log body')
+            // console.log('Error parsing audit log body', _err)
         }
     }
     return formatted
@@ -174,9 +196,9 @@ const billingSessionObject = (session) => {
         id: session?.id || null
     }
 }
-const licenseObject = (license) => {
+const subscriptionObject = (subscription) => {
     return {
-        id: license?.id || null
+        subscription: subscription?.subscription || null
     }
 }
 const snapshotObject = (snapshot) => {
@@ -202,6 +224,7 @@ const roleObject = (role) => {
 const projectTypeObject = (projectType) => {
     return {
         id: projectType?.id || null,
+        hashid: projectType?.hashid || null,
         name: projectType?.name || null
     }
 }
@@ -234,6 +257,9 @@ const triggerObject = (actionedBy, user) => {
                 name = 'Forge Platform'
             } else if (id > 0) {
                 type = 'user'
+                if (user) {
+                    hashid = user.hashid || null
+                }
             }
         } else if (typeof actionedBy === 'object' && actionedBy != null) {
             return sanitise(actionedBy.id, actionedBy)
@@ -443,7 +469,6 @@ module.exports = {
     userObject,
     stackObject,
     billingSessionObject,
-    licenseObject,
     snapshotObject,
     roleObject,
     projectTypeObject,

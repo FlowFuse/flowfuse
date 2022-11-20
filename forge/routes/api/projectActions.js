@@ -1,5 +1,3 @@
-const { getProjectLogger } = require('../../lib/audit-logging')
-
 /**
  * Project Action api routes
  *
@@ -11,7 +9,6 @@ const { getProjectLogger } = require('../../lib/audit-logging')
  * @memberof forge.routes.api
  */
 module.exports = async function (app) {
-    const projectAuditLog = getProjectLogger(app)
     const changeStatusPreHandler = { preHandler: app.needsPermission('project:change-status') }
     app.post('/start', changeStatusPreHandler, async (request, reply) => {
         try {
@@ -22,7 +19,7 @@ module.exports = async function (app) {
                 app.db.controllers.Project.setInflightState(request.project, 'starting')
                 const startResult = await app.containers.start(request.project)
                 startResult.started.then(async () => {
-                    await projectAuditLog.project.started(request.session.User, null, request.project)
+                    await app.auditLog.Project.project.started(request.session.User, null, request.project)
                     app.db.controllers.Project.clearInflightState(request.project)
                 })
             } else {
@@ -30,13 +27,13 @@ module.exports = async function (app) {
                 request.project.state = 'running'
                 await request.project.save()
                 await app.containers.startFlows(request.project)
-                await projectAuditLog.project.started(request.session.User, null, request.project)
+                await app.auditLog.Project.project.started(request.session.User, null, request.project)
                 app.db.controllers.Project.clearInflightState(request.project)
             }
             reply.send()
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
-            await projectAuditLog.project.started(request.session.User, resp, request.project)
+            await app.auditLog.Project.project.started(request.session.User, resp, request.project)
             reply.code(500).send(resp)
         }
     })
@@ -51,12 +48,12 @@ module.exports = async function (app) {
             request.project.state = 'stopped'
             await request.project.save()
             const result = await app.containers.stopFlows(request.project)
-            await projectAuditLog.project.stopped(request.session.User, null, request.project)
+            await app.auditLog.Project.project.stopped(request.session.User, null, request.project)
             app.db.controllers.Project.clearInflightState(request.project)
             reply.send(result)
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
-            await projectAuditLog.project.stopped(request.session.User, resp, request.project)
+            await app.auditLog.Project.project.stopped(request.session.User, resp, request.project)
             reply.code(500).send(resp)
         }
     })
@@ -71,12 +68,12 @@ module.exports = async function (app) {
             request.project.state = 'running'
             await request.project.save()
             const result = await app.containers.restartFlows(request.project)
-            await projectAuditLog.project.restarted(request.session.User, null, request.project)
+            await app.auditLog.Project.project.restarted(request.session.User, null, request.project)
             app.db.controllers.Project.clearInflightState(request.project)
             reply.send(result)
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
-            await projectAuditLog.project.restarted(request.session.User, resp, request.project)
+            await app.auditLog.Project.project.restarted(request.session.User, resp, request.project)
             reply.code(500).send(resp)
         }
     })
@@ -90,11 +87,11 @@ module.exports = async function (app) {
             app.db.controllers.Project.setInflightState(request.project, 'suspending')
             await app.containers.stop(request.project)
             app.db.controllers.Project.clearInflightState(request.project)
-            await projectAuditLog.project.suspended(request.session.User, null, request.project)
+            await app.auditLog.Project.project.suspended(request.session.User, null, request.project)
             reply.send()
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
-            await projectAuditLog.project.suspended(request.session.User, resp, request.project)
+            await app.auditLog.Project.project.suspended(request.session.User, resp, request.project)
             reply.code(500).send(resp)
         }
     })
@@ -118,14 +115,14 @@ module.exports = async function (app) {
             app.db.controllers.Project.setInflightState(request.project, 'rollback')
             await app.db.controllers.Project.importProjectSnapshot(request.project, snapshot)
             app.db.controllers.Project.clearInflightState(request.project)
-            await projectAuditLog.project.snapshot.rollback(request.session.User, null, request.project, snapshot)
+            await app.auditLog.Project.project.snapshot.rolledBack(request.session.User, null, request.project, snapshot)
             if (restartProject) {
                 await app.containers.restartFlows(request.project)
             }
             reply.send({ status: 'okay' })
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
-            await projectAuditLog.project.snapshot.rollback(request.session.User, resp, request.project)
+            await app.auditLog.Project.project.snapshot.rolledBack(request.session.User, resp, request.project)
             reply.code(500).send(resp)
         }
     })

@@ -1,6 +1,8 @@
 const should = require('should') // eslint-disable-line
 const FF_UTIL = require('flowforge-test-utils')
-const Formatters = FF_UTIL.require('forge/lib/audit-logging/formatters')
+
+/** @type {import('../../../../forge/auditLog/formatters')} */
+const Formatters = FF_UTIL.require('forge/auditLog/formatters')
 
 describe('Audit Log > Formatters', async function () {
     it('Generated an Audit Log Entry with the correct format', async function () {
@@ -46,7 +48,7 @@ describe('Audit Log > Formatters', async function () {
             user: {},
             stack: {},
             billingSession: {},
-            license: {},
+            license: '',
             snapshot: {},
             projectType: {},
             role: {},
@@ -65,20 +67,52 @@ describe('Audit Log > Formatters', async function () {
         should(body).have.property('updates')
     })
 
-    it('Generated an UpdatesCollection with the appropriate handlers', async function () {
+    it('Generated an UpdatesCollection with push', async function () {
         const updates = new Formatters.UpdatesCollection()
         should(updates.length).be.equal(0)
-        updates.pushDifferences({
-            key1: 1
-        }, {
-            key1: 2
-        })
-        should(updates.length).be.equal(1)
+        updates.push('key1', 1, 2, 'updated')
+        updates.push('key2', 2, undefined, 'deleted')
+        updates.push('key3', undefined, 3, 'created')
+        updates.push('key4[3]', 4, undefined, 'deleted')
+        should(updates.length).be.equal(4)
 
         const body = Formatters.generateBody({
             updates
         })
         should(body).have.property('updates')
+        body.updates.find(e => e.key === 'key1').should.deepEqual({ key: 'key1', old: 1, new: 2, dif: 'updated' })
+        body.updates.find(e => e.key === 'key2').should.deepEqual({ key: 'key2', old: 2, new: undefined, dif: 'deleted' })
+        body.updates.find(e => e.key === 'key3').should.deepEqual({ key: 'key3', old: undefined, new: 3, dif: 'created' })
+        body.updates.find(e => e.key === 'key4[3]').should.deepEqual({ key: 'key4[3]', old: 4, new: undefined, dif: 'deleted' })
+    })
+
+    it('Generated an UpdatesCollection with pushDifferences', async function () {
+        const updates = new Formatters.UpdatesCollection()
+        should(updates.length).be.equal(0)
+        updates.pushDifferences(
+            { key1: 1, key2: 2, key4: [1, 2, 3, 4], key5: 'no change' }, // old settings
+            { key1: 2, key3: 3, key4: [1, 2, 3], key5: 'no change' } // new settings
+        )
+        should(updates.length).be.equal(4)
+
+        const body = Formatters.generateBody({
+            updates
+        })
+        should(body).have.property('updates')
+        body.updates.find(e => e.key === 'key1').should.deepEqual({ key: 'key1', old: 1, new: 2, dif: 'updated' })
+        body.updates.find(e => e.key === 'key2').should.deepEqual({ key: 'key2', old: 2, new: undefined, dif: 'deleted' })
+        body.updates.find(e => e.key === 'key3').should.deepEqual({ key: 'key3', old: undefined, new: 3, dif: 'created' })
+        body.updates.find(e => e.key === 'key4[3]').should.deepEqual({ key: 'key4[3]', old: 4, new: undefined, dif: 'deleted' })
+    })
+
+    it('Throw an error for invalid diff type', async function () {
+        try {
+            Formatters.updatesObject('key1', 1, 2, 'invalid')
+            should.fail('Should have thrown an invalid diff type error')
+        } catch (error) {
+            error.should.have.a.property('code', 'invalid_value')
+            error.should.have.a.property('message')
+        }
     })
 
     it('Generated an errorObject with the correct format', async function () {
@@ -228,18 +262,18 @@ describe('Audit Log > Formatters', async function () {
         should(billingSession).have.property('id', '<id>')
     })
 
-    it('Generated a licenseObject with the correct format', async function () {
-        const licenseEmpty = Formatters.licenseObject()
-        should(licenseEmpty).be.an.Object()
-        should(licenseEmpty).have.property('id', null)
+    // it('Generated a licenseObject with the correct format', async function () {
+    //     const licenseEmpty = Formatters.licenseObject()
+    //     should(licenseEmpty).be.an.Object()
+    //     should(licenseEmpty).have.property('id', null)
 
-        const license = Formatters.licenseObject({
-            id: '<id>'
-        })
+    //     const license = Formatters.licenseObject({
+    //         id: '<id>'
+    //     })
 
-        should(license).be.an.Object()
-        should(license).have.property('id', '<id>')
-    })
+    //     should(license).be.an.Object()
+    //     should(license).have.property('id', '<id>')
+    // })
 
     it('Generated a snapshotObject with the correct format', async function () {
         const snapshotEmpty = Formatters.snapshotObject()
