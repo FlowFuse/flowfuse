@@ -21,12 +21,10 @@ class TestModelFactory {
             name: 'unnamed-team',
             TeamTypeId: defaultTeamType.id
         }
-
         const team = await this.forge.db.models.Team.create({
             ...defaultTeamDetails,
             ...teamDetails
         })
-
         // force the DB to populate the TeamType- otherwise it just contains hte type id and falls
         team.reload({
             include: ['TeamType']
@@ -91,7 +89,6 @@ class TestModelFactory {
             type: '',
             url: ''
         }
-
         const project = await this.forge.db.models.Project.create({
             ...defaultProjectDetails,
             ...projectDetails
