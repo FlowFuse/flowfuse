@@ -362,4 +362,16 @@ module.exports = async function (app) {
             badRequest(reply, 'invalid_request', "Invalid grant_type. Only 'authorization_code' and 'refresh_token' are supported")
         }
     })
+
+    app.get('/account/check/:ownerType/:ownerId', {
+        onRequest: async (request, reply) => {
+            await app.verifyToken(request, reply)
+        }
+    }, async (request, reply) => {
+        if (request.params.ownerType === request.session.ownerType && request.params.ownerId === request.session.ownerId) {
+            reply.code(200).send()
+        } else {
+            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+        }
+    })
 }
