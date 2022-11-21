@@ -105,13 +105,18 @@ If you select this option, it will ask if you want to run the service as the
 current user, or create a new `flowforge` user. If you choose to create the
 user, it will also change the ownership of the FlowForge directory to that user.
 
-## Configuring FlowForge (optional)
+## Configuring FlowForge
 
 The default FlowForge configuration is provided in the file `flowforge.yml`
 * Linux/MacOS: `/opt/flowforge/etc/flowforge.yml`
 * Windows: `c:\flowforge\etc\flowforge.yml`
 
-For more details on the options available, see the [configuration guide](../configuration.md).
+The default configuration file already contains everything you need to get started with FlowForge.
+
+It will allow you to access FlowForge and the projects you create, from the same server running the platform. 
+If you want to allow access from other devices on the network, you must edit the configuration file and 
+change the `host` setting to 0.0.0.0. NOTE: We do not support changing the `host` value once you have created a project.
+For more information on all of the options available, see the [configuration guide](../configuration.md).
 
 ## Before running FlowForge (Windows Only)
 Some Windows applications like Hyper-V and WSL can reserve TCP ports. This can prevent FlowForge from running correctly. If necessary, adjust the starting port variable `driver.options.start_port` in the FlowForge configuration yaml file.
