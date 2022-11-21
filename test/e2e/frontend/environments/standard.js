@@ -202,7 +202,7 @@ module.exports = async function (settings = {}, config = {}) {
     await forge.db.controllers.Invitation.createInvitations(userBob, team2, [userDave.email], Roles.Member)
 
     // Unassigned devices
-    await factory.createDevice({ name: 'unassigned-device', type: 'type2' }, team2)
+    await factory.createDevice({ name: 'team2-unassigned-device', type: 'type2' }, team2)
 
     // Projects
     await factory.createProject({ name: 'project2' }, team2, stack, template, projectType)
