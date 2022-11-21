@@ -7,12 +7,14 @@ const { scheduleTask } = require('cronosjs')
  * Runs regular maintenance tasks to keep things clean and tidy
  *
  * A task is defined as an object with the properties:
+ * ```js
  * {
  *    name: 'name of the task',
  *    startup: true/false, // should the task be run whenever the platform starts
  *    schedule: '@daily', // cron string to define schedule. '@daily' means midnight
  *    run: async function(app) { } // the task itself
  * }
+ * ```
  */
 module.exports = fp(async function (app, _opts, next) {
     const tasks = {}
