@@ -40,7 +40,7 @@ driver:
     ### LocalFS options
 
     ## The first port number to assign to projects
-    # start_port: 7880
+    # start_port: 12080
 
     ## Path to find node executable if not on the default path
     # node_path: /usr/bin/node
