@@ -1,0 +1,19 @@
+name: Backport to maintenance
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+      - labeled
+
+jobs:
+  backport:
+    if: ${{ (github.event.pull_request.merged == true) && (contains(github.event.pull_request.labels.*.name, 'backport')) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: .github/scripts/backport.sh $PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
