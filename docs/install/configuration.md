@@ -1,12 +1,11 @@
 # Configuring FlowForge
 
-The base configuration of the FlowForge platform is provided in the file `/opt/flowforge/etc/flowforge.yml` [^1].
+The base configuration of the FlowForge platform is provided in the file
+`/opt/flowforge/etc/flowforge.yml`. This assumes the default install location
+of `/opt/flowforge`.
 
 To run a local install, you can use the default options. This section describes
 the options available in the configuration file.
-
-
-[^1]: This assumes the default install location of `/opt/flowforge`.
 
 ## Server configuration
 
@@ -16,7 +15,6 @@ Option | Description
 `port` | The TCP port the platform serves its web ui. Default: `3000`
 `base_url` | The url to access the platform. This defaults to `http://localhost:3000` which means a number of internally generated URLs will only work when browsing on the same device as is running the platform. To be able to access the platform remotely, replace `localhost` with the ip address of the device running FlowForge. IMPORTANT: This should not be changed after starting projects as it is used by the projects to find the core platform.
 `support_contact` | a URL or string with contact details for the administrator e.g `mailto:support@example.com` or `https://support.example.com` . Defaults to the email address of the first admin user or `the administrator` if no email address set.
-
 
 ## Database configuration
 
