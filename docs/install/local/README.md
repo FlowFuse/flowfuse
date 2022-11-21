@@ -60,26 +60,30 @@ You will also need to install the appropriate build tools.
     mkdir c:\flowforge
     ```
 
-2. Download the latest [Installer zip file](https://github.com/flowforge/installer/releases/latest).
+2. Download the latest [Installer zip file](https://github.com/flowforge/installer/releases/latest) into a temporary location.
 
 
-3. Unzip the downloaded file into a temporary location and copy its contents to
+3. Unzip the downloaded zip file and copy its contents to
    the FlowForge directory
 
-   For Linux/MacOS:
+   ### For Linux/MacOS: 
+   _Assumes `/tmp/` is the directory where you downloaded `flowforge-installer.zip`_
     ```
     cd /tmp/
-    unzip flowforge-installer-x.y.z.zip
-    cp -R flowforge-installer-x.y.z/* /opt/flowforge
+    unzip flowforge-installer.zip
+    cp -R flowforge-installer/* /opt/flowforge
     ```
+    
 
-   For Windows:
+   ### For Windows:
+   _Assumes `c:\temp` is the directory where you downloaded `flowforge-installer.zip`_
     ```
-    mkdir cd c:\temp
     cd c:\temp
-    tar -xf flowforge-installer-x.y.z.zip
-    xcopy /E /I flowforge-installer-x.y.z c:\flowforge
+    tar -xf flowforge-installer.zip
+    xcopy /E /I flowforge-installer c:\flowforge
     ```
+    
+
 
 4. Run the installer and follow the prompts
 
