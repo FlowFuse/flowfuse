@@ -5,9 +5,13 @@ through the initial setup.
 
 By default, you can access the platform at [http://localhost:3000](http://localhost:3000).
 
+## 1. Begin
+Open FlowForge in your browser [http://localhost:3000](http://localhost:3000).  
+Click the **START SETUP** button
+
 <img src="images/setup-01.png" width=500 />
 
-## 1. Create an Administrator
+## 2. Create an Administrator
 
 The first user you create will be an Administrator. They will have full access
 to the platform, be able to set platform-wide configuration and manage users and teams.
@@ -19,7 +23,7 @@ outside of the platform in a future release.
 
 <img src="images/setup-02-user.png" width=500 />
 
-## 2. Upload a license
+## 3. Upload a license
 
 FlowForge Community Edition is Open Source and can be used freely without a license.
 
@@ -27,7 +31,7 @@ If you have a FlowForge Enterprise Edition license you can upload it here.
 
 <img src="images/setup-03-license.png" width=500 />
 
-## 3. Platform Options
+## 4. Platform Options
 
 There are some runtime configuration options that can be configured at this stage.
 
@@ -40,14 +44,14 @@ anonymous usage information from running instances.
 
 The Administrator can opt-out of this feature.
 
-## Login
+## 5. Done, lets login
 
-Once you complete the setup, you will be able to login as the Administrator user
-you created in the first step.
+Once you complete the setup, you will be able to login as the Administrator
+user that you created in [Step 2](#2-create-an-administrator).
 
-## Next Steps
+## 6. Next Steps
 
-Once logged in, there are three remaining tasks the Administrator must complete
+There are three remaining tasks the Administrator must complete
 before projects can be created
 
 ### 1. Create a Project Type
@@ -84,7 +88,7 @@ chosen deployment model.
  - [Docker Stacks](./docker/stacks.md)
  - Kubernetes Stacks - *coming soon*
 
-### 2. Create a Project Template
+### 3. Create a Project Template
 
 A Project Template provides a default set of Node-RED settings, such as the path
 the editor is served from and whether users can install new nodes.
