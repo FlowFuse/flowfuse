@@ -6,6 +6,7 @@
         confirm-label="Assign"
         :disable-primary="!formValid"
         class="snapshot-assign-dialog"
+        data-el="snapshot-assign-dialog"
         @confirm="confirm()"
     >
         <template #default>

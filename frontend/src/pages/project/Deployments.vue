@@ -54,7 +54,10 @@
                 </div>
             </div>
         </div>
-        <div class="space-y-6">
+        <div
+            class="space-y-6"
+            data-el="devices-section"
+        >
             <ff-loading
                 v-if="loading"
                 message="Loading Devices..."
@@ -81,6 +84,7 @@
                             #actions
                         >
                             <ff-button
+                                data-action="change-target-snapshot"
                                 kind="secondary"
                                 @click="showSelectTargetSnapshotDialog"
                             >
@@ -133,7 +137,7 @@
                 <template v-else>
                     <div class="flex text-gray-500 justify-center italic mb-4 p-8">
                         <div class="text-center">
-                            <p>You have not added any devices to this team yet.</p>
+                            <p>You have not added any devices to this project yet.</p>
                             <p>
                                 To add a device, go to the
                                 <router-link :to="{name: 'TeamDevices', params: {team_slug:team.slug}}">
