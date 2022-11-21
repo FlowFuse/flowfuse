@@ -162,6 +162,11 @@ module.exports = async function (settings = {}, config = {}) {
     // non admin, not in any team but will be invited and removed as required
     const userDave = await factory.createUser({ username: 'dave', name: 'Dave Vader', email: 'dave@example.com', password: 'ddPassword', email_verified: true, password_expired: false })
 
+    // Platform Setup
+    const template = await factory.createProjectTemplate({ name: 'template1' }, userAlice)
+    const projectType = await factory.createProjectType({ name: 'type1' })
+    const stack = await factory.createStack({ name: 'stack1' }, projectType)
+
     /// Team 1
     const team1 = await factory.createTeam({ name: 'ATeam' })
     await team1.addUser(userAlice, { through: { role: Roles.Owner } })
@@ -171,10 +176,6 @@ module.exports = async function (settings = {}, config = {}) {
     await forge.db.controllers.Invitation.createInvitations(userAlice, team1, [userDave.email], Roles.Member)
 
     // Projects
-    const template = await factory.createProjectTemplate({ name: 'template1' }, userAlice)
-    const projectType = await factory.createProjectType({ name: 'type1' })
-    const stack = await factory.createStack({ name: 'stack1' }, projectType)
-
     await factory.createProject({ name: 'project1' }, team1, stack, template, projectType)
 
     /// Team 2
@@ -185,11 +186,7 @@ module.exports = async function (settings = {}, config = {}) {
     await forge.db.controllers.Invitation.createInvitations(userBob, team2, [userDave.email], Roles.Member)
 
     // Projects
-    const template2 = await factory.createProjectTemplate({ name: 'template2' }, userBob)
-    const projectType2 = await factory.createProjectType({ name: 'type2' })
-    const stack2 = await factory.createStack({ name: 'stack2' }, projectType)
-
-    await factory.createProject({ name: 'project2' }, team2, stack2, template2, projectType2)
+    await factory.createProject({ name: 'project2' }, team2, stack, template, projectType)
     await factory.createDevice({ name: 'team2-device', type: 'type2' }, team2)
 
     return forge
