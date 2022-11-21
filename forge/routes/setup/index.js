@@ -46,8 +46,23 @@ module.exports = async function (app) {
             reply.code(404).send()
             return
         }
-        await app.settings.set('setup:initialised', true)
-        reply.send({ status: 'okay' })
+        try {
+            const adminUser = await app.db.models.User.findOne({
+                where: {
+                    admin: true
+                }
+            })
+            const projectType = await app.db.controllers.ProjectType.createDefaultProjectType()
+            await app.db.controllers.ProjectTemplate.createDefaultTemplate(adminUser)
+            await app.db.controllers.ProjectStack.createDefaultProjectStack(projectType)
+
+            await app.settings.set('setup:initialised', true)
+            reply.send({ status: 'okay' })
+        } catch (err) {
+            app.log.error(`Failed to create default ProjectStack: ${err.toString()}`)
+            console.log(err.stack)
+            reply.code(500).send({ code: 'error', message: err.toString() })
+        }
     })
 
     /**
