@@ -46,7 +46,7 @@ This configures how Node-RED instances are run by the platform.
 Option        | Description
 --------------|------------
 `driver.type` | The type of deployment model to use. Default: `localfs`
-`driver.options.start_port` | The port number to start assigning to projects as they are created. Default: `7880`
+`driver.options.start_port` | The port number to start assigning to projects as they are created. Default: `12080`
 `driver.options.node_path` | The path to find the node.js executable - useful if Node.js has been installed with `nvm` so isn't necessarily on the system path.
 
 ## MQTT Broker configuration
