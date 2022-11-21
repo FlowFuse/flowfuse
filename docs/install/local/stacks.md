@@ -14,7 +14,7 @@ For the Local deployment model, this covers two things:
 The FlowForge installer will create a default stack using the latest stable
 release of Node-RED.
 
-The stacks are stored under `/opt/flowforge/var/stacks` or `c:\opt\flowforge\var\stacks` on Windows.
+The stacks are stored under `/opt/flowforge/var/stacks` or `c:\flowforge\var\stacks` on Windows.
 
 ### Creating a Stack
 
@@ -36,7 +36,7 @@ For a local install there are two steps required:
 
    Windows
    ```
-   cd c:\opt\flowforge
+   cd c:\flowforge
    bin\ff-install-stack.bat 3.0.2
    ```
 
@@ -52,7 +52,7 @@ For a local install there are two steps required:
    Alternatively, click 'Create stack' to create an entirely new stack.
 
    When prompted for the Node-RED version, provide the exact version that was installed. For example, if you ran the script with `latest` and it resulted in `3.0.2` being installed, you should enter `3.0.2`. This must
-   match the directory name created under `/opt/flowforge/var/stacks`.
+   match the directory name created in your `stacks` directory.
 
 
 ### Development Only
