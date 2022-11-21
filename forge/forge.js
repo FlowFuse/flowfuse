@@ -11,6 +11,7 @@ const csrf = require('@fastify/csrf-protection')
 const helmet = require('@fastify/helmet')
 const postoffice = require('./postoffice')
 const monitor = require('./monitor')
+const housekeeper = require('./housekeeper')
 const ee = require('./ee')
 
 module.exports = async (options = {}) => {
@@ -55,6 +56,9 @@ module.exports = async (options = {}) => {
         await server.register(monitor)
         // License
         await server.register(license)
+
+        // Housekeeper
+        await server.register(housekeeper)
 
         // HTTP Server configuration
         if (!server.settings.get('cookieSecret')) {
