@@ -88,7 +88,7 @@
                                     <ClockIcon />
                                 </template>
                                 <span class="font-normal">
-                                    Target Snapshot: <b>{{ project.deviceSettings.targetSnapshot || 'none' }}</b>
+                                    Target Snapshot: <b>{{ project.targetSnapshot?.name || 'none' }}</b>
                                 </span>
                             </ff-button>
                             <ff-button
