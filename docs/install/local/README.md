@@ -122,17 +122,6 @@ If you want to allow access from other devices on the network, you must edit the
 change the `host` setting to 0.0.0.0. NOTE: We do not support changing the `host` value once you have created a project.
 For more information on all of the options available, see the [configuration guide](../configuration.md).
 
-## Before running FlowForge (Windows Only)
-Some Windows applications like Hyper-V and WSL can reserve TCP ports. This can prevent FlowForge from running correctly. If necessary, adjust the starting port variable `driver.options.start_port` in the FlowForge configuration yaml file.
-
-You can see which ports are reserved on a Windows machine using the command...
-```console
-netsh interface ipv4 show excludedportrange protocol=tcp
-```
-
-IMPORTANT: When modifying `start_port` (default `12080`), be aware that FlowForge uses port numbers incrementally and in pairs separated by 1000. e.g. If `start_port` is set to `6000`, it will allocate ports `6000` and `7000` to the 1st project then ports `6001` and `7001` to the next project (and so on). 
-
-_INFO: Ports between 10000 ~ 49000 on windows are typically not included in the default reservation_
 
 ## Running FlowForge
 
