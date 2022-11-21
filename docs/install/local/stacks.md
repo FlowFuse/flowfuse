@@ -11,47 +11,56 @@ For the Local deployment model, this covers two things:
     is useful when running on a memory constrained device such as a Raspberry Pi. Recommended minimum `256`.
  - `nodered` - the version number of Node-RED to use. This should match the value used in the steps following.
 
-## Upgrading Node-RED
+The FlowForge installer will create a default stack using the latest stable
+release of Node-RED.
 
-FlowForge supports Node-RED 2.2.x and later for creating stacks.
+The stacks are stored under `/opt/flowforge/var/stacks` or `c:\opt\flowforge\var\stacks` on Windows.
 
-As new versions of Node-RED are released, the following steps can be used to
-make them available within FlowForge.
+### Creating a Stack
 
-### Development
+When a new version of Node-RED is released, it can be added to your FlowForge
+platform by creating a new stack.
+
+For a local install there are two steps required:
+
+1. Install a new Node-RED version
+
+   In the FlowForge Home directory, run the provided install script. You
+   must provide the full Node-RED version number, eg `3.0.2`, or use `latest` to install the most recent stable version.
+
+   Linux/Mac:
+   ```
+   cd /opt/flowforge
+   ./bin/ff-install-stack.sh 3.0.2
+   ```
+
+   Windows
+   ```
+   cd c:\opt\flowforge
+   bin\ff-install-stack.bat 3.0.2
+   ```
+
+2. Creating the Stack
+
+   Log into the FlowForge platform as an administrator. Navigate to the
+   Admin Settings -> Stacks section.
+
+   If this new stack should be offered as a direct upgrade of an existing stack, select the 'Create new version' option from the dropdown menu
+   of the stack you want to replace. Projects that use the old stack
+   will offer the new stack as a one-click upgrade option.
+
+   Alternatively, click 'Create stack' to create an entirely new stack.
+
+   When prompted for the Node-RED version, provide the exact version that was installed. For example, if you ran the script with `latest` and it resulted in `3.0.2` being installed, you should enter `3.0.2`. This must
+   match the directory name created under `/opt/flowforge/var/stacks`.
+
+
+### Development Only
 
 If you are developing FlowForge having checked it out from GitHub then you can run 
-the following command in the project root
+the following command in the project root to install a stack:
 
 ```bash
 npm run install-stack --vers=3.0.2
 ```
 
-### Production
-
-If you are running a version from the installer then you can run the following 
-commands where `bin` is in the FlowForge Home directory 
-(e.g. `/opt/flowforge`)
-
-Linux/Mac
-```
-bin/ff-install-stack.sh 3.0.2
-```
-
-Windows:
-```
-bin\ff-install-stack.bat 3.0.2
-```
-
-These scripts will automate the following steps
-
-1. In the `var` directory in your FlowForge home directory, create a directory
-   called `stacks`
-2. In the `var/stacks` directory create a directory called `3.0.2`
-3. In the `var/stacks/3.0.2` directory run `npm install --prefix . node-red@3.0.2`
-4. Create a new Stack under the Admin Settings section of the FlowForge web console.
-   1. Enter `3.0.2` under the Node-RED version - this *must* match the directory
-      name created under `var/stacks`.
-
-At this point, projects can select the new Stack in order to use the new version
-of Node-RED.
