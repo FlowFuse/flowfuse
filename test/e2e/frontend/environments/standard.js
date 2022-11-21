@@ -3,6 +3,127 @@ const Forge = FF_UTIL.require('forge/forge.js')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localTransport.js')
 
+class TestModelFactory {
+    constructor (forge) {
+        this.forge = forge
+    }
+
+    async createUser (details) {
+        return await this.forge.db.models.User.create({
+            ...{ admin: false, email_verified: true, password_expired: false },
+            ...details
+        })
+    }
+
+    async createTeam (teamDetails) {
+        const defaultTeamType = await this.forge.db.models.TeamType.findOne()
+        const defaultTeamDetails = {
+            name: 'unnamed-team',
+            TeamTypeId: defaultTeamType.id
+        }
+        const team = await this.forge.db.models.Team.create({
+            ...defaultTeamDetails,
+            ...teamDetails
+        })
+        // force the DB to populate the TeamType- otherwise it just contains hte type id and falls
+        team.reload({
+            include: ['TeamType']
+        })
+
+        return team
+    }
+
+    async createStack (stackProperties, projectType) {
+        const defaultProperties = {
+            name: 'unnamed-stack',
+            active: true,
+            properties: { nodered: '2.2.2' }
+        }
+        const stack = await this.forge.db.models.ProjectStack.create({
+            ...defaultProperties,
+            ...stackProperties
+        })
+        await stack.setProjectType(projectType)
+        return stack
+    }
+
+    async createProjectType (projectTypeProperties) {
+        const defaultTypeProperties = {
+            name: 'unnamed-project-type',
+            description: 'project type description',
+            active: true,
+            order: 1,
+            properties: {}
+        }
+        const projectType = await this.forge.db.models.ProjectType.create({
+            ...defaultTypeProperties,
+            ...projectTypeProperties
+        })
+        return projectType
+    }
+
+    async createProjectTemplate (templateProperties, owner) {
+        const defaultTemplateProperties = {
+            name: 'unnamed-template',
+            active: true,
+            description: '',
+            settings: {
+                httpAdminRoot: ''
+            },
+            policy: {
+                httpAdminRoot: true
+            }
+        }
+        const template = await this.forge.db.models.ProjectTemplate.create({
+            ...defaultTemplateProperties,
+            ...templateProperties
+        })
+        template.setOwner(owner)
+        await template.save()
+        return template
+    }
+
+    async createProject (projectDetails, team, stack, template, projectType) {
+        const defaultProjectDetails = {
+            name: 'unnamed-project',
+            type: '',
+            url: ''
+        }
+        const project = await this.forge.db.models.Project.create({
+            ...defaultProjectDetails,
+            ...projectDetails
+        })
+        await team.addProject(project)
+        await project.setProjectStack(stack)
+        await project.setProjectTemplate(template)
+        await project.setProjectType(projectType)
+        await project.reload({
+            include: [
+                { model: this.forge.db.models.Team },
+                { model: this.forge.db.models.ProjectType },
+                { model: this.forge.db.models.ProjectStack },
+                { model: this.forge.db.models.ProjectTemplate }
+            ]
+        })
+        await this.forge.containers.start(project) // ensure project is initialized
+        return project
+    }
+
+    async createDevice (deviceDetails, team) {
+        const defaultDeviceDetails = {
+            name: 'unnamed-device',
+            type: 'unnamed-type',
+            credentialSecret: ''
+        }
+        const device = await this.forge.db.models.Device.create({
+            ...defaultDeviceDetails,
+            ...deviceDetails
+        })
+        await team.addDevice(device)
+        return device
+    }
+}
+
 module.exports = async function (settings = {}, config = {}) {
     config = {
         ...config,
@@ -24,111 +145,49 @@ module.exports = async function (settings = {}, config = {}) {
     }
 
     const forge = await Forge({ config })
-
     await forge.settings.set('setup:initialised', true)
+    const factory = new TestModelFactory(forge)
+
+    /// Create users
     // full platform & team1 admin
-    const userAlice = await forge.db.models.User.create({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
+    const userAlice = await factory.createUser({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
+
     // team1 & team2 admin, not platform admin
-    const userBob = await forge.db.models.User.create({ admin: false, username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
+    const userBob = await factory.createUser({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
+
     // no admin rights
     // eslint-disable-next-line no-unused-vars
-    const userCharlie = await forge.db.models.User.create({ admin: false, username: 'charlie', name: 'Charlie Palpatine', email: 'charlie@example.com', email_verified: true, password: 'ccPassword' })
+    const userCharlie = await factory.createUser({ username: 'charlie', name: 'Charlie Palpatine', email: 'charlie@example.com', email_verified: true, password: 'ccPassword' })
+
     // non admin, not in any team but will be invited and removed as required
-    // eslint-disable-next-line no-unused-vars
-    const userDave = await forge.db.models.User.create({ username: 'dave', name: 'Dave Vader', email: 'dave@example.com', password: 'ddPassword', email_verified: true, password_expired: false })
+    const userDave = await factory.createUser({ username: 'dave', name: 'Dave Vader', email: 'dave@example.com', password: 'ddPassword', email_verified: true, password_expired: false })
 
-    const defaultTeamType = await forge.db.models.TeamType.findOne()
+    // Platform Setup
+    const template = await factory.createProjectTemplate({ name: 'template1' }, userAlice)
+    const projectType = await factory.createProjectType({ name: 'type1' })
+    const stack = await factory.createStack({ name: 'stack1' }, projectType)
 
-    const team1 = await forge.db.models.Team.create({ name: 'ATeam', TeamTypeId: defaultTeamType.id })
+    /// Team 1
+    const team1 = await factory.createTeam({ name: 'ATeam' })
     await team1.addUser(userAlice, { through: { role: Roles.Owner } })
     await team1.addUser(userBob, { through: { role: Roles.Owner } })
 
-    // force the DB to populate the TeamType- otherwise it just contains hte type id and falls
-    team1.reload({
-        include: ['TeamType']
-    })
+    // Create a pending invite for Dave to join ATeam
+    await forge.db.controllers.Invitation.createInvitations(userAlice, team1, [userDave.email], Roles.Member)
 
-    const team2 = await forge.db.models.Team.create({ name: 'BTeam', TeamTypeId: defaultTeamType.id })
+    // Projects
+    await factory.createProject({ name: 'project1' }, team1, stack, template, projectType)
+
+    /// Team 2
+    const team2 = await factory.createTeam({ name: 'BTeam' })
     await team2.addUser(userBob, { through: { role: Roles.Owner } })
 
-    // force the DB to populate the TeamType- otherwise it just contains hte type id and falls
-    team2.reload({
-        include: ['TeamType']
-    })
-
-    // create a pending invite for Dave to join ATeam
-    await forge.db.controllers.Invitation.createInvitations(userAlice, team1, [userDave.email], Roles.Member)
+    // Create pending invite for Dave to join BTeam
     await forge.db.controllers.Invitation.createInvitations(userBob, team2, [userDave.email], Roles.Member)
 
-    const templateProperties = {
-        name: 'template1',
-        active: true,
-        description: '',
-        settings: {
-            httpAdminRoot: ''
-        },
-        policy: {
-            httpAdminRoot: true
-        }
-    }
-    const template = await forge.db.models.ProjectTemplate.create(templateProperties)
-    template.setOwner(userAlice)
-    await template.save()
-    const projectTypeProperties = {
-        name: 'type1',
-        description: 'project type description',
-        active: true,
-        order: 1,
-        properties: {}
-    }
-    const projectType = await forge.db.models.ProjectType.create(projectTypeProperties)
-    const stackProperties = {
-        name: 'stack1',
-        active: true,
-        properties: { nodered: '2.2.2' }
-    }
-    const stack = await forge.db.models.ProjectStack.create(stackProperties)
-    await stack.setProjectType(projectType)
+    // Projects
+    await factory.createProject({ name: 'project2' }, team2, stack, template, projectType)
+    await factory.createDevice({ name: 'team2-device', type: 'type2' }, team2)
 
-    const project1 = await forge.db.models.Project.create({ name: 'project1', type: '', url: '' })
-    await team1.addProject(project1)
-    await project1.setProjectStack(stack)
-    await project1.setProjectTemplate(template)
-    await project1.setProjectType(projectType)
-    await project1.reload({
-        include: [
-            { model: forge.db.models.Team },
-            { model: forge.db.models.ProjectType },
-            { model: forge.db.models.ProjectStack },
-            { model: forge.db.models.ProjectTemplate }
-        ]
-    })
-    await forge.containers.start(project1) // ensure project is initialized
-
-    const project2 = await forge.db.models.Project.create({ name: 'project2', type: '', url: '' })
-    await team2.addProject(project2)
-    await project2.setProjectStack(stack)
-    await project2.setProjectTemplate(template)
-    await project2.setProjectType(projectType)
-    await project2.reload({
-        include: [
-            { model: forge.db.models.Team },
-            { model: forge.db.models.ProjectType },
-            { model: forge.db.models.ProjectStack },
-            { model: forge.db.models.ProjectTemplate }
-        ]
-    })
-    await forge.containers.start(project2) // ensure project is initialized
-
-    const device2 = await forge.db.models.Device.create({
-        name: 'team2-device',
-        type: 'type2',
-        credentialSecret: ''
-    })
-    await team2.addDevice(device2)
-
-    forge.project = project1
-    forge.template = template
-    forge.stack = stack
     return forge
 }

@@ -52,6 +52,7 @@ module.exports = async function (app) {
         try {
             await app.db.controllers.User.changePassword(request.session.User, request.body.old_password, request.body.password)
             await app.auditLog.User.user.updatedPassword(request.session.User, null)
+            await app.postoffice.send(request.session.User, 'PasswordChanged', { })
             reply.send({ status: 'okay' })
         } catch (err) {
             const resp = { code: 'password_change_failed', error: 'password change failed' }

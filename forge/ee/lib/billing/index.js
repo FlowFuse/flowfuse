@@ -59,6 +59,9 @@ module.exports.init = async function (app) {
                         team: team.hashid
                     }
                 },
+                tax_id_collection: {
+                    enabled: true
+                },
                 client_reference_id: team.hashid,
                 payment_method_types: ['card'],
                 success_url: `${app.config.base_url}/team/${team.slug}/overview?billing_session={CHECKOUT_SESSION_ID}`,

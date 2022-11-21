@@ -1,22 +1,20 @@
 # Configuring FlowForge
 
-The base configuration of the FlowForge platform is provided in the file `/opt/flowforge/etc/flowforge.yml` [^1].
+The base configuration of the FlowForge platform is provided in the file
+`/opt/flowforge/etc/flowforge.yml`. This assumes the default install location
+of `/opt/flowforge`.
 
 To run a local install, you can use the default options. This section describes
 the options available in the configuration file.
-
-
-[^1]: This assumes the default install location of `/opt/flowforge`.
 
 ## Server configuration
 
 Option | Description
 -------|------------
-`host` | The address to serve the web ui on. This defaults to `localhost` which means the ui will only be available when browsing from the same server that is running the platform. To make it accessible to other devices on the network, set it to `0.0.0.0`
+`host` | The address to serve the web ui on. This defaults to `localhost` which means the ui will only be available when browsing from the same server that is running the platform. To make it accessible to other devices on the network, set it to `0.0.0.0`. <br>NOTE: If `host` is changed, please also update `base_url` to match e.g.  `http://[ip-address-of-host]:3000`<br>NOTE: We do not support changing the host value once you have created a project.
 `port` | The TCP port the platform serves its web ui. Default: `3000`
 `base_url` | The url to access the platform. This defaults to `http://localhost:3000` which means a number of internally generated URLs will only work when browsing on the same device as is running the platform. To be able to access the platform remotely, replace `localhost` with the ip address of the device running FlowForge. IMPORTANT: This should not be changed after starting projects as it is used by the projects to find the core platform.
 `support_contact` | a URL or string with contact details for the administrator e.g `mailto:support@example.com` or `https://support.example.com` . Defaults to the email address of the first admin user or `the administrator` if no email address set.
-
 
 ## Database configuration
 
@@ -48,7 +46,7 @@ This configures how Node-RED instances are run by the platform.
 Option        | Description
 --------------|------------
 `driver.type` | The type of deployment model to use. Default: `localfs`
-`driver.options.start_port` | The port number to start assigning to projects as they are created. Default: `7880`
+`driver.options.start_port` | The port number to start assigning to projects as they are created. Default: `12080`
 `driver.options.node_path` | The path to find the node.js executable - useful if Node.js has been installed with `nvm` so isn't necessarily on the system path.
 
 ## MQTT Broker configuration
