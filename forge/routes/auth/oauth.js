@@ -364,9 +364,9 @@ module.exports = async function (app) {
     })
 
     app.get('/account/check/:ownerType/:ownerId', {
-        onRequest: async (request, reply) => {
-            await app.verifyToken(request, reply)
-        }
+        // Add an explicit function here as `app.verifySession` will not have been
+        // mounted at the point this route is being registered
+        preHandler: (request, reply) => app.verifySession(request, reply)
     }, async (request, reply) => {
         if (request.params.ownerType === request.session.ownerType && request.params.ownerId === request.session.ownerId) {
             reply.code(200).send()
