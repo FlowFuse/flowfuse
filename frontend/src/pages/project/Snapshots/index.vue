@@ -27,21 +27,20 @@
 
 <script>
 
+import { PlusSmIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
-import permissionsMixin from '@/mixins/Permissions'
 
-import Alerts from '@/services/alerts'
-import Dialog from '@/services/dialog'
+import DaysSince from './components/cells/DaysSince'
+import SnapshotName from './components/cells/SnapshotName'
+import SnapshotCreateDialog from './dialogs/SnapshotCreateDialog'
 
 import projectApi from '@/api/project'
 import snapshotApi from '@/api/projectSnapshots'
-import { PlusSmIcon } from '@heroicons/vue/outline'
-
-import SnapshotCreateDialog from './dialogs/SnapshotCreateDialog'
-
-import SnapshotName from './components/cells/SnapshotName'
-import SnapshotMetaInformation from './components/cells/SnapshotMetaInformation'
+import UserCell from '@/components/tables/cells/UserCell'
+import permissionsMixin from '@/mixins/Permissions'
+import Alerts from '@/services/alerts'
+import Dialog from '@/services/dialog'
 
 export default {
     name: 'ProjectSnapshots',
@@ -124,8 +123,20 @@ export default {
         },
         columns () {
             const cols = [
-                { label: 'Snapshots', component: { is: markRaw(SnapshotName), extraProps: { targetSnapshot: this.project.deviceSettings?.targetSnapshot } } },
-                { class: ['w-56'], component: { is: markRaw(SnapshotMetaInformation) } }
+                { label: 'Snapshot', component: { is: markRaw(SnapshotName), extraProps: { targetSnapshot: this.project.deviceSettings?.targetSnapshot } } },
+                {
+                    label: 'Created By',
+                    class: ['w-56'],
+                    component: {
+                        is: markRaw(UserCell),
+                        map: {
+                            avatar: 'user.avatar',
+                            name: 'user.name',
+                            username: 'user.username'
+                        }
+                    }
+                },
+                { label: 'Date Created', class: ['w-56'], component: { is: markRaw(DaysSince), map: { date: 'createdAt' } } }
             ]
             return cols
         }
