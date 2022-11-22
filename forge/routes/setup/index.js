@@ -53,10 +53,16 @@ module.exports = async function (app) {
                 }
             })
             const projectType = await app.db.controllers.ProjectType.createDefaultProjectType()
+            app.log.info('[SETUP] Created default ProjectType')
             await app.db.controllers.ProjectTemplate.createDefaultTemplate(adminUser)
+            app.log.info('[SETUP] Created default ProjectTemplate')
             await app.db.controllers.ProjectStack.createDefaultProjectStack(projectType)
-
+            app.log.info('[SETUP] Created default ProjectStack')
             await app.settings.set('setup:initialised', true)
+            app.log.info('****************************************************')
+            app.log.info('* FlowForge setup is complete. You can login at:   *')
+            app.log.info(`*   ${app.config.base_url.padEnd(47, ' ')}*`)
+            app.log.info('****************************************************')
             reply.send({ status: 'okay' })
         } catch (err) {
             app.log.error(`Failed to create default ProjectStack: ${err.toString()}`)
@@ -99,6 +105,7 @@ module.exports = async function (app) {
                 password: request.body.password,
                 admin: true
             })
+            app.log.info(`[SETUP] Created admin user ${request.body.username}`)
             reply.send({ status: 'okay' })
         } catch (err) {
             let responseMessage
@@ -128,6 +135,7 @@ module.exports = async function (app) {
         }
         try {
             await app.license.apply(request.body.license)
+            app.log.info('[SETUP] Applied license')
             reply.send({ status: 'okay' })
         } catch (err) {
             let responseMessage = err.toString()
@@ -156,6 +164,7 @@ module.exports = async function (app) {
         }
         try {
             await app.settings.set('telemetry:enabled', request.body.telemetry)
+            app.log.info('[SETUP] Applied settings')
             reply.send({ status: 'okay' })
         } catch (err) {
             console.log(err)

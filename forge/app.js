@@ -48,6 +48,18 @@ const forge = require('./forge')
                 console.error(err)
                 process.exit(1)
             }
+
+            if (!server.settings.get('setup:initialised')) {
+                server.log.info('****************************************************')
+                server.log.info('* To finish setting up FlowForge, open this url:   *')
+                server.log.info(`*   ${server.config.base_url.padEnd(47, ' ')}*`)
+                server.log.info('****************************************************')
+            } else {
+                server.log.info('****************************************************')
+                server.log.info('* FlowForge is now running and can be accessed at: *')
+                server.log.info(`*   ${server.config.base_url.padEnd(47, ' ')}*`)
+                server.log.info('****************************************************')
+            }
         })
     } catch (err) {
         console.error(err)
