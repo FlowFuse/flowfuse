@@ -209,7 +209,7 @@ you can use a pre-built docker image that provides everything needed.
     docker pull iegomez/mosquitto-go-auth
     ```
 
-2. ([Optional](#mosquitto)) A default mosquitto.conf file can be found in the `broker` directory:
+2. ([Optional](#mosquitto)) A default mosquitto.conf file can be found in the `broker` directory.
 
     You will need to customise the values to match your local configuration:
      - `auth_opt_http_host` value to match the IP address of either the docker0 interface or the external IP address of the machine running the Forge platform
