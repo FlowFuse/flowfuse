@@ -186,7 +186,7 @@ Once installed, you will need to build and install the authentication plugin.
 
 3. This should result in a file called `go-auth.so` being generated
 
-4. ([Optional](#mosquitto)) Run mosquitto with the configuration file found in the `broker`
+4. ([Optional](#mosquitto)) Run mosquitto with the configuration file found in the `broker` directory
 
    You will need to customise the values to match your local configuration:
       - `auth_plugin` - set to the path of the `go-auth.so` file built in the previous step
