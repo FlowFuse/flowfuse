@@ -23,6 +23,7 @@
                     Target Snapshot
                     <template #input>
                         <ff-dropdown
+                            v-if="snapshots.length > 0"
                             v-model="selectedSnapshotId"
                             placeholder="Select a snapshot"
                             data-form="snapshot-select"
@@ -35,6 +36,10 @@
                                 :value="snapshot.id"
                             />
                         </ff-dropdown>
+                        <div v-else>
+                            There are no snapshots to choose from for this project yet!<br />
+                            Snapshots can be managed on the <router-link :to="`/project/${project.id}/snapshots`">Project Snapshots</router-link> page.
+                        </div>
                     </template>
                 </FormRow>
             </form>
