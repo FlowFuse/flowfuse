@@ -162,13 +162,11 @@ const teamObject = (team, unknownValue = null) => {
     }
 }
 const userObject = (user, unknownValue = null) => {
-    return {
-        id: user?.id || null,
-        hashid: user?.hashid || null,
-        name: user?.name || unknownValue,
-        username: user?.username || unknownValue,
-        email: user?.email || unknownValue
-    }
+    const result = triggerObject(user?.id, user) || {}
+    // the user object had 2 additional fields that are not in the trigger object
+    result.username = result.username || user?.username || unknownValue
+    result.email = result.email || user?.email || unknownValue
+    return result
 }
 const projectObject = (project, unknownValue = null) => {
     return {
