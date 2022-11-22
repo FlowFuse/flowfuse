@@ -171,7 +171,6 @@ const userObject = (user, unknownValue = null) => {
 const projectObject = (project, unknownValue = null) => {
     return {
         id: project?.id || null,
-        hashid: project?.hashid || null,
         name: project?.name || unknownValue
     }
 }
