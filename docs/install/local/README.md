@@ -119,7 +119,9 @@ The default configuration file already contains everything you need to get start
 
 It will allow you to access FlowForge and the projects you create, from the same server running the platform. 
 If you want to allow access from other devices on the network, you must edit the configuration file and 
-change the `host` setting to 0.0.0.0. NOTE: We do not support changing the `host` value once you have created a project.
+change the `host` setting to `0.0.0.0` and change `base_url` to contain the IP address of the server.
+
+NOTE: We do not support changing the `host` and `base_url` values once you have created a project.
 For more information on all of the options available, see the [configuration guide](../configuration.md).
 
 
