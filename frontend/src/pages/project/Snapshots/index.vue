@@ -36,24 +36,12 @@ import Dialog from '@/services/dialog'
 
 import projectApi from '@/api/project'
 import snapshotApi from '@/api/projectSnapshots'
-import { PlusSmIcon, ChipIcon, ClockIcon } from '@heroicons/vue/outline'
-import daysSince from '@/utils/daysSince'
-import UserCell from '@/components/tables/cells/UserCell'
+import { PlusSmIcon } from '@heroicons/vue/outline'
+
 import SnapshotCreateDialog from './dialogs/SnapshotCreateDialog'
 
-const SnapshotMetaInformation = {
-    template: `<div class="flex flex-col space-y-1 text-xs text-gray-500">
-    <UserCell :avatar="user.avatar" :name="user.name" :username="user.username" />
-    <span>{{since}}</span>
-    </div>`,
-    props: ['user', 'createdAt'],
-    computed: {
-        since: function () {
-            return daysSince(this.createdAt)
-        }
-    },
-    components: { UserCell }
-}
+import SnapshotName from './components/cells/SnapshotName'
+import SnapshotMetaInformation from './components/cells/SnapshotMetaInformation'
 
 export default {
     name: 'ProjectSnapshots',
@@ -134,38 +122,9 @@ export default {
         showContextMenu: function () {
             return this.hasPermission('project:snapshot:rollback') || this.hasPermission('project:snapshot:set-target') || this.hasPermission('project:snapshot:delete')
         },
-        columns: function () {
-            const targetSnapshot = this.project.deviceSettings?.targetSnapshot
-
-            const SnapshotName = {
-                template: `<div class="flex items-center">
-                    <ClockIcon class="w-6 mr-2 text-gray-500" />
-                    <div class="flex flex-grow flex-col space-y-1">
-                        <span class="text-md">{{name}}</span>
-                        <span class="text-xs text-gray-500">id: {{id}}</span>
-                        <template v-if="description">
-                        <details class="text-gray-500 float-left">
-                            <summary class="cursor-pointer">Description</summary>
-                            <div class="whitespace-pre-line absolute border drop-shadow-md rounded bg-white p-2" style="max-width: 300px;">{{description}}</div>
-                        </details>
-                        </template>
-                    </div>
-                    <div v-if="active" class="flex border border-green-400 rounded-full bg-green-200 py-1 px-2 text-xs">
-                        <ChipIcon class="w-4 mr-1" />
-                        <span>active</span>
-                    </div>
-                </div>`,
-                props: ['id', 'name', 'description'],
-                components: { ClockIcon, ChipIcon },
-                computed: {
-                    active: function () {
-                        return this.id === targetSnapshot
-                    }
-                }
-            }
-
+        columns () {
             const cols = [
-                { label: 'Snapshots', component: { is: markRaw(SnapshotName) } },
+                { label: 'Snapshots', component: { is: markRaw(SnapshotName), extraProps: { targetSnapshot: this.project.deviceSettings?.targetSnapshot } } },
                 { class: ['w-56'], component: { is: markRaw(SnapshotMetaInformation) } }
             ]
             return cols
