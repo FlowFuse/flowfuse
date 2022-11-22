@@ -191,7 +191,7 @@ module.exports = {
             setTemplateValue(policy, name, defaultTemplatePolicy[name])
         })
         const template = await app.db.models.ProjectTemplate.create({
-            name: 'default',
+            name: 'Default',
             active: true,
             settings,
             policy
