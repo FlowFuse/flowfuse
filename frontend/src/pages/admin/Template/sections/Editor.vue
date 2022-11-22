@@ -27,7 +27,7 @@
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
-                <FormRow v-model="editable.settings.httpAdminRoot" :error="editable.errors.httpAdminRoot" :disabled="!editTemplate && !editable.policy.httpAdminRoot === false" type="text">
+                <FormRow v-model="editable.settings.httpAdminRoot" :error="editable.errors.httpAdminRoot" :disabled="!editTemplate && editable.policy.httpAdminRoot === false" type="text">
                     Editor URL Path
                     <template #description>
                         The path used to serve the editor
@@ -35,7 +35,7 @@
                     <template #append><ChangeIndicator :value="editable.changed.settings.httpAdminRoot"></ChangeIndicator></template>
                 </FormRow>
             </div>
-            <LockSetting :editTemplate="editTemplate" v-model="editable.policy.httpAdminRoot" :changed="editable.changed.policy.httpAdminRoot"></LockSetting>
+            <LockSetting class="flex justify-end flex-col" :editTemplate="editTemplate" v-model="editable.policy.httpAdminRoot" :changed="editable.changed.policy.httpAdminRoot"></LockSetting>
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
@@ -47,7 +47,7 @@
                     <template #append><ChangeIndicator :value="editable.changed.settings.dashboardUI"></ChangeIndicator></template>
                 </FormRow>
             </div>
-            <LockSetting :editTemplate="editTemplate" v-model="editable.policy.dashboardUI" :changed="editable.changed.policy.dashboardUI"></LockSetting>
+            <LockSetting class="flex justify-end flex-col" :editTemplate="editTemplate" v-model="editable.policy.dashboardUI" :changed="editable.changed.policy.dashboardUI"></LockSetting>
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
@@ -56,7 +56,7 @@
                     <template #append><ChangeIndicator :value="editable.changed.settings.codeEditor"></ChangeIndicator></template>
                 </FormRow>
             </div>
-            <LockSetting :editTemplate="editTemplate" v-model="editable.policy.codeEditor" :changed="editable.changed.policy.codeEditor"></LockSetting>
+            <LockSetting class="flex justify-end flex-col" :editTemplate="editTemplate" v-model="editable.policy.codeEditor" :changed="editable.changed.policy.codeEditor"></LockSetting>
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
@@ -68,7 +68,7 @@
                     <template #append><ChangeIndicator :value="editable.changed.settings.header_title"></ChangeIndicator></template>
                 </FormRow>
             </div>
-            <LockSetting :editTemplate="editTemplate" v-model="editable.policy.header_title" :changed="editable.changed.policy.header_title"></LockSetting>
+            <LockSetting class="flex justify-end flex-col" :editTemplate="editTemplate" v-model="editable.policy.header_title" :changed="editable.changed.policy.header_title"></LockSetting>
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
@@ -77,7 +77,7 @@
                     <template #append><ChangeIndicator :value="editable.changed.settings.timeZone"></ChangeIndicator></template>
                 </FormRow>
             </div>
-            <LockSetting :editTemplate="editTemplate" v-model="editable.policy.timeZone" :changed="editable.changed.policy.timeZone"></LockSetting>
+            <LockSetting class="flex justify-end flex-col" :editTemplate="editTemplate" v-model="editable.policy.timeZone" :changed="editable.changed.policy.timeZone"></LockSetting>
         </div>
         <FormHeading class="pt-8">HTTP Nodes</FormHeading>
         <div class="flex flex-col sm:flex-row">
@@ -87,7 +87,7 @@
                     <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeAuth_user"></ChangeIndicator></template>
                 </FormRow>
             </div>
-            <LockSetting :editTemplate="editTemplate" v-model="editable.policy.httpNodeAuth_user" :changed="editable.changed.policy.httpNodeAuth_user"></LockSetting>
+            <LockSetting class="flex justify-end flex-col" :editTemplate="editTemplate" v-model="editable.policy.httpNodeAuth_user" :changed="editable.changed.policy.httpNodeAuth_user"></LockSetting>
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="space-y-4 w-full max-w-md sm:mr-8">
@@ -96,7 +96,7 @@
                     <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeAuth_pass"></ChangeIndicator></template>
                 </FormRow>
             </div>
-            <LockSetting :editTemplate="editTemplate" v-model="editable.policy.httpNodeAuth_pass" :changed="editable.changed.policy.httpNodeAuth_pass"></LockSetting>
+            <LockSetting class="flex justify-end flex-col" :editTemplate="editTemplate" v-model="editable.policy.httpNodeAuth_pass" :changed="editable.changed.policy.httpNodeAuth_pass"></LockSetting>
         </div>
         <FormHeading class="pt-8">External Modules</FormHeading>
         <div class="flex flex-col sm:flex-row">
@@ -119,7 +119,7 @@
                     <template #append><ChangeIndicator :value="editable.changed.settings.modules_denyList"></ChangeIndicator></template>
                 </FormRow>
             </div>
-            <LockSetting :editTemplate="editTemplate" v-model="editable.policy.modules_denyList" :changed="editable.changed.policy.modules_denyList"></LockSetting>
+            <LockSetting class="flex justify-end flex-col" :editTemplate="editTemplate" v-model="editable.policy.modules_denyList" :changed="editable.changed.policy.modules_denyList"></LockSetting>
 
         </div>
     </form>

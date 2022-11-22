@@ -1,5 +1,5 @@
 const { hash } = require('../utils')
-const { templateFields, defaultTemplatePolicy } = require('../../lib/templates')
+const { templateFields, defaultTemplateValues, defaultTemplatePolicy } = require('../../lib/templates')
 
 function getTemplateValue (template, path) {
     const parts = path.split('_')
@@ -181,5 +181,22 @@ module.exports = {
             result.env = settings.env
         }
         return result
+    },
+
+    createDefaultTemplate: async function (app, user) {
+        const settings = {}
+        const policy = {}
+        templateFields.forEach((name) => {
+            setTemplateValue(settings, name, defaultTemplateValues[name])
+            setTemplateValue(policy, name, defaultTemplatePolicy[name])
+        })
+        const template = await app.db.models.ProjectTemplate.create({
+            name: 'default',
+            active: true,
+            settings,
+            policy
+        })
+        await template.setOwner(user)
+        return template
     }
 }

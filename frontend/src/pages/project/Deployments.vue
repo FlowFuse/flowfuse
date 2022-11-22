@@ -194,8 +194,6 @@ import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
 import Alerts from '@/services/alerts'
 import Dialog from '@/services/dialog'
 
-// <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" alt="Open actions menu" :options="options" data-action="open-actions">Actions</DropdownMenu
-
 export default {
     name: 'ProjectDeployments',
     components: {

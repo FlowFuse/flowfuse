@@ -3,9 +3,9 @@ module.exports = {
     purge: {
         enabled: true,
         content: [
-            "frontend/public/index.html",
-            "frontend/src/**/*.js",
-            "frontend/src/**/*.vue"
+            'frontend/public/index.html',
+            'frontend/src/**/*.js',
+            'frontend/src/**/*.vue'
         ],
         safelist: [
             'forge-status-stopped',
@@ -21,12 +21,9 @@ module.exports = {
     },
     darkMode: false, // or 'media' or 'class'
     theme: {
-        extend: {},
+        extend: {}
     },
     variants: {
-        extend: {},
-    },
-    plugins: [
-        require('@tailwindcss/forms')
-    ],
+        extend: {}
+    }
 }
