@@ -496,7 +496,7 @@ module.exports = fp(async function (app, opts, done) {
         const token = await app.db.controllers.AccessToken.getOrExpirePasswordResetToken(request.params.token)
         let success = false
         if (token) {
-            userInfo.id = token.ownerId
+            userInfo.hashid = token.ownerId
             // This is a valid password reset token
             const user = await app.db.models.User.byId(token.ownerId)
             if (user) {
