@@ -195,9 +195,8 @@ li.ff-list-item {
     cursor: pointer;
     background-color: $ff-grey-200;
   }
-  &.disabled {
+  &.disabled, :disabled {
     pointer-events: none;
-
     label {
       opacity: 0.5;
     }
