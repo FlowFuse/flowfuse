@@ -126,7 +126,7 @@ export default {
                 { label: 'Snapshot', component: { is: markRaw(SnapshotName), extraProps: { targetSnapshot: this.project.deviceSettings?.targetSnapshot } } },
                 {
                     label: 'Created By',
-                    class: ['w-56 text-base'],
+                    class: ['w-56'],
                     component: {
                         is: markRaw(UserCell),
                         map: {
