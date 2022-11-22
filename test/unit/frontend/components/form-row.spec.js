@@ -13,13 +13,11 @@ describe('FormRow', () => {
             shallow: true
         })
 
-        // console.log(wrapper.html())
-
         expect(wrapper.find('ff-checkbox').exists()).toBe(true)
         expect(wrapper.find('input[type="file"]').exists()).toBe(false)
         expect(wrapper.find('ff-dropdown').exists()).toBe(false)
         expect(wrapper.find('ff-text-input').exists()).toBe(false)
-        expect(wrapper.find('.uneditable').exists()).toBe(false)
+        expect(wrapper.find('[data-el="form-row-uneditable"]').exists()).toBe(false)
     })
 
     test('mounts with type="file"', async () => {
@@ -36,7 +34,7 @@ describe('FormRow', () => {
         expect(wrapper.find('input[type="file"]').exists()).toBe(true)
         expect(wrapper.find('ff-dropdown').exists()).toBe(false)
         expect(wrapper.find('ff-text-input').exists()).toBe(false)
-        expect(wrapper.find('.uneditable').exists()).toBe(false)
+        expect(wrapper.find('[data-el="form-row-uneditable"]').exists()).toBe(false)
     })
 
     test('mounts a dropdown if options are provided', async () => {
@@ -54,7 +52,7 @@ describe('FormRow', () => {
         expect(wrapper.find('ff-dropdown').exists()).toBe(true)
         expect(wrapper.findAll('ff-dropdown-option').length).toBe(2)
         expect(wrapper.find('ff-text-input').exists()).toBe(false)
-        expect(wrapper.find('.uneditable').exists()).toBe(false)
+        expect(wrapper.find('[data-el="form-row-uneditable"]').exists()).toBe(false)
     })
 
     test('mounts a an uneditable field with type="uneditable"', async () => {
@@ -71,7 +69,7 @@ describe('FormRow', () => {
         expect(wrapper.find('input[type="file"]').exists()).toBe(false)
         expect(wrapper.find('ff-dropdown').exists()).toBe(false)
         expect(wrapper.find('ff-text-input').exists()).toBe(false)
-        expect(wrapper.find('.uneditable').exists()).toBe(true)
+        expect(wrapper.find('[data-el="form-row-uneditable"]').exists()).toBe(true)
     })
 
     test('mounts a text input by default', async () => {
@@ -86,7 +84,7 @@ describe('FormRow', () => {
         expect(wrapper.find('input[type="file"]').exists()).toBe(false)
         expect(wrapper.find('ff-dropdown').exists()).toBe(false)
         expect(wrapper.find('ff-text-input').exists()).toBe(true)
-        expect(wrapper.find('.uneditable').exists()).toBe(false)
+        expect(wrapper.find('[data-el="form-row-uneditable"]').exists()).toBe(false)
     })
 
     test('displays an error if provided', async () => {

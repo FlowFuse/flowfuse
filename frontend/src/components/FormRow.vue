@@ -55,7 +55,7 @@
                 </template>
                 <!-- Static/Uneditable -->
                 <template v-else-if="type==='uneditable'">
-                    <div class="w-full uneditable" :class="inputClass + (disabled ? ' text-gray-400' : ' text-gray-700')">{{ modelValue || (valueEmptyText == null ? 'No Value' : valueEmptyText ) }}</div>
+                    <div data-el="form-row-uneditable" class="w-full uneditable" :class="inputClass + (disabled ? ' text-gray-400' : ' text-gray-700')">{{ modelValue || (valueEmptyText == null ? 'No Value' : valueEmptyText ) }}</div>
                 </template>
                 <template v-else>
                     <!-- Text Input -->
