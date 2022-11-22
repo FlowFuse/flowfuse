@@ -2,7 +2,7 @@
     <div class="space-y-6">
         <ff-loading v-if="loading" message="Loading Snapshots..." />
         <template v-if="snapshots.length > 0">
-            <ff-data-table data-el="snapshots" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
+            <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
                 <template v-slot:actions v-if="hasPermission('project:snapshot:create')">
                     <ff-button kind="primary" @click="showCreateSnapshotDialog" data-action="create-snapshot"><template v-slot:icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
                 </template>
@@ -126,7 +126,7 @@ export default {
                 { label: 'Snapshot', component: { is: markRaw(SnapshotName), extraProps: { targetSnapshot: this.project.deviceSettings?.targetSnapshot } } },
                 {
                     label: 'Created By',
-                    class: ['w-56'],
+                    class: ['w-56 text-base'],
                     component: {
                         is: markRaw(UserCell),
                         map: {

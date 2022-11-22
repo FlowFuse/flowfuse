@@ -2,7 +2,7 @@
     <div class="flex items-center space-x-4">
         <ClockIcon class="w-6 mr-2 text-gray-500" />
         <div class="flex flex-col space-y-1">
-            <span class="text-md">{{ name }}</span>
+            <span class="text-base">{{ name }}</span>
             <span class="text-xs text-gray-500">id: {{ id }}</span>
             <template v-if="description">
                 <details class="text-gray-500 float-left">
