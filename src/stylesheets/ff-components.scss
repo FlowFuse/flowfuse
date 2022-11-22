@@ -573,10 +573,10 @@ li.ff-list-item {
     thead {
       .ff-data-table--row .ff-data-table--cell {
         &:first-child {
-          border-top-left-radius: 4px;
+          border-top-left-radius: 6px;
         }
         &:last-child {
-          border-top-right-radius: 4px;
+          border-top-right-radius: 6px;
         }
       }
       .ff-data-table--cell {
@@ -616,10 +616,10 @@ li.ff-list-item {
           border-bottom-width: 1px;
           border-top-color: $ff-grey-200;
           &:first-child {
-            border-bottom-left-radius: 4px;
+            border-bottom-left-radius: 6px;
           }
           &:last-child {
-            border-bottom-right-radius: 4px;
+            border-bottom-right-radius: 6px;
           }
         }
       }
@@ -991,7 +991,6 @@ $countdown_size: 20px;
 }
 .ff-tooltip-container {
   position: relative;
-  display: inline-block;
   &:hover .ff-tooltip {
     opacity: 1;
   }
