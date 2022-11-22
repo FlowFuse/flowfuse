@@ -111,12 +111,20 @@
                         <code>{{ cGroups['button'].components[1].examples[1].code }}</code>
                     </div>
                     <div class="example">
+                        <h5>Disabled Option</h5>
+                        <ff-kebab-menu menu-align="left">
+                            <ff-list-item label="Option 1" />
+                            <ff-list-item label="Option 2" disabled="true" />
+                        </ff-kebab-menu>
+                        <code>{{ cGroups['button'].components[1].examples[2].code }}</code>
+                    </div>
+                    <div class="example">
                         <h5>Danger Styling</h5>
                         <ff-kebab-menu menu-align="left">
                             <ff-list-item label="Option 1" />
                             <ff-list-item label="Option 2" kind="danger" />
                         </ff-kebab-menu>
-                        <code>{{ cGroups['button'].components[1].examples[2].code }}</code>
+                        <code>{{ cGroups['button'].components[1].examples[3].code }}</code>
                     </div>
                 </div>
             </div>
