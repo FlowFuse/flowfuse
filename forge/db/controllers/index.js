@@ -19,6 +19,8 @@ const modelTypes = [
     'Invitation',
     'AuditLog',
     'Project',
+    'ProjectType',
+    'ProjectStack',
     'ProjectTemplate',
     'ProjectSnapshot',
     'Device',

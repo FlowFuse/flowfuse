@@ -198,5 +198,12 @@ module.exports = {
             await this._driver.shutdown()
         }
     },
+    getDefaultStackProperties: () => {
+        let value = {}
+        if (this._driver.getDefaultStackProperties) {
+            value = this._driver.getDefaultStackProperties()
+        }
+        return value
+    },
     properties: () => this.properties
 }

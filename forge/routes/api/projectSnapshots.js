@@ -31,7 +31,9 @@ module.exports = async function (app) {
     /**
      * Get list of all project snapshots
      */
-    app.get('/', async (request, reply) => {
+    app.get('/', {
+        preHandler: app.needsPermission('project:snapshot:list')
+    }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const snapshots = await app.db.models.ProjectSnapshot.forProject(request.project.id, paginationOptions)
         snapshots.snapshots = snapshots.snapshots.map(s => app.db.views.ProjectSnapshot.snapshot(s))
@@ -41,7 +43,9 @@ module.exports = async function (app) {
     /**
      * Get details of a snapshot - metadata only
      */
-    app.get('/:snapshotId', async (request, reply) => {
+    app.get('/:snapshotId', {
+        preHandler: app.needsPermission('project:snapshot:read')
+    }, async (request, reply) => {
         reply.send(app.db.views.ProjectSnapshot.snapshot(request.snapshot))
     })
 
@@ -85,14 +89,10 @@ module.exports = async function (app) {
     app.post('/', {
         preHandler: app.needsPermission('project:snapshot:create')
     }, async (request, reply) => {
-        // TODO: permission check
         const snapShot = await app.db.controllers.ProjectSnapshot.createSnapshot(
             request.project,
             request.session.User,
-            {
-                name: request.body.name || '',
-                description: request.body.description || ''
-            }
+            request.body
         )
         snapShot.User = request.session.User
         await app.db.controllers.AuditLog.projectLog(

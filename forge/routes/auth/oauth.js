@@ -75,10 +75,19 @@ module.exports = async function (app) {
         if (!client_id) {
             return badRequest(reply, 'invalid_request', 'Invalid client_id')
         }
-        // Check client_id is valid. Note - no client_secret provided at this point
-        const authClient = await app.db.controllers.AuthClient.getAuthClient(client_id)
-        if (!authClient) {
-            return badRequest(reply, 'invalid_request', 'Invalid client_id')
+        if (client_id !== 'ff-plugin') {
+            // Check client_id is valid. Note - no client_secret provided at this point
+            const authClient = await app.db.controllers.AuthClient.getAuthClient(client_id)
+            if (!authClient) {
+                return badRequest(reply, 'invalid_request', 'Invalid client_id')
+            }
+            if (!/^editor($|-)/.test(scope)) {
+                return redirectInvalidRequest(reply, redirect_uri, 'invalid_request', "Invalid scope '" + scope + "'. Only 'editor[-version]' is supported", state)
+            }
+        } else {
+            if (scope !== 'ff-plugin') {
+                return redirectInvalidRequest(reply, redirect_uri, 'invalid_request', "Invalid scope '" + scope + "'. Only 'ff-plugin' is supported", state)
+            }
         }
 
         if (!redirect_uri) {
@@ -98,9 +107,6 @@ module.exports = async function (app) {
         if (code_challenge_method !== 'S256') {
             return redirectInvalidRequest(reply, redirect_uri, 'invalid_request', "Invalid code_challenge_method. Only 'S256' is supported", state)
         }
-        if (!/^editor($|-)/.test(scope)) {
-            return redirectInvalidRequest(reply, redirect_uri, 'invalid_request', "Invalid scope '" + scope + "'. Only 'editor[-version]' is supported", state)
-        }
 
         const requestObject = {
             response_type,
@@ -114,13 +120,22 @@ module.exports = async function (app) {
         const requestId = base64URLEncode(crypto.randomBytes(32))
         requestCache.set(requestId, requestObject)
 
-        if (request.sid) {
-            request.session = await app.db.controllers.Session.getOrExpire(request.sid)
-            if (request.session) {
-                // Logged in with valid session - bounce to complete page
-                reply.redirect(`${app.config.base_url}/account/complete/${requestId}`)
-                return
+        const isEditor = /^editor($|-)/.test(scope)
+        if (isEditor) {
+            if (request.sid) {
+                // This is the editor auth flow. If logged-in, redirect straight
+                // to the complete route. Otherwise prompt to login
+                request.session = await app.db.controllers.Session.getOrExpire(request.sid)
+                if (request.session) {
+                    // Logged in with valid session - bounce to complete page
+                    reply.redirect(`${app.config.base_url}/account/complete/${requestId}`)
+                    return
+                }
             }
+            // Redirect to login page with requestId in url - add /editor to bypass the
+            // approval page
+            reply.redirect(`${app.config.base_url}/account/request/${requestId}/editor`)
+            return
         }
         // Redirect to login page with requestId in url - to bounce to an approve page
         reply.redirect(`${app.config.base_url}/account/request/${requestId}`)
@@ -138,29 +153,33 @@ module.exports = async function (app) {
         if (request.sid) {
             request.session = await app.db.controllers.Session.getOrExpire(request.sid)
             if (request.session) {
-                const authClient = await app.db.controllers.AuthClient.getAuthClient(requestObject.client_id)
-                if (!authClient) {
-                    return badRequest(reply, 'invalid_request', 'Invalid client_id')
+                if (requestObject.client_id === 'ff-plugin') {
+                    // This is the FlowForge Node-RED plugin.
+                } else {
+                    const authClient = await app.db.controllers.AuthClient.getAuthClient(requestObject.client_id)
+                    if (!authClient) {
+                        return badRequest(reply, 'invalid_request', 'Invalid client_id')
+                    }
+                    const project = await app.db.models.Project.byId(authClient.ownerId)
+                    const teamMembership = await request.session.User.getTeamMembership(project.TeamId)
+                    if (!teamMembership) {
+                        return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
+                    }
+                    const canReadFlows = app.hasPermission(teamMembership, 'project:flows:view')
+                    const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit')
+                    if (!canReadFlows && !canWriteFlows) {
+                        return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
+                    }
+                    if (!canWriteFlows && requestObject.scope === 'editor') {
+                        // Older versions of nr-auth do not know how to apply read-only
+                        // access. We know it is an older version because it set scope to `editor`.
+                        // Versions that support viewer will have a scope of `editor-<version>`.
+                        // This should be sent as plain text as the user will see it in the browser window.
+                        reply.code(400).send('Please ask the team owner to update this project to the latest stack to support viewer access')
+                        return
+                    }
                 }
-                const project = await app.db.models.Project.byId(authClient.ownerId)
-                const teamMembership = await request.session.User.getTeamMembership(project.TeamId)
-                if (!teamMembership) {
-                    return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
-                }
-                const canReadFlows = app.hasPermission(teamMembership, 'project:flows:view')
-                const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit')
-                if (!canReadFlows && !canWriteFlows) {
-                    return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
-                }
-                if (!canWriteFlows && requestObject.scope === 'editor') {
-                    // Older versions of nr-auth do not know how to apply read-only
-                    // access. We know it is an older version because it set scope to `editor`.
-                    // Versions that support viewer will have a scope of `editor-<version>`.
-                    // This should be sent as plain text as the user will see it in the browser window.
-                    reply.code(400).send('Please ask the team owner to update this project to the latest stack to support viewer access')
-                    return
-                }
-                requestObject.username = request.session.User.username
+                requestObject.userId = request.session.User.id
                 requestObject.code = base64URLEncode(crypto.randomBytes(32))
                 requestCache.set(requestObject.code, requestObject)
                 const responseUrl = new URL(requestObject.redirect_uri)
@@ -174,6 +193,15 @@ module.exports = async function (app) {
             }
         }
         return badRequest(reply, 'access_denied', 'Access Denied')
+    })
+    app.get('/account/reject/:code', async function (request, reply) {
+        const requestId = request.params.code
+        const requestObject = requestCache.get(requestId)
+        requestCache.delete(requestId)
+        if (!requestObject) {
+            return badRequest(reply, 'invalid_request', 'Invalid request')
+        }
+        return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
     })
 
     app.post('/account/token', {
@@ -201,13 +229,7 @@ module.exports = async function (app) {
             badRequest(reply, 'invalid_request', request.validationError.message)
             return
         }
-
         if (!client_id) {
-            return badRequest(reply, 'invalid_request', 'Invalid client_id')
-        }
-
-        const authClient = await app.db.controllers.AuthClient.getAuthClient(client_id, client_secret)
-        if (!authClient) {
             return badRequest(reply, 'invalid_request', 'Invalid client_id')
         }
 
@@ -228,7 +250,7 @@ module.exports = async function (app) {
                 badRequest(reply, 'invalid_request', 'Invalid code')
                 return
             }
-            if (!requestObject.username) {
+            if (!requestObject.userId) {
                 badRequest(reply, 'access_denied', 'Access Denied - missing user', requestObject.state)
                 return
             }
@@ -245,60 +267,111 @@ module.exports = async function (app) {
                 return
             }
 
-            const sessionTokens = await app.db.controllers.Session.createTokenSession(requestObject.username)
+            if (client_id !== 'ff-plugin') {
+                const authClient = await app.db.controllers.AuthClient.getAuthClient(client_id, client_secret)
+                if (!authClient) {
+                    return badRequest(reply, 'invalid_request', 'Invalid client_id')
+                }
 
-            const project = await app.db.models.Project.byId(authClient.ownerId)
-            const teamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: project.TeamId, UserId: sessionTokens.UserId } })
-            const canReadFlows = app.hasPermission(teamMembership, 'project:flows:view')
-            const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit')
+                const accessToken = await app.db.controllers.AccessToken.createTokenForUser(requestObject.userId,
+                    null,
+                    ['user:read', 'project:flows:view', 'project:flows:edit'],
+                    true
+                )
 
-            if (!canReadFlows && !canWriteFlows) {
-                await sessionTokens.destroy()
-                return badRequest(reply, 'access_denied', 'Access Denied')
+                const project = await app.db.models.Project.byId(authClient.ownerId)
+                const teamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: project.TeamId, UserId: requestObject.userId } })
+                const canReadFlows = app.hasPermission(teamMembership, 'project:flows:view')
+                const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit')
+
+                if (!canReadFlows && !canWriteFlows) {
+                    app.db.controllers.AccessToken.destroyToken(accessToken.token)
+                    return badRequest(reply, 'access_denied', 'Access Denied')
+                }
+
+                let scope = '*'
+                if (!canWriteFlows) {
+                    scope = 'read'
+                }
+                const response = {
+                    access_token: accessToken.token,
+                    expires_in: Math.floor((accessToken.expiresAt - Date.now()) / 1000),
+                    refresh_token: accessToken.refreshToken,
+                    state: requestObject.state,
+                    scope
+                }
+                reply.send(response)
+            } else {
+                const accessToken = await app.db.controllers.AccessToken.createTokenForUser(requestObject.userId,
+                    null,
+                    [
+                        'user:read',
+                        'team:read',
+                        'team:projects:list',
+                        'project:read',
+                        'project:snapshot:list',
+                        'project:snapshot:create'
+                    ],
+                    true
+                )
+                const response = {
+                    access_token: accessToken.token,
+                    expires_in: Math.floor((accessToken.expiresAt - Date.now()) / 1000),
+                    refresh_token: accessToken.refreshToken,
+                    state: requestObject.state
+                }
+                reply.send(response)
             }
-
-            let scope = '*'
-            if (!canWriteFlows) {
-                scope = 'read'
-            }
-
-            const response = {
-                access_token: sessionTokens.sid,
-                expires_in: Math.floor((sessionTokens.expiresAt - Date.now()) / 1000),
-                refresh_token: sessionTokens.refreshToken,
-                state: requestObject.state,
-                scope
-            }
-            reply.send(response)
         } else if (grant_type === 'refresh_token') {
-            // We have validated client_id and client_secret by this point.
-
-            const existingSession = await app.db.models.Session.byRefreshToken(refresh_token)
-
-            // Check the owner of the existing session still has access to the project
-            // this client is owned by
-            const project = await app.db.models.Project.byId(authClient.ownerId)
-            const teamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: project.TeamId, UserId: existingSession.UserId } })
-            const canReadFlows = app.hasPermission(teamMembership, 'project:flows:view')
-            const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit')
-
-            if (!canReadFlows && !canWriteFlows) {
-                return badRequest(reply, 'access_denied', 'Access Denied')
+            const existingToken = await app.db.models.AccessToken.byRefreshToken(refresh_token)
+            if (!existingToken) {
+                badRequest(reply, 'invalid_request', 'Invalid refresh_token')
+                return
             }
-            const sessionTokens = await app.db.controllers.Session.refreshTokenSession(refresh_token)
-            if (!sessionTokens) {
+            if (client_id !== 'ff-plugin') {
+                const authClient = await app.db.controllers.AuthClient.getAuthClient(client_id, client_secret)
+                if (!authClient) {
+                    return badRequest(reply, 'invalid_request', 'Invalid client_id')
+                }
+                // We have validated client_id and client_secret by this point.
+
+                // Check the owner of the existing session still has access to the project
+                // this client is owned by
+                const project = await app.db.models.Project.byId(authClient.ownerId)
+                const teamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: project.TeamId, UserId: parseInt(existingToken.ownerId) } })
+                const canReadFlows = app.hasPermission(teamMembership, 'project:flows:view')
+                const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit')
+
+                if (!canReadFlows && !canWriteFlows) {
+                    return badRequest(reply, 'access_denied', 'Access Denied')
+                }
+            }
+            const accessToken = await app.db.controllers.AccessToken.refreshToken(refresh_token)
+            if (!accessToken) {
                 badRequest(reply, 'invalid_request', 'Invalid refresh_token')
                 return
             }
 
             const response = {
-                access_token: sessionTokens.sid,
-                expires_in: Math.floor((sessionTokens.expiresAt - Date.now()) / 1000),
-                refresh_token: sessionTokens.refreshToken
+                access_token: accessToken.token,
+                expires_in: Math.floor((accessToken.expiresAt - Date.now()) / 1000),
+                refresh_token: accessToken.refreshToken
             }
             reply.send(response)
         } else {
             badRequest(reply, 'invalid_request', "Invalid grant_type. Only 'authorization_code' and 'refresh_token' are supported")
+        }
+    })
+
+    app.get('/account/check/:ownerType/:ownerId', {
+        // Add an explicit function here as `app.verifySession` will not have been
+        // mounted at the point this route is being registered
+        preHandler: (request, reply) => app.verifySession(request, reply)
+    }, async (request, reply) => {
+        if (request.params.ownerType === request.session.ownerType && request.params.ownerId === request.session.ownerId) {
+            reply.code(200).send()
+        } else {
+            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
         }
     })
 }

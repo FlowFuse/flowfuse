@@ -20,6 +20,7 @@ For more details on these and other core concepts, you can learn about them [her
  - [Change Project Stack](changestack.md) - How to change a projects stack, for example to upgrade Node-RED
  - [Logs](logs.md) - The Logs available in the FlowForge application.
  - [Project Link Nodes](projectnodes.md) - Custom nodes for sending messages between projects and devices.
+ - [Project Settings](project-settings.md) - Settings available for projects
 
 ## Working with Teams
 

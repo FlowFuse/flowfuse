@@ -6,7 +6,7 @@ import AccountSecurityChangePassword from '@/pages/account/Security/ChangePasswo
 import AccountTeams from '@/pages/account/Teams/index.vue'
 import AccountTeamTeams from '@/pages/account/Teams/Teams.vue'
 import AccountTeamInvitations from '@/pages/account/Teams/Invitations.vue'
-import AccessRequest from '@/pages/AccessRequest.vue'
+import AccessRequest from '@/pages/account/AccessRequest.vue'
 import AccountCreate from '@/pages/account/Create.vue'
 import VerifyEmail from '@/pages/account/VerifyEmail.vue'
 import ForgotPassword from '@/pages/account/ForgotPassword'
@@ -17,7 +17,9 @@ import store from '@/store'
 
 export default [
     {
-        path: '/account/request/:id',
+        // This is the editor being authenticated. Bounce straight to complete
+        // the auth flow rather than ask permission
+        path: '/account/request/:id/editor',
         component: AccessRequest,
         beforeEnter: (to, _, next) => {
             let removeWatch
@@ -39,6 +41,13 @@ export default [
             } else {
                 proceed()
             }
+        }
+    },
+    {
+        path: '/account/request/:id',
+        component: AccessRequest,
+        meta: {
+            modal: true
         }
     },
     {

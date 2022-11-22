@@ -13,7 +13,9 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.templates
      */
-    app.get('/', async (request, reply) => {
+    app.get('/', {
+        preHandler: app.needsPermission('template:list')
+    }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const templates = await app.db.models.ProjectTemplate.getAll(paginationOptions)
         templates.templates = templates.templates.map(s => app.db.views.ProjectTemplate.templateSummary(s))
@@ -26,7 +28,9 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.templates
      */
-    app.get('/:templateId', async (request, reply) => {
+    app.get('/:templateId', {
+        preHandler: app.needsPermission('template:read')
+    }, async (request, reply) => {
         const template = await app.db.models.ProjectTemplate.byId(request.params.templateId)
         if (template) {
             reply.send(app.db.views.ProjectTemplate.template(template))

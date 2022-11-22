@@ -40,7 +40,9 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.team
      */
-    app.get('/', async (request, reply) => {
+    app.get('/', {
+        preHandler: app.needsPermission('team:device:list')
+    }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const where = {
             TeamId: request.team.id

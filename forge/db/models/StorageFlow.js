@@ -22,7 +22,7 @@ module.exports = {
                 byProject: async (project) => {
                     return this.findOne({
                         where: { ProjectId: project },
-                        attributes: ['id', 'flow']
+                        attributes: ['id', 'flow', 'updatedAt']
                     })
                 }
             }

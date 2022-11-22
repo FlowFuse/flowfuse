@@ -19,7 +19,11 @@
     height: 24px;
     border-radius: 4px;
 }
-
+.ff-avatar-large {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+}
 .ff-bg-dark {
     background-color: $ff-grey-800;
     .ff-btn.ff-btn--primary {

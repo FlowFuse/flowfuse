@@ -228,5 +228,11 @@ module.exports = {
      */
     shutdown: async () => {
 
+    },
+    getDefaultStackProperties: () => {
+        return {
+            nodered: '3.0.2',
+            ...this._app.config.driver.options?.default_stack
+        }
     }
 }

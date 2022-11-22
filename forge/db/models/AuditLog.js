@@ -4,6 +4,7 @@
  */
 
 const { DataTypes, Op } = require('sequelize')
+const { formatLogEntry } = require('../../lib/audit-logging/formatters')
 
 module.exports = {
     name: 'AuditLog',
@@ -58,11 +59,12 @@ module.exports = {
                         },
                         limit
                     })
+                    const formattedEntries = entries.map(formatLogEntry)
                     return {
                         meta: {
                             next_cursor: entries.length === limit ? entries[entries.length - 1].hashid : undefined
                         },
-                        log: entries
+                        log: formattedEntries
                     }
                 }
             }

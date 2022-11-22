@@ -7,7 +7,7 @@
  */
 
 module.exports = async function (app) {
-    app.addHook('preHandler', app.verifyToken)
+    app.addHook('preHandler', app.verifySession)
     app.addHook('preHandler', async (request, response) => {
         // The request has a valid token, but need to check the token is allowed
         // to access the project

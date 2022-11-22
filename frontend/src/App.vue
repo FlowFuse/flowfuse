@@ -16,9 +16,16 @@
         </template>
         <!-- Platform Entry Point -->
         <template v-else-if="user && !user.password_expired && !termsAndConditionsRequired && user.email_verified !== false">
-            <ff-layout-platform>
-                <router-view></router-view>
-            </ff-layout-platform>
+            <template v-if="!isModalPage">
+                <ff-layout-platform>
+                    <router-view></router-view>
+                </ff-layout-platform>
+            </template>
+            <template v-else>
+                <ff-layout-box>
+                    <router-view></router-view>
+                </ff-layout-box>
+            </template>
         </template>
         <!-- Password Reset Required -->
         <template v-else-if="user && user.password_expired">
@@ -51,7 +58,7 @@ import PasswordExpired from '@/pages/PasswordExpired.vue'
 import UnverifiedEmail from '@/pages/UnverifiedEmail.vue'
 import TermsAndConditions from '@/pages/TermsAndConditions.vue'
 import FFLayoutPlatform from '@/layouts/Platform.vue'
-
+import FFLayoutBox from '@/layouts/Box.vue'
 export default {
     name: 'App',
     computed: {
@@ -63,6 +70,9 @@ export default {
             // This is the one page a user with email_verified === false is allowed
             // to access (so that they can get verified)
             return this.$route.name === 'VerifyEmail'
+        },
+        isModalPage () {
+            return !!this.$route.meta.modal
         },
         termsAndConditionsRequired () {
             if (!this.user || !this.settings || !this.settings['user:tcs-required']) {
@@ -88,7 +98,8 @@ export default {
         TermsAndConditions,
         Loading,
         Offline,
-        'ff-layout-platform': FFLayoutPlatform
+        'ff-layout-platform': FFLayoutPlatform,
+        'ff-layout-box': FFLayoutBox
     },
     mounted () {
         this.$store.dispatch('account/checkState')
