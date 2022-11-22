@@ -146,28 +146,34 @@
     .forge-status-error {
         @apply bg-red-200;
         @apply border-red-400;
+        @apply text-red-600;
     }
     .forge-status-suspended {
         @apply bg-red-200;
         @apply border-red-400;
+        @apply text-red-600;
     }
     .forge-status-stopped {
         @apply bg-gray-100;
         @apply border-gray-300;
         @apply border-dashed;
+        @apply text-gray-700;
     }
     .forge-status-starting {
         @apply bg-green-100;
         @apply border-green-300;
         @apply border-dashed;
+        @apply text-green-700;
     }
     .forge-status-safe {
         @apply bg-yellow-200;
         @apply border-yellow-400;
+        @apply text-yellow-600;
     }
     .forge-status-running {
         @apply bg-green-200;
         @apply border-green-400;
+        @apply text-green-700;
     }
 
     th {

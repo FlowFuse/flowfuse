@@ -33,8 +33,10 @@ import { mapState } from 'vuex'
 
 import DaysSince from './components/cells/DaysSince'
 import SnapshotName from './components/cells/SnapshotName'
+import DeviceCount from './components/cells/DeviceCount'
 import SnapshotCreateDialog from './dialogs/SnapshotCreateDialog'
 
+import devicesApi from '@/api/devices'
 import projectApi from '@/api/project'
 import snapshotApi from '@/api/projectSnapshots'
 import UserCell from '@/components/tables/cells/UserCell'
@@ -48,6 +50,7 @@ export default {
     data () {
         return {
             loading: false,
+            deviceCounts: {},
             snapshots: []
         }
     },
@@ -60,12 +63,30 @@ export default {
     },
     methods: {
         fetchData: async function (newVal) {
-            this.loading = true
             if (this.project.id) {
+                this.loading = true
+                const deviceCounts = await this.countDevices()
                 const data = await snapshotApi.getProjectSnapshots(this.project.id)
-                this.snapshots = data.snapshots
+                this.snapshots = data.snapshots.map((s) => {
+                    s.deviceCount = deviceCounts[s.id]
+                    return s
+                })
+                this.loading = false
             }
-            this.loading = false
+        },
+        async countDevices () {
+            // hardcoded device limit to ensure all are returned - feels dirty
+            const data = await devicesApi.getDevices(null, 10000000)
+            // map devices to snapshot deployed on that device
+            const deviceCounts = {}
+            data.devices.forEach((device) => {
+                const snapshot = device.activeSnapshot?.id
+                if (snapshot && !deviceCounts[snapshot]) {
+                    deviceCounts[snapshot] = 0
+                }
+                deviceCounts[snapshot] += 1
+            })
+            return deviceCounts
         },
         // snapshot actions - delete
         showDeleteSnapshotDialog (snapshot) {
@@ -123,7 +144,24 @@ export default {
         },
         columns () {
             const cols = [
-                { label: 'Snapshot', component: { is: markRaw(SnapshotName), extraProps: { targetSnapshot: this.project.deviceSettings?.targetSnapshot } } },
+                {
+                    label: 'Snapshot',
+                    component: {
+                        is: markRaw(SnapshotName),
+                        extraProps: {
+                            targetSnapshot: this.project.deviceSettings?.targetSnapshot
+                        }
+                    }
+                },
+                {
+                    label: '',
+                    component: {
+                        is: markRaw(DeviceCount),
+                        extraProps: {
+                            targetSnapshot: this.project.deviceSettings?.targetSnapshot
+                        }
+                    }
+                },
                 {
                     label: 'Created By',
                     class: ['w-56'],

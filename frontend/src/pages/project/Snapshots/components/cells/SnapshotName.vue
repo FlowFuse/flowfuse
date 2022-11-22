@@ -1,9 +1,9 @@
 <template>
-    <div class="flex items-center space-x-4">
+    <div class="flex items-center">
         <ClockIcon class="w-6 mr-2 text-gray-500" />
-        <div class="flex flex-col space-y-1">
+        <div class="flex flex-col space-y-1 ml-3">
             <span class="text-base">{{ name }}</span>
-            <span class="text-xs text-gray-500">id: {{ id }}</span>
+            <span class="text-xs text-gray-400">id: {{ id }}</span>
             <template v-if="description">
                 <details class="text-gray-500 float-left">
                     <summary class="cursor-pointer">
@@ -18,22 +18,15 @@
                 </details>
             </template>
         </div>
-        <div
-            v-if="active"
-            class="flex border border-green-400 rounded-full bg-green-200 py-1 px-2 text-xs"
-        >
-            <ChipIcon class="w-4 mr-1" />
-            <span>active</span>
-        </div>
     </div>
 </template>
 
 <script>
-import { ChipIcon, ClockIcon } from '@heroicons/vue/outline'
+import { ClockIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'SnapshotName',
-    components: { ChipIcon, ClockIcon },
+    components: { ClockIcon },
     props: {
         id: {
             required: true,
@@ -46,6 +39,11 @@ export default {
         description: {
             required: true,
             type: String
+        },
+        deviceCount: {
+            required: false,
+            type: Number,
+            default: null
         },
         targetSnapshot: {
             required: false,
