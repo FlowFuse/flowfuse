@@ -125,17 +125,16 @@ For more information on all of the options available, see the [configuration gui
 
 ## Running FlowForge
 
-If you have installed FlowForge as a service, it can be started by running:
-
-```
-service flowforge start
-```
-
 To run it manually, you can use:
 
  - Linux/MacOS:
     ```
     /opt/flowforge/bin/flowforge.sh
+    ```
+
+    If you selected to install as service on Linux then you can use:
+    ```
+    service flowforge start
     ```
 
  - Windows:
