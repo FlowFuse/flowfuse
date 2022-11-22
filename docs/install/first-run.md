@@ -5,7 +5,7 @@ through the initial setup.
 
 By default, you can access the platform at [http://localhost:3000](http://localhost:3000).
 
-## 1. Begin
+## 1. Start setup
 Open FlowForge in your browser [http://localhost:3000](http://localhost:3000).  
 Click the **START SETUP** button
 
@@ -44,9 +44,11 @@ anonymous usage information from running instances.
 
 The Administrator can opt-out of this feature.
 
-## 5. Done, lets login
+## 5. Finish setup
 
-Once you complete the setup, you will be able to login as the Administrator
-user that you created in [Step 2](#2-create-an-administrator).
+Once you complete the setup, you will be able to log in as the Administrator
+user you created and start using the platform. You can setup your Team and
+create your first Node-RED project.
 
-
+More information about using the FlowForge platform is available in the
+main [user guide](../user/).
