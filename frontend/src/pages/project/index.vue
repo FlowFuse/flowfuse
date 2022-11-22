@@ -36,6 +36,7 @@ import { mapState } from 'vuex'
 import ConfirmProjectDeleteDialog from './Settings/dialogs/ConfirmProjectDeleteDialog'
 
 import projectApi from '@/api/project'
+import snapshotApi from '@/api/projectSnapshots'
 
 import NavItem from '@/components/NavItem'
 // import SideNavigation from '@/components/SideNavigation'
@@ -103,9 +104,14 @@ export default {
             const projectId = this.$route.params.id
             try {
                 const data = await projectApi.getProject(projectId)
-                this.project = Object.assign(data, { deviceSettings: {} })
+                this.project = { ...{ deviceSettings: {} }, ...this.project, ...data }
                 this.$store.dispatch('account/setTeam', this.project.team.slug)
                 this.project.deviceSettings = await projectApi.getProjectDeviceSettings(projectId)
+                if (this.project.deviceSettings?.targetSnapshot) {
+                    this.project.targetSnapshot = await snapshotApi.getSnapshot(projectId, this.project.deviceSettings.targetSnapshot)
+                } else {
+                    this.project.targetSnapshot = null
+                }
             } catch (err) {
                 this.$router.push({
                     name: 'PageNotFound',
