@@ -1,5 +1,6 @@
 const should = require('should') // eslint-disable-line
 const setup = require('../setup')
+const crypto = require('crypto')
 // const FF_UTIL = require('flowforge-test-utils')
 // const { Roles } = FF_UTIL.require('forge/lib/roles')
 
@@ -201,6 +202,54 @@ describe('Project controller', function () {
             // 'upgraded-module' upgraded
             updatedSettings.palette.modules[2].should.have.property('name', 'upgraded-module')
             updatedSettings.palette.modules[2].should.have.property('version', '~2')
+        })
+    })
+
+    describe('exportCredentials', function () {
+        function decryptCreds (key, cipher) {
+            let flows = cipher.$
+            const initVector = Buffer.from(flows.substring(0, 32), 'hex')
+            flows = flows.substring(32)
+            const decipher = crypto.createDecipheriv('aes-256-ctr', key, initVector)
+            const decrypted = decipher.update(flows, 'base64', 'utf8') + decipher.final('utf8')
+            return JSON.parse(decrypted)
+        }
+
+        function encryptCreds (key, plain) {
+            const initVector = crypto.randomBytes(16)
+            const cipher = crypto.createCipheriv('aes-256-ctr', key, initVector)
+            return { $: initVector.toString('hex') + cipher.update(JSON.stringify(plain), 'utf8', 'base64') + cipher.final('base64') }
+        }
+
+        it('re-encrypts credentials from old to new key', function () {
+            const oldKey = 'oldkey'
+            const oldHash = crypto.createHash('sha256').update(oldKey).digest()
+            const newKey = 'newkey'
+            const newHash = crypto.createHash('sha256').update(newKey).digest()
+
+            const credentials = { foo: { a: 'b' } }
+            const encrypted = encryptCreds(oldHash, credentials)
+
+            const result = app.db.controllers.Project.exportCredentials(encrypted, oldKey, newKey)
+
+            result.should.only.have.keys('$')
+            ;(typeof result.$).should.equal('string')
+
+            const decrypted = decryptCreds(newHash, result)
+            decrypted.should.only.have.keys('foo')
+        })
+        it('encrypts credentials when no old key provided', function () {
+            const newKey = 'newkey'
+            const newHash = crypto.createHash('sha256').update(newKey).digest()
+
+            const credentials = { foo: { a: 'b' } }
+            const result = app.db.controllers.Project.exportCredentials(credentials, null, newKey)
+
+            result.should.only.have.keys('$')
+            ;(typeof result.$).should.equal('string')
+
+            const decrypted = decryptCreds(newHash, result)
+            decrypted.should.only.have.keys('foo')
         })
     })
     // describe('exportProject', function () {

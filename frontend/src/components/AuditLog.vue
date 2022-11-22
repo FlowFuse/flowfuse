@@ -36,7 +36,7 @@ import { LogoutIcon, PlayIcon, StopIcon, ChipIcon, UserIcon, PencilIcon } from '
 
 const eventDescriptions = {
     'project.created': 'Project created',
-    'project.dulplicated': 'Project Duplicated',
+    'project.duplicated': 'Project duplicated',
     'project.deleted': 'Project deleted',
     'project.stopped': 'Project stopped',
     'project.started': 'Project started',

@@ -17,7 +17,7 @@ module.exports = {
             type: DataTypes.STRING,
             allowNull: false,
             get () {
-                const rawValue = this.getDataValue('scope')
+                const rawValue = this.getDataValue('scope') || ''
                 return rawValue.split(',')
             },
             set (value) {
@@ -29,18 +29,35 @@ module.exports = {
             }
         },
         ownerId: { type: DataTypes.STRING },
-        ownerType: { type: DataTypes.STRING }
+        ownerType: { type: DataTypes.STRING },
+        refreshToken: {
+            type: DataTypes.STRING,
+            set (value) {
+                if (typeof value === 'string') {
+                    this.setDataValue('refreshToken', sha256(value))
+                }
+            }
+        }
     },
     associations: function (M) {
         this.belongsTo(M.Project, { foreignKey: 'ownerId', constraints: false })
         this.belongsTo(M.Device, { foreignKey: 'ownerId', constraints: false })
+        this.belongsTo(M.User, { foreignKey: 'ownerId', constraints: false })
     },
     finders: function (M) {
         return {
-            getOwner (options) {
-                if (!this.ownerType) return Promise.resolve(null)
-                const mixinMethodName = `get${uppercaseFirst(this.ownerType)}`
-                return this[mixinMethodName](options)
+            static: {
+                byRefreshToken: async (refreshToken) => {
+                    const hashedToken = sha256(refreshToken)
+                    return await this.findOne({ where: { refreshToken: hashedToken } })
+                }
+            },
+            instance: {
+                getOwner: async function (options) {
+                    if (!this.ownerType) return null
+                    const mixinMethodName = `get${uppercaseFirst(this.ownerType)}`
+                    return this[mixinMethodName](options)
+                }
             }
         }
     }

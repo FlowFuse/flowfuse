@@ -55,7 +55,9 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.devices
      */
-    app.get('/:deviceId', async (request, reply) => {
+    app.get('/:deviceId', {
+        preHandler: app.needsPermission('device:read')
+    }, async (request, reply) => {
         reply.send(app.db.views.Device.device(request.device))
     })
 
@@ -313,7 +315,9 @@ module.exports = async function (app) {
         reply.send({ status: 'okay' })
     })
 
-    app.get('/:deviceId/settings', async (request, reply) => {
+    app.get('/:deviceId/settings', {
+        preHandler: app.needsPermission('device:read')
+    }, async (request, reply) => {
         const settings = await request.device.getAllSettings()
         if (request.teamMembership?.role === Roles.Owner) {
             reply.send(settings)

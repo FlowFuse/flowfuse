@@ -12,6 +12,7 @@
  */
 module.exports = async function (app) {
     app.addHook('preHandler', (request, reply, done) => {
+        // This check ensures the request is being made by a device token
         if (request.session.ownerType !== 'device' || request.session.ownerId !== ('' + request.device.id)) {
             reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
         } else {
@@ -29,7 +30,7 @@ module.exports = async function (app) {
      * The response will be a 200 if all is well.
      * If the snapshot doesn't match the target, it will get a 409 (conflict)
      */
-    app.post('/state', { config: { allowToken: true } }, async (request, reply) => {
+    app.post('/state', async (request, reply) => {
         await app.db.controllers.Device.updateState(request.device, request.body)
         if (Object.hasOwn(request.body, 'project') && request.body.project !== (request.device.Project?.id || null)) {
             reply.code(409).send({
@@ -61,7 +62,7 @@ module.exports = async function (app) {
         reply.code(200).send({})
     })
 
-    app.get('/state', { config: { allowToken: true } }, async (request, reply) => {
+    app.get('/state', async (request, reply) => {
         reply.send({
             project: request.device.Project?.id || null,
             snapshot: request.device.targetSnapshot?.hashid || null,
@@ -69,7 +70,7 @@ module.exports = async function (app) {
         })
     })
 
-    app.get('/snapshot', { config: { allowToken: true } }, async (request, reply) => {
+    app.get('/snapshot', async (request, reply) => {
         if (!request.device.targetSnapshot) {
             reply.send({})
         } else {
@@ -94,7 +95,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.get('/settings', { config: { allowToken: true } }, async (request, reply) => {
+    app.get('/settings', async (request, reply) => {
         const response = {
             hash: request.device.settingsHash,
             env: {}

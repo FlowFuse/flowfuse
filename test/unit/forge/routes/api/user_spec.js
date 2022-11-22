@@ -72,12 +72,13 @@ describe('User API', async function () {
     })
 
     describe('User settings', async function () {
-        async function getAuditLog (limit = 1) {
-            const logEntries = await app.db.models.AuditLog.forPlatform({ limit: limit || 1 })
-            const logRaw = [...(logEntries.log || [])]
-            const result = app.db.views.AuditLog.auditLog(logEntries)
-            return { log: result.log, logRaw }
-        }
+        // TODO: re-introduce the below once #1183 is complete
+        // async function getAuditLog (limit = 1) {
+        //     const logEntries = await app.db.models.AuditLog.forPlatform({ limit: limit || 1 })
+        //     const logRaw = [...(logEntries.log || [])]
+        //     const result = app.db.views.AuditLog.auditLog(logEntries)
+        //     return { log: result.log, logRaw }
+        // }
         it('returns 401 on /user if not logged in', async function () {
             // await login('alice', 'aaPassword')
             // await login('bob', 'bbPassword')
@@ -120,15 +121,15 @@ describe('User API', async function () {
             result.should.have.property('email', 'afkae@example.com')
             result.should.have.property('username', 'afkae')
             // ensure audit log entry is made
-            const auditLogs = await getAuditLog(1)
-            auditLogs.log[0].should.have.a.property('body').and.be.a.String()
-            const body = JSON.parse(auditLogs.log[0].body)
-            body.should.have.a.property('old').and.be.an.Object()
-            body.should.have.a.property('new').and.be.an.Object()
-            body.should.have.a.property('user').and.be.an.Object()
-            auditLogs.log[0].should.have.a.property('event', 'user.update-user')
-            auditLogs.log[0].should.have.a.property('username', 'afkae') // admin user
-            auditLogs.logRaw[0].should.have.a.property('entityId', TestObjects.elvis.id.toString()) // affected user
+            // TODO: re-introduce audit log tests below once #1183 is complete
+            // const auditLogs = await getAuditLog(1)
+            // auditLogs.log[0].should.have.a.property('event', 'user.update-user') // what happened
+            // auditLogs.log[0].should.have.a.property('trigger').and.be.an.Object() // who/what did it
+            // auditLogs.log[0].trigger.should.have.a.property('id', TestObjects.elvis.id) // actioned by
+            // auditLogs.log[0].should.have.a.property('scope').and.be.an.Object() // who/what was affected
+            // auditLogs.log[0].scope.should.have.a.property('id', TestObjects.elvis.id.toString()) // affected user
+            // auditLogs.log[0].body.should.have.a.property('updates')
+            // auditLogs.log[0].body.updates.should.have.a.property('length', 4)
         })
         it('member user cannot modify admin settings (email_verified, admin)', async function () {
             await login('elvis', 'eePassword')
@@ -162,11 +163,14 @@ describe('User API', async function () {
             const result = response.json()
             result.should.not.have.property('error')
             // ensure audit log entry is made
-            const auditLogs = await getAuditLog(1)
-            auditLogs.log[0].should.have.a.property('body').and.be.a.String()
-            auditLogs.log[0].should.have.a.property('event', 'user.change-password')
-            auditLogs.log[0].should.have.a.property('username', 'dave') // admin user
-            auditLogs.logRaw[0].should.have.a.property('entityId', TestObjects.dave.id.toString()) // affected user
+            // TODO: re-introduce audit log tests below once #1183 is complete
+            // const auditLogs = await getAuditLog(1)
+            // auditLogs.log[0].should.have.a.property('event', 'user.update-password') // what happened
+            // auditLogs.log[0].should.have.a.property('trigger').and.be.an.Object() // who/what did it
+            // auditLogs.log[0].trigger.should.have.a.property('id', TestObjects.dave.id) // actioned by
+            // auditLogs.log[0].should.have.a.property('scope').and.be.an.Object() // who/what was affected
+            // auditLogs.log[0].scope.should.have.a.property('id', TestObjects.dave.id.toString()) // affected user
+            // auditLogs.log[0].should.have.a.property('body') // details
         })
         it('user can not change password when old password is incorrect', async function () {
             await login('dave', 'ddPassword')
@@ -183,14 +187,18 @@ describe('User API', async function () {
             const result = response.json()
             result.should.have.property('code', 'password_change_failed')
             // ensure audit log entry is made
-            const auditLogs = await getAuditLog(1)
-            auditLogs.log[0].should.have.a.property('body').and.be.a.String()
-            const body = JSON.parse(auditLogs.log[0].body)
-            body.should.have.a.property('code', 'password_change_failed')
-            body.should.have.a.property('error').and.be.a.String()
-            auditLogs.log[0].should.have.a.property('event', 'user.change-password')
-            auditLogs.log[0].should.have.a.property('username', 'dave') // admin user
-            auditLogs.logRaw[0].should.have.a.property('entityId', TestObjects.dave.id.toString()) // affected user
+            // TODO: re-introduce audit log tests below once #1183 is complete
+            // const auditLogs = await getAuditLog(1)
+            // auditLogs.log[0].should.have.a.property('event', 'user.update-password') // what happened
+            // auditLogs.log[0].should.have.a.property('trigger').and.be.an.Object() // who/what did it
+            // auditLogs.log[0].trigger.should.have.a.property('id', TestObjects.dave.id) // actioned by
+            // auditLogs.log[0].should.have.a.property('scope').and.be.an.Object() // who/what was affected
+            // auditLogs.log[0].scope.should.have.a.property('id', TestObjects.dave.id.toString()) // affected user
+            // // check an error was included in details
+            // auditLogs.log[0].should.have.a.property('body') // details
+            // auditLogs.log[0].body.should.have.a.property('error').and.be.an.Object()
+            // auditLogs.log[0].body.error.should.have.a.property('code', 'password_change_failed')
+            // auditLogs.log[0].body.error.should.have.a.property('message')
         })
         describe('Unverified Email', async function () {
             it('return user info for unverified_email user', async function () {
@@ -311,16 +319,19 @@ describe('User API', async function () {
                 user.should.have.property('tcs_accepted')
                 const tcsAccepted = new Date(user.tcs_accepted)
                 should(tcsAccepted).be.greaterThanOrEqual(updatedDate)
+                // TODO: re-introduce audit log tests below once #1183 is complete
                 // ensure platform audit log entry is made
-                const auditLogs = await getAuditLog(1)
-                auditLogs.log[0].should.have.a.property('body').and.be.a.String()
-                const body = JSON.parse(auditLogs.log[0].body)
-                body.should.have.a.property('old').and.be.an.Object()
-                body.should.have.a.property('new').and.be.an.Object()
-                body.should.have.a.property('user').and.be.an.Object()
-                auditLogs.log[0].should.have.a.property('event', 'user.update-user')
-                auditLogs.log[0].should.have.a.property('username', 'elvis') // the user performing action
-                auditLogs.logRaw[0].should.have.a.property('entityId', TestObjects.elvis.id.toString()) // affected user
+                // const auditLogs = await getAuditLog(1)
+                // auditLogs.log[0].should.have.a.property('event', 'user.update-user') // what happened
+                // auditLogs.log[0].should.have.a.property('trigger').and.be.an.Object() // who/what did it
+                // auditLogs.log[0].trigger.should.have.a.property('id', TestObjects.elvis.id) // actioned by
+                // auditLogs.log[0].should.have.a.property('scope').and.be.an.Object() // who/what was affected
+                // auditLogs.log[0].scope.should.have.a.property('id', TestObjects.elvis.id.toString()) // affected user
+                // // check updates were recorded
+                // auditLogs.log[0].should.have.a.property('body') // details
+                // auditLogs.log[0].body.should.have.a.property('updates')
+                // auditLogs.log[0].body.updates.should.have.a.property('length', 1)
+                // auditLogs.log[0].body.updates[0].key.should.eql('tcs_accepted') // property changed
             })
             it('user API does not return T&Cs properties if T&Cs are disabled', async function () {
                 await login('elvis', 'eePassword')

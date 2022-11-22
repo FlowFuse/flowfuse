@@ -21,7 +21,10 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.user
      */
-    app.get('/', { config: { allowUnverifiedEmail: true, allowToken: true, allowExpiredPassword: true } }, async (request, reply) => {
+    app.get('/', {
+        preHandler: app.needsPermission('user:read'),
+        config: { allowUnverifiedEmail: true, allowExpiredPassword: true }
+    }, async (request, reply) => {
         const users = await app.db.views.User.userProfile(request.session.User)
         reply.send(users)
     })
@@ -33,6 +36,7 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.user
      */
     app.put('/change_password', {
+        preHandler: app.needsPermission('user:edit'),
         config: { allowExpiredPassword: true },
         schema: {
             body: {
@@ -48,6 +52,7 @@ module.exports = async function (app) {
         try {
             await app.db.controllers.User.changePassword(request.session.User, request.body.old_password, request.body.password)
             await userLog(request.session.User.id, 'change-password', null, request.session.User.id)
+            await app.postoffice.send(request.session.User, 'PasswordChanged', { })
             reply.send({ status: 'okay' })
         } catch (err) {
             const resp = { code: 'password_change_failed', error: 'password change failed' }
@@ -62,7 +67,9 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.user
      */
-    app.get('/teams', async (request, reply) => {
+    app.get('/teams', {
+        preHandler: app.needsPermission('user:read')
+    }, async (request, reply) => {
         const teams = await app.db.models.Team.forUser(request.session.User)
         const result = await app.db.views.Team.userTeamList(teams)
         reply.send({
@@ -78,7 +85,9 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.user
      */
-    app.put('/', async (request, reply) => {
+    app.put('/', {
+        preHandler: app.needsPermission('user:edit')
+    }, async (request, reply) => {
         sharedUser.updateUser(app, request.session.User, request, reply, userLog)
         return reply // fix errors in tests "Promise may not be fulfilled with 'undefined' when statusCode is not 204" https://github.com/fastify/help/issues/627
     })
