@@ -1,42 +1,26 @@
 <template>
     <div :class="containerClass ? containerClass : 'max-w-sm'">
+        <!-- Checkbox -->
         <template v-if="type==='checkbox'">
             <div class="flex" :class="(wrapperClass ? wrapperClass : 'items-center')">
-                <div :class="(disabled ? ' cursor-not-allowed text-gray-400' : 'text-gray-700')">
-                    <input :id="inputId"
-                           ref="input"
-                           type="checkbox"
-                           :class="inputClass"
-                           v-model="localModelValue"
-                           :disabled="disabled"
-                           @change="$emit('update:modelValue', $event.target.checked)"
-                    >
-                    <label v-if="hasTitle" :for="inputId" class="text-sm font-medium"><slot></slot></label>
+                <div>
+                    <ff-checkbox :id="inputId"
+                                 ref="input"
+                                 type="checkbox"
+                                 :label="null"
+                                 :class="inputClass"
+                                 v-model="localModelValue"
+                                 :disabled="disabled"></ff-checkbox>
+                    <label data-el="form-row-title" v-if="hasTitle" :for="inputId" class="block ml-8 text-sm font-medium" :class="disabled ? ' cursor-not-allowed text-gray-400': ' cursor-pointer'" @click="toggleValue"><slot></slot></label>
                 </div>
-                <div v-if="hasAppend" :class="appendClass ? appendClass : 'inline ml-2'"><slot name="append"></slot></div>
+                <div v-if="hasAppend" :class="(appendClass ? appendClass : 'inline ml-2')"><slot name="append"></slot></div>
             </div>
-            <div v-if="error" class="ml-9 text-red-400 inline text-xs">{{error}}</div>
-            <div v-if="hasDescription" class="mt-1 text-xs text-gray-400 mb-2 ml-9 space-y-1"><slot name="description"></slot></div>
+            <div v-if="error" data-el="form-row-error" class="inline-block ml-8 text-red-400 inline text-xs">{{error}}</div>
+            <div v-if="hasDescription" data-el="form-row-description" class="ff-description pl-8 mt-1"><slot name="description"></slot></div>
         </template>
-        <template v-else-if="type==='radio'">
-            <div class="flex" :class="(wrapperClass ? wrapperClass : 'items-center')  + (disabled ? ' cursor-not-allowed' : '')">
-                <input :id="inputId"
-                       ref="input"
-                       type="radio"
-                       :class="inputClass"
-                       v-model="localModelValue"
-                       :name="name"
-                       :value="value"
-                       :disabled="disabled"
-                       @change="$emit('update:modelValue', $event.target.value)"
-                >
-                <label v-if="hasTitle" :for="inputId" class="text-sm font-medium text-gray-700"><slot></slot></label>
-            </div>
-            <div v-if="error" class="ml-9 text-red-400 inline text-xs">{{error}}</div>
-            <div v-if="hasDescription" class="mt-1 text-xs text-gray-400 mb-2 ml-9 space-y-1"><slot name="description"></slot></div>
-        </template>
+        <!-- Single Line File Selection -->
         <template v-else-if="type==='file'">
-            <label v-if="hasTitle" :for="inputId" class="text-sm font-medium text-gray-700"><slot></slot></label>
+            <label data-el="form-row-title" v-if="hasTitle" :for="inputId" class="text-sm font-medium text-gray-700"><slot></slot></label>
             <div class="flex" :class="(wrapperClass ? wrapperClass : 'items-center')">
                 <div class="ff-input ff-text-input">
                     <input :id="inputId"
@@ -50,34 +34,31 @@
                     >
                 </div>
             </div>
-            <div v-if="error" class="ml-9 text-red-400 inline text-xs">{{error}}</div>
-            <div v-if="hasDescription" class="mt-1 text-xs text-gray-400 mb-2 ml-9 space-y-1"><slot name="description"></slot></div>
+            <div v-if="error" data-el="form-row-error" class="ml-9 text-red-400 inline text-xs">{{error}}</div>
+            <div v-if="hasDescription" data-el="form-row-description" class="mt-1 text-xs text-gray-400 mb-2 ml-9 space-y-1"><slot name="description"></slot></div>
         </template>
         <template v-else>
-            <label v-if="hasTitle" :for="inputId" :class="(disabled ? 'text-gray-400' : 'text-gray-700')" class="block text-sm font-medium mb-1"><slot></slot></label>
-            <div v-if="hasDescription" class="text-xs text-gray-400 mb-2 space-y-1"><slot name="description"></slot></div>
+            <label data-el="form-row-title" v-if="hasTitle" :for="inputId" :class="(disabled ? 'text-gray-400' : 'text-gray-700')" class="block text-sm font-medium mb-1"><slot></slot></label>
+            <div v-if="hasDescription" data-el="form-row-description" class="text-xs text-gray-400 mb-2 space-y-1"><slot name="description"></slot></div>
             <div :class="(wrapperClass ? wrapperClass : 'flex flex-col sm:flex-row relative')">
+                <!-- Dropdown -->
                 <template v-if="options && type !== 'uneditable'">
-                    <select :id="inputId"
-                            ref="input"
-                            class="w-full"
-                            :class="inputClass"
-                            :value="modelValue"
-                            :disabled="disabled"
-                            @input="$emit('update:modelValue', $event.target.value)"
-                    >
-                        <option v-for="option in options" :value="option.value" :key="option.label">
+                    <ff-dropdown v-model="localModelValue" class="w-full" :disabled="disabled">
+                        <ff-dropdown-option v-for="option in options" :value="option.value" :label="option.label" :key="option.label" class="text-sm">
                             {{ option.label }}
-                        </option>
-                    </select>
+                        </ff-dropdown-option>
+                    </ff-dropdown>
                 </template>
+                <!-- Custom Input -->
                 <template v-else-if="hasCustomInput">
                     <slot name="input"></slot>
                 </template>
+                <!-- Static/Uneditable -->
                 <template v-else-if="type==='uneditable'">
-                    <div class="w-full uneditable" :class="inputClass + (disabled ? ' text-gray-400' : ' text-gray-700')">{{ modelValue || (valueEmptyText == null ? 'No Value' : valueEmptyText ) }}</div>
+                    <div data-el="form-row-uneditable" class="w-full uneditable" :class="inputClass + (disabled ? ' text-gray-400' : ' text-gray-700')">{{ modelValue || (valueEmptyText == null ? 'No Value' : valueEmptyText ) }}</div>
                 </template>
                 <template v-else>
+                    <!-- Text Input -->
                     <ff-text-input
                         ref="input"
                         v-model="localModelValue"
@@ -88,10 +69,10 @@
                         @blur="$emit('blur')" />
                 </template>
                 <template v-if="hasAppend">
-                    <div :class="appendClass ? appendClass : 'block sm:inline sm:absolute sm:left-full sm:ml-4 mt-2 sm:mt-0'"><slot name="append"></slot></div>
+                    <div data-el="form-row-append" :class="appendClass ? appendClass : 'block sm:inline sm:absolute sm:left-full sm:ml-4 mt-2 sm:mt-0'"><slot name="append"></slot></div>
                 </template>
             </div>
-            <div v-if="error" class="ml-4 text-red-400 text-xs">{{error}}</div>
+            <div v-if="error" data-el="form-row-error" class="ml-4 text-red-400 text-xs">{{error}}</div>
         </template>
     </div>
 </template>
@@ -145,6 +126,11 @@ export default {
             this.$nextTick(() => {
                 this.$refs.input?.focus()
             })
+        },
+        toggleValue () {
+            if (!this.disabled) {
+                this.localModelValue = !this.localModelValue
+            }
         }
     }
 }

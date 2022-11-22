@@ -22,7 +22,7 @@ describe('FlowForge - Team Membership', () => {
         cy.get('[data-action="save-settings"]').should('be.disabled')
 
         // now enable T+Cs
-        cy.get('[data-el="terms-and-condition-required"]').find('input').click()
+        cy.get('[data-el="terms-and-condition-required"]').find('span.checkbox').click()
 
         // the URL and update button should now be present
         cy.get('[data-el="terms-and-condition-url"]').find('input').should('have.length', 1)
