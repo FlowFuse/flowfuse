@@ -230,7 +230,7 @@ const projectTypeObject = (projectType) => {
 }
 /**
  * Generates the `trigger` part of the audit log report
- * @param {object|number|'system'} actionedBy A user object or a user id. NOTE: 0 or 'system' can be userd to indicate "system" triggered the event
+ * @param {object|number|'system'} actionedBy A user object or a user id. NOTE: 0 or 'system' can be used to indicate "system" triggered the event
  * @param {*} [user] If `actionedBy` is an ID, passing a the user object will permit the username to be rendered
  * @returns {{ id:number, type:string, name:string }} { id, type, name }
  */
