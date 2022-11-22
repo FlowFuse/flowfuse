@@ -10,9 +10,10 @@
         @confirm="confirm()"
     >
         <template #default>
-            <form
-                class="space-y-6 mt-2"
-                @submit.prevent="confirm()"
+            <ff-loading v-if="loading" message="Loading Snapshots..." />
+            <form v-else
+                  class="space-y-6 mt-2"
+                  @submit.prevent="confirm()"
             >
                 <p>Please select the Project Snapshot that you wish to deploy to all of your devices.</p>
                 <FormRow
@@ -84,10 +85,8 @@ export default {
             this.submitted = false
         },
         fetchData: async function () {
-            if (this.project.id) {
-                const data = await snapshotApi.getProjectSnapshots(this.project.id)
-                this.snapshots = data.snapshots
-            }
+            const data = await snapshotApi.getProjectSnapshots(this.project.id)
+            this.snapshots = data.snapshots
 
             this.loading = false
         },
