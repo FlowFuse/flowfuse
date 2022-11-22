@@ -276,8 +276,8 @@ module.exports = async function (app) {
                 updates.push('slug', request.team.slug, request.body.slug)
                 request.team.slug = request.body.slug
             }
-            app.auditLog.Team.team.settings.update(request.session.User, null, request.team, updates)
             await request.team.save()
+            app.auditLog.Team.team.settings.updated(request.session.User, null, request.team, updates)
             reply.send(app.db.views.Team.team(request.team))
         } catch (err) {
             let responseMessage
