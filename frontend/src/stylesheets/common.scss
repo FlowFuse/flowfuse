@@ -50,6 +50,13 @@
     }
 }
 
+.ff-dialog-box a {
+    color: $ff-blue-600;
+    &:hover {
+        color: $ff-blue-800;
+    }
+}
+
 label {
     cursor: inherit;
 }
