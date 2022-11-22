@@ -124,17 +124,12 @@ export default {
     methods: {
         focus () {
             this.$nextTick(() => {
-                console.log('this.$refs.input')
-                console.log(this.$refs.input)
-                console.log(this.$refs.input.focus)
                 this.$refs.input?.focus()
             })
         },
         toggleValue () {
             if (!this.disabled) {
-                console.log(this.localModelValue)
                 this.localModelValue = !this.localModelValue
-                console.log(this.localModelValue)
             }
         }
     }
