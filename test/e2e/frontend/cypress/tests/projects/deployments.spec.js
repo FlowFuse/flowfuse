@@ -50,5 +50,10 @@ describe('FlowForge - Project Deployments', () => {
         cy.get('[data-el="snapshot-assign-dialog"] .ff-btn--primary').click()
 
         cy.get('[data-action="change-target-snapshot"]').contains('snapshot 3')
+
+        // Dialog updates
+        cy.get('button[data-action="change-target-snapshot"]').click()
+        cy.get('[data-form="snapshot-select"]').click()
+        cy.get('[data-form="snapshot-select"] .ff-dropdown-options').contains('snapshot 3 (active)')
     })
 })

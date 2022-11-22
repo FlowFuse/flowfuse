@@ -10,10 +10,14 @@
         @confirm="confirm()"
     >
         <template #default>
-            <ff-loading v-if="loading" message="Loading Snapshots..." />
-            <form v-else
-                  class="space-y-6 mt-2"
-                  @submit.prevent="confirm()"
+            <ff-loading
+                v-if="loading"
+                message="Loading Snapshots..."
+            />
+            <form
+                v-else
+                class="space-y-6 mt-2"
+                @submit.prevent="confirm()"
             >
                 <p>Please select the Project Snapshot that you wish to deploy to all of your devices.</p>
                 <FormRow
@@ -30,15 +34,17 @@
                             class="w-full"
                         >
                             <ff-dropdown-option
-                                v-for="snapshot in snapshots"
-                                :key="snapshot.id"
-                                :label="snapshot.name"
-                                :value="snapshot.id"
+                                v-for="snapshot in snapshotOptions"
+                                :key="snapshot.value"
+                                :label="snapshot.label"
+                                :value="snapshot.value"
                             />
                         </ff-dropdown>
                         <div v-else>
-                            There are no snapshots to choose from for this project yet!<br />
-                            Snapshots can be managed on the <router-link :to="`/project/${project.id}/snapshots`">Project Snapshots</router-link> page.
+                            There are no snapshots to choose from for this project yet!<br>
+                            Snapshots can be managed on the <router-link :to="`/project/${project.id}/snapshots`">
+                                Project Snapshots
+                            </router-link> page.
                         </div>
                     </template>
                 </FormRow>
@@ -76,7 +82,15 @@ export default {
     },
     computed: {
         formValid () {
-            return !this.submitted && this.selectedSnapshotId
+            return !this.submitted && this.selectedSnapshotId && this.project.targetSnapshot?.id !== this.selectedSnapshotId
+        },
+        snapshotOptions () {
+            return this.snapshots.map((snapshot) => {
+                return {
+                    value: snapshot.id,
+                    label: `${snapshot.name}${this.project.targetSnapshot?.id === snapshot.id ? ' (active)' : ''}`
+                }
+            })
         }
     },
     methods: {
