@@ -19,8 +19,12 @@ export default {
         async done () {
             // eslint-disable-next-line no-undef
             const opts = { _csrf: SETUP_CSRF_TOKEN }
-            await httpClient.post('/setup/finish', opts)
-            window.location = '/'
+            try {
+                await httpClient.post('/setup/finish', opts)
+                window.location = '/'
+            } catch (err) {
+                this.$emit('error')
+            }
         }
     }
 }

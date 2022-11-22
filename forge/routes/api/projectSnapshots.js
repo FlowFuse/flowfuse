@@ -83,14 +83,10 @@ module.exports = async function (app) {
     app.post('/', {
         preHandler: app.needsPermission('project:snapshot:create')
     }, async (request, reply) => {
-        // TODO: permission check
         const snapShot = await app.db.controllers.ProjectSnapshot.createSnapshot(
             request.project,
             request.session.User,
-            {
-                name: request.body.name || '',
-                description: request.body.description || ''
-            }
+            request.body
         )
         snapShot.User = request.session.User
         await app.auditLog.Project.project.snapshot.created(request.session.User, null, request.project, snapShot)

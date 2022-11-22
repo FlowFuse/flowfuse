@@ -185,12 +185,17 @@ module.exports = {
     },
 
     /**
-     * Takes a credentials object and re-encrypts it with a new key
+     * Takes a credentials object and re-encrypts it with a new key.
+     * If oldKey is blank or undefined, it assumes the credentials object is
+     * unencrypted at this point and only needs to be re-encrypted
      */
     exportCredentials: function (app, original, oldKey, newKey) {
+        if (oldKey) {
+            const oldHash = crypto.createHash('sha256').update(oldKey).digest()
+            original = decryptCreds(oldHash, original)
+        }
         const newHash = crypto.createHash('sha256').update(newKey).digest()
-        const oldHash = crypto.createHash('sha256').update(oldKey).digest()
-        return encryptCreds(newHash, decryptCreds(oldHash, original))
+        return encryptCreds(newHash, original)
     },
 
     /**
