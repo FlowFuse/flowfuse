@@ -43,7 +43,6 @@ export default {
     },
     computed: {
         active: function () {
-            console.log(this.id, this.targetSnapshot)
             return this.id === this.targetSnapshot
         }
     }
