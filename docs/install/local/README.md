@@ -127,12 +127,6 @@ For more information on all of the options available, see the [configuration gui
 
 ## Running FlowForge
 
-If you have installed FlowForge as a service, it can be started by running:
-
-```
-service flowforge start
-```
-
 To run it manually, you can use:
 
  - Linux/MacOS:
@@ -145,6 +139,13 @@ To run it manually, you can use:
     c:\flowforge\bin\flowforge.bat
     ```
 
+Or to run as a service:
+
+ - Linux
+ 
+    ```
+    service flowforge start
+    ```
 ## First Run Setup
 
 Once FlowForge is started, you can access the platform in your browser at [http://localhost:3000](http://localhost:3000).
