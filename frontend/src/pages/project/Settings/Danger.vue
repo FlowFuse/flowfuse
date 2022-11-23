@@ -46,7 +46,7 @@
             </div>
         </div>
 
-        <FormHeading>Export Project</FormHeading>
+        <FormHeading>Copy Project</FormHeading>
         <!-- Hiding for now (0.5) -->
         <!-- <div>
             <div>
