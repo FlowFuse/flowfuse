@@ -1,11 +1,25 @@
 <template>
-    <ff-dialog ref="dialog" header="Change Project Stack" confirm-label="Change Stack" @confirm="confirm()">
+    <ff-dialog
+        ref="dialog"
+        header="Change Project Stack"
+        confirm-label="Change Stack"
+        class="change-stack-dialog"
+        data-el="change-stack-dialog"
+        @confirm="confirm()"
+    >
         <template v-slot:default>
             <form class="space-y-6" @submit.prevent>
                 <p >
                     Select the new stack you want to use for this project:
                 </p>
-                <FormRow :options="stacks" v-model="input.stack">Stack</FormRow>
+                <FormRow
+                    :options="stacks"
+                    v-model="input.stack"
+                    data-form="snapshot"
+                    containerClass="w-full"
+                >
+                    Stack
+                </FormRow>
             </form>
         </template>
     </ff-dialog>
@@ -57,3 +71,16 @@ export default {
     }
 }
 </script>
+
+<style lang="scss">
+// So the dropdown options break out of the dialog
+.change-stack-dialog {
+    .ff-dialog-content {
+        overflow-y: visible;
+    }
+
+    .ff-dropdown-options {
+        z-index: 500
+    }
+}
+</style>
