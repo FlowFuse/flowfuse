@@ -76,16 +76,17 @@ export default {
         },
         async countDevices () {
             // hardcoded device limit to ensure all are returned - feels dirty
-            const data = await devicesApi.getDevices(null, 10000000)
+            const data = await projectApi.getProjectDevices(this.project.id, null, 10000000)
             // map devices to snapshot deployed on that device
-            const deviceCounts = {}
-            data.devices.forEach((device) => {
+            const deviceCounts = data.devices.reduce((acc, device) => {
                 const snapshot = device.activeSnapshot?.id
-                if (snapshot && !deviceCounts[snapshot]) {
-                    deviceCounts[snapshot] = 0
+                if (!acc[snapshot]) {
+                    acc[snapshot] = 1
+                } else {
+                    acc[snapshot]++
                 }
-                deviceCounts[snapshot] += 1
-            })
+                return acc
+            }, {})
             return deviceCounts
         },
         // snapshot actions - delete
