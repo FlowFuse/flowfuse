@@ -36,7 +36,6 @@ import SnapshotName from './components/cells/SnapshotName'
 import DeviceCount from './components/cells/DeviceCount'
 import SnapshotCreateDialog from './dialogs/SnapshotCreateDialog'
 
-import devicesApi from '@/api/devices'
 import projectApi from '@/api/project'
 import snapshotApi from '@/api/projectSnapshots'
 import UserCell from '@/components/tables/cells/UserCell'
