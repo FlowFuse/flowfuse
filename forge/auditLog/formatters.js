@@ -162,11 +162,14 @@ const teamObject = (team, unknownValue = null) => {
     }
 }
 const userObject = (user, unknownValue = null) => {
-    const result = triggerObject(user?.id, user) || {}
-    // the user object had 2 additional fields that are not in the trigger object
-    result.username = result.username || user?.username || unknownValue
-    result.email = result.email || user?.email || unknownValue
-    return result
+    const { id, hashid } = triggerObject(user?.id, user, unknownValue) || {}
+    return {
+        id,
+        hashid,
+        name: user?.name || unknownValue,
+        username: user?.username || unknownValue,
+        email: user?.email || unknownValue
+    }
 }
 const projectObject = (project, unknownValue = null) => {
     return {
@@ -229,43 +232,72 @@ const projectTypeObject = (projectType) => {
  * Generates the `trigger` part of the audit log report
  * @param {object|number|'system'} actionedBy A user object or a user id. NOTE: 0 or 'system' can be used to indicate "system" triggered the event
  * @param {*} [user] If `actionedBy` is an ID, passing a the user object will permit the username to be rendered
- * @returns {{ id:number, type:string, name:string }} { id, type, name }
+ * @param {*} [unknownValue] If `unknownValue` is provided, it will be used for name and type if they are null
+ * @returns {{ id:number, hashid: string, type:string, name:string }} { id, hashid, type, name }
  */
-const triggerObject = (actionedBy, user) => {
-    const sanitise = (actionedBy, user) => {
-        let id = null
-        let hashid = null
-        let type = user != null ? 'user' : 'unknown'
-        let name = user?.username || user?.email || user?.name || 'Unknown'
-        if (typeof actionedBy === 'string') {
-            if (actionedBy === 'system') {
-                id = 0
-                type = 'system'
-                name = 'Forge Platform'
-            } else {
-                id = actionedBy
-                hashid = actionedBy
-                type = 'user'
-            }
-        } else if (typeof actionedBy === 'number') {
-            id = actionedBy
-            if (id === 0) {
-                type = 'system'
-                name = 'Forge Platform'
-            } else if (id > 0) {
-                type = 'user'
-                if (user) {
-                    hashid = user.hashid || null
-                }
-            }
-        } else if (typeof actionedBy === 'object' && actionedBy != null) {
-            return sanitise(actionedBy.id, actionedBy)
-        }
-        return { id, hashid, type, name }
+function triggerObject (actionedBy, user, unknownValue = 'unknown') {
+    let id = null
+    let hashid = null
+    let type = unknownValue
+    let name = unknownValue
+    if (actionedBy == null) {
+        actionedBy = user
+        user = null
     }
-    return sanitise(actionedBy, user)
+    if (isNumber(actionedBy)) {
+        id = +actionedBy
+        if (id === 0) {
+            type = 'system'
+            hashid = 'system'
+            name = 'Forge Platform'
+        } else if (id > 0) {
+            type = 'user'
+            if (user) {
+                hashid = user.hashid || null
+                name = user?.name || user?.username || (user?.email || '').split('@')[0] || unknownValue || null
+            }
+        }
+    } else if (isStringWithLength(actionedBy)) {
+        if (actionedBy === 'system') {
+            return triggerObject({ id: 0 }, user)
+        } else {
+            id = isNumber(user?.id) ? +user.id : null
+            hashid = actionedBy
+            name = user?.name || user?.username || (user?.email || '').split('@')[0] || unknownValue || null
+            type = 'user'
+        }
+    } else if (looksLikeUserObject(actionedBy)) {
+        type = 'user'
+        if (actionedBy.id != null) {
+            return triggerObject(actionedBy.id, actionedBy)
+        } else if (actionedBy.hashid != null) {
+            return triggerObject(actionedBy.hashid, actionedBy)
+        }
+    } else if (looksLikeUserObject(user)) {
+        type = 'user'
+        if (user.id != null) {
+            return triggerObject(user.id, user)
+        } else if (user.hashid != null) {
+            return triggerObject(user.hashid, user)
+        }
+    }
+    return { id, hashid, type, name }
 }
 // #endregion (Log entry formatters)
+
+// #region Helpers
+
+function isStringWithLength (str) {
+    return typeof str === 'string' && str.length > 0
+}
+function isNumber (num) {
+    return (typeof num === 'number' && !isNaN(num)) || (typeof num === 'string' && !isNaN(+num))
+}
+function looksLikeUserObject (obj) {
+    return (obj && typeof obj === 'object' && (isNumber(obj.id) || isStringWithLength(obj.hashid) || isStringWithLength(obj.id /* could be a hash */)))
+}
+
+// #endregion (Helpers)
 
 // #region Updates formatter
 
