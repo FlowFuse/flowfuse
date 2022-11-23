@@ -622,22 +622,22 @@
                 <div class="examples">
                     <div class="example">
                         <h5>Example 1: Default</h5>
-                        <div v-ff-tooltip="'Hello World'">Hover for Default Tooltip</div>
+                        <label v-ff-tooltip="'Hello World'">Hover for Default Tooltip</label>
                         <code>{{ dGroups['tooltip'].components[0].examples[0].code }}</code>
                     </div>
                     <div class="example">
                         <h5>Example 2: Left</h5>
-                        <div v-ff-tooltip:left="'Hello World'">Hover for Left Tooltip</div>
+                        <ff-check v-ff-tooltip:left="'Hello World'" :value="true"></ff-check>
                         <code>{{ dGroups['tooltip'].components[0].examples[1].code }}</code>
                     </div>
                     <div class="example">
                         <h5>Example 3: Top</h5>
-                        <div v-ff-tooltip:top="'Hello World'">Hover for Top Tooltip</div>
+                        <ff-button v-ff-tooltip:top="'Hello World'">Hover for Top Tooltip</ff-button>
                         <code>{{ dGroups['tooltip'].components[0].examples[2].code }}</code>
                     </div>
                     <div class="example">
                         <h5>Example 4: Bottom</h5>
-                        <div v-ff-tooltip:bottom="'Hello World'">Hover for Bottom Tooltip</div>
+                        <ff-notification-pill v-ff-tooltip:bottom="'Hello World'" :count="4">Hover for Bottom Tooltip</ff-notification-pill>
                         <code>{{ dGroups['tooltip'].components[0].examples[3].code }}</code>
                     </div>
                 </div>

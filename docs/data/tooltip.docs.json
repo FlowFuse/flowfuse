@@ -7,11 +7,11 @@
         "examples": [{
             "code": "<div v-ff-tooltip=\"'Hello World'\">Hover for Default Tooltip</div>"
         }, {
-            "code": "<div v-ff-tooltip:left=\"'Hello World'\">Hover for Left Tooltip</div>"
+            "code": "<ff-check v-ff-tooltip:left=\"'Hello World'\" :value=\"true\">Hover for Left Tooltip</ff-check>"
         }, {
-            "code": "<div v-ff-tooltip:top=\"'Hello World'\">Hover for Top Tooltip</div>"
+            "code": "<ff-button v-ff-tooltip:top=\"'Hello World'\">Hover for Top Tooltip</ff-button>"
         }, {
-            "code": "<div v-ff-tooltip:bottom=\"'Hello World'\">Hover for Bottom Tooltip</div>"
+            "code": "<ff-notification-pill v-ff-tooltip:bottom=\"'Hello World'\" :count=\"4\">Hover for Bottom Tooltip</ff-notification-pill>"
         }],
         "props": [{
             "key": "position",
