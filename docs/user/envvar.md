@@ -16,7 +16,7 @@ The [Template](concepts.md#project-template) may include some predefined environ
 variables that are automatically applied to the project. The template may lock
 some of those variables to prevent a Project from changing them.
 
-Variables provided by the template cannot be deleted, however if they are editable,their value can be set to blank.
+Variables provided by the template cannot be deleted, however if they are editable, their value can be set to blank.
 
 ## Project
 
@@ -33,5 +33,18 @@ The second one `locked` is set by the template and the value is set to `true` is
 The third one `user` is set for the project, the value can be edited or the variable deleted
 
 <img src="images/project-envvar.png" width="500" />
+
+## Standard environment variables
+
+Projects running on FlowForge are assigned a standard set environment variables as follows.
+
+- FF_PROJECT_ID
+- FF_PROJECT_NAME
+- FF_DEVICE_ID
+- FF_DEVICE_NAME
+
+`FF_PROJECT_ID` and `FF_PROJECT_NAME` are assigned to the Project running on the FlowForge server as well as all associated Devices. In all Node-RED instances within a Project these variables will be the same.
+
+Unique values for `FF_DEVICE_ID` and `FF_DEVICE_NAME` are assigned to each instance of Node-RED running on a Device within a Project however these variables are not assigned to the instance running on the FlowForge server.
 
 
