@@ -3,6 +3,7 @@
         <span
             v-if="activeSnapshot?.id || updateNeeded"
             class="flex items-center space-x-2 text-gray-500 italic"
+            v-ff-tooltip:left="'Target snapshot has not yet been deployed to this device.'"
         >
             <ExclamationIcon
                 v-if="updateNeeded"

@@ -2,7 +2,7 @@
     <div class="space-y-6">
         <ff-loading v-if="loading" message="Loading Snapshots..." />
         <template v-if="snapshots.length > 0">
-            <ff-data-table data-el="snapshots" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
+            <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
                 <template v-slot:actions v-if="hasPermission('project:snapshot:create')">
                     <ff-button kind="primary" @click="showCreateSnapshotDialog" data-action="create-snapshot"><template v-slot:icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
                 </template>
@@ -27,33 +27,21 @@
 
 <script>
 
+import { PlusSmIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
-import permissionsMixin from '@/mixins/Permissions'
 
-import Alerts from '@/services/alerts'
-import Dialog from '@/services/dialog'
+import DaysSince from './components/cells/DaysSince'
+import SnapshotName from './components/cells/SnapshotName'
+import DeviceCount from './components/cells/DeviceCount'
+import SnapshotCreateDialog from './dialogs/SnapshotCreateDialog'
 
 import projectApi from '@/api/project'
 import snapshotApi from '@/api/projectSnapshots'
-import { PlusSmIcon, ChipIcon, ClockIcon } from '@heroicons/vue/outline'
-import daysSince from '@/utils/daysSince'
 import UserCell from '@/components/tables/cells/UserCell'
-import SnapshotCreateDialog from './dialogs/SnapshotCreateDialog'
-
-const SnapshotMetaInformation = {
-    template: `<div class="flex flex-col space-y-1 text-xs text-gray-500">
-    <UserCell :avatar="user.avatar" :name="user.name" :username="user.username" />
-    <span>{{since}}</span>
-    </div>`,
-    props: ['user', 'createdAt'],
-    computed: {
-        since: function () {
-            return daysSince(this.createdAt)
-        }
-    },
-    components: { UserCell }
-}
+import permissionsMixin from '@/mixins/Permissions'
+import Alerts from '@/services/alerts'
+import Dialog from '@/services/dialog'
 
 export default {
     name: 'ProjectSnapshots',
@@ -61,6 +49,7 @@ export default {
     data () {
         return {
             loading: false,
+            deviceCounts: {},
             snapshots: []
         }
     },
@@ -73,12 +62,31 @@ export default {
     },
     methods: {
         fetchData: async function (newVal) {
-            this.loading = true
             if (this.project.id) {
+                this.loading = true
+                const deviceCounts = await this.countDevices()
                 const data = await snapshotApi.getProjectSnapshots(this.project.id)
-                this.snapshots = data.snapshots
+                this.snapshots = data.snapshots.map((s) => {
+                    s.deviceCount = deviceCounts[s.id]
+                    return s
+                })
+                this.loading = false
             }
-            this.loading = false
+        },
+        async countDevices () {
+            // hardcoded device limit to ensure all are returned - feels dirty
+            const data = await projectApi.getProjectDevices(this.project.id, null, 10000000)
+            // map devices to snapshot deployed on that device
+            const deviceCounts = data.devices.reduce((acc, device) => {
+                const snapshot = device.activeSnapshot?.id
+                if (!acc[snapshot]) {
+                    acc[snapshot] = 1
+                } else {
+                    acc[snapshot]++
+                }
+                return acc
+            }, {})
+            return deviceCounts
         },
         // snapshot actions - delete
         showDeleteSnapshotDialog (snapshot) {
@@ -134,39 +142,39 @@ export default {
         showContextMenu: function () {
             return this.hasPermission('project:snapshot:rollback') || this.hasPermission('project:snapshot:set-target') || this.hasPermission('project:snapshot:delete')
         },
-        columns: function () {
-            const targetSnapshot = this.project.deviceSettings?.targetSnapshot
-
-            const SnapshotName = {
-                template: `<div class="flex items-center">
-                    <ClockIcon class="w-6 mr-2 text-gray-500" />
-                    <div class="flex flex-grow flex-col space-y-1">
-                        <span class="text-md">{{name}}</span>
-                        <span class="text-xs text-gray-500">id: {{id}}</span>
-                        <template v-if="description">
-                        <details class="text-gray-500 float-left">
-                            <summary class="cursor-pointer">Description</summary>
-                            <div class="whitespace-pre-line absolute border drop-shadow-md rounded bg-white p-2" style="max-width: 300px;">{{description}}</div>
-                        </details>
-                        </template>
-                    </div>
-                    <div v-if="active" class="flex border border-green-400 rounded-full bg-green-200 py-1 px-2 text-xs">
-                        <ChipIcon class="w-4 mr-1" />
-                        <span>active</span>
-                    </div>
-                </div>`,
-                props: ['id', 'name', 'description'],
-                components: { ClockIcon, ChipIcon },
-                computed: {
-                    active: function () {
-                        return this.id === targetSnapshot
-                    }
-                }
-            }
-
+        columns () {
             const cols = [
-                { label: 'Snapshots', component: { is: markRaw(SnapshotName) } },
-                { class: ['w-56'], component: { is: markRaw(SnapshotMetaInformation) } }
+                {
+                    label: 'Snapshot',
+                    component: {
+                        is: markRaw(SnapshotName),
+                        extraProps: {
+                            targetSnapshot: this.project.deviceSettings?.targetSnapshot
+                        }
+                    }
+                },
+                {
+                    label: '',
+                    component: {
+                        is: markRaw(DeviceCount),
+                        extraProps: {
+                            targetSnapshot: this.project.deviceSettings?.targetSnapshot
+                        }
+                    }
+                },
+                {
+                    label: 'Created By',
+                    class: ['w-56'],
+                    component: {
+                        is: markRaw(UserCell),
+                        map: {
+                            avatar: 'user.avatar',
+                            name: 'user.name',
+                            username: 'user.username'
+                        }
+                    }
+                },
+                { label: 'Date Created', class: ['w-56'], component: { is: markRaw(DaysSince), map: { date: 'createdAt' } } }
             ]
             return cols
         }
