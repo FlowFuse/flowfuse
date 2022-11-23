@@ -23,7 +23,7 @@ module.exports = fp(async function (app, _opts, next) {
                 if (notReady) {
                     init(true, (err, success) => {
                         if (!err && success) {
-                            clearInerval(poStartupCheck)
+                            clearInterval(poStartupCheck)
                         }
                     })
                 } else {
