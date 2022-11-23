@@ -70,3 +70,7 @@ label {
 [role="menu"] a[role="menuitem"] {
     cursor: pointer
 }
+
+.ff-dialog-fixed-height .ff-dialog-content {
+    overflow-y: visible;
+}

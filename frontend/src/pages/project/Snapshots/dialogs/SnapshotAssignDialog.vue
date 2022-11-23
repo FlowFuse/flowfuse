@@ -5,7 +5,7 @@
         header="Select Target Snapshot"
         confirm-label="Assign"
         :disable-primary="!formValid"
-        class="snapshot-assign-dialog"
+        class="ff-dialog-fixed-height"
         data-el="snapshot-assign-dialog"
         @confirm="confirm()"
     >
@@ -127,16 +127,3 @@ export default {
     }
 }
 </script>
-
-<style lang="scss">
-// So the dropdown options break out of the dialog
-.snapshot-assign-dialog {
-    .ff-dialog-content {
-        overflow-y: visible;
-    }
-
-    .ff-dropdown-options {
-        z-index: 500
-    }
-}
-</style>

@@ -3,7 +3,7 @@
         ref="dialog"
         header="Change Project Stack"
         confirm-label="Change Stack"
-        class="change-stack-dialog"
+        class="ff-dialog-fixed-height"
         data-el="change-stack-dialog"
         @confirm="confirm()"
     >
@@ -71,16 +71,3 @@ export default {
     }
 }
 </script>
-
-<style lang="scss">
-// So the dropdown options break out of the dialog
-.change-stack-dialog {
-    .ff-dialog-content {
-        overflow-y: visible;
-    }
-
-    .ff-dropdown-options {
-        z-index: 500
-    }
-}
-</style>
