@@ -27,7 +27,7 @@ module.exports = fp(async function (app, _opts, next) {
                         }
                     })
                 } else {
-                    clearTimeout(poStartupCheck)
+                    clearInterval(poStartupCheck)
                 }
             }, 1000 * 60 * 5) // check every 5 minutes until successful
         }
