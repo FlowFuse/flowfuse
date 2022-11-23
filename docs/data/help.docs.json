@@ -1,0 +1,21 @@
+{
+    "name": "Help Tooltip",
+    "id": "help-tooltip",
+    "components": [{
+        "name": "ff-help",
+        "examples": [{
+            "code": "<h5>Sample Header<ff-help text=\"Hello World\"></ff-help></h5>"
+        }, {
+            "code": "<ff-help text=\"Hello World\" position=\"bottom\"></ff-help>"
+        }],
+        "props": [{
+            "key": "text",
+            "default": "Dialog Box",
+            "description": "<string> to display in the main header bar of the dialog box"
+        }, {
+            "key": "position",
+            "default": "Confirm",
+            "description": "The text contained within the primary button of the dialog box."
+        }]
+    }]
+}
