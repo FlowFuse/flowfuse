@@ -8,30 +8,32 @@ module.exports = fp(async function (app, _opts, next) {
     let mailTransport
     let exportableSettings = {}
     let EMAIL_ENABLED = app.config.email.enabled
+    let poStartupCheck
     const isConfigured = EMAIL_ENABLED && (app.config.email.smtp || app.config.email.transport || app.config.email.ses)
     const mailDefaults = { from: app.config.email.from ? app.config.email.from : '"FlowForge Platform" <donotreply@flowforge.com>' }
-    if (EMAIL_ENABLED) {
-        let poStartupCheck
-        init(false, (err, enabled) => {
-            if (!err && enabled) {
+
+    // Startup initialisation
+    init(false, (err, connected) => {
+        if (!err && connected) {
+            clearInterval(poStartupCheck)
+        }
+    })
+
+    if (isConfigured) {
+        poStartupCheck = setInterval(() => {
+            const notReady = app.config.email.enabled === true && EMAIL_ENABLED === false
+            if (notReady) {
+                init(true, (err, connected) => {
+                    if (!err && connected) {
+                        clearInterval(poStartupCheck)
+                    }
+                })
+            } else {
                 clearInterval(poStartupCheck)
             }
-        })
-        if (isConfigured) {
-            poStartupCheck = setInterval(() => {
-                const notReady = app.config.email.enabled === true && EMAIL_ENABLED === false
-                if (notReady) {
-                    init(true, (err, success) => {
-                        if (!err && success) {
-                            clearInterval(poStartupCheck)
-                        }
-                    })
-                } else {
-                    clearInterval(poStartupCheck)
-                }
-            }, 1000 * 60 * 5) // check every 5 minutes until successful
-        }
+        }, 1000 * 60 * 5) // check every 5 minutes until successful
     }
+
     function init (retry, callback) {
         if (EMAIL_ENABLED || retry) {
             if (retry && mailTransport) {
