@@ -40,7 +40,6 @@ export default {
     },
     methods: {
         changePassword () {
-            this.loading = true
             this.errors.old_password = ''
             this.errors.password = ''
             this.errors.password_confirm = ''
@@ -55,13 +54,14 @@ export default {
                 return false
             }
             if (this.input.password.length < 8) {
-                this.errors.password = 'Password too short'
+                this.errors.password = 'Password too short (min. 8 characters)'
                 return false
             }
             if (this.input.password !== this.input.password_confirm) {
                 this.errors.password_confirm = 'Passwords do not match'
                 return false
             }
+            this.loading = true
             userApi.changePassword(this.input.old_password, this.input.password).then(() => {
                 this.input.password = ''
                 this.input.old_password = ''
