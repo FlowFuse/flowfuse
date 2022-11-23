@@ -189,6 +189,7 @@ access to a persistent file system to store files.
 
 FlowForge File Nodes provide a solution to this for basic read/write.
 More details can be found [here](../file-storage/).
+
 ### First Run Setup
 
 The first time you access the platform in your browser, it will take you through

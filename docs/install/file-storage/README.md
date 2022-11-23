@@ -3,9 +3,9 @@
 When running in cloud like environment (under Docker or Kubernetes)
 FlowForge projects do not have access to a persistent filesystem to 
 use to store files. Files written to the container file system will 
-lost if the project is restarted. 
+be lost if the project is restarted.
 
-For this reason we recomend that the Node-RED core file nodes are
+For this reason we recommend that the Node-RED core file nodes are
 disabled on these platforms.
 
 To solve this limitation FlowForge provides a set of replacement
@@ -13,7 +13,7 @@ file nodes. These are backed by Object Store which can be configured
 to use a mounted volume or S3 bucket.
 
 The FlowForge File Storage system can also be used with the FlowForge
-LocalFS build, but in this case the FlowForge Projects already have
+LocalFS build. In this case the FlowForge Projects already have
 direct access to the file system of the machine hosting FlowForge.
 
 ## Configuring
@@ -44,7 +44,7 @@ driver:
     root: var/root
 ```
 
-### S3
+### S3 Compatible Storage
 
 The following can be any of the options for the S3Client Contructor, see [here](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-s3/interfaces/s3clientconfig.html)
 
@@ -57,7 +57,7 @@ The following can be any of the options for the S3Client Contructor, see [here](
         - accessKeyId - AccountID/Username
         - secretAccessKey - SecretKey/Password
 
-e.g.
+For Example:
 
 ```
 host: '0.0.0.0'
@@ -78,7 +78,7 @@ driver:
 
 You can configure the backend store for the File Server by editing the 
 `etc/flowforge-storage.yml` file. It defaults to using the `localfs` 
-backend driver and mounting a directory into the contianer.
+backend driver and mounting a directory into the container.
 
 ## Kubernetes Helm
 
@@ -107,7 +107,7 @@ Adding `10-file.js` to the list of "Excluded nodes by filename" section will ens
 ## Working with FlowForge Devices
 
 Because the FlowForge File nodes are a direct replacement for the
-Node-RED core file nodes, this means you can use them to build flows
+Node-RED core file nodes you can use them to build flows
 in the cloud that can then be deployed to a device and make use of 
 the file system on the device.
 
