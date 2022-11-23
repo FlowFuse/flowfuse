@@ -4,6 +4,7 @@ const routes = require('./routes')
 const config = require('./config')
 const settings = require('./settings')
 const license = require('./licensing')
+const auditLog = require('./auditLog')
 const containers = require('./containers')
 const comms = require('./comms')
 const cookie = require('@fastify/cookie')
@@ -56,6 +57,8 @@ module.exports = async (options = {}) => {
         await server.register(monitor)
         // License
         await server.register(license)
+        // Audit Logging
+        await server.register(auditLog)
 
         // Housekeeper
         await server.register(housekeeper)

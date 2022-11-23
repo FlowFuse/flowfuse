@@ -29,10 +29,12 @@ module.exports = async function (app) {
         const invitation = await app.db.models.Invitation.byId(request.params.invitationId, request.session.User)
         if (invitation) {
             await app.db.controllers.Invitation.acceptInvitation(invitation, request.session.User)
-            await userLog(request.session.User.id, 'accept-invite', null, invitation.inviteeId)
+            await app.auditLog.User.user.invitation.accepted(request.session.User, null)
             reply.send({ status: 'okay' })
         } else {
-            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+            const resp = { code: 'not_found', error: 'Not Found' }
+            await app.auditLog.User.user.invitation.accepted(request.session.User, resp)
+            reply.code(404).send(resp)
         }
     })
 
@@ -44,31 +46,12 @@ module.exports = async function (app) {
         const invitation = await app.db.models.Invitation.byId(request.params.invitationId, request.session.User)
         if (invitation) {
             await app.db.controllers.Invitation.rejectInvitation(invitation, request.session.User)
-            await userLog(request.session.User.id, 'delete-invite', null, invitation.inviteeId)
+            await app.auditLog.User.user.invitation.deleted(request.session.User, null)
             reply.send({ status: 'okay' })
         } else {
-            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+            const resp = { code: 'not_found', error: 'Not Found' }
+            await app.auditLog.User.user.invitations.deleteInvite(request.session.User, resp)
+            reply.code(404).send(resp)
         }
     })
-
-    /**
-     * Log events against the entityType `users.x.y`
-     * @param {number} userId User performing the action
-     * @param {string} event The name of the event
-     * @param {*} body The body/data for the log entry
-     * @param {string|number} [entityId] The ID of the user being affected (where available)
-     */
-    async function userLog (userId, event, body, entityId) {
-        try {
-            // function userLog (app, UserId, event, body, entityId)
-            await app.db.controllers.AuditLog.userLog(
-                userId,
-                `user.invitations.${event}`,
-                body,
-                entityId || userId
-            )
-        } catch (error) {
-            console.error(error)
-        }
-    }
 }

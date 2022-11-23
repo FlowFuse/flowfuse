@@ -80,6 +80,7 @@ module.exports = async function (app) {
         }
         try {
             const projectType = await app.db.models.ProjectType.create(properties)
+            await app.auditLog.Platform.platform.projectType.created(request.session.User, null, projectType)
             const response = app.db.views.ProjectType.projectType(projectType, true)
             reply.send(response)
         } catch (err) {
@@ -89,7 +90,9 @@ module.exports = async function (app) {
             } else {
                 responseMessage = err.toString()
             }
-            reply.code(400).send({ code: 'unexpected_error', error: responseMessage })
+            const resp = { code: 'unexpected_error', error: responseMessage }
+            await app.auditLog.Platform.platform.projectType.created(request.session.User, resp, properties)
+            reply.code(400).send(resp)
         }
     })
 
@@ -105,7 +108,7 @@ module.exports = async function (app) {
         const projectType = await app.db.models.ProjectType.byId(request.params.projectTypeId)
 
         const inUse = projectType.getDataValue('projectCount') > 0
-
+        const updates = new app.auditLog.formatters.UpdatesCollection()
         if (inUse && request.body.properties) {
             // Don't allow the properties to be edited - this contains the billing
             // information and we don't want to have to update live projects
@@ -113,28 +116,46 @@ module.exports = async function (app) {
             return
         }
         try {
-            if (request.body.name !== undefined) {
+            const hasValueChanged = (requestProp, existingProp) => (requestProp !== undefined && existingProp !== requestProp)
+            if (hasValueChanged(request.body.name, projectType.name)) {
+                updates.push('name', request.body.name)
                 projectType.name = request.body.name
             }
-            if (request.body.description !== undefined) {
+            if (hasValueChanged(request.body.description, projectType.description)) {
+                updates.push('description', request.body.description)
                 projectType.description = request.body.description
             }
-            if (request.body.active !== undefined) {
+            if (hasValueChanged(request.body.active, projectType.active)) {
+                updates.push('active', request.body.active)
                 projectType.active = request.body.active
             }
             if (request.body.properties !== undefined) {
+                try {
+                    const oldProps = {}
+                    const newProps = {}
+                    oldProps.properties = typeof projectType.properties === 'string' ? JSON.parse(projectType.properties) : projectType.properties
+                    newProps.properties = typeof request.body.properties === 'string' ? JSON.parse(request.body.properties) : request.body.properties
+                    updates.pushDifferences(oldProps, newProps)
+                } catch (_error) {
+                    // Ignore
+                }
                 projectType.properties = request.body.properties
             }
-            if (request.body.order !== undefined) {
+            if (hasValueChanged(request.body.order, projectType.order)) {
+                updates.push('order', request.body.order)
                 projectType.order = request.body.order
             }
             if (request.body.defaultStack) {
-                const defaultStack = app.db.models.ProjectStack.decodeHashid(request.body.defaultStack)
-                if (defaultStack) {
-                    projectType.defaultStackId = defaultStack
+                const defaultStackId = app.db.models.ProjectStack.decodeHashid(request.body.defaultStack)
+                if (defaultStackId) {
+                    if (hasValueChanged(defaultStackId, projectType.defaultStackId)) {
+                        updates.push('defaultStackId', defaultStackId)
+                    }
+                    projectType.defaultStackId = defaultStackId
                 }
             }
             await projectType.save()
+            await app.auditLog.Platform.platform.projectType.updated(request.session.User, null, projectType, updates)
             reply.send(app.db.views.ProjectType.projectType(projectType, request.session.User.admin))
         } catch (err) {
             let responseMessage
@@ -143,7 +164,9 @@ module.exports = async function (app) {
             } else {
                 responseMessage = err.toString()
             }
-            reply.code(400).send({ code: 'unexpected_error', error: responseMessage })
+            const resp = { code: 'unexpected_error', error: responseMessage }
+            await app.auditLog.Platform.platform.projectType.updated(request.session.User, resp, projectType, updates)
+            reply.code(400).send(resp)
         }
     })
 
@@ -162,9 +185,12 @@ module.exports = async function (app) {
         if (projectType) {
             try {
                 await projectType.destroy()
+                await app.auditLog.Platform.platform.projectType.deleted(request.session.User, null, projectType)
                 reply.send({ status: 'okay' })
             } catch (err) {
-                reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
+                const resp = { code: 'unexpected_error', error: err.toString() }
+                await app.auditLog.Platform.platform.projectType.deleted(request.session.User, resp, projectType)
+                reply.code(400).send(resp)
             }
         } else {
             reply.code(404).send({ code: 'not_found', status: 'Not Found' })

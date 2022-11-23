@@ -100,6 +100,7 @@ module.exports = async function (app) {
                 }
             }
             const stack = await app.db.models.ProjectStack.create(stackProperties)
+            await app.auditLog.Platform.platform.stack.created(request.session.User, null, stack)
             if (replacedStack) {
                 // Update all previous stacks to point to the latest in the chain
                 await app.db.models.ProjectStack.update({ replacedBy: stack.id }, {
@@ -127,7 +128,9 @@ module.exports = async function (app) {
             } else {
                 responseMessage = err.toString()
             }
-            reply.code(400).send({ code: 'unexpected_error', error: responseMessage })
+            const resp = { code: 'unexpected_error', error: responseMessage }
+            await app.auditLog.Platform.platform.stack.created(request.session.User, resp, stackProperties)
+            reply.code(400).send(resp)
         }
     })
 
@@ -146,12 +149,15 @@ module.exports = async function (app) {
         if (stack) {
             try {
                 await stack.destroy()
+                await app.auditLog.Platform.platform.stack.deleted(request.session.User, null, stack)
                 reply.send({ status: 'okay' })
             } catch (err) {
                 reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
             }
         } else {
-            reply.code(404).send({ code: 'not_found', status: 'Not Found' })
+            const resp = { code: 'not_found', status: 'Not Found' }
+            await app.auditLog.Platform.platform.stack.deleted(request.session.User, resp, stack)
+            reply.code(404).send(resp)
         }
     })
 
@@ -167,10 +173,13 @@ module.exports = async function (app) {
         const stack = await app.db.models.ProjectStack.byId(request.params.stackId)
         if (request.body.name !== undefined || request.body.properties !== undefined) {
             if (stack.getDataValue('projectCount') > 0) {
-                reply.code(400).send({ code: 'invalid_request', error: 'Cannot edit in-use stack' })
+                const resp = { code: 'invalid_request', error: 'Cannot edit in-use stack' }
+                await app.auditLog.Platform.platform.stack.updated(request.session.User, resp, stack)
+                reply.code(400).send(resp)
                 return
             }
         }
+        const updates = new app.auditLog.formatters.UpdatesCollection()
         if (request.body.projectType) {
             const projectTypeId = app.db.models.ProjectType.decodeHashid(request.body.projectType)
             if (!stack.ProjectTypeId) {
@@ -178,6 +187,7 @@ module.exports = async function (app) {
                 // We'll allow that as part of the migration of legacy stacks
                 if (projectTypeId) {
                     stack.ProjectTypeId = projectTypeId[0]
+                    updates.push('ProjectTypeId', null, projectTypeId[0], 'created')
                     // We can also assign any projects using this stack to the same project-type
                     await app.db.models.Project.update({ ProjectTypeId: projectTypeId[0] }, {
                         where: {
@@ -191,20 +201,25 @@ module.exports = async function (app) {
             }
         }
 
-        if (request.body.name !== undefined) {
+        if (request.body.name !== undefined && stack.name !== request.body.name) {
+            updates.push('name', stack.name, request.body.name)
             stack.name = request.body.name
         }
-        if (request.body.label !== undefined) {
+        if (request.body.label !== undefined && stack.label !== request.body.label) {
+            updates.push('label', stack.label, request.body.label)
             stack.label = request.body.label
         }
-        if (request.body.active !== undefined) {
+        if (request.body.active !== undefined && stack.active !== request.body.active) {
+            updates.push('active', stack.active, request.body.active)
             stack.active = request.body.active
         }
-        if (request.body.properties !== undefined) {
+        if (request.body.properties !== undefined && stack.properties !== request.body.properties) {
+            updates.pushDifferences({ properties: stack.properties }, { properties: request.body.properties })
             stack.properties = request.body.properties
         }
 
         await stack.save()
+        await app.auditLog.Platform.platform.stack.updated(request.session.User, null, stack, updates)
         reply.send(app.db.views.ProjectStack.stack(stack, request.session.User.admin))
     })
 }

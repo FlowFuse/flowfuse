@@ -73,12 +73,7 @@ module.exports = async function (app) {
         try {
             const result = await app.db.controllers.Team.removeUser(request.team, request.user, request.userRole)
             if (result) {
-                await app.db.controllers.AuditLog.teamLog(
-                    request.team.id,
-                    request.session.User.id,
-                    'user.removed',
-                    { user: request.user.username }
-                )
+                await app.auditLog.Team.team.user.removed(request.session.User, null, request.team, request.user)
             }
             reply.send({ status: 'okay' })
         } catch (err) {
@@ -97,12 +92,11 @@ module.exports = async function (app) {
             try {
                 const result = await app.db.controllers.Team.changeUserRole(request.params.teamId, request.params.userId, newRole)
                 if (result.oldRole !== result.role) {
-                    await app.db.controllers.AuditLog.teamLog(
-                        result.team.id,
-                        request.session.User.id,
-                        'user.roleChanged',
-                        { user: result.user.username, role: result.role }
-                    )
+                    const updates = new app.auditLog.formatters.UpdatesCollection()
+                    const oldRole = app.auditLog.formatters.roleObject(result.oldRole)
+                    const role = app.auditLog.formatters.roleObject(result.role)
+                    updates.push('role', oldRole?.role || result.oldRole, role?.role || result.role)
+                    await app.auditLog.Team.team.user.roleChanged(request.session.User, null, request.team, result.user, updates)
                 }
                 reply.send({ status: 'okay' })
             } catch (err) {

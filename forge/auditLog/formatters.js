@@ -1,4 +1,4 @@
-const { RoleNames } = require('../roles')
+const { RoleNames } = require('../lib/roles')
 
 const isObject = (obj) => {
     return obj !== null && typeof obj === 'object'
@@ -7,10 +7,10 @@ const isObject = (obj) => {
 /**
  * Generate a standard format body for the audit log display and database.
  * Any items null or missing must not generate a property in the body
- * @param {{ error?, team?, project?, device?, user?, stack?, billingSession?, license?, updates?, snapshot?, role?, projectType? } == {}} objects objects to include in body
- * @returns {{ error?, team?, project?, device?, user?, stack?, billingSession?, license?, updates?, snapshot?, role?, projectType? }
+ * @param {{ error?, team?, project?, sourceProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType? } == {}} objects objects to include in body
+ * @returns {{ error?, team?, project?, sourceProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType? }
  */
-const generateBody = ({ error, team, project, device, user, stack, billingSession, license, updates, snapshot, role, projectType } = {}) => {
+const generateBody = ({ error, team, project, sourceProject, device, user, stack, billingSession, subscription, license, updates, snapshot, role, projectType } = {}) => {
     const body = {}
 
     if (isObject(error) || typeof error === 'string') {
@@ -21,6 +21,9 @@ const generateBody = ({ error, team, project, device, user, stack, billingSessio
     }
     if (isObject(project)) {
         body.project = projectObject(project)
+    }
+    if (isObject(sourceProject)) {
+        body.sourceProject = projectObject(sourceProject)
     }
     if (isObject(device)) {
         body.device = deviceObject(device)
@@ -34,8 +37,11 @@ const generateBody = ({ error, team, project, device, user, stack, billingSessio
     if (isObject(billingSession)) {
         body.billingSession = billingSessionObject(billingSession)
     }
-    if (isObject(license)) {
-        body.license = licenseObject(license)
+    if (isObject(subscription)) {
+        body.subscription = subscriptionObject(subscription)
+    }
+    if (typeof license === 'string') {
+        body.license = license
     }
     if (updates && updates instanceof UpdatesCollection && updates.length > 0) {
         body.updates = updates.toArray()
@@ -52,6 +58,16 @@ const generateBody = ({ error, team, project, device, user, stack, billingSessio
         body.projectType = projectTypeObject(projectType)
     }
     return body
+}
+
+const sanitiseObjectIds = (obj) => {
+    if (obj && obj.hashid !== undefined) {
+        if (obj.hashid) {
+            obj.id = obj.hashid
+        }
+        delete obj.hashid
+    }
+    return obj
 }
 
 const formatLogEntry = (auditLogDbRow) => {
@@ -77,17 +93,26 @@ const formatLogEntry = (auditLogDbRow) => {
                 }
             }
 
+            // if the User is null, see if the body has details of who triggered the event
+            if (!formatted.User && auditLogDbRow.UserId == null && body?.trigger?.id != null) {
+                formatted.trigger = triggerObject(body.trigger.id, body.trigger)
+                formatted.User = { username: formatted.trigger.name } // TODO: Kept for compatibility. Remove once Audit Log UI overhaul complete
+            }
+
             formatted.body = generateBody({
                 error: body?.error,
                 team: body?.team,
                 project: body?.project,
+                sourceProject: body?.sourceProject,
                 user: body?.user,
                 stack: body?.stack,
                 billingSession: body?.billingSession,
+                subscription: body?.subscription,
                 license: body?.license,
                 snapshot: body?.snapshot,
                 updates: body?.updates,
-                device: body?.device
+                device: body?.device,
+                projectType: body?.projectType
             })
             const roleObj = body?.role && roleObject(body.role)
             if (roleObj) {
@@ -101,8 +126,11 @@ const formatLogEntry = (auditLogDbRow) => {
             if (body?.code && body?.error) {
                 formatted.body.error = errorObject({ code: body.code, error: body.error })
             }
+            for (const [key, value] of Object.entries(formatted.body)) {
+                formatted.body[key] = sanitiseObjectIds(value)
+            }
         } catch (_err) {
-            // console.log('Error parsing audit log body')
+            // console.log('Error parsing audit log body', _err)
         }
     }
     return formatted
@@ -134,18 +162,18 @@ const teamObject = (team, unknownValue = null) => {
     }
 }
 const userObject = (user, unknownValue = null) => {
+    const { id, hashid, name } = triggerObject(user?.id, user, unknownValue) || {}
     return {
-        id: user?.id || null,
-        hashid: user?.hashid || null,
-        name: user?.name || unknownValue,
-        username: user?.username || unknownValue,
+        id,
+        hashid,
+        name: user?.name || name || unknownValue,
+        username: id === 0 ? 'system' : (user?.username || unknownValue),
         email: user?.email || unknownValue
     }
 }
 const projectObject = (project, unknownValue = null) => {
     return {
         id: project?.id || null,
-        hashid: project?.hashid || null,
         name: project?.name || unknownValue
     }
 }
@@ -168,9 +196,9 @@ const billingSessionObject = (session) => {
         id: session?.id || null
     }
 }
-const licenseObject = (license) => {
+const subscriptionObject = (subscription) => {
     return {
-        id: license?.id || null
+        subscription: subscription?.subscription || null
     }
 }
 const snapshotObject = (snapshot) => {
@@ -196,40 +224,80 @@ const roleObject = (role) => {
 const projectTypeObject = (projectType) => {
     return {
         id: projectType?.id || null,
+        hashid: projectType?.hashid || null,
         name: projectType?.name || null
     }
 }
 /**
  * Generates the `trigger` part of the audit log report
- * @param {object|number|string} actionedBy A user object or a user id. NOTE: 0 will denote the "system", >0 denotes a user
+ * @param {object|number|'system'} actionedBy A user object or a user id. NOTE: 0 or 'system' can be used to indicate "system" triggered the event
  * @param {*} [user] If `actionedBy` is an ID, passing a the user object will permit the username to be rendered
- * @returns {{ id:number, type:string, name:string }} { id, type, name }
+ * @param {*} [unknownValue] If `unknownValue` is provided, it will be used for name and type if they are null
+ * @returns {{ id:number, hashid: string, type:string, name:string }} { id, hashid, type, name }
  */
-const triggerObject = (actionedBy, user) => {
-    const sanitise = (actionedBy, user) => {
-        let id = null
-        let hashid = null
-        let type = user != null ? 'user' : 'unknown'
-        let name = user?.username || user?.email || user?.name || 'Unknown'
-        if (typeof actionedBy === 'string') {
-            hashid = actionedBy
-            type = 'user'
-        } else if (typeof actionedBy === 'number') {
-            id = actionedBy
-            if (id === 0) {
-                type = 'system'
-                name = 'Forge Platform'
-            } else if (id > 0) {
-                type = 'user'
-            }
-        } else if (typeof actionedBy === 'object' && actionedBy != null) {
-            return sanitise(actionedBy.id, actionedBy)
-        }
-        return { id, hashid, type, name }
+function triggerObject (actionedBy, user, unknownValue = 'unknown') {
+    let id = null
+    let hashid = null
+    let type = unknownValue
+    let name = unknownValue
+    if (actionedBy == null) {
+        actionedBy = user
+        user = null
     }
-    return sanitise(actionedBy, user)
+    if (isNumber(actionedBy)) {
+        id = +actionedBy
+        if (id === 0) {
+            type = 'system'
+            hashid = 'system'
+            name = 'Forge Platform'
+        } else if (id > 0) {
+            type = 'user'
+            if (user) {
+                hashid = user.hashid || null
+                name = user?.name || user?.username || (user?.email || '').split('@')[0] || unknownValue || null
+            }
+        }
+    } else if (isStringWithLength(actionedBy)) {
+        if (actionedBy === 'system') {
+            return triggerObject({ id: 0 }, user)
+        } else {
+            id = isNumber(user?.id) ? +user.id : null
+            hashid = actionedBy
+            name = user?.name || user?.username || (user?.email || '').split('@')[0] || unknownValue || null
+            type = 'user'
+        }
+    } else if (looksLikeUserObject(actionedBy)) {
+        type = 'user'
+        if (actionedBy.id != null) {
+            return triggerObject(actionedBy.id, actionedBy)
+        } else if (actionedBy.hashid != null) {
+            return triggerObject(actionedBy.hashid, actionedBy)
+        }
+    } else if (looksLikeUserObject(user)) {
+        type = 'user'
+        if (user.id != null) {
+            return triggerObject(user.id, user)
+        } else if (user.hashid != null) {
+            return triggerObject(user.hashid, user)
+        }
+    }
+    return { id, hashid, type, name }
 }
 // #endregion (Log entry formatters)
+
+// #region Helpers
+
+function isStringWithLength (str) {
+    return typeof str === 'string' && str.length > 0
+}
+function isNumber (num) {
+    return (typeof num === 'number' && !isNaN(num)) || (typeof num === 'string' && !isNaN(+num))
+}
+function looksLikeUserObject (obj) {
+    return (obj && typeof obj === 'object' && (isNumber(obj.id) || isStringWithLength(obj.hashid) || isStringWithLength(obj.id /* could be a hash */)))
+}
+
+// #endregion (Helpers)
 
 // #region Updates formatter
 
@@ -237,9 +305,23 @@ const triggerObject = (actionedBy, user) => {
  * Creates and `updateObject` for pushing to an `UpdatesCollection`
  * @returns {updateObject}
  */
-const updatesObject = (key, oldValue, newValue, diffKind = 'updated') => {
-    return { key, old: oldValue, new: newValue, dif: diffKind }
+const DIFF_TYPES = {
+    VALUE_CREATED: 'created',
+    VALUE_UPDATED: 'updated',
+    VALUE_DELETED: 'deleted',
+    VALUE_UNCHANGED: '---'
 }
+const updatesObject = (key, oldValue, newValue, diffKind = DIFF_TYPES.VALUE_UPDATED) => {
+    // check if valid type
+    if (Object.values(DIFF_TYPES).includes(diffKind)) {
+        return { key, old: oldValue, new: newValue, dif: diffKind }
+    } else {
+        const err = Error(`${diffKind} is not a valid value of diffKind`)
+        err.code = 'invalid_value'
+        throw err
+    }
+}
+
 class UpdatesCollection {
     constructor () {
         this.updates = []
@@ -280,10 +362,7 @@ function generateUpdates (o1, o2, sensitiveKeys) {
     sensitiveKeys = sensitiveKeys || []
     const deepDiffMapper = (() => {
         return {
-            VALUE_CREATED: 'created',
-            VALUE_UPDATED: 'updated',
-            VALUE_DELETED: 'deleted',
-            VALUE_UNCHANGED: '---',
+            ...DIFF_TYPES,
             map: function (obj1, obj2) {
                 if (this.isFunction(obj1) || this.isFunction(obj2)) {
                     throw new Error('Invalid argument. Function given, object expected.')
@@ -419,7 +498,6 @@ module.exports = {
     userObject,
     stackObject,
     billingSessionObject,
-    licenseObject,
     snapshotObject,
     roleObject,
     projectTypeObject,

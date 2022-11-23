@@ -143,6 +143,12 @@ module.exports = async function (app) {
         }
     })
 
+    /**
+     * Create a new team
+     * @name /api/v1/teams
+     * @static
+     * @memberof forge.routes.api.team
+     */
     app.post('/', {
         preHandler: app.needsPermission('team:create'),
         schema: {
@@ -186,6 +192,8 @@ module.exports = async function (app) {
                 slug: request.body.slug,
                 TeamTypeId: teamType.id
             }, request.session.User)
+            await app.auditLog.Team.team.created(request.session.User, null, team)
+            await app.auditLog.Team.team.user.added(request.session.User, null, team, request.session.User)
 
             const teamView = app.db.views.Team.team(team)
 
@@ -195,12 +203,7 @@ module.exports = async function (app) {
                     cookie = request.unsignCookie(request.cookies.ff_coupon)?.valid ? request.unsignCookie(request.cookies.ff_coupon).value : undefined
                 }
                 const session = await app.billing.createSubscriptionSession(team, cookie)
-                app.db.controllers.AuditLog.teamLog(
-                    team.id,
-                    request.session.User.id,
-                    'billing.session.created',
-                    { session: session.id }
-                )
+                app.auditLog.Team.billing.session.created(request.session.User, null, team, session)
                 teamView.billingURL = session.url
             }
 
@@ -222,6 +225,12 @@ module.exports = async function (app) {
         }
     })
 
+    /**
+     * Delete a team
+     * @name /api/v1/teams/:teamId
+     * @static
+     * @memberof forge.routes.api.team
+     */
     app.delete('/:teamId', { preHandler: app.needsPermission('team:delete') }, async (request, reply) => {
         // At this point we know the requesting user has permission to do this.
         // But we also need to ensure the team has no projects
@@ -231,55 +240,44 @@ module.exports = async function (app) {
             if (app.license.active() && app.billing) {
                 const subscription = await app.db.models.Subscription.byTeam(request.team.id)
                 if (subscription) {
-                    const subId = subscription.subscription
+                    // const subId = subscription.subscription
                     await app.billing.closeSubscription(subscription)
-                    app.db.controllers.AuditLog.teamLog(
-                        request.team.id,
-                        request.session.User.id,
-                        'billing.subscription.deleted',
-                        { subscription: subId }
-                    )
+                    await app.auditLog.Team.billing.subscription.deleted(request.session.User, null, request.team, subscription)
                 }
             }
-            await app.db.controllers.AuditLog.teamLog(
-                request.team.id,
-                request.session.User.id,
-                'team.deleted'
-            )
             await request.team.destroy()
+            await app.auditLog.Team.team.deleted(request.session.User, null, request.team)
             reply.send({ status: 'okay' })
         } catch (err) {
-            reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
+            const resp = { code: 'unexpected_error', error: err.toString() }
+            await app.auditLog.Team.team.deleted(request.session.User, resp, request.team)
+            reply.code(400).send(resp)
         }
     })
 
+    /**
+     * Update a team
+     * @name /api/v1/teams/:teamId
+     * @static
+     * @memberof forge.routes.api.team
+     */
     app.put('/:teamId', { preHandler: app.needsPermission('team:edit') }, async (request, reply) => {
         try {
+            const updates = new app.auditLog.formatters.UpdatesCollection()
             if (request.body.name) {
-                const oldname = request.team.name
+                updates.push('name', request.team.name, request.body.name)
                 request.team.name = request.body.name
-                app.db.controllers.AuditLog.teamLog(
-                    request.team.id,
-                    request.session.User.id,
-                    'team.settings.nameChanged',
-                    { oldName: oldname, newName: request.body.name }
-                )
             }
             if (request.body.slug) {
                 if (request.body.slug === 'create') {
                     reply.code(400).send({ code: 'invalid_slug', error: 'slug not available' })
                     return
                 }
-                const oldSlug = request.team.slug
+                updates.push('slug', request.team.slug, request.body.slug)
                 request.team.slug = request.body.slug
-                app.db.controllers.AuditLog.teamLog(
-                    request.team.id,
-                    request.session.User.id,
-                    'team.settings.slugChanged',
-                    { oldSlug, newSlug: request.body.slug }
-                )
             }
             await request.team.save()
+            app.auditLog.Team.team.settings.updated(request.session.User, null, request.team, updates)
             reply.send(app.db.views.Team.team(request.team))
         } catch (err) {
             let responseMessage
@@ -314,7 +312,7 @@ module.exports = async function (app) {
     })
 
     /**
-     *
+     * Get the team audit log
      * @name /api/v1/team/:teamId/audit-log
      * @memberof forge.routes.api.project
      */
@@ -322,7 +320,6 @@ module.exports = async function (app) {
         const paginationOptions = app.getPaginationOptions(request)
         const logEntries = await app.db.models.AuditLog.forTeam(request.team.id, paginationOptions)
         const result = app.db.views.AuditLog.auditLog(logEntries)
-        // console.log(logEntries);
         reply.send(result)
     })
 }

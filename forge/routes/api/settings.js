@@ -47,30 +47,20 @@ module.exports = async function (app) {
 
     app.put('/', { preHandler: app.verifyAdmin }, async (request, reply) => {
         if (request.body) {
-            const changes = {}
-            let changeCount = 0
+            const updates = new app.auditLog.formatters.UpdatesCollection()
             for (let [key, value] of Object.entries(request.body)) {
                 if (key === 'user:tcs-updated') {
                     key = 'user:tcs-date'
                     value = new Date()
                 }
                 const original = app.settings.get(key)
-                const changed = original !== value
-                if (changed) {
-                    changeCount++
-                    changes[key] = {
-                        old: original,
-                        new: value
-                    }
+                if (original !== value) {
+                    updates.push(key, original, value)
                 }
                 await app.settings.set(key, value)
             }
-            if (changeCount > 0) {
-                await app.db.controllers.AuditLog.platformLog(
-                    request.session.User.id,
-                    'platform.settings.update',
-                    { changes }
-                )
+            if (updates.length > 0) {
+                await app.auditLog.Platform.platform.settings.updated(request.session.User, null, updates)
             }
             reply.send({ status: 'okay' })
         } else {

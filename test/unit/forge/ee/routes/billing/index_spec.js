@@ -72,7 +72,7 @@ describe('Stripe Callbacks', function () {
         should(response).have.property('statusCode', 200)
     })
 
-    it('Recieve checkout.session.completed callback', async function () {
+    it('Receive checkout.session.completed callback', async function () {
         const response = await (app.inject({
             method: 'POST',
             url: callbackURL,

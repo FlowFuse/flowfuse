@@ -62,12 +62,7 @@ module.exports = async function (app) {
                     ProjectId: request.project.id
                 }
             })
-            await app.db.controllers.AuditLog.projectLog(
-                request.project.id,
-                request.session.User.id,
-                'project.snapshot.deviceTarget',
-                { id: request.body.targetSnapshot }
-            )
+            await app.auditLog.Project.project.snapshot.deviceTargetSet(request.session.User, null, request.project, targetSnapshot)
             if (app.comms) {
                 app.comms.devices.sendCommandToProjectDevices(request.project.Team.hashid, request.project.id, 'update', {
                     snapshot: targetSnapshot.hashid

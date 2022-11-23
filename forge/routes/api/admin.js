@@ -1,3 +1,4 @@
+
 module.exports = async function (app) {
     app.addHook('preHandler', app.verifyAdmin)
 
@@ -53,19 +54,11 @@ module.exports = async function (app) {
             if (request.body.action === 'apply') {
                 await app.license.apply(request.body.license)
                 const license = app.license.get() || {}
-                await app.db.controllers.AuditLog.platformLog(
-                    request.session.User.id,
-                    'platform.licence.apply',
-                    { license }
-                )
+                await app.auditLog.Platform.platform.license.applied(request.session.User, null, license)
                 reply.send(license)
             } else if (request.body.action === 'inspect') {
                 const license = await app.license.inspect(request.body.license)
-                await app.db.controllers.AuditLog.platformLog(
-                    request.session.User.id,
-                    'platform.licence.inspect',
-                    { license }
-                )
+                await app.auditLog.Platform.platform.license.inspected(request.session.User, null, license)
                 reply.send(license)
             } else {
                 reply.code(400).send({ code: 'invalid_license_action', error: 'Invalid action' })
@@ -76,11 +69,11 @@ module.exports = async function (app) {
                 responseMessage = 'Failed to parse license'
             }
             const resp = { code: 'invalid_license', error: responseMessage }
-            await app.db.controllers.AuditLog.platformLog(
-                request.session.User.id,
-                'platform.licence.' + request.body.action,
-                resp
-            )
+            if (request.body.action === 'apply') {
+                await app.auditLog.Platform.platform.license.applied(request.session.User, resp, request.body.license)
+            } else if (request.body.action === 'inspect') {
+                await app.auditLog.Platform.platform.license.inspected(request.session.User, resp, request.body.license)
+            }
             reply.code(400).send(resp)
         }
     })

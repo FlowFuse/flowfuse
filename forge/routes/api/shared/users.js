@@ -1,4 +1,3 @@
-
 module.exports = {
 
     /**
@@ -22,14 +21,11 @@ module.exports = {
      * @param {object} user The user to update
      * @param {import("node_modules/fastify/fastify").FastifyRequest} request The incoming request
      * @param {import("node_modules/fastify/fastify").FastifyReply} reply The HTTP reply object
-     * @param {userLogCallback} [userLog] Audit Log function
+     * @param {'user'|'users'} eventBase The audit log event prefix e.g. user.update or users.update
      */
-    updateUser: async (app, user, request, reply, userLog) => {
+    updateUser: async (app, user, request, reply, eventBase) => {
         const noop = async () => {}
-        userLog = userLog || noop
-        const logUserInfo = {
-            username: user.username
-        }
+        const auditLog = app.auditLog.User[eventBase] || noop
         try {
             const originalUser = {
                 id: user.id,
@@ -99,7 +95,7 @@ module.exports = {
                         }
                     } else {
                         const resp = { code: 'invalid_request', error: 'cannot suspend self' }
-                        await userLog(request.session.User.id, 'update-user', resp, user.id)
+                        await auditLog.updatedUser(request.session.User, resp, null, user)
                         reply.code(400).send(resp)
                         return
                     }
@@ -112,7 +108,7 @@ module.exports = {
                     user.defaultTeamId = membership.TeamId
                 } else {
                     const resp = { code: 'invalid_team', error: 'invalid team', team: request.body.defaultTeam }
-                    await userLog(request.session.User.id, 'update-user', { ...resp, user: logUserInfo }, user.id)
+                    await auditLog.updatedUser(request.session.User, resp, null, user)
                     reply.code(400).send(resp)
                     return
                 }
@@ -131,7 +127,6 @@ module.exports = {
                     newEmail: user.email
                 })
             }
-
             // re-send verification email if a user was previously verified and is now not verified
             if (wasVerified && user.email_verified === false && request.session.User.id !== user.id) {
                 try {
@@ -149,14 +144,9 @@ module.exports = {
             }
             // diff profile before and after for log
             const newProfile = app.db.views.User.userProfile(user)
-            const newValues = Object.fromEntries(Object.entries(newProfile).filter(([k, v]) => oldProfile[k] !== v))
-            const originalValues = Object.fromEntries(Object.entries(oldProfile).filter(([k, v]) => newProfile[k] !== v))
-            await userLog(
-                request.session.User.id,
-                'update-user',
-                { old: originalValues, new: newValues, user: logUserInfo }, // log body
-                user.id
-            )
+            const updates = new app.auditLog.formatters.UpdatesCollection()
+            updates.pushDifferences(oldProfile, newProfile)
+            await auditLog.updatedUser(request.session.User, null, updates, user)
             reply.send(newProfile)
         } catch (err) {
             let responseMessage
@@ -168,7 +158,7 @@ module.exports = {
             console.log(err.toString())
             console.log(responseMessage)
             const resp = { code: 'unexpected_error', error: responseMessage }
-            await userLog(request.session.User.id, 'update-user', { ...resp, user: logUserInfo }, user.id)
+            await auditLog.updatedUser(request.session.User, resp, null, user) // log as error
             reply.code(400).send(resp)
         }
     }

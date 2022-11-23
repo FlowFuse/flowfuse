@@ -8,7 +8,6 @@ const { Readable } = require('stream')
 
 module.exports = async function (app) {
     const stripe = require('stripe')(app.config.billing.stripe.key)
-
     /**
      * Need to work out what auth needs to have happend
      */
@@ -103,12 +102,7 @@ module.exports = async function (app) {
                 // console.log(event)
                 app.log.info(`Created Subscription for team ${team.hashid}`)
                 await app.db.controllers.Subscription.createSubscription(team, subscription, customer)
-                app.db.controllers.AuditLog.teamLog(
-                    team.id,
-                    null,
-                    'billing.session.completed',
-                    { session: event.data.object.id }
-                )
+                await app.auditLog.Team.billing.session.completed(request.session?.User || 'system', null, team, event.data.object)
                 break
             case 'checkout.session.expired':
                 // should remove the team here
@@ -178,12 +172,7 @@ module.exports = async function (app) {
                     cookie = request.unsignCookie(request.cookies.ff_coupon)?.valid ? request.unsignCookie(request.cookies.ff_coupon).value : undefined
                 }
                 const session = await app.billing.createSubscriptionSession(team, cookie) // request.session.User)
-                app.db.controllers.AuditLog.teamLog(
-                    team.id,
-                    request.session.User.id,
-                    'billing.session.created',
-                    { session: session.id }
-                )
+                await app.auditLog.Team.billing.session.created(request.session.User, null, team, session)
                 response.code(402).type('application/json').send({ billingURL: session.url })
                 return
             } catch (err) {

@@ -55,7 +55,6 @@ module.exports = async function (app) {
     app.delete('/:snapshotId', {
         preHandler: app.needsPermission('project:snapshot:delete')
     }, async (request, reply) => {
-        const id = request.snapshot.hashid
         const project = await request.snapshot.getProject()
         const deviceSettings = await project.getSetting('deviceSettings') || {
             targetSnapshot: null
@@ -74,12 +73,7 @@ module.exports = async function (app) {
             }
         }
         await request.snapshot.destroy()
-        await app.db.controllers.AuditLog.projectLog(
-            request.project.id,
-            request.session.User.id,
-            'project.snapshot.deleted',
-            { id }
-        )
+        await app.auditLog.Project.project.snapshot.deleted(request.session.User, null, request.project, request.snapshot)
         reply.send({ status: 'okay' })
     })
 
@@ -95,12 +89,7 @@ module.exports = async function (app) {
             request.body
         )
         snapShot.User = request.session.User
-        await app.db.controllers.AuditLog.projectLog(
-            request.project.id,
-            request.session.User.id,
-            'project.snapshot.created',
-            { id: snapShot.hashid }
-        )
+        await app.auditLog.Project.project.snapshot.created(request.session.User, null, request.project, snapShot)
         reply.send(app.db.views.ProjectSnapshot.snapshot(snapShot))
     })
 }
