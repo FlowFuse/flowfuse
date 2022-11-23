@@ -10,12 +10,11 @@
         }],
         "props": [{
             "key": "text",
-            "default": "Dialog Box",
-            "description": "<string> to display in the main header bar of the dialog box"
+            "description": "<string> to display in the attached tooltip"
         }, {
             "key": "position",
-            "default": "Confirm",
-            "description": "The text contained within the primary button of the dialog box."
+            "default": "right",
+            "description": "<string> Any of the positioning options available in the ff-tooltip directive. Positions the tooltip with respect to the help icon."
         }]
     }]
 }
