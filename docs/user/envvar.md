@@ -45,6 +45,6 @@ Projects running on FlowForge are assigned a standard set environment variables 
 
 `FF_PROJECT_ID` and `FF_PROJECT_NAME` are assigned to the Project running on the FlowForge server as well as all associated devices. In all instances within a Project these variables will be the same.
 
-FF_DEVICE_ID & FF_DEVICE_NAME are unique to each instance of Node-RED running within a project. For example, a project consisting of 10 devices will assign a unique FF_DEVICE_ID & FF_DEVICE_NAME to each of the 10 devices as well as to the instance running directly on the FlowForge server.
+`FF_DEVICE_ID` and `FF_DEVICE_NAME` are unique to each instance of Node-RED running within a project. For example, a project consisting of 10 devices will assign a unique `FF_DEVICE_ID` and `FF_DEVICE_NAME` to each of the 10 devices as well as to the instance running directly on the FlowForge server.
 
 
