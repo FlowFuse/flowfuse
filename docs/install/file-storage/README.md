@@ -46,18 +46,18 @@ driver:
 
 ### S3 Compatible Storage
 
-The following can be any of the options for the S3Client Contructor, see [here](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-s3/interfaces/s3clientconfig.html)
-
 - options
     - bucket - name of S3 Bucket (required)
-    - region - AWS Region
+    - region - AWS Region for the bucket (required)
     - endpoint - S3 ObjectStore Endpoint (if not using AWS S3)
-    - forcePathStyle: true/false
+    - forcePathStyle: true
     - credential
         - accessKeyId - AccountID/Username
         - secretAccessKey - SecretKey/Password
 
-For Example:
+For further reference of all available options you can look at the S3Client documentation [here](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-s3/interfaces/s3clientconfig.html)
+
+For example:
 
 ```
 host: '0.0.0.0'
