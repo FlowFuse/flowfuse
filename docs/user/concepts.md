@@ -25,6 +25,10 @@ and allowed in the [Project Template](#project-template). These can be access
 from the Settings page of the project and there is a description of each one in
 the settings.
 
+On Docker and Kubernetes based FlowForge instances project names are used as the 
+hostname to access the project. This means that  the name must be DNS safe 
+(made up of a-z, 0-9 and -), it must also not start with a number.
+
 #### Project Type
 
 When you create a project, you can pick its type from the list the platform
