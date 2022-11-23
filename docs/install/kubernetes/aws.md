@@ -10,6 +10,13 @@ This is used to interact with the whole AWS environment
 
 https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 
+From here onwards this document assumes that you have configured the 
+AWS CLI tools with a user that has permission to carry out the steps.
+
+This document does not include details of how to configure such a user
+in AWS IAM. Please show this document to you AWS Account Admin if you
+need help.
+
 ### eksctl
 
 This tool is used to create/modify AWS EKS Clusters, it uses the credentials from the AWS Cli.
@@ -43,6 +50,40 @@ Edit the `cluster.yml` file in `aws_eks` to set your preferred instance type and
 
 ```
 eksctl create cluster -f cluster.yml
+```
+
+Example cluster.yml (Please visit [eksctl.io](https://eksctl.io/usage/creating-and-managing-clusters/#using-config-files) to be sure you understand what this does.)
+```
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: flowforge
+  region: us-east-1
+
+nodeGroups:
+  - name: management
+    labels:
+      role: "management"
+    instanceType: t2.small
+    desiredCapacity: 1
+    volumeSize: 20
+    ssh:
+      allow: false
+    iam:
+      withAddonPolicies:
+        efs: true
+  - name: instance
+    labels: 
+      role: "projects"
+    tags:
+      k8s.io/cluster-autoscaler/enabled: "true"
+      k8s.io/cluster-autoscaler/flowforge: "owned"
+    instanceType: t2.small
+    desiredCapacity: 2
+    volumeSize:
+    ssh:
+      allow: false
 ```
 
 Add oidc provider for Loadbalance and IAM roles
@@ -140,12 +181,19 @@ Create IAM Policy to allow sending emails (example: https://docs.aws.amazon.com/
 
 ## Use AWS RDS PostgreSQL instance
 
+The following script creates a AWS RDS PostgreSQL instance, it also
+sets up some network access rules so only the FlowForge app can access
+it from inside the cluster (and not the Node-RED Projects).
+
+Please read it carfully before running it to ensure you understand it.
+
+A copy of this file can be found [here](setup-rds.sh)
+
 Run the following command
 
 ```
-./aws-eks/setup-rds.sh
+./setup-rds.sh
 ```
-(Need to either make this script available, it's very complex as it sets up the VPS network routing between the RDS instance and the EKS cluster)
 
 Make a note of the postgress hostname
 ```
