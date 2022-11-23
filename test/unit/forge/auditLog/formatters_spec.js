@@ -177,7 +177,7 @@ describe('Audit Log > Formatters', async function () {
         should(userEmpty).have.property('email', null)
 
         const user = Formatters.userObject({
-            id: '<id>',
+            id: '5',
             hashid: '<hashid>',
             name: '<name>',
             username: '<username>',
@@ -185,7 +185,7 @@ describe('Audit Log > Formatters', async function () {
         })
 
         should(user).be.an.Object()
-        should(user).have.property('id', '<id>')
+        should(user).have.property('id', 5)
         should(user).have.property('hashid', '<hashid>')
         should(user).have.property('name', '<name>')
         should(user).have.property('username', '<username>')
@@ -196,19 +196,20 @@ describe('Audit Log > Formatters', async function () {
         const projectEmpty = Formatters.projectObject()
         should(projectEmpty).be.an.Object()
         should(projectEmpty).have.property('id', null)
-        should(projectEmpty).have.property('hashid', null)
         should(projectEmpty).have.property('name', null)
 
         const project = Formatters.projectObject({
-            id: '<id>',
             hashid: '<hashid>',
-            name: '<name>'
+            name: '<name>',
+            id: '<id>',
+            password: '<password>'
         })
 
         should(project).be.an.Object()
         should(project).have.property('id', '<id>')
-        should(project).have.property('hashid', '<hashid>')
         should(project).have.property('name', '<name>')
+        should(project).have.not.property('hashid')
+        should(project).have.not.property('password')
     })
 
     it('Generated a deviceObject with the correct format', async function () {
@@ -321,13 +322,13 @@ describe('Audit Log > Formatters', async function () {
         should(triggerEmpty).have.property('id', null)
         should(triggerEmpty).have.property('hashid', null)
         should(triggerEmpty).have.property('type', 'unknown')
-        should(triggerEmpty).have.property('name', 'Unknown')
+        should(triggerEmpty).have.property('name', 'unknown')
 
         const triggerPlatform = Formatters.triggerObject(0)
 
         should(triggerPlatform).be.an.Object()
         should(triggerPlatform).have.property('id', 0)
-        should(triggerPlatform).have.property('hashid', null)
+        should(triggerPlatform).have.property('hashid', 'system')
         should(triggerPlatform).have.property('type', 'system')
         should(triggerPlatform).have.property('name', 'Forge Platform')
 
@@ -336,7 +337,7 @@ describe('Audit Log > Formatters', async function () {
         })
 
         should(triggerUserHash).be.an.Object()
-        should(triggerUserHash).have.property('id', '<hash>')
+        should(triggerUserHash).have.property('id', null)
         should(triggerUserHash).have.property('hashid', '<hash>')
         should(triggerUserHash).have.property('type', 'user')
         should(triggerUserHash).have.property('name', '<email>')

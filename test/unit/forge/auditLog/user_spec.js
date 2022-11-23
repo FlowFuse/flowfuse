@@ -76,7 +76,7 @@ describe('Audit Log > User', async function () {
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'account.login')
         logEntry.should.have.property('scope', { id: '', type: 'user' })
-        logEntry.should.have.property('trigger', { id: null, hashid: null, type: 'unknown', name: 'Unknown' })
+        logEntry.should.have.property('trigger', { id: null, hashid: null, type: 'unknown', name: 'unknown' })
         logEntry.should.have.property('body')
         logEntry.body.should.only.have.keys('error')
         logEntry.body.should.have.property('error', TEST_ERR)
