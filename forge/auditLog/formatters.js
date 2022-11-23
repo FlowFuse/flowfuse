@@ -162,12 +162,12 @@ const teamObject = (team, unknownValue = null) => {
     }
 }
 const userObject = (user, unknownValue = null) => {
-    const { id, hashid } = triggerObject(user?.id, user, unknownValue) || {}
+    const { id, hashid, name } = triggerObject(user?.id, user, unknownValue) || {}
     return {
         id,
         hashid,
-        name: user?.name || unknownValue,
-        username: user?.username || unknownValue,
+        name: user?.name || name || unknownValue,
+        username: id === 0 ? 'system' : (user?.username || unknownValue),
         email: user?.email || unknownValue
     }
 }

@@ -190,6 +190,41 @@ describe('Audit Log > Formatters', async function () {
         should(user).have.property('name', '<name>')
         should(user).have.property('username', '<username>')
         should(user).have.property('email', '<email>')
+
+        // extended tests to ensure no exceptions / stack overflow and that results are consistent
+        // common values
+        const unknownUnknown = { id: null, hashid: null, name: null, username: null, email: null }
+        const id0SystemUser = { id: 0, hashid: 'system', name: 'Forge Platform', username: 'system', email: null }
+        const id1NoHashNoName = { id: 1, hashid: null, name: null, username: null, email: null }
+        const idNullHashAbc = { id: null, hashid: 'abc', name: null, username: null, email: null }
+        // test cases
+        Formatters.userObject(null).should.eql(unknownUnknown)
+        Formatters.userObject(null, null).should.eql(unknownUnknown)
+        Formatters.userObject(undefined, undefined).should.eql(unknownUnknown)
+        Formatters.userObject({}).should.eql(unknownUnknown)
+        Formatters.userObject({ id: null }).should.eql(unknownUnknown)
+        Formatters.userObject({ hashid: null }).should.eql(unknownUnknown)
+        Formatters.userObject({ id: {} }).should.eql(unknownUnknown)
+        Formatters.userObject({ id: undefined }).should.eql(unknownUnknown)
+
+        Formatters.userObject(0).should.eql(id0SystemUser)
+        Formatters.userObject(0, null).should.eql(id0SystemUser)
+        Formatters.userObject(0, undefined).should.eql(id0SystemUser)
+        Formatters.userObject({ id: 0 }, null).should.eql(id0SystemUser)
+        Formatters.userObject({ id: 'system' }, null).should.eql(id0SystemUser)
+        Formatters.userObject('system').should.eql(id0SystemUser)
+
+        Formatters.userObject(1).should.eql(id1NoHashNoName)
+        Formatters.userObject(1, null).should.eql(id1NoHashNoName)
+        Formatters.userObject({ id: 1 }).should.eql(id1NoHashNoName)
+
+        Formatters.userObject('abc').should.eql(idNullHashAbc)
+        Formatters.userObject({ id: 'abc' }).should.eql(idNullHashAbc)
+
+        Formatters.userObject({ id: 123 }).should.eql({ id: 123, hashid: null, name: null, username: null, email: null })
+        Formatters.userObject({ id: '123' }).should.eql({ id: 123, hashid: null, name: null, username: null, email: null })
+        Formatters.userObject({ id: 456, hashid: 'def', name: 'ted', username: 'steady teddy' }, 'dunno').should.eql({ id: 456, hashid: 'def', name: 'ted', username: 'steady teddy', email: 'dunno' })
+        Formatters.userObject({ id: 456, hashid: 'def', name: 'ted', email: 'superted@jungle-treehouse.amazon' }, 'dunno').should.eql({ id: 456, hashid: 'def', name: 'ted', username: 'dunno', email: 'superted@jungle-treehouse.amazon' })
     })
 
     it('Generated a projectObject with the correct format', async function () {
@@ -351,6 +386,61 @@ describe('Audit Log > Formatters', async function () {
         should(triggerUser).have.property('hashid', null)
         should(triggerUser).have.property('type', 'user')
         should(triggerUser).have.property('name', '<username>')
+
+        // extended tests to ensure no exceptions / stack overflow and that results are consistent
+        // common values
+        const unknownUnknown = { id: null, hashid: null, type: 'unknown', name: 'unknown' }
+        const id0SystemUser = { id: 0, hashid: 'system', type: 'system', name: 'Forge Platform' }
+        const id1NoHashNoName = { id: 1, hashid: null, type: 'user', name: 'unknown' }
+        const idNullHashAbc = { id: null, hashid: 'abc', type: 'user', name: 'unknown' }
+        // test cases
+        Formatters.triggerObject(null, null).should.eql(unknownUnknown)
+        Formatters.triggerObject(undefined, undefined).should.eql(unknownUnknown)
+        Formatters.triggerObject(null, {}).should.eql(unknownUnknown)
+        Formatters.triggerObject(null, { id: null }).should.eql(unknownUnknown)
+        Formatters.triggerObject({}).should.eql(unknownUnknown)
+        Formatters.triggerObject({}, 0).should.eql(unknownUnknown)
+        Formatters.triggerObject({}, 1).should.eql(unknownUnknown)
+        Formatters.triggerObject({ id: null }).should.eql(unknownUnknown)
+        Formatters.triggerObject({ id: null }, { id: null }).should.eql(unknownUnknown)
+        Formatters.triggerObject({ id: null }, { id: undefined }).should.eql(unknownUnknown)
+        Formatters.triggerObject({ id: null }, 'abc').should.eql(unknownUnknown)
+        Formatters.triggerObject({ id: null }, 123).should.eql(unknownUnknown)
+        Formatters.triggerObject({ id: null }, '123').should.eql(unknownUnknown)
+
+        Formatters.triggerObject(0).should.eql(id0SystemUser)
+        Formatters.triggerObject(0, null).should.eql(id0SystemUser)
+        Formatters.triggerObject('system').should.eql(id0SystemUser)
+        Formatters.triggerObject(null, 0).should.eql(id0SystemUser)
+        Formatters.triggerObject(null, 'system').should.eql(id0SystemUser)
+        Formatters.triggerObject(null, { id: 0 }).should.eql(id0SystemUser)
+        Formatters.triggerObject({ id: null }, { id: 0 }).should.eql(id0SystemUser)
+        Formatters.triggerObject(0, null).should.eql(id0SystemUser)
+        Formatters.triggerObject(0, undefined).should.eql(id0SystemUser)
+        Formatters.triggerObject(0, {}).should.eql(id0SystemUser)
+
+        Formatters.triggerObject(1).should.eql(id1NoHashNoName)
+        Formatters.triggerObject(1, null).should.eql(id1NoHashNoName)
+        Formatters.triggerObject(1, {}).should.eql(id1NoHashNoName)
+        Formatters.triggerObject(null, 1).should.eql(id1NoHashNoName)
+        Formatters.triggerObject(null, { id: 1 }).should.eql(id1NoHashNoName)
+        Formatters.triggerObject({ id: 1 }, { id: 1 }).should.eql(id1NoHashNoName)
+        Formatters.triggerObject({ id: null }, { id: 1 }).should.eql(id1NoHashNoName)
+        Formatters.triggerObject({ id: undefined }, { id: 1 }).should.eql(id1NoHashNoName)
+        Formatters.triggerObject({ id: null }, { id: 1 }).should.eql(id1NoHashNoName)
+
+        Formatters.triggerObject('abc', '123').should.eql(idNullHashAbc)
+        Formatters.triggerObject('abc', {}).should.eql(idNullHashAbc)
+        Formatters.triggerObject('abc', { id: 'abc' }).should.eql(idNullHashAbc)
+        Formatters.triggerObject({ id: null }, { id: 'abc' }).should.eql(idNullHashAbc)
+        Formatters.triggerObject(null, 'abc').should.eql(idNullHashAbc)
+
+        Formatters.triggerObject('abc', { id: 123 }).should.eql({ id: 123, hashid: 'abc', type: 'user', name: 'unknown' })
+        Formatters.triggerObject('abc', { id: '123' }).should.eql({ id: 123, hashid: 'abc', type: 'user', name: 'unknown' })
+        Formatters.triggerObject({ id: null }, { id: '123' }).should.eql({ id: 123, hashid: null, type: 'user', name: 'unknown' })
+        Formatters.triggerObject({ id: null }, { id: '123', hashid: 'abc' }).should.eql({ id: 123, hashid: 'abc', type: 'user', name: 'unknown' })
+        Formatters.triggerObject({ id: null }, { id: '123', hashid: 'abc', type: 'user', name: 'test' }).should.eql({ id: 123, hashid: 'abc', type: 'user', name: 'test' })
+        Formatters.triggerObject({ id: null }, { id: '123', hashid: 'abc', type: 'user', email: 'foo@bar.baz' }).should.eql({ id: 123, hashid: 'abc', type: 'user', name: 'foo' })
     })
 
     it('Generates an update object with the correct format', async function () {
