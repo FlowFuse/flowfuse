@@ -132,16 +132,18 @@ To run it manually, you can use:
     /opt/flowforge/bin/flowforge.sh
     ```
 
-    If you selected to install as service on Linux then you can use:
-    ```
-    service flowforge start
-    ```
-
  - Windows:
     ```
     c:\flowforge\bin\flowforge.bat
     ```
 
+Or to run as a service:
+
+ - Linux
+ 
+    ```
+    service flowforge start
+    ```
 ## First Run Setup
 
 Once FlowForge is started, you can access the platform in your browser at [http://localhost:3000](http://localhost:3000).
