@@ -44,7 +44,7 @@ describe('FlowForge - Project Types', () => {
         cy.get('.ff-dialog-box').should('be.visible')
 
         // set as inactive
-        cy.get('[data-form="active"] input[type="checkbox"]').click()
+        cy.get('[data-form="active"] span.checkbox').click()
         // confirm changes
         cy.get('.ff-dialog-box button.ff-btn.ff-btn--primary').click()
 

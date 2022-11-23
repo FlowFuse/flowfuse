@@ -6,18 +6,9 @@
                     <p v-if="!exceedsUserLimit">Invite a user to join the team by username<span v-if="externalEnabled"> or email</span>.</p>
                     <p v-if="hasUserLimit">Your team can have a maximum of {{team.type.properties.userLimit}} members.</p>
                     <p v-if="exceedsUserLimit">You currently have {{totalMembers}} (including existing invites) so cannot invite any more.</p>
-                    <div v-if="!exceedsUserLimit" class="pt-4 space-y-4">
+                    <div v-if="!exceedsUserLimit" class="space-y-4">
                         <FormRow id="userInfo" v-model="input.userInfo" :error="errors.userInfo" :placeholder="'username'+(externalEnabled?' or email':'')"></FormRow>
-                        <FormRow id="role-owner" :value="Roles.Owner" v-model="input.role" type="radio">Owner
-                            <template v-slot:description>Owners can add and remove members to the team and create projects</template>
-                        </FormRow>
-                        <FormRow id="role-member" :value="Roles.Member" v-model="input.role" type="radio">Member
-                            <template v-slot:description>Members can access the team projects</template>
-                        </FormRow>
-                        <FormRow id="role-viewer" :value="Roles.Viewer" v-model="input.role" type="radio">Viewer
-                            <template v-slot:description>Viewers can access the team projects, but not make any changes</template>
-                        </FormRow>
-
+                        <ff-radio-group v-model="input.role" orientation="vertical" :options="roleOptions"></ff-radio-group>
                     </div>
                 </template>
                 <template v-else>
@@ -115,6 +106,19 @@ export default {
     },
     setup () {
         return {
+            roleOptions: [{
+                label: 'Owner',
+                value: Roles.Owner,
+                description: 'Owners can add and remove members to the team and create projects'
+            }, {
+                label: 'Member',
+                value: Roles.Member,
+                description: 'Members can access the team projects'
+            }, {
+                label: 'Viewer',
+                value: Roles.Viewer,
+                description: 'Viewers can access the team projects, but not make any changes'
+            }],
             show () {
                 this.$refs.dialog.show()
                 this.responseErrors = null

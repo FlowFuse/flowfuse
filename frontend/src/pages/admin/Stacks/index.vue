@@ -122,10 +122,10 @@ export default {
             return Array.from(this.allStacks.values())
         },
         activeStacks () {
-            return this.stacksArray.filter((stack) => stack.active).sort(comparator)
+            return this.stacksArray.filter((stack) => stack.active).sort(comparator.bind(this))
         },
         inactiveStacks () {
-            return this.stacksArray.filter((stack) => !stack.active).sort(comparator)
+            return this.stacksArray.filter((stack) => !stack.active).sort(comparator.bind(this))
         }
     },
     methods: {

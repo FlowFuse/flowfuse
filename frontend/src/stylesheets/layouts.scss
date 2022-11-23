@@ -198,12 +198,14 @@ $nav_height: 60px;
         display: none;
         z-index: 10;
         border-bottom: 0;
+        max-height: initial;
         &.active {
             display: block;
         }
-    }
-    .ff-dropdown-option {
-        padding: 0;
+        .ff-dropdown-option {
+            padding: 0;
+            border-bottom: none;
+        }
     }
 }
 .ff-team-selection-name {
@@ -367,6 +369,12 @@ $nav_height: 60px;
 }
 
 .ff-user-options {
+    .ff-dropdown-options {
+        max-height: initial;
+        .ff-dropdown-option {
+            border-bottom: none;
+        }
+    } 
     .ff-dropdown-option:last-child {
         border-top: 2px solid $ff-red-600;
     }

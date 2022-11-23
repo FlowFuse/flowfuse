@@ -97,19 +97,21 @@ class TestModelFactory {
         await project.setProjectStack(stack)
         await project.setProjectTemplate(template)
         await project.setProjectType(projectType)
+        await project.updateSetting('settings', { header: { title: project.name } })
         await project.reload({
             include: [
                 { model: this.forge.db.models.Team },
                 { model: this.forge.db.models.ProjectType },
                 { model: this.forge.db.models.ProjectStack },
-                { model: this.forge.db.models.ProjectTemplate }
+                { model: this.forge.db.models.ProjectTemplate },
+                { model: this.forge.db.models.ProjectSettings }
             ]
         })
         await this.forge.containers.start(project) // ensure project is initialized
         return project
     }
 
-    async createDevice (deviceDetails, team) {
+    async createDevice (deviceDetails, team, project = null) {
         const defaultDeviceDetails = {
             name: 'unnamed-device',
             type: 'unnamed-type',
@@ -120,7 +122,21 @@ class TestModelFactory {
             ...deviceDetails
         })
         await team.addDevice(device)
+        if (project) {
+            await device.setProject(project)
+        }
         return device
+    }
+
+    async createSnapshot (snapshotDetails, project, user) {
+        const defaultSnapshotDetails = {
+            name: 'unnamed-snapshot',
+            description: ''
+        }
+        return await this.forge.db.controllers.ProjectSnapshot.createSnapshot(project, user, {
+            ...defaultSnapshotDetails,
+            ...snapshotDetails
+        })
     }
 }
 
@@ -185,9 +201,19 @@ module.exports = async function (settings = {}, config = {}) {
     // Create pending invite for Dave to join BTeam
     await forge.db.controllers.Invitation.createInvitations(userBob, team2, [userDave.email], Roles.Member)
 
+    // Unassigned devices
+    await factory.createDevice({ name: 'team2-unassigned-device', type: 'type2' }, team2)
+
     // Projects
     await factory.createProject({ name: 'project2' }, team2, stack, template, projectType)
-    await factory.createDevice({ name: 'team2-device', type: 'type2' }, team2)
+
+    const projectWithDevices = await factory.createProject({ name: 'project-with-devices' }, team2, stack, template, projectType)
+    await factory.createDevice({ name: 'assigned-device-a', type: 'type2' }, team2, projectWithDevices)
+    await factory.createDevice({ name: 'assigned-device-b', type: 'type2' }, team2, projectWithDevices)
+    await factory.createDevice({ name: 'assigned-device-c', type: 'type2' }, team2, projectWithDevices)
+    await factory.createSnapshot({ name: 'snapshot 1' }, projectWithDevices, userBob)
+    await factory.createSnapshot({ name: 'snapshot 2' }, projectWithDevices, userBob)
+    await factory.createSnapshot({ name: 'snapshot 3' }, projectWithDevices, userBob)
 
     return forge
 }

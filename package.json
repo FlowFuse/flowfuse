@@ -52,7 +52,7 @@
         "@fastify/csrf-protection": "^6.0.0",
         "@fastify/helmet": "^10.0.2",
         "@fastify/static": "^6.5.0",
-        "@flowforge/forge-ui-components": "^0.4.3",
+        "@flowforge/forge-ui-components": "^0.4.5",
         "@flowforge/localfs": "^1.0.0",
         "@headlessui/vue": "1.7.3",
         "@heroicons/vue": "1.0.6",
@@ -85,8 +85,7 @@
     "devDependencies": {
         "@babel/core": "^7.16.10",
         "@babel/preset-env": "^7.16.10",
-        "@tailwindcss/forms": "^0.3.4",
-        "@vitejs/plugin-vue": "^2.3.3",
+        "@vitejs/plugin-vue": "^3.2.0",
         "@vue/test-utils": "^2.0.0-rc.21",
         "autoprefixer": "^10.4.12",
         "babel-loader": "^8.2.3",
