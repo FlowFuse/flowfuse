@@ -122,3 +122,10 @@ Option        | Description
 
 Setting `logging.http` to `info` will log every HTTP request and response details.
 
+## File storage
+
+FlowForge can provide an Object Store to allow "file" to be read/writen from flows.
+
+Option        | Description
+--------------|------------
+`fileStore.url`  | The URL of the FlowForge File Server to use. Default: not set
