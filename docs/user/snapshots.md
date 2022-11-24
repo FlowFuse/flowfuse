@@ -52,4 +52,4 @@ Using the [Node-RED Tools Plugin](./node-red-tools.md) it is also possible to cr
 Project Snapshots in a local copy of Node-RED and push them into your FlowForge
 Project.
 
-For more information, see the [Node-RED Tools Plugi guide](./node-red-tools.md).
+For more information, see the [Node-RED Tools Plugin guide](./node-red-tools.md).
