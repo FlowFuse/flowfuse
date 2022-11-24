@@ -8,6 +8,13 @@ has been performed.
 
 ### Upgrading to 1.1
 
+Details of how to upgrade can be found for:
+
+- LocalFS [here](./local/README.md#upgrade).
+- Docker [here](./docker/README.md#upgrade).
+- Kubernetes [here](./kubernetes/README.md#upgrade).
+
+
 #### File Server added
 
 This release introduces a system for supporting persitant file storage when running on
@@ -16,9 +23,9 @@ have access to the hosts filesystem).
 
 Details of how to configure this can be found for:
 
-- LocalFS [here](./file-storage/README.md#localfs)
-- Docker [here](./file-storage/README.md#docker-compose)
-- Kubernetes [here](./file-storage/README.md#kubernetes-helm)
+- LocalFS [here](./file-storage/README.md#localfs).
+- Docker [here](./file-storage/README.md#docker-compose).
+- Kubernetes [here](./file-storage/README.md#kubernetes-helm).
 
 ### Upgrading to 0.8
 

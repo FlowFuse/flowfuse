@@ -200,3 +200,10 @@ creating an administrator for the platform and other configuration options.
 For more information, follow [this guide](../first-run.md).
 
 [stacks]: ../../admin/README.md
+
+
+### Upgrade
+
+- Download and unpack the latest version of the helm chart zip.
+- Rebuild and push the containers with the build-containers.sh script.
+- Rerun the `helm upgrade --install flowforge flowforge -f customization.yml`
