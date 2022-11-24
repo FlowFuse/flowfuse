@@ -42,7 +42,7 @@
                     </tr>
                     <tr class="border-b">
                         <td class="font-medium">Status</td>
-                        <td><div class="py-2"><ProjectStatusBadge :status="project.meta.state" :pendingStateChange="project.pendingStateChange" /></div></td>
+                        <td><div class="py-2"><ProjectStatusBadge :status="project.meta?.state" :pendingStateChange="project.pendingStateChange" /></div></td>
                     </tr>
                     <tr class="border-b">
                         <td class="font-medium">Type</td>
@@ -145,7 +145,7 @@ export default {
             return result
         },
         projectRunning () {
-            return this.project?.meta.state === 'running'
+            return this.project?.meta?.state === 'running'
         },
         editorAvailable () {
             return this.projectRunning

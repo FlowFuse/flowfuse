@@ -245,7 +245,7 @@ export default {
             return this.project.meta?.state === 'running'
         },
         projectNotSuspended () {
-            return this.project.meta.state !== 'suspended'
+            return this.project.meta?.state !== 'suspended'
         },
         isVisitingAdmin () {
             return this.teamMembership.role === Roles.Admin
