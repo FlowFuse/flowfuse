@@ -34,7 +34,7 @@ Unpack this and cd into the created directory.
 
 ```
 tar zxf v0.x.0.tar.gz
-cd docker-compose-0.x.0
+cd docker-compose-x.x.x
 ```
 
 #### Building Containers
@@ -203,3 +203,15 @@ The first time you access the platform in your browser, it will take you through
 creating an administrator for the platform and other configuration options.
 
 For more information, follow [this guide](../first-run.md).
+
+### Upgrade
+
+- Stop the extisting instance with `docker-compose -p flowforge down`
+- [Download](#download) the latest tar
+- Uncompress the tar file
+- Rebuild the containers with the `./build-containers.sh` script in the new directory
+- Copy the `db` directory from the old version directory to the new (this will probably require root due to file ownership)
+    ```
+    sudo cp -r docker-compose-x.x.x/db docker-compose-y.y.y/db
+    ```
+- Start the new version in the new directory `docker-compose -p flowforge up`
