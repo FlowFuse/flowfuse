@@ -20,10 +20,9 @@ jobs:
       - uses: JS-DevTools/npm-publish@v1
         with:
           token: ${{ secrets.NPM_PUBLISH_TOKEN }}
-      - name: Resync Maintenance:
+      - name: Resync Maintenance
         if: ${{ github.ref == 'refs/heads/main' }}
         run:
           git checkout maintenance
           git reset --hard main
           git push --force origin maintenance
-
