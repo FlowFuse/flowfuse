@@ -121,7 +121,7 @@ export default {
 
                 alerts.emit('Target snapshot updated.', 'confirmation')
 
-                this.close()
+                this.$refs.dialog.close()
             }
         }
     }
