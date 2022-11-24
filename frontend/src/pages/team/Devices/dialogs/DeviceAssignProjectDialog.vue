@@ -1,5 +1,11 @@
 <template>
-    <ff-dialog ref="dialog" header="Add Device to Project" confirm-label="Add" @confirm="assignDevice()">
+    <ff-dialog
+        ref="dialog"
+        header="Add Device to Project"
+        class="ff-dialog-fixed-height"
+        confirm-label="Add"
+        @confirm="assignDevice()"
+    >
         <template v-slot:default>
             <form class="space-y-6 mt-2 mb-2">
                 <p class="text-sm text-gray-500">
