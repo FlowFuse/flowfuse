@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v3
         with:
           node-version: 16
@@ -18,3 +20,10 @@ jobs:
       - uses: JS-DevTools/npm-publish@v1
         with:
           token: ${{ secrets.NPM_PUBLISH_TOKEN }}
+      - name: Resync Maintenance:
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run:
+          git checkout maintenance
+          git reset --hard main
+          git push --force origin maintenance
+
