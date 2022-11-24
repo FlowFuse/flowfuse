@@ -86,7 +86,7 @@ and their [roles determine their authorization level](./team/#role-based-access-
 
 The FlowForge platform can be used to manage projects running on remote devices.
 A Device runs a software agent that connects back to the platform to receive updates.
-Users must [install the agent](devices) on the devices.
+Users must [install the agent](./devices.md) on the devices.
 
 Devices are registered to a Team, and then assigned to a Project withing that team.
 A user can create a [project snapshot](#project-snapshot) can mark it as the
