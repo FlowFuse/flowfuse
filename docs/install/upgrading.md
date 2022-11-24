@@ -14,7 +14,11 @@ This release introduces a system for supporting persitant file storage when runn
 Docker or Kubernetes (it will also work with LocalFS, but is not required as projects
 have access to the hosts filesystem).
 
-Details of how to configure this can be found [here](./file-storage/README.md)
+Details of how to configure this can be found for:
+
+- LocalFS [here](./file-storage/README.md#localfs)
+- Docker [here](./file-storage/README.md#docker-compose)
+- Kubernetes [here](./file-storage/README.md#kubernetes-helm)
 
 ### Upgrading to 0.8
 
