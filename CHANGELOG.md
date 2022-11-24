@@ -1,3 +1,79 @@
+#### 1.1.0: Release
+
+ - Add functions & framework for exact audit logging (#1224)
+ - Remove ff:tooltip from Snapshot component (#1311) @knolleary
+ - Add Node-RED tools plugin docs (#1307) @knolleary
+ - Handle project.meta being null (#1308) @Pezmc
+ - Add specific version upgrade instructions (#1310) @hardillb
+ - Fix YAML parsing (#1309) @ZJvandeWeg
+ - First pass at upgrading doc changes (#1304) @hardillb
+ - Fix dropdown z-index and overflow issue (#1306) @Pezmc
+ - Fix backport action to checkout full branch history (#1300) @knolleary
+ - Fix broken link (#1301) @mikermcneil
+ - Snapshot UI Changes (#1288) @Pezmc
+ - Add doc about File Nodes (#1296) @hardillb
+ - Update AWS K8s install instructions (#1297) @hardillb
+ - Doc: Copy project (#1268) @ZJvandeWeg
+ - Explicitly set z-index and overflow on the stack dialog (#1294) @Pezmc
+ - Start loading password change after local verification (#1293) @joepavitt
+ - Update envvar.md to include new env var types (#1217) @robmarcer
+ - Add note about project names (#1290) @hardillb
+ - Move linux service start instructions (#1283) @hardillb
+ - Add next steps to first-run guide (#1286) @knolleary
+ - Change default obj names (#1285) @knolleary
+ - Improve logging of setup process (#1284) @knolleary
+ - Clarify host/base_url updates needed in install doc (#1282) @knolleary
+ - Bump @vitejs/plugin-vue from 2.3.4 to 3.2.0 (#1264) @dependabot
+ - Remove mosquitto.conf (#1278) @hardillb
+ - Project > Deployments: Assign snapshot (#1257) @Pezmc
+ - Bind this to the comparator function (#1276) @Pezmc
+ - Form Row (#1201) @joepavitt
+ - Projects: Move the header to only the Overview Page (#1237) @Pezmc
+ - Fixup backport action (#1273) @knolleary
+ - Add gh action to backport any pr labeled backport (#1272) @knolleary
+ - Allow snapshots to be created with api provided flows/credentials (#1245) @knolleary
+ - Create default ProjectType/Stack/Template as part of setup (#1250) @knolleary
+ - Add housekeeper component to run regularly scheduled tasks (#1267) @knolleary
+ - docs: How to secure Node-RED pages (#1266) @ZJvandeWeg
+ - dependencies: Install dependabot (#1258) @ZJvandeWeg
+ - Developer demo follow-ups (docs) (#1249) @Steve-Mcl
+ - Refactor test seeds config for E2E tests (#1254) @Pezmc
+ - Allow user to enter tax info when setting up stripe billing (#1253) @knolleary
+ - Update token verification to use verifySession (#1255) @knolleary
+ - Notify user of change to password, email and username (#1248) @Steve-Mcl
+ - Change localfs default port to 12080 (#1252) @hardillb
+ - Add route to test Bearer tokens are active (#1203) @hardillb
+ - Add oauth for ff-plugin client id including access request UI (#1244) @knolleary
+ - docs: Inline a footline (#1251) @ZJvandeWeg
+ - Add getDefaultStackProperties (#1239) @hardillb
+ - Allow install-stack.js to use 'latest' (#1236) @hardillb
+ - Plumb in fileStore for file-server & nr-file-nodes (#1240) @Steve-Mcl
+ - Change editor auth to use AccessToken rather than Session (#1182) @knolleary
+ - Project > Deployments Page (#1204) @Pezmc
+ - Add pagination to devices page (#1209) @Pezmc
+ - Explain how to run on single node cluster (#1229) @hardillb
+ - Format audit log. Adds formatters for all auditing (#1221) @Steve-Mcl
+ - Update warning about project names (#1223) @hardillb
+ - docs: Add --port usage for the device agent (#1219) @ZJvandeWeg
+ - Explicitly require eslint-config-standard dependencies (#1215) @Pezmc
+ - Navigate to Team dashboard on invite acceptance (#1210) @joepavitt
+ - docs: Remove header paragraph (#1197) @ZJvandeWeg
+ - Minor improvements to the local install docs (#1205) @ZJvandeWeg
+ - Rename `values.yml` to `customizaton.yml` (#1199) @hardillb
+ - Add note about where to run `helm upgrade` command (#1198) @hardillb
+ - Update the screenshots to the current UI (#1189) @robmarcer
+ - Scaffolding for the Project > Deployments Page (#1195) @Pezmc
+ - Fix project rollback to handle modules object (#1192) @knolleary
+ - Update Project's ChangeTypeDialog to use ff-tile-selection (#1191) @joepavitt
+ - Docs: How to cancel your subscription (#1190) @robmarcer
+ - Ensure storage api access token is for correct project (#1180) @knolleary
+ - Load stacks asynchronously (#1179) @Pezmc
+ - Fix ID collision in stacks tests (#1178) @Pezmc
+ - Run CI checks against all PR's (#1177) @Pezmc
+ - Refactor stacks logic to only hold one list client side (#1173) @Pezmc
+ - Fix pagination on the stacks page (#1167) @Pezmc
+ - Make sure to use the Stack Label if available (#1170) @hardillb
+
 #### 1.0.1: Release
 
  - Fix flow import (#1157) @knolleary
