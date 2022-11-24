@@ -45,3 +45,11 @@ To set the **Device Target**:
 
 This will cause the snapshot to be pushed out to any connected devices the
 next time they check in.
+
+## Creating a Snapshot locally
+
+Using the [Node-RED Tools Plugin](./node-red-tools.md) it is also possible to create
+Project Snapshots in a local copy of Node-RED and push them into your FlowForge
+Project.
+
+For more information, see the [Node-RED Tools Plugi guide](./node-red-tools.md).
