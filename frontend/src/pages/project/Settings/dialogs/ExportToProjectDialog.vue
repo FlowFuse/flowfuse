@@ -1,5 +1,12 @@
 <template>
-    <ff-dialog ref="dialog" header="Export to Existing Project" confirm-label="Export to Existing Project" :disable-primary="!exportEnabled" @confirm="confirm()">
+    <ff-dialog
+        ref="dialog"
+        header="Export to Existing Project"
+        confirm-label="Export to Existing Project"
+        class="ff-dialog-fixed-height"
+        :disable-primary="!exportEnabled"
+        @confirm="confirm()"
+    >
         <template v-slot:default>
             <form class="space-y-6" @submit.prevent>
                 <FormRow>
