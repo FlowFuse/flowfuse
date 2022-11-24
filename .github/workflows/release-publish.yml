@@ -21,7 +21,7 @@ jobs:
         with:
           token: ${{ secrets.NPM_PUBLISH_TOKEN }}
       - name: Resync Maintenance
-        if: ${{ github.ref == 'refs/heads/main' }}
+        if: ${{ endsWith(github.ref, '.0') }}
         run:
           git checkout maintenance
           git reset --hard main
