@@ -6,26 +6,15 @@ particular requirements needed to upgrade to a given level.
 Note that we do not support downgrading FlowForge to previous levels once an upgrade
 has been performed.
 
+### Upgrading to 1.1
 
-### Upgrading to 0.7
+#### File Server added
 
-The 0.7 release introduces the [ProjectType concept](../user/concepts.md#project-type).
+This release introduces a system for supporting persitant file storage when running on
+Docker or Kubernetes (it will also work with LocalFS, but is not required as projects
+have access to the hosts filesystem).
 
-After upgrading to 0.7, an administrator must perform the following tasks before
-users will be able to create new projects:
-
-1. Create a Project Type.
-    1. On the Administrator Settings -> Project Types page, click 'Create project type'.
-    2. Provide a name and description. If you have billing enabled, copy in the default
-       Stripe Product/Price IDs from your runtime settings file.
-    3. Click 'create'
-2. Assign your existing stacks to that type
-    1. On the Administrator Settings -> Stacks page, edit each existing stack via
-       the drop-down menu in the table.
-    2. As a one-time action, set its Project Type to the one just created.
-    3. Click 'save'. This will update the stack *and* all existing projects to
-       be associated with the new Project Type
-
+Details of how to configure this can be found [here](./file-storage/README.md)
 
 ### Upgrading to 0.8
 
@@ -65,3 +54,22 @@ These nodes require the MQTT Broker to be properly configured.
 To deploy flows using these nodes to a Device will require the Device to be running
 the latest 0.2.0 release. They will also need to have their credentials regenerated
 once the MQTT Broker has been added.
+
+### Upgrading to 0.7
+
+The 0.7 release introduces the [ProjectType concept](../user/concepts.md#project-type).
+
+After upgrading to 0.7, an administrator must perform the following tasks before
+users will be able to create new projects:
+
+1. Create a Project Type.
+    1. On the Administrator Settings -> Project Types page, click 'Create project type'.
+    2. Provide a name and description. If you have billing enabled, copy in the default
+       Stripe Product/Price IDs from your runtime settings file.
+    3. Click 'create'
+2. Assign your existing stacks to that type
+    1. On the Administrator Settings -> Stacks page, edit each existing stack via
+       the drop-down menu in the table.
+    2. As a one-time action, set its Project Type to the one just created.
+    3. Click 'save'. This will update the stack *and* all existing projects to
+       be associated with the new Project Type
