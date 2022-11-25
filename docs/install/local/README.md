@@ -17,6 +17,8 @@ The install script has been tested against the following operating systems:
  - MacOS Big Sur & Monterey on Intel & Apple M processors
  - Windows 10 & 11
 
+[^1]: Arm6 devices, such as the original Raspberry Pi Zero and Zero W are not supported.
+
 ### Node.js
 
 FlowForge requires ***Node.js v16***.
@@ -243,9 +245,5 @@ version you are upgrading to.
  
 If you are running as your normal user you can drop the `sudo -u flowforge` and just run `npm install @flowforge/flowforge@x.y.z`
 
----
-
-
-[^1]: Arm6 devices, such as the original Raspberry Pi Zero and Zero W are not supported.
 [^2]: Assumes you are running Flowforge as a Linux service.
 [^3]: Assumes you are running Flowforge as the `flowforge` user as created by the installer
