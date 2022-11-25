@@ -17,6 +17,8 @@ The install script has been tested against the following operating systems:
  - MacOS Big Sur & Monterey on Intel & Apple M processors
  - Windows 10 & 11
 
+[^1]: Arm6 devices, such as the original Raspberry Pi Zero and Zero W are not supported.
+
 ### Node.js
 
 FlowForge requires ***Node.js v16***.
@@ -189,7 +191,7 @@ Once installed, you will need to build and install the authentication plugin.
 
 3. This should result in a file called `go-auth.so` being generated
 
-4. ([Optional](#mosquitto)) Run mosquitto with the configuration file found in the `broker` directory
+4. ([Optional](#setting-up-mosquitto-optional)) Run mosquitto with the configuration file found in the `broker` directory
 
    You will need to customise the values to match your local configuration:
       - `auth_plugin` - set to the path of the `go-auth.so` file built in the previous step
@@ -212,7 +214,7 @@ you can use a pre-built docker image that provides everything needed.
     docker pull iegomez/mosquitto-go-auth
     ```
 
-2. ([Optional](#mosquitto)) A default mosquitto.conf file can be found in the `broker` directory.
+2. ([Optional](#setting-up-mosquitto-optional)) A default mosquitto.conf file can be found in the `broker` directory.
 
     You will need to customise the values to match your local configuration:
      - `auth_opt_http_host` value to match the IP address of either the docker0 interface or the external IP address of the machine running the Forge platform
@@ -243,9 +245,5 @@ version you are upgrading to.
  
 If you are running as your normal user you can drop the `sudo -u flowforge` and just run `npm install @flowforge/flowforge@x.y.z`
 
----
-
-
-[^1]: Arm6 devices, such as the original Raspberry Pi Zero and Zero W are not supported.
 [^2]: Assumes you are running Flowforge as a Linux service.
 [^3]: Assumes you are running Flowforge as the `flowforge` user as created by the installer
