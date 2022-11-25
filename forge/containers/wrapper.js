@@ -40,18 +40,20 @@ module.exports = {
         const result = {}
         if (this._driver.start) {
             const startPromise = this._driver.start(project).catch(async err => {
-                this._app.log.error(`Failed to start container ${project.id}: ${err.toString()}`)
                 // The driver has failed to start this project for some reason
+                const errorDetail = {
+                    code: err.code || 'unexpected_error',
+                    error: `Failed to start project ${project.id}: ${err.toString()}`,
+                    stack: err.stack
+                }
+                this._app.log.error(errorDetail.error)
+                await this._app.AuditLog.Project.project.startFailed(0 /* system */, errorDetail)
+
+                // Update the project state to suspended
                 project.state = 'suspended'
                 await project.save()
 
-                await this._app.db.controllers.AuditLog.projectLog(
-                    project.id,
-                    undefined,
-                    'project.start.failed',
-                    { error: err.toString() }
-                )
-
+                // If billing is enabled, remove the project from the subscription
                 if (this._app.license.active() && this._app.billing) {
                     const subscription = await this._app.db.models.Subscription.byTeam(project.Team.id)
                     if (subscription) {

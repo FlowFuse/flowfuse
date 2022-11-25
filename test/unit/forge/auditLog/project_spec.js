@@ -100,6 +100,19 @@ describe('Audit Log > Project', async function () {
         logEntry.body.project.id.should.equal(PROJECT.id)
     })
 
+    it('Provides a logger for project start failure', async function () {
+        await projectLogger.project.startFailed(ACTIONED_BY, { code: 'something_happened', message: 'Project start failed' }, PROJECT)
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'project.start-failed')
+        logEntry.should.have.property('scope', { id: PROJECT.id, type: 'project' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('error')
+        logEntry.body.error.code.should.equal('something_happened')
+        logEntry.body.error.message.should.equal('Project start failed')
+    })
+
     it('Provides a logger for stopping a project', async function () {
         await projectLogger.project.stopped(ACTIONED_BY, null, PROJECT)
         // check log stored

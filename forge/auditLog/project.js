@@ -13,6 +13,9 @@ module.exports = {
             async started (actionedBy, error, project) {
                 await log('project.started', actionedBy, project?.id, generateBody({ error, project }))
             },
+            async startFailed (actionedBy, error, project) {
+                await log('project.start-failed', actionedBy || 0, project?.id, generateBody({ error }))
+            },
             async stopped (actionedBy, error, project) {
                 await log('project.stopped', actionedBy, project?.id, generateBody({ error, project }))
             },
