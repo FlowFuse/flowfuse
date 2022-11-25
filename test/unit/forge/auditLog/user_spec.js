@@ -42,6 +42,20 @@ describe('Audit Log > User', async function () {
         return (await app.db.views.AuditLog.auditLog({ log: logs.log })).log[0]
     }
 
+    // #region Common Tests
+
+    it('Permits a logger to be triggered by system user id', async function () {
+        // call any function to trigger the logger with a system user id
+        await userLogger.account.verify.autoCreateTeam(0, null, TEAM)
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('trigger', { id: 'system', type: 'system', name: 'Forge Platform' })
+        logEntry.should.have.property('body').and.be.an.Object()
+        logEntry.body.should.not.have.property('trigger')
+    })
+
+    // #endregion
+
     // #region User - Account
 
     it('Provides a logger for registering an account', async function () {

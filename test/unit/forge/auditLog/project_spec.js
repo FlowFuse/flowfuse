@@ -55,6 +55,23 @@ describe('Audit Log > Project', async function () {
         return (await app.db.views.AuditLog.auditLog({ log: logs.log })).log[0]
     }
 
+    // #region Common Tests
+
+    it('Permits a logger to be triggered by system', async function () {
+        // call any function to trigger the logger with a system user id
+        await projectLogger.project.started(0 /* system */, null, PROJECT)
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'project.started')
+        logEntry.should.have.property('scope', { id: PROJECT.id, type: 'project' })
+        logEntry.should.have.property('trigger', { id: 'system', type: 'system', name: 'Forge Platform' })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('project') // should exclude the 'trigger' property from body
+        logEntry.body.project.should.only.have.keys('id', 'name')
+    })
+
+    // #endregion
+
     // #region Project - Actions
 
     it('Provides a logger for creating a project', async function () {
