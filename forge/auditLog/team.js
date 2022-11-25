@@ -101,15 +101,18 @@ module.exports = {
         }
 
         const log = async (event, actionedBy, teamId, body) => {
-            const trigger = triggerObject(actionedBy)
-            if (typeof trigger?.id === 'number' && trigger?.id <= 0) {
-                body.trigger = trigger // store trigger in body since it's not a real user
-                await app.db.controllers.AuditLog.teamLog(teamId, null, event, body)
-            } else {
-                await app.db.controllers.AuditLog.teamLog(teamId, trigger.id, event, body)
+            try {
+                const trigger = triggerObject(actionedBy)
+                let whoDidIt = trigger?.id
+                if (typeof whoDidIt !== 'number' || whoDidIt <= 0) {
+                    whoDidIt = null
+                    body.trigger = trigger
+                }
+                await app.db.controllers.AuditLog.teamLog(teamId, whoDidIt, event, body)
+            } catch (error) {
+                console.warn('Failed to log team scope audit event', event, error)
             }
         }
-
         return {
             team,
             project,
