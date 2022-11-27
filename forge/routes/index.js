@@ -18,5 +18,7 @@ module.exports = fp(async function (app, opts, done) {
     await app.register(require('./setup'), { logLevel: app.config.logging.http })
     await app.register(require('./storage'), { prefix: '/storage', logLevel: app.config.logging.http })
     await app.register(require('./logging'), { prefix: '/logging', logLevel: app.config.logging.http })
+    await app.register(require('./docs'), { prefix: '/docs', logLevel: app.config.logging.http })
+    await app.register
     done()
 })
