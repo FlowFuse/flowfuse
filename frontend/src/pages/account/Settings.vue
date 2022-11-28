@@ -3,7 +3,7 @@
     <form v-else class="space-y-6" @submit.enter.prevent="">
         <FormRow v-model="input.username" :type="editing?'text':'uneditable'" :error="errors.username">Username</FormRow>
         <FormRow v-model="input.name" :type="editing?'text':'uneditable'" :placeholder="input.username" :error="errors.name">Name</FormRow>
-        <FormRow v-model="input.email" :type="editing?'text':'uneditable'" :error="errors.email">Email</FormRow>
+        <FormRow v-model="input.email" :type="editing?'email':'uneditable'" :error="errors.email">Email</FormRow>
         <FormRow v-if="!editing" v-model="defaultTeamName" :options="teams" type="uneditable">
             Default Team
         </FormRow>
@@ -105,7 +105,6 @@ export default {
         },
         confirm () {
             this.loading = true
-            this.editing = false
             const opts = {}
             let changed = false
             if (this.input.username !== this.user.username) {
@@ -139,11 +138,14 @@ export default {
                         }
                     })
                     this.changed = {}
+                    this.editing = false
                 }).catch(err => {
-                    console.log(err.response.data)
                     if (err.response.data) {
                         if (/username/.test(err.response.data.error)) {
                             this.errors.username = 'Username unavailable'
+                        }
+                        if (err.response.data.code === 'invalid_email') {
+                            this.errors.email = 'Invalid email'
                         }
                         if (/password/.test(err.response.data.error)) {
                             this.errors.password = 'Invalid username'
