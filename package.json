@@ -92,7 +92,7 @@
         "c8": "^7.12.0",
         "clean-jsdoc-theme": "^3.3.1",
         "clean-webpack-plugin": "^4.0.0",
-        "copy-webpack-plugin": "^9.1.0",
+        "copy-webpack-plugin": "^11.0.0",
         "cross-env": "^7.0.3",
         "css-loader": "^5.2.7",
         "cypress": "^9.7.0",
