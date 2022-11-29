@@ -41,12 +41,9 @@ helm --kubeconfig=./k8s-flowforge-kubeconfig.yaml install nginx-ingress \
   ingress-nginx/ingress-nginx --namespace ingress-nginx \
   --create-namespace \
   --set controller.publishService.enabled=true \
-  --set controller.setAsDefaultIngress=true \
+  --set controller.ingressClassResource.default=true \
   --wait
 
-kubectl --kubeconfig=./k8s-flowforge-kubeconfig.yaml annotate \
-  --namespace ingress-nginx IngressClass nginx \
-  ingressclass.kubernetes.io/is-default-class=true
 ```
 
 ### Setup DNS
