@@ -221,12 +221,6 @@ module.exports = async function (app) {
 
                     sendDeviceUpdate = true
                     await app.auditLog.Team.team.device.assigned(request.session.User, null, request.device.Team, project, request.device)
-                    await app.db.controllers.AuditLog.projectLog(
-                        project.id,
-                        request.session.User.id,
-                        'project.device.assigned',
-                        { id: request.device.hashid }
-                    )
                     await app.auditLog.Project.project.device.assigned(request.session.User, null, project, request.device)
                 }
             }
