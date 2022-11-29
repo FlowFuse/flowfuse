@@ -46,9 +46,27 @@ This configures how Node-RED instances are run by the platform.
 Option        | Description
 --------------|------------
 `driver.type` | The type of deployment model to use. Default: `localfs`
+
+### Localfs Driver options
+
+Option        | Description
+--------------|------------
 `driver.options.start_port` | The port number to start assigning to projects as they are created. Default: `12080`
 `driver.options.node_path` | The path to find the node.js executable - useful if Node.js has been installed with `nvm` so isn't necessarily on the system path.
 
+### Docker Driver options
+
+Option        | Description
+--------------|------------
+`driver.options.socket` | The path to the Docker control unix domain socket. Default `/var/run/docker.sock`
+
+### Kubernetes Driver options
+
+Option        | Description
+--------------|------------
+`driver.options.namespace` | The namespace to run projects in. Default: `flowforge`
+`driver.options.cloudProvider` | Enables specific options for certain platforms e.g. `aws`. Default: not set
+`driver.options.projectSelector` | A YAML object containing node annotations to use to filter which nodes projects run on. Default: `role: projects`
 ## MQTT Broker configuration
 
 By default, the platform runs without an MQTT broker. This restricts some features
@@ -95,8 +113,7 @@ Option        | Description
 `telemetry.enabled` | Enables the anonymous usage telemetry of the platform. Default: `true`
 `telemetry.frontend.posthog.apikey` | The API key provided to you from your own PostHog account. Default: `null`
 `telemetry.frontend.posthog.capture_pageview` | FlowForge is designed as to provide custom posthog `$pageview` events that provide more detail on navigation than the default, and suit a single page application better. As such, we recommend setting this to false in order to prevent duplicate `pageleave`/`pageview` events firing. Default: `true`
-`telemetry.frontend.plausible.domain` | _(deprecated)_ The `data-domain` of your site (see [Plausible docs](https://plausible.io/docs/plausible-script)). Default: `null`
-`telemetry.frontend.plausible.extension` | _(deprecated)_  By default, Plausible only detects events running in a production environment, it is possible to enhance measurements with [script extensions](https://plausible.io/docs/script-extensions). You can, for example, detect localhost events using `local`. Default: `null`
+
 
 ## MQTT Broker configuration
 
