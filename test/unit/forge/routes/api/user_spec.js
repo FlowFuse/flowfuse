@@ -131,6 +131,21 @@ describe('User API', async function () {
             // auditLogs.log[0].body.should.have.a.property('updates')
             // auditLogs.log[0].body.updates.should.have.a.property('length', 4)
         })
+        it('member user cannot set invalid email', async function () {
+            await login('elvis', 'eePassword')
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.elvis },
+                payload: {
+                    email: 'afkae@example.com@test' // user setting
+                }
+            })
+            response.statusCode.should.equal(400)
+            const result = response.json()
+            result.should.have.property('code', 'invalid_email')
+            result.should.have.property('error', 'Validation isEmail on email failed')
+        })
         it('member user cannot modify admin settings (email_verified, admin)', async function () {
             await login('elvis', 'eePassword')
             const response = await app.inject({

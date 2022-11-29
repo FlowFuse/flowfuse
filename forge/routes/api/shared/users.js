@@ -155,9 +155,11 @@ module.exports = {
             } else {
                 responseMessage = err.toString()
             }
-            console.log(err.toString())
-            console.log(responseMessage)
-            const resp = { code: 'unexpected_error', error: responseMessage }
+            let errorCode = 'unexpected_error'
+            if (responseMessage.includes('isEmail on email')) {
+                errorCode = 'invalid_email'
+            }
+            const resp = { code: errorCode, error: responseMessage }
             await auditLog.updatedUser(request.session.User, resp, null, user) // log as error
             reply.code(400).send(resp)
         }
