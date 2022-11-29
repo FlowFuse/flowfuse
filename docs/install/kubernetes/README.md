@@ -49,11 +49,20 @@ Also ensure you're signed in locally by running `docker login` in your terminal.
 
 #### PostgreSQL Database
 
-The Helm chart can either install a dedicated PostgreSQL database into the same K8s cluster or can configure the install to use an external instance.
+The Helm chart can either install a dedicated PostgreSQL database into the same K8s 
+cluster or can configure the install to use an external instance.
 
 #### DNS
 
-A wildcard DNS entry will be needed to point to the domain that is used fro the project instances. This will need to point to the K8s Ingress controller.
+A wildcard DNS entry will be needed to point to the domain that is used for the 
+project instances. This will need to point to the K8s Ingress controller.
+
+For example if you want projects to be access able as [project-name].example.com 
+you will need to ensure that `*.example.com` is mapped to the IP address used by 
+your Kubernetes clusters's Ingress controller.
+
+By default the FlowForge application will be mapped to `forge.example.com` assuming
+that you set the domain to `example.com`.
 
 #### Email
 
