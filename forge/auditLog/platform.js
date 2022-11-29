@@ -47,8 +47,17 @@ module.exports = {
         }
 
         const log = async (event, actionedBy, body) => {
-            const trigger = triggerObject(actionedBy)
-            await app.db.controllers.AuditLog.platformLog(trigger.id, event, body)
+            try {
+                const trigger = triggerObject(actionedBy)
+                let whoDidIt = trigger?.id
+                if (typeof whoDidIt !== 'number' || whoDidIt <= 0) {
+                    whoDidIt = null
+                    body.trigger = trigger
+                }
+                await app.db.controllers.AuditLog.platformLog(whoDidIt, event, body)
+            } catch (error) {
+                console.warn('Failed to log platform scope audit event', event, error)
+            }
         }
         return {
             platform

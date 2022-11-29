@@ -82,13 +82,31 @@ module.exports = {
 
         // log as operation on self
         const log = async (event, actionedBy, body) => {
-            const trigger = triggerObject(actionedBy)
-            await app.db.controllers.AuditLog.userLog(trigger.id, event, body, trigger.id)
+            try {
+                const trigger = triggerObject(actionedBy)
+                let whoDidIt = trigger?.id
+                if (typeof whoDidIt !== 'number' || whoDidIt <= 0) {
+                    whoDidIt = null
+                    body.trigger = trigger
+                }
+                await app.db.controllers.AuditLog.userLog(whoDidIt, event, body, whoDidIt)
+            } catch (error) {
+                console.warn('Failed to log user scope audit event', event, error)
+            }
         }
         // log as operation on another entity
         const logUser = async (event, actionedBy, body, entityId) => {
-            const trigger = triggerObject(actionedBy)
-            await app.db.controllers.AuditLog.userLog(trigger.id, event, body, entityId)
+            try {
+                const trigger = triggerObject(actionedBy)
+                let whoDidIt = trigger?.id
+                if (typeof whoDidIt !== 'number' || whoDidIt <= 0) {
+                    whoDidIt = null
+                    body.trigger = trigger
+                }
+                await app.db.controllers.AuditLog.userLog(whoDidIt, event, body, entityId)
+            } catch (error) {
+                console.warn('Failed to log users scope audit event', event, error)
+            }
         }
         return {
             user,

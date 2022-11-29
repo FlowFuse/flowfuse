@@ -60,8 +60,17 @@ module.exports = {
         }
 
         const log = async (event, actionedBy, projectId, body) => {
-            const trigger = triggerObject(actionedBy)
-            await app.db.controllers.AuditLog.projectLog(projectId, trigger.id, event, body)
+            try {
+                const trigger = triggerObject(actionedBy)
+                let whoDidIt = trigger.id
+                if (typeof trigger.id !== 'number' || trigger.id <= 0) {
+                    whoDidIt = null
+                    body.trigger = trigger
+                }
+                await app.db.controllers.AuditLog.projectLog(projectId, whoDidIt, event, body)
+            } catch (error) {
+                console.warn('Failed to log project scope audit event', event, error)
+            }
         }
         return {
             project
