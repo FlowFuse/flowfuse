@@ -62,7 +62,7 @@ You will also need to install the appropriate build tools.
     mkdir c:\flowforge
     ```
 
-2. Download the latest [Installer zip file](https://github.com/flowforge/installer/releases/latest) into a temporary location.
+2. Download the latest [Installer zip file](https://github.com/flowforge/installer/releases/latest/download/flowforge-installer.zip) into a temporary location.
 
 
 3. Unzip the downloaded zip file and copy its contents to
