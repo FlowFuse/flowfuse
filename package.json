@@ -121,7 +121,7 @@
         "postcss-loader": "^6.2.1",
         "postcss-preset-env": "^6.7.0",
         "promptly": "^3.2.0",
-        "sass-loader": "^12.6.0",
+        "sass-loader": "^13.2.0",
         "should": "^13.2.3",
         "should-sinon": "^0.0.6",
         "sinon": "^14.0.2",
