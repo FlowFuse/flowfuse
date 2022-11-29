@@ -12,8 +12,6 @@
                 </slot>
             </div>
         </div>
-        <div class="ff-dialog-backdrop">
-        </div>
     </div>
 </template>
 

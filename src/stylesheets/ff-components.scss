@@ -685,7 +685,9 @@ li.ff-list-item {
   width: 100%;
   height: 100%;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
+  overflow-y: auto;
+  background-color: rgba($ff-grey-800, 0.3);
   &--open {
     display: flex;
   }
@@ -699,8 +701,7 @@ li.ff-list-item {
   z-index: 2;
   width: 100%;
   max-width: 42rem;
-  margin-top: 60px;
-  max-height: calc(100% - 84px);
+  margin: 90px auto;
   display: flex;
   flex-direction: column;
   background-color: $ff-white;
@@ -716,7 +717,7 @@ li.ff-list-item {
     }
     &-content {
       padding: $ff-funit-lg;
-      overflow-y: auto;
+      overflow-y: visible;
     }
     &-actions {
       display: flex;
@@ -727,14 +728,6 @@ li.ff-list-item {
       }
     }
   }
-}
-
-.ff-dialog-backdrop {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background-color: $ff-grey-800;
-  opacity: 0.3;
 }
 
 /*
