@@ -19,7 +19,7 @@ through the instructions on [their website](https://helm.sh).
 You will need a Kubernetes environment. The deployment has currently been tested on the following environments:
 
  - [AWS EKS](aws.md)
- - Digital Ocean
+ - [Digital Ocean](dgitial-ocean.md)
  - MicroK8s
 
  It should run on any Kubernetes platform, but may require some changes for vendor specific Ingress setup.
