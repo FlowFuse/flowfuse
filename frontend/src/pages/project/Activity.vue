@@ -4,7 +4,7 @@
 
 <script>
 import projectApi from '@/api/project'
-import AuditLog from '@/components/AuditLog'
+import AuditLog from '@/components/audit-log/AuditLog'
 
 export default {
     name: 'ProjectAuditLog',
