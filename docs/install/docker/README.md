@@ -37,22 +37,6 @@ tar zxf v0.x.0.tar.gz
 cd docker-compose-x.x.x
 ```
 
-#### Building Containers
-
-To build the 2 required containers run `./build-containers.sh`.
-
-This will build and tag both `flowforge/forge-docker` and `flowforge/node-red`
-
-##### flowforge/flowforge-docker
-
-This container holds the FlowForge App and the Docker Driver
-
-##### flowforge/node-red
-
-This is a basic Node-RED image with the FlowForge Launcher and the required Node-RED plugins to talk to the FlowForge Platform. This is the basis for the initial Stack.
-
-This is the container you can customise for your deployment.
-
 ### Configuring FlowForge
 
 Configuration details are stored in the `etc/flowforge.yml` file which is mapped into the `flowforge/forge-docker` container. You will need to edit this file to update the `domain` and `base_url` entries to match the DNS settings. Please note that once set, the `domain` and `base_url` values should not be changed as these values are used as part of the configuration stored in the database of each project. The ability to migrate `domains` is on the feature backlog.
@@ -97,10 +81,10 @@ set the correct domain name and make the same change to the `public_url` entry i
 
 
 
-#### SSL (optional)
-If you want to serve the forge app and projects via SSL you will need to obtain wildcard SSL certs for the domain you are using eg `*.example.com` or you can use the Letsencrypt acme-companion.
+#### HTTPS (optional)
+If you want to serve the forge app and projects via SSL you will need to obtain a wildcard TSL certificate for the domain you are using eg `*.example.com` or you can use the LetsEncrypt acme-companion.
 
-### Wilcard SSL
+### Wildcard TLS Certificate
 
 Create a folder in the `docker-compose-0.x.0` directory named `certs`, place your .crt and .key files in there, they should be named for the domain without the `*` eg `example.com.crt` & `example.com.key`
 You  also need to create a copy of the .crt and .key files named `default.crt` & `default.key` in the same folder. This is used for serving unknown hosts.
@@ -163,7 +147,7 @@ Then, in the `docker-compose.yml` file, edit the following lines added your doma
 - "LETSENCRYPT_HOST=forge.example.com"
 ```
 
-As with the Wilcard SSL method, if you are running with the MQTT broker then you should adjust the `public_url` to start with `wss://` rather than `ws://`
+As with the Wildcard TLS method, if you are running with the MQTT broker then you should adjust the `public_url` to start with `wss://` rather than `ws://`
 
 #### Running FlowForge
 
