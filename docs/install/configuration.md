@@ -67,6 +67,7 @@ Option        | Description
 `driver.options.namespace` | The namespace to run projects in. Default: `flowforge`
 `driver.options.cloudProvider` | Enables specific options for certain platforms e.g. `aws`. Default: not set
 `driver.options.projectSelector` | A YAML object containing node annotations to use to filter which nodes projects run on. Default: `role: projects`
+
 ## MQTT Broker configuration
 
 By default, the platform runs without an MQTT broker. This restricts some features
