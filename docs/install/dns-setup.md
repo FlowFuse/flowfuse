@@ -59,7 +59,7 @@ sudo dnf install dnsmasq
 
 #### MacOS
 
-On MacOS you will need install dnsmasq using homebrew
+On MacOS you will need install dnsmasq using (homebrew)[https://docs.brew.sh/Installation]
 
 ```
 brew install dnsmasq
