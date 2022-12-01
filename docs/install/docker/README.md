@@ -151,14 +151,22 @@ As with the Wildcard TLS method, if you are running with the MQTT broker then yo
 
 #### Running FlowForge
 
-Once the containers have been built you can start FlowForge by running:
+We need to manually download the `flowforge/node-red` container that will be used for the default stack.
+
+This is done with this command:
+
+```
+docker pull flowforge/node-red
+```
+
+Once that completes we can start FlowForge:
 
 Using the docker compose plugin
 ```
 docker compose -p flowforge up -d
 ```
 
-Using the docker-compose command
+Or using the docker-compose command
 ```
 docker-compose up -p flowforge up -d
 ```
