@@ -75,19 +75,17 @@
         "name": "ff-checkbox",
         "examples": [{
             "code": "<ff-checkbox label=\"My Checkbox\" v-model=\"myVar\"></ff-checkbox>"
+        }, { 
+            "code": "<ff-checkbox label=\"My Checkbox\" v-model=\"myVar\"><b>My <u>Custom</u> Label</b></ff-checkbox>"
         }],
         "props": [{
+            "key": "label",
+            "default": "null",
+            "description": "Label for the checkbox."
+        }, {
             "key": "disabled",
             "default": "false",
-            "description": "Whether or not the input field can be modified."
-        }, {
-            "key": "placeholder",
-            "default": "null",
-            "description": "Informative text to assist the user with the information required in this input field."
-        }, {
-            "key": "password",
-            "default": "false",
-            "description": "Hide the content of this text input as a password field."
+            "description": "Whether or not the checkbox can be toggled."
         }]
     }, {
         "name": "ff-radio-group",

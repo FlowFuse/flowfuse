@@ -444,6 +444,14 @@
                         {{ models.checkbox1 }}
                         <code>{{ cGroups['input'].components[2].examples[0].code }}</code>
                     </div>
+                    <div class="example">
+                        <h5>Example 3: Custom Label</h5>
+                        <ff-checkbox label="My Checkbox" v-model="models.checkbox2">
+                            <b>My <u>Custom</u> Label</b>
+                        </ff-checkbox>
+                        {{ models.checkbox2 }}
+                        <code>{{ cGroups['input'].components[2].examples[1].code }}</code>
+                    </div>
                 </div>
                 <!-- Radio -->
                 <h2 ref="ff-radio-group"><pre>ff-radio-group</pre></h2>
@@ -696,6 +704,7 @@ export default {
                 dropdown1: null,
                 checkbox0: false,
                 checkbox1: false,
+                checkbox2: false,
                 radio0: null,
                 radio1: null,
                 radio2: null,
