@@ -12,7 +12,7 @@ If you are running Docker/Kubernetes on the same machine as the DNS server and W
 
 For Docker on Linux you can use `172.17.0.1` which is the IP address assigned to the `docker0` interface.
 
-On MacOS you can alias a private IP address to the loop back interface e.g. `10.128.0.1` with `sudo ifconfig lo0 alias10.128.0.1`
+On MacOS you can alias a private IP address to the loop back interface e.g. `10.128.0.1` with `sudo ifconfig lo0 alias 10.128.0.1`
 
 ## Production
 
@@ -44,7 +44,7 @@ sudo apt-get install dnsmasq
 sudo echo "no-resolv" >> /etc/dnsmasq.conf
 sudo echo "server=127.0.0.53" >> /etc/dnsmasq.conf
 sudo echo "address=/example.com/192.168.0.22" > /etc/dnsmasq.d/02-flowforge.conf
-
+sudo service dnsmasq start
 ```
 
 (TBC)
