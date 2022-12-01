@@ -34,7 +34,7 @@ describe('FlowForge - Team Membership', () => {
     it('loads invitations into the data table', () => {
         cy.visit('team/ateam/members/invitations')
         cy.wait('@getInvitations')
-        cy.get('[data-el="invites-table"] tbody').find('tr').should('have.length', 1)
+        cy.get('[data-el="invites-table"] tbody').find('tr').should('have.length', 2)
     })
 
     it('user can accept a team invite', () => {
@@ -98,5 +98,25 @@ describe('FlowForge - Team Membership', () => {
 
         // check it has been deleted
         cy.get('[data-el="members-table"] tbody').find('tr').should('have.length', 2)
+    })
+})
+
+describe('FlowForge shows audit logs', () => {
+    beforeEach(() => {
+        cy.login('alice', 'aaPassword')
+        cy.home()
+        cy.visit('team/ateam/audit-log')
+    })
+
+    it('for when a team invite is sent', () => {
+        cy.get('.ff-audit-entry').contains('User Invited to Team')
+    })
+
+    it('for when a team invite is accepted', () => {
+        cy.get('.ff-audit-entry').contains('User Invite Accepted')
+    })
+
+    it('for when a user is removed from a team', () => {
+        cy.get('.ff-audit-entry').contains('User Removed from Team')
     })
 })

@@ -84,3 +84,19 @@ describe('FlowForge - Projects', () => {
             })
     })
 })
+
+describe('FlowForge stores audit logs for a project', () => {
+    beforeEach(() => {
+        cy.login('alice', 'aaPassword')
+        cy.home()
+        cy.visit('/team/ateam/audit-log')
+    })
+
+    it('when it is created', () => {
+        cy.get('.ff-audit-entry').contains('Project Created')
+    })
+
+    it('when it is deleted', () => {
+        cy.get('.ff-audit-entry').contains('Project Deleted')
+    })
+})

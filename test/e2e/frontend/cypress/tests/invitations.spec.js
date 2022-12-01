@@ -69,3 +69,21 @@ describe('FlowForge platform invitees', () => {
         cy.url().should('include', '/team/bteam/overview')
     })
 })
+
+describe('FlowForge stores invitation-based audit logs', () => {
+    it('when an invitation is rejected', () => {
+        cy.login('alice', 'aaPassword')
+        cy.home()
+        cy.visit('/team/ateam/audit-log')
+        cy.get('.ff-audit-entry').contains('User Invite Rejected')
+        cy.logout()
+        cy.visit('/')
+    })
+
+    it('when an invitation is accepted', () => {
+        cy.login('bob', 'bbPassword')
+        cy.home()
+        cy.visit('/team/bteam/audit-log')
+        cy.get('.ff-audit-entry').contains('User Invite Accepted')
+    })
+})
