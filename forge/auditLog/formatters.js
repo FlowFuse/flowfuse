@@ -40,7 +40,9 @@ const generateBody = ({ error, team, project, sourceProject, device, user, stack
     if (isObject(subscription)) {
         body.subscription = subscriptionObject(subscription)
     }
-    if (typeof license === 'string') {
+    if (license && typeof license === 'string') {
+        body.license = license
+    } else {
         body.license = license
     }
     if (updates && updates instanceof UpdatesCollection && updates.length > 0) {
