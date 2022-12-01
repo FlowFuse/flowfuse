@@ -76,8 +76,8 @@ const iconMap = {
         'account.reset-password'
     ],
     key: [
-        'platform.licence.applied',
-        'platform.licence.inspected',
+        'platform.license.applied',
+        'platform.license.inspected',
         'platform.licence.apply',
         'platform.licence.inspect'
     ],

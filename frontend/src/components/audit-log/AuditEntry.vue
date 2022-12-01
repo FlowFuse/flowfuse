@@ -1,14 +1,14 @@
 <template>
     <div class="ff-audit-entry ml-8 py-3 border-b text-base">
         <!-- Time -->
-        <div class="w-20 text-gray-500">{{ entry.time }}</div>
+        <div class="ff-audit-entry-time w-20 text-gray-500">{{ entry.time }}</div>
         <!-- Icon -->
-        <div class="w-12 flex justify-center">
+        <div class="ff-audit-entry-icon w-12 flex justify-center">
             <AuditEntryIcon v-if="entry.body?.error" event="error"></AuditEntryIcon>
             <AuditEntryIcon v-else :event="entry.event"></AuditEntryIcon>
         </div>
         <!-- Event -->
-        <div class="">
+        <div class="ff-audit-entry-description">
             <AuditEntryVerbose :entry="entry"></AuditEntryVerbose>
         </div>
         <!-- User/Trigger -->
