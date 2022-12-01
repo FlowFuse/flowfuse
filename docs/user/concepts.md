@@ -71,10 +71,10 @@ to override any of the settings for themselves.
 A snapshot is a point-in-time backup of a project. It captures the flows, credentials
 and runtime settings.
 
-Snapshots can be created (and deleted) on the FlowForge dashboard.
+Snapshots can be created (and deleted) on the FlowForge dashboard, or using the
+[FlowForge Node-RED Tools plugin](./node-red-tools.md).
 
-*Note:* a future release will add the ability to restore a project to a particular
-snapshot. The 0.6 release introduces snapshots as part of the Device feature.
+The dashboard also allows you to roll a project back to a previous snapshot.
 
 ### Team
 
@@ -88,8 +88,8 @@ The FlowForge platform can be used to manage projects running on remote devices.
 A Device runs a software agent that connects back to the platform to receive updates.
 Users must [install the agent](./devices.md) on the devices.
 
-Devices are registered to a Team, and then assigned to a Project withing that team.
-A user can create a [project snapshot](#project-snapshot) can mark it as the
+Devices are registered to a Team, and then assigned to a Project within that team.
+A user can create a [project snapshot](#project-snapshot) and then mark it as the
 *target* snapshot for devices. The platform will then deploy that snapshot to
 all of the devices assigned to the project.
 
