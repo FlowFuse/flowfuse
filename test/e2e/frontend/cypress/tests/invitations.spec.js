@@ -62,8 +62,6 @@ describe('FlowForge platform invitees', () => {
         // accept the invite
         cy.get('[data-el="table"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').contains('Accept').click()
 
-        cy.get('[data-el="table"] tbody').contains('No Data Found')
-
         cy.get('[data-action="team-selection"]').should('be.visible')
         // should have navigated to the team dashboard
         cy.url().should('include', '/team/bteam/overview')
