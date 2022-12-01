@@ -15,6 +15,7 @@
     <KeyIcon v-if="icon === 'key'" class="ff-icon text-green-700" />
     <LoginIcon v-if="icon === 'login'" class="ff-icon text-blue-700" />
     <LogoutIcon v-if="icon === 'logout'" class="ff-icon text-gray-600" />
+    <ExclamationCircleIcon v-if="icon === 'error'" class="ff-icon text-red-500" />
 </template>
 
 <script>
@@ -25,11 +26,14 @@ import {
     DesktopComputerIcon, ClockIcon, ColorSwatchIcon,
     UserIcon, UserGroupIcon, LockClosedIcon,
     MailIcon, LoginIcon, LogoutIcon, KeyIcon,
-    CurrencyDollarIcon, CogIcon,
+    CurrencyDollarIcon, CogIcon, ExclamationCircleIcon,
     ChipIcon, IdentificationIcon
 } from '@heroicons/vue/outline'
 
 const iconMap = {
+    error: [
+        'error'
+    ],
     nodered: [
         'crashed',
         'stopped'
@@ -179,7 +183,8 @@ export default {
         UserGroupIcon,
         LoginIcon,
         LogoutIcon,
-        CurrencyDollarIcon
+        CurrencyDollarIcon,
+        ExclamationCircleIcon
     }
 }
 </script>
