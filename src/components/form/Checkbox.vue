@@ -2,7 +2,7 @@
     <label class="ff-checkbox" :disabled="disabled">
         <input type="checkbox" :value="modelValue" :disabled="disabled" v-model="model" />
         <span class="checkbox" :checked="model"></span>
-        <label @click="toggle">
+        <label @click="toggle" v-if="label !== null || $slots.default">
             <slot>{{ label }}</slot>
         </label>
     </label>
@@ -13,7 +13,7 @@ export default {
     name: 'ff-checkbox',
     props: {
         label: {
-            required: true,
+            default: null,
             type: String
         },
         disabled: {
