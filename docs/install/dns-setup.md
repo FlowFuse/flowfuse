@@ -25,6 +25,12 @@ This can be either:
 - a `A` (and `AAAA` for IPv6) record pointing to an IP address
 - a `CNAME` record pointing to the hostname of the entry point.
 
+### AWS ALB Ingress
+
+When using AWS ALB (Application Load Balancer) as an Ingress Controller for FlowForge deployed into an EKS cluster then you would create a wildcard CNAME entry pointing to the hostname of the ALB
+
+### Digital Ocean 
+
 ## Local Testing and Development
 
 For development and testing we probably only need to set up DNS entries for the developers local machine. The easiest way to do this is to use an application called dnsmasq.
@@ -41,13 +47,27 @@ The following headings cover how to do this on a number of different operating s
 
 ```
 sudo apt-get install dnsmasq
+sudo echo "bind-interfaces" >> /etc/dnsmasq.conf
 sudo echo "no-resolv" >> /etc/dnsmasq.conf
 sudo echo "server=127.0.0.53" >> /etc/dnsmasq.conf
+sudo echo "conf-dir=/etc/dnsmasq.d" >> /etc/dnsmasq.conf
 sudo echo "address=/example.com/192.168.0.22" > /etc/dnsmasq.d/02-flowforge.conf
-sudo service dnsmasq start
+sudo service dnsmasq restart
 ```
 
-(TBC)
+Once running you can edit the `/etc/resolv.conf` file, you need to change the following line
+
+```
+nameserver 127.0.0.53
+```
+
+to
+
+```
+nameserver 127.0.0.1
+```
+
+This will revert on restart but should be good enough for doing some evaluation.
 
 #### Fedora
 
