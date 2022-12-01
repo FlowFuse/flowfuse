@@ -39,12 +39,12 @@
     </template>
     <template v-else-if="entry.event === 'team.user.invite.accepted'">
         <label>User Invite Accepted</label>
-        <span v-if="!error && entry.body?.user">User '{{ entry.body.user.name }}' has accepted the invite to join the team as a {{ entry.body.role }}.</span>
+        <span v-if="!error && entry.body?.user">User '{{ entry.body.user.name }}' has accepted the invite to join the team{{ entry.body.role ? ` as a ${entry.body.role}` : '' }}.</span>
         <span v-else-if="!error">User data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'team.user.invite.rejected'">
         <label>User Invite Rejected</label>
-        <span v-if="!error && entry.body?.user">User '{{ entry.body.user.name }}' has rejected the invite to join the team as a {{ entry.body.role }}.</span>
+        <span v-if="!error && entry.body?.user">User '{{ entry.body.user.name }}' has rejected the invite to join the team{{ entry.body.role ? ` as a ${entry.body.role}` : '' }}.</span>
         <span v-else-if="!error">User data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'team.user.role-changed' || entry.event === 'user.roleChanged'">
@@ -204,7 +204,7 @@
     </template>
     <!-- Platform License Events -->
     <template v-else-if="entry.event === 'platform.project-type.created'">
-        <label>Project Type Created</label>
+        <label>New Project Type Created</label>
         <span v-if="!error && entry.body?.projectType">A new project type '{{ entry.body.projectType }}' has been created.</span>
         <span v-else-if="!error">Project Type data not found in audit entry.</span>
     </template>
@@ -219,18 +219,18 @@
         <span v-else-if="!error">Project Type data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'platform.stack.created'">
-        <label>Stack Created</label>
-        <span v-if="!error && entry.body?.projectType">Stack '{{ entry.body.projectType }}' has been created.</span>
+        <label>New Stack Created</label>
+        <span v-if="!error && entry.body?.stack">Stack '{{ entry.body.stack.name }}' has been created.</span>
         <span v-else-if="!error">Stack data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'platform.stack.deleted'">
         <label>Stack Deleted</label>
-        <span v-if="!error && entry.body?.projectType">Stack '{{ entry.body.projectType }}' has been deleted.</span>
+        <span v-if="!error && entry.body?.stack">Stack '{{ entry.body.stack.name }}' has been deleted.</span>
         <span v-else-if="!error">Stack data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'platform.stack.updated'">
         <label>Stack Updated</label>
-        <span v-if="!error && entry.body?.projectType">Stack '{{ entry.body.projectType }}' has been updated with the following changes: {{ entry.body.updates }}</span>
+        <span v-if="!error && entry.body?.stack">Stack '{{ entry.body.stack.name }}' has been updated with the following changes: {{ entry.body.updates }}</span>
         <span v-else-if="!error">Stack data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'platform.settings.updated' || entry.event === 'platform.settings.update'">
