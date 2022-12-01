@@ -7,11 +7,12 @@
                     <ff-checkbox :id="inputId"
                                  ref="input"
                                  type="checkbox"
-                                 :label="null"
                                  :class="inputClass"
                                  v-model="localModelValue"
-                                 :disabled="disabled"></ff-checkbox>
-                    <label data-el="form-row-title" v-if="hasTitle" :for="inputId" class="block ml-8 text-sm font-medium" :class="disabled ? ' cursor-not-allowed text-gray-400': ' cursor-pointer'" @click="toggleValue"><slot></slot></label>
+                                 :disabled="disabled"
+                                 data-el="form-row-title">
+                        <slot></slot>
+                    </ff-checkbox>
                 </div>
                 <div v-if="hasAppend" :class="(appendClass ? appendClass : 'inline ml-2')"><slot name="append"></slot></div>
             </div>
@@ -127,11 +128,6 @@ export default {
             this.$nextTick(() => {
                 this.$refs.input?.focus()
             })
-        },
-        toggleValue () {
-            if (!this.disabled) {
-                this.localModelValue = !this.localModelValue
-            }
         }
     }
 }
