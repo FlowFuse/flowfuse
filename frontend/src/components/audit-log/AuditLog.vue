@@ -1,17 +1,18 @@
 <template>
     <ff-loading v-if="loading" message="Loading Activity..." />
-    <template v-else-if="logEntries.length > 0">
-        <ul class="mx-auto">
-            <li v-for="item in logEntries" :key="item.id">
-                <div v-if="item.date" class="font-medium mt-2 mb-1">{{item.date}}</div>
-                <AuditEntry :entry="item"></AuditEntry>
-            </li>
-            <li v-if="showLoadMore !== false && nextCursor" class="px-8 py-4">
-                <a v-if="!loading" @click.stop="loadMore" class="forge-button-inline">Load more...</a>
-                <div class="text-gray-500" v-else>Loading...</div>
-            </li>
-        </ul>
-    </template>
+    <ul class="mx-auto">
+        <li v-for="item in logEntries" :key="item.id">
+            <div v-if="item.date" class="font-medium mt-2 mb-1">{{item.date}}</div>
+            <AuditEntry :entry="item"></AuditEntry>
+        </li>
+        <li v-if="logEntries.length === 0" class="px-8 py-4 text-center">
+            <a v-if="!loading">No Audit Entries Found</a>
+        </li>
+        <li v-if="logEntries.length > 0 && showLoadMore !== false && nextCursor" class="px-8 py-4">
+            <a v-if="!loading" @click.stop="loadMore" class="forge-button-inline">Load more...</a>
+            <div class="text-gray-500" v-else>Loading...</div>
+        </li>
+    </ul>
 </template>
 
 <script>
@@ -71,7 +72,7 @@ export default {
             this.loading = true
             const result = await this.loadItems(this.entity.id, this.nextCursor)
             this.nextCursor = result.meta.next_cursor
-            this.logEntries = this.formatResults(this.logEntries.concat(result.log))
+            // this.logEntries = this.formatResults(this.logEntries.concat(result.log))
             this.loading = false
         },
         formatResults: function (log) {
@@ -100,7 +101,7 @@ export default {
             }
             if (this.entity && this.entity.id) {
                 const result = await this.loadItems(this.entity.id)
-                this.logEntries = this.formatResults(result.log)
+                // this.logEntries = this.formatResults(result.log)
                 this.nextCursor = result.meta.next_cursor
             }
             this.initialLoad = false
