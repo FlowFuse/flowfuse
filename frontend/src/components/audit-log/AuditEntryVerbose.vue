@@ -192,14 +192,14 @@
     </template>
 
     <!-- Platform License Events -->
-    <template v-else-if="entry.event === 'platform.licence.applied' || entry.event === 'platform.licence.apply'">
+    <template v-else-if="entry.event === 'platform.license.applied' || entry.event === 'platform.licence.apply'">
         <label>License Applied</label>
-        <span v-if="!error && entry.body?.license">License '{{ entry.body.license }}' has been applied.</span>
+        <span v-if="!error && entry.body?.license">A new license has been applied with the following details: {{ entry.body.license }}</span>
         <span v-else-if="!error">License data not found in audit entry.</span>
     </template>
-    <template v-else-if="entry.event === 'platform.licence.inspected' || entry.event === 'platform.licence.inspect'">
+    <template v-else-if="entry.event === 'platform.license.inspected' || entry.event === 'platform.licence.inspect'">
         <label>License Inspected</label>
-        <span v-if="!error && entry.body?.license">License '{{ entry.body.license }}' has been inspected.</span>
+        <span v-if="!error && entry.body?.license">A license was inspected with the following details: {{ entry.body.license }}</span>
         <span v-else-if="!error">License data not found in audit entry.</span>
     </template>
     <!-- Platform License Events -->
