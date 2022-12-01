@@ -72,7 +72,7 @@ export default {
             this.loading = true
             const result = await this.loadItems(this.entity.id, this.nextCursor)
             this.nextCursor = result.meta.next_cursor
-            // this.logEntries = this.formatResults(this.logEntries.concat(result.log))
+            this.logEntries = this.formatResults(this.logEntries.concat(result.log))
             this.loading = false
         },
         formatResults: function (log) {
@@ -101,7 +101,7 @@ export default {
             }
             if (this.entity && this.entity.id) {
                 const result = await this.loadItems(this.entity.id)
-                // this.logEntries = this.formatResults(result.log)
+                this.logEntries = this.formatResults(result.log)
                 this.nextCursor = result.meta.next_cursor
             }
             this.initialLoad = false
