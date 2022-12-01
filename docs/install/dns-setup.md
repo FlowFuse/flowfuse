@@ -77,6 +77,10 @@ This will revert on restart but should be good enough for doing some evaluation.
 sudo dnf install dnsmasq
 ```
 
+#### Windows
+
+Unfortunately dnsmasq will not run on Windows.
+
 #### MacOS
 
 On MacOS you will need install dnsmasq using (homebrew)[https://docs.brew.sh/Installation]
