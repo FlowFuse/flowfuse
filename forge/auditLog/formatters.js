@@ -40,7 +40,7 @@ const generateBody = ({ error, team, project, sourceProject, device, user, stack
     if (isObject(subscription)) {
         body.subscription = subscriptionObject(subscription)
     }
-    if (license) {
+    if (license !== undefined) {
         if (typeof license === 'string') {
             body.license = license
         } else {
