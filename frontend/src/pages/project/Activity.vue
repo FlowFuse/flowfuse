@@ -8,7 +8,8 @@ import AuditLog from '@/components/audit-log/AuditLog'
 
 export default {
     name: 'ProjectAuditLog',
-    props: ['project'],
+    props: ['project', 'is-visiting-admin'],
+    emits: ['project-start', 'project-delete', 'project-suspend', 'project-restart', 'projectUpdated'],
     data () {
         return {
             loading: true
