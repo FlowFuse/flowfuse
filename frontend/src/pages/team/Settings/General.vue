@@ -1,21 +1,24 @@
 <template>
     <form class="space-y-6">
-        <FormRow v-model="input.teamName" :type="editing.teamName?'text':'uneditable'" :error="errors.teamName" id="teamName" ref="name-row">
+        <FormRow v-model="teamId" type="uneditable" id="teamId" ref="id-row">
+            <template #default>Team ID</template>
+        </FormRow>
+        <FormRow v-model="input.teamName" :type="editing ? 'text' : 'uneditable'" :error="errors.teamName" id="teamName" ref="name-row">
             <template #default>Name</template>
             <template #description>
-                <div v-if="editing.teamName">eg. 'Development'</div>
+                <div v-if="editing">eg. 'Development'</div>
             </template>
         </FormRow>
         <FormRow v-model="input.teamType" type="uneditable">
             <template #default>Type</template>
             <template #description>
-                <div v-if="editing.teamName">You cannot currently change the type of team</div>
+                <div v-if="editing">You cannot currently change the type of team</div>
             </template>
         </FormRow>
-        <FormRow v-model="input.slug" :type="editing.teamName?'text':'uneditable'" :error="errors.slug" id="teamSlug">
+        <FormRow v-model="input.slug" :type="editing ? 'text' : 'uneditable'" :error="errors.slug" id="teamSlug">
             <template #default>Slug</template>
             <template #description>
-                <div v-if="editing.teamName">
+                <div v-if="editing">
                     <span class="text-red-700">Warning:</span>
                     Changing this will modify all urls used to access the team.
                     The platform will not redirect requests to the old url.
@@ -87,6 +90,9 @@ export default {
     computed: {
         formValid () {
             return this.input.teamName && !this.errors.slug && !this.errors.teamName
+        },
+        teamId () {
+            return this.team.id
         }
     },
     mounted () {
