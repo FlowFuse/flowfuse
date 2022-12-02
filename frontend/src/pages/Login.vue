@@ -13,7 +13,7 @@
             </div>
             <label class="ff-error-inline" data-el="errors-general">{{ errors.general }}</label>
             <div class="ff-actions">
-                <ff-button :disabled="!loginEnabled" @click="login()" data-action="login">Login</ff-button>
+                <ff-button @click="login()" data-action="login">Login</ff-button>
                 <ff-button v-if="settings['user:signup']" kind="tertiary" to="/account/create" data-action="sign-up">Sign Up</ff-button>
                 <ff-button v-if="passwordRequired && settings['user:reset-password']" kind="tertiary" :to="{'name': 'ForgotPassword'}" data-action="forgot-password">Forgot your password?</ff-button>
             </div>
@@ -53,6 +53,14 @@ export default {
             let valid = true
             this.errors.username = ''
             this.errors.password = ''
+            if (this.input.username === '') {
+                valid = false
+                this.errors.username = 'Required field'
+            }
+            if (this.passwordRequired && this.input.password === '') {
+                valid = false
+                this.errors.password = 'Required field'
+            }
             if (this.input.password.length > 1024) {
                 valid = false
                 this.errors.password = 'Too long'
@@ -69,10 +77,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings', 'pending', 'loginError']),
-        loginEnabled () {
-            return this.input.username && (!this.passwordRequired || this.input.password)
-        }
+        ...mapState('account', ['settings', 'pending', 'loginError'])
     },
     async mounted () {
         await this.$nextTick()
