@@ -24,4 +24,13 @@ jobs:
           config-file: config/cypress.config.js
           build: npm run build
           start: node test/e2e/frontend/test_environment.js
-          
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: cypress-videos
+          path: cypress/videos
