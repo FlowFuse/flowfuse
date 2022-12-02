@@ -6,6 +6,11 @@ describe('FlowForge - Team Membership', () => {
         cy.login('alice', 'aaPassword')
     })
 
+    after(() => {
+        cy.login('alice', 'aaPassword')
+        cy.resetTermsAndCondition()
+    })
+
     it('admin can enable terms and conditions', () => {
         // at this point, alice is logged in, call resetTermsAndCondition() to ensure good state
         cy.resetTermsAndCondition()
@@ -61,6 +66,10 @@ describe('FlowForge - Team Membership', () => {
         cy.home()
         cy.visit('admin/settings/general')
         cy.wait(['@getSettings'])
+        cy.wait(['@getUser'])
+        cy.wait(['@getTeam'])
+        cy.wait(['@getTeams'])
+        cy.wait(['@getTeamRole'])
 
         // click update button
         cy.get('[data-action="terms-and-condition-update"]').click()
@@ -77,7 +86,7 @@ describe('FlowForge - Team Membership', () => {
     })
     it('user is asked to update terms and conditions', () => {
         cy.login('bob', 'bbPassword')
-        cy.overview()
+        cy.visit('/')
 
         // user should be presented the T+Cs dialog
         cy.get('[data-action="accept-terms-check"]').find('input').should('have.value', 'false')
@@ -90,7 +99,6 @@ describe('FlowForge - Team Membership', () => {
 
         // accept T+Cs
         cy.get('[data-action="accept-terms-button"]').click()
-        cy.wait(['@getUser'])
 
         // T+Cs dialog should be gone
         cy.get('[data-action="accept-terms-check"]').should('have.length', 0)
