@@ -100,3 +100,23 @@ describe('FlowForge - Team Membership', () => {
         cy.get('[data-el="members-table"] tbody').find('tr').should('have.length', 2)
     })
 })
+
+describe('FlowForge shows audit logs', () => {
+    beforeEach(() => {
+        cy.login('alice', 'aaPassword')
+        cy.home()
+        cy.visit('team/ateam/audit-log')
+    })
+
+    it('for when a team invite is sent', () => {
+        cy.get('.ff-audit-entry').contains('User Invited to Team')
+    })
+
+    it('for when a team invite is accepted', () => {
+        cy.get('.ff-audit-entry').contains('User Invite Accepted')
+    })
+
+    it('for when a user is removed from a team', () => {
+        cy.get('.ff-audit-entry').contains('User Removed from Team')
+    })
+})

@@ -6,7 +6,7 @@
 <script>
 import { mapState } from 'vuex'
 import SectionTopMenu from '@/components/SectionTopMenu'
-import AuditLog from '@/components/AuditLog'
+import AuditLog from '@/components/audit-log/AuditLog'
 import adminApi from '@/api/admin'
 
 export default {

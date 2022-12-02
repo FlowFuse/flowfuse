@@ -99,3 +99,19 @@ describe('FlowForge - Devices', () => {
         cy.get('[data-action="load-more"]').should('not.exist')
     })
 })
+
+describe('FlowForge stores device audit logs', () => {
+    beforeEach(() => {
+        cy.login('alice', 'aaPassword')
+        cy.home()
+        cy.visit('/team/ateam/audit-log')
+    })
+
+    it('when a device is registered', () => {
+        cy.get('.ff-audit-entry').contains('New Device Created')
+    })
+
+    it('when a device is deleted', () => {
+        cy.get('.ff-audit-entry').contains('Device Deleted')
+    })
+})

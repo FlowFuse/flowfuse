@@ -21,7 +21,22 @@ module.exports = {
     },
     darkMode: false, // or 'media' or 'class'
     theme: {
-        extend: {}
+        extend: {
+            colors: {
+                teal: {
+                    50: '#E4FBFC',
+                    100: '#C4F3F5',
+                    200: '#B2EBEE',
+                    300: '#8CE2E7',
+                    400: '#74D4D9',
+                    500: '#50C3C9',
+                    600: '#35AAB0',
+                    700: '#31959A',
+                    800: '#397B7E',
+                    900: '#406466'
+                }
+            }
+        }
     },
     variants: {
         extend: {}

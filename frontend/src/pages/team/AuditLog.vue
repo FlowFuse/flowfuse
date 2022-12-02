@@ -6,7 +6,7 @@
 <script>
 import teamApi from '@/api/team'
 import SectionTopMenu from '@/components/SectionTopMenu'
-import AuditLog from '@/components/AuditLog'
+import AuditLog from '@/components/audit-log/AuditLog'
 import permissionsMixin from '@/mixins/Permissions'
 
 export default {

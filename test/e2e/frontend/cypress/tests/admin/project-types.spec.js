@@ -76,3 +76,27 @@ describe('FlowForge - Project Types', () => {
         cy.get('[data-el="inactive-types"] tbody').contains('td', 'No Data Found')
     })
 })
+
+describe('FlowForge shows audit logs', () => {
+    beforeEach(() => {
+        cy.intercept('GET', '/api/**/audit-log').as('getAuditLog')
+
+        cy.login('alice', 'aaPassword')
+        cy.home()
+
+        cy.visit('/admin/audit-log')
+        cy.wait(['@getAuditLog'])
+    })
+
+    it('for when a new project type is created', () => {
+        cy.get('.ff-audit-entry').contains('New Project Type Created')
+    })
+
+    it('for when a project type is updated', () => {
+        cy.get('.ff-audit-entry').contains('Project Type Updated')
+    })
+
+    it('for when a project type is deleted', () => {
+        cy.get('.ff-audit-entry').contains('Project Type Deleted')
+    })
+})

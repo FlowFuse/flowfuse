@@ -98,8 +98,13 @@ module.exports = async function (app) {
                     reply.code(400).send({ code: 'invalid_request', error: 'cannot replace stack with different project type' })
                     return
                 }
+                // log the change of active state in audit
+                const updates = new app.auditLog.formatters.UpdatesCollection()
+                updates.push('active', true, false)
+                await app.auditLog.Platform.platform.stack.updated(request.session.User, null, replacedStack, updates)
             }
             const stack = await app.db.models.ProjectStack.create(stackProperties)
+
             await app.auditLog.Platform.platform.stack.created(request.session.User, null, stack)
             if (replacedStack) {
                 // Update all previous stacks to point to the latest in the chain

@@ -37,6 +37,10 @@ Cypress.Commands.add('login', (username, password) => {
     })
 })
 
+Cypress.Commands.add('logout', (username, password) => {
+    cy.request('post', '/account/logout')
+})
+
 // Navigate to the home page, and given we are logged in,
 // wait until all API calls have completed before moving on
 Cypress.Commands.add('home', (username, password) => {

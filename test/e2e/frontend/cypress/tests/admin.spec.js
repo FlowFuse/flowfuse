@@ -123,3 +123,19 @@ describe('FlowForge platform non-admin users', () => {
         cy.url().should('not.include', '/admin/overview')
     })
 })
+
+describe('FlowForge stores an admin-level audit', () => {
+    beforeEach(() => {
+        cy.login('alice', 'aaPassword')
+        cy.home()
+        cy.visit('/admin/audit-log')
+    })
+
+    it('when a user logs in', () => {
+        cy.get('.ff-audit-entry').contains('User Logged In')
+    })
+
+    it('when a platform license key is applied', () => {
+        cy.get('.ff-audit-entry').contains('License Applied')
+    })
+})

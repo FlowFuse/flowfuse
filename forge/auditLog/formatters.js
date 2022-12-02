@@ -40,8 +40,8 @@ const generateBody = ({ error, team, project, sourceProject, device, user, stack
     if (isObject(subscription)) {
         body.subscription = subscriptionObject(subscription)
     }
-    if (typeof license === 'string') {
-        body.license = license
+    if (isObject(license) || (typeof license === 'string')) {
+        body.license = licenseObject(license)
     }
     if (updates && updates instanceof UpdatesCollection && updates.length > 0) {
         body.updates = updates.toArray()
@@ -199,6 +199,15 @@ const billingSessionObject = (session) => {
 const subscriptionObject = (subscription) => {
     return {
         subscription: subscription?.subscription || null
+    }
+}
+const licenseObject = (license) => {
+    if (typeof license === 'string') {
+        return {
+            key: license
+        }
+    } else {
+        return license
     }
 }
 const snapshotObject = (snapshot) => {

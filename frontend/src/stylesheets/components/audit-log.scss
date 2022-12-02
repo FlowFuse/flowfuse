@@ -1,0 +1,30 @@
+@import '~@flowforge/forge-ui-components/dist/scss/forge-colors.scss';
+
+.ff-audit-entry {
+    align-items: center;
+    display: grid;
+    grid-template-columns: 75px 50px 1fr 200px;
+    label {
+        font-weight: 500;
+    }
+    span {
+        color: $ff-grey-400;
+        font-weight: 400;
+        font-size: 0.875rem;
+        line-height: 1rem;
+        display: block;
+        width:100%;
+    }
+
+    svg path {
+        stroke-width: 2px;
+    }
+}
+
+.ff-audit-entry-trigger {
+    color: $ff-grey-400;
+    text-align: right;
+    overflow-x: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}

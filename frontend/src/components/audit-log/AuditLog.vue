@@ -1,38 +1,24 @@
 <template>
     <ff-loading v-if="loading" message="Loading Activity..." />
-    <template v-else-if="logEntries.length > 0">
-        <ul class="mx-auto max-w-4xl">
-            <li v-for="item in logEntries" :key="item.id">
-                <div v-if="item.date" class="font-medium mt-2 mb-1">{{item.date}}</div>
-                <div class="ml-8 flex py-3 border-b text-base">
-                    <div class="w-20 text-gray-500">{{item.time}}</div>
-                    <div class="w-12">
-                        <PlayIcon v-if="item.icon === 'play'" class=" text-gray-300 w-8 h-8" />
-                        <StopIcon v-if="item.icon === 'stop'" class=" text-gray-300 w-8 h-8" />
-                        <ChipIcon v-if="item.icon === 'create' || item.icon === 'delete'" class=" text-gray-300 w-8 h-8" />
-                        <UserIcon v-if="item.icon === 'user'" class=" text-gray-300 w-8 h-8" />
-                        <PencilIcon v-if="item.icon === 'pencil'" class=" text-gray-300 w-8 h-8" />
-                        <LogoutIcon v-if="item.icon === 'logout'" class=" text-gray-300 w-8 h-8" />
-                    </div>
-                    <div class="flex-grow flex flex-col">
-                        <div>{{item.title}}</div>
-                        <div class="text-sm text-gray-500">{{item.username}}</div>
-                        <div class="text-sm text-gray-500">{{item.body}}</div>
-                    </div>
-                </div>
-            </li>
-            <li v-if="showLoadMore !== false && nextCursor" class="px-8 py-4">
-                <a v-if="!loading" @click.stop="loadMore" class="forge-button-inline">Load more...</a>
-                <div class="text-gray-500" v-else>Loading...</div>
-            </li>
-        </ul>
-    </template>
+    <ul class="mx-auto">
+        <li v-for="item in logEntries" :key="item.id">
+            <div v-if="item.date" class="font-medium mt-2 mb-1">{{item.date}}</div>
+            <AuditEntry :entry="item"></AuditEntry>
+        </li>
+        <li v-if="logEntries.length === 0" class="px-8 py-4 text-center">
+            <a v-if="!loading">No Audit Entries Found</a>
+        </li>
+        <li v-if="logEntries.length > 0 && showLoadMore !== false && nextCursor" class="px-8 py-4">
+            <a v-if="!loading" @click.stop="loadMore" class="forge-button-inline">Load more...</a>
+            <div class="text-gray-500" v-else>Loading...</div>
+        </li>
+    </ul>
 </template>
 
 <script>
 /* eslint-disable no-template-curly-in-string */
 
-import { LogoutIcon, PlayIcon, StopIcon, ChipIcon, UserIcon, PencilIcon } from '@heroicons/vue/outline'
+import AuditEntry from './AuditEntry.vue'
 
 const eventDescriptions = {
     'project.created': 'Project created',
@@ -123,12 +109,11 @@ export default {
         }
     },
     components: {
-        PlayIcon,
-        StopIcon,
-        ChipIcon,
-        UserIcon,
-        PencilIcon,
-        LogoutIcon
+        AuditEntry
     }
 }
 </script>
+
+<style lang="scss">
+@import "@/stylesheets/components/audit-log.scss";
+</style>

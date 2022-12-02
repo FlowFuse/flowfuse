@@ -59,3 +59,34 @@ describe('FlowForge - Project Snapshots', () => {
         cy.get('main').contains('You have not created any snapshots yet')
     })
 })
+
+describe('FlowForge shows audit logs', () => {
+    function navigateToProject (teamName, projectName) {
+        cy.request('GET', '/api/v1/user/teams')
+            .then((response) => {
+                const team = response.body.teams.find(
+                    (team) => team.name === teamName
+                )
+                return cy.request('GET', `/api/v1/teams/${team.id}/projects`)
+            })
+            .then((response) => {
+                const project = response.body.projects.find(
+                    (project) => project.name === projectName
+                )
+                cy.visit(`/project/${project.id}/activity`)
+            })
+    }
+
+    beforeEach(() => {
+        cy.login('alice', 'aaPassword')
+        cy.home()
+        navigateToProject('ATeam', 'project1')
+    })
+
+    it('for when a snapshot is created', () => {
+        cy.get('.ff-audit-entry').contains('Project Snapshot Created')
+    })
+    it('for when a snapshot is deleted', () => {
+        cy.get('.ff-audit-entry').contains('Project Snapshot Deleted')
+    })
+})

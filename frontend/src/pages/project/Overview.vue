@@ -92,7 +92,7 @@ import { mapState } from 'vuex'
 import ProjectStatusBadge from './components/ProjectStatusBadge'
 
 import projectApi from '@/api/project'
-import AuditLog from '@/components/AuditLog'
+import AuditLog from '@/components/audit-log/AuditLog'
 import DropdownMenu from '@/components/DropdownMenu'
 import FormHeading from '@/components/FormHeading'
 import SectionTopMenu from '@/components/SectionTopMenu'

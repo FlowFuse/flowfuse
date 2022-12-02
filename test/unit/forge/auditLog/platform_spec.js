@@ -172,7 +172,8 @@ describe('Audit Log > Platform', async function () {
         logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
         logEntry.should.have.property('body')
         logEntry.body.should.only.have.keys('license')
-        logEntry.body.license.should.equal('a-license')
+        logEntry.body.license.should.only.have.keys('key')
+        logEntry.body.license.key.should.equal('a-license')
     })
 
     it('Provides a logger for inspecting a platform license', async function () {
@@ -185,6 +186,7 @@ describe('Audit Log > Platform', async function () {
         logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
         logEntry.should.have.property('body')
         logEntry.body.should.only.have.keys('license')
-        logEntry.body.license.should.equal('a-license')
+        logEntry.body.license.should.only.have.keys('key')
+        logEntry.body.license.key.should.equal('a-license')
     })
 })

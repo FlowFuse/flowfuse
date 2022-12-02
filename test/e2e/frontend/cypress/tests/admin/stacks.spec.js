@@ -97,3 +97,23 @@ describe('FlowForge - Stacks', () => {
         cy.get('[data-action="load-more-inactive"]').should('not.exist')
     })
 })
+
+describe('FlowForge shows audit logs', () => {
+    beforeEach(() => {
+        cy.intercept('GET', '/api/**/audit-log').as('getAuditLog')
+
+        cy.login('alice', 'aaPassword')
+        cy.home()
+
+        cy.visit('/admin/audit-log')
+        cy.wait(['@getAuditLog'])
+    })
+
+    it('for when a new stack is created', () => {
+        cy.get('.ff-audit-entry').contains('New Stack Created')
+    })
+
+    it('for when a stack is changed to inactive', () => {
+        cy.get('.ff-audit-entry').contains('Stack Updated')
+    })
+})
