@@ -3,7 +3,7 @@
         <div v-if="!pending">
             <div>
                 <label>username / email</label>
-                <ff-text-input ref="login-username" label="username" :error="errors.username" v-model="input.username" @enter="focusPassword"/>
+                <ff-text-input ref="login-username" label="username" :error="errors.username" v-model="input.username" @enter="login()"/>
                 <label class="ff-error-inline" data-el="errors-username">{{ errors.username }}</label>
                 <div v-if="passwordRequired">
                     <label>password</label>
