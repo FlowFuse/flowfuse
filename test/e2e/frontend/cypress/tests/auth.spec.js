@@ -67,7 +67,7 @@ describe('FlowForge - Auth', () => {
         // should prompt for password as well
         cy.get('div[label=username] input').should('be.visible')
         cy.get('div[label=password] input').should('be.visible')
-        // fill out username
+        // fill out pasword
         cy.get('div[label=password] input').type('aaPassword')
         // click "login"
         cy.get('[data-action="login"]').click()
