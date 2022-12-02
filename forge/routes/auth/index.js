@@ -151,7 +151,7 @@ module.exports = fp(async function (app, opts, done) {
         schema: {
             body: {
                 type: 'object',
-                required: ['username', 'password'],
+                required: ['username'],
                 properties: {
                     username: { type: 'string' },
                     password: { type: 'string' }
@@ -160,31 +160,35 @@ module.exports = fp(async function (app, opts, done) {
         },
         logLevel: app.config.logging.http
     }, async (request, reply) => {
-        const userInfo = app.auditLog.formatters.userObject(request.body)
-        const result = await app.db.controllers.User.authenticateCredentials(request.body.username, request.body.password)
-        if (result) {
-            const session = await app.db.controllers.Session.createUserSession(request.body.username)
-            if (session) {
-                userInfo.id = session.UserId
-                // TODO: add more info to userInfo for user logging in
-                // userInfo.email = session.User?.email
-                // userInfo.name = session.User?.name
-                const cookieOptions = { ...SESSION_COOKIE_OPTIONS }
-                cookieOptions.maxAge = SESSION_MAX_AGE
-                reply.setCookie('sid', session.sid, cookieOptions)
-                await app.auditLog.User.account.login(userInfo, null)
-                reply.send()
-                return
-            } else {
-                const resp = { code: 'user_suspended', error: 'User Suspended' }
-                await app.auditLog.User.account.login(userInfo, resp, userInfo)
-                reply.code(403).send(resp)
-                return
+        if (!request.body.password) {
+            reply.code(403).send({ code: 'password_required', error: 'Password required' })
+        } else {
+            const userInfo = app.auditLog.formatters.userObject(request.body)
+            const result = await app.db.controllers.User.authenticateCredentials(request.body.username, request.body.password)
+            if (result) {
+                const session = await app.db.controllers.Session.createUserSession(request.body.username)
+                if (session) {
+                    userInfo.id = session.UserId
+                    // TODO: add more info to userInfo for user logging in
+                    // userInfo.email = session.User?.email
+                    // userInfo.name = session.User?.name
+                    const cookieOptions = { ...SESSION_COOKIE_OPTIONS }
+                    cookieOptions.maxAge = SESSION_MAX_AGE
+                    reply.setCookie('sid', session.sid, cookieOptions)
+                    await app.auditLog.User.account.login(userInfo, null)
+                    reply.send()
+                    return
+                } else {
+                    const resp = { code: 'user_suspended', error: 'User Suspended' }
+                    await app.auditLog.User.account.login(userInfo, resp, userInfo)
+                    reply.code(403).send(resp)
+                    return
+                }
             }
+            const resp = { code: 'unauthorized', error: 'unauthorized' }
+            await app.auditLog.User.account.login(userInfo, resp, userInfo)
+            reply.code(401).send(resp)
         }
-        const resp = { code: 'unauthorized', error: 'unauthorized' }
-        await app.auditLog.User.account.login(userInfo, resp, userInfo)
-        reply.code(401).send(resp)
     })
 
     /**
