@@ -338,6 +338,27 @@
                 </div>
             </div>
             <div class="section">
+                <!-- Help Tooltip -->
+                <h1>Help Tooltip</h1>
+                <!-- Help Tooltip -->
+                <h2 ref="ff-help"><pre>ff-help-tooltip</pre></h2>
+                <h3>Properties:</h3>
+                <props-table :rows="cGroups['help'].components[0].props"></props-table>
+                <h3>Examples:</h3>
+                <div class="examples">
+                    <div class="example">
+                        <h5>Default Position</h5>
+                        <h5>Sample Header<ff-help text="Hello World"></ff-help></h5>
+                        <code>{{ cGroups['help'].components[0].examples[0].code }}</code>
+                    </div>
+                    <div class="example">
+                        <h5>Alternative Position</h5>
+                        <ff-help text="Hello World" position="bottom"></ff-help>
+                        <code>{{ cGroups['help'].components[0].examples[1].code }}</code>
+                    </div>
+                </div>
+            </div>
+            <div class="section">
                 <!-- Form Elements -->
                 <h1>Form Elements</h1>
                 <!-- Text Input -->
@@ -666,6 +687,7 @@ import SlotsTable from './components/SlotsTable.vue'
 import buttonDocs from './data/button.docs.json'
 import tableDocs from './data/table.docs.json'
 import dialogDocs from './data/dialog.docs.json'
+import helpDocs from './data/help.docs.json'
 import inputDocs from './data/input.docs.json'
 import notificationsDocs from './data/notifications.docs.json'
 import tabsDocs from './data/tabs.docs.json'
@@ -717,6 +739,7 @@ export default {
                 button: buttonDocs,
                 'data-table': tableDocs,
                 dialog: dialogDocs,
+                help: helpDocs,
                 input: inputDocs,
                 notifications: notificationsDocs,
                 tabs: tabsDocs,

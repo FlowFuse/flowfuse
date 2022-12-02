@@ -1,0 +1,20 @@
+{
+    "name": "Help Tooltip",
+    "id": "help-tooltip",
+    "components": [{
+        "name": "ff-help",
+        "examples": [{
+            "code": "<h5>Sample Header<ff-help text=\"Hello World\"></ff-help></h5>"
+        }, {
+            "code": "<ff-help text=\"Hello World\" position=\"bottom\"></ff-help>"
+        }],
+        "props": [{
+            "key": "text",
+            "description": "<string> to display in the attached tooltip"
+        }, {
+            "key": "position",
+            "default": "right",
+            "description": "<string> Any of the positioning options available in the ff-tooltip directive. Positions the tooltip with respect to the help icon."
+        }]
+    }]
+}

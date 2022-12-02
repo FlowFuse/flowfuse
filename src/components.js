@@ -8,6 +8,8 @@ import FFDataTableCell from './components/data-table/DataTableCell.vue'
 
 import FFDialogBox from './components/DialogBox.vue'
 
+import FFHelpTooltip from './components/Help.vue'
+
 // Form Elements
 import FFTextInput from './components/form/TextInput.vue'
 import FFDropdown from './components/form/Dropdown.vue'
@@ -35,6 +37,7 @@ export default {
     FFButton,
     FFKebabMenu,
     FFDialogBox,
+    FFHelpTooltip,
     FFListItem,
     FFCheck,
     FFMarkdownViewer,
