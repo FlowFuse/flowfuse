@@ -731,6 +731,18 @@ li.ff-list-item {
 }
 
 /*
+  Help Tooltip
+*/
+
+.ff-help-tooltip {
+  &:hover {
+    path {
+      fill: $ff-blue-800;
+    }
+  }
+}
+
+/*
   Notifications
 */
 
@@ -914,6 +926,7 @@ $countdown_size: 20px;
 .ff-tooltip {
   position: absolute;
   z-index: 100;
+  font-weight: normal; // prevent parent overriding if embedded in hX
   white-space: nowrap;
   background-color: black;
   color: white;
@@ -984,6 +997,7 @@ $countdown_size: 20px;
 }
 .ff-tooltip-container {
   position: relative;
+  vertical-align: bottom;
   &:hover .ff-tooltip {
     opacity: 1;
   }
