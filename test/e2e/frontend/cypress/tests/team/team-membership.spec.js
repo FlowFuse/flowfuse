@@ -34,7 +34,7 @@ describe('FlowForge - Team Membership', () => {
     it('loads invitations into the data table', () => {
         cy.visit('team/ateam/members/invitations')
         cy.wait('@getInvitations')
-        cy.get('[data-el="invites-table"] tbody').find('tr').should('have.length', 2)
+        cy.get('[data-el="invites-table"] tbody').find('tr').should('have.length', 1)
     })
 
     it('user can accept a team invite', () => {
