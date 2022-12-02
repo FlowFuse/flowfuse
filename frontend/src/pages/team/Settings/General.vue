@@ -30,7 +30,7 @@
         </FormRow>
 
         <div class="space-x-4 whitespace-nowrap">
-            <template v-if="!editing.teamName">
+            <template v-if="!editing">
                 <ff-button kind="primary" size="small" @click="editName">Edit team settings</ff-button>
             </template>
             <template v-else>
@@ -58,9 +58,7 @@ export default {
                 teamName: '',
                 slug: ''
             },
-            editing: {
-                teamName: false
-            },
+            editing: false,
             input: {
                 slug: '',
                 teamName: '',
@@ -100,7 +98,7 @@ export default {
     },
     methods: {
         editName () {
-            this.editing.teamName = true
+            this.editing = true
             this.$refs['name-row'].focus()
         },
         async saveEditName () {
@@ -121,7 +119,7 @@ export default {
             }
 
             teamApi.updateTeam(this.team.id, options).then(async result => {
-                this.editing.teamName = false
+                this.editing = false
                 await this.$store.dispatch('account/refreshTeams')
                 await this.$store.dispatch('account/refreshTeam')
                 alerts.emit('Team Settings updated.', 'confirmation')
@@ -134,7 +132,7 @@ export default {
             })
         },
         cancelEditName () {
-            this.editing.teamName = false
+            this.editing = false
             this.input.teamName = this.team.name
             this.input.slug = this.team.slug
             this.input.teamType = this.team.type.name
