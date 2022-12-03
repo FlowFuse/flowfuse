@@ -45,25 +45,13 @@ For Docker on Linux you can use `172.17.0.1` as the address for the domain which
 sudo apt-get install dnsmasq
 sudo echo "bind-interfaces" >> /etc/dnsmasq.conf
 sudo echo "no-resolv" >> /etc/dnsmasq.conf
-sudo echo "server=127.0.0.53" >> /etc/dnsmasq.conf
 sudo echo "conf-dir=/etc/dnsmasq.d" >> /etc/dnsmasq.conf
 sudo echo "address=/example.com/172.17.0.1" > /etc/dnsmasq.d/02-flowforge.conf
 sudo service dnsmasq restart
+sudo echo "DNS=127.0.0.1" >> /etc/systemd/resolved.conf
+sudo echo "DOMAINS=~example.com" >> /etc/systemd/resolved.conf
+sudo service systemd-resolved restart
 ```
-
-Once running you can edit the `/etc/resolv.conf` file, you need to change the following line
-
-```
-nameserver 127.0.0.53
-```
-
-to
-
-```
-nameserver 127.0.0.1
-```
-
-This will revert on restart but should be good enough for doing some evaluation.
 
 #### Fedora
 
@@ -75,7 +63,7 @@ sudo dnf install dnsmasq
 
 #### Windows
 
-Unfortunately dnsmasq will not run on Windows.
+Unfortunately dnsmasq will not run on Windows and I have not found something similar yet.
 
 #### MacOS
 
