@@ -6,10 +6,12 @@ on:
     paths:
       - 'frontend/**'
       - 'test/e2e/frontend/**'
+      - 'package.json'
   pull_request:
     paths:
       - 'frontend/**'
       - 'test/e2e/frontend/**'
+      - 'package.json'
 
 jobs:
   cypress-run:
