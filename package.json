@@ -71,7 +71,6 @@
         "mqtt": "^4.3.7",
         "nodemailer": "^6.8.0",
         "pino-pretty": "^9.1.1",
-        "posthog-js": "^1.33.0",
         "semver": "^7.3.8",
         "sequelize": "^6.25.2",
         "sqlite3": "^5.1.2",

@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-// import posthog from 'posthog-js'
 
 import Home from '@/pages/Home.vue'
 import PageNotFound from '@/pages/PageNotFound'
