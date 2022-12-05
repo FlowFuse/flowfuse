@@ -63,8 +63,5 @@
         "lint:fix": "npm run lint -- --fix",
         "test": "npm run test:unit",
         "test:unit": "vue-cli-service test:unit"
-    },
-    "dependencies": {
-        "underscore": "^1.13.2"
     }
 }

@@ -677,8 +677,6 @@
 
 <script>
 
-import _ from 'underscore'
-
 import EventsTable from './components/EventsTable.vue'
 import MethodsTable from './components/MethodsTable.vue'
 import PropsTable from './components/PropsTable.vue'
@@ -931,11 +929,6 @@ export default {
                     }]
                 }
             }
-        }
-    },
-    computed: {
-        cGroups_ordered: function () {
-            return _.sortedBy(this.cGroups, 'name')
         }
     },
     async mounted () {
