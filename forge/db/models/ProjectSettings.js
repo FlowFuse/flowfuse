@@ -10,9 +10,11 @@ const SettingTypes = {
 }
 
 const KEY_SETTINGS = 'settings'
+const KEY_HOSTNAME = 'hostname'
 
 module.exports = {
     KEY_SETTINGS,
+    KEY_HOSTNAME,
     name: 'ProjectSettings',
     schema: {
         ProjectId: { type: DataTypes.UUID, unique: 'pk_settings' },
