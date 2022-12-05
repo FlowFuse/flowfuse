@@ -9,7 +9,10 @@ const SettingTypes = {
     JSON: 1
 }
 
+const KEY_SETTINGS = 'settings'
+
 module.exports = {
+    KEY_SETTINGS,
     name: 'ProjectSettings',
     schema: {
         ProjectId: { type: DataTypes.UUID, unique: 'pk_settings' },

@@ -14,6 +14,8 @@
 const { DataTypes } = require('sequelize')
 const Controllers = require('../controllers')
 
+const { KEY_SETTINGS } = require('./ProjectSettings')
+
 /** @type {FFModel} */
 module.exports = {
     name: 'Project',
@@ -33,7 +35,8 @@ module.exports = {
             allowNull: false,
             get () {
                 const originalUrl = this.getDataValue('url')?.replace(/\/$/, '') || ''
-                let httpAdminRoot = this.ProjectSettings?.[0]?.value.httpAdminRoot
+                const projectSettingsRow = this.ProjectSettings?.find((projectSetting) => projectSetting.key === KEY_SETTINGS)
+                let httpAdminRoot = projectSettingsRow?.value.httpAdminRoot
                 if (httpAdminRoot === undefined) {
                     httpAdminRoot = this.ProjectTemplate?.settings?.httpAdminRoot
                 }
@@ -287,7 +290,7 @@ module.exports = {
                             },
                             {
                                 model: M.ProjectSettings,
-                                where: { key: 'settings' },
+                                where: { key: KEY_SETTINGS },
                                 required: false
                             }
                         ]
