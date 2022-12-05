@@ -25,6 +25,8 @@ When using AWS ALB (Application Load Balancer) as an Ingress Controller for Flow
 
 ### Digital Ocean 
 
+You should create an A record pointing to the public IP address of the Load Balancer created when you install the Nginx Ingress Helm Chart.
+
 ## Local Testing and Development
 
 For development and testing we probably only need to set up DNS entries for the developers local machine. The easiest way to do this is to use an application called dnsmasq.
@@ -55,10 +57,20 @@ sudo service systemd-resolved restart
 
 #### Fedora
 
-(TBC)
+For Docker on Linux you can use `172.17.0.1` as the address for the domain which is the IP address assigned to the `docker0` interface.
+
 
 ```
 sudo dnf install dnsmasq
+sudo echo "bind-interfaces" >> /etc/dnsmasq.conf
+sudo echo "no-resolv" >> /etc/dnsmasq.conf
+sudo echo "conf-dir=/etc/dnsmasq.d" >> /etc/dnsmasq.conf
+sudo echo "address=/example.com/172.17.0.1" > /etc/dnsmasq.d/02-flowforge.conf
+sudo systemctl enable dnsmasq.service
+sudo service dnsmasq restart
+sudo echo "DNS=127.0.0.1" >> /etc/systemd/resolved.conf
+sudo echo "DOMAINS=~example.com" >> /etc/systemd/resolved.conf
+sudo service systemd-resolved restart
 ```
 
 #### Windows
