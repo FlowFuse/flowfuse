@@ -1,7 +1,7 @@
 const crypto = require('crypto')
 const semver = require('semver')
 
-const { SETTINGS_KEY } = require('../models/ProjectSettings')
+const { KEY_SETTINGS } = require('../models/ProjectSettings')
 
 /**
  * inflightProjectState - when projects are transitioning between states, there
@@ -61,7 +61,7 @@ module.exports = {
                 })
             }
         }
-        const projectSettingsRow = project.ProjectSettings.find((projectSetting) => projectSetting.key === SETTINGS_KEY)
+        const projectSettingsRow = project.ProjectSettings.find((projectSetting) => projectSetting.key === KEY_SETTINGS)
         if (projectSettingsRow) {
             const projectSettings = projectSettingsRow.value
             result = app.db.controllers.ProjectTemplate.mergeSettings(result, projectSettings)

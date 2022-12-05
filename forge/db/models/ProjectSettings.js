@@ -44,6 +44,18 @@ module.exports = {
     associations: function (M) {
         this.belongsTo(M.Project)
     },
+    finders: function (M) {
+        return {
+            static: {
+                isHostnameUsed: async (hostname) => {
+                    const count = await this.count({
+                        where: { key: KEY_HOSTNAME, value: hostname.toLowerCase() }
+                    })
+                    return count !== 0
+                }
+            }
+        }
+    },
     meta: {
         slug: false,
         hashid: false,

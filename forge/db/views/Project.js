@@ -13,7 +13,7 @@ module.exports = {
         }
 
         // proj.ProjectSettings
-        const settingsSettingsRow = proj.ProjectSettings.find((projectSettingsRow) => projectSettingsRow.key === KEY_SETTINGS)
+        const settingsSettingsRow = proj.ProjectSettings?.find((projectSettingsRow) => projectSettingsRow.key === KEY_SETTINGS)
         if (settingsSettingsRow) {
             result.settings = settingsSettingsRow?.value || {}
             if (result.settings.httpNodeAuth) {
@@ -31,7 +31,7 @@ module.exports = {
             result.settings.palette.modules = await app.db.controllers.StorageSettings.getProjectModules(project)
         }
 
-        const settingsHostnameRow = proj.ProjectSettings.find((projectSettingsRow) => projectSettingsRow.key === KEY_HOSTNAME)
+        const settingsHostnameRow = proj.ProjectSettings?.find((projectSettingsRow) => projectSettingsRow.key === KEY_HOSTNAME)
         result.hostname = settingsHostnameRow?.value || ''
 
         if (proj.Team) {
