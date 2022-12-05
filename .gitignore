@@ -2,7 +2,6 @@ var/
 /node_modules/
 frontend/dist
 frontend/dist-setup
-docs/jsdoc
 
 # Users should have a system based .gitignore that works globally, however, this
 # list is a failsafe when they don't.
