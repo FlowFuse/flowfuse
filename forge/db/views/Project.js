@@ -1,4 +1,4 @@
-const { KEY_SETTINGS } = require('../models/ProjectSettings')
+const { KEY_HOSTNAME, KEY_SETTINGS } = require('../models/ProjectSettings')
 
 module.exports = {
     project: async function (app, project) {
@@ -30,6 +30,10 @@ module.exports = {
             result.settings.palette = result.settings.palette || {}
             result.settings.palette.modules = await app.db.controllers.StorageSettings.getProjectModules(project)
         }
+
+        const settingsHostnameRow = proj.ProjectSettings.find((projectSettingsRow) => projectSettingsRow.key === KEY_HOSTNAME)
+        result.hostname = settingsHostnameRow?.value || ''
+
         if (proj.Team) {
             result.team = {
                 id: proj.Team.hashid,
