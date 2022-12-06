@@ -10,9 +10,9 @@ If you are running Docker/Kubernetes on the same machine as the DNS server and W
 
 ## Production
 
-For a production deployment you will need to talk to who ever owns your DNS infrastructure.
+For a production deployment you will need to talk to whoever owns your DNS infrastructure.
 
-As mentioned earlier you will need them to create a wild card entry that points to either the Docker host machine or the Kubernetes Nodes that are run the Ingress Controller.
+As mentioned earlier you will need them to create a wild card entry that points to either the Docker host machine or the Kubernetes Nodes which are running the Ingress Controller.
 
 This can be either:
 
@@ -31,11 +31,11 @@ You should create an A record pointing to the public IP address of the Load Bala
 
 For development and testing we probably only need to set up DNS entries for the developers local machine. The easiest way to do this is to use an application called dnsmasq.
 
-Dnsmasq is a tool that can be used as a DNS caching proxy (and a DHCP server, but we don't need that). We can set it up to point to an up stream DNS server to resolve all normal addresses, but we can can also give it a list of hostname/IP address pairs to use locally.
+Dnsmasq is a tool that can be used as a DNS caching proxy (and a DHCP server, but we don't need that). We can set it up to point to an upstream DNS server to resolve all normal addresses, but we can also give it a list of hostname/IP address pairs to use locally.
 
 ### DNSMasq
 
-Setting up dnsmasq is not too complicated, what is harder is setting it up in a way that works well with the network configuration on a laptop that might move between different networks and expects to get it's default DNS configuration automatically assigned by DHCP.
+Setting up dnsmasq is not too complicated, what is harder is setting it up in a way that works well with the network configuration on a laptop that might move between different networks and expects to get its default DNS configuration automatically assigned by DHCP.
 
 The following headings cover how to do this on a number of different operating systems
 
@@ -129,7 +129,7 @@ sudo killall -HUP mDNSResponder
 
 ### Pi Hole
 
-Pi Hole is a package that bundles dnsmasq as an image to run on a Raspberry Pi (or in Docker container e.g. on your NAS). It's main use is to block advertisements embedded in web pages. But since in it's normal configuration it is already handling all the local DNS traffic, making us work with FlowForge is possible and means you do not need to change any settings on your development/test machine.
+Pi Hole is a package that bundles dnsmasq as an image to run on a Raspberry Pi (or in Docker container e.g. on your NAS). Its main use is to block advertisements embedded in web pages. But since in its normal configuration it is already handling all the local DNS traffic, making us work with FlowForge is possible and means you do not need to change any settings on your development/test machine.
 
 Create the following file in `/etc/dnsmasq.d` called `02-flowforge.conf`
 
@@ -154,4 +154,4 @@ If you really can't run dnsmasq then there is a possible alternative.
 
 You can set the domain FlowForge uses to the following pattern `172.17.0.1.sslip.io`
 
-This works because the `sslip.io` domain is setup to always return the IP address embedded in the hostname queried.
+This works because the `sslip.io` domain is set up to always return the IP address embedded in the hostname queried.
