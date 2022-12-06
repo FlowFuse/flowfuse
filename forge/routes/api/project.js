@@ -582,7 +582,9 @@ module.exports = async function (app) {
                     return
                 }
 
-                if (await app.db.models.ProjectSettings.isHostnameUsed(newHostname)) {
+                const hostnameInUse = await app.db.models.ProjectSettings.isHostnameUsed(newHostname)
+                const hostnameMatchesDomain = (app.config.domain && newHostname.endsWith(app.config.domain.toLowerCase()))
+                if (hostnameInUse || hostnameMatchesDomain) {
                     reply.status(409).type('application/json').send({ code: 'invalid_hostname', error: 'Hostname is already in use' })
                     return
                 }

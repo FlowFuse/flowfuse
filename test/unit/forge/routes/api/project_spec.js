@@ -25,7 +25,7 @@ describe('Project API', function () {
     let app
     const TestObjects = {}
     beforeEach(async function () {
-        app = await setup()
+        app = await setup({ domain: 'flowforge.dev' })
 
         TestObjects.project1 = app.project
 
@@ -1150,14 +1150,29 @@ describe('Project API', function () {
 
             it('Requires the hostname to be unique case-insensitively', async function () {
                 const existingProject = await app.db.models.Project.create({ name: 'project2', type: '', url: '' })
-                existingProject.updateSetting(KEY_HOSTNAME, 'already-in-use.flowforge.dev')
+                existingProject.updateSetting(KEY_HOSTNAME, 'already-in-use.flowforge.com')
 
                 // call "Update a project" with a new hostname
                 const response = await app.inject({
                     method: 'PUT',
                     url: `/api/v1/projects/${TestObjects.project1.id}`,
                     payload: {
-                        hostname: 'Already-In-Use.FlowForge.dev'
+                        hostname: 'Already-In-Use.FlowForge.com'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(409)
+                response.json().code.should.match('invalid_hostname')
+                response.json().error.should.containEql('in use')
+            })
+
+            it('Does not allow hostnames that end with the host domain', async function () {
+                // call "Update a project" with a new hostname
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/projects/${TestObjects.project1.id}`,
+                    payload: {
+                        hostname: 'in-use-as-domain.FlowForge.dev'
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
