@@ -4,6 +4,9 @@ const ProjectActions = require('./projectActions')
 const ProjectDevices = require('./projectDevices')
 const ProjectSnapshots = require('./projectSnapshots')
 
+const { KEY_HOSTNAME } = require('../../db/models/ProjectSettings')
+const { isFQDN } = require('../../lib/validate')
+
 /**
  * Instance api routes
  *
@@ -495,7 +498,7 @@ module.exports = async function (app) {
                 await request.project.save()
                 await request.project.reload()
             }
-            // Get the source project settings
+            // Get the source project settings - ignore hostname
             const sourceProjectSettings = await sourceProject.getSetting('settings') || { env: [] }
             // Get the target project settings
             let targetProjectSettings = await request.project.getSetting('settings') || { env: [] }
@@ -570,6 +573,32 @@ module.exports = async function (app) {
                 changed = true
                 updates.push('name', projectName, reqName)
             }
+
+            const newHostname = request.body.hostname?.toLowerCase().replace(/\.$/, '') // trim trailing .
+            const oldHostname = await request.project.getSetting('hostname')
+            if (newHostname && newHostname !== oldHostname) {
+                if (!isFQDN(newHostname)) {
+                    reply.status(409).type('application/json').send({ code: 'invalid_hostname', error: 'Hostname is not an FQDN' })
+                    return
+                }
+
+                const hostnameInUse = await app.db.models.ProjectSettings.isHostnameUsed(newHostname)
+                const hostnameMatchesDomain = (app.config.domain && newHostname.endsWith(app.config.domain.toLowerCase()))
+                if (hostnameInUse || hostnameMatchesDomain) {
+                    reply.status(409).type('application/json').send({ code: 'invalid_hostname', error: 'Hostname is already in use' })
+                    return
+                }
+
+                await request.project.updateSetting(KEY_HOSTNAME, newHostname)
+                await request.project.reload({
+                    include: [
+                        { model: app.db.models.ProjectSettings }
+                    ]
+                })
+                changed = true
+                updates.push('hostname', newHostname, oldHostname)
+            }
+
             if (request.body.settings) {
                 let bodySettings
                 if (request.allSettingsEdit) {

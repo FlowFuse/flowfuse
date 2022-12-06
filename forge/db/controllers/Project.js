@@ -1,6 +1,8 @@
 const crypto = require('crypto')
 const semver = require('semver')
 
+const { KEY_SETTINGS } = require('../models/ProjectSettings')
+
 /**
  * inflightProjectState - when projects are transitioning between states, there
  * is no need to store that in the database. But we do need to know it so the
@@ -59,8 +61,9 @@ module.exports = {
                 })
             }
         }
-        if (project.ProjectSettings[0]?.key === 'settings') {
-            const projectSettings = project.ProjectSettings[0].value
+        const projectSettingsRow = project.ProjectSettings.find((projectSetting) => projectSetting.key === KEY_SETTINGS)
+        if (projectSettingsRow) {
+            const projectSettings = projectSettingsRow.value
             result = app.db.controllers.ProjectTemplate.mergeSettings(result, projectSettings)
             const envVars = app.db.controllers.Project.insertPlatformSpecificEnvVars(project, result.env)
             // convert  [{name: 'a', value: '1'}, {name: 'b', value: '2'}]  >> to >>  { a: 1, b: 2 }
