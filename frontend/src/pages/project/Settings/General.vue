@@ -1,5 +1,5 @@
 <template>
-    <div class="space-y-6">
+    <form class="space-y-6">
         <FormRow v-model="input.projectId" type="uneditable" id="projectId" inputClass="font-mono">
             Project ID
         </FormRow>
@@ -24,31 +24,78 @@
             Template
         </FormRow>
 
-    </div>
+        <FormRow
+            v-model="input.hostname"
+            placeholder="my-project.example.com"
+            :disabled="!customHostnameEnabled"
+            :type="hasPermission('project:edit') ? 'text' : 'uneditable'"
+        >
+            Hostname
+            <template #description>
+                <!-- todo: help docs / DNS guide link -->
+                A <abbr title="Fully qualified domain name - e.g. somehost.example.com">FQDN</abbr> that the editor will be served at, this requires DNS setup.
+            </template>
+        </FormRow>
+
+        <div
+            v-if="hasPermission('project:edit')"
+            class="space-x-4 whitespace-nowrap"
+        >
+            <ff-button
+                size="small"
+                :disabled="!formDirty"
+                @click="saveSettings()"
+            >
+                Save
+            </ff-button>
+        </div>
+    </form>
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
+import projectApi from '@/api/project'
 import FormRow from '@/components/FormRow'
+import permissionsMixin from '@/mixins/Permissions'
+import alerts from '@/services/alerts'
 
 export default {
     name: 'ProjectSettings',
-
-    props: ['project'],
+    components: {
+        FormRow
+    },
+    mixins: [permissionsMixin],
+    props: {
+        project: {
+            type: Object,
+            required: true
+        }
+    },
+    emits: ['projectUpdated'],
     data () {
         return {
-            editing: {
-                projectName: false
-            },
             input: {
                 projectId: '',
                 projectName: '',
                 projectTypeName: '',
                 stackDescription: '',
-                templateName: ''
-            },
-            original: {
-                projectName: ''
+                templateName: '',
+                hostname: ''
             }
+        }
+    },
+    computed: {
+        ...mapState('account', ['teamMembership', 'features']),
+        formDirty () {
+            return this.customHostnameDirty
+        },
+        customHostnameDirty: function () {
+            // Todo project.hostname doesn't exist yet...
+            return (this.input.hostname || '') !== (this.project.hostname || '')
+        },
+        customHostnameEnabled () {
+            return this.features['project-custom-domain']
         }
     },
     watch: {
@@ -78,10 +125,30 @@ export default {
             }
 
             this.input.projectName = this.project.name
+
+            this.input.hostname = this.project.hostname // to-do: doesn't exist yet
+        },
+        async saveSettings () {
+            if (!this.formDirty) {
+                return
+            }
+
+            const hostnameChanged = this.customHostnameDirty
+
+            // to-do: add validation that hostname is a FQDN and is unique
+
+            // only hostname can be updated for now
+            await projectApi.updateProject(this.project.id, { hostname: this.input.hostname })
+            alerts.emit('Project successfully updated.', 'confirmation')
+
+            if (hostnameChanged) {
+                setTimeout(() => {
+                    alerts.emit('Project hostname has been updated, updates will only be applied after a restart.', 'warning', 7000)
+                }, 3000)
+            }
+
+            this.$emit('projectUpdated')
         }
-    },
-    components: {
-        FormRow
     }
 }
 </script>

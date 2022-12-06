@@ -1,4 +1,10 @@
 const featureFlags = [
+    // temporary
+    {
+        name: 'project-custom-domain',
+        default: true,
+        isPublic: true
+    }
 ]
 
 module.exports = function (app, config) {
