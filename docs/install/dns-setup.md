@@ -152,6 +152,6 @@ If running Pi Hole in Docker then you will need to create the file on the host a
 
 If you really can't run dnsmasq then there is a possible alternative.
 
-You can set the domain FlowForge uses to the following pattern `192.168.0.22.sslip.io`
+You can set the domain FlowForge uses to the following pattern `172.17.0.1.sslip.io`
 
 This works because the `sslip.io` domain is setup to always return the IP address embedded in the hostname queried.
