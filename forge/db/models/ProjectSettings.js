@@ -9,7 +9,12 @@ const SettingTypes = {
     JSON: 1
 }
 
+const KEY_SETTINGS = 'settings'
+const KEY_HOSTNAME = 'hostname'
+
 module.exports = {
+    KEY_SETTINGS,
+    KEY_HOSTNAME,
     name: 'ProjectSettings',
     schema: {
         ProjectId: { type: DataTypes.UUID, unique: 'pk_settings' },
@@ -38,6 +43,18 @@ module.exports = {
     },
     associations: function (M) {
         this.belongsTo(M.Project)
+    },
+    finders: function (M) {
+        return {
+            static: {
+                isHostnameUsed: async (hostname) => {
+                    const count = await this.count({
+                        where: { key: KEY_HOSTNAME, value: hostname.toLowerCase() }
+                    })
+                    return count !== 0
+                }
+            }
+        }
     },
     meta: {
         slug: false,

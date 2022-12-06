@@ -11,8 +11,10 @@
  * @typedef {{name: string, schema: ModelAttributes, model: Model, indexes?: ModelIndexesOptions[], scopes?: ModelScopeOptions, options?: InitOptions}} FFModel
  */
 
-const { DataTypes } = require('sequelize')
+const { DataTypes, Op } = require('sequelize')
 const Controllers = require('../controllers')
+
+const { KEY_HOSTNAME, KEY_SETTINGS } = require('./ProjectSettings')
 
 /** @type {FFModel} */
 module.exports = {
@@ -33,7 +35,8 @@ module.exports = {
             allowNull: false,
             get () {
                 const originalUrl = this.getDataValue('url')?.replace(/\/$/, '') || ''
-                let httpAdminRoot = this.ProjectSettings?.[0]?.value.httpAdminRoot
+                const projectSettingsRow = this.ProjectSettings?.find((projectSetting) => projectSetting.key === KEY_SETTINGS)
+                let httpAdminRoot = projectSettingsRow?.value.httpAdminRoot
                 if (httpAdminRoot === undefined) {
                     httpAdminRoot = this.ProjectTemplate?.settings?.httpAdminRoot
                 }
@@ -287,7 +290,12 @@ module.exports = {
                             },
                             {
                                 model: M.ProjectSettings,
-                                where: { key: 'settings' },
+                                where: {
+                                    [Op.or]: [
+                                        { key: KEY_SETTINGS },
+                                        { key: KEY_HOSTNAME }
+                                    ]
+                                },
                                 required: false
                             }
                         ]

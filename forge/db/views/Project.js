@@ -1,3 +1,5 @@
+const { KEY_HOSTNAME, KEY_SETTINGS } = require('../models/ProjectSettings')
+
 module.exports = {
     project: async function (app, project) {
         const proj = project.toJSON()
@@ -9,8 +11,11 @@ module.exports = {
             createdAt: proj.createdAt,
             updatedAt: proj.updatedAt
         }
-        if (proj.ProjectSettings && proj.ProjectSettings.length === 1 && proj.ProjectSettings[0].key === 'settings') {
-            result.settings = proj.ProjectSettings[0].value || {}
+
+        // proj.ProjectSettings
+        const settingsSettingsRow = proj.ProjectSettings?.find((projectSettingsRow) => projectSettingsRow.key === KEY_SETTINGS)
+        if (settingsSettingsRow) {
+            result.settings = settingsSettingsRow?.value || {}
             if (result.settings.httpNodeAuth) {
                 // Only return whether a password is set or not
                 result.settings.httpNodeAuth.pass = !!result.settings.httpNodeAuth.pass
@@ -25,6 +30,10 @@ module.exports = {
             result.settings.palette = result.settings.palette || {}
             result.settings.palette.modules = await app.db.controllers.StorageSettings.getProjectModules(project)
         }
+
+        const settingsHostnameRow = proj.ProjectSettings?.find((projectSettingsRow) => projectSettingsRow.key === KEY_HOSTNAME)
+        result.hostname = settingsHostnameRow?.value || ''
+
         if (proj.Team) {
             result.team = {
                 id: proj.Team.hashid,

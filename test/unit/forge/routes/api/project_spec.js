@@ -5,6 +5,8 @@ const crypto = require('crypto')
 const sleep = require('util').promisify(setTimeout)
 const setup = require('../setup')
 
+const { KEY_HOSTNAME } = require('../../../../../forge/db/models/ProjectSettings')
+
 function encryptCredentials (key, plain) {
     const initVector = crypto.randomBytes(16)
     const cipher = crypto.createCipheriv('aes-256-ctr', key, initVector)
@@ -23,7 +25,7 @@ describe('Project API', function () {
     let app
     const TestObjects = {}
     beforeEach(async function () {
-        app = await setup()
+        app = await setup({ domain: 'flowforge.dev' })
 
         TestObjects.project1 = app.project
 
@@ -1103,6 +1105,83 @@ describe('Project API', function () {
                 { name: 'two', value: '2' }
             ]) // should be unchanged
         })
+
+        describe('Update hostname', function () {
+            it('Changes the projects hostname', async function () {
+                // call "Update a project" with a new hostname
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/projects/${TestObjects.project1.id}`,
+                    payload: {
+                        hostname: 'host.example.com'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                response.json().should.have.property('hostname', 'host.example.com')
+            })
+
+            it('Trims a trailing full-stop', async function () {
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/projects/${TestObjects.project1.id}`,
+                    payload: {
+                        hostname: 'my-project.flowforge.com.'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                response.json().should.have.property('hostname', 'my-project.flowforge.com')
+            })
+
+            it('Requires a FQDN', async function () {
+                // call "Update a project" with a new hostname
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/projects/${TestObjects.project1.id}`,
+                    payload: {
+                        hostname: 'examplecom'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(409)
+                response.json().should.have.property('code', 'invalid_hostname')
+            })
+
+            it('Requires the hostname to be unique case-insensitively', async function () {
+                const existingProject = await app.db.models.Project.create({ name: 'project2', type: '', url: '' })
+                existingProject.updateSetting(KEY_HOSTNAME, 'already-in-use.flowforge.com')
+
+                // call "Update a project" with a new hostname
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/projects/${TestObjects.project1.id}`,
+                    payload: {
+                        hostname: 'Already-In-Use.FlowForge.com'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(409)
+                response.json().code.should.match('invalid_hostname')
+                response.json().error.should.containEql('in use')
+            })
+
+            it('Does not allow hostnames that end with the host domain', async function () {
+                // call "Update a project" with a new hostname
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/projects/${TestObjects.project1.id}`,
+                    payload: {
+                        hostname: 'in-use-as-domain.FlowForge.dev'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(409)
+                response.json().code.should.match('invalid_hostname')
+                response.json().error.should.containEql('in use')
+            })
+        })
+
         it('Export to another project - includes everything ', async function () {
             // Setup some flows/credentials
             await addFlowsToProject(TestObjects.project1.id,
