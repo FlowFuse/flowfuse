@@ -10,7 +10,7 @@ If you are running Docker/Kubernetes on the same machine as the DNS server and W
 
 ## Production
 
-For a production deployment you will need to talk to whoever owns your DNS infrastructure.
+For a production deployment you will need to have access to modify DNS, if you are not sure how to set up DNS records talk to whoever manages your DNS.
 
 As mentioned earlier you will need them to create a wild card entry that points to either the Docker host machine or the Kubernetes Nodes which are running the Ingress Controller.
 
