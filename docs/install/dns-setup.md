@@ -137,8 +137,7 @@ Create the following file in `/etc/dnsmasq.d` called `02-flowforge.conf`
 address=/example.com/192.168.0.22
 ```
 
-Where 192.168.0.22 is the ipv4 address of the Docker host machine or a Kubernetes node.
-And `example.com` is the domain to use.
+Where 192.168.0.22 is the ipv4 address of the Docker host machine or a Kubernetes node. And `example.com` is the domain to use.
 
 After making the change you will probably need to restart things with:
 
@@ -152,6 +151,6 @@ If running Pi Hole in Docker then you will need to create the file on the host a
 
 If you really can't run dnsmasq then there is a possible alternative.
 
-You can set the domain FlowForge uses to the following pattern `172.17.0.1.sslip.io`
+You can set the `domain` entry in the `flowforge.yml` configuration file to the following pattern `172.17.0.1.sslip.io`
 
 This works because the `sslip.io` domain is set up to always return the IP address embedded in the hostname queried.
