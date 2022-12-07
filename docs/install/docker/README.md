@@ -22,6 +22,8 @@ The FlowForge Application will be hosted on `http://forge.example.com`
 
 **Note** When testing locally you can add entries for each project to your `/etc/hosts` file but you must use the external IP address of the host machine, not the loopback address (`127.0.0.1`).
 
+Notes on how to setup DNS can be found [here](../dns-setup.md).
+
 ### Installing FlowForge
 
 #### Download
