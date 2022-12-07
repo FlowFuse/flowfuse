@@ -122,7 +122,7 @@ A full list of all the configurable values can be found in the [Helm Chart READM
 The install can then be started with the following command:
 
 ```
-helm upgrade --install flowforge flowforge/flowforge -f customization.yml
+helm upgrade --atomic --install flowforge flowforge/flowforge -f customization.yml
 ```
 
 #### Enabling the MQTT broker
