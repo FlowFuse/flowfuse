@@ -35,7 +35,7 @@ Dnsmasq is a tool that can be used as a DNS caching proxy (and a DHCP server, bu
 
 ### DNSMasq
 
-Setting up dnsmasq is not too complicated, what is harder is setting it up in a way that works well with the network configuration on a laptop that might move between different networks and expects to get its default DNS configuration automatically assigned by DHCP.
+Setting up dnsmasq is not too complex, what is harder is setting it up in a way that works well with the network configuration on a laptop that might move between different networks and expects to get its default DNS configuration automatically assigned by DHCP.
 
 The following headings cover how to do this on a number of different operating systems
 
