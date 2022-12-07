@@ -20,5 +20,5 @@ we recommend starting with the [Local model](./local/README.md).
 
 ## Upgrading FlowForge
 
-If you are upgrading FlowForge, please refer to the [Upgrade Guide](./upgrading.md)
+If you are upgrading FlowForge, please refer to the [Upgrade Guide](../upgrade/README.md)
 for any specific actions required.

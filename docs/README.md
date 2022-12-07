@@ -20,4 +20,5 @@ in your own environment.
 
 ## Upgrading FlowForge
 
+- [Upgrade your FlowForge Instance](./upgrade/README.md)
 - [From Open Source to Premium](./upgrade/open-source-to-premium.md)
