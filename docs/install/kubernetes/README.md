@@ -39,6 +39,8 @@ The Helm chart can either install a dedicated PostgreSQL database into the same 
 
 A wildcard DNS entry will be needed to point to the domain that is used fro the project instances. This will need to point to the K8s Ingress controller.
 
+Notes on how to setup DNS can be found [here](../dns-setup.md).
+
 #### Email
 
 Some features require the ability to send email to users. This can be currently be provided by:
