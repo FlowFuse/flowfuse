@@ -4,10 +4,10 @@
             <form class="space-y-6" @submit.prevent>
                 <FormRow v-model="input.username" :error="errors.username">Username</FormRow>
                 <FormRow v-model="input.name" :placeholder="input.username">Name</FormRow>
-                <FormRow v-model="input.email" :error="errors.email">
+                <FormRow v-model="input.email" :error="errors.email" :disabled="user.sso_enabled">
                     Email
                     <template v-slot:description v-if="user.sso_enabled">
-                        <div class="text-red-700">SSO is enabled for this user.</div>
+                        <div>SSO is enabled for this user.</div>
                     </template>
                 </FormRow>
                 <FormRow id="email_verified" wrapperClass="flex justify-between items-center" :disabled="email_verifiedLocked" v-model="input.email_verified" type="checkbox">Verified
