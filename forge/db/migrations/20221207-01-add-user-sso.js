@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /**
- * Add suspended column to Users
+ * Add sso_enabled column to Users
  */
 
 const { DataTypes, QueryInterface } = require('sequelize')
