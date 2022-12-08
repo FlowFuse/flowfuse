@@ -3,7 +3,7 @@
     <form v-else class="space-y-6" @submit.enter.prevent="">
         <FormRow v-model="input.username" :type="editing?'text':'uneditable'" :error="errors.username">Username</FormRow>
         <FormRow v-model="input.name" :type="editing?'text':'uneditable'" :placeholder="input.username" :error="errors.name">Name</FormRow>
-        <FormRow v-model="input.email" :type="editing?'email':'uneditable'" :error="errors.email">Email</FormRow>
+        <FormRow v-model="input.email" :type="emailEditingEnabled?'email':'uneditable'" :error="errors.email">Email</FormRow>
         <FormRow v-if="!editing" v-model="defaultTeamName" :options="teams" type="uneditable">
             Default Team
         </FormRow>
@@ -95,12 +95,16 @@ export default {
     methods: {
         startEdit () {
             this.editing = true
+            if (this.user.sso_enabled) {
+                this.errors.email = 'Cannot modify email for SSO enabled user'
+            }
         },
         cancelEdit () {
             this.input.username = this.user.username
             this.input.name = this.user.name
             this.input.email = this.user.email
             this.input.defaultTeam = this.user.defaultTeam
+            this.errors.email = ''
             this.editing = false
         },
         confirm () {
@@ -166,6 +170,9 @@ export default {
                    (this.input.email && !this.errors.email) &&
                    (this.input.username && !this.errors.username) &&
                    (this.input.name && !this.errors.name)
+        },
+        emailEditingEnabled () {
+            return this.editing && !this.user.sso_enabled
         }
     },
     components: {

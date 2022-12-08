@@ -38,6 +38,8 @@ import { markRaw } from 'vue'
 
 import AdminUserEditDialog from './dialogs/AdminUserEditDialog'
 
+import { mapState } from 'vuex'
+
 export default {
     name: 'AdminUsers',
     data () {
@@ -57,6 +59,14 @@ export default {
     },
     async created () {
         await this.loadItems(true)
+        if (this.features.sso) {
+            this.columns.push({
+                label: 'SSO Enabled', class: ['w-32', 'text-center'], key: 'sso_enabled', sortable: true
+            })
+        }
+    },
+    computed: {
+        ...mapState('account', ['features'])
     },
     watch: {
         userSearch (v) {
