@@ -46,6 +46,9 @@ module.exports = {
         if (user.defaultTeamId) {
             result.defaultTeam = app.db.models.Team.encodeHashid(user.defaultTeamId)
         }
+        if (app.config.features.enabled('sso')) {
+            result.sso_enabled = !!user.sso_enabled
+        }
         return result
     },
 
