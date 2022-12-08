@@ -25,7 +25,7 @@
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
-                <FormRow :disabled="!editable.settings.palette_denyList" v-model="editable.settings.palette_denyList" :error="editable.errors.palette_denyList" :type="(editTemplate||editable.policy.palette_denyList)?'text':'uneditable'">
+                <FormRow :disabled="!editable.settings.palette_allowInstall" v-model="editable.settings.palette_denyList" :error="editable.errors.palette_denyList" :type="(editTemplate||editable.policy.palette_denyList)?'text':'uneditable'">
                     Prevent Install of External nodes
                     <template #description>
                         This can be used to prevent the installation of nodes from the Palette Manager. A comma-seperated list of the form e.g. <pre>'package-name@semVer, foo@^0.1.0, @scope/*'</pre>
