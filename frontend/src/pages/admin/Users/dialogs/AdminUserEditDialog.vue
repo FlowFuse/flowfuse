@@ -4,7 +4,12 @@
             <form class="space-y-6" @submit.prevent>
                 <FormRow v-model="input.username" :error="errors.username">Username</FormRow>
                 <FormRow v-model="input.name" :placeholder="input.username">Name</FormRow>
-                <FormRow v-model="input.email" :error="errors.email">Email</FormRow>
+                <FormRow v-model="input.email" :error="errors.email">
+                    Email
+                    <template v-slot:description v-if="user.sso_enabled">
+                        <div class="text-red-700">SSO is enabled for this user.</div>
+                    </template>
+                </FormRow>
                 <FormRow id="email_verified" wrapperClass="flex justify-between items-center" :disabled="email_verifiedLocked" v-model="input.email_verified" type="checkbox">Verified
                     <template v-slot:append>
                         <ff-button v-if="email_verifiedLocked" kind="danger" size="small" @click="unlockEmailVerify()">
