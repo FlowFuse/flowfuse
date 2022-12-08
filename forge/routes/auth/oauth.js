@@ -36,8 +36,6 @@ function base64URLEncode (str) {
 function sha256 (buffer) {
     return crypto.createHash('sha256').update(buffer).digest()
 }
-// var verifier = base64URLEncode(crypto.randomBytes(32));
-// var challenge = base64URLEncode(sha256(verifier));
 
 module.exports = async function (app) {
     app.addContentTypeParser('application/x-www-form-urlencoded', { parseAs: 'string' }, function (req, body, done) {
