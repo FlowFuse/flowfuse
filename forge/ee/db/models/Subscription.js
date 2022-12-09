@@ -2,6 +2,14 @@ const {
     DataTypes
 } = require('sequelize')
 
+// A subset of the statuses on Stripe that are important to FlowForge
+// https://stripe.com/docs/billing/subscriptions/overview#subscription-statuses
+const STATUS = {
+    ACTIVE: 'active',
+    CANCELED: 'canceled'
+}
+Object.freeze(STATUS)
+
 module.exports = {
     name: 'Subscription',
     schema: {
@@ -11,6 +19,10 @@ module.exports = {
         },
         subscription: {
             type: DataTypes.STRING,
+            allowNull: false
+        },
+        status: {
+            type: DataTypes.ENUM(Object.values(STATUS)),
             allowNull: false
         }
     },
@@ -29,6 +41,15 @@ module.exports = {
     finders: function (M) {
         const self = this
         return {
+            instance: {
+                STATUS,
+                isActive () {
+                    return this.status === STATUS.ACTIVE
+                },
+                isCanceled () {
+                    return this.status === STATUS.CANCELED
+                }
+            },
             static: {
                 byTeam: async function (team) {
                     if (typeof team === 'string') {
