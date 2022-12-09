@@ -50,7 +50,7 @@ comes to create a new project, they chose from the available stacks associated
 with the chosen Project Type.
 
 For details on how to adminster and manage Stacks, please see the
-[Administering FlowForge](/docs/admin/#managing-stacks) docs.
+[Administering FlowForge](../admin/#managing-stacks) docs.
 
 #### Project Template
 
