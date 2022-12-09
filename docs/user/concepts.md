@@ -49,6 +49,9 @@ Project Stacks are created and owned by the platform Administrator. When a User
 comes to create a new project, they chose from the available stacks associated
 with the chosen Project Type.
 
+For details on how to adminster and manage Stacks, please see the
+[Administering FlowForge](/docs/admin/#managing-stacks) docs.
+
 #### Project Template
 
 A Project Template describes properties of Node-RED itself. It is how many of the
