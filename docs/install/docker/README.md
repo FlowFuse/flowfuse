@@ -83,10 +83,10 @@ set the correct domain name and make the same change to the `public_url` entry i
 
 
 
-#### HTTPS (optional)
+### HTTPS (optional)
 If you want to serve the forge app and projects via SSL you will need to obtain a wildcard TSL certificate for the domain you are using eg `*.example.com` or you can use the LetsEncrypt acme-companion.
 
-### Wildcard TLS Certificate
+#### Wildcard TLS Certificate
 
 Create a folder in the `docker-compose-1.x.0` directory named `certs`, place your .crt and .key files in there, they should be named for the domain without the `*` eg `example.com.crt` & `example.com.key`
 You  also need to create a copy of the .crt and .key files named `default.crt` & `default.key` in the same folder. This is used for serving unknown hosts.
@@ -110,7 +110,7 @@ environment:
 
 If you are running with the MQTT broker then you should adjust the `public_url` to start with `wss://` rather than `ws://`
 
-### Let's Encrypt
+#### Let's Encrypt
 
 In the `docker-compose.yml` file, uncomment the following lines
 ```
@@ -176,7 +176,7 @@ docker-compose up -p flowforge up -d
 
 This will also create a directory called `db` to hold the database files used to store project instance and user information.
 
-#### Using FlowForge File Storage
+### Using FlowForge File Storage
 
 FlowForge projects when running in Docker do not have direct 
 access to a persistent file system to store files.
