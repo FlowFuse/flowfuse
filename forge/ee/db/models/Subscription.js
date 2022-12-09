@@ -42,7 +42,6 @@ module.exports = {
         const self = this
         return {
             instance: {
-                STATUS,
                 isActive () {
                     return this.status === STATUS.ACTIVE
                 },
@@ -51,6 +50,7 @@ module.exports = {
                 }
             },
             static: {
+                STATUS,
                 byTeam: async function (team) {
                     if (typeof team === 'string') {
                         team = M.Team.decodeHashid(team)

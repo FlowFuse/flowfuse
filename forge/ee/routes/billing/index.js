@@ -49,6 +49,19 @@ module.exports = async function (app) {
         }
     }
 
+    async function parseSubscriptionEvent (event) {
+        const stripeSubscriptionId = event.data.object.id
+        const stripeCustomerId = event.data.object.customer
+        const subscription = await app.db.models.Subscription.byCustomer(stripeCustomerId)
+        const team = subscription?.Team
+
+        logStripeEvent(event, team, stripeCustomerId)
+
+        return {
+            stripeSubscriptionId, stripeCustomerId, subscription, team
+        }
+    }
+
     /**
      * Need to work out what auth needs to have happend
      */
@@ -143,15 +156,55 @@ module.exports = async function (app) {
                 break
             }
 
-            case 'customer.subscription.created':
+            case 'customer.subscription.created': {
+                await parseSubscriptionEvent(event)
+
+                // Do nothing - just log (handled above)
 
                 break
-            case 'customer.subscription.updated':
+            }
+
+            case 'customer.subscription.updated': {
+                const { stripeSubscriptionId, subscription } = await parseSubscriptionEvent(event)
+
+                const stripeSubscriptionStatus = event.data.object.status
+                if (Object.values(app.db.models.Subscription.STATUS).includes(stripeSubscriptionStatus)) {
+                    subscription.status = stripeSubscriptionStatus
+                    await subscription.save()
+                } else {
+                    app.log.warn(`Stripe subscription ${stripeSubscriptionId} has transitioned in Stripe to a state not currently handled: '${stripeSubscriptionStatus}'`)
+                }
 
                 break
-            case 'customer.subscription.deleted':
+            }
+
+            case 'customer.subscription.deleted': {
+                const { team, subscription } = await parseSubscriptionEvent(event)
+                if (!team) {
+                    response.status(200).send()
+                    return
+                }
+
+                // Cancel our copy of the subscription
+                subscription.status = app.db.models.Subscription.STATUS.CANCELED
+                await subscription.save()
+
+                // Suspend all projects of that team
+                const projects = await app.db.models.Project.byTeam(team.hashid)
+                await Promise.all(projects.map(async (project) => {
+                    app.log.info(`Stopping project ${project.id} from team ${team.hashid}`)
+                    if (await app.containers.stop(project)) {
+                        await app.auditLog.Project.project.suspended(request.session?.User || 'system', null, project)
+                    }
+                }))
+
+                app.log.info(`Suspended all projects for team ${team.hashid}`)
+
+                // to-do: Suspend all devices and their updates - we think this happens automatically
+                // to-do: Downgrade the team type (if possible)
 
                 break
+            }
             }
 
             response.code(200).send()
