@@ -1,3 +1,11 @@
+#### 1.1.2: Release
+
+ - docs: Update Cloud docs around file nodes and NR versions (backport #1378) (#1381) @knolleary
+ - Ensure palette_denyList is editable if allowInstall is enabled (backport #1379) (#1382) @github-actions
+ - Update Docker/Kube docs (backport #1337) (#1374) @hardillb
+ - Dns docs (backport #1356) (#1372) @hardillb
+ - Update snapshot concept description (backport #1342) (#1343) @knolleary
+
 #### 1.1.0: Release
 
  - Add functions & framework for exact audit logging (#1224)
