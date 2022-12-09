@@ -68,13 +68,6 @@ module.exports.init = async function (app) {
                 cancel_url: `${app.config.base_url}/team/${team.slug}/overview`
             }
 
-            if (app.config.billing?.stripe?.activation_price) {
-                sub.line_items.push({
-                    price: app.config.billing.stripe.activation_price,
-                    quantity: 1
-                })
-            }
-
             if (coupon) {
                 sub.discounts = [
                     {
