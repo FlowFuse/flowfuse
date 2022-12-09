@@ -1,5 +1,5 @@
 /**
- * Routes releated to the EE forge billing api
+ * Routes related to the EE forge billing api
  *
  * @namespace api
  * @memberof forge.ee.billing
@@ -8,6 +8,40 @@ const { Readable } = require('stream')
 
 module.exports = async function (app) {
     const stripe = require('stripe')(app.config.billing.stripe.key)
+
+    function logStripeEvent (event, team, teamId = null) {
+        if (team) {
+            app.log.info(`Stripe ${event.type} event ${event.data.object.id} received for team '${team.hashid}'`)
+        } else {
+            app.log.error(`Stripe ${event.type} event ${event.data.object.id} received for unknown team '${teamId}'`)
+        }
+    }
+
+    async function parseChargeEvent (event) {
+        const stripeCustomerId = event.data.object.customer
+        const subscription = await app.db.models.Subscription.byCustomer(stripeCustomerId)
+        const team = subscription?.Team
+
+        logStripeEvent(event, team, stripeCustomerId)
+
+        return {
+            stripeCustomerId, subscription, team
+        }
+    }
+
+    async function parseCheckoutEvent (event) {
+        const stripeCustomerId = event.data.object.customer
+        const stripeSubscriptionId = event.data.object.subscription
+        const teamId = event.data.object.client_reference_id
+
+        const team = await app.db.models.Team.byId(teamId)
+        logStripeEvent(event, team, teamId)
+
+        return {
+            stripeSubscriptionId, stripeCustomerId, team
+        }
+    }
+
     /**
      * Need to work out what auth needs to have happend
      */
@@ -70,41 +104,38 @@ module.exports = async function (app) {
                 }
             }
 
-            const customer = event.data.object.customer
-            const subscription = event.data.object.subscription
-            const teamId = event.data.object?.client_reference_id
-            let team = {}
-            if (teamId) {
-                team = await app.db.models.Team.byId(teamId)
-                if (!team) {
-                    app.log.error(`Stripe event received for unknown team '${teamId}'`)
-                    response.status(200).send()
-                    return
-                }
-            } else {
-                if (event.type === 'charge.failed') {
-                    const sub = await app.db.models.Subscription.byCustomer(customer)
-                    team = sub?.Team
-                }
-                if (!team) {
-                    app.log.error(`Stripe event received for unknown customer '${customer}'`)
-                    response.status(200).send()
-                    return
-                }
+            switch (event.type) {
+            case 'charge.failed': {
+                await parseChargeEvent(event)
+
+                // Do nothing - just log event (handled above)
+
+                break
             }
 
-            switch (event.type) {
-            case 'checkout.session.completed':
-                // console.log(event)
-                app.log.info(`Created Subscription for team ${team.hashid}`)
-                await app.db.controllers.Subscription.createSubscription(team, subscription, customer)
+            case 'checkout.session.completed': {
+                const { team, stripeSubscriptionId, stripeCustomerId } = await parseCheckoutEvent(event)
+                if (!team) {
+                    response.status(200).send()
+                    return
+                }
+
+                await app.db.controllers.Subscription.createSubscription(team, stripeSubscriptionId, stripeCustomerId)
                 await app.auditLog.Team.billing.session.completed(request.session?.User || 'system', null, team, event.data.object)
+
+                app.log.info(`Created Subscription for team ${team.hashid}`)
+
                 break
-            case 'checkout.session.expired':
-                // should remove the team here
-                app.log.info(`Stripe 'checkout.session.expired' event ${event.data.object.id} for team ${team.hashid}`)
-                // console.log(event)
+            }
+
+            case 'checkout.session.expired': {
+                await parseCheckoutEvent(event)
+
+                // Do nothing - just log (handled above)
+
                 break
+            }
+
             case 'customer.subscription.created':
 
                 break
@@ -113,10 +144,6 @@ module.exports = async function (app) {
                 break
             case 'customer.subscription.deleted':
 
-                break
-            case 'charge.failed':
-                // TODO: This needs work, we need to count failures and susspend projects
-                // after we hit a threshold (should track a charge.sucess to reset?)
                 break
             }
 
@@ -153,7 +180,7 @@ module.exports = async function (app) {
                     responseMessage = err.toString()
                 }
                 response.clearCookie('ff_coupon', { path: '/' })
-                response.code(402).type('appication/json').send({ error: responseMessage })
+                response.code(402).type('application/json').send({ error: responseMessage })
                 return
             }
         }
