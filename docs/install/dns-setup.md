@@ -79,9 +79,13 @@ Unfortunately dnsmasq will not run on Windows and I have not found something sim
 
 #### MacOS
 
-On MacOS you can alias a private IP address to the loop back interface e.g. `10.128.0.1` with `sudo ifconfig lo0 alias 10.128.0.1`
+On MacOS you can alias a private IP address to the loop back interface e.g. `10.128.0.1` with
 
-You will need install dnsmasq using (homebrew)[https://docs.brew.sh/Installation]
+```
+sudo ifconfig lo0 alias 10.128.0.1`
+```
+
+You will need install dnsmasq using [homebrew](https://docs.brew.sh/Installation)
 
 ```
 brew install dnsmasq
