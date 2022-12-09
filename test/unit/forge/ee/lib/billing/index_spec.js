@@ -78,27 +78,6 @@ describe('Billing', function () {
             result.line_items[0].should.have.property('price', 'starterteampprice')
             result.line_items[0].should.have.property('quantity', 1)
         })
-        it('includes activation line item if configured', async function () {
-            app = await setup({
-                billing: {
-                    stripe: {
-                        key: 1234,
-                        team_product: 'defaultteamprod',
-                        team_price: 'defaultteamprice',
-                        activation_price: 'activationprice'
-                    }
-                }
-            })
-
-            const result = await app.billing.createSubscriptionSession(app.team)
-
-            result.should.have.property('line_items')
-            result.line_items.should.have.length(2)
-            result.line_items[0].should.have.property('price', 'defaultteamprice')
-            result.line_items[0].should.have.property('quantity', 1)
-            result.line_items[1].should.have.property('price', 'activationprice')
-            result.line_items[1].should.have.property('quantity', 1)
-        })
     })
 
     describe('updateTeamMemberCount', async function () {
