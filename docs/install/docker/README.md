@@ -22,6 +22,8 @@ The FlowForge Application will be hosted on `http://forge.example.com`
 
 **Note** When testing locally you can add entries for each project to your `/etc/hosts` file but you must use the external IP address of the host machine, not the loopback address (`127.0.0.1`).
 
+Notes on how to setup DNS can be found [here](../dns-setup.md).
+
 ### Installing FlowForge
 
 #### Download
@@ -36,22 +38,6 @@ Unpack this and cd into the created directory.
 tar zxf v0.x.0.tar.gz
 cd docker-compose-x.x.x
 ```
-
-#### Building Containers
-
-To build the 2 required containers run `./build-containers.sh`.
-
-This will build and tag both `flowforge/forge-docker` and `flowforge/node-red`
-
-##### flowforge/flowforge-docker
-
-This container holds the FlowForge App and the Docker Driver
-
-##### flowforge/node-red
-
-This is a basic Node-RED image with the FlowForge Launcher and the required Node-RED plugins to talk to the FlowForge Platform. This is the basis for the initial Stack.
-
-This is the container you can customise for your deployment.
 
 ### Configuring FlowForge
 
@@ -97,12 +83,12 @@ set the correct domain name and make the same change to the `public_url` entry i
 
 
 
-#### SSL (optional)
-If you want to serve the forge app and projects via SSL you will need to obtain wildcard SSL certs for the domain you are using eg `*.example.com` or you can use the Letsencrypt acme-companion.
+### HTTPS (optional)
+If you want to serve the forge app and projects via SSL you will need to obtain a wildcard TSL certificate for the domain you are using eg `*.example.com` or you can use the LetsEncrypt acme-companion.
 
-### Wilcard SSL
+#### Wildcard TLS Certificate
 
-Create a folder in the `docker-compose-0.x.0` directory named `certs`, place your .crt and .key files in there, they should be named for the domain without the `*` eg `example.com.crt` & `example.com.key`
+Create a folder in the `docker-compose-1.x.0` directory named `certs`, place your .crt and .key files in there, they should be named for the domain without the `*` eg `example.com.crt` & `example.com.key`
 You  also need to create a copy of the .crt and .key files named `default.crt` & `default.key` in the same folder. This is used for serving unknown hosts.
 
 In the `docker-compose.yml` file, 
@@ -124,7 +110,7 @@ environment:
 
 If you are running with the MQTT broker then you should adjust the `public_url` to start with `wss://` rather than `ws://`
 
-### Let's Encrypt
+#### Let's Encrypt
 
 In the `docker-compose.yml` file, uncomment the following lines
 ```
@@ -163,18 +149,26 @@ Then, in the `docker-compose.yml` file, edit the following lines added your doma
 - "LETSENCRYPT_HOST=forge.example.com"
 ```
 
-As with the Wilcard SSL method, if you are running with the MQTT broker then you should adjust the `public_url` to start with `wss://` rather than `ws://`
+As with the Wildcard TLS method, if you are running with the MQTT broker then you should adjust the `public_url` to start with `wss://` rather than `ws://`
 
 #### Running FlowForge
 
-Once the containers have been built you can start FlowForge by running:
+We need to manually download the `flowforge/node-red` container that will be used for the default stack.
+
+This is done with this command:
+
+```
+docker pull flowforge/node-red
+```
+
+Once that completes we can start FlowForge:
 
 Using the docker compose plugin
 ```
 docker compose -p flowforge up -d
 ```
 
-Using the docker-compose command
+Or using the docker-compose command
 ```
 docker-compose up -p flowforge up -d
 ```
@@ -182,7 +176,7 @@ docker-compose up -p flowforge up -d
 
 This will also create a directory called `db` to hold the database files used to store project instance and user information.
 
-#### Using FlowForge File Storage
+### Using FlowForge File Storage
 
 FlowForge projects when running in Docker do not have direct 
 access to a persistent file system to store files.

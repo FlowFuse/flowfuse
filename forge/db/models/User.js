@@ -12,6 +12,7 @@ module.exports = {
         name: { type: DataTypes.STRING, validate: { not: /:\/\// } },
         email: { type: DataTypes.STRING, unique: true, validate: { isEmail: true } },
         email_verified: { type: DataTypes.BOOLEAN, defaultValue: false },
+        sso_enabled: { type: DataTypes.BOOLEAN, defaultValue: false },
         password: {
             type: DataTypes.STRING,
             set (value) {

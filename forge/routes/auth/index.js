@@ -128,6 +128,20 @@ module.exports = fp(async function (app, opts, done) {
         }
     })
 
+    app.decorate('createSessionCookie', async function (username) {
+        const session = await app.db.controllers.Session.createUserSession(username)
+        if (session) {
+            const cookieOptions = { ...SESSION_COOKIE_OPTIONS }
+            cookieOptions.maxAge = SESSION_MAX_AGE
+            return {
+                session,
+                cookieOptions
+            }
+        } else {
+            return null
+        }
+    })
+
     // app.post('/account/register', (request, reply) => {
     //
     // })
@@ -160,21 +174,25 @@ module.exports = fp(async function (app, opts, done) {
         },
         logLevel: app.config.logging.http
     }, async (request, reply) => {
+        if (app.config.features.enabled('sso')) {
+            if (await app.sso.handleLoginRequest(request, reply)) {
+                // The request has been handled at the SSO layer. Do nothing else
+                return
+            }
+        }
         if (!request.body.password) {
             reply.code(403).send({ code: 'password_required', error: 'Password required' })
         } else {
             const userInfo = app.auditLog.formatters.userObject(request.body)
             const result = await app.db.controllers.User.authenticateCredentials(request.body.username, request.body.password)
             if (result) {
-                const session = await app.db.controllers.Session.createUserSession(request.body.username)
-                if (session) {
-                    userInfo.id = session.UserId
+                const sessionInfo = await app.createSessionCookie(request.body.username)
+                if (sessionInfo) {
+                    userInfo.id = sessionInfo.session.UserId
                     // TODO: add more info to userInfo for user logging in
                     // userInfo.email = session.User?.email
                     // userInfo.name = session.User?.name
-                    const cookieOptions = { ...SESSION_COOKIE_OPTIONS }
-                    cookieOptions.maxAge = SESSION_MAX_AGE
-                    reply.setCookie('sid', session.sid, cookieOptions)
+                    reply.setCookie('sid', sessionInfo.session.sid, sessionInfo.cookieOptions)
                     await app.auditLog.User.account.login(userInfo, null)
                     reply.send()
                     return

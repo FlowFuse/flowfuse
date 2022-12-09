@@ -42,6 +42,11 @@ module.exports = {
                 user.name = request.body.username || user.username
             }
             if (request.body.email) {
+                if (user.sso_enabled && user.email !== request.body.email) {
+                    const err = new Error('Cannot change password for sso-enabled user')
+                    err.code = 'invalid_request'
+                    throw err
+                }
                 user.email = request.body.email
             }
             if (request.body.username) {
@@ -158,6 +163,8 @@ module.exports = {
             let errorCode = 'unexpected_error'
             if (responseMessage.includes('isEmail on email')) {
                 errorCode = 'invalid_email'
+            } else if (err.code) {
+                errorCode = err.code
             }
             const resp = { code: errorCode, error: responseMessage }
             await auditLog.updatedUser(request.session.User, resp, null, user) // log as error

@@ -22,10 +22,14 @@ describe('User API', async function () {
         }
     }
     beforeEach(async function () {
-        app = await setup({ features: { devices: true } })
+        const setupConfig = { features: { devices: true } }
+        if (this.currentTest.license) {
+            setupConfig.license = this.currentTest.license
+        }
+        app = await setup(setupConfig)
 
         // alice : admin, team owner
-        // bob
+        // bob: (sso_enabled)
         // chris : (unverified_email)
         // dave : (password_expired)
 
@@ -34,7 +38,7 @@ describe('User API', async function () {
 
         // Alice create in setup()
         TestObjects.alice = await app.db.models.User.byUsername('alice')
-        TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword', admin: true })
+        TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword', admin: true, sso_enabled: true })
         TestObjects.chris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', password: 'ccPassword' })
         TestObjects.dave = await app.db.models.User.create({ username: 'dave', name: 'Dave Vader', email: 'dave@example.com', password: 'ddPassword', email_verified: true, password_expired: true })
         TestObjects.elvis = await app.db.models.User.create({ username: 'elvis', name: 'Elvis Dooku', email: 'elvis@example.com', email_verified: true, password: 'eePassword' })
@@ -101,7 +105,36 @@ describe('User API', async function () {
             result.should.have.property('id', TestObjects.alice.hashid)
             result.should.have.property('username', TestObjects.alice.username)
             result.should.have.property('email', TestObjects.alice.email)
+            result.should.not.have.property('sso_enabled')
         })
+        const ssoUserInfoTest = it('return user info for logged in user - sso enabled', async function () {
+            // Check !sso_enabled
+            await login('alice', 'aaPassword')
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('id', TestObjects.alice.hashid)
+            result.should.have.property('username', TestObjects.alice.username)
+            result.should.have.property('email', TestObjects.alice.email)
+            result.should.have.property('sso_enabled', false)
+
+            // Check sso_enabled
+            await login('bob', 'bbPassword')
+            const response2 = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response2.statusCode.should.equal(200)
+            const result2 = response2.json()
+            result2.should.have.property('sso_enabled', true)
+        })
+        ssoUserInfoTest.license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
+
         it('member user can modify non admin settings (name, email, username)', async function () {
             await login('elvis', 'eePassword')
             const response = await app.inject({
@@ -146,6 +179,23 @@ describe('User API', async function () {
             result.should.have.property('code', 'invalid_email')
             result.should.have.property('error', 'Validation isEmail on email failed')
         })
+        const ssoUserUpdateEmailTest = it('sso_enabled user cannot change email', async function () {
+            await login('bob', 'bbPassword')
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.bob },
+                payload: {
+                    email: 'new-email@example.com' // user setting
+                }
+            })
+            response.statusCode.should.equal(400)
+            const result = response.json()
+            result.should.have.property('code', 'invalid_request')
+            result.error.should.match(/Cannot change password/)
+        })
+        ssoUserUpdateEmailTest.license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
+
         it('member user cannot modify admin settings (email_verified, admin)', async function () {
             await login('elvis', 'eePassword')
             const response = await app.inject({
