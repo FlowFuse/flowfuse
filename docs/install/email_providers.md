@@ -1,7 +1,7 @@
 ## Example configuration for common email platforms
 
 ### GMail
-```
+```yaml
 email:
   enabled: true
   debug: false

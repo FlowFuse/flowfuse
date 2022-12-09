@@ -34,7 +34,7 @@ the `k8s-flowforge-kubeconfig.yml` file which will allow you to connect to the c
 
 ## Install Ingress Controller
 
-```
+```bash
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
 helm --kubeconfig=./k8s-flowforge-kubeconfig.yaml install nginx-ingress \
@@ -51,7 +51,7 @@ helm --kubeconfig=./k8s-flowforge-kubeconfig.yaml install nginx-ingress \
 Run the following to get the external IP address of the Nginx Ingress 
 Controller
 
-```
+```bash
 kubectl --kubeconfig=./k8s-flowforge-kubeconfig.yaml \
   -n ingress-nginx get service nginx-ingress-ingress-nginx-controller
 ```
@@ -63,7 +63,7 @@ You will need to update the entry in your DNS server to point
 
 Then setup the FlowForge Helm repository
 
-```
+```bash
 helm repo add flowforge https://flowforge.github.io/helm
 helm repo update
 ```
@@ -86,7 +86,7 @@ forge:
 
 Then we use this to install FlowForge
 
-```
+```bash
 helm upgrade --install --kubeconfig ./k8s-flowforge-kubeconfig.yml \
   flowforge flowforge/flowforge -f customizations.yml \
   --wait

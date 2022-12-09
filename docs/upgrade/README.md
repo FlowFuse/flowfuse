@@ -45,7 +45,7 @@ container driver. We are moving from v5.0.2 to v5.0.8.
 There appears to be a clash with the bcrypt module when doing an inplace upgrade of the
 SQLite3 module that gives an error similar to the following:
 
-```
+```bash
 npm ERR! path /opt/share/projects/flowforge/sqlite-test/node_modules/sqlite3
 npm ERR! command failed
 npm ERR! command sh -c node-pre-gyp install --fallback-to-build

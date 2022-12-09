@@ -16,7 +16,7 @@ of the `id` property. This property should be used on the API but aliased as the
 Each database model has a pair of helper functions to encode and decode hashids
 to/from the true `id` value:
 
-```
+```js
 const encodedHashid = app.db.models.User.encodeHashid(123);
 const objectId = app.db.models.User.decodeHashid("edjEbo2K1w")
 ```
@@ -27,7 +27,7 @@ const objectId = app.db.models.User.decodeHashid("edjEbo2K1w")
 
 All admin-only routes exist under:
 
-```
+```txt
 /api/v1/admin/...
 ```
 
@@ -35,7 +35,7 @@ All admin-only routes exist under:
 
 All routes relating to the logged-in user exist under:
 
-```
+```txt
 /api/v1/user/...
 ```
 
@@ -43,7 +43,7 @@ All routes relating to the logged-in user exist under:
 
 API routes that related to objects in collections follow the pattern:
 
-```
+```txt
 /api/v1/<plural-noun>/<instance-id>/...
 ```
 
@@ -62,7 +62,7 @@ If there is a valid session, `request.session.User` will be the requesting user.
 In rare cases, a route needs to be accessible to anonymous users. To by-pass
 the built-in preHandler, you can set `allowAnonymous` on the routes `config` object:
 
-```
+```js
 app.get('/', { config: { allowAnonymous: true } }, async (request, reply) => {
      ...
 })
@@ -104,7 +104,7 @@ permission.
 For example, to add a user to a team, the requesting user needs to have
 `"team:user:add"`:
 
-```
+```js
 app.post('/', { preHandler: app.needsPermission("team:user:add") }, async (request, reply) => {
     // This is defined under forge/routes/api/teamMembers.js - and is mounted
     // under the path `/api/v1/teams/:teamId/members/`
@@ -117,7 +117,7 @@ app.post('/', { preHandler: app.needsPermission("team:user:add") }, async (reque
 
 If a route needs to return an error it should respond with a payload in the format:
 
-```
+```js
 {
     code: 'error_code',
     error: 'Human-readable message'
@@ -160,12 +160,12 @@ in the collection and provides the starting point for what should be returned.
 
 The response object for paginated end-points should have the format:
 
-```
+```js
 {
     "meta": {
         "next_cursor": "16416724188790000",
     },
-    "<object-type>": [ ]
+    "<object-type>": [ ],
     "count": 123
 }
 ```
@@ -210,7 +210,7 @@ Within a route handler for a paginated end-point, the following helper function
 can be used to get the pagination options from the request, as well as specifying
 default options:
 
-```
+```js
 const paginationOptions = app.getPaginationOptions(request, {limit: 30})
 
 // paginationOptions.limit = how many results to return
@@ -224,7 +224,7 @@ function.
 
 For example, the imaginary `Thing` model:
 
-```
+```js
 const { buildPaginationSearchClause } = require('../utils')
 
 ...

@@ -43,7 +43,7 @@ You will also need to install the appropriate build tools.
 * **Windows**: the standard Node.js installer will offer to do that for you.
 * **MacOS**: you will need the `XCode Command Line Tools` to be installed. 
   This can be done by running the following command:
-    ```
+    ```bash
     xcode-select --install
     ```
 
@@ -52,13 +52,13 @@ You will also need to install the appropriate build tools.
 1. Create a directory to be the base of your FlowForge install. For example: `/opt/flowforge` or `c:\flowforge`
 
    For Linux/MacOS:
-    ```
+    ```bash
     sudo mkdir /opt/flowforge
     sudo chown $USER /opt/flowforge
     ```
    
    For Windows:
-    ```
+    ```bash
     mkdir c:\flowforge
     ```
 
@@ -70,7 +70,7 @@ You will also need to install the appropriate build tools.
 
    ### For Linux/MacOS: 
    _Assumes `/tmp/` is the directory where you downloaded `flowforge-installer.zip`_
-    ```
+    ```bash
     cd /tmp/
     unzip flowforge-installer.zip
     cp -R flowforge-installer/* /opt/flowforge
@@ -79,7 +79,7 @@ You will also need to install the appropriate build tools.
 
    ### For Windows:
    _Assumes `c:\temp` is the directory where you downloaded `flowforge-installer.zip`_
-    ```
+    ```bash
     cd c:\temp
     tar -xf flowforge-installer.zip
     xcopy /E /I flowforge-installer c:\flowforge
@@ -90,13 +90,13 @@ You will also need to install the appropriate build tools.
 4. Run the installer and follow the prompts
 
    For Linux/MacOS:
-    ```
+    ```bash
     cd /opt/flowforge
     ./install.sh
     ```
 
    For Windows:
-    ```
+    ```bash
     cd c:\flowforge
     install.bat
     ```
@@ -132,12 +132,12 @@ For more information on all of the options available, see the [configuration gui
 To run it manually, you can use:
 
  - Linux/MacOS:
-    ```
+    ```bash
     /opt/flowforge/bin/flowforge.sh
     ```
 
  - Windows:
-    ```
+    ```bash
     c:\flowforge\bin\flowforge.bat
     ```
 
@@ -145,7 +145,7 @@ Or to run as a service:
 
  - Linux
  
-    ```
+    ```bash
     service flowforge start
     ```
 ## First Run Setup
@@ -183,7 +183,7 @@ your operating system.
 Once installed, you will need to build and install the authentication plugin.
 
 1. Clone the plugin repository
-    ```
+    ```bash
     git clone https://github.com/iegomez/mosquitto-go-auth.git
     ```
 
@@ -200,7 +200,7 @@ Once installed, you will need to build and install the authentication plugin.
       - `auth_opt_http_host` / `auth_opt_http_port` - if you plan to run the platform
         on a different port, change these settings to match.
 
-    ```
+    ```bash
     mosquitto -c broker/mosquitto.conf
     ```
 
@@ -210,7 +210,7 @@ Instead of installing and building mosquitto and the authentication plugin from 
 you can use a pre-built docker image that provides everything needed.
 
 1. First pull the latest version of the pre-built container
-    ```
+    ```bash
     docker pull iegomez/mosquitto-go-auth
     ```
 
@@ -221,7 +221,7 @@ you can use a pre-built docker image that provides everything needed.
      - `auth_opt_http_port` if you have changed the port the Forge platform is running on
 
 3. Start the container with the following command
-    ```
+    ```bash
     docker run -d -v /full/path/to/mosquitto.conf:/etc/mosquitto/mosquitto.conf -p 1883:1883 -p 1884:1884 --name flowforge-broker iegomez/mosquitto-go-auth
     ```
 

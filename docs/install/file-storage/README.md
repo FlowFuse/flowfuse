@@ -34,7 +34,7 @@ to persist files.
 The only configuration option used is the path to the directory to use
 as the root of the storage
 
-```
+```yaml
 host: 0.0.0.0
 port: 3001
 base_url: http://flowforge:3000
@@ -59,7 +59,7 @@ For further reference of all available options you can look at the S3Client docu
 
 For example:
 
-```
+```yaml
 host: '0.0.0.0'
 port: 3001
 base_url: http://forge.default
