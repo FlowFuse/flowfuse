@@ -46,17 +46,19 @@ To make it easier, you can use the [FlowForge Development Environment](https://g
 
 The following steps will get your development environment setup in no time:
 
-       git clone https://github.com/flowforge/flowforge-dev-env.git
-       cd flowforge-dev-env
-       npm install
-       npm run init
+```bash
+git clone https://github.com/flowforge/flowforge-dev-env.git
+cd flowforge-dev-env
+npm install
+npm run init
+```
 
 This clones all of the main project repositories, installs their dependencies and builds
 the repositories that need it.
 
 All of the repositories are cloned under the `packages` directory:
 
-```
+```txt
 flowforge-dev-env
 └── packages
     ├── flowforge
@@ -77,7 +79,7 @@ More details on using the FlowForge Development Environment are available in its
 The `flowforge/flowforge` repository is the core of the platform and where you'll 
 likely want to begin.
 
-```
+```txt
 .
 ├── bin
 ├── config               - build config files
@@ -123,7 +125,7 @@ You will need to setup the version(s) of Node-RED you want to use in your stacks
 
 From the `flowforge` directory run
 
-```
+```bash
 npm run install-stack --vers=2.2.2
 ```
 
@@ -134,7 +136,7 @@ Where `2.2.2` is the version of Node-RED you want to use in the stack.
 A number of `npm` tasks are defined in the `package.json` file of this repository.
 To get started from the `flowforge` directory use:
 
-```
+```bash
 npm run serve
 ```
 
@@ -178,7 +180,7 @@ licence is not valid for production usage.
 
 For FlowForge Inc. employees the configuration is provided in 1Password as 'Stripe Testing Configuration'.
 
-```
+```yaml
 license: ***
 
 billing:
@@ -204,7 +206,7 @@ to handle webhook callbacks properly. Install the CLI following their documentat
 run the following command, with the API key using the value of `billing.stripe.key` from
 above.
 
-```
+```bash
 stripe listen --forward-to localhost:3000/ee/billing/callback --api-key ***
 ```
 
@@ -292,7 +294,7 @@ There are 2 other "Run and Debug" entries in the menu...
 * "Debug Current Test" - this will enable you to step debug a test (starts debugging the currently open test file)
 
 #### 
-```javascript
+```json
 {
     // Use IntelliSense to learn about possible attributes.
     // Hover to view descriptions of existing attributes.

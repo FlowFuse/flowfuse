@@ -31,7 +31,7 @@ right order.
 
 The migration code should use the following layout:
 
-```
+```js
 module.exports = {
     up: async (context) => {
         // Apply the migration

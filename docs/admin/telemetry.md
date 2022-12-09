@@ -22,7 +22,7 @@ Settings section of the platform UI.
 It is also possible to disable in the `flowforge.yml` configuration file. This
 overrides whatever option is set in the Admin Settings UI.
 
-```
+```yaml
 telemetry:
   enabled: false
 ```
@@ -31,7 +31,7 @@ telemetry:
 
 The following pieces of information are included in the telemetry sent back to us:
 
-```
+```js
 {
   instanceId: '5db51f99-c6fb-4340-9c19-78adce58cc1b',
   os: { type: 'Darwin', release: '20.5.0', arch: 'x64' },
@@ -80,7 +80,7 @@ It currently supports using [Plausible Analytics](https://plausible.io/) to gath
 
 Further details about how users are navigating around your instance of FlowForge can be enabled via [Plausible](https://plausible.io/). This can be enabled with:
 
-```
+```yaml
 telemetry:
   enabled: true
   frontend:
@@ -90,7 +90,7 @@ telemetry:
 
 Optionally, you can use a Plausible `extension` too:
 
-```
+```yaml
 telemetry:
   enabled: true
   frontend:

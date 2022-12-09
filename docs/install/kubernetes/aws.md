@@ -48,12 +48,12 @@ Record the host name it will look like `[aws id].dkr.ecr.[aws region].amazonaws.
 ## Create EKS Cluster
 Edit the `cluster.yml` file in `aws_eks` to set your preferred instance type and count along with AWS Region
 
-```
+```bash
 eksctl create cluster -f cluster.yml
 ```
 
 Example cluster.yml (Please visit [eksctl.io](https://eksctl.io/usage/creating-and-managing-clusters/#using-config-files) to be sure you understand what this does.)
-```
+```yaml
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
@@ -87,12 +87,12 @@ nodeGroups:
 ```
 
 Add oidc provider for Loadbalance and IAM roles
-```
+```bash
 eksctl utils associate-iam-oidc-provider --cluster flowforge-test --approve
 ```
 
 Add AWS Load balancer (remember to update `[aws id]`)
-```
+```bash
 curl -o iam_policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.2.0/docs/install/iam_policy.json
 
 aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document file://iam_policy.json
@@ -120,7 +120,7 @@ Request move to production from sandbox (need to include examples of emails bein
 
 `ses_policy.json` (with suitable aws id, aws region and domain modifications):
 
-```
+```json
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -138,7 +138,7 @@ Request move to production from sandbox (need to include examples of emails bein
 }
 ```
 
-```
+```bash
 IAM_POLICY_ARN=$(aws iam create-policy --policy-name FlowForgeSendEmail --policy-document file://ses_policy.json | jq -r .Policy.Arn)
 ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
 OIDC_PROVIDER=$(aws eks describe-cluster --name flowforge --query "cluster.identity.oidc.issuer" --output text | sed -e "s/^https:\/\///")
@@ -191,12 +191,12 @@ A copy of this file can be found [here](setup-rds.sh)
 
 Run the following command
 
-```
+```bash
 ./setup-rds.sh
 ```
 
 Make a note of the postgress hostname
-```
+```bash
 aws rds describe-db-instances | jq .DBInstances[].Endpoint.Address
 ```
 

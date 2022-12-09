@@ -34,7 +34,7 @@ Download the latest release tar.gz from the docker-compose project:
 
 Unpack this and cd into the created directory.	
 
-```
+```bash
 tar zxf v0.x.0.tar.gz
 cd docker-compose-x.x.x
 ```
@@ -54,7 +54,7 @@ set the correct domain name and make the same change to the `public_url` entry i
 
 `docker-compose.yml`
 
-```
+```yaml
   ...
   flowforge-broker:
     image: "iegomez/mosquitto-go-auth"
@@ -73,7 +73,7 @@ set the correct domain name and make the same change to the `public_url` entry i
 
 `etc/flowforge.yml`
 
-```
+```yaml
   ...
   broker:
     url: mqtt://forge:1883
@@ -93,17 +93,17 @@ You  also need to create a copy of the .crt and .key files named `default.crt` &
 
 In the `docker-compose.yml` file, 
 - uncomment the line 
-```
+```yaml
 -   "443:443"
 ```
 
 - Add this line to the `volumes` section of the nginx proxy 
-```
+```yaml
 - "./certs:/etc/nginx/certs"
 ```
 
 If you wish to redirect all traffic to use HTTPS then add the following section to the nginx service on docker-compose.yml
-```
+```yaml
 environment:
       - "HTTPS_METHOD=redirect"
 ```
@@ -113,13 +113,13 @@ If you are running with the MQTT broker then you should adjust the `public_url` 
 #### Let's Encrypt
 
 In the `docker-compose.yml` file, uncomment the following lines
-```
+```yaml
 - "./certs:/etc/nginx/certs"
 ```
-```
+```yaml
 - "443:443"
 ```
-```
+```yaml
   acme:
     image: nginxproxy/acme-companion
     volumes:
@@ -133,19 +133,19 @@ In the `docker-compose.yml` file, uncomment the following lines
       - "nginx"
 ```
 If you wish to redirect all traffic to use HTTPS then add the following section to the nginx service on docker-compose.yml
-```
+```yaml
 environment:
       - "HTTPS_METHOD=redirect"
 ```
 Then, in the `docker-compose.yml` file, edit the following lines added your domain and email address
 
-```
+```yaml
 - "DEFAULT_EMAIL=mail@example.com"
 ```
-```
+```yaml
 - "LETSENCRYPT_HOST=mqtt.example.com"
 ```
-```
+```yaml
 - "LETSENCRYPT_HOST=forge.example.com"
 ```
 
@@ -157,19 +157,19 @@ We need to manually download the `flowforge/node-red` container that will be use
 
 This is done with this command:
 
-```
+```bash
 docker pull flowforge/node-red
 ```
 
 Once that completes we can start FlowForge:
 
 Using the docker compose plugin
-```
+```bash
 docker compose -p flowforge up -d
 ```
 
 Or using the docker-compose command
-```
+```bash
 docker-compose up -p flowforge up -d
 ```
 
@@ -205,7 +205,7 @@ For more information, follow [this guide](../first-run.md).
 - Uncompress the tar file
 - Rebuild the containers with the `./build-containers.sh` script in the new directory
 - Copy the `db` directory from the old version directory to the new (this will probably require root due to file ownership)
-    ```
+    ```bash
     sudo cp -r docker-compose-x.x.x/db docker-compose-y.y.y/db
     ```
 - Start the new version in the new directory `docker-compose -p flowforge up`

@@ -12,7 +12,7 @@ The Device Agent is published to the public npm repository as [@flowforge/flowfo
 It can be installed as a global npm module. This will ensure the agent
 command is on the path:
 
-```
+```bash
 sudo npm install -g @flowforge/flowforge-device-agent
 ```
 
@@ -26,7 +26,7 @@ This can be overridden with the `-d/--dir` option.
 The directory must exist and be accessible to the user that will be
 running the agent.
 
-```
+```bash
 sudo mkdir /opt/flowforge-device
 sudo chown -R $USER /opt/flowforge-device
 ```
@@ -38,7 +38,7 @@ change this behaviour and listen on another port of choosing: `-p/--port`. This 
 be useful for custom firewall rules, or when running multiple device agents on
 the same machine.
 
-```
+```bash
 flowforge-device-agent --port=1881
 ```
 
@@ -69,7 +69,7 @@ with the `-d` option).
 
 The agent can then be started with the command:
 
-```
+```bash
 flowforge-device-agent
 ```
 

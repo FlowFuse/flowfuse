@@ -61,7 +61,7 @@ Some features require the ability to send email to users. This can be currently 
 
 #### Download
 
-```
+```bash
 helm repo add flowforge https://flowforge.github.io/helm`
 helm repo update
 ```
@@ -103,18 +103,18 @@ You will need to label at least one node to run the management application and o
 You can do this with the `kubectl` utility. The following command lists 
 all the nodes in the cluster
 
-```
+```bash
 kubectl get nodes
 ```
 
 You can then use `kubectl label node` to add the required labels:
 
 FlowForge management node(s)
-```
+```bash
 kubectl label node <management node name> role=management
 ```
 Node-RED projects node(s)
-```
+```bash
 kubectl label node <projects node name> role=projects
 ```
 
@@ -130,7 +130,7 @@ A full list of all the configurable values can be found in the [Helm Chart READM
 
 The install can then be started with the following command:
 
-```
+```bash
 helm upgrade --atomic --install flowforge flowforge/flowforge -f customization.yml
 ```
 
@@ -138,7 +138,7 @@ helm upgrade --atomic --install flowforge flowforge/flowforge -f customization.y
 
 To enable the MQTT broker with Kubernetes install you need to add the following to the `customization.yml` file
 
-```
+```yaml
 forge:
   broker:
     url: mqtt://forge:1883

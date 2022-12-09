@@ -43,7 +43,7 @@ The following headings cover how to do this on a number of different operating s
 
 For Docker on Linux you can use `172.17.0.1` as the address for the domain which is the IP address assigned to the `docker0` interface.
 
-```
+```bash
 sudo apt-get install dnsmasq
 sudo echo "bind-interfaces" >> /etc/dnsmasq.conf
 sudo echo "no-resolv" >> /etc/dnsmasq.conf
@@ -60,7 +60,7 @@ sudo service systemd-resolved restart
 For Docker on Linux you can use `172.17.0.1` as the address for the domain which is the IP address assigned to the `docker0` interface.
 
 
-```
+```bash
 sudo dnf install dnsmasq
 sudo echo "bind-interfaces" >> /etc/dnsmasq.conf
 sudo echo "no-resolv" >> /etc/dnsmasq.conf
@@ -81,13 +81,13 @@ Unfortunately dnsmasq will not run on Windows and I have not found something sim
 
 On MacOS you can alias a private IP address to the loop back interface e.g. `10.128.0.1` with
 
-```
+```bash
 sudo ifconfig lo0 alias 10.128.0.1`
 ```
 
 You will need install dnsmasq using [homebrew](https://docs.brew.sh/Installation)
 
-```
+```bash
 brew install dnsmasq
 ```
 
@@ -96,27 +96,27 @@ It appears that the install location differs based on the Apple Hardware. For In
 Then edit a configuration file 
 
 M1 mac
-```
+```bash
 echo "conf-dir=/opt/homebrew/etc/dnsmasq.d" >> /opt/homebrew/etc/dnsmasq.conf
 echo "address=/example.com/10.128.0.1" > /opt/homebrew/etc/dnsmasq.d/ff.conf
 ```
 
 Intel mac
-```
+```bash
 echo "conf-dir=/usr/local/etc/dnsmasq.d" >> /usr/local/etc/dnsmasq.conf
 echo "address=/example.com/10.128.0.1" > /usr/local/etc/dnsmasq.d/ff.conf
 ```
 
 Set dnsmasq to run as a service
 
-```
+```bash
 brew services start dnsmasq
 dscacheutil -flushcache
 ```
 
 Tell MacOS to use dnsmasq for our test domain
 
-```
+```bash
 sudo mkdir -p /etc/resolver
 sudo tee /etc/resolver/example.com > /dev/null <<EOF
 nameserver 127.0.0.1
@@ -127,7 +127,7 @@ EOF
 
 And finally kick the MacOS resolver so it sees the updates
 
-```
+```bash
 sudo killall -HUP mDNSResponder
 ```
 
@@ -137,7 +137,7 @@ Pi Hole is a package that bundles dnsmasq as an image to run on a Raspberry Pi (
 
 Create the following file in `/etc/dnsmasq.d` called `02-flowforge.conf`
 
-```
+```bash
 address=/example.com/192.168.0.22
 ```
 
@@ -145,7 +145,7 @@ Where 192.168.0.22 is the ipv4 address of the Docker host machine or a Kubernete
 
 After making the change you will probably need to restart things with:
 
-```
+```bash
 sudo pihole restartdns
 ```
 

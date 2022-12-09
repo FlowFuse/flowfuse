@@ -15,7 +15,7 @@ be pushed out to your Project's devices through FlowForge.
 This plugin can be installed through the Manage Palette option in the Node-RED
 editor, or on the command-line:
 
-```
+```bash
 cd ~/.node-red
 npm install @flowforge/nr-tools-plugin
 ```

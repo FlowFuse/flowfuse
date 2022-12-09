@@ -29,13 +29,13 @@ For a local install there are two steps required:
    must provide the full Node-RED version number, eg `3.0.2`, or use `latest` to install the most recent stable version.
 
    Linux/Mac:
-   ```
+   ```bash
    cd /opt/flowforge
    ./bin/ff-install-stack.sh 3.0.2
    ```
 
    Windows
-   ```
+   ```bash
    cd c:\flowforge
    bin\ff-install-stack.bat 3.0.2
    ```
