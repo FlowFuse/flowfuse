@@ -23,7 +23,8 @@ module.exports = {
         },
         status: {
             type: DataTypes.ENUM(Object.values(STATUS)),
-            allowNull: false
+            allowNull: false,
+            defaultValue: STATUS.ACTIVE
         }
     },
     associations: function (M) {
