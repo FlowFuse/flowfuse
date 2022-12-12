@@ -12,6 +12,16 @@ class SubscriptionHandler {
 
         return subscription
     }
+
+    async requireActiveSubscription (team) {
+        const subscription = await this.requireSubscription(team)
+
+        if (subscription.isCanceled()) {
+            throw new Error('Teams subscription is currently canceled')
+        }
+
+        return subscription
+    }
 }
 
 module.exports = {
@@ -45,7 +55,7 @@ module.exports = {
      */
     start: async (project) => {
         if (this._isBillingEnabled()) {
-            await this._subscriptionHandler.requireSubscription(project.Team)
+            await this._subscriptionHandler.requireActiveSubscription(project.Team)
             try {
                 await this._app.billing.addProject(project.Team, project)
             } catch (err) {
@@ -116,11 +126,15 @@ module.exports = {
         }
 
         if (this._isBillingEnabled()) {
-            await this._subscriptionHandler.requireSubscription(project.Team)
-            try {
-                await this._app.billing.removeProject(project.Team, project)
-            } catch (err) {
-                throw new Error('Problem with removing project from subscription')
+            const subscription = await this._subscriptionHandler.requireSubscription(project.Team)
+            if (!subscription.isCanceled()) {
+                try {
+                    await this._app.billing.removeProject(project.Team, project)
+                } catch (err) {
+                    throw new Error('Problem with removing project from subscription')
+                }
+            } else {
+                this._app.log.warn(`Skipped removing project '${project.id}' from subscription for canceled subscription '${subscription.subscription}'`)
             }
         }
     },
@@ -171,6 +185,9 @@ module.exports = {
         return value
     },
     startFlows: async (project, options) => {
+        if (this._isBillingEnabled()) {
+            await this._subscriptionHandler.requireActiveSubscription(project.Team)
+        }
         if (this._driver.startFlows) {
             await this._driver.startFlows(project, options)
         }
@@ -181,6 +198,9 @@ module.exports = {
         }
     },
     restartFlows: async (project, options) => {
+        if (this._isBillingEnabled()) {
+            await this._subscriptionHandler.requireActiveSubscription(project.Team)
+        }
         if (this._driver.restartFlows) {
             this._driver.restartFlows(project, options)
         }
