@@ -32,10 +32,17 @@ module.exports = async function (app) {
     async function parseCheckoutEvent (event) {
         const stripeCustomerId = event.data.object.customer
         const stripeSubscriptionId = event.data.object.subscription
-        const teamId = event.data.object.client_reference_id
+        const teamId = event.data.object?.client_reference_id
 
-        const team = await app.db.models.Team.byId(teamId)
-        logStripeEvent(event, team, teamId)
+        let team
+        if (teamId) {
+            team = await app.db.models.Team.byId(teamId)
+            logStripeEvent(event, team, teamId)
+        } else {
+            const subscription = await app.db.models.Subscription.byCustomer(stripeCustomerId)
+            team = subscription?.Team
+            logStripeEvent(event, team, stripeCustomerId)
+        }
 
         return {
             stripeSubscriptionId, stripeCustomerId, team
