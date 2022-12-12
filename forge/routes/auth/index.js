@@ -181,7 +181,7 @@ module.exports = fp(async function (app, opts, done) {
             }
         }
         if (!request.body.password) {
-            reply.code(403).send({ code: 'password_required', error: 'Password required' })
+            reply.code(401).send({ code: 'password_required', error: 'Password required' })
         } else {
             const userInfo = app.auditLog.formatters.userObject(request.body)
             const result = await app.db.controllers.User.authenticateCredentials(request.body.username, request.body.password)

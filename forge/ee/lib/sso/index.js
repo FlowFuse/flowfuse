@@ -73,9 +73,9 @@ module.exports.init = async function (app) {
                 // A SSO enabled user has tried to login with their username, or have provided a password.
                 // We need them to provide just their email address to avoid
                 // us exposing their email domain
-                    reply.code(403).send({ code: 'sso_required', error: 'Please login with your email address' })
+                    reply.code(401).send({ code: 'sso_required', error: 'Please login with your email address' })
                 } else {
-                    reply.code(403).send({ code: 'sso_required', redirect: `/ee/sso/login?u=${user.email}` })
+                    reply.code(401).send({ code: 'sso_required', redirect: `/ee/sso/login?u=${user.email}` })
                 }
                 return true
             }

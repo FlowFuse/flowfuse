@@ -109,6 +109,11 @@ export default {
                     this.focusUsername()
                     this.errors.username = newError.error
                 }
+            } else if (newError.code === 'unauthorized') {
+                this.loggingIn = false
+                await this.$nextTick()
+                this.focusUsername()
+                this.errors.general = 'Login failed'
             } else {
                 this.loggingIn = false
                 await this.$nextTick()
