@@ -248,8 +248,6 @@ const actions = {
             state.dispatch('checkState', state.getters.redirectUrlAfterLogin)
         } catch (err) {
             if (err.response.status === 401) {
-                state.commit('loginFailed', { code: 'login_failed', error: 'Login failed' })
-            } else if (err.response.status === 403) {
                 state.commit('loginFailed', err.response.data)
             }
         }

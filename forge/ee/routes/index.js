@@ -9,4 +9,5 @@ module.exports = async function (app) {
     if (app.config.billing) {
         await app.register(require('./billing'), { prefix: '/billing', logLevel: 'warn' })
     }
+    await app.register(require('./sso'), { logLevel: 'warn' })
 }
