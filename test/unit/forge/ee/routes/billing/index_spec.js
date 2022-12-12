@@ -106,6 +106,35 @@ describe('Stripe Callbacks', function () {
             const team = sub.Team
             should(team.name).equal('ATeam')
         })
+
+        it('Warns but still returns 200 if the team can not be found', async function () {
+            const response = await (app.inject({
+                method: 'POST',
+                url: callbackURL,
+                headers: {
+                    'content-type': 'application/json'
+                },
+                payload: {
+                    id: 'evt_123456790',
+                    object: 'event',
+                    data: {
+                        object: {
+                            id: 'cs_1234567890',
+                            object: 'checkout.session',
+                            customer: 'cus_0987654321',
+                            subscription: 'sub_0987654321',
+                            client_reference_id: 'unknown_team_id'
+                        }
+                    },
+                    type: 'checkout.session.completed'
+                }
+            }))
+
+            should(app.log.error.called).equal(true)
+            app.log.error.firstCall.firstArg.should.equal("Stripe checkout.session.completed event cs_1234567890 received for unknown team 'unknown_team_id'")
+
+            should(response).have.property('statusCode', 200)
+        })
     })
 
     describe('checkout.session.expired', () => {
