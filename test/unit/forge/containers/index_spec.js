@@ -238,7 +238,7 @@ describe('Container Wrapper', function () {
                 const project = await setupProject()
                 const team = await app.db.models.Team.byName('ATeam')
                 await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
-                const result = app.containers.start(project)
+                const result = await app.containers.start(project)
                 await result.started
 
                 await app.db.controllers.Subscription.deleteSubscription(team)
