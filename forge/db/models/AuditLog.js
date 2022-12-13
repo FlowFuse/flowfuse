@@ -45,7 +45,7 @@ module.exports = {
                     return M.AuditLog.forEntity(where, pagination)
                 },
                 forEntity: async (where = {}, pagination = {}) => {
-                    const limit = parseInt(pagination.limit) || 30
+                    const limit = parseInt(pagination.limit) || 1000
                     if (pagination.cursor) {
                         where.id = { [Op.lt]: M.AuditLog.decodeHashid(pagination.cursor) }
                     }
