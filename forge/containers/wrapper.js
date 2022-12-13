@@ -1,3 +1,19 @@
+
+class SubscriptionHandler {
+    constructor (app) {
+        this._app = app
+    }
+
+    async requireSubscription (team) {
+        const subscription = await this._app.db.models.Subscription.byTeam(team.id)
+        if (!subscription) {
+            throw new Error('No Subscription for this team')
+        }
+
+        return subscription
+    }
+}
+
 module.exports = {
     init: async (app, driver, options) => {
         this._driver = driver
@@ -6,6 +22,10 @@ module.exports = {
         this.properties = {}
         if (driver.init) {
             this.properties = await this._driver.init(app, options)
+        }
+        this._subscriptionHandler = new SubscriptionHandler(app)
+        this._isBillingEnabled = () => {
+            return app.license.active() && app.billing
         }
     },
     /**
@@ -24,19 +44,15 @@ module.exports = {
      * @returns {Promise} Resolves when the start request has been *accepted*.
      */
     start: async (project) => {
-        if (this._app.license.active() && this._app.billing) {
-            const subscription = await this._app.db.models.Subscription.byTeam(project.Team.id)
-            if (subscription) {
-                try {
-                    await this._app.billing.addProject(project.Team, project)
-                } catch (err) {
-                    // Rethrow or wrap
-                    throw new Error('Problem with setting up Billing')
-                }
-            } else {
-                throw new Error('No Subscription for this team')
+        if (this._isBillingEnabled()) {
+            await this._subscriptionHandler.requireSubscription(project.Team)
+            try {
+                await this._app.billing.addProject(project.Team, project)
+            } catch (err) {
+                throw new Error('Problem adding project to subscription')
             }
         }
+
         const result = {}
         if (this._driver.start) {
             const startPromise = this._driver.start(project).catch(async err => {
@@ -54,17 +70,12 @@ module.exports = {
                 await project.save()
 
                 // If billing is enabled, remove the project from the subscription
-                if (this._app.license.active() && this._app.billing) {
-                    const subscription = await this._app.db.models.Subscription.byTeam(project.Team.id)
-                    if (subscription) {
-                        try {
-                            await this._app.billing.removeProject(project.Team, project)
-                        } catch (err) {
-                            // Rethrow or wrap
-                            throw new Error('Problem with setting up Billing')
-                        }
-                    } else {
-                        throw new Error('No Subscription for this team')
+                if (this._isBillingEnabled()) {
+                    await this._subscriptionHandler.requireSubscription(project.Team)
+                    try {
+                        await this._app.billing.removeProject(project.Team, project)
+                    } catch (err) {
+                        throw new Error('Problem removing project from subscription')
                     }
                 }
             })
@@ -103,17 +114,13 @@ module.exports = {
         if (this._driver.stop) {
             await this._driver.stop(project)
         }
-        if (this._app.license.active() && this._app.billing) {
-            const subscription = await this._app.db.models.Subscription.byTeam(project.Team.id)
-            if (subscription) {
-                try {
-                    await this._app.billing.removeProject(project.Team, project)
-                } catch (err) {
-                    // Rethrow or wrap?
-                    throw new Error('Problem with removing project from subscription')
-                }
-            } else {
-                throw new Error('No Subscription for this team')
+
+        if (this._isBillingEnabled()) {
+            await this._subscriptionHandler.requireSubscription(project.Team)
+            try {
+                await this._app.billing.removeProject(project.Team, project)
+            } catch (err) {
+                throw new Error('Problem with removing project from subscription')
             }
         }
     },
@@ -136,17 +143,12 @@ module.exports = {
     remove: async (project) => {
         if (project.state !== 'suspended') {
             // Only updated billing if the project isn't already suspended
-            if (this._app.license.active() && this._app.billing) {
-                const subscription = this._app.db.models.Subscription.byTeam(project.Team.id)
-                if (subscription) {
-                    try {
-                        await this._app.billing.removeProject(project.Team, project)
-                    } catch (err) {
-                        // Rethrow or wrap?
-                        throw new Error('Problem with removing project from subscription')
-                    }
-                } else {
-                    throw new Error('No Subscription for this team')
+            if (this._isBillingEnabled()) {
+                await this._subscriptionHandler.requireSubscription(project.Team)
+                try {
+                    await this._app.billing.removeProject(project.Team, project)
+                } catch (err) {
+                    throw new Error('Problem with removing project from subscription')
                 }
             }
         }

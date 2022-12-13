@@ -160,111 +160,149 @@ describe('Container Wrapper', function () {
             stubBilling.removeProject.resetHistory()
         })
 
-        it('rejects start project if team does not have a subscription', async function () {
-            const project = await setupProject()
-            const promise = app.containers.start(project)
-            await promise.should.be.rejectedWith(/No Subscription for this team/)
-        })
+        describe('start', function () {
+            it('rejects start project if team does not have a subscription', async function () {
+                const project = await setupProject()
+                const promise = app.containers.start(project)
+                await promise.should.be.rejectedWith(/No Subscription for this team/)
+            })
 
-        it('adds project to team subscription', async function () {
-            const project = await setupProject()
-            const team = await app.db.models.Team.byName('ATeam')
-            await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
-            const result = await app.containers.start(project)
-            await result.started
-            billingProjects.should.have.property(1)
-            billingProjects[1].should.have.property(project.id)
-            billingProjects[1][project.id].should.not.equal(null)
-        })
+            it('adds project to team subscription', async function () {
+                const project = await setupProject()
+                const team = await app.db.models.Team.byName('ATeam')
+                await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
+                const result = await app.containers.start(project)
+                await result.started
+                billingProjects.should.have.property(1)
+                billingProjects[1].should.have.property(project.id)
+                billingProjects[1][project.id].should.not.equal(null)
+            })
 
-        it('rejects if billing fails to add project', async function () {
+            it('rejects if billing fails to add project', async function () {
             // A project name of 'fail_billing_add' will cause the billing
             // stub defined above to fail
-            const project = await setupProject('fail_billing_add')
-            const team = await app.db.models.Team.byName('ATeam')
-            await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
-            const promise = app.containers.start(project)
-            await promise.should.be.rejectedWith(/Problem with setting up Billing/)
-        })
+                const project = await setupProject('fail_billing_add')
+                const team = await app.db.models.Team.byName('ATeam')
+                await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
+                const promise = app.containers.start(project)
+                await promise.should.be.rejectedWith(/Problem adding project to subscription/)
+            })
 
-        it('reverts billing if driver fails to start project', async function () {
+            it('reverts billing if driver fails to start project', async function () {
             // A project name of 'stub-fail-start' will cause the stub driver
             // to fail the create after a short delay
-            const project = await setupProject('stub-fail-start')
-            const team = await app.db.models.Team.byName('ATeam')
-            await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
-            const promise = await app.containers.start(project)
-            await promise.started
-            billingProjects.should.have.property(1)
-            billingProjects[1].should.have.property(project.id, null)
+                const project = await setupProject('stub-fail-start')
+                const team = await app.db.models.Team.byName('ATeam')
+                await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
+                const promise = await app.containers.start(project)
+                await promise.started
+                billingProjects.should.have.property(1)
+                billingProjects[1].should.have.property(project.id, null)
+            })
         })
 
-        it('removes a running project from billing when the project is stopped', async function () {
-            const project = await setupProject()
-            const team = await app.db.models.Team.byName('ATeam')
-            await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
-            const result = await app.containers.start(project)
-            await result.started
-            billingProjects.should.have.property(1)
-            billingProjects[1].should.have.property(project.id)
-            billingProjects[1][project.id].should.not.equal(null)
-            // Now we have a project added to billing - stop it and check it is
-            // removed
+        describe('stop', function () {
+            it('removes a running project from billing when the project is stopped', async function () {
+                const project = await setupProject()
+                const team = await app.db.models.Team.byName('ATeam')
+                await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
+                const result = await app.containers.start(project)
+                await result.started
+                billingProjects.should.have.property(1)
+                billingProjects[1].should.have.property(project.id)
+                billingProjects[1][project.id].should.not.equal(null)
+                // Now we have a project added to billing - stop it and check it is
+                // removed
 
-            await app.containers.stop(project)
-            project.state.should.equal('suspended')
-            billingProjects.should.have.property(1)
-            billingProjects[1].should.have.property(project.id, null)
-            stubBilling.addProject.callCount.should.equal(1)
-            stubBilling.removeProject.callCount.should.equal(1)
+                await app.containers.stop(project)
+                project.state.should.equal('suspended')
+                billingProjects.should.have.property(1)
+                billingProjects[1].should.have.property(project.id, null)
+                stubBilling.addProject.callCount.should.equal(1)
+                stubBilling.removeProject.callCount.should.equal(1)
+            })
+
+            it('does not remove a suspended project from billing when stopping', async function () {
+                const project = await setupProject()
+                const team = await app.db.models.Team.byName('ATeam')
+                await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
+                project.state = 'suspended'
+                await project.save()
+                await app.containers.stop(project)
+                project.state.should.equal('suspended')
+                stubBilling.addProject.callCount.should.equal(0)
+                stubBilling.removeProject.callCount.should.equal(0)
+            })
+
+            it('rejects stop project if team does not have a subscription', async function () {
+                const project = await setupProject()
+                const team = await app.db.models.Team.byName('ATeam')
+                await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
+                const result = app.containers.start(project)
+                await result.started
+
+                await app.db.controllers.Subscription.deleteSubscription(team)
+
+                await app.containers.stop(project).should.be.rejectedWith(/No Subscription for this team/)
+            })
         })
 
-        it('does not remove a suspended project from billing when stopping', async function () {
-            const project = await setupProject()
-            const team = await app.db.models.Team.byName('ATeam')
-            await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
-            project.state = 'suspended'
-            await project.save()
-            await app.containers.stop(project)
-            project.state.should.equal('suspended')
-            stubBilling.addProject.callCount.should.equal(0)
-            stubBilling.removeProject.callCount.should.equal(0)
-        })
+        describe('remove', function () {
+            it('removes a running project from billing when the project is removed', async function () {
+                const project = await setupProject()
+                const team = await app.db.models.Team.byName('ATeam')
+                await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
+                const result = await app.containers.start(project)
+                await result.started
+                billingProjects.should.have.property(1)
+                billingProjects[1].should.have.property(project.id)
+                billingProjects[1][project.id].should.not.equal(null)
+                // Now we have a project added to billing - remove it and check it is
+                // removed from billing
 
-        it('removes a running project from billing when the project is removed', async function () {
-            const project = await setupProject()
-            const team = await app.db.models.Team.byName('ATeam')
-            await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
-            const result = await app.containers.start(project)
-            await result.started
-            billingProjects.should.have.property(1)
-            billingProjects[1].should.have.property(project.id)
-            billingProjects[1][project.id].should.not.equal(null)
-            // Now we have a project added to billing - remove it and check it is
-            // removed from billing
+                await app.containers.remove(project)
+                billingProjects.should.have.property(1)
+                billingProjects[1].should.have.property(project.id, null)
+                stubBilling.addProject.callCount.should.equal(1)
+                stubBilling.removeProject.callCount.should.equal(1)
+            })
 
-            await app.containers.remove(project)
-            billingProjects.should.have.property(1)
-            billingProjects[1].should.have.property(project.id, null)
-            stubBilling.addProject.callCount.should.equal(1)
-            stubBilling.removeProject.callCount.should.equal(1)
-        })
+            it('does not remove a suspended project from billing when removing', async function () {
+                const project = await setupProject()
+                const team = await app.db.models.Team.byName('ATeam')
+                await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
+                const result = await app.containers.start(project)
+                await result.started
 
-        it('does not remove a suspended project from billing when removing', async function () {
-            const project = await setupProject()
-            const team = await app.db.models.Team.byName('ATeam')
-            await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
-            const result = await app.containers.start(project)
-            await result.started
+                // A little artificial to force the model into suspended state - but
+                // it ensure any unexpected inconsistencies get handled properly
 
-            // A little artificial to force the model into suspended state - but
-            // it ensure any unexpected inconsistencies get handled properly
+                project.state = 'suspended'
+                await project.save()
 
-            project.state = 'suspended'
-            await project.save()
+                await app.containers.remove(project)
+                stubBilling.removeProject.callCount.should.equal(0)
+            })
 
-            await app.containers.remove(project)
-            stubBilling.removeProject.callCount.should.equal(0)
+            it('rejects the removal if the team does not have a subscription', async function () {
+                const project = await setupProject()
+                const team = await app.db.models.Team.byName('ATeam')
+                await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
+                const result = await app.containers.start(project)
+                await result.started
+
+                // A little artificial to force the model into suspended state - but
+                // it ensure any unexpected inconsistencies get handled properly
+
+                project.state = 'suspended'
+                await project.save()
+
+                await app.db.controllers.Subscription.deleteSubscription(team)
+
+                const promise = app.containers.stop(project)
+                await promise
+                promise.should.be.rejectedWith(/No Subscription for this team/)
+            })
         })
     })
 })
