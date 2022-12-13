@@ -10,7 +10,7 @@ module.exports = {
         return newSubscription
     },
     deleteSubscription: async function (app, team) {
-        const subscription = await app.db.models.Subscription.byTeam(team)
+        const subscription = await app.db.models.Subscription.byTeam(team.id)
         if (subscription) {
             subscription.destroy()
         }
