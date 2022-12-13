@@ -243,9 +243,7 @@ describe('Container Wrapper', function () {
 
                 await app.db.controllers.Subscription.deleteSubscription(team)
 
-                const promise = app.containers.stop(project)
-                await promise
-                promise.should.be.rejectedWith(/No Subscription for this team/)
+                await app.containers.stop(project).should.be.rejectedWith(/No Subscription for this team/)
             })
         })
 
