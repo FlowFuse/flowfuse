@@ -1,6 +1,4 @@
 describe('FlowForge - Team Audit Log', () => {
-    // let team // , project
-
     beforeEach(() => {
         cy.login('alice', 'aaPassword')
         cy.home()
