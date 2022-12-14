@@ -166,6 +166,10 @@ module.exports = async function (app) {
 
             case 'customer.subscription.updated': {
                 const { stripeSubscriptionId, subscription } = await parseSubscriptionEvent(event)
+                if (!subscription) {
+                    response.status(200).send()
+                    return
+                }
 
                 const stripeSubscriptionStatus = event.data.object.status
                 if (Object.values(app.db.models.Subscription.STATUS).includes(stripeSubscriptionStatus)) {

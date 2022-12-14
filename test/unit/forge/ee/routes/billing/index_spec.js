@@ -310,8 +310,8 @@ describe('Stripe Callbacks', function () {
                         object: {
                             id: 'sub_unknown',
                             object: 'subscription',
-                            customer: 'sub_unknown',
-                            status: 'past_due'
+                            customer: 'cus_unknown',
+                            status: 'canceled'
                         },
                         previous_attributes: {
                             status: 'active'
@@ -322,7 +322,7 @@ describe('Stripe Callbacks', function () {
             }))
 
             should(app.log.error.called).equal(true)
-            app.log.error.firstCall.firstArg.should.equal("Stripe customer.subscription.updated event sub_unknown received for unknown team 'sub_unknown'")
+            app.log.error.firstCall.firstArg.should.equal("Stripe customer.subscription.updated event sub_unknown received for unknown team 'cus_unknown'")
 
             should(response).have.property('statusCode', 200)
 
