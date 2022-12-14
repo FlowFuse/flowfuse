@@ -18,6 +18,10 @@
             font-size: 0.875rem;
             margin-right: 12px;
         }
+        .ff-icon {
+            transition: 0.3s transform;
+            -webkit-transition: 0.3s transform;
+        }
         &:hover {
             background-color: $ff-grey-200;
             cursor: pointer;
@@ -31,6 +35,11 @@
             padding: 12px;
             border: 1px solid $ff-grey-300;
             border-top-width: 0;
+        }
+    }
+    &.open {
+        .ff-accordion--button .ff-icon {
+            transform: rotate(-90deg);
         }
     }
 }

@@ -1,10 +1,10 @@
 <template>
-    <div class="ff-accordion">
+    <div class="ff-accordion" :class="{'open': isOpen}">
         <button class="ff-accordion--button" @click="toggle()">
             <label>{{ label }}</label>
             <div>
                 <slot name="meta"></slot>
-                <ChevronDownIcon class="ff-icon" />
+                <ChevronLeftIcon class="ff-icon" />
             </div>
         </button>
         <div ref="content" class="ff-accordion--content" :style="{'max-height': contentHeight}">
@@ -14,7 +14,7 @@
 </template>
 
 <script>
-import { ChevronDownIcon } from '@heroicons/vue/solid'
+import { ChevronLeftIcon } from '@heroicons/vue/solid'
 
 export default {
     name: 'ff-accordion',
@@ -66,7 +66,7 @@ export default {
         }
     },
     components: {
-        ChevronDownIcon
+        ChevronLeftIcon
     }
 }
 </script>
