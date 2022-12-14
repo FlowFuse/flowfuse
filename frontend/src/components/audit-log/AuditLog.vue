@@ -1,24 +1,29 @@
 <template>
     <ff-loading v-if="loading" message="Loading Activity..." />
-    <ul class="mx-auto">
-        <li v-for="item in logEntries" :key="item.id">
-            <div v-if="item.date" class="font-medium mt-2 mb-1">{{item.date}}</div>
-            <AuditEntry :entry="item"></AuditEntry>
-        </li>
-        <li v-if="logEntries.length === 0" class="px-8 py-4 text-center">
-            <a v-if="!loading">No Audit Entries Found</a>
-        </li>
-        <li v-if="logEntries.length > 0 && showLoadMore !== false && nextCursor" class="px-8 py-4">
-            <a v-if="!loading" @click.stop="loadMore" class="forge-button-inline">Load more...</a>
-            <div class="text-gray-500" v-else>Loading...</div>
-        </li>
-    </ul>
+    <!-- <li v-if="logEntries.length === 0" class="px-8 py-4 text-center">
+        <a v-if="!loading">No Audit Entries Found</a>
+    </li>
+    <li v-if="logEntries.length > 0 && showLoadMore !== false && nextCursor" class="px-8 py-4">
+        <a v-if="!loading" @click.stop="loadMore" class="forge-button-inline">Load more...</a>
+        <div class="text-gray-500" v-else>Loading...</div>
+    </li> -->
+    <ff-accordion v-for="(entries, date) in logEntriesByDate" :key="date" :label="date">
+        <template v-slot:meta>
+            <span>{{ entries.length }} Event{{ entries.length === 1 ? '' : 's' }}</span>
+        </template>
+        <template v-slot:content>
+            <div v-for="entry in entries" :key="entry.id">
+                <AuditEntry :entry="entry"></AuditEntry>
+            </div>
+        </template>
+    </ff-accordion>
 </template>
 
 <script>
 /* eslint-disable no-template-curly-in-string */
 
 import AuditEntry from './AuditEntry.vue'
+import FFAccordion from '@/components/Accordion.vue'
 
 const eventDescriptions = {
     'project.created': 'Project created',
@@ -58,7 +63,7 @@ export default {
     data () {
         return {
             nextCursor: null,
-            logEntries: [],
+            logEntriesByDate: null,
             loading: false,
             initialLoad: true
         }
@@ -72,28 +77,36 @@ export default {
             this.loading = true
             const result = await this.loadItems(this.entity.id, this.nextCursor)
             this.nextCursor = result.meta.next_cursor
-            this.logEntries = this.formatResults(this.logEntries.concat(result.log))
+            this.groupResults(result.log)
             this.loading = false
         },
-        formatResults: function (log) {
+        groupResults (log) {
             let lastDate = null
-            return log.map(entry => {
+            if (!this.logEntriesByDate) {
+                this.logEntriesByDate = {}
+            }
+            log.forEach((entry) => {
                 if (!entry.time) {
                     const date = new Date(entry.createdAt)
-                    const thisDate = date.toDateString()
-                    if (thisDate !== lastDate) {
+                    const strDate = date.toDateString()
+                    if (strDate !== lastDate) {
                         entry.date = date.toDateString()
-                        lastDate = thisDate
+                        lastDate = strDate
                     }
                     entry.time = date.toLocaleTimeString()
                     entry.icon = eventIcons[entry.event] || null
                     entry.title = eventDescriptions[entry.event] || entry.event
                     entry.title = entry.title.replace(/\${user}/g, entry.username)
+                    // reduce and group by date
+                    if (!this.logEntriesByDate[strDate]) {
+                        this.logEntriesByDate[strDate] = []
+                    }
+                    this.logEntriesByDate[strDate].push(entry)
                 } else if (entry.date) {
                     lastDate = entry.date
                 }
-                return entry
             })
+            console.log(this.logEntriesByDate)
         },
         fetchData: async function (newVal) {
             if (this.initialLoad) {
@@ -101,7 +114,7 @@ export default {
             }
             if (this.entity && this.entity.id) {
                 const result = await this.loadItems(this.entity.id)
-                this.logEntries = this.formatResults(result.log)
+                this.groupResults(result.log)
                 this.nextCursor = result.meta.next_cursor
             }
             this.initialLoad = false
@@ -109,6 +122,7 @@ export default {
         }
     },
     components: {
+        'ff-accordion': FFAccordion,
         AuditEntry
     }
 }
@@ -116,4 +130,5 @@ export default {
 
 <style lang="scss">
 @import "@/stylesheets/components/audit-log.scss";
+@import "@/stylesheets/components/accordion.scss";
 </style>
