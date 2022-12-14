@@ -1,5 +1,5 @@
 <template>
-    <div class="space-y-4">
+    <div class="ff-project-overview space-y-4">
         <SectionTopMenu>
             <template #hero>
                 <div class="h-full flex items-center">
@@ -159,3 +159,7 @@ export default {
     }
 }
 </script>
+
+<style lang="scss">
+@import "@/stylesheets/pages/project.scss";
+</style>
