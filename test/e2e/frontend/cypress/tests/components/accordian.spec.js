@@ -30,8 +30,9 @@ describe('FlowForge - Accordion Component', () => {
 
         cy.get('[data-el="accordion"]').should('exist')
         cy.get('[data-el="accordion"] span').contains('1 Event')
-        cy.get('[data-el="accordion"] .ff-accordion--content').should('have.css', 'max-height').should('equal', '60px')
+        cy.get('[data-el="accordion"] .ff-accordion--content').should('be.visible')
         cy.get('[data-el="accordion"] button').click()
+        cy.get('[data-el="accordion"] .ff-accordion--content').should('not.be.visible')
         cy.get('[data-el="accordion"] .ff-accordion--content').should('have.css', 'max-height').should('equal', '0px')
     })
 })
