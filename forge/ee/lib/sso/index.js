@@ -42,9 +42,14 @@ module.exports.init = async function (app) {
         if (user) {
             if (await isSSOEnabledForEmail(user.email)) {
                 if (request.body.username.toLowerCase() !== user.email.toLowerCase() || request.body.password) {
-                // A SSO enabled user has tried to login with their username, or have provided a password.
-                // We need them to provide just their email address to avoid
-                // us exposing their email domain
+                    // A SSO enabled user has tried to login with their username, or have provided a password.
+                    // If they are an admin, allow them to continue - we need to let admins bypass SSO so they
+                    // cannot be locked out.
+                    if (user.admin) {
+                        return false
+                    }
+                    // We need them to provide just their email address to avoid
+                    // us exposing their email domain
                     reply.code(401).send({ code: 'sso_required', error: 'Please login with your email address' })
                 } else {
                     reply.code(401).send({ code: 'sso_required', redirect: `/ee/sso/login?u=${user.email}` })

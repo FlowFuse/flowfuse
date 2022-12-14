@@ -163,12 +163,13 @@ d
             result.should.have.property('code', 'sso_required')
             result.should.have.property('redirect')
         })
-        it('handles sso enabled login request - username provided', async function () {
+        it('handles sso enabled login request - username provided, non-admin', async function () {
+            await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
             const response = await localApp.inject({
                 method: 'POST',
                 url: '/test-sso',
                 payload: {
-                    username: 'alice'
+                    username: 'bob'
                 }
             })
             const result = response.json()
@@ -176,6 +177,16 @@ d
             result.should.have.property('code', 'sso_required')
             result.should.not.have.property('redirect')
             result.should.have.property('error', 'Please login with your email address')
+        })
+        it('skips sso requirement if sso enabled admin provides username', async function () {
+            const response = await localApp.inject({
+                method: 'POST',
+                url: '/test-sso',
+                payload: {
+                    username: 'alice'
+                }
+            })
+            response.statusCode.should.equal(200)
         })
     })
 })
