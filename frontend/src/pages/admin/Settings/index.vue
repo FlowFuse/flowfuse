@@ -7,24 +7,27 @@
 
 <script>
 import SectionTopMenu from '@/components/SectionTopMenu'
-
-const sideNavigation = [
-    { name: 'General', path: './general' },
-    // { name: "Permissions", path: "./permissions" },
-    { name: 'License', path: './license' },
-    { name: 'Email', path: './email' }
-]
+import { mapState } from 'vuex'
 
 export default {
     name: 'AdminSettings',
-    setup () {
-        return {
-            sideNavigation
-        }
-    },
     data () {
         return {
+            sideNavigation: [
+                { name: 'General', path: './general' },
+                // { name: "Permissions", path: "./permissions" },
+                { name: 'License', path: './license' },
+                { name: 'Email', path: './email' }
+            ]
         }
+    },
+    mounted () {
+        if (this.features.sso) {
+            this.sideNavigation.push({ name: 'SSO', path: './sso' })
+        }
+    },
+    computed: {
+        ...mapState('account', ['features'])
     },
     components: {
         SectionTopMenu
