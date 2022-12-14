@@ -59,7 +59,7 @@ export default {
     props: {
         entity: {
             type: Object,
-            required: true
+            default: null
         },
         loadItems: {
             type: Function,
