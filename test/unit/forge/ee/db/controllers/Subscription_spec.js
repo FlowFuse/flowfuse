@@ -22,7 +22,7 @@ describe('Subscription controller', function () {
             newSubscription.customer.should.equal('a-customer')
             newSubscription.subscription.should.equal('my-subscription')
 
-            const subscription = await app.db.models.Subscription.byTeam(team.id)
+            const subscription = await app.db.models.Subscription.byTeamId(team.id)
 
             subscription.Team.id.should.match(team.id)
             subscription.Team.name.should.match(team.name)
@@ -34,11 +34,11 @@ describe('Subscription controller', function () {
     describe('deleteSubscription', function () {
         it('deletes the passed subscription searching by team', async function () {
             const team = await app.db.models.Team.byName('ATeam')
-            ;(await app.db.models.Subscription.byTeam(team.id)).should.not.equal(null)
+            ;(await app.db.models.Subscription.byTeamId(team.id)).should.not.equal(null)
 
             await app.db.controllers.Subscription.deleteSubscription(team)
 
-            const subscription = await app.db.models.Subscription.byTeam(team.id)
+            const subscription = await app.db.models.Subscription.byTeamId(team.id)
             should(subscription).equal(null)
         })
     })

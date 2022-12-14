@@ -101,7 +101,7 @@ describe('Stripe Callbacks', function () {
             app.log.info.firstCall.firstArg.should.equal(`Stripe checkout.session.completed event cs_1234567890 received for team '${app.team.hashid}'`)
 
             should(response).have.property('statusCode', 200)
-            const sub = await app.db.models.Subscription.byCustomer('cus_0987654321')
+            const sub = await app.db.models.Subscription.byCustomerId('cus_0987654321')
             should(sub.customer).equal('cus_0987654321')
             should(sub.subscription).equal('sub_0987654321')
             const team = sub.Team
@@ -258,7 +258,7 @@ describe('Stripe Callbacks', function () {
 
             should(response).have.property('statusCode', 200)
 
-            const subscription = await app.db.models.Subscription.byCustomer('cus_1234567890')
+            const subscription = await app.db.models.Subscription.byCustomerId('cus_1234567890')
             should(subscription.status).equal(app.db.models.Subscription.STATUS.CANCELED)
         })
 
@@ -292,7 +292,7 @@ describe('Stripe Callbacks', function () {
 
             should(response).have.property('statusCode', 200)
 
-            const subscription = await app.db.models.Subscription.byCustomer('cus_1234567890')
+            const subscription = await app.db.models.Subscription.byCustomerId('cus_1234567890')
             should(subscription.status).equal(app.db.models.Subscription.STATUS.ACTIVE)
         })
 
@@ -326,7 +326,7 @@ describe('Stripe Callbacks', function () {
 
             should(response).have.property('statusCode', 200)
 
-            const subscription = await app.db.models.Subscription.byCustomer('cus_1234567890')
+            const subscription = await app.db.models.Subscription.byCustomerId('cus_1234567890')
             should(subscription.status).equal(app.db.models.Subscription.STATUS.ACTIVE) // no change
         })
     })
@@ -407,7 +407,7 @@ describe('Stripe Callbacks', function () {
 
             should(response).have.property('statusCode', 200)
 
-            const subscription = await app.db.models.Subscription.byCustomer('cus_1234567890')
+            const subscription = await app.db.models.Subscription.byCustomerId('cus_1234567890')
             should(subscription.status).equal(app.db.models.Subscription.STATUS.CANCELED)
 
             const projectsStatesAfter = await app.db.models.Project.byTeam(app.team.hashid)

@@ -19,7 +19,7 @@ module.exports = async function (app) {
 
     async function parseChargeEvent (event) {
         const stripeCustomerId = event.data.object.customer
-        const subscription = await app.db.models.Subscription.byCustomer(stripeCustomerId)
+        const subscription = await app.db.models.Subscription.byCustomerId(stripeCustomerId)
         const team = subscription?.Team
 
         logStripeEvent(event, team, stripeCustomerId)
@@ -39,7 +39,7 @@ module.exports = async function (app) {
             team = await app.db.models.Team.byId(teamId)
             logStripeEvent(event, team, teamId)
         } else {
-            const subscription = await app.db.models.Subscription.byCustomer(stripeCustomerId)
+            const subscription = await app.db.models.Subscription.byCustomerId(stripeCustomerId)
             team = subscription?.Team
             logStripeEvent(event, team, stripeCustomerId)
         }
@@ -52,7 +52,7 @@ module.exports = async function (app) {
     async function parseSubscriptionEvent (event) {
         const stripeSubscriptionId = event.data.object.id
         const stripeCustomerId = event.data.object.customer
-        const subscription = await app.db.models.Subscription.byCustomer(stripeCustomerId)
+        const subscription = await app.db.models.Subscription.byCustomerId(stripeCustomerId)
         const team = subscription?.Team
 
         logStripeEvent(event, team, stripeCustomerId)
@@ -225,7 +225,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('team:edit')
     }, async (request, response) => {
         const team = request.team
-        const sub = await app.db.models.Subscription.byTeam(team.id)
+        const sub = await app.db.models.Subscription.byTeamId(team.id)
         if (!sub) {
             try {
                 let cookie
@@ -281,7 +281,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('team:edit')
     }, async (request, response) => {
         const team = request.team
-        const sub = await app.db.models.Subscription.byTeam(team.id)
+        const sub = await app.db.models.Subscription.byTeamId(team.id)
         const portal = await stripe.billingPortal.sessions.create({
             customer: sub.customer,
             return_url: `${app.config.base_url}/team/${team.slug}/overview`
