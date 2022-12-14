@@ -75,7 +75,7 @@
             </div>
             <div class="border rounded p-4">
                 <FormHeading><TrendingUpIcon class="w-6 h-6 mr-2 inline text-gray-400" />Recent Activity</FormHeading>
-                <AuditLog :entity="project" :loadItems="loadItems" :showLoadMore="false" />
+                <AuditLog :entity="project" :loadItems="loadItems" :showLoadMore="false" :disableAccordion="true" />
                 <div class="py-4">
                     <router-link to="./activity" class="forge-button-inline">More...</router-link>
                 </div>

@@ -1,10 +1,10 @@
 <template>
     <div class="ff-accordion" :class="{'open': isOpen}">
-        <button class="ff-accordion--button" @click="toggle()">
+        <button class="ff-accordion--button" :disabled="disabled" @click="toggle()">
             <label>{{ label }}</label>
             <div>
                 <slot name="meta"></slot>
-                <ChevronLeftIcon class="ff-icon" />
+                <ChevronLeftIcon v-if="!disabled" class="ff-icon" />
             </div>
         </button>
         <div ref="content" class="ff-accordion--content" :style="{'max-height': contentHeight}">
@@ -26,6 +26,10 @@ export default {
         setOpen: {
             type: Boolean,
             default: false
+        },
+        disabled: {
+            type: Boolean,
+            default: false
         }
     },
     data () {
@@ -45,10 +49,12 @@ export default {
     },
     methods: {
         toggle: function () {
-            if (this.isOpen) {
-                this.close()
-            } else {
-                this.open()
+            if (!this.disabled) {
+                if (this.isOpen) {
+                    this.close()
+                } else {
+                    this.open()
+                }
             }
         },
         // externally facing open function so we can call all accordians open/close at once

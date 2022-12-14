@@ -10,19 +10,20 @@
         background-color: $ff-grey-100;
         border: 1px solid $ff-grey-300;
         padding: 6px 9px;
+        cursor: default;
         label {
             font-weight: 500;
         }
         span {
             color: $ff-grey-500;
             font-size: 0.875rem;
-            margin-right: 12px;
         }
         .ff-icon {
+            margin-left: 12px;
             transition: 0.3s transform;
             -webkit-transition: 0.3s transform;
         }
-        &:hover {
+        &:not([disabled]):hover{
             background-color: $ff-grey-200;
             cursor: pointer;
         }

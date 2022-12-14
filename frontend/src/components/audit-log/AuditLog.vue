@@ -7,7 +7,7 @@
         <a v-if="!loading" @click.stop="loadMore" class="forge-button-inline">Load more...</a>
         <div class="text-gray-500" v-else>Loading...</div>
     </li> -->
-    <ff-accordion v-for="(entries, date) in logEntriesByDate" :key="date" :label="date" :set-open="true">
+    <ff-accordion v-for="(entries, date) in logEntriesByDate" :key="date" :label="date" :set-open="true" :disabled="disableAccordion">
         <template v-slot:meta>
             <span>{{ entries.length }} Event{{ entries.length === 1 ? '' : 's' }}</span>
         </template>
@@ -56,7 +56,24 @@ const eventIcons = {
 
 export default {
     name: 'AuditLog',
-    props: ['entity', 'loadItems', 'showLoadMore'],
+    props: {
+        entity: {
+            type: Object,
+            required: true
+        },
+        loadItems: {
+            type: Function,
+            required: true
+        },
+        showLoadMore: {
+            type: Boolean,
+            default: true
+        },
+        disableAccordion: {
+            type: Boolean,
+            default: false
+        }
+    },
     watch: {
         entity: 'fetchData'
     },
