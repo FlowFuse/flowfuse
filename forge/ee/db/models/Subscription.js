@@ -13,10 +13,15 @@ Object.freeze(STATUS)
 module.exports = {
     name: 'Subscription',
     schema: {
+        // Customer ID from stripe, e.g. cus_xyz123
+        // Each team has one subscription, that is tied to a single stripe customer, via the customer ID field
         customer: {
             type: DataTypes.STRING,
             allowNull: false
         },
+        // Subscription ID from stripe e.g. sub_xyz123
+        // Stored for reference only, Stripe events should only be matched to subscription objects via
+        // the customer field
         subscription: {
             type: DataTypes.STRING,
             allowNull: false
@@ -29,15 +34,6 @@ module.exports = {
     },
     associations: function (M) {
         this.belongsTo(M.Team)
-    },
-    hooks: function (M) {
-        // M.Team.addHook('afterCreate', (Team, options) => {
-        //     console.log("Subscription hook on Team")
-        // })
-        // M.Team.addHook('afterDestroy', (Team, options) => {
-        //     console.log("Subscription destroy hook on Team")
-        // })
-        return {}
     },
     finders: function (M) {
         const self = this
