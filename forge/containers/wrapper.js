@@ -158,11 +158,15 @@ module.exports = {
         if (project.state !== 'suspended') {
             // Only updated billing if the project isn't already suspended
             if (this._isBillingEnabled()) {
-                await this._subscriptionHandler.requireSubscription(project.Team)
-                try {
-                    await this._app.billing.removeProject(project.Team, project)
-                } catch (err) {
-                    throw new Error('Problem with removing project from subscription')
+                const subscription = await this._subscriptionHandler.requireSubscription(project.Team)
+                if (!subscription.isCanceled()) {
+                    try {
+                        await this._app.billing.removeProject(project.Team, project)
+                    } catch (err) {
+                        throw new Error('Problem with removing project from subscription')
+                    }
+                } else {
+                    this._app.log.warn(`Skipped removing project '${project.id}' from subscription for canceled subscription '${subscription.subscription}'`)
                 }
             }
         }
