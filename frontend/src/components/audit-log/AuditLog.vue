@@ -1,12 +1,8 @@
 <template>
     <ff-loading v-if="loading" message="Loading Activity..." />
-    <!-- <li v-if="logEntries.length === 0" class="px-8 py-4 text-center">
-        <a v-if="!loading">No Audit Entries Found</a>
-    </li>
-    <li v-if="logEntries.length > 0 && showLoadMore !== false && nextCursor" class="px-8 py-4">
-        <a v-if="!loading" @click.stop="loadMore" class="forge-button-inline">Load more...</a>
-        <div class="text-gray-500" v-else>Loading...</div>
-    </li> -->
+    <div v-if="hasNoEntries && !loading" class="ff-no-data">
+        No Activity Found
+    </div>
     <ff-accordion v-for="(entries, date) in logEntriesByDate" :key="date" :label="date" :set-open="true" :disabled="disableAccordion">
         <template v-slot:meta>
             <span>{{ entries.length }} Event{{ entries.length === 1 ? '' : 's' }}</span>
@@ -17,6 +13,10 @@
             </div>
         </template>
     </ff-accordion>
+    <div v-if="!hasNoEntries && showLoadMore !== false && nextCursor" class="px-8 py-4">
+        <a v-if="!loading" @click.stop="loadMore" class="forge-button-inline">Load more...</a>
+        <div class="text-gray-500" v-else>Loading...</div>
+    </div>
 </template>
 
 <script>
@@ -80,6 +80,11 @@ export default {
     },
     watch: {
         entity: 'fetchData'
+    },
+    computed: {
+        hasNoEntries () {
+            return Object.keys(this.logEntriesByDate).length === 0
+        }
     },
     data () {
         return {
