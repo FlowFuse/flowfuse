@@ -2,53 +2,25 @@ module.exports.init = async function (app) {
     // Set the SSO feature flag
     app.config.features.register('sso', true, true)
 
-    /**
-     * A temporary hardcoded list of SAML configurations.
-     * This will eventually either come from .yml or via a db table
-     */
-    const PROVIDERS = {
-        // provider1: {
-        //     id: 'provider1',
-        //     domainFilter: '^.*@flowforge.com$',
-        //     options: {
-        //         // callbackUrl:
-        //         issuer: '',
-        //         entryPoint: '',
-        //         cert: ''
-        //     }
-        // }
-    }
-
     async function getProviderOptions (id) {
-        if (PROVIDERS[id]) {
-            const opts = { ...PROVIDERS[id].options }
-            if (!opts.callbackUrl && !opts.path) {
-                opts.path = '/ee/sso/login/callback'
-            }
-            if (!opts.issuer) {
-                opts.issuer = app.config.base_url + (app.config.base_url.endsWith('/') ? '' : '/') + '/ee/sso/login/callback'
-            }
-            return opts
+        const provider = await app.db.models.SAMLProvider.byId(id)
+        if (provider) {
+            const result = { ...provider.getOptions() }
+            return result
         }
         return null
     }
 
     async function getProviderForEmail (email) {
-        for (const [key, value] of Object.entries(PROVIDERS)) {
-            const RE = new RegExp(value.domainFilter, 'i')
-            if (RE.test(email)) {
-                return key
-            }
+        const provider = await app.db.models.SAMLProvider.forEmail(email)
+        if (provider) {
+            return provider.hashid
         }
         return null
     }
 
     async function isSSOEnabledForEmail (email) {
         return !!(await getProviderForEmail(email))
-    }
-
-    async function getProviderList () {
-        return Object.values(PROVIDERS)
     }
 
     /**
@@ -87,7 +59,6 @@ module.exports.init = async function (app) {
         handleLoginRequest,
         isSSOEnabledForEmail,
         getProviderOptions,
-        getProviderForEmail,
-        getProviderList
+        getProviderForEmail
     }
 }
