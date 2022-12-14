@@ -58,18 +58,22 @@ export default {
     name: 'AuditLog',
     props: {
         entity: {
+            // the scope of the audit log, e.g. the Project/Team
             type: Object,
             default: null
         },
         loadItems: {
+            // The Function to call in order to populate the Audit Log
             type: Function,
             required: true
         },
         showLoadMore: {
+            // do we show the "Show More" button at the end of the log
             type: Boolean,
             default: true
         },
         disableAccordion: {
+            // should the accordion functionality be disabled?
             type: Boolean,
             default: false
         }
