@@ -35,17 +35,20 @@ module.exports = async function (config = {}) {
     const template = await forge.db.models.ProjectTemplate.create(templateProperties)
     template.setOwner(userAlice)
     await template.save()
-    // const stackProperties = {
-    //     name: 'stack1',
-    //     active: true,
-    //     properties: { nodered: '2.2.2' }
-    // }
-    // const stack = await forge.db.models.ProjectStack.create(stackProperties)
+
+    const stackProperties = {
+        name: 'stack1',
+        active: true,
+        properties: { nodered: '2.2.2' }
+    }
+    const stack = await forge.db.models.ProjectStack.create(stackProperties)
+
     const subscription = 'sub_1234567890'
     const customer = 'cus_1234567890'
     await forge.db.controllers.Subscription.createSubscription(team1, subscription, customer)
 
     forge.team = team1
+    forge.stack = stack
 
     return forge
 }

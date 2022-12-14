@@ -167,6 +167,19 @@ describe('Container Wrapper', function () {
                 await promise.should.be.rejectedWith(/No Subscription for this team/)
             })
 
+            it('rejects if team does not have an active subscription', async function () {
+                const project = await setupProject()
+                const team = await app.db.models.Team.byName('ATeam')
+
+                const subscription = await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
+                subscription.status = app.db.models.Subscription.STATUS.CANCELED
+                await subscription.save()
+                should(subscription.isCanceled()).equal(true)
+
+                const promise = app.containers.start(project)
+                await promise.should.be.rejectedWith(/Teams subscription is currently canceled/)
+            })
+
             it('adds project to team subscription', async function () {
                 const project = await setupProject()
                 const team = await app.db.models.Team.byName('ATeam')
@@ -238,12 +251,29 @@ describe('Container Wrapper', function () {
                 const project = await setupProject()
                 const team = await app.db.models.Team.byName('ATeam')
                 await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
-                const result = app.containers.start(project)
+                const result = await app.containers.start(project)
                 await result.started
 
                 await app.db.controllers.Subscription.deleteSubscription(team)
 
                 await app.containers.stop(project).should.be.rejectedWith(/No Subscription for this team/)
+            })
+
+            it('still stops the project even if the team does not have an active subscription', async function () {
+                const project = await setupProject()
+                const team = await app.db.models.Team.byName('ATeam')
+
+                const subscription = await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
+
+                const result = await app.containers.start(project)
+                await result.started
+
+                subscription.status = app.db.models.Subscription.STATUS.CANCELED
+                await subscription.save()
+                should(subscription.isCanceled()).equal(true)
+
+                await app.containers.stop(project)
+                project.state.should.equal('suspended')
             })
         })
 
@@ -302,6 +332,110 @@ describe('Container Wrapper', function () {
                 const promise = app.containers.stop(project)
                 await promise
                 promise.should.be.rejectedWith(/No Subscription for this team/)
+            })
+
+            it('removes the running project from the driver but not billing if the subscription is cancelled', async function () {
+                const project = await setupProject()
+                const team = await app.db.models.Team.byName('ATeam')
+                const subscription = await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
+                const result = await app.containers.start(project)
+                await result.started
+
+                subscription.status = app.db.models.Subscription.STATUS.CANCELED
+                await subscription.save()
+                should(subscription.isCanceled()).equal(true)
+
+                await app.containers.remove(project)
+                stubBilling.removeProject.callCount.should.equal(0)
+            })
+        })
+
+        describe('mock driver', function () {
+            const sandbox = sinon.createSandbox()
+
+            let mockDriver
+
+            beforeEach(function () {
+                mockDriver = {
+                    startFlows: sandbox.fake(),
+                    stopFlows: sandbox.fake(),
+                    restartFlows: sandbox.fake()
+                }
+
+                app.containers.init(app, mockDriver, {})
+            })
+
+            afterEach(function () {
+                sandbox.restore()
+            })
+
+            describe('startFlows', function () {
+                it('starts flows if the team has an active subscription', async function () {
+                    const project = await setupProject()
+                    const team = await app.db.models.Team.byName('ATeam')
+                    await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
+                    await app.containers.startFlows(project, {})
+
+                    mockDriver.startFlows.callCount.should.equal(1)
+                })
+
+                it('does not start the flows if the teams subscription is cancelled', async function () {
+                    const project = await setupProject()
+                    const team = await app.db.models.Team.byName('ATeam')
+                    const subscription = await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
+
+                    subscription.status = app.db.models.Subscription.STATUS.CANCELED
+                    await subscription.save()
+                    should(subscription.isCanceled()).equal(true)
+
+                    const promise = app.containers.startFlows(project, {})
+                    await promise.should.be.rejectedWith(/Teams subscription is currently canceled/)
+
+                    mockDriver.startFlows.callCount.should.equal(0)
+                })
+            })
+
+            describe('stopFlows', function () {
+                it('still stops even if the team had a cancelled subscription', async function () {
+                    const project = await setupProject()
+                    const team = await app.db.models.Team.byName('ATeam')
+                    const subscription = await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
+
+                    subscription.status = app.db.models.Subscription.STATUS.CANCELED
+                    await subscription.save()
+                    should(subscription.isCanceled()).equal(true)
+
+                    await app.containers.stopFlows(project, {})
+
+                    mockDriver.stopFlows.callCount.should.equal(1)
+                })
+            })
+
+            describe('restartFlows', function () {
+                it('restarts if the team has an active subscription', async function () {
+                    const project = await setupProject()
+                    const team = await app.db.models.Team.byName('ATeam')
+                    await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
+
+                    await app.containers.restartFlows(project, {})
+
+                    mockDriver.restartFlows.callCount.should.equal(1)
+                })
+
+                it('does not restart the flows if the teams subscription is cancelled', async function () {
+                    const project = await setupProject()
+                    const team = await app.db.models.Team.byName('ATeam')
+                    const subscription = await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
+
+                    subscription.status = app.db.models.Subscription.STATUS.CANCELED
+                    await subscription.save()
+                    should(subscription.isCanceled()).equal(true)
+
+                    const promise = app.containers.restartFlows(project, {})
+                    await promise.should.be.rejectedWith(/Teams subscription is currently canceled/)
+
+                    mockDriver.restartFlows.callCount.should.equal(0)
+                })
             })
         })
     })

@@ -137,7 +137,7 @@ module.exports = {
                 }, 250)
             })
         } else {
-            throw new Error({ error: project.id + ' not found' })
+            throw new Error(`${project.id} not found`)
         }
     },
     /**
