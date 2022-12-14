@@ -1,5 +1,5 @@
 <template>
-    <div class="space-y-4">
+    <div class="ff-project-overview space-y-4">
         <SectionTopMenu>
             <template #hero>
                 <div class="h-full flex items-center">
@@ -75,7 +75,7 @@
             </div>
             <div class="border rounded p-4">
                 <FormHeading><TrendingUpIcon class="w-6 h-6 mr-2 inline text-gray-400" />Recent Activity</FormHeading>
-                <AuditLog :entity="project" :loadItems="loadItems" :showLoadMore="false" />
+                <AuditLog :entity="project" :loadItems="loadItems" :showLoadMore="false" :disableAccordion="true" />
                 <div class="py-4">
                     <router-link to="./activity" class="forge-button-inline">More...</router-link>
                 </div>
@@ -159,3 +159,7 @@ export default {
     }
 }
 </script>
+
+<style lang="scss">
+@import "@/stylesheets/pages/project.scss";
+</style>

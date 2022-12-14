@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-audit-entry ml-8 py-3 border-b text-base">
+    <div class="ff-audit-entry py-3 border-b text-base">
         <!-- Time -->
         <div class="ff-audit-entry-time w-20 text-gray-500">{{ entry.time }}</div>
         <!-- Icon -->

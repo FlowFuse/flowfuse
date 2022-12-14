@@ -57,6 +57,15 @@
     }
 }
 
+.ff-no-data {
+    background-color: $ff-grey-100;
+    color: $ff-grey-400;
+    font-size: 0.875rem;
+    border: $ff-grey-200 solid 1px;
+    padding: 12px;
+    text-align: center;
+}
+
 label {
     cursor: inherit;
 }

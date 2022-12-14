@@ -1,0 +1,46 @@
+@import '~@flowforge/forge-ui-components/dist/scss/forge-colors.scss';
+
+.ff-accordion {
+    margin-bottom: 24px;
+    &--button {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background-color: $ff-grey-100;
+        border: 1px solid $ff-grey-300;
+        padding: 6px 9px;
+        cursor: default;
+        label {
+            font-weight: 500;
+        }
+        span {
+            color: $ff-grey-500;
+            font-size: 0.875rem;
+        }
+        .ff-icon {
+            margin-left: 12px;
+            transition: 0.3s transform;
+            -webkit-transition: 0.3s transform;
+        }
+        &:not([disabled]):hover{
+            background-color: $ff-grey-200;
+            cursor: pointer;
+        }
+    }
+    &--content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+        .ff-audit-entry {
+            padding: 12px;
+            border: 1px solid $ff-grey-300;
+            border-top-width: 0;
+        }
+    }
+    &.open {
+        .ff-accordion--button .ff-icon {
+            transform: rotate(-90deg);
+        }
+    }
+}
