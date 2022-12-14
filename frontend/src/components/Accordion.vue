@@ -7,7 +7,7 @@
                 <ChevronDownIcon class="ff-icon" />
             </div>
         </button>
-        <div ref="content" class="ff-accordion--content">
+        <div ref="content" class="ff-accordion--content" :style="{'max-height': contentHeight}">
             <slot name="content"></slot>
         </div>
     </div>
@@ -22,11 +22,25 @@ export default {
         label: {
             type: String,
             required: true
+        },
+        setOpen: {
+            type: Boolean,
+            default: false
         }
     },
     data () {
         return {
             isOpen: false
+        }
+    },
+    computed: {
+        contentHeight: function () {
+            if (this.isOpen) {
+                const content = this.$refs.content
+                return content.scrollHeight + 'px'
+            } else {
+                return null
+            }
         }
     },
     methods: {
@@ -39,14 +53,16 @@ export default {
         },
         // externally facing open function so we can call all accordians open/close at once
         open: function () {
-            const content = this.$refs.content
-            content.style.maxHeight = content.scrollHeight + 'px'
             this.isOpen = true
         },
         close: function () {
-            const content = this.$refs.content
-            content.style.maxHeight = null
             this.isOpen = false
+        }
+    },
+    mounted () {
+        // accordion is open by default on page load
+        if (this.setOpen) {
+            this.isOpen = true
         }
     },
     components: {

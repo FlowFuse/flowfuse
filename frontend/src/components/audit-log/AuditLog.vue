@@ -7,7 +7,7 @@
         <a v-if="!loading" @click.stop="loadMore" class="forge-button-inline">Load more...</a>
         <div class="text-gray-500" v-else>Loading...</div>
     </li> -->
-    <ff-accordion v-for="(entries, date) in logEntriesByDate" :key="date" :label="date">
+    <ff-accordion v-for="(entries, date) in logEntriesByDate" :key="date" :label="date" :set-open="true">
         <template v-slot:meta>
             <span>{{ entries.length }} Event{{ entries.length === 1 ? '' : 's' }}</span>
         </template>
@@ -106,7 +106,6 @@ export default {
                     lastDate = entry.date
                 }
             })
-            console.log(this.logEntriesByDate)
         },
         fetchData: async function (newVal) {
             if (this.initialLoad) {
