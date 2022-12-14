@@ -19,6 +19,36 @@
     svg path {
         stroke-width: 2px;
     }
+    &--error {
+        position: relative;
+        summary {
+            display: flex;
+            align-items: center;
+            list-style: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: $ff-grey-500;
+            &::-webkit-details-marker {
+                display: none;
+            }
+        }
+        // the chevron down will only show when detail is opened
+        span .ff-icon {
+            position: absolute;
+            top: 3px;
+            left: 0;
+            background-color: $ff-grey-50;
+            fill: $ff-grey-500;
+        }
+        &:hover {
+            summary {
+                color: black;
+            }
+            span .ff-icon {
+                fill: black;
+            }
+        }
+    }
 }
 
 .ff-audit-entry-trigger {

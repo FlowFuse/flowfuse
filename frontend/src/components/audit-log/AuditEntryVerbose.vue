@@ -338,11 +338,22 @@
     </template>
 
     <template v-if="error">
-        <span>{{ entry.body }}</span>
+        <details class="ff-audit-entry--error">
+            <summary>
+                <ChevronRightIcon class="ff-icon ff-icon-sm"/>
+                Show Error
+            </summary>
+            <span>
+                {{ entry.body }}
+                <ChevronDownIcon class="ff-icon ff-icon-sm"/>
+            </span>
+        </details>
     </template>
 </template>
 
 <script>
+import { ChevronRightIcon, ChevronDownIcon } from '@heroicons/vue/solid'
+
 export default {
     name: 'AuditEntryVerbose',
     props: {
@@ -355,6 +366,10 @@ export default {
         error: function () {
             return this.entry.body?.error !== undefined
         }
+    },
+    components: {
+        ChevronRightIcon,
+        ChevronDownIcon
     }
 }
 </script>
