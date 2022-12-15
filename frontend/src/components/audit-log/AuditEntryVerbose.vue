@@ -49,14 +49,14 @@
     </template>
     <template v-else-if="entry.event === 'team.user.role-changed' || entry.event === 'user.roleChanged'">
         <label>User Role Modified</label>
-        <span v-if="!error && entry.body?.user">The role for '{{ entry.body.user.name }}' has been changed {{ entry.body.updates }}.</span>
+        <span v-if="!error && entry.body?.user">The role for '{{ entry.body.user.name }}' has been changed <AuditEntryUpdates :updates="entry.body.updates" />.</span>
         <span v-else-if="!error">User data not found in audit entry.</span>
     </template>
 
     <!-- Team Settings Events -->
     <template v-else-if="entry.event === 'team.settings.updated'">
         <label>Team Settings Updated</label>
-        <span v-if="!error && entry.body?.updates">The following updates have been made to the team settings: {{ entry.body.updates }}.</span>
+        <span v-if="!error && entry.body?.updates">The following updates have been made to the team settings: <AuditEntryUpdates :updates="entry.body.updates" />.</span>
         <span v-else-if="!error">Updates not found in audit entry.</span>
     </template>
 
@@ -73,7 +73,7 @@
     </template>
     <template v-else-if="entry.event === 'team.device.updated'">
         <label>Device Updated</label>
-        <span v-if="!error && entry.body?.device">Device '{{ entry.body.device?.name }}' has been updated with the following changes: {{ entry.body.updates }}.</span>
+        <span v-if="!error && entry.body?.device">Device '{{ entry.body.device?.name }}' has been updated with the following changes: <AuditEntryUpdates :updates="entry.body.updates" />.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'team.device.assigned'">
@@ -215,7 +215,7 @@
     </template>
     <template v-else-if="entry.event === 'platform.project-type.updated'">
         <label>Project Type Updated</label>
-        <span v-if="!error && entry.body?.projectType">Project type '{{ entry.body.projectType }}' has been updated with the following changes: {{ entry.body.updates }}</span>
+        <span v-if="!error && entry.body?.projectType">Project type '{{ entry.body.projectType }}' has been updated with the following changes: <AuditEntryUpdates :updates="entry.body.updates" /></span>
         <span v-else-if="!error">Project Type data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'platform.stack.created'">
@@ -230,12 +230,12 @@
     </template>
     <template v-else-if="entry.event === 'platform.stack.updated'">
         <label>Stack Updated</label>
-        <span v-if="!error && entry.body?.stack">Stack '{{ entry.body.stack.name }}' has been updated with the following changes: {{ entry.body.updates }}</span>
+        <span v-if="!error && entry.body?.stack">Stack '{{ entry.body.stack.name }}' has been updated with the following changes: <AuditEntryUpdates :updates="entry.body.updates" /></span>
         <span v-else-if="!error">Stack data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'platform.settings.updated' || entry.event === 'platform.settings.update'">
         <label>Platform Settings Updated</label>
-        <span v-if="!error && entry.body?.updates">Platform settings have been updated with the following changes: {{ entry.body.updates }}</span>
+        <span v-if="!error && entry.body?.updates">Platform settings have been updated with the following changes: <AuditEntryUpdates :updates="entry.body.updates" /></span>
         <span v-else-if="!error">Update data not found in audit entry.</span>
     </template>
 
@@ -297,7 +297,7 @@
     </template>
     <template v-else-if="entry.event === 'project.settings.updated'">
         <label>Project Settings Updated</label>
-        <span v-if="!error && entry.body?.project">Project '{{ entry.body.project?.name }}' has had the following changes made to its settings: {{ entry.body.updates }}</span>
+        <span v-if="!error && entry.body?.project">Project '{{ entry.body.project?.name }}' has had the following changes made to its settings: <AuditEntryUpdates :updates="entry.body.updates" /></span>
         <span v-else-if="!error">Project data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.snapshot.created'">
@@ -353,6 +353,7 @@
 
 <script>
 import { ChevronRightIcon, ChevronDownIcon } from '@heroicons/vue/solid'
+import AuditEntryUpdates from './AuditEntryUpdates.vue'
 
 export default {
     name: 'AuditEntryVerbose',
@@ -369,7 +370,8 @@ export default {
     },
     components: {
         ChevronRightIcon,
-        ChevronDownIcon
+        ChevronDownIcon,
+        AuditEntryUpdates
     }
 }
 </script>
