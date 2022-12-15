@@ -242,6 +242,12 @@ $nav_height: 60px;
     padding: 8px;
     text-align: center;
     border-bottom: 2px solid $ff-red-500;
+
+    &.ff-banner-warning {
+        color: $ff-grey-50;
+        background-color: $ff-red-700;
+        border-bottom: 2px solid $ff-red-800;
+    }
 }
 .ff-header {
     z-index: 10;
