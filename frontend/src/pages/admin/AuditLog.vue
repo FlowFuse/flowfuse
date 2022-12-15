@@ -2,11 +2,11 @@
     <div class="ff-admin-audit">
         <div>
             <SectionTopMenu hero="Platform Audit Log" info="Recorded events that have taken place at the Platform level."/>
-            <AuditLog :entity="entity" :entries="entries" />
+            <AuditLog :entries="entries" />
         </div>
         <div>
             <SectionTopMenu hero="Filters" />
-            <ff-text-input placeholder="Search Activity...">
+            <ff-text-input v-model="filters.string" placeholder="Search Activity...">
                 <template v-slot:icon><SearchIcon/></template>
             </ff-text-input>
         </div>
@@ -24,8 +24,10 @@ export default {
     name: 'PlatformAuditLog',
     data () {
         return {
-            entity: null,
-            entries: null
+            entries: null,
+            filters: {
+                string: ''
+            }
         }
     },
     computed: {
@@ -39,8 +41,7 @@ export default {
             return await adminApi.getPlatformAuditLog(cursor, 200)
         },
         fetchData: async function () {
-            this.entity = { id: 'audit' }
-            const result = await this.loadItems(this.entity.id)
+            const result = await this.loadItems('audit')
             this.entries = result.log
         }
     },

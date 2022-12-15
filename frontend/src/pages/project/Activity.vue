@@ -1,7 +1,7 @@
 <template>
     <SectionTopMenu hero="Project Activity" info="Recorded events that have taken place in Project.">
     </SectionTopMenu>
-    <AuditLog :entity="project" :entries="entries" />
+    <AuditLog :entries="entries" />
 </template>
 
 <script>

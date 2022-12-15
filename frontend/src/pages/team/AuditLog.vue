@@ -1,6 +1,6 @@
 <template>
     <SectionTopMenu hero="Audit Log" info="Recorded events that have taken place in this Team." />
-    <AuditLog :entity="verifiedTeam" :entries="entries" />
+    <AuditLog :entries="entries" />
 </template>
 
 <script>
