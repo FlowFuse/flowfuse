@@ -37,7 +37,7 @@ module.exports = {
                     const self = this.toJSON()
                     const result = {
                         issuer: self.entityID,
-                        path: '/ee/sso/login/callback',
+                        callbackUrl: process.env.FLOWFORGE_BASE_URL + '/ee/sso/login/callback',
                         ...self.options
                     }
                     if (result.cert) {
