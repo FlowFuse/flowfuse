@@ -134,7 +134,7 @@ module.exports = fp(async function (app, _opts, next) {
                 })
             }
         }
-        if (isConfigured && app.config.email.debug) {
+        if (app.config.email.debug) {
             app.log.info(`
 -----------------------------------
 to: ${mail.to}
