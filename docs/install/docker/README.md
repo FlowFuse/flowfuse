@@ -183,6 +183,7 @@ creating an administrator for the platform and other configuration options.
 
 For more information, follow [this guide](../first-run.md).
 
+Once you have finished setting up the admin user there are some Docker specific items to consider.
 #### Using FlowForge File Storage
 
 FlowForge projects when running in Docker do not have direct 
