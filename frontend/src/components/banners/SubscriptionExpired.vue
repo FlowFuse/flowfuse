@@ -1,5 +1,6 @@
 <template>
     <div
+        v-if="subscriptionExpired"
         class="ff-banner ff-banner-warning"
         data-el="banner-subscription-expired"
     >
