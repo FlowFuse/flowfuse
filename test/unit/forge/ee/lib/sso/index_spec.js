@@ -94,9 +94,9 @@ d
     describe('getProviderOptions', async function () {
         it('gets provider options for known provider', async function () {
             const result = await app.sso.getProviderOptions(app.samlProviders.provider1.hashid)
-            result.should.have.only.keys('issuer', 'path', 'cert', 'entryPoint')
+            result.should.have.only.keys('issuer', 'callbackUrl', 'cert', 'entryPoint')
             result.issuer.should.equal(`http://localhost:3000/ee/sso/entity/${app.samlProviders.provider1.hashid}`)
-            result.path.should.equal('/ee/sso/login/callback')
+            result.callbackUrl.should.equal('http://localhost:3000/ee/sso/login/callback')
             result.cert.should.equal('abcde')
             result.entryPoint.should.equal('https://sso.example.com/entry')
         })
