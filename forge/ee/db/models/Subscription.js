@@ -39,8 +39,10 @@ module.exports = {
         const self = this
         return {
             instance: {
+                // Should this subscription be treated as active/usable
+                // Stripe states such as past_due and trialing are still active
                 isActive () {
-                    return this.status === STATUS.ACTIVE
+                    return !this.isCanceled()
                 },
                 isCanceled () {
                     return this.status === STATUS.CANCELED
