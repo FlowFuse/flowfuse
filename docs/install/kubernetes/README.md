@@ -144,6 +144,8 @@ creating an administrator for the platform and other configuration options.
 
 For more information, follow [this guide](../first-run.md).
 
+Once you have finished setting up the admin user there are some Kubernetes specific items to consider.
+
 
 #### Using FlowForge File Storage
 
@@ -165,5 +167,5 @@ More details can be found [here](../file-storage/).
 ### Upgrade
 
 - Download and unpack the latest version of the helm chart zip.
-- Rebuild and push the containers with the build-containers.sh script.
-- Rerun the `helm upgrade --install flowforge flowforge -f customization.yml`
+- Check the [README.md](https://github.com/flowforge/helm/blob/main/helm/flowforge/README.md) for any new options to configure in `customization.yml`
+- Run the `helm upgrade --install flowforge flowforge -f customization.yml`
