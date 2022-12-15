@@ -57,16 +57,20 @@ const eventIcons = {
 export default {
     name: 'AuditLog',
     props: {
+        entries: {
+            type: [null, Array],
+            required: true
+        },
         entity: {
             // the scope of the audit log, e.g. the Project/Team
             type: Object,
             default: null
         },
-        loadItems: {
-            // The Function to call in order to populate the Audit Log
-            type: Function,
-            required: true
-        },
+        // loadItems: {
+        //     // The Function to call in order to populate the Audit Log
+        //     type: Function,
+        //     required: true
+        // },
         showLoadMore: {
             // do we show the "Show More" button at the end of the log
             type: Boolean,
@@ -78,38 +82,15 @@ export default {
             default: false
         }
     },
-    watch: {
-        entity: 'fetchData'
-    },
+    emits: ['load-more'],
     computed: {
         hasNoEntries () {
             return Object.keys(this.logEntriesByDate).length === 0
-        }
-    },
-    data () {
-        return {
-            nextCursor: null,
-            logEntriesByDate: null,
-            loading: false,
-            initialLoad: true
-        }
-    },
-    mounted () {
-        this.initialLoad = true
-        this.fetchData()
-    },
-    methods: {
-        loadMore: async function () {
-            this.loading = true
-            const result = await this.loadItems(this.entity.id, this.nextCursor)
-            this.nextCursor = result.meta.next_cursor
-            this.groupResults(result.log)
-            this.loading = false
         },
-        groupResults (log) {
+        logEntriesByDate () {
+            const grouped = {}
             let lastDate = null
-            this.logEntriesByDate = {}
-            log.forEach((entry) => {
+            this.entries.forEach((entry) => {
                 if (!entry.time) {
                     const date = new Date(entry.createdAt)
                     const strDate = date.toDateString()
@@ -122,26 +103,35 @@ export default {
                     entry.title = eventDescriptions[entry.event] || entry.event
                     entry.title = entry.title.replace(/\${user}/g, entry.username)
                     // reduce and group by date
-                    if (!this.logEntriesByDate[strDate]) {
-                        this.logEntriesByDate[strDate] = []
+                    if (!grouped[strDate]) {
+                        grouped[strDate] = []
                     }
-                    this.logEntriesByDate[strDate].push(entry)
+                    grouped[strDate].push(entry)
                 } else if (entry.date) {
                     lastDate = entry.date
                 }
             })
-        },
-        fetchData: async function (newVal) {
-            if (this.initialLoad) {
-                this.loading = true
-            }
-            if (this.entity && this.entity.id) {
-                const result = await this.loadItems(this.entity.id)
-                this.groupResults(result.log)
-                this.nextCursor = result.meta.next_cursor
-            }
-            this.initialLoad = false
-            this.loading = false
+            return grouped
+        }
+    },
+    data () {
+        return {
+            nextCursor: null,
+            // logEntriesByDate: null,
+            loading: false,
+            initialLoad: true
+        }
+    },
+    mounted () {
+        this.initialLoad = true
+    },
+    methods: {
+        loadMore: async function () {
+            // this.loading = true
+            // const result = await this.loadItems(this.entity.id, this.nextCursor)
+            // this.nextCursor = result.meta.next_cursor
+            // this.loading = false
+            this.$emit('load-more')
         }
     },
     components: {

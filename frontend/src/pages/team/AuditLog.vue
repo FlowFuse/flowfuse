@@ -1,6 +1,6 @@
 <template>
     <SectionTopMenu hero="Audit Log" info="Recorded events that have taken place in this Team." />
-    <AuditLog :entity="verifiedTeam" :loadItems="loadItems" />
+    <AuditLog :entity="verifiedTeam" :entries="entries" />
 </template>
 
 <script>
@@ -19,7 +19,8 @@ export default {
     },
     data () {
         return {
-            verifiedTeam: null
+            verifiedTeam: null,
+            entries: null
         }
     },
     mounted () {
@@ -32,6 +33,8 @@ export default {
         fetchData: async function (newVal) {
             if (this.hasPermission('team:audit-log')) {
                 this.verifiedTeam = this.team
+                const result = await this.loadItems(this.verifiedTeam.id)
+                this.entries = result.log
             } else {
                 this.$router.push({ path: `/team/${this.team.slug}/overview` })
             }

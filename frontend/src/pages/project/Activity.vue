@@ -1,7 +1,7 @@
 <template>
     <SectionTopMenu hero="Project Activity" info="Recorded events that have taken place in Project.">
     </SectionTopMenu>
-    <AuditLog :entity="project" :loadItems="loadItems" />
+    <AuditLog :entity="project" :entries="entries" />
 </template>
 
 <script>
@@ -15,12 +15,22 @@ export default {
     emits: ['project-start', 'project-delete', 'project-suspend', 'project-restart', 'projectUpdated'],
     data () {
         return {
-            loading: true
+            loading: true,
+            entries: null
+        }
+    },
+    watch: {
+        project: function () {
+            this.loadLog()
         }
     },
     methods: {
         loadItems: async function (projectId, cursor) {
             return projectApi.getProjectAuditLog(projectId, cursor, 200)
+        },
+        async loadLog () {
+            const audit = await this.loadItems(this.project.id)
+            this.entries = audit.log
         }
     },
     components: {
