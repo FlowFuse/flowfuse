@@ -13,8 +13,9 @@
     </Teleport>
     <main>
         <ConfirmProjectDeleteDialog @confirm="deleteProject" ref="confirmProjectDeleteDialog"/>
-        <Teleport v-if="mounted && isVisitingAdmin" to="#platform-banner">
-            <div class="ff-banner" data-el="banner-project-as-admin">You are viewing this project as an Administrator</div>
+        <Teleport v-if="mounted" to="#platform-banner">
+            <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">You are viewing this project as an Administrator</div>
+            <SubscriptionExpiredBanner :team="team" />
         </Teleport>
         <router-view
             :project="project"
@@ -39,6 +40,7 @@ import projectApi from '@/api/project'
 import snapshotApi from '@/api/projectSnapshots'
 
 import NavItem from '@/components/NavItem'
+import SubscriptionExpiredBanner from '@/components/banners/SubscriptionExpired.vue'
 // import SideNavigation from '@/components/SideNavigation'
 // import SideTeamSelection from '@/components/SideTeamSelection'
 import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vue'
@@ -199,7 +201,8 @@ export default {
     components: {
         NavItem,
         SideNavigationTeamOptions,
-        ConfirmProjectDeleteDialog
+        ConfirmProjectDeleteDialog,
+        SubscriptionExpiredBanner
     }
 }
 </script>
