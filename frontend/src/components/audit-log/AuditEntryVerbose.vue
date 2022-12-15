@@ -331,6 +331,11 @@
         <span>Something has gone wrong. Check the project logs to investigate further.</span>
     </template>
 
+    <template v-else-if="entry.event === 'settings.update'">
+        <label>Node-RED Settings Updated</label>
+        <span>Node-RED editor user settings have been updated.</span>
+    </template>
+
     <!-- Catch All -->
     <template v-else>
         <label>{{ entry.event }}</label>
