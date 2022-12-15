@@ -176,27 +176,28 @@ docker-compose up -p flowforge up -d
 
 This will also create a directory called `db` to hold the database files used to store project instance and user information.
 
-### Using FlowForge File Storage
-
-FlowForge projects when running in Docker do not have direct 
-access to a persistent file system to store files.
-
-We recomend disabling the Node-RED core file nodes in the FlowForge
-Template.
-
-<img src="../images/file-node-template.png" width=500 />
-
-Adding `10-file.js` to the list of "Excluded nodes by filename" section will ensure that the core file nodes are not loaded by the project.
-
-FlowForge File Nodes provide a solution to this for basic read/write.
-More details can be found [here](../file-storage/).
-
 ### First Run Setup
 
 The first time you access the platform in your browser, it will take you through
 creating an administrator for the platform and other configuration options.
 
 For more information, follow [this guide](../first-run.md).
+
+#### Using FlowForge File Storage
+
+FlowForge projects when running in Docker do not have direct 
+access to a persistent file system to store files.
+
+We recommend disabling the Node-RED core file nodes in the FlowForge
+Template.
+
+<img src="../images/file-node-template.png" width=500 />
+
+Adding `10-file.js,23-watch.js` to the list of "Excluded nodes by filename" section will ensure that the core file nodes are not loaded by the project.
+
+FlowForge File Nodes provide a solution to this for basic read/write.
+More details can be found [here](../file-storage/).
+
 
 ### Upgrade
 
