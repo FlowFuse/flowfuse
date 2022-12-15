@@ -1,6 +1,6 @@
 # SAML Single-Sign On
 
-_This feature is only available on EE licensed instances of FlowForge_
+_This feature is only available on EE licensed instances of FlowForge._
 
 FlowForge allows users to sign in through their SAML identity provider, such
 as Google Workspace.
@@ -10,12 +10,11 @@ user's email domain to identify which identity provider should be used.
 
 The user must already exist on the FlowForge platform before they can sign in via SSO.
 
-Once enabled for a particular email domain, regular users on that domain will no longer
-be able to log in with their local password. They will be directed to the
-Identity Provider to log in. Nor will they be able to change their email address
-in User Settings.
+Once enabled for a particular email domain, regular users on that domain will be directed
+to the Identity Provider in order to log in. They will no longer be able to log in with
+their local password, nor will they be able to change their email address in User Settings.  
 
-Admin users will still be able to log in with their username/password - this ensures
+Admin users will still be able to log in with their original FlowForge username/password - this ensures
 they don't get locked out of the platform if there is a problem with the Identity
 Provider configuration.
 
