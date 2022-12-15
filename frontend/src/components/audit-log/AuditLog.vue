@@ -61,16 +61,6 @@ export default {
             type: [null, Array],
             required: true
         },
-        entity: {
-            // the scope of the audit log, e.g. the Project/Team
-            type: Object,
-            default: null
-        },
-        // loadItems: {
-        //     // The Function to call in order to populate the Audit Log
-        //     type: Function,
-        //     required: true
-        // },
         showLoadMore: {
             // do we show the "Show More" button at the end of the log
             type: Boolean,
@@ -116,21 +106,11 @@ export default {
     },
     data () {
         return {
-            nextCursor: null,
-            // logEntriesByDate: null,
-            loading: false,
-            initialLoad: true
+            loading: false
         }
-    },
-    mounted () {
-        this.initialLoad = true
     },
     methods: {
         loadMore: async function () {
-            // this.loading = true
-            // const result = await this.loadItems(this.entity.id, this.nextCursor)
-            // this.nextCursor = result.meta.next_cursor
-            // this.loading = false
             this.$emit('load-more')
         }
     },

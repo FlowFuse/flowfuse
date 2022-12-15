@@ -1,6 +1,6 @@
 <template>
     <SectionTopMenu hero="Audit Log" />
-    <AuditLog :entity="verifiedTeam" :entries="entries" />
+    <AuditLog :entries="entries" />
 </template>
 
 <script>
@@ -27,8 +27,8 @@ export default {
         this.fetchData()
     },
     methods: {
-        loadItems: async function (projectId, cursor) {
-            return await teamApi.getTeamAuditLog(projectId, cursor)
+        loadItems: async function (entityId, cursor) {
+            return await teamApi.getTeamAuditLog(entityId, cursor)
         },
         fetchData: async function (newVal) {
             if (this.hasPermission('team:audit-log')) {

@@ -1,5 +1,5 @@
 <template>
-    <AuditLog :entity="project" :entries="entries" />
+    <AuditLog :entries="entries" />
 </template>
 
 <script>
