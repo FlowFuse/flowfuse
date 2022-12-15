@@ -2,9 +2,9 @@
 
 This version of the FlowForge platform is intended for running in the Docker Container management system. Typically suited for small/medium on premise deployments.
 
-### Prerequisites
+## Prerequisites
 
-#### Docker Compose
+### Docker Compose
 
 FlowForge uses Docker Compose to install and manager the required components. Instructions on how to install Docker Compose on your system can be found here:
 
@@ -12,7 +12,7 @@ FlowForge uses Docker Compose to install and manager the required components. In
 
 These instructions assume you are running Docker on a Linux or MacOS host system.
 
-#### DNS
+### DNS
 
 The orchestration uses an instance of Nginx to route requests to each Node-RED Project. To do this it needs each instance to have a unique hostname, to generate this the project name is prepended to a supplied domain.
 
@@ -24,9 +24,9 @@ The FlowForge Application will be hosted on `http://forge.example.com`
 
 Notes on how to setup DNS can be found [here](../dns-setup.md).
 
-### Installing FlowForge
+## Installing FlowForge
 
-#### Download
+### Download
 
 Download the latest release tar.gz from the docker-compose project:
 
@@ -84,31 +84,9 @@ set the correct domain name and make the same change to the `public_url` entry i
 
 
 ### HTTPS (optional)
-If you want to serve the forge app and projects via SSL you will need to obtain a wildcard TSL certificate for the domain you are using eg `*.example.com` or you can use the LetsEncrypt acme-companion.
+If you want to serve the forge app and projects via SSL you will need to obtain a wildcard TSL certificate for the domain you are using eg `*.example.com`. If you are running on an Internet facing machine you can use the LetsEncrypt acme-companion.
 
-#### Wildcard TLS Certificate
-
-Create a folder in the `docker-compose-1.x.0` directory named `certs`, place your .crt and .key files in there, they should be named for the domain without the `*` eg `example.com.crt` & `example.com.key`
-You  also need to create a copy of the .crt and .key files named `default.crt` & `default.key` in the same folder. This is used for serving unknown hosts.
-
-In the `docker-compose.yml` file, 
-- uncomment the line 
-```yaml
--   "443:443"
-```
-
-- Add this line to the `volumes` section of the nginx proxy 
-```yaml
-- "./certs:/etc/nginx/certs"
-```
-
-If you wish to redirect all traffic to use HTTPS then add the following section to the nginx service on docker-compose.yml
-```yaml
-environment:
-      - "HTTPS_METHOD=redirect"
-```
-
-If you are running with the MQTT broker then you should adjust the `public_url` to start with `wss://` rather than `ws://`
+Otherwise you will need to contact a SSL Certificate vendor and configure Nginx manually.
 
 #### Let's Encrypt
 
@@ -150,8 +128,32 @@ Then, in the `docker-compose.yml` file, edit the following lines added your doma
 ```
 
 As with the Wildcard TLS method, if you are running with the MQTT broker then you should adjust the `public_url` to start with `wss://` rather than `ws://`
+#### Wildcard TLS Certificate
 
-#### Running FlowForge
+Create a folder in the `docker-compose-1.x.0` directory named `certs`, place your .crt and .key files in there, they should be named for the domain without the `*` eg `example.com.crt` & `example.com.key`
+You  also need to create a copy of the .crt and .key files named `default.crt` & `default.key` in the same folder. This is used for serving unknown hosts.
+
+In the `docker-compose.yml` file, 
+- uncomment the line 
+```yaml
+-   "443:443"
+```
+
+- Add this line to the `volumes` section of the nginx proxy 
+```yaml
+- "./certs:/etc/nginx/certs"
+```
+
+If you wish to redirect all traffic to use HTTPS then add the following section to the nginx service on docker-compose.yml
+```yaml
+environment:
+      - "HTTPS_METHOD=redirect"
+```
+
+If you are running with the MQTT broker then you should adjust the `public_url` to start with `wss://` rather than `ws://`
+
+
+## Running FlowForge
 
 We need to manually download the `flowforge/node-red` container that will be used for the default stack.
 
@@ -176,7 +178,7 @@ docker-compose up -p flowforge up -d
 
 This will also create a directory called `db` to hold the database files used to store project instance and user information.
 
-### First Run Setup
+## First Run Setup
 
 The first time you access the platform in your browser, it will take you through
 creating an administrator for the platform and other configuration options.
@@ -184,7 +186,7 @@ creating an administrator for the platform and other configuration options.
 For more information, follow [this guide](../first-run.md).
 
 Once you have finished setting up the admin user there are some Docker specific items to consider.
-#### Using FlowForge File Storage
+### Using FlowForge File Storage
 
 FlowForge projects when running in Docker do not have direct 
 access to a persistent file system to store files.
@@ -200,7 +202,7 @@ FlowForge File Nodes provide a solution to this for basic read/write.
 More details can be found [here](../file-storage/).
 
 
-### Upgrade
+## Upgrade
 
 - Stop the extisting instance with `docker-compose -p flowforge down`
 - [Download](#download) the latest tar
