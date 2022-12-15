@@ -54,7 +54,7 @@ module.exports = {
                     })
                 },
                 forProject: async (projectId, pagination = {}) => {
-                    const limit = parseInt(pagination.limit) || 30
+                    const limit = parseInt(pagination.limit) || 1000
                     const where = {
                         ProjectId: projectId
                     }

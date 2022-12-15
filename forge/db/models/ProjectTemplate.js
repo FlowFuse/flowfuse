@@ -82,7 +82,7 @@ module.exports = {
                     })
                 },
                 getAll: async (pagination = {}, where = {}) => {
-                    const limit = parseInt(pagination.limit) || 30
+                    const limit = parseInt(pagination.limit) || 1000
                     if (pagination.cursor) {
                         pagination.cursor = M.ProjectTemplate.decodeHashid(pagination.cursor)
                     }
