@@ -41,46 +41,21 @@ cd docker-compose-x.x.x
 
 ### Configuring FlowForge
 
-Configuration details are stored in the `etc/flowforge.yml` file which is mapped into the `flowforge/forge-docker` container. You will need to edit this file to update the `domain` and `base_url` entries to match the DNS settings. Please note that once set, the `domain` and `base_url` values should not be changed as these values are used as part of the configuration stored in the database of each project. The ability to migrate `domains` is on the feature backlog.
+Configuration details are stored in the `etc/flowforge.yml` and the `docker-compse.yml` files.
 
-You also need to update the `VIRTUAL_HOST` entry in the `docker-compose.yml` file to use the same domain as in the `etc/flowforge.yml` file.
+Before starting you will need to edit this file to update the the following fields in the `etc/flowforge.yml` file:
+
+- `domain`
+- `base_url`
+- `broker.public_url`
+
+These will need to be updated to replace `.example.com` with the domain you chose earlier. 
+
+Please note that once set, the `domain` and `base_url` values should not be changed as these values are used as part of the configuration stored in the database of each project. The ability to migrate `domains` is on the feature backlog.
+
+You also need to update all the `VIRTUAL_HOST` entries in the `docker-compose.yml` file to replace `.example.com`  with the same domain.
 
 For more details on the options available, see the [configuration guide](../configuration.md).
-
-### MQTT Broker
-
-The only configuration needed will be to edit the `VIRTUAL_HOST` line in the `flowforge-broker` section of `docker-compose.yml` to 
-set the correct domain name and make the same change to the `public_url` entry in the `etc/flowforge.yml` file.
-
-`docker-compose.yml`
-
-```yaml
-  ...
-  flowforge-broker:
-    image: "iegomez/mosquitto-go-auth"
-    networks:
-      - flowforge
-    restart: always
-    ulimits:
-      nofile: 2048
-    environment:
-      - "VIRTUAL_HOST=mqtt.example.com"
-      - "VIRTUAL_PORT=1884"
-    volumes:
-      - "./broker/mosquitto.conf:/etc/mosquitto/mosquitto.conf"
-  ...
-```
-
-`etc/flowforge.yml`
-
-```yaml
-  ...
-  broker:
-    url: mqtt://forge:1883
-    public_url: ws://forge.example.com
-```
-
-
 
 
 ### HTTPS (optional)
@@ -127,7 +102,8 @@ Then, in the `docker-compose.yml` file, edit the following lines added your doma
 - "LETSENCRYPT_HOST=forge.example.com"
 ```
 
-As with the Wildcard TLS method, if you are running with the MQTT broker then you should adjust the `public_url` to start with `wss://` rather than `ws://`
+You will also need to update the `etc/flowforge.yml` file to change the `broker.public_url` entry from starting with `ws://` to `wss://`.
+
 #### Wildcard TLS Certificate
 
 Create a folder in the `docker-compose-1.x.0` directory named `certs`, place your .crt and .key files in there, they should be named for the domain without the `*` eg `example.com.crt` & `example.com.key`
@@ -150,7 +126,7 @@ environment:
       - "HTTPS_METHOD=redirect"
 ```
 
-If you are running with the MQTT broker then you should adjust the `public_url` to start with `wss://` rather than `ws://`
+You will also need to update the `etc/flowforge.yml` file to change the `broker.public_url` entry from starting with `ws://` to `wss://`.
 
 
 ## Running FlowForge
