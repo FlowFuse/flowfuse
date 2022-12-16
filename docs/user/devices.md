@@ -20,7 +20,7 @@ Or you can chose to run the Docker container. When you do, you'll need to mount
 the `device.yaml` obtained when [Registering the device](#register-the-device):
 
 ```bash
-docker run --mount /path/to/device.yml:/opt/flowforge/device.yaml flowforge/device-agent:latest
+docker run --mount /path/to/device.yml:/opt/flowforge/device.yaml -p 1880:1880 flowforge/device-agent:latest
 ```
 
 ## Configuration
