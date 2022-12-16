@@ -45,7 +45,7 @@ module.exports.init = async function (app) {
     }
 
     return {
-        createSubscriptionSession: async (team, coupon) => {
+        createSubscriptionSession: async (team, coupon, user = null) => {
             const billingIds = getBillingIdsForTeam(team)
 
             const sub = {
@@ -66,6 +66,19 @@ module.exports.init = async function (app) {
                 payment_method_types: ['card'],
                 success_url: `${app.config.base_url}/team/${team.slug}/overview?billing_session={CHECKOUT_SESSION_ID}`,
                 cancel_url: `${app.config.base_url}/team/${team.slug}/overview`
+            }
+
+            // Use existing Stripe customer
+            const existingLocalSubscription = await app.db.models.Subscription.byTeam(team.id)
+            if (existingLocalSubscription?.customer) {
+                sub.customer = existingLocalSubscription.customer
+
+                // Required for tax_id_collection
+                sub.customer_update = {
+                    name: 'auto'
+                }
+            } else if (user?.email) {
+                sub.customer_email = user.email
             }
 
             if (coupon) {
