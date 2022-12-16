@@ -66,7 +66,7 @@ module.exports = async function (app) {
     async function getTeamDetails (request, reply, team) {
         const result = app.db.views.Team.team(team)
         if (app.license.active() && app.billing) {
-            const subscription = await app.db.models.Subscription.byTeam(team.id)
+            const subscription = await app.db.models.Subscription.byTeamId(team.id)
             result.billingSetup = !!subscription
         }
         reply.send(result)
@@ -238,7 +238,7 @@ module.exports = async function (app) {
         // call to destroy the team will throw an error
         try {
             if (app.license.active() && app.billing) {
-                const subscription = await app.db.models.Subscription.byTeam(request.team.id)
+                const subscription = await app.db.models.Subscription.byTeamId(request.team.id)
                 if (subscription) {
                     // const subId = subscription.subscription
                     await app.billing.closeSubscription(subscription)

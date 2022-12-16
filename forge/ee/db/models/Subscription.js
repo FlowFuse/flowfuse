@@ -48,13 +48,13 @@ module.exports = {
             },
             static: {
                 STATUS,
-                byTeam: async function (team) {
-                    if (typeof team === 'string') {
-                        team = M.Team.decodeHashid(team)
+                byTeamId: async function (teamId) {
+                    if (typeof teamId === 'string') {
+                        teamId = M.Team.decodeHashid(teamId)
                     }
                     return self.findOne({
                         where: {
-                            TeamId: team
+                            TeamId: teamId
                         },
                         include: {
                             model: M.Team,
@@ -62,10 +62,10 @@ module.exports = {
                         }
                     })
                 },
-                byCustomer: async function (customer) {
+                byCustomerId: async function (stripeCustomerId) {
                     return self.findOne({
                         where: {
-                            customer
+                            customer: stripeCustomerId
                         },
                         include: {
                             model: M.Team,

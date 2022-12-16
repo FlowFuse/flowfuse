@@ -5,7 +5,7 @@ class SubscriptionHandler {
     }
 
     async requireSubscription (team) {
-        const subscription = await this._app.db.models.Subscription.byTeam(team.id)
+        const subscription = await this._app.db.models.Subscription.byTeamId(team.id)
         if (!subscription) {
             throw new Error('No Subscription for this team')
         }
