@@ -10,8 +10,16 @@
     <form>
         <Loading v-if="loading" size="small" />
         <div v-else-if="billingSetUp">
-            <FormHeading class="mb-6">Next Payment: <span v-if="subscription" class="font-normal">{{ formatDate(subscription.next_billing_date) }}</span></FormHeading>
-            <div v-if="subscription">
+            <FormHeading class="mb-6">Next Payment: <span v-if="subscription && !subscriptionExpired" class="font-normal">{{ formatDate(subscription.next_billing_date) }}</span></FormHeading>
+            <div v-if="subscriptionExpired" class="ff-no-data ff-no-data-large">
+                Your subscription has expired. Please renew it to continue using FlowForge.
+
+                <ff-button data-action="renew-subscription" class="mx-auto mt-3" @click="setupBilling()">
+                    <template #icon-right><ExternalLinkIcon /></template>
+                    Renew Subscription
+                </ff-button>
+            </div>
+            <div v-else-if="subscription">
                 <ff-data-table :columns="columns" :rows="subscription.items" />
             </div>
             <div v-else class="ff-no-data ff-no-data-large">
@@ -118,6 +126,9 @@ export default {
     computed: {
         billingSetUp () {
             return this.team.billingSetup
+        },
+        subscriptionExpired () {
+            return this.billingSetUp && !this.team.subscriptionActive
         }
     },
     watch: { },

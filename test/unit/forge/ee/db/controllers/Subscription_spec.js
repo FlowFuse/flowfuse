@@ -29,6 +29,27 @@ describe('Subscription controller', function () {
             subscription.customer.should.equal('a-customer')
             subscription.subscription.should.equal('my-subscription')
         })
+
+        it('replaces an existing subscription if one already exists', async function () {
+            const defaultTeamType = await app.db.models.TeamType.findOne()
+            const team = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: defaultTeamType.id })
+
+            await app.db.controllers.Subscription.createSubscription(team, 'old-subscription', 'customer')
+
+            const newSubscription = await app.db.controllers.Subscription.createSubscription(team, 'new-subscription', 'customer')
+
+            ;(await newSubscription.getTeam()).id.should.match(team.id)
+
+            const subscriptionCount = await app.db.models.Subscription.count({ where: { TeamId: team.id } })
+            subscriptionCount.should.equal(1)
+
+            const subscription = await app.db.models.Subscription.byTeamId(team.id)
+
+            subscription.Team.id.should.match(team.id)
+            subscription.Team.name.should.match(team.name)
+            subscription.customer.should.equal('customer')
+            subscription.subscription.should.equal('new-subscription')
+        })
     })
 
     describe('deleteSubscription', function () {

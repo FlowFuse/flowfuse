@@ -47,6 +47,7 @@ module.exports = async function (config = {}) {
     const customer = 'cus_1234567890'
     await forge.db.controllers.Subscription.createSubscription(team1, subscription, customer)
 
+    forge.user = userAlice
     forge.team = team1
     forge.stack = stack
 

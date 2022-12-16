@@ -267,7 +267,7 @@ module.exports = async function (app) {
             if (request.cookies.ff_coupon) {
                 coupon = request.unsignCookie(request.cookies.ff_coupon)?.valid ? request.unsignCookie(request.cookies.ff_coupon).value : undefined
             }
-            const session = await app.billing.createSubscriptionSession(team, coupon)
+            const session = await app.billing.createSubscriptionSession(team, coupon, request.session.User)
             await app.auditLog.Team.billing.session.created(request.session.User, null, team, session)
             response.code(200).type('application/json').send({ billingURL: session.url })
         } catch (err) {

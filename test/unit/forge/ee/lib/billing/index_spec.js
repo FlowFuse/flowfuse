@@ -29,6 +29,7 @@ describe('Billing', function () {
                 }
             })
         })
+
         it('creates a session using default product/price', async function () {
             app = await setup({
                 billing: {
@@ -40,20 +41,24 @@ describe('Billing', function () {
                 }
             })
 
-            const result = await app.billing.createSubscriptionSession(app.team)
+            const defaultTeamType = await app.db.models.TeamType.findOne()
+            const newTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
+
+            const result = await app.billing.createSubscriptionSession(newTeam)
 
             result.should.have.property('mode', 'subscription')
-            result.should.have.property('client_reference_id', app.team.hashid)
-            result.should.have.property('success_url', 'http://localhost:3000/team/ateam/overview?billing_session={CHECKOUT_SESSION_ID}')
-            result.should.have.property('cancel_url', 'http://localhost:3000/team/ateam/overview')
+            result.should.have.property('client_reference_id', newTeam.hashid)
+            result.should.have.property('success_url', 'http://localhost:3000/team/new-team/overview?billing_session={CHECKOUT_SESSION_ID}')
+            result.should.have.property('cancel_url', 'http://localhost:3000/team/new-team/overview')
             result.should.have.property('subscription_data')
             result.subscription_data.should.have.property('metadata')
-            result.subscription_data.metadata.should.have.property('team', app.team.hashid)
+            result.subscription_data.metadata.should.have.property('team', newTeam.hashid)
             result.should.have.property('line_items')
             result.line_items.should.have.length(1)
             result.line_items[0].should.have.property('price', 'defaultteamprice')
             result.line_items[0].should.have.property('quantity', 1)
         })
+
         it('creates a session using team type product/price', async function () {
             app = await setup({
                 billing: {
@@ -71,12 +76,42 @@ describe('Billing', function () {
                 }
             })
 
-            const result = await app.billing.createSubscriptionSession(app.team)
+            const defaultTeamType = await app.db.models.TeamType.findOne()
+            const newTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
+            await newTeam.reload({
+                include: [{ model: app.db.models.TeamType }]
+            })
+
+            const result = await app.billing.createSubscriptionSession(newTeam)
 
             result.should.have.property('line_items')
             result.line_items.should.have.length(1)
             result.line_items[0].should.have.property('price', 'starterteampprice')
             result.line_items[0].should.have.property('quantity', 1)
+        })
+
+        it('creates a session using an existing stripe customer if the team has a subscription', async function () {
+            app = await setup({
+                billing: {
+                    stripe: {
+                        key: 1234,
+                        team_product: 'defaultteamprod',
+                        team_price: 'defaultteamprice'
+                    }
+                }
+            })
+
+            const defaultTeamType = await app.db.models.TeamType.findOne()
+            const newTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
+            await app.db.controllers.Subscription.createSubscription(newTeam, 'existing-subscription', 'existing-customer')
+            await newTeam.reload({
+                include: [{ model: app.db.models.TeamType }]
+            })
+
+            const result = await app.billing.createSubscriptionSession(newTeam)
+
+            result.should.have.property('customer', 'existing-customer')
+            result.customer_update.should.have.property('name', 'auto')
         })
     })
 

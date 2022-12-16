@@ -1,6 +1,10 @@
 
 module.exports = {
     createSubscription: async function (app, team, subscription, customer) {
+        // Replace any existing subscription for this team
+        await this.deleteSubscription(app, team)
+
+        // Create the subscription
         const newSubscription = await app.db.models.Subscription.create({
             customer,
             subscription
