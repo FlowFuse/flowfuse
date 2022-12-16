@@ -1,5 +1,5 @@
 <template>
-    <SectionTopMenu hero="Audit Log" />
+    <SectionTopMenu hero="Audit Log" info="Recorded events that have taken place in this Team." />
     <AuditLog :entity="verifiedTeam" :loadItems="loadItems" />
 </template>
 

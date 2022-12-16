@@ -1,12 +1,15 @@
 <template>
     <div>
-        <div class="border-b border-gray-200 mb-3 space-y-6">
-            <div class="w-full md:w-auto mb-2 mr-8">
-                <div class="text-gray-800 text-lg font-bold">
-                    Cloud
-                </div>
-            </div>
-        </div>
+        <SectionTopMenu hero="Cloud" help-header="FlowForge - Deployments - Cloud" info="Your Node-RED Deployments hosted on the same domain as FlowForge">
+            <template v-slot:pictogram>
+                <img src="../../images/pictograms/edge_red.png" />
+            </template>
+            <template v-slot:helptext>
+                <p>This is a list of all deployments of this Project hosted on the same domain as FlowForge.</p>
+                <p>It will always run the latest flow deployed in Node-RED and use the latest credentials and runtime settings defined in the Projects settings.</p>
+                <p>To edit a Projects flow, open the editor of this Deployment.</p>
+            </template>
+        </SectionTopMenu>
 
         <div class="space-y-6 mb-6">
             <ff-data-table
@@ -47,13 +50,21 @@
             </ff-data-table>
         </div>
 
-        <div class="border-b border-gray-200 mb-3">
-            <div class="w-full md:w-auto mb-2 mr-8">
-                <div class="text-gray-800 text-lg font-bold">
-                    Devices
-                </div>
-            </div>
-        </div>
+        <SectionTopMenu hero="Devices" help-header="FlowForge - Deployments - Devices" info="Devices attached to this Project, and the respective Snapshot each of them are running.">
+            <template v-slot:pictogram>
+                <img src="../../images/pictograms/edge_red.png" />
+            </template>
+            <template v-slot:helptext>
+                <p>
+                    All devices here are bound to this Project. When you set a new Target Snapshot, that will get deployed,
+                    using the <a href="https://flowforge.com/docs/user/devices/">FlowForge Device Agent</a>, out to all connected devices.
+                </p>
+                <p>
+                    Here, you can see a picture of the last time the device was online, and the status of the Node-RED
+                    flows on those devices at that point in time.
+                </p>
+            </template>
+        </SectionTopMenu>
         <div
             class="space-y-6"
             data-el="devices-section"
@@ -176,6 +187,8 @@ import { PlusSmIcon } from '@heroicons/vue/solid'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
+import SectionTopMenu from '@/components/SectionTopMenu'
+
 import DeviceCredentialsDialog from '../team/Devices/dialogs/DeviceCredentialsDialog'
 import TeamDeviceCreateDialog from '../team/Devices/dialogs/TeamDeviceCreateDialog'
 
@@ -201,7 +214,8 @@ export default {
         DeviceCredentialsDialog,
         PlusSmIcon,
         SnapshotAssignDialog,
-        TeamDeviceCreateDialog
+        TeamDeviceCreateDialog,
+        SectionTopMenu
     },
     mixins: [permissionsMixin],
     props: {

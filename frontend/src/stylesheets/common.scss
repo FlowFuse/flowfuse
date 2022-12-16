@@ -57,6 +57,16 @@
     }
 }
 
+.ff-dialog-box--info {
+    p {
+        margin-bottom: 12px;
+    }
+    img {
+        width: 150px;
+        height: 150px;
+    }
+}
+
 .ff-no-data {
     background-color: $ff-grey-100;
     color: $ff-grey-400;
