@@ -31,19 +31,16 @@
 
 <script>
 
+import { ExternalLinkIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 
 import billingApi from '@/api/billing.js'
-import Loading from '@/components/Loading'
+
 import FormHeading from '@/components/FormHeading'
-
-import formatDateMixin from '@/mixins/DateTime.js'
-import formatCurrency from '@/mixins/Currency.js'
-
-import { ExternalLinkIcon } from '@heroicons/vue/outline'
-
+import Loading from '@/components/Loading'
 import SectionTopMenu from '@/components/SectionTopMenu'
-
+import formatCurrency from '@/mixins/Currency.js'
+import formatDateMixin from '@/mixins/DateTime.js'
 import Alerts from '@/services/alerts'
 
 const priceCell = {
@@ -72,8 +69,14 @@ const totalPriceCell = {
 
 export default {
     name: 'TeamBilling',
-    props: ['billingUrl', 'team', 'teamMembership'],
+    components: {
+        Loading,
+        FormHeading,
+        ExternalLinkIcon,
+        SectionTopMenu
+    },
     mixins: [formatDateMixin, formatCurrency],
+    props: ['billingUrl', 'team', 'teamMembership'],
     data () {
         return {
             loading: false,
@@ -161,12 +164,6 @@ export default {
             }
             return undefined
         }
-    },
-    components: {
-        Loading,
-        FormHeading,
-        ExternalLinkIcon,
-        SectionTopMenu
     }
 }
 </script>
