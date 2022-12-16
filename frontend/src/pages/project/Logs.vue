@@ -1,4 +1,14 @@
 <template>
+    <SectionTopMenu hero="Node-RED Logs" help-header="FlowForge - Node-RED Logs" info="Live logs from your FlowForge instance of Node-RED">
+        <template v-slot:pictogram>
+            <img src="../../images/pictograms/edge_red.png" />
+        </template>
+        <template v-slot:helptext>
+            <p>This is a list of all deployments of this Project running on this the same host domain as FlowForge.</p>
+            <p>It will always run the latest flow deployed in Node-RED and use the latest credentials and runtime settings defined in the Projects settings.</p>
+            <p>To edit a Projects flow, open the editor of this Deployment.</p>
+        </template>
+    </SectionTopMenu>
     <ff-loading v-if="loading" message="Loading Logs..." />
     <div v-else-if="project.meta && project.meta.state !== 'suspended'" class="mx-auto text-xs border bg-gray-800 text-gray-200 rounded p-2 font-mono">
         <div v-if="prevCursor" class="flex">
@@ -17,6 +27,8 @@
 
 <script>
 import projectApi from '@/api/project'
+
+import SectionTopMenu from '@/components/SectionTopMenu'
 
 export default {
     name: 'ProjectLogs',
@@ -98,6 +110,9 @@ export default {
                 }
             }
         }
+    },
+    components: {
+        SectionTopMenu
     }
 }
 </script>

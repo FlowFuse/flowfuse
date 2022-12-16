@@ -1,5 +1,5 @@
 <template>
-    <SectionTopMenu hero="Platform Audit Log" />
+    <SectionTopMenu hero="Platform Audit Log" info="Recorded events that have taken place at the Platform level."/>
     <AuditLog :entity="entity" :loadItems="loadItems" />
 </template>
 

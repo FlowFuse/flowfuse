@@ -1,4 +1,13 @@
 <template>
+    <SectionTopMenu hero="Project Snapshots" help-header="FlowForge - Project Snapshots" info="">
+        <template v-slot:pictogram>
+            <img src="../../../images/pictograms/time_red.png" />
+        </template>
+        <template v-slot:helptext>
+            <p>Snapshots generate a point-in-time backup of your Node-RED flow, credentials and runtime settings.</p>
+            <p>Snapshots are also required for deploying to devices. In the Deployments page of a Project, you can define your “Target Snapshot”, which will then be deployed to all connected devices.</p>
+        </template>
+    </SectionTopMenu>
     <div class="space-y-6">
         <ff-loading v-if="loading" message="Loading Snapshots..." />
         <template v-if="snapshots.length > 0">
@@ -30,6 +39,8 @@
 import { PlusSmIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
+
+import SectionTopMenu from '@/components/SectionTopMenu'
 
 import DaysSince from './components/cells/DaysSince'
 import SnapshotName from './components/cells/SnapshotName'
@@ -182,7 +193,8 @@ export default {
     props: ['project'],
     components: {
         SnapshotCreateDialog,
-        PlusSmIcon
+        PlusSmIcon,
+        SectionTopMenu
     }
 }
 </script>

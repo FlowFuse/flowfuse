@@ -25,7 +25,7 @@
     <ff-dialog v-if="hasInfoDialog" ref="help-dialog" class="ff-dialog-box--info" :header="helpHeader || 'FlowForge Info'">
         <template v-slot:default>
             <div class="flex gap-8">
-                <img src="../images/pictograms/node_catalog_red.png"/>
+                <slot name="pictogram"><img src="../images/pictograms/node_catalog_red.png"/></slot>
                 <div><slot name="helptext"></slot></div>
             </div>
         </template>

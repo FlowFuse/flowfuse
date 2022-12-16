@@ -1,10 +1,13 @@
 <template>
+    <SectionTopMenu hero="Project Activity" info="Recorded events that have taken place in Project.">
+    </SectionTopMenu>
     <AuditLog :entity="project" :loadItems="loadItems" />
 </template>
 
 <script>
 import projectApi from '@/api/project'
 import AuditLog from '@/components/audit-log/AuditLog'
+import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
 export default {
     name: 'ProjectAuditLog',
@@ -21,7 +24,8 @@ export default {
         }
     },
     components: {
-        AuditLog
+        AuditLog,
+        SectionTopMenu
     }
 }
 </script>
