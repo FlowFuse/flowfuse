@@ -181,9 +181,12 @@ More details can be found [here](../file-storage/).
 ## Upgrade
 
 - Stop the extisting instance with `docker-compose -p flowforge down`
-- [Download](#download) the latest tar
-- Uncompress the tar file
-- Rebuild the containers with the `./build-containers.sh` script in the new directory
+- [Download](https://github.com/flowforge/docker-compose/releases/latest/download/) the latest tar
+- Uncompress the tar file to a new directory
+- Pull the latest version of the containers from Docker hub
+     - `docker pull flowforge/forge-docker`
+     - `docker pull flowforge/node-red`
+     - `docker pull flowforge/file-server`
 - Copy the `db` directory from the old version directory to the new (this will probably require root due to file ownership)
     ```bash
     sudo cp -r docker-compose-x.x.x/db docker-compose-y.y.y/db
