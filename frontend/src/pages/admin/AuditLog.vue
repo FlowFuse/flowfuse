@@ -2,11 +2,11 @@
     <div class="ff-admin-audit">
         <div>
             <SectionTopMenu hero="Platform Activity" />
-            <AuditLog :entries="entries" />
+            <AuditLog :entries="filteredEntries" />
         </div>
         <div>
             <SectionTopMenu hero="Filters" />
-            <ff-text-input v-model="filters.string" placeholder="Search Activity...">
+            <ff-text-input v-model="auditFilters.string" placeholder="Search Activity...">
                 <template v-slot:icon><SearchIcon/></template>
             </ff-text-input>
         </div>
@@ -25,13 +25,19 @@ export default {
     data () {
         return {
             entries: null,
-            filters: {
+            auditFilters: {
                 string: ''
             }
         }
     },
     computed: {
-        ...mapState('account', ['user'])
+        ...mapState('account', ['user']),
+        filteredEntries () {
+            const filtered = this.entries.filter((entry) => {
+                return entry.event.includes(this.auditFilters.string)
+            })
+            return filtered
+        }
     },
     mounted () {
         this.fetchData()
@@ -43,6 +49,7 @@ export default {
         fetchData: async function () {
             const result = await this.loadItems('audit')
             this.entries = result.log
+            console.log(Array.isArray(this.entries))
         }
     },
     components: {

@@ -81,32 +81,33 @@ export default {
             const grouped = {}
             let lastDate = null
             this.entries.forEach((entry) => {
+                const date = new Date(entry.createdAt)
+                const strDate = date.toDateString()
+                // reduce and group by date
+                if (!grouped[strDate]) {
+                    grouped[strDate] = []
+                }
+                if (strDate !== lastDate) {
+                    entry.date = date.toDateString()
+                    lastDate = strDate
+                }
                 if (!entry.time) {
-                    const date = new Date(entry.createdAt)
-                    const strDate = date.toDateString()
-                    if (strDate !== lastDate) {
-                        entry.date = date.toDateString()
-                        lastDate = strDate
-                    }
                     entry.time = date.toLocaleTimeString()
                     entry.icon = eventIcons[entry.event] || null
                     entry.title = eventDescriptions[entry.event] || entry.event
                     entry.title = entry.title.replace(/\${user}/g, entry.username)
-                    // reduce and group by date
-                    if (!grouped[strDate]) {
-                        grouped[strDate] = []
-                    }
-                    grouped[strDate].push(entry)
                 } else if (entry.date) {
                     lastDate = entry.date
                 }
+                grouped[strDate].push(entry)
             })
             return grouped
         }
     },
     data () {
         return {
-            loading: false
+            loading: false,
+            nextCursor: false // TODO: drive this properly through pagination
         }
     },
     methods: {
