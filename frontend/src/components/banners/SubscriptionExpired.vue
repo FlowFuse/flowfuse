@@ -12,16 +12,16 @@
             <ExclamationCircleIcon class="ff-icon mr-2" /> The subscription for this team has expired.
 
             <template v-if="linkToBilling">
-                <template v-if="!onBillingPage">
-                    Please visit <strong>Billing settings</strong> to renew.
-                </template>
+                Please visit <strong>Billing settings</strong> to renew.
             </template>
-            <template v-else>
+            <template v-else-if="!hasPermission('team:edit')">
                 Please ask a team administrator to renew the subscription.
             </template>
         </span>
 
-        <ChevronRightIcon class="ff-icon align-self-right" />
+        <template v-if="linkToBilling">
+            <ChevronRightIcon class="ff-icon align-self-right" />
+        </template>
     </div>
 </template>
 
