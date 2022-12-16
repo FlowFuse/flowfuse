@@ -1,7 +1,7 @@
 <template>
     <div class="">
         <SectionTopMenu hero="Team Settings" :options="sideOptions" />
-        <div class="flex-grow">
+        <div class="flex-grow pt-4">
             <router-view :team="team" :teamMembership="teamMembership"></router-view>
         </div>
     </div>

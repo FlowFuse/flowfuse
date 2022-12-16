@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-wrap border-b border-gray-700 mb-4 sm:mb-10 text-gray-500 justify-between">
+    <div class="flex flex-wrap border-b border-gray-700 mb-4 sm:mb-2 text-gray-500 justify-between">
         <div class="flex">
             <div class="w-full flex items-center md:w-auto mb-2 mr-8 gap-x-2">
                 <slot name="hero">

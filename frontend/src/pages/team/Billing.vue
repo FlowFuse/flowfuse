@@ -7,7 +7,7 @@
             </ff-button>
         </template>
     </SectionTopMenu>
-    <form>
+    <form class="pt-4">
         <Loading v-if="loading" size="small" />
         <div v-else-if="billingSetUp">
             <FormHeading class="mb-6">Next Payment: <span v-if="subscription && !subscriptionExpired" class="font-normal">{{ formatDate(subscription.next_billing_date) }}</span></FormHeading>

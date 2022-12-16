@@ -1,6 +1,6 @@
 <template>
     <ff-loading v-if="loading" message="Loading Team..." />
-    <form v-else class="space-y-6 mb-8">
+    <form v-else class="mb-8">
         <div class="text-right"></div>
         <ff-data-table data-el="members-table" :columns="userColumns" :rows="users" :show-search="true" search-placeholder="Search Team Members..." :search-fields="['name', 'username', 'role']">
             <template v-if="hasPermission('team:user:invite')" v-slot:actions>
