@@ -113,29 +113,6 @@ describe('Billing', function () {
             result.should.have.property('customer', 'existing-customer')
             result.customer_update.should.have.property('name', 'auto')
         })
-
-        it('creates a session using pre-populated email address if a user is passed', async function () {
-            app = await setup({
-                billing: {
-                    stripe: {
-                        key: 1234,
-                        team_product: 'defaultteamprod',
-                        team_price: 'defaultteamprice'
-                    }
-                }
-            })
-
-            // Clear the default subscription on the default team
-            await app.db.controllers.Subscription.deleteSubscription(app.team)
-            await app.team.reload({
-                include: [{ model: app.db.models.TeamType }]
-            })
-
-            const result = await app.billing.createSubscriptionSession(app.team, null, app.user)
-
-            result.should.not.have.property('customer')
-            result.should.have.property('customer_email', 'alice@example.com')
-        })
     })
 
     describe('updateTeamMemberCount', async function () {

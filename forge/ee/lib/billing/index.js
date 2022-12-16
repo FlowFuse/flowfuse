@@ -77,8 +77,6 @@ module.exports.init = async function (app) {
                 sub.customer_update = {
                     name: 'auto'
                 }
-            } else if (user?.email) {
-                sub.customer_email = user.email
             }
 
             if (coupon) {
