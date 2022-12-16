@@ -30,7 +30,7 @@
                 </template>
             </div>
         </template>
-        <SnapshotCreateDialog :project="project" @snapshotCreated="snapshotCreated" ref="snapshotCreateDialog" />
+        <SnapshotCreateDialog data-el="dialog-create-snapshot" :project="project" @snapshotCreated="snapshotCreated" ref="snapshotCreateDialog" />
     </div>
 </template>
 

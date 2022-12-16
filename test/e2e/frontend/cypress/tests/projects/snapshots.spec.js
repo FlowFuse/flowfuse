@@ -23,18 +23,18 @@ describe('FlowForge - Project Snapshots', () => {
     it('provides functionality to create a snapshot', () => {
         cy.get('button[data-action="create-snapshot"]').click()
 
-        cy.get('.ff-dialog-box').should('be.visible')
+        cy.get('[data-el="dialog-create-snapshot"]').should('be.visible')
         cy.get('.ff-dialog-header').contains('Create Snapshot')
         // disabled primary button by default
         cy.get('.ff-dialog-box button.ff-btn.ff-btn--primary').should('be.disabled')
 
         cy.get('[data-form="snapshot-name"] input[type="text"]').type('snapshot1')
         // inserting snapshot name is enough to enable button
-        cy.get('.ff-dialog-box button.ff-btn.ff-btn--primary').should('not.be.disabled')
+        cy.get('[data-el="dialog-create-snapshot"] button.ff-btn.ff-btn--primary').should('not.be.disabled')
         cy.get('[data-form="snapshot-description"] textarea').type('snapshot1 description')
 
         // click "Create"
-        cy.get('.ff-dialog-box button.ff-btn.ff-btn--primary').click()
+        cy.get('[data-el="dialog-create-snapshot"] button.ff-btn.ff-btn--primary').click()
 
         cy.get('[data-el="snapshots"] tbody').find('tr').should('have.length', 1)
         cy.get('[data-el="snapshots"] tbody').find('tr').contains('snapshot1')
@@ -48,8 +48,8 @@ describe('FlowForge - Project Snapshots', () => {
         // click the 3rd option (Delete)
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(2).click()
 
-        cy.get('.ff-dialog-box').should('be.visible')
-        cy.get('.ff-dialog-header').contains('Delete Snapshot')
+        cy.get('[data-el="platform-dialog"]').should('be.visible')
+        cy.get('[data-el="platform-dialog"] .ff-dialog-header').contains('Delete Snapshot')
 
         // Click "Delete"
         cy.get('[data-el="platform-dialog"] .ff-btn--danger').click()
