@@ -211,7 +211,7 @@ can be used to get the pagination options from the request, as well as specifyin
 default options:
 
 ```js
-const paginationOptions = app.getPaginationOptions(request, {limit: 30})
+const paginationOptions = app.getPaginationOptions(request, {limit: 1000})
 
 // paginationOptions.limit = how many results to return
 // paginationOptions.cursor = starting cursor
@@ -231,7 +231,7 @@ const { buildPaginationSearchClause } = require('../utils')
 
 getAll: async (pagination = {}, where = {}) => {
     // Ensure a sensible default limit for this particular type of thing
-    const limit = parseInt(pagination.limit) || 30
+    const limit = parseInt(pagination.limit) || 1000
 
     // Decode the cursor from hashid to database id
     if (pagination.cursor) {

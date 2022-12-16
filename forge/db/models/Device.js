@@ -205,10 +205,7 @@ module.exports = {
                     })
                 },
                 getAll: async (pagination = {}, where = {}) => {
-                    let limit = parseInt(pagination.limit)
-                    if (isNaN(limit)) {
-                        limit = 30
-                    }
+                    const limit = parseInt(pagination.limit) || 1000
                     if (pagination.cursor) {
                         pagination.cursor = M.Device.decodeHashid(pagination.cursor)
                     }
