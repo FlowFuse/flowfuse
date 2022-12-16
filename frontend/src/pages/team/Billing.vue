@@ -1,9 +1,16 @@
 <template>
-    <SectionTopMenu hero="Team Billing"/>
+    <SectionTopMenu hero="Team Billing">
+        <template #tools>
+            <ff-button v-if="subscription" size="small" @click="customerPortal()">
+                <template #icon-right><ExternalLinkIcon /></template>
+                Stripe Customer Portal
+            </ff-button>
+        </template>
+    </SectionTopMenu>
     <form>
         <Loading v-if="loading" size="small" />
         <div v-else-if="billingSetUp">
-            <FormHeading class="mb-6">Next Payment: <span class="font-normal" v-if="subscription">{{ formatDate(subscription.next_billing_date) }}</span></FormHeading>
+            <FormHeading class="mb-6">Next Payment: <span v-if="subscription" class="font-normal">{{ formatDate(subscription.next_billing_date) }}</span></FormHeading>
             <div v-if="subscription">
                 <ff-data-table :columns="columns" :rows="subscription.items" />
             </div>
