@@ -4,6 +4,8 @@ import AdminSettings from '@/pages/admin/Settings/index.vue'
 import AdminSettingsGeneral from '@/pages/admin/Settings/General.vue'
 import AdminSettingsLicense from '@/pages/admin/Settings/License.vue'
 import AdminSettingsEmail from '@/pages/admin/Settings/Email.vue'
+import AdminSettingsSSO from '@/pages/admin/Settings/SSO/index.vue'
+import AdminSettingsSSOEdit from '@/pages/admin/Settings/SSO/createEditProvider.vue'
 // import AdminSettingsPermissions from '@/pages/admin/Settings/Permissions.vue'
 import AdminUsers from '@/pages/admin/Users/index.vue'
 import AdminUsersGeneral from '@/pages/admin/Users/General.vue'
@@ -33,6 +35,15 @@ export default [
         }
     },
     {
+        path: '/admin/settings/sso/:id',
+        name: 'AdminSettingsSSOEdit',
+        beforeEnter: ensureAdmin,
+        component: AdminSettingsSSOEdit,
+        meta: {
+            title: 'Admin - Settings - SSO Configuration'
+        }
+    },
+    {
         path: '/admin/',
         profileLink: true,
         profileMenuIndex: 50,
@@ -58,7 +69,8 @@ export default [
                     { path: 'general', component: AdminSettingsGeneral },
                     // { path: 'permissions', component: AdminSettingsPermissions },
                     { path: 'license', component: AdminSettingsLicense },
-                    { path: 'email', component: AdminSettingsEmail }
+                    { path: 'email', component: AdminSettingsEmail },
+                    { path: 'sso', name: 'AdminSettingsSSO', component: AdminSettingsSSO }
                 ]
             },
             {

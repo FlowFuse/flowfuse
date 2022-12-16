@@ -31,7 +31,7 @@
     &--content {
         max-height: 0;
         overflow: hidden;
-        transition: max-height 0.3s ease-out;
+        transition: max-height 0.6s ease-out;
         .ff-audit-entry {
             padding: 12px;
             border: 1px solid $ff-grey-300;

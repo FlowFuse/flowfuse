@@ -69,7 +69,7 @@ module.exports.init = async function (app) {
             }
 
             // Use existing Stripe customer
-            const existingLocalSubscription = await app.db.models.Subscription.byTeam(team.id)
+            const existingLocalSubscription = await app.db.models.Subscription.byTeamId(team.id)
             if (existingLocalSubscription?.customer) {
                 sub.customer = existingLocalSubscription.customer
 
@@ -108,7 +108,7 @@ module.exports.init = async function (app) {
                 }
             }
 
-            const subscription = await app.db.models.Subscription.byTeam(team.id)
+            const subscription = await app.db.models.Subscription.byTeamId(team.id)
 
             const existingSub = await stripe.subscriptions.retrieve(subscription.subscription)
             const subItems = existingSub.items
@@ -168,7 +168,7 @@ module.exports.init = async function (app) {
                 }
             }
 
-            const subscription = await app.db.models.Subscription.byTeam(team.id)
+            const subscription = await app.db.models.Subscription.byTeamId(team.id)
 
             const existingSub = await stripe.subscriptions.retrieve(subscription.subscription)
             const subItems = existingSub.items
@@ -210,7 +210,7 @@ module.exports.init = async function (app) {
         updateTeamMemberCount: async (team) => {
             const billingIds = getBillingIdsForTeam(team)
 
-            const subscription = await app.db.models.Subscription.byTeam(team.id)
+            const subscription = await app.db.models.Subscription.byTeamId(team.id)
             if (subscription) {
                 const existingSub = await stripe.subscriptions.retrieve(subscription.subscription)
                 const subItems = existingSub.items
@@ -240,7 +240,7 @@ module.exports.init = async function (app) {
             if (!billingIds.device.product) {
                 return
             }
-            const subscription = await app.db.models.Subscription.byTeam(team.id)
+            const subscription = await app.db.models.Subscription.byTeamId(team.id)
             if (subscription) {
                 const deviceCount = await team.deviceCount()
                 const deviceFreeAllocation = team.TeamType.getProperty('deviceFreeAllocation') || 0

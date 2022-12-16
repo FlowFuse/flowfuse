@@ -36,7 +36,8 @@ const iconMap = {
     ],
     nodered: [
         'crashed',
-        'stopped'
+        'stopped',
+        'settings.update'
     ],
     project: [
         'project.created',

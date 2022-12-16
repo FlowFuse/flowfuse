@@ -331,6 +331,11 @@
         <span>Something has gone wrong. Check the project logs to investigate further.</span>
     </template>
 
+    <template v-else-if="entry.event === 'settings.update'">
+        <label>Node-RED Settings Updated</label>
+        <span>Node-RED editor user settings have been updated.</span>
+    </template>
+
     <!-- Catch All -->
     <template v-else>
         <label>{{ entry.event }}</label>
@@ -338,11 +343,21 @@
     </template>
 
     <template v-if="error">
-        <span>{{ entry.body }}</span>
+        <details class="ff-audit-entry--error">
+            <summary>
+                <ChevronRightIcon class="ff-icon ff-icon-sm"/>
+                Show Error
+            </summary>
+            <span>
+                {{ entry.body }}
+                <ChevronDownIcon class="ff-icon ff-icon-sm"/>
+            </span>
+        </details>
     </template>
 </template>
 
 <script>
+import { ChevronRightIcon, ChevronDownIcon } from '@heroicons/vue/solid'
 import AuditEntryUpdates from './AuditEntryUpdates.vue'
 
 export default {
@@ -359,6 +374,8 @@ export default {
         }
     },
     components: {
+        ChevronRightIcon,
+        ChevronDownIcon,
         AuditEntryUpdates
     }
 }

@@ -3,7 +3,8 @@ const Hashids = require('hashids/cjs')
 const hashids = {}
 
 const modelTypes = [
-    'Subscription'
+    'Subscription',
+    'SAMLProvider'
 ]
 
 async function init (app) {

@@ -41,7 +41,7 @@ export default {
         contentHeight: function () {
             if (this.isOpen) {
                 const content = this.$refs.content
-                return content.scrollHeight + 'px'
+                return (2 * content.scrollHeight) + 'px'
             } else {
                 return null
             }

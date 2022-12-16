@@ -3,10 +3,16 @@
 Following a successful install, you will be able to access the platform to go
 through the initial setup.
 
-By default, you can access the platform at [http://localhost:3000](http://localhost:3000).
 
 ## 1. Start setup
+
+### - LocalFS
 Open FlowForge in your browser [http://localhost:3000](http://localhost:3000).  
+
+### - Docker or Kubernetes
+Open FlowForge in your browser [http://forge.example.com](http://forge.example.com) (Change `.example.com` to match the domain you set up in DNS)
+
+
 Click the **START SETUP** button
 
 <img src="images/setup-01.png" width=500 />
