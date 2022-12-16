@@ -64,6 +64,10 @@
     border: $ff-grey-200 solid 1px;
     padding: 12px;
     text-align: center;
+
+    &.ff-no-data-large {
+        padding: 64px 12px;
+    }
 }
 
 label {
