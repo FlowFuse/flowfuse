@@ -16,8 +16,8 @@
             <div v-if="coupon">
                 <div class="my-3 text-sm">Will apply coupon code <strong>{{ coupon }}</strong> at checkout</div>
             </div>
-            <div v-if="errors.coupon">
-                <div class="ml-9 text-red-400 inline text-xs">{{ errors.coupon }}</div>
+            <div v-else-if="errors.coupon">
+                <div class="my-3 text-red-400">{{ errors.coupon }}</div>
             </div>
             <div class="mt-3">
                 <ff-button data-action="setup-payment-details" class="mx-auto mt-3" @click="setupBilling()">
@@ -141,7 +141,7 @@ export default {
                     const response = await billingApi.createSubscription(this.team.id)
                     billingUrl = response.billingURL
                 } catch (err) {
-                    if (err.response.code === 'invalid_coupon') {
+                    if (err.response.data.code === 'invalid_coupon') {
                         Alerts.emit(`${this.coupon} coupon invalid`, 'warning', 7500)
                         this.errors.coupon = `${this.coupon} is not a valid code. You will be able to provide an alternative code on the Stripe checkout page.`
                         this.coupon = false

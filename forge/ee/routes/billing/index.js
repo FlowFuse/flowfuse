@@ -271,16 +271,23 @@ module.exports = async function (app) {
             await app.auditLog.Team.billing.session.created(request.session.User, null, team, session)
             response.code(200).type('application/json').send({ billingURL: session.url })
         } catch (err) {
+            // Likely invalid coupon error from stripe
+            if (err.code === 'resource_missing') {
+                response.clearCookie('ff_coupon', { path: '/' })
+                response.code(400).send({ code: 'invalid_coupon', error: err.toString() })
+                return
+            }
+
+            // Standard errors
             let responseMessage
             if (err.errors) {
                 responseMessage = err.errors.map(err => err.message).join(',')
             } else {
                 responseMessage = err.toString()
             }
-            response.clearCookie('ff_coupon', { path: '/' })
 
-            // to-do: This should be explicit about coupon errors
-            response.code(402).type('application/json').send({ error: responseMessage })
+            // Catch all
+            response.code(500).type('application/json').send({ code: 'unexpected_error', error: responseMessage })
         }
     })
 
