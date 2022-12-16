@@ -16,6 +16,13 @@ command is on the path:
 sudo npm install -g @flowforge/flowforge-device-agent
 ```
 
+Or you can chose to run the Docker container. When you do, you'll need to mount
+the `device.yaml` obtained when [Registering the device](#register-the-device):
+
+```bash
+docker run --mount /path/to/device.yml:/opt/flowforge/device.yaml -p 1880:1880 flowforge/device-agent:latest
+```
+
 ## Configuration
 
 ### Execution directory
