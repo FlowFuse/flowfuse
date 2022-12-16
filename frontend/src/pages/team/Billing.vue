@@ -3,7 +3,7 @@
     <form>
         <Loading v-if="loading" size="small" />
         <div v-else-if="billingSetUp">
-            <FormHeading class="mb-6">Next Payment:</FormHeading>
+            <FormHeading class="mb-6">Next Payment: <span class="font-normal" v-if="subscription">{{ formatDate(subscription.next_billing_date) }}</span></FormHeading>
             <div v-if="subscription">
                 <ff-data-table :columns="columns" :rows="subscription.items" />
             </div>
