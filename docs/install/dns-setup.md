@@ -82,7 +82,7 @@ Unfortunately dnsmasq will not run on Windows and I have not found something sim
 On MacOS you can alias a private IP address to the loop back interface e.g. `10.128.0.1` with
 
 ```bash
-sudo ifconfig lo0 alias 10.128.0.1`
+sudo ifconfig lo0 alias 10.128.0.1
 ```
 
 You will need install dnsmasq using [homebrew](https://docs.brew.sh/Installation)
@@ -110,8 +110,8 @@ echo "address=/example.com/10.128.0.1" > /usr/local/etc/dnsmasq.d/ff.conf
 Set dnsmasq to run as a service
 
 ```bash
-brew services start dnsmasq
-dscacheutil -flushcache
+sudo brew services start dnsmasq
+sudo dscacheutil -flushcache
 ```
 
 Tell MacOS to use dnsmasq for our test domain

@@ -6,11 +6,11 @@ This version of the FlowForge platform is intended for running in the Docker Con
 
 ### Docker Compose
 
-FlowForge uses Docker Compose to install and manager the required components. Instructions on how to install Docker Compose on your system can be found here:
+FlowForge uses Docker Compose to install and manage the required components. Instructions on how to install Docker Compose on your system can be found here:
 
 [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/)
 
-These instructions assume you are running Docker on a Linux or MacOS host system.
+The following instructions assume you are running Docker on a Linux or MacOS host system.
 
 ### DNS
 
@@ -35,13 +35,13 @@ Download the latest release tar.gz from the docker-compose project:
 Unpack this and cd into the created directory.	
 
 ```bash
-tar zxf v0.x.0.tar.gz
-cd docker-compose-x.x.x
+tar zxf v1.x.y.tar.gz
+cd docker-compose-1.x.y
 ```
 
 ### Configuring FlowForge
 
-Configuration details are stored in the `etc/flowforge.yml` and the `docker-compse.yml` files.
+Configuration details are stored in the `etc/flowforge.yml` and the `docker-compose.yml` files.
 
 Before starting you will need to edit this file to update the the following fields in the `etc/flowforge.yml` file:
 
@@ -148,9 +148,8 @@ docker compose -p flowforge up -d
 
 Or using the docker-compose command
 ```bash
-docker-compose up -p flowforge up -d
+docker-compose -p flowforge up -d
 ```
-
 
 This will also create a directory called `db` to hold the database files used to store project instance and user information.
 
@@ -180,7 +179,10 @@ More details can be found [here](../file-storage/).
 
 ## Upgrade
 
-- Stop the extisting instance with `docker-compose -p flowforge down`
+- Stop the existing instance with 
+   ```bash
+   docker-compose -p flowforge down
+   ```
 - [Download](https://github.com/flowforge/docker-compose/releases/latest/download/) the latest tar
 - Uncompress the tar file to a new directory
 - Pull the latest version of the containers from Docker hub
