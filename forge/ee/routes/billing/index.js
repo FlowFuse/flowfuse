@@ -263,11 +263,11 @@ module.exports = async function (app) {
     }, async (request, response) => {
         const team = request.team
         try {
-            let cookie
+            let coupon
             if (request.cookies.ff_coupon) {
-                cookie = request.unsignCookie(request.cookies.ff_coupon)?.valid ? request.unsignCookie(request.cookies.ff_coupon).value : undefined
+                coupon = request.unsignCookie(request.cookies.ff_coupon)?.valid ? request.unsignCookie(request.cookies.ff_coupon).value : undefined
             }
-            const session = await app.billing.createSubscriptionSession(team, cookie)
+            const session = await app.billing.createSubscriptionSession(team, coupon)
             await app.auditLog.Team.billing.session.created(request.session.User, null, team, session)
             response.code(200).type('application/json').send({ billingURL: session.url })
         } catch (err) {
