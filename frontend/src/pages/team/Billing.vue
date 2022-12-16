@@ -1,32 +1,34 @@
 <template>
-    <SectionTopMenu hero="Team Billing"/>
+    <SectionTopMenu hero="Team Billing">
+        <template #tools>
+            <ff-button v-if="subscription" size="small" @click="customerPortal()">
+                <template #icon-right><ExternalLinkIcon /></template>
+                Stripe Customer Portal
+            </ff-button>
+        </template>
+    </SectionTopMenu>
     <form>
-        <Loading v-if="loading && !subscription" size="small"/>
-        <div v-else-if="!loading && subscription">
-            <FormHeading v-if="subscription" class="mb-6">Next Bill: <span class="font-normal">{{ formatDate(subscription.next_billing_date) }}</span></FormHeading>
-            <FormHeading>Active Subscriptions</FormHeading>
+        <Loading v-if="loading" size="small" />
+        <div v-else-if="billingSetUp">
+            <FormHeading class="mb-6">Next Payment: <span v-if="subscription" class="font-normal">{{ formatDate(subscription.next_billing_date) }}</span></FormHeading>
             <div v-if="subscription">
-                <ff-data-table :columns="columns" :rows="subscription.items"/>
+                <ff-data-table :columns="columns" :rows="subscription.items" />
             </div>
-            <FormHeading class="mt-6">View/Update Payment Details</FormHeading>
-            <div>
-                <ff-button size="small" @click="customerPortal()">
-                    <template v-slot:icon-right><ExternalLinkIcon /></template>
-                    Stripe Customer Portal
-                </ff-button>
+            <div v-else class="ff-no-data ff-no-data-large">
+                Something went wrong loading your subscription information, please try again.
             </div>
         </div>
-        <div v-else>
+        <div v-else class="ff-no-data ff-no-data-large">
             Billing has not yet been configured for this team. Before proceeding further, you must continue to Stripe and complete this.
             <div v-if="coupon">
-                <div class="mb-8 text-sm text-gray-500 space-y-2">Will apply coupon code <span v-text="coupon"></span> at checkout</div>
+                <div class="my-3 text-sm">Will apply coupon code <strong>{{ coupon }}</strong> at checkout</div>
             </div>
-            <div v-if="errors.coupon">
-                <div class="ml-9 text-red-400 inline text-xs">{{errors.coupon}}</div>
+            <div v-else-if="errors.coupon">
+                <div class="my-3 text-red-400">{{ errors.coupon }}</div>
             </div>
             <div class="mt-3">
-                <ff-button @click="setupBilling()" data-action="setup-payment-details">
-                    <template v-slot:icon-right><ExternalLinkIcon /></template>
+                <ff-button data-action="setup-payment-details" class="mx-auto mt-3" @click="setupBilling()">
+                    <template #icon-right><ExternalLinkIcon /></template>
                     Setup Payment Details
                 </ff-button>
             </div>
@@ -36,19 +38,16 @@
 
 <script>
 
+import { ExternalLinkIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 
 import billingApi from '@/api/billing.js'
-import Loading from '@/components/Loading'
+
 import FormHeading from '@/components/FormHeading'
-
-import formatDateMixin from '@/mixins/DateTime.js'
-import formatCurrency from '@/mixins/Currency.js'
-
-import { ExternalLinkIcon } from '@heroicons/vue/outline'
-
+import Loading from '@/components/Loading'
 import SectionTopMenu from '@/components/SectionTopMenu'
-
+import formatCurrency from '@/mixins/Currency.js'
+import formatDateMixin from '@/mixins/DateTime.js'
 import Alerts from '@/services/alerts'
 
 const priceCell = {
@@ -77,8 +76,14 @@ const totalPriceCell = {
 
 export default {
     name: 'TeamBilling',
-    props: ['billingUrl', 'team', 'teamMembership'],
+    components: {
+        Loading,
+        FormHeading,
+        ExternalLinkIcon,
+        SectionTopMenu
+    },
     mixins: [formatDateMixin, formatCurrency],
+    props: ['billingUrl', 'team', 'teamMembership'],
     data () {
         return {
             loading: false,
@@ -110,30 +115,27 @@ export default {
             errors: {}
         }
     },
+    computed: {
+        billingSetUp () {
+            return this.team.billingSetup
+        }
+    },
     watch: { },
     async mounted () {
-        this.loading = true
-        if (!this.team.billingSetup) {
+        if (!this.billingSetUp) {
             this.coupon = this.getCookie('ff_coupon')?.split('.')[0]
-            this.loading = false
-        } else {
-            try {
-                const billingSubscription = await billingApi.getSubscriptionInfo(this.team.id)
-                billingSubscription.next_billing_date = billingSubscription.next_billing_date * 1000 // API returns Seconds, JS expects miliseconds
-                this.subscription = billingSubscription
-                this.subscription.items.map((item) => {
-                    item.total_price = item.price * item.quantity
-                    return item
-                })
-                this.loading = false
-            } catch (err) {
-                // check for 402 and redirect if 402 returned
-                if (err.response.status === 402) {
-                    this.coupon = this.getCookie('ff_coupon')?.split('.')[0]
-                    this.loading = false
-                }
-            }
+            return
         }
+
+        this.loading = true
+        const billingSubscription = await billingApi.getSubscriptionInfo(this.team.id)
+        billingSubscription.next_billing_date = billingSubscription.next_billing_date * 1000 // API returns Seconds, JS expects miliseconds
+        this.subscription = billingSubscription
+        this.subscription.items.map((item) => {
+            item.total_price = item.price * item.quantity
+            return item
+        })
+        this.loading = false
     },
     methods: {
         customerPortal () {
@@ -143,17 +145,15 @@ export default {
             let billingUrl = this.$route.query.billingUrl
             if (!billingUrl) {
                 try {
-                    billingUrl = await billingApi.getSubscriptionInfo(this.team.id)
+                    const response = await billingApi.createSubscription(this.team.id)
+                    billingUrl = response.billingURL
                 } catch (err) {
-                    if (err.response.status === 402) {
-                        if (err.response.data.billingURL) {
-                            billingUrl = err.response.data.billingURL
-                        } else if (err.response.data.error) {
-                            Alerts.emit(`${this.coupon} coupon invalid`, 'warning', 7500)
-                            this.errors.coupon = `${this.coupon} is not a valid code. You will be able to provide an alternative code on the Stripe checkout page.`
-                            this.coupon = false
-                            return
-                        }
+                    if (err.response.data.code === 'invalid_coupon') {
+                        Alerts.emit(`${this.coupon} coupon invalid`, 'warning', 7500)
+                        this.errors.coupon = `${this.coupon} is not a valid code. You will be able to provide an alternative code on the Stripe checkout page.`
+                        this.coupon = false
+                    } else {
+                        throw err
                     }
                 }
             }
@@ -171,12 +171,6 @@ export default {
             }
             return undefined
         }
-    },
-    components: {
-        Loading,
-        FormHeading,
-        ExternalLinkIcon,
-        SectionTopMenu
     }
 }
 </script>

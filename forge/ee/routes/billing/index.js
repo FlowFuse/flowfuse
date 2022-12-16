@@ -227,26 +227,7 @@ module.exports = async function (app) {
         const team = request.team
         const sub = await app.db.models.Subscription.byTeamId(team.id)
         if (!sub) {
-            try {
-                let cookie
-                if (request.cookies.ff_coupon) {
-                    cookie = request.unsignCookie(request.cookies.ff_coupon)?.valid ? request.unsignCookie(request.cookies.ff_coupon).value : undefined
-                }
-                const session = await app.billing.createSubscriptionSession(team, cookie) // request.session.User)
-                await app.auditLog.Team.billing.session.created(request.session.User, null, team, session)
-                response.code(402).type('application/json').send({ billingURL: session.url })
-                return
-            } catch (err) {
-                let responseMessage
-                if (err.errors) {
-                    responseMessage = err.errors.map(err => err.message).join(',')
-                } else {
-                    responseMessage = err.toString()
-                }
-                response.clearCookie('ff_coupon', { path: '/' })
-                response.code(402).type('application/json').send({ error: responseMessage })
-                return
-            }
+            return response.code(404).send({ code: 'not_found', error: 'Team does not have a subscription' })
         }
 
         const stripeSubscription = await stripe.subscriptions.retrieve(
@@ -269,6 +250,45 @@ module.exports = async function (app) {
         })
 
         response.status(200).send(information)
+    })
+
+    /**
+     * Set up new billing subscription for a team
+     * @name /ee/billing/teams/:team
+     * @static
+     * @memberof forge.ee.billing
+     */
+    app.post('/teams/:teamId', {
+        preHandler: app.needsPermission('team:edit')
+    }, async (request, response) => {
+        const team = request.team
+        try {
+            let coupon
+            if (request.cookies.ff_coupon) {
+                coupon = request.unsignCookie(request.cookies.ff_coupon)?.valid ? request.unsignCookie(request.cookies.ff_coupon).value : undefined
+            }
+            const session = await app.billing.createSubscriptionSession(team, coupon)
+            await app.auditLog.Team.billing.session.created(request.session.User, null, team, session)
+            response.code(200).type('application/json').send({ billingURL: session.url })
+        } catch (err) {
+            // Likely invalid coupon error from stripe
+            if (err.code === 'resource_missing') {
+                response.clearCookie('ff_coupon', { path: '/' })
+                response.code(400).send({ code: 'invalid_coupon', error: err.toString() })
+                return
+            }
+
+            // Standard errors
+            let responseMessage
+            if (err.errors) {
+                responseMessage = err.errors.map(err => err.message).join(',')
+            } else {
+                responseMessage = err.toString()
+            }
+
+            // Catch all
+            response.code(500).type('application/json').send({ code: 'unexpected_error', error: responseMessage })
+        }
     })
 
     /**

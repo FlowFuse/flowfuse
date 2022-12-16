@@ -12,7 +12,15 @@ const getSubscriptionInfo = async (teamId) => {
     })
 }
 
+// Create a new subscription for a team
+const createSubscription = async (teamId) => {
+    return client.post('/ee/billing/teams/' + teamId).then(res => {
+        return res.data
+    })
+}
+
 export default {
     toCustomerPortal,
-    getSubscriptionInfo
+    getSubscriptionInfo,
+    createSubscription
 }
