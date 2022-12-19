@@ -34,3 +34,11 @@ FlowForge supports deploying projects to remote _Devices_. They run a software a
 that connects back to the platform to receive updates.
 
  - [Working with Devices](devices.md)
+
+
+## Working with Files and Context
+
+FlowForge supports reading and writing persistent files and persistent context in the cloud.
+
+ - [Working with Files](filenodes.md) - a set of nodes that provide file operations in a containered environment
+ - [Working with Context](contextplugin.md) - a Node-RED plugin that 
