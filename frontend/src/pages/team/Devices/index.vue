@@ -7,7 +7,7 @@
             <p>Flows can then be deployed remotely to the devices through a Project Snapshot.</p>
         </template>
         <template v-slot:tools>
-            <ff-button v-if="addDeviceEnabled" kind="primary" size="small" @click="showCreateDeviceDialog"><template v-slot:icon-left><PlusSmIcon /></template>Register Device</ff-button>
+            <ff-button v-if="addDeviceEnabled" data-action="register-device" kind="primary" size="small" @click="showCreateDeviceDialog"><template v-slot:icon-left><PlusSmIcon /></template>Register Device</ff-button>
         </template>
     </SectionTopMenu>
     <div class="space-y-6">
