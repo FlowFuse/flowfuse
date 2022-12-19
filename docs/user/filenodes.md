@@ -15,12 +15,17 @@ Node-RED file nodes. To use these nodes, you must exclude 10-file-js in the
 
 There are two nodes in the File Node collection:
 
-- `file` - A file node for writing to persistent storage provided by a @FlowForge/file-storage server
-- `file in` - A file node for reading from persistent storage provided by a @FlowForge/file-storage server
+- `file` - A file node for writing to persistent storage
+- `file in` - A file node for reading from persistent storage
 
 The nodes send the whole `msg` object between projects. Due to the way the nodes
 encode messages, there are some data types that do not get sent. For example,
 the `msg.req`/`msg.res` properties used by the core HTTP nodes will not be sent.
+
+
+### Requirements
+
+A persistent storage backend provided by a @flowforge/file-server instance
 
 
 ### GitHub
