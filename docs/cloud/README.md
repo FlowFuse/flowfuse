@@ -27,6 +27,22 @@ file nodes. These files are stored outside of the container and provide persiste
 
 Other 3rd party nodes _may_ attempt to access the filesystem with unpredictable results.
 
+Persistent file storage has a quota limit set at `100MB` per project. A single file, written or
+read in 1 operation is limited to `10MB` in size.
+
+These values were determined to be the most suitable default that more than satisfies the majority 
+of requirements while being considerate performance and cost.
+
+## Node-RED context
+
+Context data within a Node-RED project is not persistent, FlowForge adds persistence via a plugin.
+The context values are stored outside of the container to provide persistence.
+
+Persistent context has a quota limit set at `1MB` per project. This value was determined to be 
+the most suitable default that more than satisfies the majority of requirements while being 
+considerate performance and cost.
+
+
 ## Network Connections
 
 ### HTTP(S) & Websockets
