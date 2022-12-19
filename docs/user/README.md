@@ -35,7 +35,6 @@ that connects back to the platform to receive updates.
 
  - [Working with Devices](devices.md)
 
-
 ## Working with Files and Context
 
 FlowForge supports reading and writing persistent files and persistent context in the cloud.
