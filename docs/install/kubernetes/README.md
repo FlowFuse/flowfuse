@@ -141,6 +141,7 @@ To enable the MQTT broker with Kubernetes install you need to add the following 
 ```yaml
 forge:
   broker:
+    enabled: true
     url: mqtt://forge:1883
 ```
 
@@ -171,6 +172,15 @@ Adding `10-file.js,23-watch.js` to the list of "Excluded nodes by filename" sect
 FlowForge File Nodes provide a solution to this for basic read/write.
 More details can be found [here](../file-storage/).
 
+To enable the FlowForge File Storage component add the following to the `customization.yml` file:
+
+```yaml
+forge:
+  fileStore:
+    enabled: true
+```
+
+It defaults to using the `localfs` and will allocate a Kubernetes Physical Volume to act as backing store.
 
 
 ## Upgrade
