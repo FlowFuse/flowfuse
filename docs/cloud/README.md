@@ -22,8 +22,8 @@ Each Node-RED can install custom modules as advertised in the [Flow Library](htt
 
 ## File System
 
-The file system within a project is not persistent, FlowForge replaces the standard
-file nodes. These files are stored outside of the container and provide persistence.
+The file system within a project is not persistent so FlowForge replaces the standard
+file nodes. The files are stored outside of the container to provide persistence.
 
 Other 3rd party nodes _may_ attempt to access the filesystem with unpredictable results.
 
@@ -31,16 +31,16 @@ Persistent file storage has a quota limit set at `100MB` per project. A single f
 read in 1 operation is limited to `10MB` in size.
 
 These values were determined to be the most suitable default that more than satisfies the majority 
-of requirements while being considerate performance and cost.
+of requirements while being considerate of performance and cost.
 
 ## Node-RED context
 
-Context data within a Node-RED project is not persistent, FlowForge adds persistence via a plugin.
-The context values are stored outside of the container to provide persistence.
+Context data within a Node-RED project is not persistent however FlowForge adds persistence via a 
+Node-RED plugin. The context values are stored outside of the container to provide persistence.
 
 Persistent context has a quota limit set at `1MB` per project. This value was determined to be 
 the most suitable default that more than satisfies the majority of requirements while being 
-considerate performance and cost.
+considerate of performance and cost.
 
 
 ## Network Connections
