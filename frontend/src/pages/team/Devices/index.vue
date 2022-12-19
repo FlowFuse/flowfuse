@@ -7,7 +7,7 @@
             <p>Flows can then be deployed remotely to the devices through a Project Snapshot.</p>
         </template>
         <template v-slot:tools>
-            <ff-button v-if="addDeviceEnabled" kind="primary" size="small" @click="showCreateDeviceDialog"><template v-slot:icon-left><PlusSmIcon /></template>Register Device</ff-button>
+            <ff-button v-if="addDeviceEnabled" data-action="register-device" kind="primary" size="small" @click="showCreateDeviceDialog"><template v-slot:icon-left><PlusSmIcon /></template>Register Device</ff-button>
         </template>
     </SectionTopMenu>
     <div class="space-y-6">
@@ -15,6 +15,11 @@
         <ff-loading v-else-if="creatingDevice" message="Creating Device..." />
         <ff-loading v-else-if="deletingDevice" message="Deleting Device..." />
         <template v-else>
+            <template v-if="this.devices.size === 0">
+                <div class="ff-no-data ff-no-data-large">
+                    You don't have any devices yet
+                </div>
+            </template>
             <template v-if="this.devices.size > 0">
                 <ff-data-table
                     data-el="devices"
@@ -33,21 +38,6 @@
                         <ff-list-item v-if="hasPermission('device:delete')" kind="danger" label="Delete Device" @click="deviceAction('delete', row.id)" />
                     </template>
                 </ff-data-table>
-            </template>
-            <template v-else-if="addDeviceEnabled">
-                <div class="flex justify-center mb-4 p-8">
-                    <ff-button data-action="register-device" @click="showCreateDeviceDialog">
-                        <template v-slot:icon-right>
-                            <PlusSmIcon />
-                        </template>
-                        Register Device
-                    </ff-button>
-                </div>
-            </template>
-            <template v-if="this.devices.size === 0">
-                <div class="flex text-gray-500 justify-center italic mb-4 p-8">
-                    You don't have any devices yet
-                </div>
             </template>
         </template>
     </div>
