@@ -35,12 +35,9 @@ of requirements while being considerate of performance and cost.
 
 ## Node-RED context
 
-Context data within a Node-RED project is not persistent however FlowForge adds persistence.
-Node-RED plugin. The context values are stored outside of the container to provide persistence.
+Context data within a Node-RED project is not persistent however FlowForge adds persistent context capability. 
 
-Persistent context has a quota limit set at `1MB` per project. This value was determined to be 
-the most suitable default that more than satisfies the majority of requirements while being 
-considerate of performance and cost.
+Persistent context has a quota limit set at `1MB` per project. This value was determined to be the most suitable default that more than satisfies the majority of requirements while being considerate of performance and cost.
 
 
 ## Network Connections
