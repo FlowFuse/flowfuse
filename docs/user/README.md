@@ -39,5 +39,5 @@ that connects back to the platform to receive updates.
 
 FlowForge supports reading and writing persistent files and persistent context in the cloud.
 
- - [Working with Files](filenodes.md) - a set of nodes that provide file operations in a containered environment
+ - [Working with Files](filenodes.md)
  - [Working with Context](contextplugin.md) - a Node-RED plugin that provides persistent context in a containered environment
