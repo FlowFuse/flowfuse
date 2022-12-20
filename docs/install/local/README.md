@@ -181,7 +181,8 @@ Follow the appropriate [install instructions](https://mosquitto.org/download/) f
 your operating system.
 
 Once installed, you can download pre-built binaries for Linux platforms from 
-[here](https://github.com/hardillb/mosquitto-go-auth/releases/tag/v0.0.1)
+[here](https://github.com/hardillb/mosquitto-go-auth/releases/tag/v0.0.1) and then jump 
+to step 4 below.
 
 On MacOS you will need to build and install the authentication plugin.
 
