@@ -37,7 +37,7 @@ that connects back to the platform to receive updates.
 
 ## Working with Files and Context
 
-FlowForge supports reading and writing persistent files and persistent context in the cloud.
+FlowForge supports reading and writing persistent files and persistent context.
 
  - [Working with Files](filenodes.md)
  - [Working with Context](persistent-context.md)
