@@ -90,6 +90,7 @@ File Storage quota defaults to 100MB per project
 You can configure the backend store for the File server by including 
 the following values passed to helm
 
+- `forge.fileStore.enabled` - defaults to `false`
 - `forge.fileStore.type` - defaults to `localfs`
 - `forge.fileStore.quota` - defaults to `104857600` bytes (100mb)
 - `forge.fileStore.options` - an object that matches the Yaml described above
