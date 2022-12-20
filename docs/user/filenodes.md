@@ -25,10 +25,11 @@ project to use them, the built-in Node-RED file nodes must first be disabled.
 This is done by simply adding `10-file-js` in the **Exclude nodes by filename** 
 section of your FlowForge projects settings under  the **Palette** section
 
+Note: FlowForge projects settings are only  by Administrators and made available to the teams and users of the platform.
+
 ### Standalone Node-RED
 
-These nodes can be installed through the Manage Palette option in the Node-RED
-editor, or on the command-line:
+These nodes can be installed on the command-line:
 
 ```bash
 cd ~/.node-red
