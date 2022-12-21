@@ -7,6 +7,9 @@ module.exports = async (app) => {
         'platform.counts.projectSnapshots': await app.db.models.ProjectSnapshot.count(),
         'platform.counts.projectTemplates': await app.db.models.ProjectStack.count(),
         'platform.counts.projectStacks': await app.db.models.ProjectTemplate.count(),
-        'platform.config.driver': app.config.driver.type
+        'platform.config.driver': app.config.driver.type,
+        'platform.config.broker.enabled': !!app.config.broker,
+        'platform.config.fileStore.enabled': !!app.config.fileStore,
+        'platform.config.email.enabled': app.postoffice.enabled()
     }
 }
