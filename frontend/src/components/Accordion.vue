@@ -37,11 +37,14 @@ export default {
             isOpen: false
         }
     },
-    computed: {
-        contentHeight: function () {
-            if (this.isOpen) {
-                const content = this.$refs.content
-                return (2 * content.scrollHeight) + 'px'
+    watch: {
+        isOpen: function (value) {
+            if (value) {
+                this.$nextTick(() => {
+                    // wait until content has been added to DOM
+                    const content = this.$refs.content
+                    return (2 * content.scrollHeight) + 'px'
+                })
             } else {
                 return null
             }

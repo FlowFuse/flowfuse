@@ -24,7 +24,7 @@ export default {
     },
     methods: {
         loadItems: async function (entityId, cursor) {
-            return await adminApi.getPlatformAuditLog(cursor)
+            return await adminApi.getPlatformAuditLog(cursor, 200)
         },
         fetchData: async function () {
             this.entity = { id: 'audit' }

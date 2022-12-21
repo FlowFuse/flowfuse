@@ -79,7 +79,7 @@ describe('FlowForge - Project Types', () => {
 
 describe('FlowForge shows audit logs', () => {
     beforeEach(() => {
-        cy.intercept('GET', '/api/**/audit-log').as('getAuditLog')
+        cy.intercept('GET', '/api/**/audit-log?*').as('getAuditLog')
 
         cy.login('alice', 'aaPassword')
         cy.home()
