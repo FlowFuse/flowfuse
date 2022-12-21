@@ -1,6 +1,6 @@
 <template>
     <ff-layout-box class="ff-signup">
-        <div v-if="!emailSent">
+        <div v-if="!emailSent" class="max-w-md">
             <h2>Sign Up</h2>
             <div>
                 <label>Username</label>
@@ -130,7 +130,9 @@ export default {
                     if (/password/.test(err.response.data.error)) {
                         this.errors.password = 'Invalid username'
                     }
-                    if (/email/.test(err.response.data.error)) {
+                    if (err.response.data.code === 'invalid_sso_email') {
+                        this.errors.email = err.response.data.error
+                    } else if (/email/.test(err.response.data.error)) {
                         this.errors.email = 'Email unavailable'
                     }
                     if (err.response.data.error === 'user registration not enabled') {
