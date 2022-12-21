@@ -1,8 +1,10 @@
 const should = require('should') // eslint-disable-line
 const setup = require('../../setup')
+const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localTransport.js')
 
 describe('SSO Provider APIs', function () {
     let app
+    let inbox
     const TestObjects = { tokens: {} }
 
     async function login (username, password) {
@@ -17,7 +19,13 @@ describe('SSO Provider APIs', function () {
     }
 
     beforeEach(async function () {
-        app = await setup()
+        inbox = new LocalTransport()
+        app = await setup({
+            email: {
+                enabled: true,
+                transport: inbox
+            }
+        })
         TestObjects.alice = await app.db.models.User.byUsername('alice')
         TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
         await login('alice', 'aaPassword')
@@ -187,6 +195,43 @@ d
             result.options.should.only.have.keys('foo')
             result.options.foo.should.equal('bar')
             result.active.should.be.true()
+        })
+    })
+
+    describe('User registration', async function () {
+        beforeEach(function () {
+            app.settings.set('user:signup', true)
+        })
+        it('sso user can register but no verification email sent', async function () {
+            inbox.count().should.equal(0)
+            const response = await app.inject({
+                method: 'POST',
+                url: '/account/register',
+                payload: {
+                    username: 'u1',
+                    password: 'p123123123121',
+                    name: 'u1',
+                    email: 'u1@example.com'
+                }
+            })
+            response.statusCode.should.equal(200)
+            inbox.count().should.equal(0)
+        })
+
+        it('rejects user registration if email contains +', async function () {
+            inbox.count().should.equal(0)
+            const response = await app.inject({
+                method: 'POST',
+                url: '/account/register',
+                payload: {
+                    username: 'u1',
+                    password: 'p1',
+                    name: 'u1',
+                    email: 'u1+not-allowed@example.com'
+                }
+            })
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_sso_email')
         })
     })
 })

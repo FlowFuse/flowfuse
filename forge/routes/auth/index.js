@@ -308,6 +308,20 @@ module.exports = fp(async function (app, opts, done) {
             reply.code(400).send(resp)
             return
         }
+        let requireEmailVerification = true
+        if (app.config.features.enabled('sso') && request.body.email) {
+            if (app.sso.isSSOEnabledForEmail(request.body.email)) {
+                // This user is signing up with an SSO enabled email domain
+                // 1. validate they are not trying to use a plus-address (name+extra@domain)
+                if (/^.*\+.*@[^@]+$/.test(request.body.email)) {
+                    const resp = { code: 'invalid_sso_email', error: 'SSO is enabled for this email domain. You must register using the email that matches exactly what your SSO provider identifies you as.' }
+                    await app.auditLog.User.account.register(userInfo, resp, userInfo)
+                    reply.code(400).send(resp)
+                    return
+                }
+                requireEmailVerification = false
+            }
+        }
         try {
             const newUser = await app.db.models.User.create({
                 username: request.body.username,
@@ -319,14 +333,16 @@ module.exports = fp(async function (app, opts, done) {
                 tcs_accepted: new Date()
             })
             userInfo.id = newUser.id
-            const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(newUser)
-            await app.postoffice.send(
-                newUser,
-                'VerifyEmail',
-                {
-                    confirmEmailLink: `${app.config.base_url}/account/verify/${verificationToken}`
-                }
-            )
+            if (requireEmailVerification) {
+                const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(newUser)
+                await app.postoffice.send(
+                    newUser,
+                    'VerifyEmail',
+                    {
+                        confirmEmailLink: `${app.config.base_url}/account/verify/${verificationToken}`
+                    }
+                )
+            }
             if (request.body.code) {
                 reply.setCookie('ff_coupon', request.body.code, {
                     path: '/',
