@@ -51,6 +51,7 @@ module.exports = fp(async function (app, _opts, next) {
                         app.log.error('Failed to verify email connection: %s', err.toString())
                         EMAIL_ENABLED = false
                     } else {
+                        app.log.info('Connected to SMTP server')
                         EMAIL_ENABLED = true
                     }
                     callback && callback(err, EMAIL_ENABLED)
@@ -86,6 +87,7 @@ module.exports = fp(async function (app, _opts, next) {
                         app.log.error('Failed to verify email connection: %s', err.toString())
                         EMAIL_ENABLED = false
                     } else {
+                        app.log.info('Connected to AWS SES')
                         EMAIL_ENABLED = true
                     }
                     callback && callback(err, EMAIL_ENABLED)
