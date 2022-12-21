@@ -59,7 +59,7 @@ For more details on the options available, see the [configuration guide](../conf
 
 
 ### HTTPS (optional)
-If you want to serve the forge app and projects via SSL you will need to obtain a wildcard TSL certificate for the domain you are using eg `*.example.com`. If you are running on an Internet facing machine you can use the LetsEncrypt acme-companion.
+If you want to serve the forge app and projects via SSL you will need to obtain a wildcard TLS certificate for the domain you are using eg `*.example.com`. If you are running on an Internet facing machine you can use the LetsEncrypt acme-companion.
 
 Otherwise you will need to contact a SSL Certificate vendor and configure Nginx manually.
 
