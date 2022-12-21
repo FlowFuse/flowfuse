@@ -57,7 +57,7 @@
             <template v-slot:helptext>
                 <p>
                     All devices here are bound to this Project. When you set a new Target Snapshot, that will get deployed,
-                    using the <a href="https://flowforge.com/docs/user/devices/">FlowForge Device Agent</a>, out to all connected devices.
+                    using the <a href="https://flowforge.com/docs/user/devices/" target="_blank">FlowForge Device Agent</a>, out to all connected devices.
                 </p>
                 <p>
                     Here, you can see a picture of the last time the device was online, and the status of the Node-RED
