@@ -5,7 +5,7 @@ describe('FlowForge - Team Audit Log', () => {
     })
 
     it('should show a placeholder if no activity is present', () => {
-        cy.intercept('/api/*/teams/*/audit-log', {
+        cy.intercept('/api/*/teams/*/audit-log?*', {
             log: [],
             meta: {}
         }).as('getAuditLog')
