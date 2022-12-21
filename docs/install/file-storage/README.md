@@ -21,10 +21,11 @@ direct access to the file system of the machine hosting FlowForge.
 The Docker Compose and Kubernetes Helm Chart will both now start a 
 container running the File Server application.
 
-There are 2 main things to set up:
+There are 3 main things to set up:
 
  1. Which backend to use (`localfs` or `s3`)
- 2. The configuration options for the backend
+ 2. The quota for each project in bytes (not set is unlimited)
+ 3. The configuration options for the backend
 
 ### LocalFS
 
@@ -40,6 +41,7 @@ port: 3001
 base_url: http://flowforge:3000
 driver:
   type: localfs
+  quota: 104857600
   options:
     root: var/root
 ```
@@ -65,6 +67,7 @@ port: 3001
 base_url: http://forge.default
 driver:
   type: s3
+  quota: 104857600
   options:
     bucket: flowforge-files
     credentials:
@@ -80,12 +83,16 @@ You can configure the backend store for the File Server by editing the
 `etc/flowforge-storage.yml` file. It defaults to using the `localfs` 
 backend driver and mounting a directory into the container.
 
+File Storage quota defaults to 100MB per project
+
 ## Kubernetes Helm
 
 You can configure the backend store for the File server by including 
 the following values passed to helm
 
-- `forge.fileStore.type` - defaults to `s3`
+- `forge.fileStore.enabled` - defaults to `false`
+- `forge.fileStore.type` - defaults to `localfs`
+- `forge.fileStore.quota` - defaults to `104857600` bytes (100mb)
 - `forge.fileStore.options` - an object that matches the Yaml described above
 
 ## Enabling the FlowForge File Nodes
@@ -103,6 +110,19 @@ This can be done in the FlowForge Template.
 <img src="../images/file-node-template.png" width=500 />
 
 Adding `10-file.js` to the list of "Excluded nodes by filename" section will ensure that the core file nodes are not loaded by the project.
+
+## Persistent Context
+
+For FlowForge Premium licensees the File Server component also provides a Persistent Context Store.
+
+For both Docker and Kubernetes come with a the context store configured with default values, uploading 
+a license for the FlowForge application will enable it, but existing projects will require suspending 
+and restarting to pick up the change.
+
+The default quota is 1KB per project which can be overridden as follows:
+
+- on Docker edit the `etc/flowforge-storage.yml` file.
+- on Kubernetes set the `forge.fileStore.context.quota` value in bytes when passing helm.
 
 ## Working with FlowForge Devices
 
