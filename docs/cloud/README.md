@@ -20,20 +20,25 @@ can be [upgraded to a later version](../user/changestack.md).
 
 Each Node-RED can install custom modules as advertised in the [Flow Library](https://flows.nodered.org).
 
-## File System
+## Use of the File System
 
-The file system within a project is not persistent so FlowForge replaces the standard
-file nodes. The files are stored outside of the container to provide persistence.
+FlowForge Cloud provides support for using the standard File nodes in flows with
+some limits. The standard filesystem is not persisted between project restarts,
+so a custom set of nodes are used to store the files in persistent storage.
 
-Other 3rd party nodes _may_ attempt to access the filesystem with unpredictable results.
+Each Project has a quota of `100MB` of file storage. A single write operation is
+limited to `10MB` in size.
 
-Persistent file storage has a quota limit set at `100MB` per project. 
-A single write operation is limited to `10MB` in size.
+Some 3rd party nodes try to access the filesystem directly. This can lead to
+unpredicatable results if the data is not persisted between restarts.
 
 ## Node-RED context
 
-Context data within a Node-RED project is not persistent by default however FlowForge Premium adds 
-persistent context capability. 
+Node-RED Context can be used to store small pieces of project state within the
+runtime. By default this is stored in memory only.
+
+FlowForge Cloud provides an optional context store that can be used to persist
+the data.
 
 Persistent context has a quota limit set at `1MB` per project.
 
@@ -54,3 +59,21 @@ MQTT Connections to an external broker using the standard MQTT nodes will work f
 ### IP Addresses
 Outbound connections from FlowForge will always come from the IP address `63.33.85.112`. 
 This can make access to a remote database or corporate network possible where those systems are protected by IP address filtering firewalls. As mentioned in HTTP above, incoming connections MUST be to the hostname not the IP address.
+
+## Single-Sign On
+
+FlowForge supports configuring SAML-based Single Sign-On for particular email domains.
+
+This can be configured on request for FlowForge Cloud by submitted a support request
+via our [Contact Us](https://flowforge.com/contact-us/) page.
+
+You must have the ability to configure an SAML endpoint on your Identity Provider,
+and have authority to configure SSO for your email domain.
+
+We have currently validated our SSO support with the following Identity Providers:
+
+ - Google Workspace
+ - OneLogin
+
+If you are using a different Identity Provider, please still get in touch and we
+can evaluate what will be required to enable it.
