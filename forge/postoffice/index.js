@@ -127,7 +127,7 @@ module.exports = fp(async function (app, _opts, next) {
     }
 
     function enabled () {
-        return EMAIL_ENABLED
+        return !!EMAIL_ENABLED
     }
 
     app.decorate('postoffice', {
