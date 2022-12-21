@@ -23,14 +23,14 @@ Each Node-RED can install custom modules as advertised in the [Flow Library](htt
 ## Use of the File System
 
 FlowForge Cloud provides support for using the standard File nodes in flows with
-some limits. The standard filesystem is not persistent between project restarts,
+some limits. The standard filesystem is not persisted between project restarts,
 so a custom set of nodes are used to store the files in persistent storage.
 
 Each Project has a quota of `100MB` of file storage. A single write operation is
 limited to `10MB` in size.
 
 Some 3rd party nodes try to access the filesystem directly. This can lead to
-unpredicatable results if the data is not persistent between restarts.
+unpredicatable results if the data is not persisted between restarts.
 
 ## Node-RED context
 
@@ -62,10 +62,10 @@ This can make access to a remote database or corporate network possible where th
 
 ## Single-Sign On
 
-FlowForge supports configuring SAML-based Single-Sign On for particular email domains.
+FlowForge supports configuring SAML-based Single Sign-On for particular email domains.
 
 This can be configured on request for FlowForge Cloud by submitted a support request
-via out [Contact Us](https://flowforge.com/contact-us/) page.
+via our [Contact Us](https://flowforge.com/contact-us/) page.
 
 You must have the ability to configure an SAML endpoint on your Identity Provider,
 and have authority to configure SSO for your email domain.
