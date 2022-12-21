@@ -29,7 +29,8 @@
         }
     }
     &--content {
-        max-height: 0;
+        display: none;
+        // max-height: 0;
         overflow: hidden;
         transition: max-height 0.6s ease-out;
         .ff-audit-entry {
@@ -39,6 +40,9 @@
         }
     }
     &.open {
+        .ff-accordion--content {
+            display: block;
+        }
         .ff-accordion--button .ff-icon {
             transform: rotate(-90deg);
         }
