@@ -27,7 +27,7 @@ export default {
     },
     methods: {
         loadItems: async function (projectId, cursor) {
-            return await teamApi.getTeamAuditLog(projectId, cursor)
+            return await teamApi.getTeamAuditLog(projectId, cursor, 200)
         },
         fetchData: async function (newVal) {
             if (this.hasPermission('team:audit-log')) {

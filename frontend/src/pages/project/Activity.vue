@@ -20,7 +20,7 @@ export default {
     },
     methods: {
         loadItems: async function (projectId, cursor) {
-            return projectApi.getProjectAuditLog(projectId, cursor)
+            return projectApi.getProjectAuditLog(projectId, cursor, 200)
         }
     },
     components: {
