@@ -27,6 +27,7 @@ There are 3 main things to set up:
  2. The quota for each project in bytes (not set is unlimited)
  3. The configuration options for the backend
 
+These are set in the `etc/flowforge-storage.yml` file.
 ### LocalFS
 
 This can be used when you mount a volume into the File Server container
@@ -115,6 +116,39 @@ Adding `10-file.js` to the list of "Excluded nodes by filename" section will ens
 
 For FlowForge Premium licensees the File Server component also provides a Persistent Context Store.
 
+### Configuring 
+
+The Persistent Context Store uses a database backend to hold state. It can be used with a SQLite or PostgreSQL database.
+This is configured in the `etc/flowforge-storage.yml` file similar to the File Store driver mentioned earlier.
+
+#### SQLite
+
+```yaml
+context:
+  type: sequelize
+  quota: 1048576
+  options:
+    type: sqlite
+    storage: ff-context.db
+```
+
+#### PostgreSQL
+
+```yaml
+context:
+  type: sequelize
+  quota: 1048576
+  options:
+    type: postgres
+    host: flowforge-postgresql
+    port: 5432
+    database: ff-context
+    username: postgres
+    password: password
+```
+
+### Docker and Kubernetes
+
 For both Docker and Kubernetes come with a the context store configured with default values, uploading 
 a license for the FlowForge application will enable it, but existing projects will require suspending 
 and restarting to pick up the change.
@@ -123,6 +157,7 @@ The default quota is 1KB per project which can be overridden as follows:
 
 - on Docker edit the `etc/flowforge-storage.yml` file.
 - on Kubernetes set the `forge.fileStore.context.quota` value in bytes when passing helm.
+    - `forge.fileStore.context.options` holds driver options
 
 ## Working with FlowForge Devices
 
