@@ -22,7 +22,7 @@ jobs:
           token: ${{ secrets.NPM_PUBLISH_TOKEN }}
       - name: Resync Maintenance
         if: ${{ endsWith(github.ref, '.0') }}
-        run:
+        run: |
           git checkout maintenance
           git reset --hard main
           git push --force origin maintenance
