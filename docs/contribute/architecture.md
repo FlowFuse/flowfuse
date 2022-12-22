@@ -99,3 +99,48 @@ This plugin uses the Node-RED [Authentication API](https://nodered.org/docs/user
 This plugin sends Node-RED Audit events (e.g. user log in and flow deployment events) back to the to the FlowForge Management Application to allow a reliable audit of what actions have taken place in the project.
 
 This plugin uses the Node-RED [Logging API](https://nodered.org/docs/user-guide/runtime/logging)
+
+## Component overview
+
+```mermaid
+erDiagram
+    USER ||--o{ NGINX : Requests
+    NGINX {
+        Protocol HTTP-TLS
+        Port default-443
+    }
+    FORGE-APP {
+        Protocol HTTP-TLS
+        Port default-3000
+    }
+    POSTGRESQL {
+        Protocol tcp-tls
+        Port default-5432
+    }
+    MOSQUITTO {
+        Protocol HTTP-TLS-WSS-MQTT
+        Port default-1883
+    }
+    FLOWFORGE-FILE-SERVER {
+        Protocol HTTP-TLS
+        Port default-QUESTION
+    }
+    NGINX }o--o| NODE-RED : routes
+    NGINX }o--o{ FORGE-APP: routes
+    FORGE-APP ||--|{ POSTGRESQL: query
+    FORGE-APP ||--|| NODE-RED: "flow update"
+    NODE-RED }o--o{ FLOWFORGE-FILE-SERVER: "Blob store"
+    FLOWFORGE-FILE-SERVER ||--|| FORGE-APP: "Authenticate"
+    NODE-RED {
+        Protocol HTTP-TLS
+        Port default-1880
+    }
+    NODE-RED }o--|| MOSQUITTO: mqtt
+    FORGE-APP }o--|| MOSQUITTO: mqtt
+    NODE-RED-DEVICES {
+        Port default-1880
+        Protocol User-Defined
+    }
+    NODE-RED-DEVICES }o--|| MOSQUITTO: mqtt
+    USER ||--|| NODE-RED-DEVICES: Requests
+```
