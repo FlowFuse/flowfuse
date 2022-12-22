@@ -1,3 +1,92 @@
+#### 1.2.0: Release
+
+ - Add upgrading docs for file server (#1482) @knolleary
+ - Improve activity logs (#1480) @Steve-Mcl
+ - Add FF Cloud SSO docs and reword file system section (#1479) @knolleary
+ - Allow email transport to retry connection without having to restart the platform (#1299) @Steve-Mcl
+ - Add telemetry reporting of configured features (#1478) @knolleary
+ - Do not allow sso email domains to be registered with + emails (#1477) @knolleary
+ - Info Dialog Links > target="_blank" (#1476) @joepavitt
+ - Typo in TLS doc (#1475) @hardillb
+ - Cover configuring context and setting quotas (#1474) @hardillb
+ - Add link to pre-built binaries (#1473) @hardillb
+ - Document persistent context and file storage (#1465) @Steve-Mcl
+ - Update Kubernetes install instuctions (#1466) @hardillb
+ - Consistent CSS margins & no-data message in Devices (#1459) @joepavitt
+ - Add Info Dialogs for FlowForge pages (#1458) @joepavitt
+ - Add support for renewing expired subscriptions (#1456) @Pezmc
+ - Refactor and slight redesign of billing page (#1455) @Pezmc
+ - Update docs after demo install session 20221216 (#1454) @hardillb
+ - Update docker upgrade instructions (#1443) @hardillb
+ - docs: Explain how to use the Device agent Container (#1451) @ZJvandeWeg
+ - Simplify docker configuration steps (#1449) @hardillb
+ - Increase default pagination limit (#1437) @Pezmc
+ - Add a clear banner with a C2A when a teams subscription has expired (#1442) @Pezmc
+ - Rename subscription methods for clarity (#1430) @Pezmc
+ - Add SSO docs (#1446) @knolleary
+ - Add verbose & icon for settings.update from Node-RED (#1445) @joepavitt
+ - Fix unit test for SAMLProvider config change (#1441) @knolleary
+ - Set callbackUrl rather than path in SAML config (#1440) @knolleary
+ - Move File Storage section and fix header levels (#1438) @hardillb
+ - Add SAMLProvider model for sso handling (#1431) @knolleary
+ - Format Audit Entry "Error" messages (#1428) @joepavitt
+ - Format Audit Entry "Update" Events (#1435) @joepavitt
+ - @enter function correction on SSO username (#1419) @joepavitt
+ - Make the accordion test screen size agnostic (#1436) @joepavitt
+ - Audit log accordions (#1426) @joepavitt
+ - Handle Stripe subscription cancellations (#1417) @Pezmc
+ - Properly fix the typo (#1425) @hardillb
+ - Fix link to Digital Ocean docs (#1423) @hardillb
+ - Change 30 to 1000 in order to return more of the audit log (#1420) @joepavitt
+ - Bump @vitejs/plugin-vue from 3.2.0 to 4.0.0 (#1411) @dependabot
+ - Bump webpack-dev-server from 3.11.3 to 4.11.1 (#1412) @dependabot
+ - Refactor the container wrapper to use guards (#1416) @Pezmc
+ - Bump postcss-loader from 6.2.1 to 7.0.2 (#1413) @dependabot
+ - Simplify Stripe callback handling (#1415) @Pezmc
+ - Add SSO login support (#1410) @knolleary
+ - Downgrade Axios to 1.1.3 (#1396) @Pezmc
+ - Add syntax language to code examples for highlighting (#1408) @joepavitt
+ - Remove the activation price experiment (#1405) @Pezmc
+ - Link to the admin docs from the Projects Stacks concept docs (#1406) @joepavitt
+ - Remove jsdoc entirely (#1365) @Pezmc
+ - Fix homebrew link in DNS docs (#1391) @hardillb
+ - Fix indention of HTTPS/Wildcard heading (#1392) @hardillb
+ - Add sso_enabled flag to user model (#1383) @knolleary
+ - Bump babel-loader from 8.3.0 to 9.1.0 (#1357) @dependabot
+ - Bump css-loader from 5.2.7 to 6.7.2 (#1358) @dependabot
+ - Ensure palette_denyList is editable if allowInstall is enabled (#1379) @knolleary
+ - Fix backport cherry pick to have git user/email attached (#1380) @knolleary
+ - docs: Update Cloud docs around file nodes and NR versions (#1378) @ZJvandeWeg
+ - doc: License upgrade (#1371) @ZJvandeWeg
+ - Update Docker/Kube docs (#1337) @hardillb
+ - complicated/complex (#1373) @hardillb
+ - Dns docs (#1356) @hardillb
+ - API support for setting a projects hostname (#1361) @Pezmc
+ - Remove the custom FormRow label in favour of a slot (#1346) @Pezmc
+ - Revert "Remove ff:tooltip from Snapshot component" (#1347) @Pezmc
+ - Run E2E tests for package.json changes (#1362) @Pezmc
+ - Remove unused dependency posthog (#1363) @Pezmc
+ - Bump node-sass from 7.0.3 to 8.0.0 (#1360) @dependabot
+ - Show Team ID in Team > Settings > General (#1351) @joepavitt
+ - Audit Log UI (#1345) @joepavitt
+ - Make credential login a two-stage process (#1349) @knolleary
+ - Upgrade to Cypress 11 for testing (#1348) @joepavitt
+ - Update snapshot concept description (#1342) @knolleary
+ - First pass at Digital Ocean instructions (#1335) @hardillb
+ - Update list of configuration options (#1334) @hardillb
+ - Bump axios from 0.27.2 to 1.2.0 (#1328) @dependabot
+ - Remove old style audit log entries (#1318) @Steve-Mcl
+ - Direct link to the latest flowforge-installer.zip (#1333) @hardillb
+ - Bump sass-loader from 12.6.0 to 13.2.0 (#1330) @dependabot
+ - Bump cypress from 9.7.0 to 11.2.0 (#1329) @dependabot
+ - Improve User Settings email validation and error flow (#1326) @sdirosa
+ - Bump vitest from 0.23.4 to 0.25.3 (#1332) @dependabot
+ - Ensure "non user" triggering an auditlog entry is logged correctly (#1321) @Steve-Mcl
+ - Bump copy-webpack-plugin from 9.1.0 to 11.0.0 (#1262) @dependabot
+ - Fixup v1.1.0 install docs internal links (#1322) @Steve-Mcl
+ - Bump sinon from 13.0.2 to 14.0.2 (#1263) @dependabot
+ - Fix resync-maintenance action (#1317) @knolleary
+
 #### 1.1.0: Release
 
  - Add functions & framework for exact audit logging (#1224)
