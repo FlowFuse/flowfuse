@@ -123,7 +123,7 @@ erDiagram
     }
     FLOWFORGE-FILE-SERVER {
         Protocol HTTP-TLS
-        Port default-QUESTION
+        Port default-3001
     }
     NGINX }o--o| NODE-RED : routes
     NGINX }o--o{ FORGE-APP: routes
