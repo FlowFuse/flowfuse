@@ -120,6 +120,7 @@ erDiagram
     MOSQUITTO {
         Protocol HTTP-TLS-WSS-MQTT
         Port default-1883
+        Port websocket-1884
     }
     FLOWFORGE-FILE-SERVER {
         Protocol HTTP-TLS
@@ -127,6 +128,7 @@ erDiagram
     }
     NGINX }o--o| NODE-RED : routes
     NGINX }o--o{ FORGE-APP: routes
+    NGINX ||--|| MOSQUITTO: mqtt-ws
     FORGE-APP ||--|{ POSTGRESQL: query
     FORGE-APP ||--|| NODE-RED: "flow update"
     NODE-RED }o--o{ FLOWFORGE-FILE-SERVER: "Blob store"
@@ -141,6 +143,6 @@ erDiagram
         Port default-1880
         Protocol User-Defined
     }
-    NODE-RED-DEVICES }o--|| MOSQUITTO: mqtt
+    NODE-RED-DEVICES }o--|| NGINX: mqtt-ws
     USER ||--|| NODE-RED-DEVICES: Requests
 ```
