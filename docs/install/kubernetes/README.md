@@ -159,18 +159,26 @@ Once you have finished setting up the admin user there are some Kubernetes speci
 
 ### Using FlowForge File Storage
 
-FlowForge projects when running in Kubernetes do not have direct 
-access to a persistent file system to store files.
+FlowForge projects running in Kubernetes do not have direct access to a persistent
+file system to store files or use for storing context data.
 
-We recommend disabling the Node-RED core file nodes in the FlowForge
-Template.
+FlowForge includes a File Storage service that can be enabled to provide persistent
+storage.
+
+#### Disabling the default File nodes
+
+To remove the default Node-RED file nodes from the palette:
+
+1. Edit the Project Template to add `10-file.js,23-watch.js` to the "Exclude nodes by filename" section
 
 <img src="../images/file-node-template.png" width=500 />
 
-Adding `10-file.js,23-watch.js` to the list of "Excluded nodes by filename" section will ensure that the core file nodes are not loaded by the project.
 
-FlowForge File Nodes provide a solution to this for basic read/write.
-More details can be found [here](../file-storage/).
+#### Configuring the File Storage service
+
+Full details on configuring the file storage service are available [here](../file-storage/).
+
+#### Enabling the File Storage service
 
 To enable the FlowForge File Storage component add the following to the `customization.yml` file:
 
@@ -179,9 +187,6 @@ forge:
   fileStore:
     enabled: true
 ```
-
-It defaults to using the `localfs` and will allocate a Kubernetes Physical Volume to act as backing store.
-
 
 ## Upgrade
 

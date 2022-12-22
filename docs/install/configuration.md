@@ -142,8 +142,13 @@ Setting `logging.http` to `info` will log every HTTP request and response detail
 
 ## File storage
 
-FlowForge can provide an Object Store to allow users to read or write a
-file from flows.
+FlowForge includes a service that can be used by projects to read and write files
+in their flows as well as providing persistent storage for flow context information.
+
+Details of configuring the File Storage service are available [here](./file-storage/README.md).
+
+The main `flowforge.yml` file needs to contain the following properties so it
+can access the File server.
 
 Option        | Description
 --------------|------------

@@ -3,17 +3,36 @@
 If you are upgrading an existing FlowForge installation, this page will list any
 particular requirements needed to upgrade to a given level.
 
+If you are upgrading across multiple versions, make sure you check the requirements
+for each version you are upgrading across.
+
 Note that we do not support downgrading FlowForge to previous levels once an upgrade
 has been performed.
 
+
+### Upgrading to 1.2
+
+Details of how to upgrade can be found for each deployment model:
+
+- [LocalFS](../install/local/README.md#upgrade)
+- [Docker](../install/docker/README.md#upgrade)
+- [Kubernetes](../install/kubernetes/README.md#upgrade)
+
+#### Persistent Context added
+
+The new Persistent Context feature is avalable to projects when running with a
+[premium license](./open-source-to-premium.md).
+
+This feature requires additional configuration to be added to the File Server component
+that was introduced in FlowForge 1.1.
+
+Details of how to configure this can be found at the following links:
+
+- [LocalFS](../install/file-storage/README.md#localfs)
+- [Docker](../install/file-storage/README.md#docker-compose)
+- [Kubernetes](../install/file-storage/README.md#kubernetes-helm)
+
 ### Upgrading to 1.1
-
-Details of how to upgrade can be found for:
-
-- LocalFS [here](./local/README.md#upgrade).
-- Docker [here](./docker/README.md#upgrade).
-- Kubernetes [here](./kubernetes/README.md#upgrade).
-
 
 #### File Server added
 
@@ -21,11 +40,11 @@ This release introduces a system for supporting persitant file storage when runn
 Docker or Kubernetes (it will also work with LocalFS, but is not required as projects
 have access to the hosts filesystem).
 
-Details of how to configure this can be found for:
+Details of how to configure this can be found at the following links:
 
-- LocalFS [here](./file-storage/README.md#localfs).
-- Docker [here](./file-storage/README.md#docker-compose).
-- Kubernetes [here](./file-storage/README.md#kubernetes-helm).
+- [LocalFS](../install/file-storage/README.md#localfs)
+- [Docker](../install/file-storage/README.md#docker-compose)
+- [Kubernetes](../install/file-storage/README.md#kubernetes-helm)
 
 ### Upgrading to 0.8
 
