@@ -1,45 +1,68 @@
 # FlowForge File Storage
 
-When running in cloud like environment (under Docker or Kubernetes)
-FlowForge projects do not have access to a persistent filesystem to 
-use to store files. Files written to the container file system will 
-be lost if the project is restarted.
+When running in container-based environments, such as Docker or Kubernetes,
+the FlowForge Projects do not have access to a persistent filesystem.
 
-For this reason we recommend that the Node-RED core file nodes are
-disabled on these platforms.
+This means any files written to the container will be lost if the project is
+restarted.
 
-To solve this limitation FlowForge provides a set of replacement
-file nodes. These are backed by Object Store which can be configured
-to use a mounted volume or S3 bucket.
+The FlowForge platform includes a File Storage service that can be used to provide
+persistent storage to projects in two different ways:
 
-The FlowForge File Storage system can also be used with the FlowForge
-LocalFS build. In this case the FlowForge Projects already have
-direct access to the file system of the machine hosting FlowForge.
+  - A set of custom File nodes that behave the same way as the standard Node-RED
+    File nodes
+  - An optional Persistent Context store for storing context data within flows.
+    This feature is only available for platforms running with a premium license.
+
+*Note:* the File Storage service is only required in Docker or Kubernetes environments.
+If you are running using the LocalFS platform driver, the projects have direct
+access to the local filesystem already.
 
 ## Configuring
 
-The Docker Compose and Kubernetes Helm Chart will both now start a 
-container running the File Server application.
+The File Storage server has its own configuration file: `etc/flowforge-storage.yml`.
 
-There are 3 main things to set up:
+ - **Docker Compose** - edit the file directly before starting the service
+ - **Kubernetes/Helm** - include the options in your `customization.yml`, using `forge.fileStore.*` as the property name prefix.
+   You must also set `forge.fileStore.enabled` to `true` to tell Helm to deploy the service.
 
- 1. Which backend to use (`localfs` or `s3`)
- 2. The quota for each project in bytes (not set is unlimited)
- 3. The configuration options for the backend
+There are three parts to the configuration:
+ - [Platform Configuration](#platform-configuration) - how to access the main FlowForge platform application
+ - [File Storage configuration](#file-storage-configuration) - what storage to use for the File nodes
+ - [Persistent Context configuration](#persistent-context-configuration) - what storage to use for Persistent Context
 
-These are set in the `etc/flowforge-storage.yml` file.
-### LocalFS
+### Platform Configuration
 
-This can be used when you mount a volume into the File Server container
-to persist files.
+Option        | Description
+--------------|------------
+`host` | Where to listen for incoming connections. Default: `0.0.0.0`. 
+`port` | The port to listen on. Default: `3001`
+`base_url` | The url to access the FlowForge platform on. This defaults to `http://localhost:3000`
 
-The only configuration option used is the path to the directory to use
-as the root of the storage
+
+### File Storage configuration
+
+The File Storage configuration determines where the files used by Node-RED File
+nodes are stored.
+
+This can be configured to either store the files on the local filesytem of the 
+File Storage server, or using an AWS S3 compatible service.
+
+#### LocalFS
+
+Stores the files locally, for example using a volume mounted into the File Storage
+server container.
+
+Option        | Description
+--------------|------------
+`driver.type` | `localfs`
+`driver.quota` | A per-project quota for how much data will be stored - in bytes. If this is not set, no limit will be applied
+`driver.options.root` | The root path under which project data should be stored.
+
+
+The following shows an example configuration using the `localfs` file driver.
 
 ```yaml
-host: 0.0.0.0
-port: 3001
-base_url: http://flowforge:3000
 driver:
   type: localfs
   quota: 104857600
@@ -47,25 +70,26 @@ driver:
     root: var/root
 ```
 
-### S3 Compatible Storage
+#### S3 Compatible Storage
 
-- options
-    - bucket - name of S3 Bucket (required)
-    - region - AWS Region for the bucket (required)
-    - endpoint - S3 ObjectStore Endpoint (if not using AWS S3)
-    - forcePathStyle: true
-    - credential
-        - accessKeyId - AccountID/Username
-        - secretAccessKey - SecretKey/Password
+Stores the files in an external service using the AWS S3 API.
 
-For further reference of all available options you can look at the S3Client documentation [here](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-s3/interfaces/s3clientconfig.html)
+Option        | Description
+--------------|------------
+`driver.type` | `s3`
+`driver.quota` | A per-project quota for how much data will be stored - in bytes. If this is not set, no limit will be applied
+`driver.options.bucket` | Name of the S3 bucket to use (required)
+`driver.options.region` | Name of AWS region of the bucket (required)
+`driver.options.endpoint` | S3 ObjectStore Endpoint, if not using AWS S3
+`driver.options.forcePathStyle` | `true`
+`driver.options.credential.accessKeyId` | Account ID / Username
+`driver.options.credential.secretAccessKey` | Secret Key / Password
+
+The full list of valid options under `driver.options` is available in the [AWS S3Client documentation](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-s3/interfaces/s3clientconfig.html).
 
 For example:
 
 ```yaml
-host: '0.0.0.0'
-port: 3001
-base_url: http://forge.default
 driver:
   type: s3
   quota: 104857600
@@ -78,25 +102,7 @@ driver:
     region: us-east-1
 ```
 
-## Docker Compose
-
-You can configure the backend store for the File Server by editing the 
-`etc/flowforge-storage.yml` file. It defaults to using the `localfs` 
-backend driver and mounting a directory into the container.
-
-File Storage quota defaults to 100MB per project
-
-## Kubernetes Helm
-
-You can configure the backend store for the File server by including 
-the following values passed to helm
-
-- `forge.fileStore.enabled` - defaults to `false`
-- `forge.fileStore.type` - defaults to `localfs`
-- `forge.fileStore.quota` - defaults to `104857600` bytes (100mb)
-- `forge.fileStore.options` - an object that matches the Yaml described above
-
-## Enabling the FlowForge File Nodes
+#### Enabling the FlowForge File Nodes
 
 The FlowForge File nodes have been written to be direct replacements
 for the Node-RED core file-in and file-out nodes. This means that only 
@@ -112,16 +118,26 @@ This can be done in the FlowForge Template.
 
 Adding `10-file.js` to the list of "Excluded nodes by filename" section will ensure that the core file nodes are not loaded by the project.
 
-## Persistent Context
+### Persistent Context configuration
 
-For FlowForge Premium licensees the File Server component also provides a Persistent Context Store.
+The Context Storage configuration determines where Node-RED Context data is stored.
 
-### Configuring 
+This feature is only available when running with a FlowForge Premium license.
 
-The Persistent Context Store uses a database backend to hold state. It can be used with a SQLite or PostgreSQL database.
-This is configured in the `etc/flowforge-storage.yml` file similar to the File Store driver mentioned earlier.
+Due to the different access patterns for context data, this requires a separate
+storage configuration to the File store. It can use either an SQLite or PostgreSQL
+database.
 
 #### SQLite
+
+Option        | Description
+--------------|------------
+`context.type` | `sequelize`
+`context.quote` | A per-project quota for how much data will be stored - in bytes. If this is not set, no limit will be applied
+`context.options.type` | `sqlite`
+`context.options.storage` | Path to the sqlite database file to use
+
+For example:
 
 ```yaml
 context:
@@ -133,6 +149,19 @@ context:
 ```
 
 #### PostgreSQL
+
+Option        | Description
+--------------|------------
+`context.type` | `sequelize`
+`context.quote` | A per-project quota for how much data will be stored - in bytes. If this is not set, no limit will be applied
+`context.options.type` | `postgres`
+`context.options.host` | The hostname of the database server
+`context.options.port` | The port of the database server
+`context.options.database` | The name of the database to store context data in
+`context.options.username` | The username to access to the database with
+`context.options.password` | The password to access to the database with
+
+For example:
 
 ```yaml
 context:
@@ -147,24 +176,8 @@ context:
     password: password
 ```
 
-### Docker and Kubernetes
-
-For both Docker and Kubernetes come with a the context store configured with default values, uploading 
-a license for the FlowForge application will enable it, but existing projects will require suspending 
-and restarting to pick up the change.
-
-The default quota is 1KB per project which can be overridden as follows:
-
-- on Docker edit the `etc/flowforge-storage.yml` file.
-- on Kubernetes set the `forge.fileStore.context.quota` value in bytes when passing helm.
-    - `forge.fileStore.context.options` holds driver options
-
 ## Working with FlowForge Devices
 
-Because the FlowForge File nodes are a direct replacement for the
-Node-RED core file nodes you can use them to build flows
-in the cloud that can then be deployed to a device and make use of 
-the file system on the device.
-
-When a snapshot is pushed to a device the Node-RED core file nodes 
-will be loaded.
+The FlowForge Device Agent does *not* use the File Storage service. Any flows
+using the file nodes or persistent context that are deployed to a Device will use
+the local filesystem directly.
