@@ -42,7 +42,7 @@ describe('Stripe Callbacks', function () {
             })
 
             should(app.log.info.called).equal(true)
-            app.log.info.lastCall.firstArg.should.equal(`Stripe charge.failed event ch_1234567890 received for team '${app.team.hashid}'`)
+            app.log.info.lastCall.firstArg.should.equal(`Stripe charge.failed event ch_1234567890 from cus_1234567890 received for team '${app.team.hashid}'`)
 
             should(response).have.property('statusCode', 200)
         })
@@ -68,7 +68,7 @@ describe('Stripe Callbacks', function () {
             })
 
             should(app.log.error.called).equal(true)
-            app.log.error.lastCall.firstArg.should.equal("Stripe charge.failed event ch_1234567890 received for unknown team 'cus_does_not_exist'")
+            app.log.error.lastCall.firstArg.should.equal('Stripe charge.failed event ch_1234567890 from cus_does_not_exist received for unknown team by Stripe Customer ID')
 
             should(response).have.property('statusCode', 200)
         })
@@ -98,7 +98,7 @@ describe('Stripe Callbacks', function () {
                 }
             }))
             should(app.log.info.called).equal(true)
-            app.log.info.firstCall.firstArg.should.equal(`Stripe checkout.session.completed event cs_1234567890 received for team '${app.team.hashid}'`)
+            app.log.info.firstCall.firstArg.should.equal(`Stripe checkout.session.completed event cs_1234567890 from cus_0987654321 received for team '${app.team.hashid}'`)
 
             should(response).have.property('statusCode', 200)
             const sub = await app.db.models.Subscription.byCustomerId('cus_0987654321')
@@ -132,7 +132,7 @@ describe('Stripe Callbacks', function () {
             }))
 
             should(app.log.error.called).equal(true)
-            app.log.error.firstCall.firstArg.should.equal("Stripe checkout.session.completed event cs_1234567890 received for unknown team 'unknown_team_id'")
+            app.log.error.firstCall.firstArg.should.equal("Stripe checkout.session.completed event cs_1234567890 from cus_0987654321 received for unknown team by team ID 'unknown_team_id'")
 
             should(response).have.property('statusCode', 200)
         })
@@ -163,7 +163,7 @@ describe('Stripe Callbacks', function () {
             }))
 
             should(app.log.info.called).equal(true)
-            app.log.info.firstCall.firstArg.should.equal(`Stripe checkout.session.expired event cs_1234567890 received for team '${app.team.hashid}'`)
+            app.log.info.firstCall.firstArg.should.equal(`Stripe checkout.session.expired event cs_1234567890 from cus_1234567890 received for team '${app.team.hashid}'`)
 
             should(response).have.property('statusCode', 200)
         })
@@ -193,7 +193,7 @@ describe('Stripe Callbacks', function () {
             }))
 
             should(app.log.info.called).equal(true)
-            app.log.info.firstCall.firstArg.should.equal(`Stripe customer.subscription.created event sub_1234567890 received for team '${app.team.hashid}'`)
+            app.log.info.firstCall.firstArg.should.equal(`Stripe customer.subscription.created event sub_1234567890 from cus_1234567890 received for team '${app.team.hashid}'`)
 
             should(response).have.property('statusCode', 200)
         })
@@ -221,7 +221,7 @@ describe('Stripe Callbacks', function () {
             }))
 
             should(app.log.error.called).equal(true)
-            app.log.error.firstCall.firstArg.should.equal('Stripe customer.subscription.created event sub_unknown received for unknown team \'cus_unknown\'')
+            app.log.error.firstCall.firstArg.should.equal('Stripe customer.subscription.created event sub_unknown from cus_unknown received for unknown team by Stripe Customer ID')
 
             should(response).have.property('statusCode', 200)
         })
@@ -254,7 +254,7 @@ describe('Stripe Callbacks', function () {
             }))
 
             should(app.log.info.called).equal(true)
-            app.log.info.firstCall.firstArg.should.equal(`Stripe customer.subscription.updated event sub_1234567890 received for team '${app.team.hashid}'`)
+            app.log.info.firstCall.firstArg.should.equal(`Stripe customer.subscription.updated event sub_1234567890 from cus_1234567890 received for team '${app.team.hashid}'`)
 
             should(response).have.property('statusCode', 200)
 
@@ -322,7 +322,7 @@ describe('Stripe Callbacks', function () {
             }))
 
             should(app.log.error.called).equal(true)
-            app.log.error.firstCall.firstArg.should.equal("Stripe customer.subscription.updated event sub_unknown received for unknown team 'cus_unknown'")
+            app.log.error.firstCall.firstArg.should.equal('Stripe customer.subscription.updated event sub_unknown from cus_unknown received for unknown team by Stripe Customer ID')
 
             should(response).have.property('statusCode', 200)
 
@@ -403,7 +403,7 @@ describe('Stripe Callbacks', function () {
             }))
 
             should(app.log.info.called).equal(true)
-            app.log.info.firstCall.firstArg.should.equal(`Stripe customer.subscription.deleted event sub_1234567890 received for team '${app.team.hashid}'`)
+            app.log.info.firstCall.firstArg.should.equal(`Stripe customer.subscription.deleted event sub_1234567890 from cus_1234567890 received for team '${app.team.hashid}'`)
 
             should(response).have.property('statusCode', 200)
 
@@ -437,7 +437,7 @@ describe('Stripe Callbacks', function () {
             }))
 
             should(app.log.error.called).equal(true)
-            app.log.error.firstCall.firstArg.should.equal('Stripe customer.subscription.deleted event sub_1234567890 received for unknown team \'cus_unknown\'')
+            app.log.error.firstCall.firstArg.should.equal('Stripe customer.subscription.deleted event sub_1234567890 from cus_unknown received for unknown team by Stripe Customer ID')
 
             should(response).have.property('statusCode', 200)
         })
@@ -467,7 +467,7 @@ describe('Stripe Callbacks', function () {
             }))
 
             should(app.log.error.called).equal(true)
-            app.log.error.firstCall.firstArg.should.equal('Stripe customer.subscription.deleted event sub_1234567890 received for unknown team \'cus_1234567890\'')
+            app.log.error.firstCall.firstArg.should.equal('Stripe customer.subscription.deleted event sub_1234567890 from cus_1234567890 received for unknown team by Stripe Customer ID')
 
             should(response).have.property('statusCode', 200)
         })

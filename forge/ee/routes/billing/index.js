@@ -9,11 +9,14 @@ const { Readable } = require('stream')
 module.exports = async function (app) {
     const stripe = require('stripe')(app.config.billing.stripe.key)
 
-    function logStripeEvent (event, team, teamId = null) {
+    function logStripeEvent (event, team, teamId = null, stripeCustomerId = null) {
+        const intro = `Stripe ${event.type} event ${event.data.object.id} from ${stripeCustomerId} received for`
         if (team) {
-            app.log.info(`Stripe ${event.type} event ${event.data.object.id} received for team '${team.hashid}'`)
+            app.log.info(`${intro} team '${team.hashid}'`)
+        } else if (teamId) {
+            app.log.error(`${intro} unknown team by team ID '${teamId}'`)
         } else {
-            app.log.error(`Stripe ${event.type} event ${event.data.object.id} received for unknown team '${teamId}'`)
+            app.log.error(`${intro} unknown team by Stripe Customer ID`)
         }
     }
 
@@ -22,7 +25,7 @@ module.exports = async function (app) {
         const subscription = await app.db.models.Subscription.byCustomerId(stripeCustomerId)
         const team = subscription?.Team
 
-        logStripeEvent(event, team, stripeCustomerId)
+        logStripeEvent(event, team, null, stripeCustomerId)
 
         return {
             stripeCustomerId, subscription, team
@@ -37,12 +40,11 @@ module.exports = async function (app) {
         let team
         if (teamId) {
             team = await app.db.models.Team.byId(teamId)
-            logStripeEvent(event, team, teamId)
         } else {
             const subscription = await app.db.models.Subscription.byCustomerId(stripeCustomerId)
             team = subscription?.Team
-            logStripeEvent(event, team, stripeCustomerId)
         }
+        logStripeEvent(event, team, teamId, stripeCustomerId)
 
         return {
             stripeSubscriptionId, stripeCustomerId, team
@@ -55,7 +57,7 @@ module.exports = async function (app) {
         const subscription = await app.db.models.Subscription.byCustomerId(stripeCustomerId)
         const team = subscription?.Team
 
-        logStripeEvent(event, team, stripeCustomerId)
+        logStripeEvent(event, team, null, stripeCustomerId)
 
         return {
             stripeSubscriptionId, stripeCustomerId, subscription, team
@@ -143,7 +145,7 @@ module.exports = async function (app) {
                 await app.db.controllers.Subscription.createSubscription(team, stripeSubscriptionId, stripeCustomerId)
                 await app.auditLog.Team.billing.session.completed(request.session?.User || 'system', null, team, event.data.object)
 
-                app.log.info(`Created Subscription for team ${team.hashid}`)
+                app.log.info(`Created Subscription for team '${team.hashid}' with Stripe Customer ID '${stripeCustomerId}'`)
 
                 break
             }
