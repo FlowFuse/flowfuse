@@ -54,7 +54,10 @@ module.exports = fp(async function (app, opts, done) {
                 const providerId = await app.sso.getProviderForEmail(request.query.u)
                 const opts = await app.sso.getProviderOptions(providerId)
                 if (opts) {
-                    request.query.RelayState = JSON.stringify({ provider: providerId })
+                    request.query.RelayState = JSON.stringify({
+                        provider: providerId,
+                        redirectTo: decodeURIComponent(request.query.r || '/')
+                    })
                     done(null, opts)
                     return
                 } else {
@@ -108,7 +111,12 @@ module.exports = fp(async function (app, opts, done) {
                 userInfo.id = sessionInfo.session.UserId
                 reply.setCookie('sid', sessionInfo.session.sid, sessionInfo.cookieOptions)
                 await app.auditLog.User.account.login(userInfo, null)
-                reply.redirect('/')
+                let redirectTo = '/'
+                if (request.body?.RelayState) {
+                    const state = JSON.parse(request.body.RelayState)
+                    redirectTo = /^\/.*/.test(state.redirectTo) ? state.redirectTo : '/'
+                }
+                reply.redirect(redirectTo)
                 return
             } else {
                 const resp = { code: 'user_suspended', error: 'User Suspended' }

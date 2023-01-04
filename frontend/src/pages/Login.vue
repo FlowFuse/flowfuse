@@ -82,7 +82,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings', 'pending', 'loginError'])
+        ...mapState('account', ['settings', 'pending', 'loginError', 'redirectUrlAfterLogin'])
     },
     async mounted () {
         await this.$nextTick()
@@ -102,7 +102,11 @@ export default {
                 this.passwordRequired = false
                 this.input.password = ''
                 if (newError.redirect) {
-                    window.location = newError.redirect
+                    let redirectPath = newError.redirect
+                    if (this.redirectUrlAfterLogin !== '/') {
+                        redirectPath += '&r=' + encodeURIComponent(this.redirectUrlAfterLogin)
+                    }
+                    window.location = redirectPath
                 } else {
                     this.loggingIn = false
                     await this.$nextTick()
