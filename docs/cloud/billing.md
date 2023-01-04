@@ -35,7 +35,7 @@ There is also a link to the Stripe Customer Portal where you can change the paym
 ## Failed Payments
 
 If your payment fails for any reason you will receive a notification to the billing email address, you may need to login and update the card on file. 
-Stripe will retry the payment several times over a number of days. If the card repeatedly fails we may have to suspend your account.
+Stripe will retry the payment several times over a number of days. If the card repeatedly fails your projects will be suspended and a banner will be displayed at the top of the page for all users. An admin will need to update your card details to be able create new projects or restart them.
 
 ## Cancelling your subscription
 
