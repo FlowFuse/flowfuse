@@ -7,7 +7,7 @@
 module.exports = async function (app) {
     app.addHook('preHandler', app.verifySession)
     if (app.config.billing) {
-        await app.register(require('./billing'), { prefix: '/billing', logLevel: 'warn' })
+        await app.register(require('./billing'), { prefix: '/billing', logLevel: app.config.logging.http })
     }
-    await app.register(require('./sso'), { logLevel: 'warn' })
+    await app.register(require('./sso'), { logLevel: app.config.logging.http })
 }
