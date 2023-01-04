@@ -7,6 +7,7 @@ import AccountTeams from '@/pages/account/Teams/index.vue'
 import AccountTeamTeams from '@/pages/account/Teams/Teams.vue'
 import AccountTeamInvitations from '@/pages/account/Teams/Invitations.vue'
 import AccessRequest from '@/pages/account/AccessRequest.vue'
+import AccessRequestEditor from '@/pages/account/AccessRequestEditor.vue'
 import AccountCreate from '@/pages/account/Create.vue'
 import VerifyEmail from '@/pages/account/VerifyEmail.vue'
 import ForgotPassword from '@/pages/account/ForgotPassword'
@@ -17,33 +18,17 @@ import store from '@/store'
 
 export default [
     {
-        // This is the editor being authenticated. Bounce straight to complete
-        // the auth flow rather than ask permission
+        // This is the editor being authenticated. This component bounces the user
+        // straight back to the editor without any additional actions.
         path: '/account/request/:id/editor',
-        component: AccessRequest,
-        beforeEnter: (to, _, next) => {
-            let removeWatch
-            function proceed () {
-                if (removeWatch) {
-                    removeWatch()
-                }
-                if (store.state.account.user) {
-                    window.location.href = `/account/complete/${to.params.id}`
-                }
-            }
-            // Check if we've loaded the current user yet
-            if (!store.state.account.user) {
-                // Setup a watch
-                removeWatch = store.watch(
-                    (state) => state.account.user,
-                    (_) => { proceed() }
-                )
-            } else {
-                proceed()
-            }
+        component: AccessRequestEditor,
+        meta: {
+            modal: true
         }
     },
     {
+        // This is the FF Tools Plugin requesting access. This component asks the
+        // user to confirm access
         path: '/account/request/:id',
         component: AccessRequest,
         meta: {
