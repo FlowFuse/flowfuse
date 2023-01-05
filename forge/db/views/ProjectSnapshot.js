@@ -12,6 +12,9 @@ module.exports = {
             if (snapshot.User) {
                 filtered.user = app.db.views.User.shortProfile(snapshot.User)
             }
+            if (snapshot.settings?.modules) {
+                filtered.modules = snapshot.settings.modules
+            }
             return filtered
         } else {
             return null

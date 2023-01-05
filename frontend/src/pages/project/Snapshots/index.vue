@@ -18,6 +18,7 @@
                 </template>
                 <template v-if="showContextMenu" v-slot:context-menu="{row}">
                     <ff-list-item v-if="hasPermission('project:snapshot:rollback')" label="Rollback" @click="showRollbackDialog(row)" />
+                    <ff-list-item v-if="hasPermission('project:snapshot:read')"  label="Download package.json" @click="downloadSnapshotPackage(row)"/>
                     <ff-list-item v-if="hasPermission('project:snapshot:set-target')" label="Set as Device Target" @click="showDeviceTargetDialog(row)"/>
                     <ff-list-item v-if="hasPermission('project:snapshot:delete')" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)"/>
                 </template>
@@ -147,6 +148,23 @@ export default {
         },
         snapshotCreated (snapshot) {
             this.snapshots.unshift(snapshot)
+        },
+        async downloadSnapshotPackage (snapshot) {
+            const ss = await snapshotApi.getSnapshot(this.project.id, snapshot.id)
+            const packageJSON = {
+                name: 'flowforge-project',
+                description: 'A FlowForge Project',
+                private: true,
+                version: '0.0.1',
+                dependencies: ss.modules
+            }
+            const element = document.createElement('a')
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(packageJSON, null, 2)))
+            element.setAttribute('download', 'package.json')
+            element.style.display = 'none'
+            document.body.appendChild(element)
+            element.click()
+            document.body.removeChild(element)
         }
     },
     computed: {
