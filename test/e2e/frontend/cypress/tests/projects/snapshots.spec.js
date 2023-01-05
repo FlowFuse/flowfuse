@@ -47,11 +47,8 @@ describe('FlowForge - Project Snapshots', () => {
         // click the 2nd option (Download)
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(1).click()
 
-        const downloadsFolder = Cypress.config('downloadsFolder');
-        const packFile = cy.readFile(path.join(downloadsFolder, 'package.json'))
-        
-        // const packJSON = JSON.parse(packFile)
-        // console.log(packJSON)
+        const downloadsFolder = Cypress.config('downloadsFolder')
+        cy.readFile(path.join(downloadsFolder, 'package.json'))
     })
 
     it('can delete a snapshot', () => {
