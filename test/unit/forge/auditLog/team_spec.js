@@ -385,7 +385,24 @@ describe('Audit Log > Team', async function () {
         logEntry.body.team.id.should.equal(TEAM.hashid)
     })
 
-    it('Provides a logger for deleting a billing session in a team', async function () {
+    it('Provides a logger for updating a subscription in a team', async function () {
+        await teamLogger.billing.subscription.updated(ACTIONED_BY, null, TEAM, SUBSCRIPTION, [{ key: 'status', old: 'active', new: 'canceled' }])
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'billing.subscription.updated')
+        logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('subscription', 'team', 'updates')
+        logEntry.body.subscription.should.only.have.keys('subscription')
+        logEntry.body.subscription.subscription.should.equal('subscription')
+        logEntry.body.team.should.only.have.keys('id', 'name', 'slug', 'type')
+        logEntry.body.team.id.should.equal(TEAM.hashid)
+        logEntry.body.updates.should.have.length(1)
+        logEntry.body.updates[0].should.eql({ key: 'status', old: 'active', new: 'canceled' })
+    })
+
+    it('Provides a logger for deleting a subscription in a team', async function () {
         await teamLogger.billing.subscription.deleted(ACTIONED_BY, null, TEAM, SUBSCRIPTION)
         // check log stored
         const logEntry = await getLog()

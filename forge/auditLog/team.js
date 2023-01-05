@@ -92,9 +92,12 @@ module.exports = {
                 }
             },
             subscription: {
+                async updated (actionedBy, error, team, subscription, updates) {
+                    const body = generateBody({ error, team, subscription, updates })
+                    await log('billing.subscription.updated', actionedBy, team?.id, body)
+                },
                 async deleted (actionedBy, error, team, subscription) {
-                    const body = generateBody({ error, team })
-                    body.subscription = { subscription: subscription.subscription }
+                    const body = generateBody({ error, team, subscription })
                     await log('billing.subscription.deleted', actionedBy, team?.id, body)
                 }
             }
