@@ -1,3 +1,4 @@
+const path = require('path')
 describe('FlowForge - Project Snapshots', () => {
     beforeEach(() => {
         cy.intercept('GET', '/api/*/projects/*/snapshots').as('getProjectSnapshots')
@@ -40,13 +41,26 @@ describe('FlowForge - Project Snapshots', () => {
         cy.get('[data-el="snapshots"] tbody').find('tr').contains('snapshot1')
     })
 
+    it('download snapshot package.json', () => {
+        // click kebab menu in row 1
+        cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
+        // click the 2nd option (Download)
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(1).click()
+
+        const downloadsFolder = Cypress.config('downloadsFolder');
+        const packFile = cy.readFile(path.join(downloadsFolder, 'package.json'))
+        
+        // const packJSON = JSON.parse(packFile)
+        // console.log(packJSON)
+    })
+
     it('can delete a snapshot', () => {
         cy.intercept('DELETE', '/api/*/projects/*/snapshots/*').as('deleteSnapshot')
 
         // click kebab menu in row 1
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
-        // click the 3rd option (Delete)
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(2).click()
+        // click the 4th option (Delete)
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(3).click()
 
         cy.get('[data-el="platform-dialog"]').should('be.visible')
         cy.get('[data-el="platform-dialog"] .ff-dialog-header').contains('Delete Snapshot')
