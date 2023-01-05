@@ -9,12 +9,14 @@ const { Readable } = require('stream')
 module.exports = async function (app) {
     const stripe = require('stripe')(app.config.billing.stripe.key)
 
-    function logStripeEvent (event, team, teamId = null, stripeCustomerId = null) {
+    function logStripeEvent (event, team, subscription, teamId = null, stripeCustomerId = null) {
         const intro = `Stripe ${event.type} event ${event.data.object.id} from ${stripeCustomerId} received for`
         if (team) {
             app.log.info(`${intro} team '${team.hashid}'`)
         } else if (teamId) {
             app.log.error(`${intro} unknown team by team ID '${teamId}'`)
+        } else if (subscription) {
+            app.log.warn(`${intro} deleted team with orphaned subscription`)
         } else {
             app.log.error(`${intro} unknown team by Stripe Customer ID`)
         }
@@ -25,7 +27,7 @@ module.exports = async function (app) {
         const subscription = await app.db.models.Subscription.byCustomerId(stripeCustomerId)
         const team = subscription?.Team
 
-        logStripeEvent(event, team, null, stripeCustomerId)
+        logStripeEvent(event, team, subscription, null, stripeCustomerId)
 
         return {
             stripeCustomerId, subscription, team
@@ -37,14 +39,14 @@ module.exports = async function (app) {
         const stripeSubscriptionId = event.data.object.subscription
         const teamId = event.data.object?.client_reference_id
 
-        let team
+        let team, subscription
         if (teamId) {
             team = await app.db.models.Team.byId(teamId)
         } else {
             const subscription = await app.db.models.Subscription.byCustomerId(stripeCustomerId)
             team = subscription?.Team
         }
-        logStripeEvent(event, team, teamId, stripeCustomerId)
+        logStripeEvent(event, team, subscription, teamId, stripeCustomerId)
 
         return {
             stripeSubscriptionId, stripeCustomerId, team
@@ -57,7 +59,7 @@ module.exports = async function (app) {
         const subscription = await app.db.models.Subscription.byCustomerId(stripeCustomerId)
         const team = subscription?.Team
 
-        logStripeEvent(event, team, null, stripeCustomerId)
+        logStripeEvent(event, team, subscription, null, stripeCustomerId)
 
         return {
             stripeSubscriptionId, stripeCustomerId, subscription, team
@@ -186,14 +188,21 @@ module.exports = async function (app) {
 
             case 'customer.subscription.deleted': {
                 const { team, subscription } = await parseSubscriptionEvent(event)
-                if (!team) {
+                if (!subscription) {
                     response.status(200).send()
                     return
                 }
 
                 // Cancel our copy of the subscription
-                subscription.status = app.db.models.Subscription.STATUS.CANCELED
-                await subscription.save()
+                if (subscription.status !== app.db.models.Subscription.STATUS.CANCELED) {
+                    subscription.status = app.db.models.Subscription.STATUS.CANCELED
+                    await subscription.save()
+                }
+
+                if (!team) {
+                    response.status(200).send()
+                    return
+                }
 
                 // Suspend all projects of that team
                 const projects = await app.db.models.Project.byTeam(team.hashid)

@@ -243,7 +243,6 @@ module.exports = async function (app) {
                 if (subscription) {
                     // const subId = subscription.subscription
                     await app.billing.closeSubscription(subscription)
-                    await app.auditLog.Team.billing.subscription.deleted(request.session.User, null, request.team, subscription)
                 }
             }
             await request.team.destroy()

@@ -285,7 +285,8 @@ module.exports.init = async function (app) {
                 invoice_now: true,
                 prorate: true
             })
-            await subscription.destroy()
+            subscription.status = app.db.models.Subscription.STATUS.CANCELED
+            await subscription.save()
         }
     }
 }

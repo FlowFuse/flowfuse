@@ -471,5 +471,35 @@ describe('Stripe Callbacks', function () {
 
             should(response).have.property('statusCode', 200)
         })
+
+        it('Handles cancellation for unknown teams but with a subscription (team manually deleted)', async () => {
+            await app.team.destroy()
+
+            const response = await (app.inject({
+                method: 'POST',
+                url: callbackURL,
+                headers: {
+                    'content-type': 'application/json'
+                },
+                payload: {
+                    id: 'evt_1MEVSfJ6VWAujNoLCPdYq9kn',
+                    object: 'event',
+                    data: {
+                        object: {
+                            id: 'sub_1234567890',
+                            object: 'subscription',
+                            customer: 'cus_1234567890',
+                            status: 'canceled'
+                        }
+                    },
+                    type: 'customer.subscription.deleted'
+                }
+            }))
+
+            should(app.log.warn.called).equal(true)
+            app.log.warn.firstCall.firstArg.should.equal('Stripe customer.subscription.deleted event sub_1234567890 from cus_1234567890 received for deleted team with orphaned subscription')
+
+            should(response).have.property('statusCode', 200)
+        })
     })
 })
