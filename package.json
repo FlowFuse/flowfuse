@@ -96,7 +96,7 @@
         "cross-env": "^7.0.3",
         "css-loader": "^6.7.3",
         "cypress": "^11.2.0",
-        "dotenv-webpack": "^7.1.1",
+        "dotenv-webpack": "^8.0.1",
         "eslint": "^8.31.0",
         "eslint-config-standard": "^17.0.0",
         "eslint-import-resolver-node": "^0.3.6",
