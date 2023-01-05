@@ -9,6 +9,12 @@ describe('Stripe Callbacks', function () {
 
     const callbackURL = '/ee/billing/callback'
 
+    async function getLog () {
+        const logs = await app.db.models.AuditLog.forEntity()
+        logs.log.should.have.length(1)
+        return (await app.db.views.AuditLog.auditLog({ log: logs.log })).log[0]
+    }
+
     beforeEach(async function () {
         app = await setup()
         sandbox.spy(app.log)
@@ -260,6 +266,13 @@ describe('Stripe Callbacks', function () {
 
             const subscription = await app.db.models.Subscription.byCustomerId('cus_1234567890')
             should(subscription.status).equal(app.db.models.Subscription.STATUS.CANCELED)
+
+            const log = await getLog()
+            log.event.should.equal('billing.subscription.updated')
+            log.body.updates.should.have.length(1)
+            log.body.updates[0].key.should.equal('status')
+            log.body.updates[0].old.should.equal('active')
+            log.body.updates[0].new.should.equal('canceled')
         })
 
         it('Ignores changes to unhandled statuses', async () => {
@@ -412,6 +425,13 @@ describe('Stripe Callbacks', function () {
 
             const projectsStatesAfter = await app.db.models.Project.byTeam(app.team.hashid)
             projectsStatesAfter.map((project) => project.state).should.match(['suspended', 'suspended', 'suspended'])
+
+            const log = await getLog()
+            log.event.should.equal('billing.subscription.updated')
+            log.body.updates.should.have.length(1)
+            log.body.updates[0].key.should.equal('status')
+            log.body.updates[0].old.should.equal('active')
+            log.body.updates[0].new.should.equal('canceled')
         })
 
         it('Handles cancellation for unknown customers', async () => {

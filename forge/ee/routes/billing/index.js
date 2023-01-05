@@ -22,6 +22,22 @@ module.exports = async function (app) {
         }
     }
 
+    async function updateSubscriptionStatus (subscription, newStatus, team, user) {
+        if (subscription.status === newStatus) {
+            return
+        }
+        const oldStatus = subscription.status
+
+        subscription.status = newStatus
+        await subscription.save()
+
+        if (team) {
+            const changes = new app.auditLog.formatters.UpdatesCollection()
+            changes.push('status', oldStatus, newStatus)
+            await app.auditLog.Team.billing.subscription.updated(user, null, team, subscription, changes)
+        }
+    }
+
     async function parseChargeEvent (event) {
         const stripeCustomerId = event.data.object.customer
         const subscription = await app.db.models.Subscription.byCustomerId(stripeCustomerId)
@@ -169,7 +185,7 @@ module.exports = async function (app) {
             }
 
             case 'customer.subscription.updated': {
-                const { stripeSubscriptionId, subscription } = await parseSubscriptionEvent(event)
+                const { stripeSubscriptionId, team, subscription } = await parseSubscriptionEvent(event)
                 if (!subscription) {
                     response.status(200).send()
                     return
@@ -177,8 +193,7 @@ module.exports = async function (app) {
 
                 const stripeSubscriptionStatus = event.data.object.status
                 if (Object.values(app.db.models.Subscription.STATUS).includes(stripeSubscriptionStatus)) {
-                    subscription.status = stripeSubscriptionStatus
-                    await subscription.save()
+                    await updateSubscriptionStatus(subscription, stripeSubscriptionStatus, team, request.session?.User || 'system')
                 } else {
                     app.log.warn(`Stripe subscription ${stripeSubscriptionId} has transitioned in Stripe to a state not currently handled: '${stripeSubscriptionStatus}'`)
                 }
@@ -194,10 +209,7 @@ module.exports = async function (app) {
                 }
 
                 // Cancel our copy of the subscription
-                if (subscription.status !== app.db.models.Subscription.STATUS.CANCELED) {
-                    subscription.status = app.db.models.Subscription.STATUS.CANCELED
-                    await subscription.save()
-                }
+                await updateSubscriptionStatus(subscription, app.db.models.Subscription.STATUS.CANCELED, team, request.session?.User || 'system')
 
                 if (!team) {
                     response.status(200).send()
