@@ -9,6 +9,12 @@ describe('Stripe Callbacks', function () {
 
     const callbackURL = '/ee/billing/callback'
 
+    async function getLog () {
+        const logs = await app.db.models.AuditLog.forEntity()
+        logs.log.should.have.length(1)
+        return (await app.db.views.AuditLog.auditLog({ log: logs.log })).log[0]
+    }
+
     beforeEach(async function () {
         app = await setup()
         sandbox.spy(app.log)
@@ -260,6 +266,13 @@ describe('Stripe Callbacks', function () {
 
             const subscription = await app.db.models.Subscription.byCustomerId('cus_1234567890')
             should(subscription.status).equal(app.db.models.Subscription.STATUS.CANCELED)
+
+            const log = await getLog()
+            log.event.should.equal('billing.subscription.updated')
+            log.body.updates.should.have.length(1)
+            log.body.updates[0].key.should.equal('status')
+            log.body.updates[0].old.should.equal('active')
+            log.body.updates[0].new.should.equal('canceled')
         })
 
         it('Ignores changes to unhandled statuses', async () => {
@@ -412,6 +425,13 @@ describe('Stripe Callbacks', function () {
 
             const projectsStatesAfter = await app.db.models.Project.byTeam(app.team.hashid)
             projectsStatesAfter.map((project) => project.state).should.match(['suspended', 'suspended', 'suspended'])
+
+            const log = await getLog()
+            log.event.should.equal('billing.subscription.updated')
+            log.body.updates.should.have.length(1)
+            log.body.updates[0].key.should.equal('status')
+            log.body.updates[0].old.should.equal('active')
+            log.body.updates[0].new.should.equal('canceled')
         })
 
         it('Handles cancellation for unknown customers', async () => {
@@ -468,6 +488,36 @@ describe('Stripe Callbacks', function () {
 
             should(app.log.error.called).equal(true)
             app.log.error.firstCall.firstArg.should.equal('Stripe customer.subscription.deleted event sub_1234567890 from cus_1234567890 received for unknown team by Stripe Customer ID')
+
+            should(response).have.property('statusCode', 200)
+        })
+
+        it('Handles cancellation for unknown teams but with a subscription (team manually deleted)', async () => {
+            await app.team.destroy()
+
+            const response = await (app.inject({
+                method: 'POST',
+                url: callbackURL,
+                headers: {
+                    'content-type': 'application/json'
+                },
+                payload: {
+                    id: 'evt_1MEVSfJ6VWAujNoLCPdYq9kn',
+                    object: 'event',
+                    data: {
+                        object: {
+                            id: 'sub_1234567890',
+                            object: 'subscription',
+                            customer: 'cus_1234567890',
+                            status: 'canceled'
+                        }
+                    },
+                    type: 'customer.subscription.deleted'
+                }
+            }))
+
+            should(app.log.warn.called).equal(true)
+            app.log.warn.firstCall.firstArg.should.equal('Stripe customer.subscription.deleted event sub_1234567890 from cus_1234567890 received for deleted team with orphaned subscription')
 
             should(response).have.property('statusCode', 200)
         })
