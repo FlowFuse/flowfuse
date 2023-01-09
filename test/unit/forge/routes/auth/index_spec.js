@@ -140,6 +140,21 @@ describe('Accounts API', async function () {
 
             // TODO: check user audit logs - expect 'account.xxx-yyy' { code: '', error, '' }
         })
+
+        it('allows user to register with + in email (no sso)', async function () {
+            app = await setup()
+            app.settings.set('user:signup', true)
+
+            const response = await registerUser({
+                username: 'u7',
+                password: '12345678',
+                name: 'u7',
+                email: 'u7+test@example.com'
+            })
+            response.statusCode.should.equal(200)
+
+            // TODO: check user audit logs - expect 'account.xxx-yyy' { status: 'okay', ... }
+        })
     })
 
     describe('Verify FF Tokens', async function () {
