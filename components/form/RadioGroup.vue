@@ -33,9 +33,9 @@ export default {
         }
     },
     emits: ['update:modelValue'],
-    data () {
-        return {
-            internalOptions: this.options
+    computed: {
+        internalOptions () {
+            return this.options
         }
     },
     watch: {
