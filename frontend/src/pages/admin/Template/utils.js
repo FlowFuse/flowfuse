@@ -276,6 +276,18 @@ function prepareTemplateForEdit (template) {
             result.original.settings.envMap[envVarDefinition.name] = envVarDefinition
         })
     }
+
+    // Migrate old templates to know about httpNodeAuth_type
+    if (result.original.settings.httpNodeAuth_type === '') {
+        if (result.original.settings.httpNodeAuth_user && result.original.settings.httpNodeAuth_pass) {
+            result.original.settings.httpNodeAuth_type = 'basic'
+            result.editable.settings.httpNodeAuth_type = 'basic'
+        } else {
+            result.original.settings.httpNodeAuth_type = 'none'
+            result.editable.settings.httpNodeAuth_type = 'none'
+        }
+    }
+
     return result
 }
 

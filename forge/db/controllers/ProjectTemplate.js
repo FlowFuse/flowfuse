@@ -177,6 +177,10 @@ module.exports = {
                 setTemplateValue(result, name, value)
             }
         })
+        if (result.httpNodeAuth.type && result.httpNodeAuth.type !== 'basic') {
+            result.httpNodeAuth.user = ''
+            result.httpNodeAuth.pass = ''
+        }
         if (settings.env) {
             result.env = settings.env
         }

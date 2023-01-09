@@ -79,25 +79,6 @@
             </div>
             <LockSetting class="flex justify-end flex-col" :editTemplate="editTemplate" v-model="editable.policy.timeZone" :changed="editable.changed.policy.timeZone"></LockSetting>
         </div>
-        <FormHeading class="pt-8">HTTP Nodes</FormHeading>
-        <div class="flex flex-col sm:flex-row">
-            <div class="space-y-4 w-full max-w-md sm:mr-8">
-                <FormRow v-model="editable.settings.httpNodeAuth_user" :disabled="!editTemplate && !editable.policy.httpNodeAuth_user" :type="(editTemplate||editable.policy.httpNodeAuth_user)?'text':'uneditable'">
-                    HTTP Auth Username
-                    <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeAuth_user"></ChangeIndicator></template>
-                </FormRow>
-            </div>
-            <LockSetting class="flex justify-end flex-col" :editTemplate="editTemplate" v-model="editable.policy.httpNodeAuth_user" :changed="editable.changed.policy.httpNodeAuth_user"></LockSetting>
-        </div>
-        <div class="flex flex-col sm:flex-row">
-            <div class="space-y-4 w-full max-w-md sm:mr-8">
-                <FormRow v-model="editable.settings.httpNodeAuth_pass" :disabled="!editTemplate && !editable.policy.httpNodeAuth_pass" :type="(editTemplate||editable.policy.httpNodeAuth_pass)?'password':'uneditable'">
-                    HTTP Auth Password
-                    <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeAuth_pass"></ChangeIndicator></template>
-                </FormRow>
-            </div>
-            <LockSetting class="flex justify-end flex-col" :editTemplate="editTemplate" v-model="editable.policy.httpNodeAuth_pass" :changed="editable.changed.policy.httpNodeAuth_pass"></LockSetting>
-        </div>
         <FormHeading class="pt-8">External Modules</FormHeading>
         <div class="flex flex-col sm:flex-row">
             <div class="space-y-4 w-full max-w-md sm:mr-8">
