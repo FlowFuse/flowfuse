@@ -50,7 +50,11 @@ Projects expose an HTTPS interface on port 443 with each project having its own 
 You MUST connect using the hostname not the IP address to reach your project.
 Websocket connections over SSL (wss:) are also supported.
 
+The payload size per request is limited to 5MB, which is the Node-RED default.
+When a request exceeds this limit, the whole request is rejected with a `413 Payload Too Large` error.
+
 ### TCP and UDP
+
 Incoming TCP or UDP connections will not work, the TCP and UDP Nodes have therefore been removed
 
 ### MQTT
