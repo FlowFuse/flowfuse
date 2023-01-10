@@ -73,6 +73,7 @@ const modelTypes = [
     'StorageSettings',
     'StorageSession',
     'StorageLibrary',
+    'StorageSharedLibrary',
     'AuditLog',
     'BrokerClient'
 ]
