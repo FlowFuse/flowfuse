@@ -41,6 +41,9 @@ export default {
     watch: {
         modelValue: function () {
             this.checkOptions()
+        },
+        internalOptions: function () {
+            this.checkOptions()
         }
     },
     mounted () {
