@@ -56,13 +56,13 @@ export default {
                 {
                     label: 'None',
                     value: 'none',
-                    // disabled: !this.editTemplate && !this.editable.policy.httpNodeAuth_type,
+                    disabled: !this.editTemplate && !this.editable.policy.httpNodeAuth_type,
                     description: 'Anyone is able to access the http routes of the project'
                 },
                 {
                     label: 'Basic Authentication',
                     value: 'basic',
-                    // disabled: !this.editTemplate && !this.editable.policy.httpNodeAuth_type,
+                    disabled: !this.editTemplate && !this.editable.policy.httpNodeAuth_type,
                     description: 'Require a username/password to be provided'
                 }
             ]
@@ -72,7 +72,7 @@ export default {
                 {
                     label: 'FlowForge User Authentication',
                     value: 'flowforge-user',
-                    // disabled: !this.editTemplate && !this.editable.policy.httpNodeAuth_type,
+                    disabled: !this.editTemplate && !this.editable.policy.httpNodeAuth_type,
                     description: 'Only members of the project\'s team will be able to access the routes'
                 }
             ]
