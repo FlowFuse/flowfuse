@@ -496,7 +496,7 @@
                         <h5>Example 3: Disabled Option</h5>
                         <ff-radio-group v-model="models.radio2" label="We can also provide a label here" :options="[{label: 'Option 1', value: 1, checked: true, description: 'This is a description of this particular option'}, {label: 'Disabled Option', value: 2, description: 'Another description', disabled: true}]" orientation="vertical"></ff-radio-group>
                         {{ models.radio2 }}
-                        <code>{{ cGroups['input'].components[3].examples[1].code }}</code>
+                        <code>{{ cGroups['input'].components[3].examples[2].code }}</code>
                     </div>
                 </div>
                 <!-- Tile Selection -->
