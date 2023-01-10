@@ -5,6 +5,8 @@
 
 const { DataTypes, Op } = require('sequelize')
 
+const { buildPaginationSearchClause } = require('../utils')
+
 module.exports = {
     name: 'AuditLog',
     schema: {
@@ -49,8 +51,9 @@ module.exports = {
                     if (pagination.cursor) {
                         where.id = { [Op.lt]: M.AuditLog.decodeHashid(pagination.cursor) }
                     }
-                    const entries = await this.findAll({
-                        where,
+
+                    const { count, rows } = await this.findAndCountAll({
+                        where: buildPaginationSearchClause(pagination, where, ['AuditLog.event']),
                         order: [['createdAt', 'DESC']],
                         include: {
                             model: M.User,
@@ -58,11 +61,13 @@ module.exports = {
                         },
                         limit
                     })
+
                     return {
                         meta: {
-                            next_cursor: entries.length === limit ? entries[entries.length - 1].hashid : undefined
+                            next_cursor: rows.length === limit ? rows[rows.length - 1].hashid : undefined
                         },
-                        log: entries
+                        count,
+                        log: rows
                     }
                 }
             }
