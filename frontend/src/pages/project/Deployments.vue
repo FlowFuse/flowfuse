@@ -1,6 +1,6 @@
 <template>
     <div>
-        <SectionTopMenu hero="Cloud" help-header="FlowForge - Deployments - Cloud" info="Your Node-RED Deployments hosted on the same domain as FlowForge">
+        <SectionTopMenu hero="FlowForge Hosted" help-header="FlowForge - Deployments - Cloud" info="Your Node-RED Deployments hosted on the same domain as FlowForge">
             <template v-slot:pictogram>
                 <img src="../../images/pictograms/edge_red.png" />
             </template>
@@ -50,13 +50,17 @@
             </ff-data-table>
         </div>
 
-        <SectionTopMenu hero="Devices" help-header="FlowForge - Deployments - Devices" info="Devices attached to this Project, and the respective Snapshot each of them are running.">
+        <SectionTopMenu hero="Remote Deployments" help-header="FlowForge - Deployments - Remote" info="Remote Deployments can be managed through 'Devices' attached to this Project.">
             <template v-slot:pictogram>
                 <img src="../../images/pictograms/edge_red.png" />
             </template>
             <template v-slot:helptext>
                 <p>
-                    All devices here are bound to this Project. When you set a new Target Snapshot, that will get deployed,
+                    FlowForge enables the deployment and management of remote instances of Node-RED via "Devices".
+                </p>
+                <p>
+                    Here you will see all Devices attached to this project.
+                    When you set a new Target Snapshot, that will get deployed,
                     using the <a href="https://flowforge.com/docs/user/devices/" target="_blank">FlowForge Device Agent</a>, out to all connected devices.
                 </p>
                 <p>
