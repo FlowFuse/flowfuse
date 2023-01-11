@@ -145,3 +145,23 @@ To delete a device:
 The next time the device calls home it will find it is no longer authorised and
 will stop and delete its local copy of the project it was running.
 
+
+## Running with no access to npmjs.org
+
+By default the Device Agent will try and download the correct version of Node-RED and 
+any nodes required to run the Project Snapshot that is assigned to run on the device.
+
+If the device is being run on a offline network or security policies prevent the 
+Device Agent from connecting to npmjs.org then it can be configured to use a pre-cached 
+set of modules.
+
+You can enable this mode by adding `moduleCache: true` to the `device.yml` file. This will 
+cause the Device Agent to load the modules from the `module_cache` directory in the Device
+Agents Configuration directory as describe above. By default this will be `/opt/flowforge-device/module_cache`
+
+The easiest way to create the cache is to download the `package.json` for the Snapshot. 
+This can be found in the 3 dots menu for the Snapshot on the Project's Snapshot page.
+
+Place this file in an empty directory on a machine with the same OS and architecture as 
+the device and run `npm install`. This will create a `node_modules` directory which you 
+should copy into `module_cache` director on the device.
