@@ -87,7 +87,7 @@ module.exports = fp(async function (app, opts, done) {
         }
     }))
 
-    app.get('/sso/login', {
+    app.get('/ee/sso/login', {
         config: { allowAnonymous: true },
         preValidation: fastifyPassport.authenticate('saml', { session: false })
     }, async (request, reply, err, user, info, status) => {
@@ -96,7 +96,7 @@ module.exports = fp(async function (app, opts, done) {
         reply.redirect('/')
     })
 
-    app.post('/sso/login/callback', {
+    app.post('/ee/sso/login/callback', {
         config: { allowAnonymous: true },
         preValidation: fastifyPassport.authenticate('saml', { session: false })
     }, async (request, reply, err, user, info, status) => {

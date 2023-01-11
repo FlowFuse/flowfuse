@@ -4,7 +4,8 @@ const hashids = {}
 
 const modelTypes = [
     'Subscription',
-    'SAMLProvider'
+    'SAMLProvider',
+    'StorageSharedLibrary'
 ]
 
 async function init (app) {
