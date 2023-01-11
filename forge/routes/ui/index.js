@@ -54,6 +54,13 @@ module.exports = async function (app) {
             </script>`
             }
 
+            if (feConfig.hubspot?.trackingcode) {
+                const trackingCode = feConfig.hubspot.trackingcode
+                injection += `<!-- Start of HubSpot Embed Code -->
+                <script type="text/javascript" id="hs-script-loader" async defer src="//js-eu1.hs-scripts.com/${trackingCode}.js"></script>
+              <!-- End of HubSpot Embed Code -->`
+            }
+
             // inject into index.html
             cachedIndex = data.replace(/<script>\/\*inject-ff-scripts\*\/<\/script>/g, injection)
         }
