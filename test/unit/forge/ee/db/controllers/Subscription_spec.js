@@ -63,4 +63,30 @@ describe('Subscription controller', function () {
             should(subscription).equal(null)
         })
     })
+
+    describe('userEligibleForFreeTrial', function () {
+        it('returns true if the user has no teams', async function () {
+            const newUser = await app.db.models.User.create({ admin: true, username: 'new', name: 'New', email: 'new@example.com', email_verified: true, password: 'aaPassword' })
+
+            const eligible = await app.db.controllers.Subscription.userEligibleForFreeTrial(newUser)
+            should.equal(eligible, true)
+        })
+
+        it('returns false if the user has any teams', async function () {
+            const user = await app.db.models.User.byEmail('alice@example.com')
+            should.equal(await user.teamCount() > 0, true)
+
+            const eligible = await app.db.controllers.Subscription.userEligibleForFreeTrial(user)
+            should.equal(eligible, false)
+        })
+
+        it('returns true if the user has only one team but the flag is set', async function () {
+            const user = await app.db.models.User.byEmail('alice@example.com')
+            should.equal(await user.teamCount() === 1, true)
+
+            const newTeamAlreadyCreated = true
+            const eligible = await app.db.controllers.Subscription.userEligibleForFreeTrial(user, newTeamAlreadyCreated)
+            should.equal(eligible, true)
+        })
+    })
 })

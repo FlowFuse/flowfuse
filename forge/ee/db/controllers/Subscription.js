@@ -19,5 +19,12 @@ module.exports = {
             subscription.destroy()
         }
         return null
+    },
+
+    userEligibleForFreeTrial: async function (app, user, newTeamAlreadyCreated = false) {
+        const teams = await app.db.models.Team.forUser(user)
+        const totalTeams = teams.length
+
+        return totalTeams <= newTeamAlreadyCreated ? 1 : 0
     }
 }
