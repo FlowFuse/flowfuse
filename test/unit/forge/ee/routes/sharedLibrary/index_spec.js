@@ -139,5 +139,62 @@ describe('Storage API', function () {
             const libraryEntry = response.payload
             should(libraryEntry).equal('\nreturn msg;')
         })
+
+        it('Add multiple entries to library', async function () {
+            const funcText = '\nreturn msg;'
+            const libraryURL = `/storage/${project.id}/shared-library/${app.team.hashid}/functions`
+
+            async function addToLibrary (name) {
+                return await app.inject({
+                    method: 'POST',
+                    url: libraryURL,
+                    payload: {
+                        name,
+                        meta: { metaName: name },
+                        body: funcText
+                    },
+                    headers: {
+                        authorization: `Bearer ${tokens.token}`
+                    }
+                })
+            }
+
+            async function getFromLibrary (name) {
+                return (await app.inject({
+                    method: 'GET',
+                    url: `${libraryURL}?name=${name}`,
+                    headers: {
+                        authorization: `Bearer ${tokens.token}`
+                    }
+                })).json()
+            }
+            /*
+              Library file structure:
+                ├── bar3
+                └── test
+                    └── foo
+                        ├── bar
+                        └── bar2
+            */
+
+            await addToLibrary('test/foo/bar')
+            await addToLibrary('test/foo/bar2')
+            await addToLibrary('bar3')
+
+            const libraryEntry = await getFromLibrary('')
+            libraryEntry.should.have.length(2)
+            libraryEntry[0].should.have.property('fn', 'bar3')
+            libraryEntry[0].should.have.property('metaName', 'bar3')
+            libraryEntry[1].should.eql('test')
+
+            const libraryEntry1 = await getFromLibrary('test')
+            libraryEntry1.should.eql(['foo'])
+            const libraryEntry2 = await getFromLibrary('test/foo')
+            libraryEntry2.should.have.length(2)
+            libraryEntry2[0].should.have.property('fn', 'bar')
+            libraryEntry2[0].should.have.property('metaName', 'test/foo/bar')
+            libraryEntry2[1].should.have.property('fn', 'bar2')
+            libraryEntry2[1].should.have.property('metaName', 'test/foo/bar2')
+        })
     })
 })

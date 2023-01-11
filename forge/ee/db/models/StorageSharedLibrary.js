@@ -2,7 +2,7 @@
  * A Team's Shared Library
  * @namespace forge.db.models.StorageSharedLibrary
  */
-const { DataTypes } = require('sequelize')
+const { DataTypes, Op } = require('sequelize')
 
 module.exports = {
     name: 'StorageSharedLibrary',
@@ -35,6 +35,17 @@ module.exports = {
                 byName: async (team, type, name) => {
                     return this.findOne({
                         where: { TeamId: team, type, name }
+                    })
+                },
+                byPath: async (team, type, name) => {
+                    return this.findAll({
+                        where: {
+                            TeamId: team,
+                            type,
+                            name: {
+                                [Op.like]: `${name}%`
+                            }
+                        }
                     })
                 }
             }

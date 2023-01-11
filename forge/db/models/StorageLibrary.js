@@ -2,7 +2,7 @@
  * A Project's Library
  * @namespace forge.db.models.StorageLibrary
  */
-const { DataTypes } = require('sequelize')
+const { DataTypes, Op } = require('sequelize')
 
 module.exports = {
     name: 'StorageLibrary',
@@ -35,6 +35,17 @@ module.exports = {
                 byName: async (project, type, name) => {
                     return this.findOne({
                         where: { ProjectId: project, type, name }
+                    })
+                },
+                byPath: async (project, type, name) => {
+                    return this.findAll({
+                        where: {
+                            ProjectId: project,
+                            type,
+                            name: {
+                                [Op.like]: `${name}%`
+                            }
+                        }
                     })
                 }
             }

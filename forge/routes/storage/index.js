@@ -199,12 +199,11 @@ module.exports = async function (app) {
         async (request, response) => {
             const id = request.params.projectId
             const type = request.params.type
-            const name = request.query.name
-
+            let name = request.query.name
             let reply = []
 
+            // Try to get the exact name
             const direct = await app.db.models.StorageLibrary.byName(id, type, name)
-
             if (direct) {
                 if (type === 'flows') {
                     reply = JSON.parse(direct.body)
@@ -212,32 +211,24 @@ module.exports = async function (app) {
                     reply = direct.body
                 }
             } else {
-                // console.log("name",name)
-                // const path = name.split('/')
-
-                const all = await app.db.models.StorageLibrary.byType(id, type)
-                all.forEach(entry => {
-                    // console.log("entry.name",entry.name)
-                    // const entryPath = entry.name.split('/')
-                    if (entry.name.startsWith(name)) {
-                        let short = entry.name.substring(name.length)
-                        // console.log("short", short)
-                        if (short.charAt(0) === '/') {
-                            short = short.substring(1)
-                        }
-                        // console.log("short", short)
-                        // console.log(short.indexOf('/'))
-                        if (short.indexOf('/') === -1) {
-                            reply.push({ fn: short, ...JSON.parse(entry.meta) })
-                        } else {
-                            reply.push(short.split('/')[0])
-                        }
+                // No entry with that exact name. Check to see if its a partial
+                // path name
+                if (name.length > 0 && name[name.length - 1] !== '/') {
+                    name += '/'
+                }
+                const subPaths = new Set()
+                const entries = await app.db.models.StorageLibrary.byPath(id, type, name)
+                entries.forEach(entry => {
+                    const shortName = entry.name.substring(name.length)
+                    const pathParts = shortName.split('/')
+                    if (pathParts.length === 1) {
+                        reply.push({ fn: shortName, ...JSON.parse(entry.meta) })
+                    } else {
+                        subPaths.add(pathParts[0])
                     }
                 })
+                reply.push(...subPaths)
             }
-
-            // console.log('reply', reply)
-
             response.send(reply)
         }
     )
