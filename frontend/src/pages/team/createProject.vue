@@ -85,30 +85,35 @@
 </template>
 
 <script>
+import { RefreshIcon } from '@heroicons/vue/outline'
+import { ChevronLeftIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
+
+import ExportProjectComponents from '../project/components/ExportProjectComponents'
 
 import projectApi from '@/api/project'
 import projectTypesApi from '@/api/projectTypes'
 import stacksApi from '@/api/stacks'
 import templatesApi from '@/api/templates'
 
-import Alerts from '@/services/alerts'
-
+import FormRow from '@/components/FormRow'
 import NavItem from '@/components/NavItem'
 import SectionTopMenu from '@/components/SectionTopMenu'
-
 import SideNavigation from '@/components/SideNavigation'
 
-import FormRow from '@/components/FormRow'
+import Alerts from '@/services/alerts'
 import NameGenerator from '@/utils/name-generator'
-import { RefreshIcon } from '@heroicons/vue/outline'
-
-import ExportProjectComponents from '../project/components/ExportProjectComponents'
-
-import { ChevronLeftIcon } from '@heroicons/vue/solid'
 
 export default {
     name: 'CreateProject',
+    components: {
+        FormRow,
+        RefreshIcon,
+        ExportProjectComponents,
+        SectionTopMenu,
+        NavItem,
+        SideNavigation
+    },
     props: ['sourceProjectId'],
     data () {
         return {
@@ -263,14 +268,6 @@ export default {
         refreshName () {
             this.input.name = NameGenerator()
         }
-    },
-    components: {
-        FormRow,
-        RefreshIcon,
-        ExportProjectComponents,
-        SectionTopMenu,
-        NavItem,
-        SideNavigation
     }
 }
 </script>
