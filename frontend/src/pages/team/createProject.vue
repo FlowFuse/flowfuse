@@ -19,6 +19,9 @@
                 <div class="mb-8 text-sm text-gray-500">
                     <template v-if="!isCopyProject">Let's get your new Node-RED project setup in no time.</template>
                 </div>
+                <div v-if="subscription?.customer?.balance < 0" class="ff-banner ff-banner-warning">
+                    You have a credit balance of {{ formatCurrency(Math.abs(subscription.customer.balance)) }} that will be applied to this project.
+                </div>
                 <div>
                     <FormRow :error="errors.name" v-model="input.name">
                         <template v-slot:default>Project Name</template>
@@ -91,6 +94,7 @@ import { mapState } from 'vuex'
 
 import ExportProjectComponents from '../project/components/ExportProjectComponents'
 
+import billingApi from '@/api/billing.js'
 import projectApi from '@/api/project'
 import projectTypesApi from '@/api/projectTypes'
 import stacksApi from '@/api/stacks'
@@ -101,6 +105,7 @@ import NavItem from '@/components/NavItem'
 import SectionTopMenu from '@/components/SectionTopMenu'
 import SideNavigation from '@/components/SideNavigation'
 
+import formatCurrency from '@/mixins/Currency.js'
 import Alerts from '@/services/alerts'
 import NameGenerator from '@/utils/name-generator'
 
@@ -114,11 +119,13 @@ export default {
         NavItem,
         SideNavigation
     },
+    mixins: [formatCurrency],
     props: ['sourceProjectId'],
     data () {
         return {
             loading: false,
             sourceProject: null,
+            subscription: null,
             mounted: false,
             icons: {
                 chevronLeft: ChevronLeftIcon
@@ -200,11 +207,14 @@ export default {
         }
     },
     async created () {
-        const projectTypes = await projectTypesApi.getProjectTypes()
-        this.projectTypes = projectTypes.types
+        const projectTypesPromise = projectTypesApi.getProjectTypes()
+        const templateListPromise = templatesApi.getTemplates()
+        const billingSubscriptionPromise = billingApi.getSubscriptionInfo(this.team.id)
 
-        const templateList = await templatesApi.getTemplates()
-        this.templates = templateList.templates.filter(template => template.active)
+        this.projectTypes = (await projectTypesPromise).types
+        this.templates = (await templateListPromise).templates.filter(template => template.active)
+        this.subscription = await billingSubscriptionPromise
+
         this.init = true
 
         this.$nextTick(() => {
