@@ -1,4 +1,9 @@
 module.exports = async (app) => {
+    let sharedLibraryEntries = 0
+    if (app.license.active()) {
+        sharedLibraryEntries = await app.db.models.StorageSharedLibrary.count()
+    }
+
     return {
         'platform.counts.users': await app.db.models.User.count(),
         'platform.counts.teams': await app.db.models.Team.count(),
@@ -10,6 +15,8 @@ module.exports = async (app) => {
         'platform.config.driver': app.config.driver.type,
         'platform.config.broker.enabled': !!app.config.broker,
         'platform.config.fileStore.enabled': !!app.config.fileStore,
-        'platform.config.email.enabled': app.postoffice.enabled()
+        'platform.config.email.enabled': app.postoffice.enabled(),
+        'platform.counts.libraryEntries': await app.db.models.StorageLibrary.count(),
+        'platform.counts.sharedLibraryEntries': sharedLibraryEntries
     }
 }
