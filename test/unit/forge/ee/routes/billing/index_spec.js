@@ -176,6 +176,28 @@ describe('Stripe Callbacks', function () {
     })
 
     describe('customer.subscription.created', () => {
+        let stripe
+        function setupStripe (mock) {
+            require.cache[require.resolve('stripe')] = {
+                exports: function (apiKey) {
+                    return mock
+                }
+            }
+            stripe = mock
+        }
+
+        beforeEach(async function () {
+            setupStripe({
+                customers: {
+                    createBalanceTransaction: sinon.stub().resolves({ status: 'ok' })
+                }
+            })
+        })
+
+        afterEach(async function () {
+            delete require.cache[require.resolve('stripe')]
+        })
+
         it('Logs known subscriptions', async () => {
             const response = await (app.inject({
                 method: 'POST',
@@ -228,6 +250,86 @@ describe('Stripe Callbacks', function () {
 
             should(app.log.error.called).equal(true)
             app.log.error.firstCall.firstArg.should.equal('Stripe customer.subscription.created event sub_unknown from cus_unknown received for unknown team by Stripe Customer ID')
+
+            should(response).have.property('statusCode', 200)
+        })
+
+        it('Creates a stripe credit balance against the customer if the free_trial flag is set', async () => {
+            const appWithTrialsEnabled = await setup({
+                billing: {
+                    stripe: {
+                        new_customer_free_credit: 1000
+                    }
+                }
+            })
+
+            const response = await (appWithTrialsEnabled.inject({
+                method: 'POST',
+                url: callbackURL,
+                headers: {
+                    'content-type': 'application/json'
+                },
+                payload: {
+                    id: 'evt_123456790',
+                    object: 'event',
+                    data: {
+                        object: {
+                            id: 'sub_1234567890',
+                            object: 'subscription',
+                            customer: 'cus_1234567890',
+                            status: 'active',
+                            metadata: {
+                                free_trial: true
+                            }
+                        }
+                    },
+                    type: 'customer.subscription.created'
+                }
+            }))
+
+            should.equal(stripe.customers.createBalanceTransaction.calledOnce, true)
+
+            stripe.customers.createBalanceTransaction.lastCall.args[0].should.equal('cus_1234567890')
+            stripe.customers.createBalanceTransaction.lastCall.args[1].should.deepEqual({
+                amount: -1000,
+                currency: 'usd'
+            })
+
+            should(response).have.property('statusCode', 200)
+        })
+
+        it('Ignores the free_trial flag if trials are not enabled', async () => {
+            const appWithoutTrialsEnabled = await setup()
+            sandbox.stub(appWithoutTrialsEnabled.log, 'error')
+
+            const response = await (appWithoutTrialsEnabled.inject({
+                method: 'POST',
+                url: callbackURL,
+                headers: {
+                    'content-type': 'application/json'
+                },
+                payload: {
+                    id: 'evt_123456790',
+                    object: 'event',
+                    data: {
+                        object: {
+                            id: 'sub_1234567890',
+                            object: 'subscription',
+                            customer: 'cus_1234567890',
+                            status: 'active',
+                            metadata: {
+                                free_trial: true
+                            }
+                        }
+                    },
+                    type: 'customer.subscription.created'
+                }
+            }))
+
+            should.equal(stripe.customers.createBalanceTransaction.calledOnce, false)
+
+            should(appWithoutTrialsEnabled.log.error.called).equal(true)
+            appWithoutTrialsEnabled.log.error.firstCall.firstArg.should.equal(`Received a new subscription with the trial flag set for ${app.team.hashid}, but trials are not configured.`)
 
             should(response).have.property('statusCode', 200)
         })
