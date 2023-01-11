@@ -13,7 +13,9 @@ module.exports = {
         body: { type: DataTypes.TEXT, allowNull: false, defaultValue: '' }
     },
     associations: function (M) {
-        this.belongsTo(M.Team)
+        this.belongsTo(M.Team, {
+            onDelete: 'CASCADE'
+        })
     },
     finders: function (M) {
         return {
