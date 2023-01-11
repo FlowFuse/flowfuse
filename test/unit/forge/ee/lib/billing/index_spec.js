@@ -1,6 +1,9 @@
 const should = require('should') // eslint-disable-line
 const setup = require('../../setup')
 
+const FF_UTIL = require('flowforge-test-utils')
+const { Roles } = FF_UTIL.require('forge/lib/roles')
+
 describe('Billing', function () {
     let app
 
@@ -112,6 +115,81 @@ describe('Billing', function () {
 
             result.should.have.property('customer', 'existing-customer')
             result.customer_update.should.have.property('name', 'auto')
+        })
+
+        describe('with free trials', function () {
+            describe('configured', function () {
+                beforeEach(async function () {
+                    app = await setup({
+                        billing: {
+                            stripe: {
+                                key: 1234,
+                                team_product: 'defaultteamprod',
+                                team_price: 'defaultteamprice',
+                                new_customer_free_credit: 1000
+                            }
+                        }
+                    })
+                })
+
+                it('sets the trial flag if the user is eligible for a trial', async function () {
+                    const defaultTeamType = await app.db.models.TeamType.findOne()
+                    const newTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
+                    const user = await app.db.models.User.create({ admin: true, username: 'new', name: 'New User', email: 'new@example.com', email_verified: true, password: 'aaPassword' })
+                    await newTeam.addUser(user, { through: { role: Roles.Owner } })
+                    should.equal(await app.db.controllers.Subscription.userEligibleForFreeTrial(user, true), true)
+
+                    const result = await app.billing.createSubscriptionSession(newTeam, null, user)
+
+                    result.should.have.property('subscription_data')
+                    result.subscription_data.should.have.property('metadata')
+                    result.subscription_data.metadata.should.have.property('free_trial', true)
+                })
+
+                it('sets trial flag to false if the user is not eligible for a trial', async function () {
+                    const defaultTeamType = await app.db.models.TeamType.findOne()
+                    const secondTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
+                    const userAlice = await app.db.models.User.byEmail('alice@example.com')
+                    await secondTeam.addUser(userAlice, { through: { role: Roles.Owner } })
+                    should.equal(await app.db.controllers.Subscription.userEligibleForFreeTrial(userAlice, true), false)
+
+                    const result = await app.billing.createSubscriptionSession(secondTeam, null, userAlice)
+
+                    result.should.have.property('subscription_data')
+                    result.subscription_data.should.have.property('metadata')
+                    result.subscription_data.metadata.should.have.property('free_trial', false)
+                })
+            })
+        })
+
+        describe('disabled', function () {
+            beforeEach(async function () {
+                app = await setup({
+                    billing: {
+                        stripe: {
+                            key: 1234,
+                            team_product: 'defaultteamprod',
+                            team_price: 'defaultteamprice'
+                            // new_customer_free_credit - NOT enabled
+                        }
+                    }
+                })
+            })
+
+            it('does not set trial flag even if the user is eligible for a trial', async function () {
+                const defaultTeamType = await app.db.models.TeamType.findOne()
+                const newTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
+                const user = await app.db.models.User.create({ admin: true, username: 'new', name: 'New User', email: 'new@example.com', email_verified: true, password: 'aaPassword' })
+                await newTeam.addUser(user, { through: { role: Roles.Owner } })
+                should.equal(await app.db.controllers.Subscription.userEligibleForFreeTrial(user, true), true)
+
+                const result = await app.billing.createSubscriptionSession(newTeam, null, user)
+
+                result.should.have.property('subscription_data')
+                result.subscription_data.should.have.property('metadata')
+                result.subscription_data.metadata.should.not.have.property('free_trial')
+                result.subscription_data.metadata.should.not.have.property('free_trial', true)
+            })
         })
     })
 
