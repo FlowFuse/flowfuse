@@ -25,27 +25,29 @@ module.exports = async function (app) {
      * Inject Analytics Tools
      * feConfig - the 'frontend' portion of our flowforge.yml
      */
-    async function injectAnalytics (feConfig) {
+    async function injectAnalytics (config) {
         if (!cachedIndex) {
+            const telemetry = config.telemetry
+            const support = config.support
             const filepath = path.join(frontendAssetsDir, 'index.html')
             const data = await fsp.readFile(filepath, 'utf8')
 
             let injection = ''
 
             // check which tools we are using
-            if (feConfig.plausible?.domain) {
-                const domain = feConfig.plausible.domain
-                const extension = feConfig.plausible.extension
+            if (telemetry.frontend.plausible?.domain) {
+                const domain = telemetry.frontend.plausible.domain
+                const extension = telemetry.frontend.plausible.extension
                 injection += `<script defer data-domain="${domain}" src="https://plausible.io/js/plausible${extension ? '.' + extension : ''}.js"></script>`
             }
 
-            if (feConfig.posthog?.apikey) {
-                const apikey = feConfig.posthog.apikey
+            if (telemetry.frontend.posthog?.apikey) {
+                const apikey = telemetry.frontend.posthog.apikey
                 const options = {
                     api_host: 'https://app.posthog.com'
                 }
-                if ('capture_pageview' in feConfig.posthog) {
-                    options.capture_pageview = feConfig.posthog.capture_pageview
+                if ('capture_pageview' in telemetry.frontend.posthog) {
+                    options.capture_pageview = telemetry.frontend.posthog.capture_pageview
                 }
                 // TODO: object to string in the injection script
                 injection += `<script>
@@ -54,8 +56,8 @@ module.exports = async function (app) {
             </script>`
             }
 
-            if (feConfig.hubspot?.trackingcode) {
-                const trackingCode = feConfig.hubspot.trackingcode
+            if (support.enabled && support.frontend.hubspot?.trackingcode) {
+                const trackingCode = support.frontend.hubspot.trackingcode
                 injection += `<!-- Start of HubSpot Embed Code -->
                 <script type="text/javascript" id="hs-script-loader" async defer src="//js-eu1.hs-scripts.com/${trackingCode}.js"></script>
               <!-- End of HubSpot Embed Code -->`
@@ -86,7 +88,7 @@ module.exports = async function (app) {
         }
         // check if we need to inject plausible
         if (app.config.telemetry.frontend) {
-            const injectedContent = await injectAnalytics(app.config.telemetry.frontend)
+            const injectedContent = await injectAnalytics(app.config)
             reply.type('text/html').send(injectedContent)
         } else {
             reply.sendFile('index.html')
@@ -113,7 +115,7 @@ module.exports = async function (app) {
         // }
         // check if we need to inject plausible
         if (app.config.telemetry.frontend) {
-            const injectedContent = await injectAnalytics(app.config.telemetry.frontend)
+            const injectedContent = await injectAnalytics(app.config)
             reply.type('text/html').send(injectedContent)
         } else {
             reply.sendFile('index.html')
