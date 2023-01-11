@@ -272,6 +272,11 @@ module.exports = async function (app) {
             const name = request.body.name
             const meta = request.body.meta
 
+            if (id !== request.project.Team.hashid) {
+                response.status(404).send({ code: 'not_found', error: 'Not Found' })
+                return
+            }
+
             if (typeof body === 'object') {
                 body = JSON.stringify(body)
             }
