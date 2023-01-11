@@ -54,7 +54,7 @@ module.exports = async function (app) {
                 body = JSON.stringify(body)
             }
 
-            const direct = await app.db.models.StorageSharedLibrary.byName(id, type, name)
+            const direct = await app.db.models.StorageSharedLibrary.byName(request.project.Team.id, type, name)
 
             if (direct) {
                 direct.body = body
