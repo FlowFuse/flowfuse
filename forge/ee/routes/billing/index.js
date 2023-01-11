@@ -177,9 +177,35 @@ module.exports = async function (app) {
             }
 
             case 'customer.subscription.created': {
-                await parseSubscriptionEvent(event)
+                const { team, stripeCustomerId } = await parseSubscriptionEvent(event)
+                if (!team) {
+                    response.status(200).send()
+                    return
+                }
 
-                // Do nothing - just log (handled above)
+                if (!event.data.object.metadata.free_trial) {
+                    return
+                }
+
+                const creditAmount = app.config.billing.stripe.new_customer_free_credit
+                if (!creditAmount) {
+                    app.log.error(`Received a new subscription with the trial flag set for ${team.hashid}, but trials are not configured.`)
+                    return
+                } else if (creditAmount <= 0) {
+                    app.log.error('new_customer_free_credit must be set to a cent value greater than zero.')
+                    return
+                }
+
+                // Apply free trial in the form of credit to the Stripe customer that owns this team
+                await stripe.customers.createBalanceTransaction(
+                    stripeCustomerId,
+                    {
+                        amount: -creditAmount,
+                        currency: 'usd'
+                    }
+                )
+
+                app.log.info(`Applied a credit of ${creditAmount} to ${stripeCustomerId} from team ${team.hashid}`)
 
                 break
             }
