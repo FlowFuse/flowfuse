@@ -1,3 +1,5 @@
+const { getLoggers } = require('../../auditLog/project')
+
 /** Node-RED Audit Logging backend
  *
  * - /audit
@@ -7,6 +9,7 @@
  */
 
 module.exports = async function (app) {
+    const logger = getLoggers(app)
     app.addHook('preHandler', app.verifySession)
     app.addHook('preHandler', async (request, response) => {
         // The request has a valid token, but need to check the token is allowed
@@ -26,19 +29,26 @@ module.exports = async function (app) {
         const auditEvent = request.body
 
         const event = auditEvent.event
+        const error = auditEvent.error
         const userId = auditEvent.user ? app.db.models.User.decodeHashid(auditEvent.user) : undefined
 
-        delete auditEvent.event
-        delete auditEvent.user
-        delete auditEvent.path
-        delete auditEvent.timestamp
+        // first check to see if the event is a known structured event
+        if (event === 'start-failed') {
+            await logger.project.startFailed(userId || 'system', error, { id: projectId })
+        } else {
+            // otherwise, just log it
+            delete auditEvent.event
+            delete auditEvent.user
+            delete auditEvent.path
+            delete auditEvent.timestamp
 
-        await app.db.controllers.AuditLog.projectLog(
-            projectId,
-            userId,
-            event,
-            auditEvent
-        )
+            await app.db.controllers.AuditLog.projectLog(
+                projectId,
+                userId,
+                event,
+                auditEvent
+            )
+        }
         response.status(200).send()
     })
 }
