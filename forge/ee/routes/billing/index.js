@@ -253,16 +253,24 @@ module.exports = async function (app) {
             return response.code(404).send({ code: 'not_found', error: 'Team does not have a subscription' })
         }
 
-        const stripeSubscription = await stripe.subscriptions.retrieve(
+        const stripeSubscriptionPromise = stripe.subscriptions.retrieve(
             sub.subscription,
             {
                 expand: ['items.data.price.product']
             }
         )
+        const stripeCustomerPromise = stripe.customers.retrieve(sub.customer)
+
+        const stripeSubscription = await stripeSubscriptionPromise
+        const stripeCustomer = await stripeCustomerPromise
 
         const information = {
             next_billing_date: stripeSubscription.current_period_end,
-            items: []
+            items: [],
+            customer: {
+                name: stripeCustomer.name,
+                balance: stripeCustomer.balance
+            }
         }
         stripeSubscription.items.data.forEach(item => {
             information.items.push({
