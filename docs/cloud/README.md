@@ -12,6 +12,12 @@ See the [Billing](./billing.md) page for more detailed answers about billing.
 
 Customers can get support by emailing support@flowforge.com, we presently only offer support for the flowforge application and your account, any issues relating to Node-RED such as your flows or a 3rd party node should be raised in the appropriate community forum, for example https://discourse.nodered.org/ or the GitHub project of the third party node.
 
+### Requesting a new verification email
+
+When a user signs up for FlowForge Cloud an email will be send to verify it.
+If this email doesn't get delivered one can be resend by signin in to FlowForge
+and click the button to resend it.
+
 ## Node-RED on FlowForge Cloud
 
 FlowForge currently offers Node-RED 2.2 and 3.0 to customers. When creating a
