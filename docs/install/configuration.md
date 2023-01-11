@@ -116,6 +116,16 @@ Option        | Description
 `telemetry.frontend.posthog.capture_pageview` | FlowForge is designed as to provide custom posthog `$pageview` events that provide more detail on navigation than the default, and suit a single page application better. As such, we recommend setting this to false in order to prevent duplicate `pageleave`/`pageview` events firing. Default: `true`
 
 
+## Support configuration
+
+It is possible to add a [HubSpot Support Widget](https://knowledge.hubspot.com/chatflows/create-a-live-chat) into FlowForge. This will appear as a floating chat bubble on the bottom-right corner of the screen. To enable this, you'll need to provide the 
+
+Option        | Description
+--------------|------------
+`support.enabled` | Enables the chat support widget in the UI. Default: `false`
+`support.frontend.hubspot.trackingcode` | The numerical identifier within your [HubSpot Tracking Code](https://knowledge.hubspot.com/conversations/chat-widget-is-not-appearing-on-your-pages). Default: `null`
+
+
 ## MQTT Broker configuration
 
 The platform depends on the [Mosquitto MQTT Broker](https://mosquitto.org/) to
