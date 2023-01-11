@@ -21,6 +21,7 @@ For more details on these and other core concepts, you can learn about them [her
  - [Logs](logs.md) - The Logs available in the FlowForge application.
  - [Project Link Nodes](projectnodes.md) - Custom nodes for sending messages between projects and devices.
  - [Project Settings](project-settings.md) - Settings available for projects.
+ - [Shared Team Library](shared-library.md) - Share flows easily between different projects in your team.
  - [Node-RED Tools Plugin](node-red-tools.md) - A plugin for Node-RED that lets you work with your projects outside of FlowForge.
 
 ## Working with Teams

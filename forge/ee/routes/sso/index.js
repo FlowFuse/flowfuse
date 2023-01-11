@@ -12,7 +12,7 @@ module.exports = fp(async function (app, opts, done) {
     })
 
     // Get all
-    app.get('/sso/providers', {
+    app.get('/ee/sso/providers', {
         preHandler: app.needsPermission('saml-provider:list')
     }, async (request, reply) => {
         const providers = await app.db.models.SAMLProvider.getAll()
@@ -21,7 +21,7 @@ module.exports = fp(async function (app, opts, done) {
     })
 
     // Get
-    app.get('/sso/providers/:providerId', {
+    app.get('/ee/sso/providers/:providerId', {
         preHandler: app.needsPermission('saml-provider:read')
     }, async (request, reply) => {
         const provider = await app.db.models.SAMLProvider.byId(request.params.providerId)
@@ -33,7 +33,7 @@ module.exports = fp(async function (app, opts, done) {
     })
 
     // Create
-    app.post('/sso/providers', {
+    app.post('/ee/sso/providers', {
         preHandler: app.needsPermission('saml-provider:create')
     }, async (request, reply) => {
         const opts = {
@@ -47,7 +47,7 @@ module.exports = fp(async function (app, opts, done) {
     })
 
     // Delete
-    app.delete('/sso/providers/:providerId', {
+    app.delete('/ee/sso/providers/:providerId', {
         preHandler: app.needsPermission('saml-provider:delete')
     }, async (request, reply) => {
         const provider = await app.db.models.SAMLProvider.byId(request.params.providerId)
@@ -60,7 +60,7 @@ module.exports = fp(async function (app, opts, done) {
     })
 
     // Update
-    app.put('/sso/providers/:providerId', {
+    app.put('/ee/sso/providers/:providerId', {
         preHandler: app.needsPermission('saml-provider:edit')
     }, async (request, reply) => {
         const provider = await app.db.models.SAMLProvider.byId(request.params.providerId)

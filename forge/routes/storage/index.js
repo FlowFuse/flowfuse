@@ -16,6 +16,7 @@ module.exports = async function (app) {
         // Check if the project exists first
         const project = await app.db.models.Project.byId(id)
         if (project && request.session.ownerType === 'project' && request.session.ownerId === id) {
+            request.project = project
             // Project exists and the auth token is for this project
             return
         }
@@ -25,146 +26,107 @@ module.exports = async function (app) {
     app.post('/:projectId/flows', async (request, response) => {
         const id = request.params.projectId
         // Check if the project exists first
-        const project = await app.db.models.Project.byId(id)
-        if (project) {
-            let flow = await app.db.models.StorageFlow.byProject(id)
-            if (flow) {
-                flow.flow = JSON.stringify(request.body)
-                await flow.save()
-            } else {
-                flow = await app.db.models.StorageFlow.create({
-                    flow: JSON.stringify(request.body),
-                    ProjectId: id
-                })
-
-                await flow.save()
-            }
-            response.send(request.body)
+        let flow = await app.db.models.StorageFlow.byProject(id)
+        if (flow) {
+            flow.flow = JSON.stringify(request.body)
+            await flow.save()
         } else {
-            response.status(404).send({ code: 'not_found', error: 'Not Found' })
+            flow = await app.db.models.StorageFlow.create({
+                flow: JSON.stringify(request.body),
+                ProjectId: id
+            })
+
+            await flow.save()
         }
+        response.send(request.body)
     })
 
     app.get('/:projectId/flows', async (request, response) => {
         const id = request.params.projectId
-        const project = await app.db.models.Project.byId(id)
-        if (project) {
-            const flow = await app.db.models.StorageFlow.byProject(id)
-            if (flow) {
-                response.type('application/json').send(flow.flow)
-            } else {
-                response.send([])
-            }
+        const flow = await app.db.models.StorageFlow.byProject(id)
+        if (flow) {
+            response.type('application/json').send(flow.flow)
         } else {
-            response.status(404).send({ code: 'not_found', error: 'Not Found' })
+            response.send([])
         }
     })
 
     app.post('/:projectId/credentials', async (request, response) => {
         const id = request.params.projectId
-        // Check if the project exists first
-        const project = await app.db.models.Project.byId(id)
-        if (project) {
-            let creds = await app.db.models.StorageCredentials.byProject(id)
-            if (creds) {
-                creds.credentials = JSON.stringify(request.body)
-                await creds.save()
-            } else {
-                creds = await app.db.models.StorageCredentials.create({
-                    credentials: JSON.stringify(request.body),
-                    ProjectId: id
-                })
-                await creds.save()
-            }
-            response.send(request.body)
+        let creds = await app.db.models.StorageCredentials.byProject(id)
+        if (creds) {
+            creds.credentials = JSON.stringify(request.body)
+            await creds.save()
         } else {
-            response.status(404).send({ code: 'not_found', error: 'Not Found' })
+            creds = await app.db.models.StorageCredentials.create({
+                credentials: JSON.stringify(request.body),
+                ProjectId: id
+            })
+            await creds.save()
         }
+        response.send(request.body)
     })
 
     app.get('/:projectId/credentials', async (request, response) => {
         const id = request.params.projectId
-        const project = await app.db.models.Project.byId(id)
-        if (project) {
-            const creds = await app.db.models.StorageCredentials.byProject(id)
-            if (creds) {
-                response.type('application/json').send(creds.credentials)
-            } else {
-                response.send({})
-            }
+        const creds = await app.db.models.StorageCredentials.byProject(id)
+        if (creds) {
+            response.type('application/json').send(creds.credentials)
+        } else {
+            response.send({})
         }
     })
 
     app.post('/:projectId/settings', async (request, response) => {
         const id = request.params.projectId
-        // Check if the project exists first
-        const project = await app.db.models.Project.byId(id)
-        if (project) {
-            let settings = await app.db.models.StorageSettings.byProject(id)
-            if (settings) {
-                settings.settings = JSON.stringify(request.body)
-                await settings.save()
-            } else {
-                settings = await app.db.models.StorageSettings.create({
-                    settings: JSON.stringify(request.body),
-                    ProjectId: id
-                })
-                await settings.save()
-            }
-            await app.db.controllers.Project.mergeProjectModules(project, await app.db.controllers.StorageSettings.getProjectModules(project))
-            response.send(request.body)
+        let settings = await app.db.models.StorageSettings.byProject(id)
+        if (settings) {
+            settings.settings = JSON.stringify(request.body)
+            await settings.save()
         } else {
-            response.status(404).send({ code: 'not_found', error: 'Not Found' })
+            settings = await app.db.models.StorageSettings.create({
+                settings: JSON.stringify(request.body),
+                ProjectId: id
+            })
+            await settings.save()
         }
+        await app.db.controllers.Project.mergeProjectModules(request.project, await app.db.controllers.StorageSettings.getProjectModules(request.project))
+        response.send(request.body)
     })
 
     app.get('/:projectId/settings', async (request, response) => {
         const id = request.params.projectId
-        const project = await app.db.models.Project.byId(id)
-        if (project) {
-            const settings = await app.db.models.StorageSettings.byProject(id)
-            if (settings) {
-                response.type('application/json').send(settings.settings)
-            } else {
-                response.send({})
-            }
+        const settings = await app.db.models.StorageSettings.byProject(id)
+        if (settings) {
+            response.type('application/json').send(settings.settings)
+        } else {
+            response.send({})
         }
     })
 
     app.post('/:projectId/sessions', async (request, response) => {
         const id = request.params.projectId
-        // Check if the project exists first
-        const project = await app.db.models.Project.byId(id)
-        if (project) {
-            let sessions = await app.db.models.StorageSession.byProject(id)
-            if (sessions) {
-                sessions.sessions = JSON.stringify(request.body)
-                await sessions.save()
-            } else {
-                sessions = await app.db.models.StorageSession.create({
-                    sessions: JSON.stringify(request.body),
-                    ProjectId: id
-                })
-                await sessions.save()
-            }
-            response.send(request.body)
+        let sessions = await app.db.models.StorageSession.byProject(id)
+        if (sessions) {
+            sessions.sessions = JSON.stringify(request.body)
+            await sessions.save()
         } else {
-            response.status(404).send({ code: 'not_found', error: 'Not Found' })
+            sessions = await app.db.models.StorageSession.create({
+                sessions: JSON.stringify(request.body),
+                ProjectId: id
+            })
+            await sessions.save()
         }
+        response.send(request.body)
     })
 
     app.get('/:projectId/sessions', async (request, response) => {
         const id = request.params.projectId
-        const project = await app.db.models.Project.byId(id)
-        if (project) {
-            const sessions = await app.db.models.StorageSession.byProject(id)
-            if (sessions) {
-                response.type('application/json').send(sessions.sessions)
-            } else {
-                response.send({})
-            }
+        const sessions = await app.db.models.StorageSession.byProject(id)
+        if (sessions) {
+            response.type('application/json').send(sessions.sessions)
         } else {
-            response.status(404).send({ code: 'not_found', error: 'Not Found' })
+            response.send({})
         }
     })
 
@@ -237,12 +199,11 @@ module.exports = async function (app) {
         async (request, response) => {
             const id = request.params.projectId
             const type = request.params.type
-            const name = request.query.name
-
+            let name = request.query.name
             let reply = []
 
+            // Try to get the exact name
             const direct = await app.db.models.StorageLibrary.byName(id, type, name)
-
             if (direct) {
                 if (type === 'flows') {
                     reply = JSON.parse(direct.body)
@@ -250,32 +211,24 @@ module.exports = async function (app) {
                     reply = direct.body
                 }
             } else {
-                // console.log("name",name)
-                // const path = name.split('/')
-
-                const all = await app.db.models.StorageLibrary.byType(id, type)
-                all.forEach(entry => {
-                    // console.log("entry.name",entry.name)
-                    // const entryPath = entry.name.split('/')
-                    if (entry.name.startsWith(name)) {
-                        let short = entry.name.substring(name.length)
-                        // console.log("short", short)
-                        if (short.charAt(0) === '/') {
-                            short = short.substring(1)
-                        }
-                        // console.log("short", short)
-                        // console.log(short.indexOf('/'))
-                        if (short.indexOf('/') === -1) {
-                            reply.push({ fn: short, ...JSON.parse(entry.meta) })
-                        } else {
-                            reply.push(short.split('/')[0])
-                        }
+                // No entry with that exact name. Check to see if its a partial
+                // path name
+                if (name.length > 0 && name[name.length - 1] !== '/') {
+                    name += '/'
+                }
+                const subPaths = new Set()
+                const entries = await app.db.models.StorageLibrary.byPath(id, type, name)
+                entries.forEach(entry => {
+                    const shortName = entry.name.substring(name.length)
+                    const pathParts = shortName.split('/')
+                    if (pathParts.length === 1) {
+                        reply.push({ fn: shortName, ...JSON.parse(entry.meta) })
+                    } else {
+                        subPaths.add(pathParts[0])
                     }
                 })
+                reply.push(...subPaths)
             }
-
-            // console.log('reply', reply)
-
             response.send(reply)
         }
     )

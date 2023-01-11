@@ -1,11 +1,11 @@
 /**
- * A Project's Library
- * @namespace forge.db.models.StorageLibrary
+ * A Team's Shared Library
+ * @namespace forge.db.models.StorageSharedLibrary
  */
 const { DataTypes, Op } = require('sequelize')
 
 module.exports = {
-    name: 'StorageLibrary',
+    name: 'StorageSharedLibrary',
     schema: {
         name: { type: DataTypes.TEXT, allowNull: false },
         type: { type: DataTypes.TEXT, allowNull: false },
@@ -13,34 +13,36 @@ module.exports = {
         body: { type: DataTypes.TEXT, allowNull: false, defaultValue: '' }
     },
     associations: function (M) {
-        this.belongsTo(M.Project)
+        this.belongsTo(M.Team, {
+            onDelete: 'CASCADE'
+        })
     },
     finders: function (M) {
         return {
             static: {
-                byProject: async (project) => {
+                byTeam: async (team) => {
                     return this.findAll({
                         include: {
-                            model: M.Project,
-                            where: { project },
+                            model: M.Team,
+                            where: { team },
                             attributes: ['type', 'meta', 'body']
                         }
                     })
                 },
-                byType: async (project, type) => {
+                byType: async (team, type) => {
                     return this.findAll({
-                        where: { ProjectId: project, type }
+                        where: { TeamId: team, type }
                     })
                 },
-                byName: async (project, type, name) => {
+                byName: async (team, type, name) => {
                     return this.findOne({
-                        where: { ProjectId: project, type, name }
+                        where: { TeamId: team, type, name }
                     })
                 },
-                byPath: async (project, type, name) => {
+                byPath: async (team, type, name) => {
                     return this.findAll({
                         where: {
-                            ProjectId: project,
+                            TeamId: team,
                             type,
                             name: {
                                 [Op.like]: `${name}%`
