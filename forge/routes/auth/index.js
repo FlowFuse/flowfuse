@@ -310,7 +310,7 @@ module.exports = fp(async function (app, opts, done) {
         }
         let requireEmailVerification = true
         if (app.config.features.enabled('sso') && request.body.email) {
-            if (app.sso.isSSOEnabledForEmail(request.body.email)) {
+            if (await app.sso.isSSOEnabledForEmail(request.body.email)) {
                 // This user is signing up with an SSO enabled email domain
                 // 1. validate they are not trying to use a plus-address (name+extra@domain)
                 if (/^.*\+.*@[^@]+$/.test(request.body.email)) {
