@@ -1,6 +1,6 @@
 <template>
     <ff-layout-box class="ff-signup">
-        <div v-if="!emailSent" class="max-w-md">
+        <div v-if="!emailSent && !ssoCreated" class="max-w-md">
             <h2>Sign Up</h2>
             <div>
                 <label>Username</label>
@@ -26,9 +26,13 @@
                 <ff-button :disabled="!formValid" @click="registerUser()" data-action="sign-up">Sign Up</ff-button>
             </div>
         </div>
-        <div v-else>
+        <div v-else-if="emailSent">
             <h5>Confirm your e-mail address.</h5>
             <p>Please click the link in the email we sent to {{ input.email }}</p>
+        </div>
+        <div v-else>
+            <p>You can now login using your SSO Provider.</p>
+            <ff-button :to="{ name: 'Home' }" data-action="login">Login</ff-button>
         </div>
     </ff-layout-box>
 </template>
@@ -51,6 +55,7 @@ export default {
         return {
             teams: [],
             emailSent: false,
+            ssoCreated: false,
             input: {
                 name: '',
                 username: '',
@@ -120,7 +125,11 @@ export default {
             }
             const opts = { ...this.input, name: this.input.name || this.input.username }
             userApi.registerUser(opts).then(result => {
-                this.emailSent = true
+                if (result.sso_enabled) {
+                    this.ssoCreated = true
+                } else {
+                    this.emailSent = true
+                }
             }).catch(err => {
                 console.log(err.response.data)
                 if (err.response.data) {

@@ -308,6 +308,15 @@ module.exports = fp(async function (app, opts, done) {
             reply.code(400).send(resp)
             return
         }
+        const userProperties = {
+            username: request.body.username,
+            name: request.body.name,
+            email: request.body.email,
+            email_verified: false,
+            password: request.body.password,
+            admin: false,
+            tcs_accepted: new Date()
+        }
         let requireEmailVerification = true
         if (app.config.features.enabled('sso') && request.body.email) {
             if (await app.sso.isSSOEnabledForEmail(request.body.email)) {
@@ -320,18 +329,11 @@ module.exports = fp(async function (app, opts, done) {
                     return
                 }
                 requireEmailVerification = false
+                userProperties.sso_enabled = true
             }
         }
         try {
-            const newUser = await app.db.models.User.create({
-                username: request.body.username,
-                name: request.body.name,
-                email: request.body.email,
-                email_verified: false,
-                password: request.body.password,
-                admin: false,
-                tcs_accepted: new Date()
-            })
+            const newUser = await app.db.models.User.create(userProperties)
             userInfo.id = newUser.id
             if (requireEmailVerification) {
                 const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(newUser)
@@ -353,7 +355,7 @@ module.exports = fp(async function (app, opts, done) {
                 })
             }
             await app.auditLog.User.account.register(userInfo, null, userInfo)
-            reply.send({ status: 'okay' })
+            reply.send(await app.db.views.User.userProfile(newUser))
         } catch (err) {
             let responseMessage
             let responseCode = 'unexpected_error'
