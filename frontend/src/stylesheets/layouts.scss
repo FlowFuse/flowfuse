@@ -243,6 +243,18 @@ $nav_height: 60px;
     text-align: center;
     border-bottom: 2px solid $ff-red-500;
 
+    &.ff-banner-info {
+        background-color: $ff-blue-100;
+        color: $ff-grey-700;
+        text-align: left;
+        border-bottom: 2px solid $ff-blue-400;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
     &.ff-banner-warning {
         background-color: $ff-red-700;
         color: $ff-grey-50;

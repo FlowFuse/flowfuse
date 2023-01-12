@@ -19,7 +19,7 @@
                 <div class="mb-8 text-sm text-gray-500">
                     <template v-if="!isCopyProject">Let's get your new Node-RED project setup in no time.</template>
                 </div>
-                <div v-if="subscription?.customer?.balance < 0" class="ff-banner ff-banner-warning">
+                <div v-if="subscription?.customer?.balance < 0" class="ff-banner ff-banner-info">
                     You have a credit balance of {{ formatCurrency(Math.abs(subscription.customer.balance)) }} that will be applied to this project.
                 </div>
                 <div>
