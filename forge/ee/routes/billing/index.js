@@ -183,20 +183,17 @@ module.exports = async function (app) {
                     return
                 }
 
-                if (!event.data.object.metadata.free_trial) {
+                if (!event.data.object.metadata?.free_trial) {
                     return
                 }
 
-                const creditAmount = app.config.billing.stripe.new_customer_free_credit
-                if (!creditAmount) {
+                if (!app.db.controllers.Subscription.freeTrialsEnabled()) {
                     app.log.error(`Received a new subscription with the trial flag set for ${team.hashid}, but trials are not configured.`)
-                    return
-                } else if (creditAmount <= 0) {
-                    app.log.error('new_customer_free_credit must be set to a cent value greater than zero.')
                     return
                 }
 
                 // Apply free trial in the form of credit to the Stripe customer that owns this team
+                const creditAmount = app.config.billing.stripe.new_customer_free_credit
                 await stripe.customers.createBalanceTransaction(
                     stripeCustomerId,
                     {

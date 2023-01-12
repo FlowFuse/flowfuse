@@ -13,6 +13,7 @@ module.exports = {
 
         return newSubscription
     },
+
     deleteSubscription: async function (app, team) {
         const subscription = await app.db.models.Subscription.byTeamId(team.id)
         if (subscription) {
@@ -21,10 +22,25 @@ module.exports = {
         return null
     },
 
-    userEligibleForFreeTrial: async function (app, user, newTeamAlreadyCreated = false) {
-        const teams = await app.db.models.Team.forUser(user)
-        const totalTeams = teams.length
+    freeTrialsEnabled: function (app) {
+        const creditAmount = app.config.billing?.stripe?.new_customer_free_credit
+        if (!creditAmount) {
+            return false
+        }
 
-        return totalTeams <= newTeamAlreadyCreated ? 1 : 0
+        if (creditAmount <= 0) {
+            app.log.error('new_customer_free_credit must be set to a cent value greater than zero, disabling free trials.')
+            return false
+        }
+
+        return true
+    },
+
+    // Users are only eligible for the free trial if they're not part of any team
+    // newTeamAlreadyCreated is required during subscription creation as the team is created before the subscription
+    userEligibleForFreeTrial: async function (app, user, newTeamAlreadyCreated = false) {
+        const teamCount = await user.teamCount()
+
+        return teamCount <= (newTeamAlreadyCreated ? 1 : 0)
     }
 }
