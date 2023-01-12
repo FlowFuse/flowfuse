@@ -77,6 +77,7 @@ describe('Subscription controller', function () {
         })
 
         it('returns false if new_customer_free_credit is unset or less than or equal to zero', async function () {
+            delete app.config.billing.stripe.new_customer_free_credit
             should.equal(app.db.controllers.Subscription.freeTrialsEnabled(), false)
 
             app.config.billing.stripe.new_customer_free_credit = null
