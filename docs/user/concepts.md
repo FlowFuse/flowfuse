@@ -8,6 +8,7 @@ are a few concepts the platform introduces to help organise things.
    - [Stack](#project-stack)
    - [Template](#project-template)
    - [Snapshot](#project-snapshot)
+   - [Deployment](#project-deployment)
  - [Team](#team)
  - [Device](#device)
 
@@ -78,6 +79,19 @@ Snapshots can be created (and deleted) on the FlowForge dashboard, or using the
 [FlowForge Node-RED Tools plugin](./node-red-tools.md).
 
 The dashboard also allows you to roll a project back to a previous snapshot.
+
+#### Project Deployment
+
+Each FlowForge project comes with a deployment of Node-RED, hosted by FlowForge, at the same
+domain. For a given FlowForge Project, there are two type of Deployments:
+
+- **FlowForge Hosted:** Currently, this just includes the single instance of Node-RED
+hosted at the same domain as FlowForge and configured through the settings of the Project.
+- **Remote Deployments:** These can be created and managed using the [FlowForge Device Agent](https://github.com/flowforge/flowforge-device-agent).
+You can bind existing [Devices](/docs/user/devices/) to your Project, and then set a
+[Target Snapshot](/docs/user/snapshots/#setting-a-device-target-snapshot) for those devices.
+FlowForge will automatically deploy that snapshot out to any devices bound to the Project.
+
 
 ### Team
 
