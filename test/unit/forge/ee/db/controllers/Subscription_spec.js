@@ -64,6 +64,32 @@ describe('Subscription controller', function () {
         })
     })
 
+    describe('freeTrialsEnabled', function () {
+        it('returns true if new_customer_free_credit is set to an amount above zero', async function () {
+            app.config.billing.stripe.new_customer_free_credit = 1
+            should.equal(app.db.controllers.Subscription.freeTrialsEnabled(), true)
+
+            app.config.billing.stripe.new_customer_free_credit = 100
+            should.equal(app.db.controllers.Subscription.freeTrialsEnabled(), true)
+
+            app.config.billing.stripe.new_customer_free_credit = 1000
+            should.equal(app.db.controllers.Subscription.freeTrialsEnabled(), true)
+        })
+
+        it('returns false if new_customer_free_credit is unset or less than or equal to zero', async function () {
+            should.equal(app.db.controllers.Subscription.freeTrialsEnabled(), false)
+
+            app.config.billing.stripe.new_customer_free_credit = null
+            should.equal(app.db.controllers.Subscription.freeTrialsEnabled(), false)
+
+            app.config.billing.stripe.new_customer_free_credit = 0
+            should.equal(app.db.controllers.Subscription.freeTrialsEnabled(), false)
+
+            app.config.billing.stripe.new_customer_free_credit = -1000
+            should.equal(app.db.controllers.Subscription.freeTrialsEnabled(), false)
+        })
+    })
+
     describe('userEligibleForFreeTrial', function () {
         it('returns true if the user has no teams', async function () {
             const newUser = await app.db.models.User.create({ admin: true, username: 'new', name: 'New', email: 'new@example.com', email_verified: true, password: 'aaPassword' })
