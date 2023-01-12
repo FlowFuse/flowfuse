@@ -6,6 +6,7 @@ describe('Stripe Callbacks', function () {
     const sandbox = sinon.createSandbox()
 
     let app
+    let stripe
 
     const callbackURL = '/ee/billing/callback'
 
@@ -15,7 +16,22 @@ describe('Stripe Callbacks', function () {
         return (await app.db.views.AuditLog.auditLog({ log: logs.log })).log[0]
     }
 
+    function setupStripe (mock) {
+        require.cache[require.resolve('stripe')] = {
+            exports: function (apiKey) {
+                return mock
+            }
+        }
+        stripe = mock
+    }
+
     beforeEach(async function () {
+        setupStripe({
+            customers: {
+                createBalanceTransaction: sinon.stub().resolves({ status: 'ok' })
+            }
+        })
+
         app = await setup()
         sandbox.stub(app.log, 'info')
         sandbox.stub(app.log, 'warn')
@@ -25,6 +41,7 @@ describe('Stripe Callbacks', function () {
 
     afterEach(async function () {
         await app.close()
+        delete require.cache[require.resolve('stripe')]
         sandbox.restore()
     })
 
@@ -178,28 +195,6 @@ describe('Stripe Callbacks', function () {
     })
 
     describe('customer.subscription.created', () => {
-        let stripe
-        function setupStripe (mock) {
-            require.cache[require.resolve('stripe')] = {
-                exports: function (apiKey) {
-                    return mock
-                }
-            }
-            stripe = mock
-        }
-
-        beforeEach(async function () {
-            setupStripe({
-                customers: {
-                    createBalanceTransaction: sinon.stub().resolves({ status: 'ok' })
-                }
-            })
-        })
-
-        afterEach(async function () {
-            delete require.cache[require.resolve('stripe')]
-        })
-
         it('Logs known subscriptions', async () => {
             const response = await (app.inject({
                 method: 'POST',
@@ -257,15 +252,7 @@ describe('Stripe Callbacks', function () {
         })
 
         it('Creates a stripe credit balance against the customer if the free_trial flag is set', async () => {
-            const appWithTrialsEnabled = await setup({
-                billing: {
-                    stripe: {
-                        new_customer_free_credit: 1000
-                    }
-                }
-            })
-
-            const response = await (appWithTrialsEnabled.inject({
+            const response = await (app.inject({
                 method: 'POST',
                 url: callbackURL,
                 headers: {
@@ -301,10 +288,9 @@ describe('Stripe Callbacks', function () {
         })
 
         it('Ignores the free_trial flag if trials are not enabled', async () => {
-            const appWithoutTrialsEnabled = await setup()
-            sandbox.stub(appWithoutTrialsEnabled.log, 'error')
+            app.config.billing.stripe.new_customer_free_credit = undefined
 
-            const response = await (appWithoutTrialsEnabled.inject({
+            const response = await (app.inject({
                 method: 'POST',
                 url: callbackURL,
                 headers: {
@@ -330,8 +316,8 @@ describe('Stripe Callbacks', function () {
 
             should.equal(stripe.customers.createBalanceTransaction.calledOnce, false)
 
-            should(appWithoutTrialsEnabled.log.error.called).equal(true)
-            appWithoutTrialsEnabled.log.error.firstCall.firstArg.should.equal(`Received a new subscription with the trial flag set for ${app.team.hashid}, but trials are not configured.`)
+            should(app.log.error.called).equal(true)
+            app.log.error.firstCall.firstArg.should.equal(`Received a new subscription with the trial flag set for ${app.team.hashid}, but trials are not configured.`)
 
             should(response).have.property('statusCode', 200)
         })
