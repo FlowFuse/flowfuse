@@ -47,6 +47,9 @@
                             You will be charged for the projects you create within the team.
                             For more information on billing, please read our <a class="underline" href="https://flowforge.com/docs/cloud/billing/">Billing documentation</a>.
                         </p>
+                        <p v-if="user.free_trial_available">
+                            As this is your first FlowForge team, free credit will be applied to use for your first project.
+                        </p>
                     </div>
                     <div v-if="coupon">
                         <div class="mb-8 text-sm text-gray-500 space-y-2">Will apply coupon code <span v-text="coupon"></span> at checkout</div>
@@ -133,7 +136,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'features']),
+        ...mapState('account', ['user', 'team', 'features']),
         formValid () {
             return this.input.teamTypeId && this.input.name && !this.input.slugError && !this.errors.name
         },
@@ -142,8 +145,9 @@ export default {
         }
     },
     async created () {
-        const data = await teamTypesApi.getTeamTypes()
-        this.teamTypes = data.types
+        const teamTypesPromise = await teamTypesApi.getTeamTypes()
+
+        this.teamTypes = (await teamTypesPromise).types
         this.input.teamTypeId = this.teamTypes[0].id
         this.coupon = (await window.cookieStore.get('ff_coupon'))?.value.split('.')[0]
     },

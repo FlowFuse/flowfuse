@@ -25,8 +25,14 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('user:read'),
         config: { allowUnverifiedEmail: true, allowExpiredPassword: true }
     }, async (request, reply) => {
-        const users = await app.db.views.User.userProfile(request.session.User)
-        reply.send(users)
+        const user = request.session.User
+
+        const response = await app.db.views.User.userProfile(user)
+        if (app.license.active() && app.billing && app.db.controllers.Subscription.freeTrialsEnabled()) {
+            response.free_trial_available = await app.db.controllers.Subscription.userEligibleForFreeTrial(user)
+        }
+
+        reply.send(response)
     })
 
     /**
