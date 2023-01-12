@@ -60,7 +60,7 @@ settings a user familiar with Node-RED would be used to modifying in their setti
 file. But it can also be used to customise the palette of nodes that are pre-installed,
 provide a set of default flows and change the look and feel of the editor.
 
-A template can also specify [Environment Variables](envvar) which can then have
+A template can also specify [Environment Variables](./envvar.md) which can then have
 their values as editable for each project or locked. It is not possible to disable
 the use of environment variables in a project.
 
@@ -88,7 +88,7 @@ domain. For a given FlowForge Project, there are two type of Deployments:
 - **FlowForge Hosted:** Currently, this just includes the single instance of Node-RED
 hosted at the same domain as FlowForge and configured through the settings of the Project.
 - **Remote Deployments:** These can be created and managed using the [FlowForge Device Agent](https://github.com/flowforge/flowforge-device-agent).
-You can bind existing [Devices](/docs/user/devices/) to your Project, and then set a
+You can bind existing [Devices](/docs/user/devices.md) to your Project, and then set a
 [Target Snapshot](/docs/user/snapshots/#setting-a-device-target-snapshot) for those devices.
 FlowForge will automatically deploy that snapshot out to any devices bound to the Project.
 

@@ -48,7 +48,7 @@ to existing ones - whatever is needed.
 The `down` function reverses the migration. It should restore the database back to
 how it was prior to the migration.
 
-The `context` argument is an instance of [Sequelize.QueryInterface](https://sequelize.org/v6/class/lib/dialects/abstract/query-interface.js~QueryInterface.html) that can be used to perform
+The `context` argument is an instance of [Sequelize.QueryInterface](https://sequelize.org/docs/v6/other-topics/query-interface/) that can be used to perform
 operations on the database.
 
 ## Applying migrations
