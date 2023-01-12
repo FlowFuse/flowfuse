@@ -152,10 +152,10 @@ export default {
         async downloadSnapshotPackage (snapshot) {
             const ss = await snapshotApi.getSnapshot(this.project.id, snapshot.id)
             const packageJSON = {
-                name: 'flowforge-project',
-                description: 'A FlowForge Project',
+                name: this.project.safeName,
+                description: `${snapshot.name} - ${snapshot.description}`,
                 private: true,
-                version: '0.0.1',
+                version: '0.0.0-' + snapshot.id,
                 dependencies: ss.modules
             }
             const element = document.createElement('a')

@@ -145,24 +145,28 @@ To delete a device:
 The next time the device calls home it will find it is no longer authorised and
 will stop and delete its local copy of the project it was running.
 
-
 ## Running with no access to npmjs.org
 
 By default the Device Agent will try and download the correct version of Node-RED and 
 any nodes required to run the Project Snapshot that is assigned to run on the device.
 
-If the device is being run on a offline network or security policies prevent the 
+If the device is being run on an offline network or security policies prevent the 
 Device Agent from connecting to npmjs.org then it can be configured to use a pre-cached 
 set of modules.
 
-You can enable this mode by adding `moduleCache: true` to the `device.yml` file or adding 
-`-m` to the command line. This will cause the Device Agent to load the modules from the 
-`module_cache` directory in the Device Agents Configuration directory as describe above.
+You can enable this mode by adding `-m` to the command line adding `moduleCache: true` 
+to the `device.yml` file. This will cause the Device Agent to load the modules from the 
+`module_cache` directory in the Device Agents Configuration directory as described above.
 By default this will be `/opt/flowforge-device/module_cache`.
 
-The easiest way to create the cache is to download the `package.json` for the Snapshot. 
-This can be found in the 3 dots menu for the Snapshot on the Project's Snapshot page.
+### Creating a module cache
 
-Place this file in an empty directory on a machine with the same OS and architecture as 
-the device and run `npm install`. This will create a `node_modules` directory which you 
-should copy into `module_cache` director on the device.
+To create a suitable module cache, you will need to install the modules on a local device with
+access to npmjs.org, ensuring you use the same OS and Architecture as your target
+device, and then copy the modules on to your device.
+
+1. From the Project Snapshot page, select the snapshot you want to deploy and select the option to download its `package.json` file.
+2. Place this file in an empty directory on your local device.
+3. Run `npm install` to install the modules. This will create a `node_modules` directory.
+4. On your target device, create a directory called `module_cache` inside the Device Agent Configuration directory.
+5. Copy the `node_modules` directory from your local device to the target device so that it is under the `module_cache` directory.
