@@ -17,7 +17,9 @@ describe('Stripe Callbacks', function () {
 
     beforeEach(async function () {
         app = await setup()
-        sandbox.spy(app.log)
+        sandbox.stub(app.log, 'info')
+        sandbox.stub(app.log, 'warn')
+        sandbox.stub(app.log, 'error')
         sandbox.stub(app.billing)
     })
 
