@@ -1,3 +1,11 @@
+#### 1.2.1: Release
+
+ - Fix sending email on initial account creation (backport #1515) (#1516) @app/github-actions
+ - docs: Re-request a verification email (backport #1534) (#1535) @app/github-actions
+ - docs: Start to flesh out the Context Store config (backport #1487) (#1523) @app/github-actions
+ - docs: Add Payload to large details (backport #1512) (#1513) @app/github-actions
+ - Docs: More explicit explanation of card failure handling (backport #1500) (#1504) @app/github-actions
+
 #### 1.2.0: Release
 
  - Add upgrading docs for file server (#1482) @knolleary
