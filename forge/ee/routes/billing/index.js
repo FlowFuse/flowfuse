@@ -177,9 +177,32 @@ module.exports = async function (app) {
             }
 
             case 'customer.subscription.created': {
-                await parseSubscriptionEvent(event)
+                const { team, stripeCustomerId } = await parseSubscriptionEvent(event)
+                if (!team) {
+                    response.status(200).send()
+                    return
+                }
 
-                // Do nothing - just log (handled above)
+                if (!event.data.object.metadata?.free_trial) {
+                    return
+                }
+
+                if (!app.db.controllers.Subscription.freeTrialsEnabled()) {
+                    app.log.error(`Received a new subscription with the trial flag set for ${team.hashid}, but trials are not configured.`)
+                    return
+                }
+
+                // Apply free trial in the form of credit to the Stripe customer that owns this team
+                const creditAmount = app.config.billing.stripe.new_customer_free_credit
+                await stripe.customers.createBalanceTransaction(
+                    stripeCustomerId,
+                    {
+                        amount: -creditAmount,
+                        currency: 'usd'
+                    }
+                )
+
+                app.log.info(`Applied a credit of ${creditAmount} to ${stripeCustomerId} from team ${team.hashid}`)
 
                 break
             }
@@ -253,16 +276,24 @@ module.exports = async function (app) {
             return response.code(404).send({ code: 'not_found', error: 'Team does not have a subscription' })
         }
 
-        const stripeSubscription = await stripe.subscriptions.retrieve(
+        const stripeSubscriptionPromise = stripe.subscriptions.retrieve(
             sub.subscription,
             {
                 expand: ['items.data.price.product']
             }
         )
+        const stripeCustomerPromise = stripe.customers.retrieve(sub.customer)
+
+        const stripeSubscription = await stripeSubscriptionPromise
+        const stripeCustomer = await stripeCustomerPromise
 
         const information = {
             next_billing_date: stripeSubscription.current_period_end,
-            items: []
+            items: [],
+            customer: {
+                name: stripeCustomer.name,
+                balance: stripeCustomer.balance
+            }
         }
         stripeSubscription.items.data.forEach(item => {
             information.items.push({

@@ -1,4 +1,7 @@
 <template>
+    <div v-if="subscription?.customer?.balance < 0" class="ff-banner ff-banner-info mb-3">
+        You have a credit balance of {{ formatCurrency(Math.abs(subscription.customer.balance)) }} that will be applied to the next invoice.
+    </div>
     <SectionTopMenu hero="Team Billing">
         <template #tools>
             <ff-button v-if="subscription" size="small" @click="customerPortal()">

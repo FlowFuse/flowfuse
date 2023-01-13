@@ -79,33 +79,6 @@ describe('User model', function () {
             user.password.should.not.equal('12345678')
         })
 
-        it('User.admins returns all admin users', async function () {
-            const admins = await app.db.models.User.admins()
-            admins.should.have.length(1)
-            admins[0].get('email').should.eql('alice@example.com')
-        })
-
-        it('getTeamMembership', async function () {
-            const user = await app.db.models.User.byEmail('bob@example.com')
-            const team1 = await app.db.models.Team.findOne({ where: { name: 'ATeam' } })
-            const team2 = await app.db.models.Team.findOne({ where: { name: 'BTeam' } })
-            const team3 = await app.db.models.Team.findOne({ where: { name: 'CTeam' } })
-
-            const membership1 = await user.getTeamMembership(team1.id, true)
-            should.equal(membership1.role, Roles.Member)
-            should.equal(membership1.TeamId, team1.id)
-            should.exist(membership1.Team)
-            should.equal(membership1.Team.id, team1.id)
-            should.equal(membership1.Team.name, 'ATeam')
-
-            const membership2 = await user.getTeamMembership(team2.id)
-            should.equal(membership2.role, Roles.Owner)
-            should.not.exist(membership2.Team)
-
-            const membership3 = await user.getTeamMembership(team3.id)
-            should.not.exist(membership3)
-        })
-
         it('Should not create a User where Real Name is a URL', async function () {
             let user
             try {
@@ -120,6 +93,67 @@ describe('User model', function () {
             }
 
             should.not.exist(user)
+        })
+
+        describe('#getTeamMembership', function () {
+            it('should return the team membership object for the passed team', async function () {
+                const user = await app.db.models.User.byEmail('bob@example.com')
+                const team1 = await app.db.models.Team.findOne({ where: { name: 'ATeam' } })
+                const team2 = await app.db.models.Team.findOne({ where: { name: 'BTeam' } })
+                const team3 = await app.db.models.Team.findOne({ where: { name: 'CTeam' } })
+
+                const membership1 = await user.getTeamMembership(team1.id, true)
+                should.equal(membership1.role, Roles.Member)
+                should.equal(membership1.TeamId, team1.id)
+                should.exist(membership1.Team)
+                should.equal(membership1.Team.id, team1.id)
+                should.equal(membership1.Team.name, 'ATeam')
+
+                const membership2 = await user.getTeamMembership(team2.id)
+                should.equal(membership2.role, Roles.Owner)
+                should.not.exist(membership2.Team)
+
+                const membership3 = await user.getTeamMembership(team3.id)
+                should.not.exist(membership3)
+            })
+        })
+
+        describe('#getTeamsOwned', function () {
+            it('should return all teams this user is the owner of', async function () {
+                const user = await app.db.models.User.byEmail('bob@example.com')
+                const ownedTeam = await app.db.models.Team.findOne({ where: { name: 'BTeam' } })
+
+                const teams = await user.getTeamsOwned()
+                teams.length.should.equal(1)
+
+                should.exist(teams[0].Team)
+                should.equal(teams[0].Team.id, ownedTeam.id)
+            })
+        })
+
+        describe('#teamCount', function () {
+            it('should return the number of teams the user is a member of', async function () {
+                const userAlice = await app.db.models.User.byEmail('alice@example.com')
+                should.equal(await userAlice.teamCount(), 3)
+
+                const userBob = await app.db.models.User.byEmail('bob@example.com')
+                should.equal(await userBob.teamCount(), 2)
+
+                const userChris = await app.db.models.User.byEmail('chris@example.com')
+                should.equal(await userChris.teamCount(), 0)
+            })
+        })
+    })
+
+    describe('Class Finders', function () {
+        beforeEach(async function () {
+            app = await setup()
+        })
+
+        it('User.admins returns all admin users', async function () {
+            const admins = await app.db.models.User.admins()
+            admins.should.have.length(1)
+            admins[0].get('email').should.eql('alice@example.com')
         })
 
         it('User.byUsername should be case insensitive', async function () {

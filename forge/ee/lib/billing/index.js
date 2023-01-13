@@ -45,7 +45,7 @@ module.exports.init = async function (app) {
     }
 
     return {
-        createSubscriptionSession: async (team, coupon, user = null) => {
+        createSubscriptionSession: async (team, coupon = null, user = null) => {
             const billingIds = getBillingIdsForTeam(team)
 
             const sub = {
@@ -79,6 +79,7 @@ module.exports.init = async function (app) {
                 }
             }
 
+            // Apply a USER provided coupon
             if (coupon) {
                 sub.discounts = [
                     {
@@ -87,6 +88,18 @@ module.exports.init = async function (app) {
                 ]
             } else {
                 sub.allow_promotion_codes = true
+            }
+
+            // Set the flag to enable a free trial
+            if (app.db.controllers.Subscription.freeTrialsEnabled() && user) {
+                const newTeamAlreadyCreated = true // team is created before this step
+                const eligibleForTrial = await app.db.controllers.Subscription.userEligibleForFreeTrial(user, newTeamAlreadyCreated)
+
+                if (eligibleForTrial) {
+                    app.log.info(`User ${user.name} (${user.username}) is eligible for a free trial, set the flag in the subscription metadata.`)
+                }
+
+                sub.subscription_data.metadata.free_trial = eligibleForTrial
             }
 
             const session = await stripe.checkout.sessions.create(sub)

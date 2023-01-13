@@ -6,6 +6,7 @@ describe('Stripe Callbacks', function () {
     const sandbox = sinon.createSandbox()
 
     let app
+    let stripe
 
     const callbackURL = '/ee/billing/callback'
 
@@ -15,14 +16,32 @@ describe('Stripe Callbacks', function () {
         return (await app.db.views.AuditLog.auditLog({ log: logs.log })).log[0]
     }
 
+    function setupStripe (mock) {
+        require.cache[require.resolve('stripe')] = {
+            exports: function (apiKey) {
+                return mock
+            }
+        }
+        stripe = mock
+    }
+
     beforeEach(async function () {
+        setupStripe({
+            customers: {
+                createBalanceTransaction: sinon.stub().resolves({ status: 'ok' })
+            }
+        })
+
         app = await setup()
-        sandbox.spy(app.log)
+        sandbox.stub(app.log, 'info')
+        sandbox.stub(app.log, 'warn')
+        sandbox.stub(app.log, 'error')
         sandbox.stub(app.billing)
     })
 
     afterEach(async function () {
         await app.close()
+        delete require.cache[require.resolve('stripe')]
         sandbox.restore()
     })
 
@@ -228,6 +247,77 @@ describe('Stripe Callbacks', function () {
 
             should(app.log.error.called).equal(true)
             app.log.error.firstCall.firstArg.should.equal('Stripe customer.subscription.created event sub_unknown from cus_unknown received for unknown team by Stripe Customer ID')
+
+            should(response).have.property('statusCode', 200)
+        })
+
+        it('Creates a stripe credit balance against the customer if the free_trial flag is set', async () => {
+            const response = await (app.inject({
+                method: 'POST',
+                url: callbackURL,
+                headers: {
+                    'content-type': 'application/json'
+                },
+                payload: {
+                    id: 'evt_123456790',
+                    object: 'event',
+                    data: {
+                        object: {
+                            id: 'sub_1234567890',
+                            object: 'subscription',
+                            customer: 'cus_1234567890',
+                            status: 'active',
+                            metadata: {
+                                free_trial: true
+                            }
+                        }
+                    },
+                    type: 'customer.subscription.created'
+                }
+            }))
+
+            should.equal(stripe.customers.createBalanceTransaction.calledOnce, true)
+
+            stripe.customers.createBalanceTransaction.lastCall.args[0].should.equal('cus_1234567890')
+            stripe.customers.createBalanceTransaction.lastCall.args[1].should.deepEqual({
+                amount: -1000,
+                currency: 'usd'
+            })
+
+            should(response).have.property('statusCode', 200)
+        })
+
+        it('Ignores the free_trial flag if trials are not enabled', async () => {
+            app.config.billing.stripe.new_customer_free_credit = undefined
+
+            const response = await (app.inject({
+                method: 'POST',
+                url: callbackURL,
+                headers: {
+                    'content-type': 'application/json'
+                },
+                payload: {
+                    id: 'evt_123456790',
+                    object: 'event',
+                    data: {
+                        object: {
+                            id: 'sub_1234567890',
+                            object: 'subscription',
+                            customer: 'cus_1234567890',
+                            status: 'active',
+                            metadata: {
+                                free_trial: true
+                            }
+                        }
+                    },
+                    type: 'customer.subscription.created'
+                }
+            }))
+
+            should.equal(stripe.customers.createBalanceTransaction.calledOnce, false)
+
+            should(app.log.error.called).equal(true)
+            app.log.error.firstCall.firstArg.should.equal(`Received a new subscription with the trial flag set for ${app.team.hashid}, but trials are not configured.`)
 
             should(response).have.property('statusCode', 200)
         })

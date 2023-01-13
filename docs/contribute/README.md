@@ -194,6 +194,7 @@ billing:
     device_price: ***
     device_product: ***
     deviceCost: 10
+    new_customer_free_credit: 1000
     teams:
       starter:
         price: ***
@@ -214,6 +215,16 @@ Note that due to the way Stripe works, you will receive events for *all* activit
 in the configured Stripe account. That means if someone else is actively developing
 with billing enabled on the same account, you will see their events arrive.
 
++#### Free Trials
+
+Free trials are implemented as a Stripe Credit that is applied when a FlowForge user
+creates their first team and completed billing sign up.
+
+To enable trials, set the `billing.stripe.new_customer_free_credit` value to a credit amount in cents.
+For a totally free trial, this amount should match the cost of the Stripe product for the project
+type to be trialed to be trialed.
+
+The Stripe webhook forwarder must be running as the credit is handled as part of the webhook handling.
 
 ### Testing
 

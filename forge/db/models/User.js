@@ -228,6 +228,13 @@ module.exports = {
                 },
                 getTeamsOwned: async function () {
                     return M.TeamMember.getTeamsOwnedBy(this.id)
+                },
+                teamCount: async function () {
+                    return M.TeamMember.count({
+                        where: {
+                            UserId: this.id
+                        }
+                    })
                 }
             }
         }

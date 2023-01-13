@@ -63,4 +63,57 @@ describe('Subscription controller', function () {
             should(subscription).equal(null)
         })
     })
+
+    describe('freeTrialsEnabled', function () {
+        it('returns true if new_customer_free_credit is set to an amount above zero', async function () {
+            app.config.billing.stripe.new_customer_free_credit = 1
+            should.equal(app.db.controllers.Subscription.freeTrialsEnabled(), true)
+
+            app.config.billing.stripe.new_customer_free_credit = 100
+            should.equal(app.db.controllers.Subscription.freeTrialsEnabled(), true)
+
+            app.config.billing.stripe.new_customer_free_credit = 1000
+            should.equal(app.db.controllers.Subscription.freeTrialsEnabled(), true)
+        })
+
+        it('returns false if new_customer_free_credit is unset or less than or equal to zero', async function () {
+            delete app.config.billing.stripe.new_customer_free_credit
+            should.equal(app.db.controllers.Subscription.freeTrialsEnabled(), false)
+
+            app.config.billing.stripe.new_customer_free_credit = null
+            should.equal(app.db.controllers.Subscription.freeTrialsEnabled(), false)
+
+            app.config.billing.stripe.new_customer_free_credit = 0
+            should.equal(app.db.controllers.Subscription.freeTrialsEnabled(), false)
+
+            app.config.billing.stripe.new_customer_free_credit = -1000
+            should.equal(app.db.controllers.Subscription.freeTrialsEnabled(), false)
+        })
+    })
+
+    describe('userEligibleForFreeTrial', function () {
+        it('returns true if the user has no teams', async function () {
+            const newUser = await app.db.models.User.create({ admin: true, username: 'new', name: 'New', email: 'new@example.com', email_verified: true, password: 'aaPassword' })
+
+            const eligible = await app.db.controllers.Subscription.userEligibleForFreeTrial(newUser)
+            should.equal(eligible, true)
+        })
+
+        it('returns false if the user has any teams', async function () {
+            const user = await app.db.models.User.byEmail('alice@example.com')
+            should.equal(await user.teamCount() > 0, true)
+
+            const eligible = await app.db.controllers.Subscription.userEligibleForFreeTrial(user)
+            should.equal(eligible, false)
+        })
+
+        it('returns true if the user has only one team but the flag is set', async function () {
+            const user = await app.db.models.User.byEmail('alice@example.com')
+            should.equal(await user.teamCount() === 1, true)
+
+            const newTeamAlreadyCreated = true
+            const eligible = await app.db.controllers.Subscription.userEligibleForFreeTrial(user, newTeamAlreadyCreated)
+            should.equal(eligible, true)
+        })
+    })
 })
