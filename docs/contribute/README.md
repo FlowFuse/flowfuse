@@ -255,6 +255,7 @@ To run the tests for the project, you can use the following npm tasks:
  - `npm run lint` - runs the linting tests
  - `npm run test:unit` - runs the unit tests
  - `npm run test:system` - runs the system tests
+ - `npm run test:docs` - chedcks validity of links in the documentation
 
 ##### Testing against PostgreSQL
 
