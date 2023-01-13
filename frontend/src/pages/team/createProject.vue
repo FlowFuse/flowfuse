@@ -34,9 +34,6 @@
                 <!-- Project Type -->
                 <div v-else class="flex flex-wrap items-stretch">
                     <label class="w-full block text-sm font-medium text-gray-700">Choose your Project Type</label>
-                    <div v-if="subscription?.customer?.balance < 0" class="text-sm text-blue-600 italic">
-                        You have a credit balance of {{ formatCurrency(Math.abs(subscription.customer.balance)) }} that will be applied to this project
-                    </div>
                     <ff-tile-selection v-model="input.projectType" class="mt-5">
                         <ff-tile-selection-option
                             v-for="(projType, index) in projectTypes" :key="index"
@@ -50,7 +47,7 @@
                 <!-- Stack -->
                 <!-- <FormRow :options="stacks" :error="errors.stack" v-model="input.stack" id="stack">Stack</FormRow> -->
                 <div class="flex flex-wrap gap-1 items-stretch">
-                    <label class="w-full block text-sm font-medium text-gray-700 mb-1">Choose your Stack</label>
+                    <label class="w-full block text-sm font-medium text-gray-700 mb-4">Choose your Stack</label>
                     <label v-if="!input.projectType" class="text-sm text-gray-400">Please select a Project Type first.</label>
                     <label v-if="errors.stack" class="text-sm text-gray-400">{{ errors.stack }}</label>
                     <ff-tile-selection v-if="input.projectType" v-model="input.stack" >
@@ -78,12 +75,36 @@
                     <ExportProjectComponents id="exportSettings" v-model="copyParts" />
                 </template>
 
-                <FormRow v-if="this.features.billing" type="checkbox" v-model="input.billingConfirmation" id="billing-confirmation">
-                    Confirm additional charges
-                    <template v-slot:description>
-                        {{ billingDescription }}
-                    </template>
-                </FormRow>
+                <div v-if="features.billing && input.projectType">
+                    <div class="pb-4 mb-4 border-b border-gray-300">
+                        <h1 class="text-lg font-medium mb-2 border-b border-gray-700">Charges</h1>
+                        <div v-if="subscription?.customer?.balance" class="text-sm text-blue-600 italic">
+                            You have a credit balance of {{ formatCurrency(Math.abs(subscription.customer.balance)) }} that will be applied to this project
+                        </div>
+                        <div class="grid grid gap-x-1 gap-y-4 text-sm text-sm mt-4 ml-4" style="grid-template-columns: 1fr 75px auto">
+                            <template v-if="selectedProjectType?.cost">
+                                <div>1 x {{ selectedProjectType.name }}</div>
+                                <div class="text-right">{{ formatCurrency(selectedProjectType.cost) }} </div>
+                                <div v-if="selectedProjectType?.interval" class="text-left">/{{ selectedProjectType.interval }} </div>
+                                <div v-else />
+                            </template>
+                            <template v-if="subscription?.customer?.balance">
+                                <div>Credit Balance</div>
+                                <div class="text-right">{{ formatCurrency(subscription?.customer?.balance) }}</div>
+                                <div />
+                            </template>
+                        </div>
+                    </div>
+                    <FormRow id="billing-confirmation" v-model="input.billingConfirmation" type="checkbox">
+                        Confirm additional charges
+                        <template v-if="selectedProjectTypeCostAfterCredit >= 0" #description>
+                            {{ formatCurrency(selectedProjectTypeCostAfterCredit) }} now
+                            <span v-if="selectedProjectType?.interval">
+                                then {{ formatCurrency(selectedProjectType.cost) }}/{{ selectedProjectType.interval }}
+                            </span>
+                        </template>
+                    </FormRow>
+                </div>
 
                 <ff-button :disabled="!createEnabled" @click="createProject" data-action="create-project">Create Project</ff-button>
             </form>
@@ -138,7 +159,6 @@ export default {
             stacks: [],
             templates: [],
             projectTypes: [],
-            billingDescription: '',
             input: {
                 name: NameGenerator(),
                 stack: '',
@@ -156,7 +176,8 @@ export default {
                 credentials: true,
                 nodes: true,
                 envVars: 'all'
-            }
+            },
+            selectedProjectType: null
         }
     },
     computed: {
@@ -166,6 +187,9 @@ export default {
         },
         createEnabled () {
             return this.input.stack && this.input.name && !this.errors.name && this.input.template && (this.features.billing ? this.input.billingConfirmation : true)
+        },
+        selectedProjectTypeCostAfterCredit () {
+            return (this.selectedProjectType?.cost ?? 0) + (this.subscription?.customer?.balance ?? 0)
         }
     },
     watch: {
@@ -179,7 +203,14 @@ export default {
         'input.projectType': async function (value, oldValue) {
             if (value) {
                 const projectType = this.projectTypes.find(pt => pt.id === value)
-                this.billingDescription = projectType.properties?.billingDescription || ''
+
+                this.selectedProjectType = {
+                    name: projectType.name,
+                    currency: projectType.properties?.billingDescription?.split('/')[0].replace(/[\d.]+/, ''),
+                    cost: (Number(projectType.properties?.billingDescription?.split('/')[0].replace(/[^\d.]+/, '')) || 0) * 100,
+                    interval: projectType.properties?.billingDescription?.split('/')[1]
+                }
+
                 const stackList = await stacksApi.getStacks(null, null, null, value)
                 this.stacks = stackList.stacks.filter(stack => stack.active)
                 this.input.stack = null
