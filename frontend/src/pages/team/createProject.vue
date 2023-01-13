@@ -19,34 +19,35 @@
                 <div class="mb-8 text-sm text-gray-500">
                     <template v-if="!isCopyProject">Let's get your new Node-RED project setup in no time.</template>
                 </div>
-                <div v-if="subscription?.customer?.balance < 0" class="ff-banner ff-banner-info">
-                    You have a credit balance of {{ formatCurrency(Math.abs(subscription.customer.balance)) }} that will be applied to this project.
-                </div>
                 <div>
-                    <FormRow :error="errors.name" v-model="input.name">
-                        <template v-slot:default>Project Name</template>
-                        <template v-slot:append>
-                            <ff-button kind="secondary" @click="refreshName"><template v-slot:icon><RefreshIcon /></template></ff-button>
+                    <FormRow v-model="input.name" :error="errors.name">
+                        <template #default>Project Name</template>
+                        <template #description>
+                            Please note, currently, project names cannot be changed once a project is created
+                        </template>
+                        <template #append>
+                            <ff-button kind="secondary" @click="refreshName"><template #icon><RefreshIcon /></template></ff-button>
                         </template>
                     </FormRow>
-                    <span class="block text-xs ml-4 italic text-gray-500 m-0 max-w-sm">Please note, currently, project names cannot be changed once a project is created</span>
                 </div>
                 <div v-if="this.errors.projectTypes" class="text-red-400 text-xs">{{errors.projectTypes}}</div>
                 <!-- Project Type -->
-                <div v-else class="flex flex-wrap gap-1 items-stretch">
-                    <label class="w-full block text-sm font-medium text-gray-700 mb-1">Project Type</label>
-                    <ff-tile-selection v-model="input.projectType" >
-                        <ff-tile-selection-option v-for="(projType, index) in projectTypes" :key="index"
-                                                  :label="projType.name" :description="projType.description"
-                                                  :price="projType.properties?.billingDescription?.split('/')[0]"
-                                                  :price-interval="projType.properties?.billingDescription?.split('/')[1]"
-                                                  :value="projType.id"/>
+                <div v-else class="flex flex-wrap items-stretch">
+                    <label class="w-full block text-sm font-medium text-gray-700">Choose your Project Type</label>
+                    <ff-tile-selection v-model="input.projectType" class="mt-5">
+                        <ff-tile-selection-option
+                            v-for="(projType, index) in projectTypes" :key="index"
+                            :label="projType.name" :description="projType.description"
+                            :price="projType.properties?.billingDescription?.split('/')[0]"
+                            :price-interval="projType.properties?.billingDescription?.split('/')[1]"
+                            :value="projType.id"
+                        />
                     </ff-tile-selection>
                 </div>
                 <!-- Stack -->
                 <!-- <FormRow :options="stacks" :error="errors.stack" v-model="input.stack" id="stack">Stack</FormRow> -->
                 <div class="flex flex-wrap gap-1 items-stretch">
-                    <label class="w-full block text-sm font-medium text-gray-700 mb-1">Stack</label>
+                    <label class="w-full block text-sm font-medium text-gray-700 mb-4">Choose your Stack</label>
                     <label v-if="!input.projectType" class="text-sm text-gray-400">Please select a Project Type first.</label>
                     <label v-if="errors.stack" class="text-sm text-gray-400">{{ errors.stack }}</label>
                     <ff-tile-selection v-if="input.projectType" v-model="input.stack" >
@@ -74,14 +75,38 @@
                     <ExportProjectComponents id="exportSettings" v-model="copyParts" />
                 </template>
 
-                <FormRow v-if="this.features.billing" type="checkbox" v-model="input.billingConfirmation" id="billing-confirmation">
-                    Confirm additional charges
-                    <template v-slot:description>
-                        {{ billingDescription }}
-                    </template>
-                </FormRow>
+                <div v-if="features.billing && input.projectType">
+                    <div v-if="selectedProjectType?.cost > 0 || subscription?.customer?.balance > 0" class="pb-4 mb-4 border-b border-gray-300" data-el="charges-table">
+                        <h1 class="text-lg font-medium mb-2 border-b border-gray-700">Charges</h1>
+                        <div v-if="subscription?.customer?.balance" class="text-sm text-blue-600 italic" data-el="credit-balance-banner">
+                            You have a credit balance of {{ formatCurrency(Math.abs(subscription.customer.balance)) }} that will be applied to this project
+                        </div>
+                        <div class="grid grid gap-x-1 gap-y-4 text-sm text-sm mt-4 ml-4" style="grid-template-columns: 1fr 75px auto">
+                            <template v-if="selectedProjectType?.cost">
+                                <div data-el="selected-project-type-name">1 x {{ selectedProjectType.name }}</div>
+                                <div data-el="selected-project-type-cost" class="text-right">{{ formatCurrency(selectedProjectType.cost) }} </div>
+                                <div v-if="selectedProjectType?.interval" data-el="selected-project-type-interval" class="text-left">/{{ selectedProjectType.interval }} </div>
+                                <div v-else />
+                            </template>
+                            <template v-if="subscription?.customer?.balance">
+                                <div data-el="credit-balance-row">Credit Balance</div>
+                                <div data-el="credit-balance-amount" class="text-right">{{ formatCurrency(subscription?.customer?.balance) }}</div>
+                                <div />
+                            </template>
+                        </div>
+                    </div>
+                    <FormRow id="billing-confirmation" v-model="input.billingConfirmation" type="checkbox">
+                        Confirm additional charges
+                        <template v-if="selectedProjectTypeCostAfterCredit >= 0" #description>
+                            {{ formatCurrency(selectedProjectTypeCostAfterCredit) }} now
+                            <span v-if="selectedProjectType?.interval">
+                                then {{ formatCurrency(selectedProjectType.cost) }}/{{ selectedProjectType.interval }}
+                            </span>
+                        </template>
+                    </FormRow>
+                </div>
 
-                <ff-button :disabled="!createEnabled" @click="createProject" data-action="create-project">Create Project</ff-button>
+                <ff-button :disabled="!createEnabled" data-action="create-project" @click="createProject">Create Project</ff-button>
             </form>
         </div>
     </main>
@@ -134,7 +159,6 @@ export default {
             stacks: [],
             templates: [],
             projectTypes: [],
-            billingDescription: '',
             input: {
                 name: NameGenerator(),
                 stack: '',
@@ -152,7 +176,8 @@ export default {
                 credentials: true,
                 nodes: true,
                 envVars: 'all'
-            }
+            },
+            selectedProjectType: null
         }
     },
     computed: {
@@ -162,6 +187,9 @@ export default {
         },
         createEnabled () {
             return this.input.stack && this.input.name && !this.errors.name && this.input.template && (this.features.billing ? this.input.billingConfirmation : true)
+        },
+        selectedProjectTypeCostAfterCredit () {
+            return (this.selectedProjectType?.cost ?? 0) + (this.subscription?.customer?.balance ?? 0)
         }
     },
     watch: {
@@ -175,7 +203,14 @@ export default {
         'input.projectType': async function (value, oldValue) {
             if (value) {
                 const projectType = this.projectTypes.find(pt => pt.id === value)
-                this.billingDescription = projectType.properties?.billingDescription || ''
+
+                this.selectedProjectType = {
+                    name: projectType.name,
+                    currency: projectType.properties?.billingDescription?.split('/')[0].replace(/[\d.]+/, ''),
+                    cost: (Number(projectType.properties?.billingDescription?.split('/')[0].replace(/[^\d.]+/, '')) || 0) * 100,
+                    interval: projectType.properties?.billingDescription?.split('/')[1]
+                }
+
                 const stackList = await stacksApi.getStacks(null, null, null, value)
                 this.stacks = stackList.stacks.filter(stack => stack.active)
                 this.input.stack = null
