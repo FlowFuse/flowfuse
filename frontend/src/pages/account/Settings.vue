@@ -167,7 +167,7 @@ export default {
     computed: {
         formValid () {
             return (this.changed.name || this.changed.username || this.changed.email || this.changed.defaultTeam) &&
-                   (this.input.email && !this.errors.email) &&
+                   (!this.emailEditingEnabled || (this.input.email && !this.errors.email)) &&
                    (this.input.username && !this.errors.username) &&
                    (this.input.name && !this.errors.name)
         },
