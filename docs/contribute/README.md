@@ -215,7 +215,7 @@ Note that due to the way Stripe works, you will receive events for *all* activit
 in the configured Stripe account. That means if someone else is actively developing
 with billing enabled on the same account, you will see their events arrive.
 
-+#### Free Trials
+#### Free Trials
 
 Free trials are implemented as a Stripe Credit that is applied when a FlowForge user
 creates their first team and completed billing sign up.
