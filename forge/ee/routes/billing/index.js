@@ -5,11 +5,15 @@
  * @memberof forge.ee.billing
  */
 const { Readable } = require('stream')
+/**
+ * @typedef {import('stripe').Stripe.Event} StripeEvent
+ */
 
 module.exports = async function (app) {
+    /** @type {import('stripe').Stripe} */
     const stripe = require('stripe')(app.config.billing.stripe.key)
 
-    function logStripeEvent (event, team, subscription, teamId = null, stripeCustomerId = null) {
+    function logStripeEvent (/** @type {StripeEvent} */ event, team, subscription, teamId = null, stripeCustomerId = null) {
         const intro = `Stripe ${event.type} event ${event.data.object.id} from ${stripeCustomerId} received for`
         if (team) {
             app.log.info(`${intro} team '${team.hashid}'`)
@@ -38,7 +42,7 @@ module.exports = async function (app) {
         }
     }
 
-    async function parseChargeEvent (event) {
+    async function parseChargeEvent (/** @type {StripeEvent} */ event) {
         const stripeCustomerId = event.data.object.customer
         const subscription = await app.db.models.Subscription.byCustomerId(stripeCustomerId)
         const team = subscription?.Team
@@ -50,7 +54,7 @@ module.exports = async function (app) {
         }
     }
 
-    async function parseCheckoutEvent (event) {
+    async function parseCheckoutEvent (/** @type {StripeEvent} */ event) {
         const stripeCustomerId = event.data.object.customer
         const stripeSubscriptionId = event.data.object.subscription
         const teamId = event.data.object?.client_reference_id
@@ -69,7 +73,7 @@ module.exports = async function (app) {
         }
     }
 
-    async function parseSubscriptionEvent (event) {
+    async function parseSubscriptionEvent (/** @type {StripeEvent} */ event) {
         const stripeSubscriptionId = event.data.object.id
         const stripeCustomerId = event.data.object.customer
         const subscription = await app.db.models.Subscription.byCustomerId(stripeCustomerId)
@@ -133,6 +137,7 @@ module.exports = async function (app) {
         },
         async (request, response) => {
             const sig = request.headers['stripe-signature']
+            /** @type {StripeEvent} */
             let event = request.body
             if (app.config.billing?.stripe?.wh_secret) {
                 try {
