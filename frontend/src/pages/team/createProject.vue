@@ -76,7 +76,7 @@
                 </template>
 
                 <div v-if="features.billing && input.projectType">
-                    <div v-if="selectedProjectType?.cost > 0 || subscription?.customer?.balance > 0" class="pb-4 mb-4 border-b border-gray-300">
+                    <div v-if="selectedProjectType?.cost > 0 || subscription?.customer?.balance > 0" class="pb-4 mb-4 border-b border-gray-300" data-el="charges-table">
                         <h1 class="text-lg font-medium mb-2 border-b border-gray-700">Charges</h1>
                         <div v-if="subscription?.customer?.balance" class="text-sm text-blue-600 italic">
                             You have a credit balance of {{ formatCurrency(Math.abs(subscription.customer.balance)) }} that will be applied to this project
