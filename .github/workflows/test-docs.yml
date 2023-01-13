@@ -1,0 +1,19 @@
+name: Test Documentation Links
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+jobs:
+  test:
+    if: ${{ github.repository == 'flowforge/flowforge' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      # Install NPM dependencies
+      - name: Install Dependencies
+        run: npm install
+      # Run Tests
+      - run: npm test:docs
