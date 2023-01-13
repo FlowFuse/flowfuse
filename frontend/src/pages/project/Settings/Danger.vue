@@ -13,11 +13,24 @@
                     <div class="max-w-sm pt-2 space-y-1">
                         <p>You need to pick a type for this
                             project before you can make any changes to its stack.</p>
-                        <p>This is a one-time action - you cannot change the project type once it has been set.</p>
                     </div>
                 </div>
                 <div class="min-w-fit flex-shrink-0">
                     <ff-button kind="secondary" @click="showChangeTypeDialog()">Set Project Type</ff-button>
+                    <ChangeTypeDialog @confirm="changeType" ref="changeTypeDialog"/>
+                </div>
+            </div>
+        </template>
+        <template v-else>
+            <FormHeading>Change Project Type</FormHeading>
+            <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
+                <div class="flex-grow">
+                    <div class="max-w-sm pt-2 space-y-1">
+                        <p>Change the project type. This will restart the project.</p>
+                    </div>
+                </div>
+                <div class="min-w-fit flex-shrink-0">
+                    <ff-button kind="secondary" @click="showChangeTypeDialog()">Change Project Type</ff-button>
                     <ChangeTypeDialog @confirm="changeType" ref="changeTypeDialog"/>
                 </div>
             </div>
@@ -266,7 +279,8 @@ export default {
             })
         },
         changeType (selectedType) {
-            if (!this.project.projectType && selectedType) {
+            debugger
+            if (selectedType) {
                 this.loading.settingType = true
                 projectApi.updateProject(this.project.id, {
                     projectType: selectedType
