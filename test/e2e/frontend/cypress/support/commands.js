@@ -71,6 +71,58 @@ Cypress.Commands.add('home', (username, password) => {
     cy.url().should('include', '/overview')
 })
 
+Cypress.Commands.add('enableBilling', () => {
+    cy.intercept('/api/*/settings', (req) => {
+        req.reply((response) => {
+            response.body.features.billing = true
+            return response
+        })
+    }).as('getSettings')
+
+    cy.intercept('/api/*/teams/*', (req) => {
+        req.reply((response) => {
+            response.body.billingSetup = true
+            response.body.subscriptionActive = true
+            return response
+        })
+    }).as('getTeam')
+
+    cy.intercept('/api/*/teams/*', (req) => {
+        req.reply((response) => {
+            response.body.billingSetup = true
+            response.body.subscriptionActive = true
+            return response
+        })
+    }).as('getTeam')
+
+    cy.intercept('GET', '/api/*/project-types*', (req) => {
+        req.reply((response) => {
+            response.body.types[0].properties.billingProductId = 'prod_1234567890'
+            response.body.types[0].properties.billingPriceId = 'price_1234567890'
+            response.body.types[0].properties.billingDescription = '$15/month'
+            return response
+        })
+    }).as('getProjectTypes')
+})
+
+Cypress.Commands.add('applyBillingCreditToTeam', (amountInCents) => {
+    const oneMonthAway = Math.floor((new Date()).setMonth(new Date().getMonth() + 1) / 1000)
+    cy.intercept('/ee/billing/teams/*', {
+        next_billing_date: oneMonthAway,
+        items: [
+            {
+                name: 'Team Plan',
+                price: 0,
+                quantity: 1
+            }
+        ],
+        customer: {
+            name: 'Padmé Amidala',
+            balance: -amountInCents
+        }
+    }).as('getTeamBilling')
+})
+
 // resets T+Cs.
 // Should be called AFTER cy.login(admin, adminPass)
 Cypress.Commands.add('resetTermsAndCondition', () => {
