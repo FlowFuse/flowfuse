@@ -19,34 +19,38 @@
                 <div class="mb-8 text-sm text-gray-500">
                     <template v-if="!isCopyProject">Let's get your new Node-RED project setup in no time.</template>
                 </div>
-                <div v-if="subscription?.customer?.balance < 0" class="ff-banner ff-banner-info">
-                    You have a credit balance of {{ formatCurrency(Math.abs(subscription.customer.balance)) }} that will be applied to this project.
-                </div>
                 <div>
-                    <FormRow :error="errors.name" v-model="input.name">
-                        <template v-slot:default>Project Name</template>
-                        <template v-slot:append>
-                            <ff-button kind="secondary" @click="refreshName"><template v-slot:icon><RefreshIcon /></template></ff-button>
+                    <FormRow v-model="input.name" :error="errors.name">
+                        <template #default>Project Name</template>
+                        <template #description>
+                            Please note, currently, project names cannot be changed once a project is created
+                        </template>
+                        <template #append>
+                            <ff-button kind="secondary" @click="refreshName"><template #icon><RefreshIcon /></template></ff-button>
                         </template>
                     </FormRow>
-                    <span class="block text-xs ml-4 italic text-gray-500 m-0 max-w-sm">Please note, currently, project names cannot be changed once a project is created</span>
                 </div>
                 <div v-if="this.errors.projectTypes" class="text-red-400 text-xs">{{errors.projectTypes}}</div>
                 <!-- Project Type -->
-                <div v-else class="flex flex-wrap gap-1 items-stretch">
-                    <label class="w-full block text-sm font-medium text-gray-700 mb-1">Project Type</label>
-                    <ff-tile-selection v-model="input.projectType" >
-                        <ff-tile-selection-option v-for="(projType, index) in projectTypes" :key="index"
-                                                  :label="projType.name" :description="projType.description"
-                                                  :price="projType.properties?.billingDescription?.split('/')[0]"
-                                                  :price-interval="projType.properties?.billingDescription?.split('/')[1]"
-                                                  :value="projType.id"/>
+                <div v-else class="flex flex-wrap items-stretch">
+                    <label class="w-full block text-sm font-medium text-gray-700">Choose your Project Type</label>
+                    <div v-if="subscription?.customer?.balance < 0" class="text-sm text-blue-600 italic">
+                        You have a credit balance of {{ formatCurrency(Math.abs(subscription.customer.balance)) }} that will be applied to this project
+                    </div>
+                    <ff-tile-selection v-model="input.projectType" class="mt-5">
+                        <ff-tile-selection-option
+                            v-for="(projType, index) in projectTypes" :key="index"
+                            :label="projType.name" :description="projType.description"
+                            :price="projType.properties?.billingDescription?.split('/')[0]"
+                            :price-interval="projType.properties?.billingDescription?.split('/')[1]"
+                            :value="projType.id"
+                        />
                     </ff-tile-selection>
                 </div>
                 <!-- Stack -->
                 <!-- <FormRow :options="stacks" :error="errors.stack" v-model="input.stack" id="stack">Stack</FormRow> -->
                 <div class="flex flex-wrap gap-1 items-stretch">
-                    <label class="w-full block text-sm font-medium text-gray-700 mb-1">Stack</label>
+                    <label class="w-full block text-sm font-medium text-gray-700 mb-1">Choose your Stack</label>
                     <label v-if="!input.projectType" class="text-sm text-gray-400">Please select a Project Type first.</label>
                     <label v-if="errors.stack" class="text-sm text-gray-400">{{ errors.stack }}</label>
                     <ff-tile-selection v-if="input.projectType" v-model="input.stack" >
