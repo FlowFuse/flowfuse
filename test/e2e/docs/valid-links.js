@@ -1,7 +1,6 @@
 const { readFileSync, readdirSync, access, F_OK, statSync } = require('fs')
 const { marked } = require('marked')
 const htmlLinkExtractor = require('html-link-extractor')
-const url = require('url')
 const axios = require('axios')
 const path = require('path')
 

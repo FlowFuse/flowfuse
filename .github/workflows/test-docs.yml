@@ -16,4 +16,4 @@ jobs:
       - name: Install Dependencies
         run: npm install
       # Run Tests
-      - run: npm test:docs
+      - run: npm run test:docs
