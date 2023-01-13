@@ -32,6 +32,17 @@ const exceptions = [
     'github.com/orgs/flowforge/projects'
 ]
 
+const parseUri = function (uri) {
+    try {
+        return new URL(uri)
+    } catch {
+        return {
+            protocol: null,
+            hostname: null
+        }
+    }
+}
+
 const isUrlException = function (link) {
     for (let i = 0; i < exceptions.length; i++) {
         if (link.includes(exceptions[i])) {
@@ -90,7 +101,7 @@ async function testLinks (fileUri) {
     // remove email links
     // remove exceptions - links we now are broken
     links = links.filter((link) => {
-        const linkData = url.parse(link)
+        const linkData = parseUri(link)
         return linkData.hostname !== 'localhost' && !link.includes('#') && !link.includes('mailto') && !isUrlException(link)
     })
 
@@ -99,7 +110,7 @@ async function testLinks (fileUri) {
     console.log(`\n\n\x1b[33m Running Link Tests: ${fileUri}`)
 
     links.forEach(async (link) => {
-        const linkData = url.parse(link)
+        const linkData = parseUri(link)
         if (!linkData.protocol) {
             // internal links - validate via file system
             promises.push(new Promise((resolve, reject) => {
