@@ -125,6 +125,7 @@ const iconMap = {
     billing: [
         'billing.session.completed',
         'billing.session.created',
+        'billing.subscription.updated',
         'billing.subscription.deleted',
         'billing.subscription.credit-applied'
     ],
