@@ -177,7 +177,7 @@ module.exports = async function (app) {
             }
 
             case 'customer.subscription.created': {
-                const { team, stripeCustomerId } = await parseSubscriptionEvent(event)
+                const { team, stripeCustomerId, subscription } = await parseSubscriptionEvent(event)
                 if (!team) {
                     response.status(200).send()
                     return
@@ -203,6 +203,7 @@ module.exports = async function (app) {
                 )
 
                 app.log.info(`Applied a credit of ${creditAmount} to ${stripeCustomerId} from team ${team.hashid}`)
+                await app.auditLog.Team.billing.subscription.creditApplied(request.session.User, null, team, subscription, creditAmount)
 
                 break
             }
