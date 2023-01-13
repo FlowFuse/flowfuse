@@ -78,19 +78,19 @@
                 <div v-if="features.billing && input.projectType">
                     <div v-if="selectedProjectType?.cost > 0 || subscription?.customer?.balance > 0" class="pb-4 mb-4 border-b border-gray-300" data-el="charges-table">
                         <h1 class="text-lg font-medium mb-2 border-b border-gray-700">Charges</h1>
-                        <div v-if="subscription?.customer?.balance" class="text-sm text-blue-600 italic">
+                        <div v-if="subscription?.customer?.balance" class="text-sm text-blue-600 italic" data-el="credit-balance-banner">
                             You have a credit balance of {{ formatCurrency(Math.abs(subscription.customer.balance)) }} that will be applied to this project
                         </div>
                         <div class="grid grid gap-x-1 gap-y-4 text-sm text-sm mt-4 ml-4" style="grid-template-columns: 1fr 75px auto">
                             <template v-if="selectedProjectType?.cost">
-                                <div>1 x {{ selectedProjectType.name }}</div>
-                                <div class="text-right">{{ formatCurrency(selectedProjectType.cost) }} </div>
-                                <div v-if="selectedProjectType?.interval" class="text-left">/{{ selectedProjectType.interval }} </div>
+                                <div data-el="selected-project-type-name">1 x {{ selectedProjectType.name }}</div>
+                                <div data-el="selected-project-type-cost" class="text-right">{{ formatCurrency(selectedProjectType.cost) }} </div>
+                                <div v-if="selectedProjectType?.interval" data-el="selected-project-type-interval" class="text-left">/{{ selectedProjectType.interval }} </div>
                                 <div v-else />
                             </template>
                             <template v-if="subscription?.customer?.balance">
-                                <div>Credit Balance</div>
-                                <div class="text-right">{{ formatCurrency(subscription?.customer?.balance) }}</div>
+                                <div data-el="credit-balance-row">Credit Balance</div>
+                                <div data-el="credit-balance-amount" class="text-right">{{ formatCurrency(subscription?.customer?.balance) }}</div>
                                 <div />
                             </template>
                         </div>
@@ -106,7 +106,7 @@
                     </FormRow>
                 </div>
 
-                <ff-button :disabled="!createEnabled" @click="createProject" data-action="create-project">Create Project</ff-button>
+                <ff-button :disabled="!createEnabled" data-action="create-project" @click="createProject">Create Project</ff-button>
             </form>
         </div>
     </main>
