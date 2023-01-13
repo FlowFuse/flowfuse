@@ -118,24 +118,17 @@ const getTeamDevices = async (teamId, cursor, limit) => {
     return res.data
 }
 
-const getTeamLibrary = async (teamId, cursor, limit) => {
-    getTeamProjects(teamId)
+const getTeamLibrary = async (teamId, type, parentDir, cursor, limit) => {
+    return getTeamProjects(teamId)
         .then(async (data) => {
             if (data.projects.length > 0) {
-                const type = 'flows' // flows, functions
-                const url = paginateUrl(`/storage/${data.projects[0].id}/shared-library/${teamId}/${type}?name=''`, cursor, limit)
-                console.log(url)
+                const name = parentDir ? `${parentDir}` : ''
+                // const type = 'flows' // flows, functions
+                const url = paginateUrl(`/storage/${data.projects[0].id}/shared-library/${teamId}/${type}?name=${name}`, cursor, limit)
                 const res = await client.get(url)
-                console.log(res)
+                return res.data
             }
         })
-    // '/storage/:projectId/shared-library/:libraryId/:type'
-    // const url = paginateUrl(`/api/v1/teams/${teamId}/devices`, cursor, limit)
-    // const res = await client.get(url)
-    // res.data.devices.forEach(device => {
-    //     device.lastSeenSince = device.lastSeenAt ? daysSince(device.lastSeenAt) : ''
-    // })
-    // return res.data
 }
 
 /**
