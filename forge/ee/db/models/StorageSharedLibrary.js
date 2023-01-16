@@ -30,25 +30,35 @@ module.exports = {
                     })
                 },
                 byType: async (team, type) => {
-                    return this.findAll({
-                        where: { TeamId: team, type }
-                    })
+                    const where = {
+                        TeamId: team
+                    }
+                    if (type) {
+                        where.type = type
+                    }
+                    return this.findAll({ where })
                 },
                 byName: async (team, type, name) => {
-                    return this.findOne({
-                        where: { TeamId: team, type, name }
-                    })
+                    const where = {
+                        name,
+                        TeamId: team
+                    }
+                    if (type) {
+                        where.type = type
+                    }
+                    return this.findOne({ where })
                 },
                 byPath: async (team, type, name) => {
-                    return this.findAll({
-                        where: {
-                            TeamId: team,
-                            type,
-                            name: {
-                                [Op.like]: `${name}%`
-                            }
+                    const where = {
+                        TeamId: team,
+                        name: {
+                            [Op.like]: `${name}%`
                         }
-                    })
+                    }
+                    if (type) {
+                        where.type = type
+                    }
+                    return this.findAll({ where })
                 }
             }
         }
