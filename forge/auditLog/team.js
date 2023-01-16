@@ -99,6 +99,11 @@ module.exports = {
                 async deleted (actionedBy, error, team, subscription) {
                     const body = generateBody({ error, team, subscription })
                     await log('billing.subscription.deleted', actionedBy, team?.id, body)
+                },
+                async creditApplied (actionedBy, error, team, subscription, amount) {
+                    const updates = [{ key: 'credit', new: amount }]
+                    const body = generateBody({ error, team, subscription, updates })
+                    await log('billing.subscription.credit-applied', actionedBy, team?.id, body)
                 }
             }
         }
