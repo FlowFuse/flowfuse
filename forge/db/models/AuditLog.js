@@ -53,7 +53,17 @@ module.exports = {
                     }
 
                     const { count, rows } = await this.findAndCountAll({
-                        where: buildPaginationSearchClause(pagination, where, ['AuditLog.event']),
+                        where: buildPaginationSearchClause(
+                            pagination,
+                            where,
+                            // These are the columns that are searched using the `query` query param
+                            ['AuditLog.event', 'AuditLog.body', 'User.username', 'User.name'],
+                            // These map additional query params to specific columns to allow filtering
+                            {
+                                event: 'AuditLog.event',
+                                username: 'User.username'
+                            }
+                        ),
                         order: [['createdAt', 'DESC']],
                         include: {
                             model: M.User,
