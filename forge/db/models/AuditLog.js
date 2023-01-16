@@ -49,9 +49,12 @@ module.exports = {
                 forEntity: async (where = {}, pagination = {}) => {
                     const limit = parseInt(pagination.limit) || 1000
                     if (pagination.cursor) {
+                        // As we aren't using the default cursor behaviour (Op.gt)
+                        // set the appropriate clause and delete cursor so that
+                        // buildPaginationSearchClause doesn't do it for us
                         where.id = { [Op.lt]: M.AuditLog.decodeHashid(pagination.cursor) }
+                        delete pagination.cursor
                     }
-
                     const { count, rows } = await this.findAndCountAll({
                         where: buildPaginationSearchClause(
                             pagination,
