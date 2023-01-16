@@ -20,6 +20,8 @@
         <router-view
             :project="project"
             :is-visiting-admin="isVisitingAdmin"
+            @project-overview-exit="onOverviewExit"
+            @project-overview-enter="onOverviewEnter"
             @projectUpdated="updateProject"
             @project-start="startProject"
             @project-restart="restartProject"
@@ -52,6 +54,7 @@ import alerts from '@/services/alerts'
 import Dialog from '@/services/dialog'
 
 const projectTransitionStates = [
+    'loading',
     'installing',
     'starting',
     'stopping',
@@ -99,9 +102,27 @@ export default {
         this.mounted = true
     },
     beforeUnmount () {
-        clearTimeout(this.checkInterval)
+        this.onOverviewExit(true)
     },
     methods: {
+        onOverviewEnter () {
+            this.overviewActive = true
+            if (this.project.pendingRestart && !this.projectTransitionStates.includes(this.project.state)) {
+                this.project.pendingRestart = false
+            }
+            this.checkAccess()
+        },
+        onOverviewExit (unmounting) {
+            this.overviewActive = false
+            if (unmounting) {
+                // ensure timer and flags are cleared when navigating away from page
+                if (this.project?.pendingStateChange || this.project?.pendingRestart) {
+                    this.project.pendingStateChange = false
+                    this.project.pendingRestart = false
+                }
+                clearTimeout(this.checkInterval)
+            }
+        },
         async updateProject () {
             const projectId = this.$route.params.id
             try {
@@ -125,16 +146,23 @@ export default {
             }
         },
         async refreshProject () {
+            if (!this.overviewActive) {
+                return // dont refresh if not on overview page
+            }
             if (this.project.pendingStateChange) {
                 clearTimeout(this.checkInterval)
                 this.checkInterval = setTimeout(async () => {
                     if (this.project.id) {
                         const data = await projectApi.getProject(this.project.id)
                         const wasPendingRestart = this.project.pendingRestart
+                        const wasPendingStateChange = this.project.pendingStateChange
+                        const wasPendingStatePrevious = this.project.pendingStatePrevious
                         this.project = data
                         if (wasPendingRestart && this.project.meta.state !== 'running') {
                             this.project.pendingRestart = true
                         }
+                        this.project.pendingStatePrevious = wasPendingStatePrevious
+                        this.project.pendingStateChange = wasPendingStateChange
                     }
                 }, 1000)
             }
@@ -148,20 +176,50 @@ export default {
                 { label: 'Logs', path: `/project/${this.project.id}/logs`, tag: 'project-logs', icon: TerminalIcon },
                 { label: 'Settings', path: `/project/${this.project.id}/settings`, tag: 'project-settings', icon: CogIcon }
             ]
-
-            if (this.project.meta && (this.project.pendingRestart || projectTransitionStates.includes(this.project.meta.state))) {
-                this.project.pendingStateChange = true
-                this.refreshProject()
+            if (this.mounted && this.project.meta) {
+                let doRefresh = false
+                if (this.project.pendingStatePrevious && this.project.pendingStatePrevious !== this.project.meta.state) {
+                    // state has changed (i.e. something did occur) so reset pendingRestart
+                    // and rely on projectTransitionStates to continue polling
+                    this.project.pendingRestart = false
+                    doRefresh = true // refresh once more to get the new state
+                }
+                if (projectTransitionStates.includes(this.project.meta.state)) {
+                    doRefresh = true // refresh
+                }
+                this.project.pendingStatePrevious = this.project.meta.state
+                if (this.project.pendingRestart || doRefresh) {
+                    this.project.pendingStateChange = true
+                    this.refreshProject()
+                } else {
+                    this.project.pendingStateChange = false
+                }
             }
         },
         async startProject () {
-            this.project.pendingStateChange = true
-            await projectApi.startProject(this.project.id)
+            const prevState = this.project.meta.state
+            const res = await projectApi.startProject(this.project.id)
+            // check for successful start command before polling state
+            if (res) {
+                console.warn('Project start failed.', res)
+                alerts.emit('Project start failed.', 'warning')
+            } else {
+                this.project.pendingStatePrevious = prevState
+                this.project.pendingStateChange = true
+            }
         },
         async restartProject () {
-            this.project.pendingRestart = true
-            this.project.pendingStateChange = true
-            await projectApi.restartProject(this.project.id)
+            const prevState = this.project.meta.state
+            const res = await projectApi.restartProject(this.project.id)
+            // check for successful restart command before polling state
+            if (res) {
+                console.warn('Project restart failed.', res)
+                alerts.emit('Project restart failed.', 'warning')
+            } else {
+                this.project.pendingStatePrevious = prevState
+                this.project.pendingRestart = true
+                this.project.pendingStateChange = true
+            }
         },
         showConfirmDeleteDialog () {
             this.$refs.confirmProjectDeleteDialog.show(this.project)

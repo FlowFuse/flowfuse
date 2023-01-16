@@ -121,7 +121,7 @@ export default {
             type: Boolean
         }
     },
-    emits: ['project-start', 'project-delete', 'project-suspend', 'project-restart'],
+    emits: ['project-start', 'project-delete', 'project-suspend', 'project-restart', 'project-overview-exit', 'project-overview-enter'],
     computed: {
         ...mapState('account', ['teamMembership']),
         options: function () {
@@ -151,6 +151,12 @@ export default {
             return this.projectRunning
         }
 
+    },
+    mounted () {
+        this.$emit('project-overview-enter')
+    },
+    unmounted () {
+        this.$emit('project-overview-exit')
     },
     methods: {
         loadItems: async function (projectId, cursor) {
