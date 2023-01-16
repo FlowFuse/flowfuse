@@ -14,6 +14,7 @@ on:
       - 'test/unit/**'
       - 'test/system/**'
       - 'package.json'
+      - '.github/workflows/test-postgresql.yml'
 
 jobs:
   runner-job:
@@ -29,6 +30,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          -m 3GB
         ports:
           # Maps tcp port 5432 on service container to the host
           - 5432:5432
