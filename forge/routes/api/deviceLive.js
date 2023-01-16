@@ -78,6 +78,8 @@ module.exports = async function (app) {
             if (snapshot) {
                 const result = {
                     id: request.device.targetSnapshot.hashid,
+                    name: snapshot.name,
+                    description: snapshot.description,
                     ...snapshot.settings,
                     ...snapshot.flows
                 }
