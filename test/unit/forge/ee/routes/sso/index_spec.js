@@ -215,6 +215,11 @@ d
                 }
             })
             response.statusCode.should.equal(200)
+            const result = response.json()
+            // Recorded they are an sso user
+            result.should.have.property('sso_enabled', true)
+            // Not verified until they login the first time
+            result.should.have.property('email_verified', false)
             inbox.count().should.equal(0)
         })
 
