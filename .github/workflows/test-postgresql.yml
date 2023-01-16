@@ -14,6 +14,7 @@ on:
       - 'test/unit/**'
       - 'test/system/**'
       - 'package.json'
+      - '.github/workflows/test-postgresql.yml'
 
 jobs:
   runner-job:
