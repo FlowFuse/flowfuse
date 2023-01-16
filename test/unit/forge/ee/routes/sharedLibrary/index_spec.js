@@ -23,6 +23,35 @@ describe('Library Storage API', function () {
     })
 
     describe('/library', function () {
+        async function addToLibrary (libraryURL, name, type) {
+            return await app.inject({
+                method: 'POST',
+                url: `${libraryURL}${name}`,
+                payload: {
+                    type,
+                    meta: { metaName: name },
+                    body: 'contents'
+                },
+                headers: {
+                    authorization: `Bearer ${tokens.token}`
+                }
+            })
+        }
+
+        async function getFromLibrary (libraryURL, name, type) {
+            let query = ''
+            if (type) {
+                query = `?type=${type}`
+            }
+            return (await app.inject({
+                method: 'GET',
+                url: `${libraryURL}${name}${query}`,
+                headers: {
+                    authorization: `Bearer ${tokens.token}`
+                }
+            })).json()
+        }
+
         async function shouldRejectGet (url, token) {
             const response = await app.inject({
                 method: 'GET',
@@ -152,37 +181,7 @@ describe('Library Storage API', function () {
         })
 
         it('Add multiple entries to library and filters by type', async function () {
-            const funcText = '\nreturn msg;'
             const libraryURL = `/storage/library/${app.team.hashid}/`
-
-            async function addToLibrary (name, type) {
-                return await app.inject({
-                    method: 'POST',
-                    url: `${libraryURL}${name}`,
-                    payload: {
-                        type,
-                        meta: { metaName: name },
-                        body: funcText
-                    },
-                    headers: {
-                        authorization: `Bearer ${tokens.token}`
-                    }
-                })
-            }
-
-            async function getFromLibrary (name, type) {
-                let query = ''
-                if (type) {
-                    query = `?type=${type}`
-                }
-                return (await app.inject({
-                    method: 'GET',
-                    url: `${libraryURL}${name}${query}`,
-                    headers: {
-                        authorization: `Bearer ${tokens.token}`
-                    }
-                })).json()
-            }
             /*
               Library file structure:
                 ├── bar3
@@ -192,29 +191,44 @@ describe('Library Storage API', function () {
                         └── bar2
             */
 
-            await addToLibrary('test/foo/bar', 'flows')
-            await addToLibrary('test/foo/bar2', 'flows')
-            await addToLibrary('bar3', 'flows')
-            await addToLibrary('test/funcs/bar4', 'functions')
+            await addToLibrary(libraryURL, 'test/foo/bar', 'flows')
+            await addToLibrary(libraryURL, 'test/foo/bar2', 'flows')
+            await addToLibrary(libraryURL, 'bar3', 'flows')
+            await addToLibrary(libraryURL, 'test/funcs/bar4', 'functions')
 
-            const libraryEntry = await getFromLibrary('')
+            const libraryEntry = await getFromLibrary(libraryURL, '')
             libraryEntry.should.have.length(2)
             libraryEntry[0].should.have.property('fn', 'bar3')
             libraryEntry[0].should.have.property('metaName', 'bar3')
             libraryEntry[1].should.eql('test')
 
-            const libraryEntry1 = await getFromLibrary('test')
+            const libraryEntry1 = await getFromLibrary(libraryURL, 'test')
             libraryEntry1.should.eql(['foo', 'funcs'])
 
-            const libraryEntry1FlowsOnly = await getFromLibrary('test', 'flows')
+            const libraryEntry1FlowsOnly = await getFromLibrary(libraryURL, 'test', 'flows')
             libraryEntry1FlowsOnly.should.eql(['foo'])
 
-            const libraryEntry2 = await getFromLibrary('test/foo')
+            const libraryEntry2 = await getFromLibrary(libraryURL, 'test/foo')
             libraryEntry2.should.have.length(2)
             libraryEntry2[0].should.have.property('fn', 'bar')
             libraryEntry2[0].should.have.property('metaName', 'test/foo/bar')
             libraryEntry2[1].should.have.property('fn', 'bar2')
             libraryEntry2[1].should.have.property('metaName', 'test/foo/bar2')
+        })
+
+        it('Prevents creating a entry name/path that clashes with existing path/name', async function () {
+            const libraryURL = `/storage/library/${app.team.hashid}/`
+
+            // Create an entry called test/foo
+            await addToLibrary(libraryURL, 'test/foo/bar', 'flows')
+
+            // Now try to create an entry that implies test/foo/bar is a directory
+            const response = await addToLibrary(libraryURL, 'test/foo/bar/file', 'functions')
+            response.statusCode.should.equal(400)
+
+            // Now try to create an entry that clashes with the directory test/foo
+            const response2 = await addToLibrary(libraryURL, 'test/foo', 'functions')
+            response2.statusCode.should.equal(400)
         })
     })
 })

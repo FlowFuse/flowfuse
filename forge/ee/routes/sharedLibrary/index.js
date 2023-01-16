@@ -60,10 +60,37 @@ module.exports = async function (app) {
         const direct = await app.db.models.StorageSharedLibrary.byName(request.team.id, type, name)
 
         if (direct) {
+            // Updating an existing entry
             direct.body = body
             direct.meta = JSON.stringify(meta)
             await direct.save()
         } else {
+            // Adding a new entry. We need to check each part of the path to ensure
+            // none are existing 'files' - otherwise we could end up with a directory
+            // with a file and subdirectory with the same name, making it untraversable
+            const parts = name.split('/')
+            for (let i = 0; i < parts.length - 1; i++) {
+                const subpath = parts.slice(0, i + 1).join('/')
+                const count = await app.db.models.StorageSharedLibrary.count({
+                    where: {
+                        name: subpath,
+                        TeamId: request.team.id
+                    }
+                })
+                if (count > 0) {
+                    response.status(400).send({ code: 'invalid_name', error: 'Invalid entry name' })
+                    return
+                }
+            }
+
+            // Finally, need to check the new entries full path isn't actually
+            // an existing path.
+            const existing = await app.db.models.StorageSharedLibrary.byPath(request.team.id, null, name + '/')
+            if (existing.length > 0) {
+                response.status(400).send({ code: 'invalid_name', error: 'Invalid entry name' })
+                return
+            }
+
             await app.db.models.StorageSharedLibrary.create({
                 name,
                 type,
@@ -86,15 +113,12 @@ module.exports = async function (app) {
         const type = request.query.type
         let name = request.params['*']
 
-        // For now, we only have a single shared library - the default team library
-        // It's id is the hashid of the team. We need to verify that is proper here
-        // and then translate it to the real team id.
         let reply = []
 
         // Try to get the exact name
         const direct = await app.db.models.StorageSharedLibrary.byName(request.team.id, type, name)
         if (direct) {
-            if (type === 'flows') {
+            if (direct.type === 'flows') {
                 reply = JSON.parse(direct.body)
             } else {
                 reply = direct.body
