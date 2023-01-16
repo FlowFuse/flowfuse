@@ -7,6 +7,18 @@ function encodeBody (body) {
     }
 }
 
+function addToLog (app, entityType, entityId, event, body) {
+    const details = [`event: ${event}`]
+    if (entityType) { details.push(`type: ${entityType}`) }
+    if (entityId) { details.push(`id: ${entityId}`) }
+    const msg = details.join(', ')
+    if (body && body.error) {
+        app.log.error(`AUDIT: ${msg}, ${body.error.message || 'unknown error'}`)
+    } else {
+        app.log.info(`AUDIT: ${msg}`)
+    }
+}
+
 module.exports = {
     platformLog: async function (app, UserId, event, body) {
         await app.db.models.AuditLog.create({
@@ -16,6 +28,7 @@ module.exports = {
             event,
             body: encodeBody(body)
         })
+        addToLog(app, 'platform', null, event, body)
     },
     userLog: async function (app, UserId, event, body, entityId) {
         await app.db.models.AuditLog.create({
@@ -25,6 +38,7 @@ module.exports = {
             event,
             body: encodeBody(body)
         })
+        addToLog(app, 'user', entityId, event, body)
     },
     projectLog: async function (app, ProjectId, UserId, event, body) {
         await app.db.models.AuditLog.create({
@@ -34,6 +48,7 @@ module.exports = {
             event,
             body: encodeBody(body)
         })
+        addToLog(app, 'project', ProjectId, event, body)
     },
     teamLog: async function (app, TeamId, UserId, event, body) {
         await app.db.models.AuditLog.create({
@@ -43,5 +58,6 @@ module.exports = {
             event,
             body: encodeBody(body)
         })
+        addToLog(app, 'team', TeamId, event, body)
     }
 }
