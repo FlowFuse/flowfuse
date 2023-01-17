@@ -1,5 +1,11 @@
 <template>
-    <SectionTopMenu hero="Shared Library" help-header="FlowForge - Library" info="Shared repository to store common flows and nodes."></SectionTopMenu>
+    <SectionTopMenu hero="Shared Library" help-header="FlowForge - Library" info="Shared repository to store common flows and nodes.">
+        <template v-slot:helptext>
+            <p>In Node-RED you can export and import flows and functions, and save them to your Team Library.</p>
+            <p>The contents of your Team Library are available across any of your projects in FlowForge.</p>
+            <p>You can read more about <a href="https://nodered.org/docs/user-guide/editor/workspace/import-export" target="_blank">Import & Exporting Flows</a> and <a>Importing & Exporting Functions</a> in the Node-RED documentation</p>
+        </template>
+    </SectionTopMenu>
     <div class="ff-breadcrumbs">
         <span v-for="(crumb, $index) in breadcrumbs" :key="$index" class="flex">
             <a @click="goToFolder(crumb, $index)">{{ crumb.name }}</a>
