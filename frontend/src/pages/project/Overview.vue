@@ -75,8 +75,8 @@
             </div>
             <div class="border rounded p-4">
                 <FormHeading><TrendingUpIcon class="w-6 h-6 mr-2 inline text-gray-400" />Recent Activity</FormHeading>
-                <AuditLog :entity="project" :loadItems="loadItems" :showLoadMore="false" :disableAccordion="true" />
-                <div class="py-4">
+                <AuditLog :entries="auditLog" :showLoadMore="false" :disableAccordion="true" />
+                <div class="pb-4">
                     <router-link to="./activity" class="forge-button-inline">More...</router-link>
                 </div>
             </div>
@@ -122,6 +122,12 @@ export default {
         }
     },
     emits: ['project-start', 'project-delete', 'project-suspend', 'project-restart', 'project-overview-exit', 'project-overview-enter'],
+    watch: {
+        project: function () {
+            console.log('set project')
+            this.loadLogs()
+        }
+    },
     computed: {
         ...mapState('account', ['teamMembership']),
         options: function () {
@@ -150,17 +156,29 @@ export default {
         editorAvailable () {
             return this.projectRunning
         }
-
+    },
+    data () {
+        return {
+            auditLog: []
+        }
     },
     mounted () {
         this.$emit('project-overview-enter')
+        this.loadLogs()
     },
     unmounted () {
         this.$emit('project-overview-exit')
     },
     methods: {
+        loadLogs () {
+            if (this.project) {
+                this.loadItems(this.project.id).then((data) => {
+                    this.auditLog = data.log
+                })
+            }
+        },
         loadItems: async function (projectId, cursor) {
-            return await projectApi.getProjectAuditLog(projectId, cursor, 4)
+            return await projectApi.getProjectAuditLog(projectId, null, cursor, 4)
         }
     }
 }
