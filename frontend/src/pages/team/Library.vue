@@ -1,5 +1,5 @@
 <template>
-    <SectionTopMenu hero="Shared Library" help-header="FlowForge - Library" info="Shared repository to store common flows and nodes.">
+    <SectionTopMenu hero="Team Library" help-header="FlowForge - Team Library" info="Shared repository to store common flows and nodes.">
         <template v-slot:helptext>
             <p>In Node-RED you can export and import flows and functions, and save them to your Team Library.</p>
             <p>The contents of your Team Library are available across any of your projects in FlowForge.</p>
