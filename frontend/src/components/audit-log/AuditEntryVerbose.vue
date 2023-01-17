@@ -330,10 +330,17 @@
         <label>Node-RED has stopped</label>
         <span>Something has gone wrong. Check the project logs to investigate further.</span>
     </template>
-
     <template v-else-if="entry.event === 'settings.update'">
         <label>Node-RED Settings Updated</label>
         <span>Node-RED editor user settings have been updated.</span>
+    </template>
+    <template v-else-if="entry.event === 'flows.set'">
+        <label>Flow Deployed</label>
+        <span>A new flow has been deployed</span>
+    </template>
+    <template v-else-if="entry.event === 'library.set'">
+        <label>Saved to Library</label>
+        <span>A flow or function has been saved to the Library</span>
     </template>
 
     <!-- Catch All -->

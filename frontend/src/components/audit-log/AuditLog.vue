@@ -25,35 +25,6 @@
 import AuditEntry from './AuditEntry.vue'
 import FFAccordion from '@/components/Accordion.vue'
 
-const eventDescriptions = {
-    'project.created': 'Project created',
-    'project.duplicated': 'Project duplicated',
-    'project.deleted': 'Project deleted',
-    'project.stopped': 'Project stopped',
-    'project.started': 'Project started',
-    'auth.login': '${user} logged in',
-    'auth.login.revoke': '${user} logged out',
-    'flows.set': 'Flows updated',
-
-    // Project Log
-    'user.invited': 'User invited',
-    'user.uninvited': 'User uninvited',
-    'user.invite.accept': '${user} accepted invitation',
-    'user.invite.reject': '${user} declined invitation'
-
-}
-
-const eventIcons = {
-    'project.started': 'play',
-    'project.stopped': 'stop',
-    'project.created': 'create',
-    'project.duplicated': 'create',
-    'project.deleted': 'create',
-    'auth.login': 'user',
-    'auth.login.revoke': 'logout',
-    'flows.set': 'pencil'
-}
-
 export default {
     name: 'AuditLog',
     props: {
@@ -80,7 +51,7 @@ export default {
         logEntriesByDate () {
             const grouped = {}
             let lastDate = null
-            this.entries.forEach((entry) => {
+            this.entries?.forEach((entry) => {
                 const date = new Date(entry.createdAt)
                 const strDate = date.toDateString()
                 // reduce and group by date
@@ -93,9 +64,6 @@ export default {
                 }
                 if (!entry.time) {
                     entry.time = date.toLocaleTimeString()
-                    entry.icon = eventIcons[entry.event] || null
-                    entry.title = eventDescriptions[entry.event] || entry.event
-                    entry.title = entry.title.replace(/\${user}/g, entry.username)
                 } else if (entry.date) {
                     lastDate = entry.date
                 }
