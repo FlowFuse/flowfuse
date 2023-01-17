@@ -74,35 +74,26 @@ The data is sent via an HTTP Post to `https://ping.flowforge.com`.
 
 The FlowForge UI can be configured to track usage to help understand how users are navigating the pages.
 
-It currently supports using [Plausible Analytics](https://plausible.io/) to gather the information.
+It supports integration with two different services:
+
+- [PostHog](https://posthog.com/) _(recommended)_: You will require your own API key to pass into the `yml`, which will begin the logging of user interactions.
+- [Plausible](https://plausible.io/): _(deprecated since 0.9 and will be removed in the future)_: You can setup your own account, and pass the relevant domain to the `yml` in the telemetry configuration. As this
+option is deprecated, details of how to configure are no longer provided.
 
 ### Configuring Telemetry
 
-Further details about how users are navigating around your instance of FlowForge can be enabled via [Plausible](https://plausible.io/). This can be enabled with:
+Option        | Description
+--------------|------------
+`telemetry.enabled` | Enables the anonymous usage telemetry of the platform. Default: `true`
+`telemetry.frontend.posthog.apikey` | The API key provided to you from your own PostHog account. Default: `null`
+`telemetry.frontend.posthog.capture_pageview` | FlowForge is designed as to provide custom posthog `$pageview` events that provide more detail on navigation than the default, and suit a single page application better. As such, we recommend setting this to false in order to prevent duplicate `pageleave`/`pageview` events firing. Default: `true`
+
 
 ```yaml
 telemetry:
   enabled: true
   frontend:
-    plausible:
-      domain: <data-domain>
+    posthog:
+      apikey: <api-key>
+      capture_pageview: false
 ```
-
-Optionally, you can use a Plausible `extension` too:
-
-```yaml
-telemetry:
-  enabled: true
-  frontend:
-    plausible:
-      domain: <data-domain>
-      extension: local
-```
-
-### Collected Data
-
-Details on the metrics gathered through Plausible can be found in the [Plausible Documentation](https://plausible.io/docs/metrics-definitions)
-
-### Schedule 
-
-Plausible tracking is sent as the relevant events are triggered, e.g. as a user navigates between two pages, or as they load the platform.
