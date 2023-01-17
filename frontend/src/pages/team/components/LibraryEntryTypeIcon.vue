@@ -1,11 +1,12 @@
 <template>
     <FolderIcon v-if="type === 'folder'" class="ff-icon"/>
-    <ProjectIcon v-if="type === 'flow'" class="ff-icon"/>
+    <ProjectIcon v-if="type === 'flows'" class="ff-icon"/>
+    <CodeIcon v-if="type === 'functions'" class="ff-icon"/>
 </template>
 
 <script>
 
-import { FolderIcon } from '@heroicons/vue/solid'
+import { FolderIcon, CodeIcon } from '@heroicons/vue/solid'
 import ProjectIcon from '@/components/icons/Projects'
 
 export default {
@@ -14,10 +15,19 @@ export default {
         type: {
             required: true,
             type: String
+        },
+        name: {
+            // not used, but passed in data row
+            type: String
+        },
+        path: {
+            // not used, but passed in data row
+            type: String
         }
     },
     components: {
         FolderIcon,
+        CodeIcon,
         ProjectIcon
     }
 }

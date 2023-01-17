@@ -1,7 +1,10 @@
 <template>
     <SectionTopMenu hero="Shared Library" help-header="FlowForge - Library" info="Shared repository to store common flows and nodes."></SectionTopMenu>
-    <div>
-        <span v-for="(crumb, $index) in breadcrumbs" :key="$index">{{ crumb.name }}</span>
+    <div class="ff-breadcrumbs">
+        <span v-for="(crumb, $index) in breadcrumbs" :key="$index" class="flex">
+            <a @click="goToFolder(crumb, $index)">{{ crumb.name }}</a>
+            <ChevronRightIcon class="ff-icon"></ChevronRightIcon>
+        </span>
     </div>
     <ff-data-table :columns="columns" :rows="rows" :rows-selectable="true" @row-selected="entrySelected"></ff-data-table>
 </template>
@@ -10,6 +13,7 @@
 import { markRaw } from 'vue'
 import teamApi from '@/api/team'
 
+import { ChevronRightIcon } from '@heroicons/vue/solid'
 import SectionTopMenu from '@/components/SectionTopMenu'
 import TypeIcon from './components/LibraryEntryTypeIcon.vue'
 
@@ -19,7 +23,8 @@ export default {
     data () {
         return {
             breadcrumbs: [{
-                name: 'Library'
+                name: 'Library',
+                path: ''
             }],
             columns: [{
                 key: 'type',
@@ -31,70 +36,70 @@ export default {
             }, {
                 key: 'name',
                 label: 'Name'
-            }, {
-                key: 'last_modified',
-                label: 'Last Modified'
-            }, {
-                key: 'modified_by',
-                label: 'Modified By'
             }],
-            rows: [{
-                type: 'folder',
-                name: 'flows',
-                last_modified: null,
-                modified_by: null
-            }, {
-                type: 'folder',
-                name: 'functions',
-                last_modified: null,
-                modified_by: null
-            }]
+            rows: []
         }
     },
+    mounted () {
+        this.loadLibrary().then((contents) => {
+            this.rows = this.formatEntries(contents, this.breadcrumbs[0])
+        })
+    },
     methods: {
-        loadLibrary (fileType, parentDir) {
-            return teamApi.getTeamLibrary(this.team.id, fileType, parentDir).then((library) => {
+        loadLibrary (parentDir) {
+            return teamApi.getTeamLibrary(this.team.id, parentDir).then((library) => {
                 return library
             })
         },
         entrySelected (entry) {
             if (entry.type === 'folder') {
-                let fileType
-                let parentDir
-                console.log('entry')
-                console.log(entry)
-                if (entry.name === 'flows' || entry.name === 'functions') {
-                    // special case of flows/functions
-                    fileType = entry.name
-                } else {
-                    fileType = entry.type
-                    parentDir = entry.name
+                let parentDir = ''
+                this.breadcrumbs.push(entry)
+
+                for (let i = 1; i < this.breadcrumbs.length; i++) {
+                    parentDir += `${this.breadcrumbs[i].name}/`
                 }
-                this.loadLibrary(fileType, parentDir).then((contents) => {
-                    this.breadcrumbs.push(entry)
-                    this.rows = contents.map((entry) => {
-                        console.log(entry)
-                        if (typeof (entry) === 'string') {
-                            // function entry
-                            return {
-                                name: entry,
-                                type: 'folder'
-                            }
-                        } else {
-                            return {
-                                name: entry.fn,
-                                type: 'flow'
-                            }
-                        }
-                    })
+
+                this.loadLibrary(parentDir).then((contents) => {
+                    this.rows = this.formatEntries(contents, entry)
                 })
             } else {
                 console.log('TODO - handle file clicking')
             }
+        },
+        goToFolder (entry, index) {
+            this.loadLibrary(entry.path).then((contents) => {
+                this.rows = this.formatEntries(contents, this.breadcrumbs[0])
+                this.breadcrumbs = this.breadcrumbs.slice(0, index + 1)
+            })
+        },
+        formatEntries (contents, parent) {
+            return contents.map((entry) => {
+                const type = (typeof (entry) === 'string') ? 'folder' : entry.type
+                const name = (typeof (entry) === 'string') ? entry : entry.fn
+                return {
+                    type,
+                    name,
+                    path: parent.path ? parent.path + '/' + name + '/' : name + '/'
+                }
+            }).sort((a, b) => {
+                const typeOrder = ['folder', 'flows', 'functions']
+                // folders at top
+                const aType = typeOrder.indexOf(a.type)
+                const bType = typeOrder.indexOf(b.type)
+                const folderSort = (aType < bType) ? -1 : ((aType > bType) ? 1 : 0)
+                // name sort
+                const aName = a.name.toLowerCase()
+                const bName = a.name.toLowerCase()
+                const nameSort = (aName > bName) ? -1 : ((aName < bName) ? 1 : 0)
+                // folders first, then names
+                return folderSort || nameSort
+            })
         }
     },
     components: {
-        SectionTopMenu
+        SectionTopMenu,
+        ChevronRightIcon
     }
 }
 </script>

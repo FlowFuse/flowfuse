@@ -118,17 +118,10 @@ const getTeamDevices = async (teamId, cursor, limit) => {
     return res.data
 }
 
-const getTeamLibrary = async (teamId, type, parentDir, cursor, limit) => {
-    return getTeamProjects(teamId)
-        .then(async (data) => {
-            if (data.projects.length > 0) {
-                const name = parentDir ? `${parentDir}` : ''
-                // const type = 'flows' // flows, functions
-                const url = paginateUrl(`/storage/${data.projects[0].id}/shared-library/${teamId}/${type}?name=${name}`, cursor, limit)
-                const res = await client.get(url)
-                return res.data
-            }
-        })
+const getTeamLibrary = async (teamId, parentDir, cursor, limit) => {
+    const url = paginateUrl(`/storage/library/${teamId}/${parentDir || ''}`, cursor, limit)
+    const res = await client.get(url)
+    return res.data
 }
 
 /**

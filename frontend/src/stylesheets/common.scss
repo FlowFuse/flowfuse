@@ -97,3 +97,21 @@ label {
 .ff-dialog-fixed-height .ff-dialog-content {
     overflow-y: visible;
 }
+
+.ff-breadcrumbs {
+    display: flex;
+    align-items: center;
+    margin-top: 12px;
+    margin-bottom: 12px;
+    a {
+        color: $ff-blue-600;
+        &:hover {
+            cursor: pointer;
+            text-decoration: underline;
+        }
+    }
+    span:last-child a {
+        pointer-events: none;
+        color: black;
+    }
+}
