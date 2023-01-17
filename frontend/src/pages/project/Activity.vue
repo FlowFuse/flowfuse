@@ -91,10 +91,7 @@ export default {
         },
         loadUsers () {
             TeamAPI.getTeamMembers(this.team.id).then((data) => {
-                this.auditFilters.users = data.members.map((user) => {
-                    user.checked = true
-                    return user
-                })
+                this.auditFilters.users = data.members
             })
         }
     },

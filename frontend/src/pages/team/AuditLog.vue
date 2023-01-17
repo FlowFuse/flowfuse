@@ -4,6 +4,21 @@
             <SectionTopMenu hero="Audit Log" info="Recorded events that have taken place in this Team." />
             <AuditLog :entries="entries" />
         </div>
+        <div>
+            <SectionTopMenu hero="Filters" />
+            <FormHeading class="mt-4">Search:</FormHeading>
+            <ff-text-input v-model="auditFilters.string" placeholder="Search Activity...">
+                <template v-slot:icon><SearchIcon/></template>
+            </ff-text-input>
+            <FormHeading class="mt-4">User:</FormHeading>
+            <div>
+                <ff-dropdown class="w-full" v-model="auditFilters.user">
+                    <ff-dropdown-option label="Not Specified" :value="undefined"></ff-dropdown-option>
+                    <ff-dropdown-option v-for="user in auditFilters.users" :key="user.username"
+                                        :label="`${user.name} (${user.username})`" :value="user.username"></ff-dropdown-option>
+                </ff-dropdown>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -14,7 +29,11 @@ import teamApi from '@/api/team'
 
 import SectionTopMenu from '@/components/SectionTopMenu'
 import AuditLog from '@/components/audit-log/AuditLog'
+import FormHeading from '@/components/FormHeading'
+
 import permissionsMixin from '@/mixins/Permissions'
+
+let timer = null
 
 export default {
     name: 'TeamAuditLog',
@@ -22,12 +41,28 @@ export default {
     mixins: [permissionsMixin],
     watch: {
         team: 'fetchData',
-        teamMembership: 'fetchData'
+        teamMembership: 'fetchData',
+        'auditFilters.string': function () {
+            if (timer) {
+                clearTimeout(timer)
+            }
+            timer = setTimeout(() => {
+                this.fetchData()
+            }, 300)
+        },
+        'auditFilters.user': function () {
+            this.fetchData()
+        }
     },
     data () {
         return {
             verifiedTeam: null,
-            entries: null
+            entries: null,
+            auditFilters: {
+                string: '',
+                user: null,
+                users: []
+            }
         }
     },
     mounted () {
@@ -36,7 +71,14 @@ export default {
     },
     methods: {
         loadItems: async function (projectId, cursor) {
-            return await teamApi.getTeamAuditLog(projectId, cursor, 200)
+            const params = new URLSearchParams()
+            if (this.auditFilters.string) {
+                params.append('query', this.auditFilters.string)
+            }
+            if (this.auditFilters.user) {
+                params.append('username', this.auditFilters.user)
+            }
+            return await teamApi.getTeamAuditLog(projectId, params, cursor, 200)
         },
         fetchData: async function (newVal) {
             if (this.hasPermission('team:audit-log')) {
@@ -50,18 +92,17 @@ export default {
         loadUsers () {
             console.log('this.team')
             console.log(this.team)
+            console.log(this.team.id)
             teamApi.getTeamMembers(this.team.id).then((data) => {
-                this.auditFilters.users = data.users.map((user) => {
-                    user.checked = true
-                    return user
-                })
+                this.auditFilters.users = data.members
             })
         }
     },
     components: {
         SearchIcon,
         AuditLog,
-        SectionTopMenu
+        SectionTopMenu,
+        FormHeading
     }
 }
 </script>

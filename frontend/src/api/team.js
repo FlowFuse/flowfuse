@@ -96,9 +96,9 @@ const removeTeamMember = (teamId, userId) => {
     return client.delete(`/api/v1/teams/${teamId}/members/${userId}`)
 }
 
-const getTeamAuditLog = async (teamId, cursor, limit) => {
+const getTeamAuditLog = async (teamId, params, cursor, limit) => {
     const url = paginateUrl(`/api/v1/teams/${teamId}/audit-log`, cursor, limit)
-    return client.get(url).then(res => res.data)
+    return client.get(url, { params }).then(res => res.data)
 }
 const getTeamUserMembership = (teamId) => {
     return client.get(`/api/v1/teams/${teamId}/user`).then(res => res.data)
