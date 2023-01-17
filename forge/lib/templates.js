@@ -17,6 +17,7 @@ module.exports = {
         'palette_modules',
         'modules_allowInstall',
         'modules_denyList',
+        'httpNodeAuth_type',
         'httpNodeAuth_user',
         'httpNodeAuth_pass'
     ],
@@ -41,6 +42,7 @@ module.exports = {
         palette_modules: [],
         modules_allowInstall: true,
         modules_denyList: '',
+        httpNodeAuth_type: '',
         httpNodeAuth_user: '',
         httpNodeAuth_pass: ''
     },
@@ -62,6 +64,7 @@ module.exports = {
         palette_modules: true,
         modules_allowInstall: true,
         modules_denyList: false,
+        httpNodeAuth_type: true,
         httpNodeAuth_user: true,
         httpNodeAuth_pass: true
     }

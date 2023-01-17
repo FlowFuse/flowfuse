@@ -232,5 +232,40 @@ describe('Project Template controller', function () {
             result.env.should.have.length(1)
             result.env[0].name.should.eql('two')
         })
+
+        it('it clears httpNodeAuth user/pass if auth type set to not-basic', function () {
+            const originalSettings = {
+                httpNodeAuth: {
+                    user: 'foo',
+                    pass: 'bar'
+                }
+            }
+
+            const result = app.db.controllers.ProjectTemplate.mergeSettings(originalSettings, {
+                httpNodeAuth: {
+                    type: 'flowforge-user'
+                }
+            })
+            result.httpNodeAuth.should.have.property('type', 'flowforge-user')
+            result.httpNodeAuth.should.have.property('user', '')
+            result.httpNodeAuth.should.have.property('pass', '')
+        })
+        it('it updates httpNodeAuth user/pass if auth type set to basic', function () {
+            const originalSettings = {
+                httpNodeAuth: {
+                    user: 'foo',
+                    pass: 'bar'
+                }
+            }
+
+            const result = app.db.controllers.ProjectTemplate.mergeSettings(originalSettings, {
+                httpNodeAuth: {
+                    type: 'basic'
+                }
+            })
+            result.httpNodeAuth.should.have.property('type', 'basic')
+            result.httpNodeAuth.should.have.property('user', 'foo')
+            result.httpNodeAuth.should.have.property('pass', 'bar')
+        })
     })
 })
