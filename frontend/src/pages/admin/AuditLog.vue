@@ -11,7 +11,7 @@
                 <template v-slot:icon><SearchIcon/></template>
             </ff-text-input>
             <FormHeading class="mt-4">User:</FormHeading>
-            <div class="">
+            <div>
                 <ff-dropdown class="w-full" v-model="auditFilters.user">
                     <ff-dropdown-option label="Not Specified" :value="undefined"></ff-dropdown-option>
                     <ff-dropdown-option v-for="user in auditFilters.users" :key="user.username"
@@ -56,7 +56,6 @@ export default {
                 clearTimeout(timer)
             }
             timer = setTimeout(() => {
-                console.log('search')
                 this.fetchData()
             }, 300)
         },

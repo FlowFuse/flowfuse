@@ -1,10 +1,17 @@
 <template>
-    <SectionTopMenu hero="Audit Log" info="Recorded events that have taken place in this Team." />
-    <AuditLog :entries="entries" />
+    <div class="ff-admin-audit">
+        <div>
+            <SectionTopMenu hero="Audit Log" info="Recorded events that have taken place in this Team." />
+            <AuditLog :entries="entries" />
+        </div>
+    </div>
 </template>
 
 <script>
+import { SearchIcon } from '@heroicons/vue/outline'
+
 import teamApi from '@/api/team'
+
 import SectionTopMenu from '@/components/SectionTopMenu'
 import AuditLog from '@/components/audit-log/AuditLog'
 import permissionsMixin from '@/mixins/Permissions'
@@ -24,6 +31,7 @@ export default {
         }
     },
     mounted () {
+        this.loadUsers()
         this.fetchData()
     },
     methods: {
@@ -38,9 +46,20 @@ export default {
             } else {
                 this.$router.push({ path: `/team/${this.team.slug}/overview` })
             }
+        },
+        loadUsers () {
+            console.log('this.team')
+            console.log(this.team)
+            teamApi.getTeamMembers(this.team.id).then((data) => {
+                this.auditFilters.users = data.users.map((user) => {
+                    user.checked = true
+                    return user
+                })
+            })
         }
     },
     components: {
+        SearchIcon,
         AuditLog,
         SectionTopMenu
     }

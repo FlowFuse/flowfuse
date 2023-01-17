@@ -21,9 +21,9 @@ const deleteProject = async (projectId) => {
     return client.delete(`/api/v1/projects/${projectId}`)
 }
 
-const getProjectAuditLog = async (projectId, cursor, limit) => {
+const getProjectAuditLog = async (projectId, params, cursor, limit) => {
     const url = paginateUrl(`/api/v1/projects/${projectId}/audit-log`, cursor, limit)
-    return client.get(url).then(res => res.data)
+    return client.get(url, { params }).then(res => res.data)
 }
 
 const getProjectLogs = async (projectId, cursor, limit) => {
