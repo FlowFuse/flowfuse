@@ -25,46 +25,11 @@
 import AuditEntry from './AuditEntry.vue'
 import FFAccordion from '@/components/Accordion.vue'
 
-const eventDescriptions = {
-    'project.created': 'Project created',
-    'project.duplicated': 'Project duplicated',
-    'project.deleted': 'Project deleted',
-    'project.stopped': 'Project stopped',
-    'project.started': 'Project started',
-    'auth.login': '${user} logged in',
-    'auth.login.revoke': '${user} logged out',
-    'flows.set': 'Flows updated',
-
-    // Project Log
-    'user.invited': 'User invited',
-    'user.uninvited': 'User uninvited',
-    'user.invite.accept': '${user} accepted invitation',
-    'user.invite.reject': '${user} declined invitation'
-
-}
-
-const eventIcons = {
-    'project.started': 'play',
-    'project.stopped': 'stop',
-    'project.created': 'create',
-    'project.duplicated': 'create',
-    'project.deleted': 'create',
-    'auth.login': 'user',
-    'auth.login.revoke': 'logout',
-    'flows.set': 'pencil'
-}
-
 export default {
     name: 'AuditLog',
     props: {
-        entity: {
-            // the scope of the audit log, e.g. the Project/Team
-            type: Object,
-            default: null
-        },
-        loadItems: {
-            // The Function to call in order to populate the Audit Log
-            type: Function,
+        entries: {
+            type: [null, Array],
             required: true
         },
         showLoadMore: {
@@ -78,70 +43,44 @@ export default {
             default: false
         }
     },
-    watch: {
-        entity: 'fetchData'
-    },
+    emits: ['load-more'],
     computed: {
         hasNoEntries () {
             return Object.keys(this.logEntriesByDate).length === 0
+        },
+        logEntriesByDate () {
+            const grouped = {}
+            let lastDate = null
+            this.entries?.forEach((entry) => {
+                const date = new Date(entry.createdAt)
+                const strDate = date.toDateString()
+                // reduce and group by date
+                if (!grouped[strDate]) {
+                    grouped[strDate] = []
+                }
+                if (strDate !== lastDate) {
+                    entry.date = date.toDateString()
+                    lastDate = strDate
+                }
+                if (!entry.time) {
+                    entry.time = date.toLocaleTimeString()
+                } else if (entry.date) {
+                    lastDate = entry.date
+                }
+                grouped[strDate].push(entry)
+            })
+            return grouped
         }
     },
     data () {
         return {
-            nextCursor: null,
-            logEntriesByDate: null,
             loading: false,
-            initialLoad: true
+            nextCursor: false // TODO: drive this properly through pagination
         }
-    },
-    mounted () {
-        this.initialLoad = true
-        this.fetchData()
     },
     methods: {
         loadMore: async function () {
-            this.loading = true
-            const result = await this.loadItems(this.entity.id, this.nextCursor)
-            this.nextCursor = result.meta.next_cursor
-            this.groupResults(result.log)
-            this.loading = false
-        },
-        groupResults (log) {
-            let lastDate = null
-            this.logEntriesByDate = {}
-            log.forEach((entry) => {
-                if (!entry.time) {
-                    const date = new Date(entry.createdAt)
-                    const strDate = date.toDateString()
-                    if (strDate !== lastDate) {
-                        entry.date = date.toDateString()
-                        lastDate = strDate
-                    }
-                    entry.time = date.toLocaleTimeString()
-                    entry.icon = eventIcons[entry.event] || null
-                    entry.title = eventDescriptions[entry.event] || entry.event
-                    entry.title = entry.title.replace(/\${user}/g, entry.username)
-                    // reduce and group by date
-                    if (!this.logEntriesByDate[strDate]) {
-                        this.logEntriesByDate[strDate] = []
-                    }
-                    this.logEntriesByDate[strDate].push(entry)
-                } else if (entry.date) {
-                    lastDate = entry.date
-                }
-            })
-        },
-        fetchData: async function (newVal) {
-            if (this.initialLoad) {
-                this.loading = true
-            }
-            if (this.entity && this.entity.id) {
-                const result = await this.loadItems(this.entity.id)
-                this.groupResults(result.log)
-                this.nextCursor = result.meta.next_cursor
-            }
-            this.initialLoad = false
-            this.loading = false
+            this.$emit('load-more')
         }
     },
     components: {

@@ -40,7 +40,7 @@ const navigation = [
     { name: 'Project Types', path: '/admin/project-types', tag: 'admin-projecttypes', icon: ColorSwatchIcon },
     { name: 'Stacks', path: '/admin/stacks', tag: 'admin-stacks', icon: DesktopComputerIcon },
     { name: 'Templates', path: '/admin/templates', tag: 'admin-templates', icon: TemplateIcon },
-    { name: 'Audit Log', path: '/admin/audit-log', tag: 'admin-auditlog', icon: DatabaseIcon },
+    { name: 'Activity', path: '/admin/audit-log', tag: 'admin-auditlog', icon: DatabaseIcon },
     { name: 'Settings', path: '/admin/settings', tag: 'admin-settings', icon: CogIcon }
 ]
 
@@ -71,3 +71,7 @@ export default {
     }
 }
 </script>
+
+<style lang="scss">
+@import "@/stylesheets/pages/admin.scss";
+</style>

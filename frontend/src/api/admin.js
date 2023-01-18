@@ -40,9 +40,9 @@ const getInvitations = async (options) => {
     })
 }
 
-const getPlatformAuditLog = async (cursor, limit) => {
+const getPlatformAuditLog = async (params, cursor, limit) => {
     const url = paginateUrl('/api/v1/admin/audit-log', cursor, limit)
-    return client.get(url).then(res => res.data)
+    return client.get(url, { params }).then(res => res.data)
 }
 
 /**
