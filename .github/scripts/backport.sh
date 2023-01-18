@@ -46,7 +46,9 @@ git checkout -b $PR_BRANCH
 
 for x in $PR_COMMITS
 do
-   git -c user.name='FlowForge Backport Bot' -c user.email='noreply@flowforge.com' cherry-pick $x
+   COMMIT_USER=`git show -s --format="%an" $x`
+   COMMIT_EMAIL=`git show -s --format="%ae" $x`
+   git -c user.name="$COMMIT_USER" -c user.email="$COMMIT_EMAIL" cherry-pick $x
 done
 
 git push origin $PR_BRANCH
