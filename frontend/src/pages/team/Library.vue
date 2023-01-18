@@ -12,7 +12,14 @@
             <ChevronRightIcon class="ff-icon"></ChevronRightIcon>
         </span>
     </div>
-    <ff-data-table :columns="columns" :rows="rows" :rows-selectable="true" @row-selected="entrySelected"></ff-data-table>
+    <ff-data-table :columns="columns" :rows="rows">
+        <template v-slot:rows>
+            <ff-data-table-row v-for="row in rows" :key="row" :selectable="row.type === 'folder'" @click="entrySelected(row)">
+                <ff-data-table-cell><TypeIcon :type="row.type"/></ff-data-table-cell>
+                <ff-data-table-cell>{{ row.name }}</ff-data-table-cell>
+            </ff-data-table-row>
+        </template>
+    </ff-data-table>
 </template>
 
 <script>
@@ -35,10 +42,7 @@ export default {
             columns: [{
                 key: 'type',
                 label: '',
-                class: ['w-2'],
-                component: {
-                    is: markRaw(TypeIcon)
-                }
+                class: ['w-2']
             }, {
                 key: 'name',
                 label: 'Name'
@@ -58,6 +62,7 @@ export default {
             })
         },
         entrySelected (entry) {
+            console.log(entry)
             if (entry.type === 'folder') {
                 let parentDir = ''
                 this.breadcrumbs.push(entry)
@@ -105,7 +110,8 @@ export default {
     },
     components: {
         SectionTopMenu,
-        ChevronRightIcon
+        ChevronRightIcon,
+        TypeIcon
     }
 }
 </script>
