@@ -95,6 +95,7 @@ describe('FlowForge - Team Membership', () => {
 
         // wait for deletion to finish
         cy.wait('@removeTeamMember')
+        cy.wait(['@getTeamMembers'])
 
         // check it has been deleted
         cy.get('[data-el="members-table"] tbody').find('tr').should('have.length', 2)
