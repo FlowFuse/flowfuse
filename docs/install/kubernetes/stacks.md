@@ -15,6 +15,8 @@ For container based deployment models, this covers three things:
 directory of the [helm](https://github.com/flowforge/helm) project. This will start with `nodered/node-red:latest` 
 as it's base and then add the required FlowForge components.
 
+Builds of this container for amd64, arm64 and armv7 are built for every release and published to Docker hub as [flowforge/node-red](https://hub.docker.com/r/flowforge/node-red). These can be used as a base to build custom stacks.
+
 If you wanted to pin at Node-RED v3.0.2 you would change the first line to:
 
 ```docker
