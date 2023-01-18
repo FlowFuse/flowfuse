@@ -6,11 +6,13 @@ on:
     paths:
       - 'frontend/**'
       - 'test/e2e/frontend/**'
+      - 'test/unit/frontend/**'
       - 'package.json'
   pull_request:
     paths:
       - 'frontend/**'
       - 'test/e2e/frontend/**'
+      - 'test/unit/frontend/**'
       - 'package.json'
 
 jobs:
@@ -23,6 +25,8 @@ jobs:
       - name: Install Dependencies
         run: npm install
       # and run all Cypress tests
+      - name: Run front-end unit tests
+        run: npm run test:unit:frontend
       - name: Cypress run
         uses: cypress-io/github-action@v4
         with:
