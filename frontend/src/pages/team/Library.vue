@@ -62,7 +62,6 @@ export default {
             })
         },
         entrySelected (entry) {
-            console.log(entry)
             if (entry.type === 'folder') {
                 let parentDir = ''
                 this.breadcrumbs.push(entry)
