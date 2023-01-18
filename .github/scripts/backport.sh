@@ -46,7 +46,9 @@ git checkout -b $PR_BRANCH
 
 for x in $PR_COMMITS
 do
-   git -c user.name='FlowForge Backport Bot' -c user.email='noreply@flowforge.com' cherry-pick $x
+   COMMIT_USER=`git show -s --format="%an" $x`
+   COMMIT_EMAIL=`git show -s --format="%ae" $x`
+   git -c user.name="$COMMIT_USER" -c user.email="$COMMIT_EMAIL" cherry-pick $x
 done
 
 git push origin $PR_BRANCH
@@ -55,9 +57,9 @@ cat <<EOT > $PR_BRANCH".txt"
 Backport of $PR_URL
 
 ---
-
-$PR_BODY
 EOT
+
+echo $PR_BODY >> $PR_BRANCH".txt"
 
 gh pr create --title "$PR_TITLE (backport #$PR)" -F $PR_BRANCH".txt" -H $PR_BRANCH -B $TARGET_BRANCH
 
