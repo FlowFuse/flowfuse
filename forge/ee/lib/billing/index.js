@@ -1,7 +1,6 @@
 module.exports.init = async function (app) {
     // Set the billing feature flag
     app.config.features.register('billing', true, true)
-    app.config.features.register('createAccountBanner', app.config.billing.createAccountBanner, true)
 
     const stripe = require('stripe')(app.config.billing.stripe.key)
 
