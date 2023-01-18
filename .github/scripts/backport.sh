@@ -57,9 +57,9 @@ cat <<EOT > $PR_BRANCH".txt"
 Backport of $PR_URL
 
 ---
-
-$PR_BODY
 EOT
+
+echo $PR_BODY >> $PR_BRANCH".txt"
 
 gh pr create --title "$PR_TITLE (backport #$PR)" -F $PR_BRANCH".txt" -H $PR_BRANCH -B $TARGET_BRANCH
 
