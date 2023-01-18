@@ -17,6 +17,8 @@ There is an example `Dockerfile` and `package.json` in the [node-red-container](
 directory of the [docker-compose](https://github.com/flowforge/docker-compose) project. This will start with `nodered/node-red:latest` 
 as it's base and then add the required FlowForge components.
 
+Builds of this container for amd64, arm64 and armv7 are built for every release and published to Docker hub as [flowforge/node-red](https://hub.docker.com/r/flowforge/node-red). These can be used as a base to build custom stacks.
+
 If you wanted to pin at Node-RED v3.0.2 you would change the first line to:
 
 ```docker
