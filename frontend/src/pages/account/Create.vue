@@ -2,7 +2,8 @@
     <ff-layout-box class="ff-signup">
         <div v-if="!emailSent && !ssoCreated" class="max-w-md">
             <h2>Sign Up</h2>
-            <div>
+            <p v-if="settings.features.createAccountBanner" class="-mt-6 pb-4 text-gray-400">{{ settings.features.createAccountBanner }}</p>
+            <div class="pb-4">
                 <label>Username</label>
                 <ff-text-input ref="signup-username" label="username" :error="errors.username" v-model="input.username" />
                 <label class="ff-error-inline">{{ errors.username }}</label>
