@@ -6,12 +6,16 @@
         </div>
         <div>
             <SectionTopMenu hero="Filters" />
-            <FormHeading class="mt-4">Search:</FormHeading>
-            <ff-text-input v-model="auditFilters.string" placeholder="Search Activity...">
-                <template v-slot:icon><SearchIcon/></template>
-            </ff-text-input>
+            <FormHeading class="mt-4">Event Type:</FormHeading>
+            <div data-el="filter-event-types">
+                <ff-dropdown class="w-full" v-model="auditFilters.type">
+                    <ff-dropdown-option label="Not Specified" :value="undefined"></ff-dropdown-option>
+                    <ff-dropdown-option v-for="eType in auditFilters.types" :key="eType[1]"
+                                        :label="eType[0]" :value="eType[1]"></ff-dropdown-option>
+                </ff-dropdown>
+            </div>
             <FormHeading class="mt-4">User:</FormHeading>
-            <div>
+            <div data-el="filter-users">
                 <ff-dropdown class="w-full" v-model="auditFilters.user">
                     <ff-dropdown-option label="Not Specified" :value="undefined"></ff-dropdown-option>
                     <ff-dropdown-option v-for="user in auditFilters.users" :key="user.username"
@@ -24,7 +28,6 @@
 
 <script>
 import { mapState } from 'vuex'
-import { SearchIcon } from '@heroicons/vue/outline'
 
 import SectionTopMenu from '@/components/SectionTopMenu'
 import AuditLog from '@/components/audit-log/AuditLog'
@@ -33,7 +36,7 @@ import FormHeading from '@/components/FormHeading'
 import AdminAPI from '@/api/admin'
 import UsersAPI from '@/api/users'
 
-let timer = null
+import AuditEventsService from '@/services/audit-events.js'
 
 export default {
     name: 'PlatformAuditLog',
@@ -41,7 +44,8 @@ export default {
         return {
             entries: null,
             auditFilters: {
-                string: '',
+                type: undefined,
+                types: [],
                 user: null,
                 users: []
             }
@@ -51,30 +55,38 @@ export default {
         ...mapState('account', ['user'])
     },
     watch: {
-        'auditFilters.string': function () {
-            if (timer) {
-                clearTimeout(timer)
-            }
-            timer = setTimeout(() => {
-                this.fetchData()
-            }, 300)
-        },
         'auditFilters.user': function () {
+            this.fetchData()
+        },
+        'auditFilters.type': function () {
             this.fetchData()
         }
     },
     mounted () {
         this.loadUsers()
+
+        // convert the audit event labels into an array and alphabetise them
+        this.auditFilters.types = Object.entries(AuditEventsService.getGroup('platform')).sort((a, b) => {
+            if (a[0] < b[0]) {
+                return -1
+            } else if (a[0] > b[0]) {
+                return 1
+            }
+            return 0
+        })
+
         this.fetchData()
     },
     methods: {
         loadItems: async function (cursor) {
             const params = new URLSearchParams()
-            if (this.auditFilters.string) {
-                params.append('query', this.auditFilters.string)
-            }
             if (this.auditFilters.user) {
                 params.append('username', this.auditFilters.user)
+            }
+            if (this.auditFilters.type) {
+                this.auditFilters.type.forEach((evt) => {
+                    params.append('event', evt)
+                })
             }
             return await AdminAPI.getPlatformAuditLog(params, cursor, 200)
         },
@@ -84,15 +96,14 @@ export default {
             })
         },
         fetchData: async function () {
-            const result = await this.loadItems('audit')
+            const result = await this.loadItems()
             this.entries = result.log
         }
     },
     components: {
         AuditLog,
         FormHeading,
-        SectionTopMenu,
-        SearchIcon
+        SectionTopMenu
     }
 }
 </script>
