@@ -118,6 +118,12 @@ const getTeamDevices = async (teamId, cursor, limit) => {
     return res.data
 }
 
+const getTeamLibrary = async (teamId, parentDir, cursor, limit) => {
+    const url = paginateUrl(`/storage/library/${teamId}/${parentDir || ''}`, cursor, limit)
+    const res = await client.get(url)
+    return res.data
+}
+
 /**
  * Calls api routes in team.js
  * See [routes/api/team.js](../../../forge/routes/api/team.js)
@@ -137,5 +143,6 @@ export default {
     removeTeamInvitation,
     getTeamAuditLog,
     getTeamUserMembership,
-    getTeamDevices
+    getTeamDevices,
+    getTeamLibrary
 }
