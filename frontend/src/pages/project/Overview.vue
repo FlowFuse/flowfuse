@@ -171,7 +171,7 @@ export default {
     },
     methods: {
         loadLogs () {
-            if (this.project) {
+            if (this.project && this.project.id) {
                 this.loadItems(this.project.id).then((data) => {
                     this.auditLog = data.log
                 })

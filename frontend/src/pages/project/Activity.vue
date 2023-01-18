@@ -1,6 +1,6 @@
 <template>
     <div class="ff-admin-audit">
-        <div>
+        <div data-el="audit-log">
             <SectionTopMenu hero="Project Activity" info="Recorded events that have taken place in Project.">
             </SectionTopMenu>
             <AuditLog :entries="entries" />
@@ -12,7 +12,7 @@
                 <template v-slot:icon><SearchIcon/></template>
             </ff-text-input>
             <FormHeading class="mt-4">User:</FormHeading>
-            <div>
+            <div data-el="filter-users">
                 <ff-dropdown class="w-full" v-model="auditFilters.user">
                     <ff-dropdown-option label="Not Specified" :value="undefined"></ff-dropdown-option>
                     <ff-dropdown-option v-for="user in auditFilters.users" :key="user.username"
