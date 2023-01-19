@@ -18,6 +18,7 @@ import AdminTemplate from '@/pages/admin/Template/index.vue'
 import AdminTemplateSettings from '@/pages/admin/Template/Settings.vue'
 import AdminTemplateEnvironment from '@/pages/admin/Template/sections/Environment.vue'
 import AdminTemplatePalette from '@/pages/admin/Template/sections/Palette.vue'
+import AdminTemplateSecurity from '@/pages/admin/Template/sections/Security.vue'
 import AdminCreateUser from '@/pages/admin/Users/createUser.vue'
 import PlatformAuditLog from '@/pages/admin/AuditLog.vue'
 import { AdjustmentsIcon } from '@heroicons/vue/outline'
@@ -126,6 +127,7 @@ export default [
                 },
                 children: [
                     { path: 'settings', component: AdminTemplateSettings },
+                    { path: 'security', component: AdminTemplateSecurity },
                     { path: 'environment', component: AdminTemplateEnvironment },
                     { path: 'palette', component: AdminTemplatePalette }
                 ]

@@ -14,17 +14,41 @@ let app
 
 /**
  * Generate a properly formed where-object for sequelize findAll, that applies
- * the required pagination and search logic
+ * the required pagination, search and filter logic
  *
  * @param {Object} params the pagination options - cursor, query, limit
  * @param {Object} whereClause any pre-existing where-query clauses to include
  * @param {Array<String>} columns an array of column names to search.
  * @returns a `where` object that can be passed to sequelize query
  */
-const buildPaginationSearchClause = (params, whereClause = {}, columns = []) => {
+const buildPaginationSearchClause = (params, whereClause = {}, columns = [], filterMap = {}) => {
     whereClause = { ...whereClause }
     if (params.cursor) {
         whereClause.id = { [Op.gt]: params.cursor }
+    }
+    whereClause = {
+        [Op.and]: [
+            whereClause
+        ]
+    }
+
+    for (const [key, value] of Object.entries(filterMap)) {
+        if (Object.hasOwn(params, key)) {
+            // A filter has been provided for key
+            let clauseContainer = whereClause[Op.and]
+            let param = params[key]
+            if (Array.isArray(param)) {
+                if (param.length > 1) {
+                    clauseContainer = []
+                    whereClause[Op.and].push({ [Op.or]: clauseContainer })
+                }
+            } else {
+                param = [param]
+            }
+            param.forEach(p => {
+                clauseContainer.push(where(fn('lower', col(value)), p.toLowerCase()))
+            })
+        }
     }
     if (params.query && columns.length) {
         const searchTerm = `%${params.query.toLowerCase()}%`
@@ -34,16 +58,7 @@ const buildPaginationSearchClause = (params, whereClause = {}, columns = []) => 
         const query = {
             [Op.or]: searchClauses
         }
-        if (whereClause.id) {
-            whereClause = {
-                [Op.and]: [
-                    whereClause,
-                    query
-                ]
-            }
-        } else {
-            whereClause = query
-        }
+        whereClause[Op.and].push(query)
     }
     return whereClause
 }

@@ -50,7 +50,11 @@ describe('Accounts API', async function () {
                 email: 'u1@example.com'
             })
             response.statusCode.should.equal(200)
-
+            const result = response.json()
+            result.should.have.property('username', 'u1')
+            result.should.have.property('id')
+            // Ensure the id looks like a hash id
+            result.id.should.not.match(/^\d+$/)
             // TODO: check user audit logs - expect 'account.xxx-yyy' { status: 'okay', ... }
         })
 

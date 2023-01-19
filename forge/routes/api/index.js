@@ -20,15 +20,9 @@ const ProjectType = require('./projectType.js')
 module.exports = async function (app) {
     app.addHook('preHandler', app.verifySession)
     app.decorate('getPaginationOptions', (request, defaults) => {
-        const result = { ...defaults }
-        if (request.query.limit !== undefined) {
-            result.limit = request.query.limit
-        }
-        if (request.query.cursor !== undefined) {
-            result.cursor = request.query.cursor
-        }
-        if (request.query.query !== undefined) {
-            result.query = request.query.query.trim()
+        const result = { ...defaults, ...request.query }
+        if (result.query) {
+            result.query = result.query.trim()
         }
         return result
     })

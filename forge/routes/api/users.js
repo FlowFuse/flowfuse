@@ -123,7 +123,7 @@ module.exports = async function (app) {
                 }, newUser)
                 await app.auditLog.User.users.teamAutoCreated(request.session.User, null, team, logUserInfo)
             }
-            reply.send({ status: 'okay' })
+            reply.send(await app.db.views.User.userProfile(newUser))
         } catch (err) {
             let responseMessage
             let responseCode = 'unexpected_error'

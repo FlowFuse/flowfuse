@@ -5,6 +5,8 @@
 
 const { DataTypes, Op } = require('sequelize')
 
+const { buildPaginationSearchClause } = require('../utils')
+
 module.exports = {
     name: 'AuditLog',
     schema: {
@@ -47,10 +49,24 @@ module.exports = {
                 forEntity: async (where = {}, pagination = {}) => {
                     const limit = parseInt(pagination.limit) || 1000
                     if (pagination.cursor) {
+                        // As we aren't using the default cursor behaviour (Op.gt)
+                        // set the appropriate clause and delete cursor so that
+                        // buildPaginationSearchClause doesn't do it for us
                         where.id = { [Op.lt]: M.AuditLog.decodeHashid(pagination.cursor) }
+                        delete pagination.cursor
                     }
-                    const entries = await this.findAll({
-                        where,
+                    const { count, rows } = await this.findAndCountAll({
+                        where: buildPaginationSearchClause(
+                            pagination,
+                            where,
+                            // These are the columns that are searched using the `query` query param
+                            ['AuditLog.event', 'AuditLog.body', 'User.username', 'User.name'],
+                            // These map additional query params to specific columns to allow filtering
+                            {
+                                event: 'AuditLog.event',
+                                username: 'User.username'
+                            }
+                        ),
                         order: [['createdAt', 'DESC']],
                         include: {
                             model: M.User,
@@ -58,11 +74,13 @@ module.exports = {
                         },
                         limit
                     })
+
                     return {
                         meta: {
-                            next_cursor: entries.length === limit ? entries[entries.length - 1].hashid : undefined
+                            next_cursor: rows.length === limit ? rows[rows.length - 1].hashid : undefined
                         },
-                        log: entries
+                        count,
+                        log: rows
                     }
                 }
             }

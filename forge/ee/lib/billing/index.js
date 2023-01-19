@@ -62,6 +62,11 @@ module.exports.init = async function (app) {
                 tax_id_collection: {
                     enabled: true
                 },
+                custom_text: {
+                    submit: {
+                        message: 'This sets up your team for billing. You are only charged when creating a Project.'
+                    }
+                },
                 client_reference_id: team.hashid,
                 payment_method_types: ['card'],
                 success_url: `${app.config.base_url}/team/${team.slug}/overview?billing_session={CHECKOUT_SESSION_ID}`,

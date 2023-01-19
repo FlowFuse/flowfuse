@@ -45,6 +45,7 @@ import { ChevronRightIcon } from '@heroicons/vue/solid'
 
 const sideNavigation = [
     { name: 'Settings', path: './settings' },
+    { name: 'Security', path: './Security' },
     { name: 'Environment', path: './environment' },
     { name: 'Palette', path: './palette' }
 ]
@@ -239,6 +240,12 @@ export default {
                 settings: {},
                 policy: {}
             }
+
+            if (this.editable.settings.httpNodeAuth_type !== 'basic') {
+                this.editable.settings.httpNodeAuth_user = ''
+                this.editable.settings.httpNodeAuth_pass = ''
+            }
+
             templateFields.forEach(field => {
                 setTemplateValue(template.settings, field, this.editable.settings[field])
                 setObjectValue(template.policy, field, this.editable.policy[field])

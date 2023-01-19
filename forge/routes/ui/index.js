@@ -56,7 +56,7 @@ module.exports = async function (app) {
             </script>`
             }
 
-            if (support.enabled && support.frontend.hubspot?.trackingcode) {
+            if (support?.enabled && support.frontend?.hubspot?.trackingcode) {
                 const trackingCode = support.frontend.hubspot.trackingcode
                 injection += `<!-- Start of HubSpot Embed Code -->
                 <script type="text/javascript" id="hs-script-loader" async defer src="//js-eu1.hs-scripts.com/${trackingCode}.js"></script>
@@ -83,11 +83,11 @@ module.exports = async function (app) {
             reply.redirect('/setup')
             return
         }
-        if (app.config.telemetry.frontend?.plausible) {
+        if (app.config.telemetry?.frontend?.plausible) {
             app.log.warn('Configuration found for Plausible. Please note that support for Plausible will be deprecated after FlowForge 0.9')
         }
         // check if we need to inject plausible
-        if (app.config.telemetry.frontend) {
+        if (app.config.telemetry?.frontend) {
             const injectedContent = await injectAnalytics(app.config)
             reply.type('text/html').send(injectedContent)
         } else {
@@ -114,7 +114,7 @@ module.exports = async function (app) {
         //     reply.sendFile('index.html')
         // }
         // check if we need to inject plausible
-        if (app.config.telemetry.frontend) {
+        if (app.config.telemetry?.frontend) {
             const injectedContent = await injectAnalytics(app.config)
             reply.type('text/html').send(injectedContent)
         } else {

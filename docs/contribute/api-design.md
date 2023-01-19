@@ -198,17 +198,35 @@ If an end-point supports navigating the collection in reverse (by returning `pre
 the cursor should be prefixed with `-` to indicate the query should be in the opposite
 direction to the collection's natural order.
 
-### Search
+### Search & Filtering
 
 Search is done as simple case-insensitive text-based queries against string columns
 in the database model. This is a crude but effective way to implement search, but
 may need a more comprehensive approach in the future.
 
+The search value is provided via the `query` query parameter.
+
+```
+/api/v1/example?query=something
+```
+
+Filtering can be used to limit the results based on the values of specific columns.
+
+The Filter value is provided via additional query parameters.
+
+```
+/api/v1/example?eventName=foo
+```
+
+
 ### Implementing pagination & search
 
-Within a route handler for a paginated end-point, the following helper function
-can be used to get the pagination options from the request, as well as specifying
-default options:
+Two utility functions are provided to help implement pagination and search.
+
+#### `app.getPaginationOptions`
+
+This returns an object of pagination options for a given request, with any default
+values automatically applied:
 
 ```js
 const paginationOptions = app.getPaginationOptions(request, {limit: 1000})
@@ -216,13 +234,32 @@ const paginationOptions = app.getPaginationOptions(request, {limit: 1000})
 // paginationOptions.limit = how many results to return
 // paginationOptions.cursor = starting cursor
 // paginationOptions.query = search string to use
-
+// paginationOptions.* = any remaining query parameters
 ```
 
-Typically these properties will be passed to the appropriate database model's `getAll`
+
+#### `buildPaginationSearchClause`
+
+This takes the pagination options along with model-specific configuration options
+to build a suitable `where` clause that can be passed to the database model's `getAll`
 function.
 
-For example, the imaginary `Thing` model:
+```
+const where = buildPaginationSearchClause(params, whereClause, searchColumns, filterMap)
+```
+
+ - `params` - the pagination object returned by `app.getPaginationOptions` for a given request
+ - `whereClause` - (optional) an object containing any additional query clauses that should be applied
+ - `searchColumns` - (optional) an array of fully-qualified column names that should be searched when `query=<xyz>` is included in query
+ - `filterMap` - (option) a map of filter name to fully-qualified column name that are valid filter parameters
+
+With the filtering option, if a particular filter parameter is specified more than
+once in the query string, the generated query will apply an Or between the values.
+
+For example, lets consider the imaginary `Thing` model has a `name`, `description` and `type`.
+The following will mean:
+ - any `query=<xyz>` parameter will be searched for in the `name` and `description` columns
+ - any `type=<abc>` parameter will filter on the `type` column.
 
 ```js
 const { buildPaginationSearchClause } = require('../utils')
@@ -240,7 +277,14 @@ getAll: async (pagination = {}, where = {}) => {
 
     // Build the full where query using the buildPaginationSearchClause utility.
     // We pass in the list of columns that should be searched against
-    where = buildPaginationSearchClause(pagination, where, ['Thing.name'])
+    where = buildPaginationSearchClause(
+        pagination,
+        where,
+        ['Thing.name', 'Thing.description'],
+        {
+            type: 'Thing.type'
+        }
+    )
 
     // Run the query
     const { count, rows } = await this.findAndCountAll({
