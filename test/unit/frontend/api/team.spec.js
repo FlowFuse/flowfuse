@@ -172,7 +172,8 @@ describe('Team API', async () => {
         const teamid = 'teamid'
         const cursor = 10
         const limit = 5
-        TeamAPI.default.getTeamAuditLog(teamid, cursor, limit)
+        const params = { event: 'foo' }
+        TeamAPI.default.getTeamAuditLog(teamid, params, cursor, limit)
         expect(mockPaginateUrl).toHaveBeenCalledOnce()
         expect(mockPaginateUrl).toHaveBeenCalledWith(`/api/v1/teams/${teamid}/audit-log`, cursor, limit)
     })
