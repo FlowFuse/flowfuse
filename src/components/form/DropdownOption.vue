@@ -10,7 +10,7 @@ export default {
     props: {
         value: {
             default: null,
-            type: [Number, String, Boolean]
+            type: [Number, String, Boolean, Array, Object]
         },
         label: {
             default: null,

@@ -29,7 +29,7 @@ export default {
     props: {
         modelValue: {
             default: null,
-            type: [Number, String, Boolean]
+            type: [Number, String, Boolean, Object, Array]
         },
         placeholder: {
             default: 'Please Select',
