@@ -1,4 +1,4 @@
-name: UI E2E (Cypress) Tests
+name: UI Tests
 
 on:
   push:
@@ -25,9 +25,9 @@ jobs:
       - name: Install Dependencies
         run: npm install
       # and run all Cypress tests
-      - name: Run front-end unit tests
+      - name: Run UI Unit Tests
         run: npm run test:unit:frontend
-      - name: Cypress run
+      - name: Run UI E2E (Cypress) Tests
         uses: cypress-io/github-action@v4
         with:
           install: false
