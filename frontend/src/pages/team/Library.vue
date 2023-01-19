@@ -23,7 +23,6 @@
 </template>
 
 <script>
-import { markRaw } from 'vue'
 import teamApi from '@/api/team'
 
 import { ChevronRightIcon } from '@heroicons/vue/solid'
