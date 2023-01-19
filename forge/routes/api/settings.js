@@ -35,13 +35,17 @@ module.exports = async function (app) {
             }
             reply.send(response)
         } else {
-            reply.send({
+            const publicSettings = {
                 features: app.config.features.getPublicFeatures(),
                 'user:signup': app.settings.get('user:signup') && app.postoffice.enabled(),
                 'user:reset-password': app.settings.get('user:reset-password') && app.postoffice.enabled(),
                 'user:tcs-required': app.settings.get('user:tcs-required') && app.postoffice.enabled(),
                 'user:tcs-url': app.settings.get('user:tcs-url')
-            })
+            }
+            if (app.config.branding) {
+                publicSettings.branding = app.config.branding
+            }
+            reply.send(publicSettings)
         }
     })
 
