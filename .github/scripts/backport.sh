@@ -59,7 +59,7 @@ Backport of $PR_URL
 ---
 EOT
 
-echo $PR_BODY >> $PR_BRANCH".txt"
+echo $PR_BODY | sed -e 's/\\r\\n/\r\n/g' >> $PR_BRANCH".txt"
 
 gh pr create --title "$PR_TITLE (backport #$PR)" -F $PR_BRANCH".txt" -H $PR_BRANCH -B $TARGET_BRANCH
 
