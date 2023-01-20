@@ -19,6 +19,11 @@ const logout = () => {
 }
 
 const registerUser = async (options) => {
+    window.posthog?.identify(options.username, {
+        name: options.name,
+        username: options.username,
+        email: options.email
+    })
     return client.post('/account/register', options).then(res => res.data)
 }
 
