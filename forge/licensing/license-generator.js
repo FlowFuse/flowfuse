@@ -75,7 +75,17 @@ const promptly = require('promptly')
             }
         })
 
-        const expiry = validFrom + (366 * 24 * 60 * 60) - 1
+        const defaultExpire = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().substring(0, 10)
+        const expiry = await promptly.prompt(`Expire at [${defaultExpire}]: `, {
+            default: defaultExpire,
+            validator: (value) => {
+                const date = new Date(value)
+                if (isNaN(date.getTime())) {
+                    throw new Error('Invalid expire time')
+                }
+                return Math.floor(date.getTime() / 1000)
+            }
+        })
 
         const licenseDetails = {
             iss: 'FlowForge Inc.', // DO NOT CHANGE
