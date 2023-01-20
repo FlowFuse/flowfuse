@@ -13,7 +13,7 @@ Project Settings are split into a number of sections:
 ## Environment
 
 This allows you to manage the project's environment variables. More information
-on working with environment variables is available [here](./envvar).
+on working with environment variables is available [here](./envvar.md).
 
 ## Editor
 
