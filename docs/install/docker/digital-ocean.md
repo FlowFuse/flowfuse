@@ -43,4 +43,4 @@ The wizard will then update the configuration files and start FlowForge
 
 It will then present a link to complete setup in the browser. You can now close the console connection to the droplet.
 
-Details of how to complete this steps are [here](../first-run)
+Details of how to complete this steps are [here](../first-run.md)
