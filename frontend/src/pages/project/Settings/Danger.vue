@@ -6,35 +6,17 @@
     <ff-loading v-if="loading.suspend" message="Suspending Project..." />
     <ff-loading v-if="loading.importing" message="Importing Project..." />
     <form v-if="!isLoading" class="space-y-6">
-        <template v-if="!project.projectType">
-            <FormHeading>Set Project Type</FormHeading>
-            <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
-                <div class="flex-grow">
-                    <div class="max-w-sm pt-2 space-y-1">
-                        <p>You need to pick a type for this
-                            project before you can make any changes to its stack.</p>
-                    </div>
-                </div>
-                <div class="min-w-fit flex-shrink-0">
-                    <ff-button kind="secondary" @click="showChangeTypeDialog()">Set Project Type</ff-button>
-                    <ChangeTypeDialog @confirm="changeType" ref="changeTypeDialog"/>
+        <FormHeading>Change Project Type</FormHeading>
+        <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
+            <div class="flex-grow">
+                <div class="max-w-sm pt-2 space-y-1">
+                    <p>Changing the Project Type will restart the project.</p>
                 </div>
             </div>
-        </template>
-        <template v-else>
-            <FormHeading>Change Project Type</FormHeading>
-            <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
-                <div class="flex-grow">
-                    <div class="max-w-sm pt-2 space-y-1">
-                        <p>Change the project type. This will restart the project.</p>
-                    </div>
-                </div>
-                <div class="min-w-fit flex-shrink-0">
-                    <ff-button kind="secondary" @click="showChangeTypeDialog()">Change Project Type</ff-button>
-                    <ChangeTypeDialog @confirm="changeType" ref="changeTypeDialog"/>
-                </div>
+            <div class="min-w-fit flex-shrink-0">
+                <ff-button kind="secondary" @click="showProjectChangeTypePage()">Change Project Type</ff-button>
             </div>
-        </template>
+        </div>
         <FormHeading>Change Project Stack</FormHeading>
         <div v-if="project.stack && project.stack.replacedBy" class="flex flex-col lg:flex-row max-w-2xl space-y-4">
             <div class="flex-grow">
@@ -147,7 +129,6 @@ import permissionsMixin from '@/mixins/Permissions'
 import FormHeading from '@/components/FormHeading'
 import ConfirmProjectDeleteDialog from './dialogs/ConfirmProjectDeleteDialog'
 import ChangeStackDialog from './dialogs/ChangeStackDialog'
-import ChangeTypeDialog from './dialogs/ChangeTypeDialog'
 import ExportToProjectDialog from './dialogs/ExportToProjectDialog'
 import ImportProjectDialog from './dialogs/ImportProjectDialog'
 import { useRouter } from 'vue-router'
@@ -207,8 +188,12 @@ export default {
                 })
             })
         },
-        showChangeTypeDialog () {
-            this.$refs.changeTypeDialog.show(this.project)
+        showProjectChangeTypePage () {
+            this.$router.push({
+                name: 'ChangeProjectType',
+                params: { team_slug: this.team.slug },
+                query: { projectId: this.project.id }
+            })
         },
         showChangeStackDialog () {
             this.$refs.changeStackDialog.show(this.project)
@@ -278,20 +263,6 @@ export default {
                 this.loading.deleting = false
             })
         },
-        changeType (selectedType) {
-            debugger
-            if (selectedType) {
-                this.loading.settingType = true
-                projectApi.updateProject(this.project.id, {
-                    projectType: selectedType
-                }).catch(err => {
-                    console.warn(err)
-                }).finally(() => {
-                    this.$emit('projectUpdated')
-                    this.loading.settingType = false
-                })
-            }
-        },
         changeStack (selectedStack) {
             if (this.project.stack?.id !== selectedStack) {
                 this.loading.changingStack = true
@@ -312,7 +283,6 @@ export default {
         FormHeading,
         ConfirmProjectDeleteDialog,
         ChangeStackDialog,
-        ChangeTypeDialog,
         // ExportProjectDialog,
         ExportToProjectDialog,
         ImportProjectDialog
