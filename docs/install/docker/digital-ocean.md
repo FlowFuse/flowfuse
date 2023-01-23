@@ -1,6 +1,8 @@
 # 1-Click Digital Ocean Droplet Install
 
-We have packaged the Docker Compose build of FlowForge as a Digital Ocean Droplet. It can be found in the Digital Ocean Market Place [here](https://marketplace.digitalocean.com/apps/flowforge?refcode=fb23e438a477&action=deploy) 
+We have packaged the Docker Compose build of FlowForge as a Digital Ocean Droplet. It can be found in the Digital Ocean Market Place [here](https://marketplace.digitalocean.com/apps/flowforge?refcode=fb23e438a477)
+
+You can just straight to the deployment wizard [here](https://marketplace.digitalocean.com/apps/flowforge?refcode=fb23e438a477&action=deploy)
 
 ## Prerequisites
 
@@ -44,3 +46,7 @@ The wizard will then update the configuration files and start FlowForge
 It will then present a link to complete setup in the browser. You can now close the console connection to the droplet.
 
 Details of how to complete this steps are [here](../first-run.md)
+
+## Upgrade
+
+You can follow the normal FlowForge Docker [upgrade instructions](./README.md#upgrade), the install directory is `/opt/flowforge` 
