@@ -10,7 +10,7 @@ The following instructions assume you are running Docker on a Linux or MacOS hos
 
 #### Digital Ocean
 
-If you are using Digital Ocean Docker Droplet to host FlowForge you will need to ensure that port 80 & 443 are opened in the UFW firewall before starting.
+If you are using the Digital Ocean Docker Droplet to host FlowForge you will need to ensure that port 80 & 443 are opened in the UFW firewall before starting.
 
 ```bash
 sudo ufw apply http
