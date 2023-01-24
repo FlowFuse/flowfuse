@@ -17,7 +17,7 @@ sudo ufw apply http
 sudo ufw apply https
 ```
 
-We have 1-Click Digital Ocean Droplet that will install and configure FlowForge for you. Details can be found [here](./digital-ocean.md)
+We have a 1-Click Digital Ocean Droplet that will install and configure FlowForge for you. Details can be found [here](./digital-ocean.md)
 
 ### Docker Compose
 
