@@ -34,13 +34,20 @@ describe('FlowForge - Projects', () => {
             cy.get('[data-action="create-project"]').should('be.disabled')
 
             cy.get('[data-form="project-stack"]').contains('stack1').click() // re-select
-            cy.get('[data-action="create-project"]').should('not.be.disabled').click()
 
             cy.get('[data-form="project-template"]').should('exist') // template section visible for create
+
+            cy.get('[data-action="create-project"]').should('not.be.disabled').click()
 
             cy.wait('@createProject')
 
             cy.contains('my-project-name')
+
+            // Tidy-up
+            cy.get('[data-action="open-actions"] button').click()
+            cy.get('[data-action="menu-delete"]').click()
+            cy.get('[data-form="project-name"] input[type="text"]').type('my-project-name')
+            cy.get('button.ff-btn.ff-btn--danger').click()
         })
     })
 
