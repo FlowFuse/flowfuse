@@ -200,6 +200,38 @@ describe('FlowForge - Projects', () => {
             cy.get('[data-form="project-name"] [data-el="form-row-error"]').contains('name in use')
         })
     })
+
+    it('can be copied', () => {
+        cy.intercept('GET', '/api/*/projects/*').as('getProject')
+        cy.intercept('POST', '/api/*/projects').as('createProject')
+
+        cy.visit('/')
+
+        cy.get('[data-nav="team-projects"]')
+
+        cy.wait('@getTeamProjects')
+
+        cy.contains('project1').click()
+
+        cy.wait('@getProject')
+
+        cy.get('[data-nav="project-settings"]').click()
+        cy.get('[data-nav="danger"]').click()
+        cy.get('[data-nav="copy-project"]').click()
+
+        // Does not use same name
+        cy.get('[data-form="project-name"] input').should(($input) => {
+            const projectName = $input.val()
+            expect(projectName).not.to.be.equal('project1')
+        })
+
+        cy.get('[data-action="create-project"]').click()
+
+        cy.wait('@createProject')
+        cy.wait('@getProject')
+
+        cy.contains('type1 / stack1')
+    })
 })
 
 describe('FlowForge - Projects - With Billing', () => {

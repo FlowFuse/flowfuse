@@ -49,7 +49,7 @@
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="secondary" @click="showDuplicateProjectDialog()">Copy Project</ff-button>
+                <ff-button kind="secondary" @click="showDuplicateProjectDialog()" data-nav="copy-project">Copy Project</ff-button>
             </div>
         </div>
 
