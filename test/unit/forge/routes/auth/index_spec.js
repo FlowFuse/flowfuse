@@ -3,6 +3,7 @@ const setup = require('../setup')
 
 describe('Accounts API', async function () {
     let app
+    const TestObjects = { tokens: {} }
 
     afterEach(async function () {
         if (app) {
@@ -17,6 +18,17 @@ describe('Accounts API', async function () {
             url: '/account/register',
             payload
         })
+    }
+
+    async function login (username, password) {
+        const response = await app.inject({
+            method: 'POST',
+            url: '/account/login',
+            payload: { username, password, remember: false }
+        })
+        response.cookies.should.have.length(1)
+        response.cookies[0].should.have.property('name', 'sid')
+        TestObjects.tokens[username] = response.cookies[0].value
     }
 
     describe('Register User', async function () {
@@ -158,6 +170,82 @@ describe('Accounts API', async function () {
             response.statusCode.should.equal(200)
 
             // TODO: check user audit logs - expect 'account.xxx-yyy' { status: 'okay', ... }
+        })
+
+        it('auto-creates personal team if option set', async function () {
+            app = await setup()
+            app.settings.set('user:signup', true)
+            app.settings.set('user:team:auto-create', true)
+
+            const response = await registerUser({
+                username: 'user',
+                password: '12345678',
+                name: 'user',
+                email: 'user@example.com'
+            })
+            response.statusCode.should.equal(200)
+
+            // Team is only created once they verify their email.
+            const user = await app.db.models.User.findOne({ where: { username: 'user' } })
+            const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
+            await app.inject({
+                method: 'POST',
+                url: `/account/verify/${verificationToken}`,
+                payload: {},
+                cookies: { sid: TestObjects.tokens.user }
+            })
+            await login('user', '12345678')
+
+            const userTeamsResponse = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user/teams',
+                cookies: { sid: TestObjects.tokens.user }
+            })
+
+            const userTeams = userTeamsResponse.json()
+            userTeams.should.have.property('teams')
+            userTeams.teams.should.have.length(1)
+        })
+
+        it('auto-creates personal team if option set - in trial mode', async function () {
+            const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTA4ODAwLCJleHAiOjc5ODY5ODg3OTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjo1LCJ0ZWFtcyI6NTAsInByb2plY3RzIjo1MCwiZGV2aWNlcyI6NTAsImRldiI6dHJ1ZSwiaWF0IjoxNjYyNTQ4NjAyfQ.vvSw6pm-NP5e0NUL7yMOG-w0AgB8H3NRGGN7b5Dw_iW5DiIBbVQ4HVLEi3dyy9fk7WgKnloiCCkIFJvN79fK_g'
+            const TEST_TRIAL_DURATION = 5
+            const TEST_TRIAL_DURATION_MS = TEST_TRIAL_DURATION * 1000 * 60 * 60 * 24
+            app = await setup({ license, billing: { teamTrialDuration: TEST_TRIAL_DURATION, stripe: {} } })
+            app.settings.set('user:signup', true)
+            app.settings.set('user:team:auto-create', true)
+
+            const response = await registerUser({
+                username: 'user',
+                password: '12345678',
+                name: 'user',
+                email: 'user@example.com'
+            })
+            response.statusCode.should.equal(200)
+
+            // Team is only created once they verify their email.
+            const user = await app.db.models.User.findOne({ where: { username: 'user' } })
+            const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
+            await app.inject({
+                method: 'POST',
+                url: `/account/verify/${verificationToken}`,
+                payload: {},
+                cookies: { sid: TestObjects.tokens.user }
+            })
+            await login('user', '12345678')
+
+            const userTeamsResponse = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user/teams',
+                cookies: { sid: TestObjects.tokens.user }
+            })
+
+            const userTeams = userTeamsResponse.json()
+            userTeams.should.have.property('teams')
+            userTeams.teams.should.have.length(1)
+
+            userTeams.teams[0].should.have.property('trialEndsAt')
+            ;(new Date(userTeams.teams[0].trialEndsAt) - Date.now()).should.be.within(TEST_TRIAL_DURATION_MS - 5000, TEST_TRIAL_DURATION_MS)
         })
     })
 
