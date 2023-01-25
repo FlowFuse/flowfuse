@@ -28,7 +28,7 @@ module.exports = {
             avatar: d.avatar,
             links: d.links
         }
-        if (d.Team.trialEndsAt > Date.now()) {
+        if (d.trialEndsAt > Date.now()) {
             result.trialEndsAt = d.trialEndsAt
         }
         return result
