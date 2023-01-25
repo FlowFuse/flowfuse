@@ -14,7 +14,7 @@
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="secondary" @click="showProjectChangeTypePage()">Change Project Settings</ff-button>
+                <ff-button kind="secondary" @click="showProjectChangeTypePage()" data-nav="change-project-settings">Change Project Settings</ff-button>
             </div>
         </div>
         <div v-if="project.stack && project.stack.replacedBy">

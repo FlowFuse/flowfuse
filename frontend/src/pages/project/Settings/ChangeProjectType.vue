@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full max-w-4xl">
+    <div class="w-full max-w-4xl" data-el="change-project">
         <ff-loading v-if="saving" message="Updating Project..." />
         <ProjectForm v-else :project="projectDetails || project" :team="team" :billingEnabled="!!features.billing" @on-submit="changeProjectType" />
     </div>
@@ -28,7 +28,8 @@ export default {
     emits: ['projectUpdated'],
     data () {
         return {
-            saving: false
+            saving: false,
+            projectDetails: null
         }
     },
     computed: {

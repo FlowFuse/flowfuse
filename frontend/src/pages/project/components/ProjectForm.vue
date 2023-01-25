@@ -25,6 +25,7 @@
                 v-model="input.name"
                 :error="errors.name || submitErrors?.name"
                 :disabled="!creatingNew"
+                data-form="project-name"
             >
                 <template #default>
                     Project Name
@@ -66,6 +67,7 @@
             <ff-tile-selection
                 v-model="input.projectType"
                 class="mt-5"
+                data-form="project-type"
             >
                 <ff-tile-selection-option
                     v-for="(projType, index) in projectTypes"
@@ -96,6 +98,7 @@
             <ff-tile-selection
                 v-if="input.projectType"
                 v-model="input.stack"
+                data-form="project-stack"
             >
                 <ff-tile-selection-option
                     v-for="(stack, index) in stacks"
@@ -123,6 +126,7 @@
             <ff-tile-selection
                 v-if="input.projectType"
                 v-model="input.template"
+                data-form="project-template"
             >
                 <ff-tile-selection-option
                     v-for="(t, index) in templates"
@@ -166,20 +170,16 @@
             </ff-button>
 
             <ff-button
-                v-if="creatingNew"
-                type="submit"
                 :disabled="!submitEnabled"
-                data-action="create-project"
-            >
-                Create Project
-            </ff-button>
-            <ff-button
-                v-else
-                :disabled="!submitEnabled"
-                data-action="change-project-type"
+                :data-action="creatingNew ? 'create-project' : 'update-project'"
                 type="submit"
             >
-                Confirm Changes
+                <template v-if="creatingNew">
+                    Create Project
+                </template>
+                <template v-else>
+                    Confirm Changes
+                </template>
             </ff-button>
         </div>
         <label
