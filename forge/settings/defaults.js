@@ -39,5 +39,9 @@ module.exports = {
     'user:team:auto-create': false,
 
     // Can external users be invited to join teams
-    'team:user:invite:external': false
+    'team:user:invite:external': false,
+
+    'user:team:trial-mode': false,
+    'user:team:trial-mode:duration': 0,
+    'user:team:trial-mode:projectType': null
 }

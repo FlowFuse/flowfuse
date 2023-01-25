@@ -413,11 +413,11 @@ module.exports = fp(async function (app, opts, done) {
                     slug: verifiedUser.username,
                     TeamTypeId: (await app.db.models.TeamType.byName('starter')).id
                 }
-                if (app.license.active() && app.billing && app.config.billing.teamTrialDuration) {
+                if (app.license.active() && app.billing && app.settings.get('user:team:trial-mode')) {
                     // teamTrialDuration: number of days the trial should run for
-                    const teamTrialDuration = parseInt(app.config.billing.teamTrialDuration)
+                    const teamTrialDuration = parseInt(app.settings.get('user:team:trial-mode:duration'))
                     if (teamTrialDuration) {
-                        teamProperties.trialEndsAt = Date.now() + app.config.billing.teamTrialDuration * 86400000
+                        teamProperties.trialEndsAt = Date.now() + teamTrialDuration * 86400000
                     }
                 }
                 const team = await app.db.controllers.Team.createTeamForUser(teamProperties, verifiedUser)
