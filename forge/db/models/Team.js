@@ -12,7 +12,8 @@ module.exports = {
     schema: {
         name: { type: DataTypes.STRING, allowNull: false, validate: { not: /:\/\// } },
         slug: { type: DataTypes.STRING, unique: true, validate: { is: /^[a-z0-9-_]+$/i } },
-        avatar: { type: DataTypes.STRING }
+        avatar: { type: DataTypes.STRING },
+        trialEndsAt: { type: DataTypes.DATE, defaultValue: null, allowNull: true }
     },
     hooks: function (M, app) {
         return {
@@ -144,7 +145,7 @@ module.exports = {
                         },
                         include: {
                             model: M.Team,
-                            attributes: ['hashid', 'links', 'id', 'name', 'avatar', 'slug'],
+                            attributes: ['hashid', 'links', 'id', 'name', 'avatar', 'slug', 'trialEndsAt'],
                             include: { model: M.TeamType, attributes: ['hashid', 'id', 'name'] }
                         },
                         attributes: {
@@ -238,6 +239,12 @@ module.exports = {
                 },
                 deviceCount: async function () {
                     return await M.Device.count({ where: { TeamId: this.id } })
+                },
+                isTrialMode: function () {
+                    return this.trialEndsAt !== null
+                },
+                isTrialEnded: function () {
+                    return this.isTrialMode() && this.trialEndsAt < Date.now()
                 }
             }
         }
