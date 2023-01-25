@@ -2,7 +2,7 @@ module.exports = {
     userTeamList: function (app, teamList) {
         return teamList.map((t) => {
             const d = t.get({ plain: true })
-            return {
+            const filtered = {
                 id: d.Team.hashid,
                 name: d.Team.name,
                 type: app.db.views.TeamType.teamTypeSummary(d.Team.TeamType),
@@ -13,6 +13,10 @@ module.exports = {
                 memberCount: d.memberCount,
                 links: d.Team.links
             }
+            if (d.Team.trialEndsAt > Date.now()) {
+                filtered.trialEndsAt = d.Team.trialEndsAt
+            }
+            return filtered
         })
     },
     teamSummary: function (app, team) {
@@ -23,6 +27,9 @@ module.exports = {
             slug: d.slug,
             avatar: d.avatar,
             links: d.links
+        }
+        if (d.Team.trialEndsAt > Date.now()) {
+            result.trialEndsAt = d.trialEndsAt
         }
         return result
     },
@@ -40,6 +47,9 @@ module.exports = {
                 createdAt: result.createdAt,
                 updatedAt: result.updatedAt,
                 links: result.links
+            }
+            if (result.trialEndsAt > Date.now()) {
+                filtered.trialEndsAt = result.trialEndsAt
             }
             return filtered
         } else {
