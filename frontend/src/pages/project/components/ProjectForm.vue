@@ -250,7 +250,7 @@ export default {
             projectTypes: [],
             input: {
                 billingConfirmation: false,
-                name: project?.name || NameGenerator(),
+                name: this.existingProject?.name || NameGenerator(),
                 projectType: project?.projectType?.id || '',
                 stack: project?.stack?.id || '',
                 template: project?.template?.id || ''
