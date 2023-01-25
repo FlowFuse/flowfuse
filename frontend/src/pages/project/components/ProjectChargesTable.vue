@@ -1,6 +1,6 @@
 <template>
     <div
-        v-if="pricingDetails?.cost > 0 || subscription?.customer?.balance > 0"
+        v-if="projectType && (pricingDetails?.cost > 0 || subscription?.customer?.balance > 0)"
         class="pb-4 mb-4 border-b border-gray-300"
         data-el="charges-table"
     >

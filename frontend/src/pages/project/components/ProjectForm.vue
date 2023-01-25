@@ -147,7 +147,7 @@
         </template>
 
         <!-- Billing details -->
-        <div v-if="billingEnabled && input.projectType">
+        <div v-if="billingEnabled">
             <ProjectChargesTable
                 v-model:confirmed="input.billingConfirmation"
                 :team="team"
