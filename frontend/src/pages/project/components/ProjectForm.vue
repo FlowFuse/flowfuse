@@ -23,7 +23,7 @@
         <div>
             <FormRow
                 v-model="input.name"
-                :error="errors.name"
+                :error="errors.name || submitErrors?.name"
                 :disabled="!creatingNew"
             >
                 <template #default>
@@ -232,6 +232,10 @@ export default {
             type: Object
         },
         sourceProject: {
+            default: null,
+            type: Object
+        },
+        submitErrors: {
             default: null,
             type: Object
         }

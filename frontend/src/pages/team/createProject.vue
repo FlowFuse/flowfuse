@@ -29,6 +29,7 @@
                 :source-project="sourceProject"
                 :team="team"
                 :billing-enabled="!!features.billing"
+                :submit-errors="errors"
                 @on-submit="createProject"
             />
         </div>
@@ -62,7 +63,10 @@ export default {
         return {
             loading: false,
             sourceProject: null,
-            mounted: false
+            mounted: false,
+            errors: {
+                name: ''
+            },
         }
     },
     computed: {
