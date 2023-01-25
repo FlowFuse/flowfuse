@@ -26,6 +26,7 @@
             />
             <ProjectForm
                 v-else
+                :project="projectDetails"
                 :source-project="sourceProject"
                 :team="team"
                 :billing-enabled="!!features.billing"
@@ -67,6 +68,7 @@ export default {
             errors: {
                 name: ''
             },
+            projectDetails: null
         }
     },
     computed: {
@@ -95,6 +97,7 @@ export default {
                 this.$router.push({ name: 'Project', params: { id: result.id } })
             }).catch(err => {
                 this.loading = false
+                this.projectDetails = projectDetails
                 if (err.response?.status === 409) {
                     this.errors.name = err.response.data.error
                 } else if (err.response?.status === 400) {

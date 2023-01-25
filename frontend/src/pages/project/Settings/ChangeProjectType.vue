@@ -1,7 +1,7 @@
 <template>
     <div class="w-full max-w-4xl">
         <ff-loading v-if="saving" message="Updating Project..." />
-        <ProjectForm v-else :existingProject="project" :team="team" :billingEnabled="!!features.billing" @on-submit="changeProjectType" />
+        <ProjectForm v-else :project="projectDetails || project" :team="team" :billingEnabled="!!features.billing" @on-submit="changeProjectType" />
     </div>
 </template>
 
@@ -42,8 +42,7 @@ export default {
             }
             const changePayload = { ...projectDetails, team: this.team.id, changeProjectType: true }
             this.saving = true
-            projectApi.updateProject(this.project.id, changePayload
-            ).then(() => {
+            projectApi.updateProject(this.project.id, changePayload).then(() => {
                 this.$emit('projectUpdated')
                 Alerts.emit('Project successfully updated.', 'confirmation')
                 this.$router.push({
@@ -52,6 +51,7 @@ export default {
             }).catch(err => {
                 console.warn(err)
                 Alerts.emit('Project update failed.', 'warning')
+                this.projectDetails = { ...projectDetails, id: this.project.id }
             }).finally(() => {
                 this.saving = false
             })

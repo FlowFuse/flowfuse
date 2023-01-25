@@ -227,7 +227,7 @@ export default {
             default: false,
             type: Boolean
         },
-        existingProject: {
+        project: {
             default: null,
             type: Object
         },
@@ -242,7 +242,7 @@ export default {
     },
     emits: ['on-submit'],
     data () {
-        const project = this.existingProject || this.sourceProject
+        const project = this.project || this.sourceProject
 
         return {
             mounted: false,
@@ -254,10 +254,14 @@ export default {
             projectTypes: [],
             input: {
                 billingConfirmation: false,
-                name: this.existingProject?.name || NameGenerator(),
-                projectType: project?.projectType?.id || '',
-                stack: project?.stack?.id || '',
-                template: project?.template?.id || ''
+
+                // Only read name from existing project, never source
+                name: this.project?.name || NameGenerator(),
+
+                // Handle both full project objects and short-form project details
+                projectType: project?.projectType?.id || project?.projectType || '',
+                stack: project?.stack?.id || project?.stack || '',
+                template: project?.template?.id || project?.template || ''
             },
             errors: {
                 name: '',
@@ -276,19 +280,19 @@ export default {
     },
     computed: {
         creatingNew () {
-            return !this.existingProject
+            return !this.project?.id
         },
         isCopyProject () {
             return !!this.sourceProject && this.creatingNew
         },
         projectTypeChanged () {
-            return this.existingProject?.projectType?.id !== this.input.projectType
+            return this.project?.projectType?.id !== this.input.projectType
         },
         projectStackChanged () {
-            return ((this.existingProject?.stack?.id || this.stacks?.[0]?.id) !== this.input.stack)
+            return ((this.project?.stack?.id || this.stacks?.[0]?.id) !== this.input.stack)
         },
         formDirty () {
-            return this.projectTypeChanged || this.projectStackChanged
+            return this.creatingNew || this.projectTypeChanged || this.projectStackChanged
         },
         formValid () {
             return this.input.name && !this.errors.name &&
