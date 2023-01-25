@@ -34,6 +34,9 @@
                 <!-- Project Type -->
                 <div v-else class="flex flex-wrap items-stretch">
                     <label class="w-full block text-sm font-medium text-gray-700">Choose your Project Type</label>
+                    <div v-if="subscription?.customer?.balance" class="text-sm text-blue-600 italic" data-el="credit-balance-banner">
+                        You have a credit balance of {{ formatCurrency(Math.abs(subscription.customer.balance)) }} that will be applied to this project
+                    </div>
                     <ff-tile-selection v-model="input.projectType" class="mt-5">
                         <ff-tile-selection-option
                             v-for="(projType, index) in projectTypes" :key="index"
@@ -78,9 +81,6 @@
                 <div v-if="features.billing && input.projectType">
                     <div v-if="selectedProjectType?.cost > 0 || subscription?.customer?.balance > 0" class="pb-4 mb-4 border-b border-gray-300" data-el="charges-table">
                         <h1 class="text-lg font-medium mb-2 border-b border-gray-700">Charges</h1>
-                        <div v-if="subscription?.customer?.balance" class="text-sm text-blue-600 italic" data-el="credit-balance-banner">
-                            You have a credit balance of {{ formatCurrency(Math.abs(subscription.customer.balance)) }} that will be applied to this project
-                        </div>
                         <div class="grid grid gap-x-1 gap-y-4 text-sm text-sm mt-4 ml-4" style="grid-template-columns: 1fr 75px auto">
                             <template v-if="selectedProjectType?.cost">
                                 <div data-el="selected-project-type-name">1 x {{ selectedProjectType.name }}</div>
