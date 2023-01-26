@@ -4,10 +4,13 @@
     "description": "An open source low-code development platform",
     "scripts": {
         "start": "node forge/app.js",
+        "repl": "node forge/app.js --repl",
         "build": "webpack -c ./config/webpack.config.js",
         "serve": "npm-run-all --parallel build-watch start-watch",
+        "serve-repl": "npm-run-all --parallel build-watch start-watch-repl",
         "serve:test-env": "node ./test/e2e/frontend/test_environment.js",
         "start-watch": "cross-env NODE_ENV=development nodemon -w forge -w ee/forge -i forge/containers/localfs_root forge/app.js",
+        "start-watch-repl": "cross-env NODE_ENV=development nodemon -w forge -w ee/forge -i forge/containers/localfs_root forge/app.js --repl",
         "build-watch": "webpack --mode=development -c ./config/webpack.config.js --watch",
         "lint": "eslint -c .eslintrc \"forge/**/*.js\" \"frontend/**/*.js\" \"frontend/**/*.vue\" \"test/**/*.js\" --ignore-pattern \"frontend/dist/**\"",
         "lint:fix": "eslint -c .eslintrc \"forge/**/*.js\" \"frontend/**/*.js\" \"frontend/**/*.vue\" \"test/**/*.js\" --ignore-pattern \"frontend/dist/**\" --fix",

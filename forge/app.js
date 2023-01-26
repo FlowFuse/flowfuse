@@ -19,6 +19,11 @@ const forge = require('./forge')
         process.exit(1)
     }
 
+    // Check for repl arg. We could use parseArgs from node:util if on >=16.17.0,
+    // but risk someone is on older 16.x without it. So for now, just look for
+    // this one flag
+    const enableRepl = process.argv.includes('--repl')
+
     try {
         const server = await forge()
 
@@ -60,6 +65,11 @@ const forge = require('./forge')
                 server.log.info('* FlowForge is now running and can be accessed at: *')
                 server.log.info(`*   ${server.config.base_url.padEnd(47, ' ')}*`)
                 server.log.info('****************************************************')
+            }
+            if (enableRepl) {
+                const repl = require('repl')
+                const replServer = repl.start('FF => ')
+                replServer.context.app = server
             }
         })
     } catch (err) {
