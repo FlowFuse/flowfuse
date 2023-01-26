@@ -119,6 +119,11 @@ module.exports.init = async function (app) {
             return session
         },
         addProject: async (team, project) => {
+            if (await project.getSetting(KEY_BILLING_STATE) === BILLING_STATES.BILLED) {
+                app.log.info(`Project ${project.id} is already marked billed, skipping adding it to Subscription for team ${team.hashid}`)
+                return
+            }
+
             let projectProduct = app.config.billing.stripe.project_product
             let projectPrice = app.config.billing.stripe.project_price
             const projectType = await project.getProjectType()
@@ -187,6 +192,11 @@ module.exports.init = async function (app) {
             }
         },
         removeProject: async (team, project) => {
+            if (await project.getSetting(KEY_BILLING_STATE) === BILLING_STATES.NOT_BILLED) {
+                app.log.info(`Project ${project.id} is already marked non-billed, skipping removing from Subscription for team ${team.hashid}`)
+                return
+            }
+
             let projectProduct = app.config.billing.stripe.project_product
             const projectType = await project.getProjectType()
             if (projectType) {
