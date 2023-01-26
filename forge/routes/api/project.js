@@ -149,6 +149,18 @@ module.exports = async function (app) {
 
         const team = teamMembership.get('Team')
 
+        if (app.license.active() && app.billing) {
+            const subscription = await app.db.models.Subscription.byTeamId(team.id)
+            if (subscription && subscription.isActive()) {
+                // TODO: this create can continue. Will need additional check to
+                // see if this needs to be billed or not
+            } else {
+                // No billing setup.
+                reply.code(402).send({ code: 'billing_required', error: 'Team billing not configured' })
+                return
+            }
+        }
+
         let sourceProject
         if (request.body.sourceProject && request.body.sourceProject.id) {
             sourceProject = await app.db.models.Project.byId(request.body.sourceProject.id)
