@@ -21,6 +21,31 @@ class SubscriptionHandler {
 
         return subscription
     }
+
+    async addProject (project) {
+        await this.requireActiveSubscription(project.Team)
+
+        try {
+            await this._app.billing.addProject(project.Team, project)
+        } catch (err) {
+            this._app.log.error(`Problem adding project to subscription: ${err}`)
+            throw new Error('Problem adding project to subscription')
+        }
+    }
+
+    async removeProject (project) {
+        const subscription = await this.requireSubscription(project.Team)
+        if (!subscription.isCanceled()) {
+            try {
+                await this._app.billing.removeProject(project.Team, project)
+            } catch (err) {
+                this._app.log.error(`Problem removing project from subscription: ${err}`)
+                throw new Error('Problem with removing project from subscription')
+            }
+        } else {
+            this._app.log.warn(`Skipped removing project '${project.id}' from subscription for canceled subscription '${subscription.subscription}'`)
+        }
+    }
 }
 
 module.exports = {
@@ -54,13 +79,7 @@ module.exports = {
      */
     start: async (project) => {
         if (this._isBillingEnabled()) {
-            await this._subscriptionHandler.requireActiveSubscription(project.Team)
-            try {
-                await this._app.billing.addProject(project.Team, project)
-            } catch (err) {
-                this._app.log.error(`Problem adding project to subscription: ${err}`)
-                throw new Error('Problem adding project to subscription')
-            }
+            await this._subscriptionHandler.addProject(project)
         }
 
         const result = {}
@@ -81,13 +100,7 @@ module.exports = {
 
                 // If billing is enabled, remove the project from the subscription
                 if (this._isBillingEnabled()) {
-                    await this._subscriptionHandler.requireSubscription(project.Team)
-                    try {
-                        await this._app.billing.removeProject(project.Team, project)
-                    } catch (err) {
-                        this._app.log.error(`Problem removing project from subscription: ${err}`)
-                        throw new Error('Problem removing project from subscription')
-                    }
+                    await this._subscriptionHandler.removeProject(project)
                 }
             })
             result.started = startPromise
@@ -127,17 +140,7 @@ module.exports = {
         }
 
         if (this._isBillingEnabled()) {
-            const subscription = await this._subscriptionHandler.requireSubscription(project.Team)
-            if (!subscription.isCanceled()) {
-                try {
-                    await this._app.billing.removeProject(project.Team, project)
-                } catch (err) {
-                    this._app.log.error(`Problem removing project from subscription: ${err}`)
-                    throw new Error('Problem with removing project from subscription')
-                }
-            } else {
-                this._app.log.warn(`Skipped removing project '${project.id}' from subscription for canceled subscription '${subscription.subscription}'`)
-            }
+            await this._subscriptionHandler.removeProject(project)
         }
     },
 
@@ -160,17 +163,7 @@ module.exports = {
         if (project.state !== 'suspended') {
             // Only updated billing if the project isn't already suspended
             if (this._isBillingEnabled()) {
-                const subscription = await this._subscriptionHandler.requireSubscription(project.Team)
-                if (!subscription.isCanceled()) {
-                    try {
-                        await this._app.billing.removeProject(project.Team, project)
-                    } catch (err) {
-                        this._app.log.error(`Problem removing project from subscription: ${err}`)
-                        throw new Error('Problem with removing project from subscription')
-                    }
-                } else {
-                    this._app.log.warn(`Skipped removing project '${project.id}' from subscription for canceled subscription '${subscription.subscription}'`)
-                }
+                await this._subscriptionHandler.removeProject(project)
             }
         }
         if (this._driver.remove) {
