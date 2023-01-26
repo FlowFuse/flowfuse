@@ -33,17 +33,23 @@ class SubscriptionHandler {
         }
     }
 
-    async removeProject (project) {
+    async removeProject (project, { skipBilling = false }) {
         const subscription = await this.requireSubscription(project.Team)
-        if (!subscription.isCanceled()) {
-            try {
-                await this._app.billing.removeProject(project.Team, project)
-            } catch (err) {
-                this._app.log.error(`Problem removing project from subscription: ${err}`)
-                throw new Error('Problem with removing project from subscription')
-            }
-        } else {
+        if (subscription.isCanceled()) {
             this._app.log.warn(`Skipped removing project '${project.id}' from subscription for canceled subscription '${subscription.subscription}'`)
+            return
+        }
+
+        if (skipBilling) {
+            this._app.log.info(`Skipped removing project '${project.id}' from subscription - skip billing flag set'`)
+            return
+        }
+
+        try {
+            await this._app.billing.removeProject(project.Team, project)
+        } catch (err) {
+            this._app.log.error(`Problem removing project from subscription: ${err}`)
+            throw new Error('Problem with removing project from subscription')
         }
     }
 }
@@ -125,10 +131,11 @@ module.exports = {
      *   it is removed from the subscription
      *
      * @param {*} project The project to stop
+     * @param {Object} options Config options when stopping
      * @returns {Promise} Resolves when the project has been stopped
      */
 
-    stop: async (project) => {
+    stop: async (project, options = {}) => {
         if (project.state === 'suspended') {
             // Already in the right state, nothing to do
             return
@@ -140,7 +147,7 @@ module.exports = {
         }
 
         if (this._isBillingEnabled()) {
-            await this._subscriptionHandler.removeProject(project)
+            await this._subscriptionHandler.removeProject(project, options)
         }
     },
 
