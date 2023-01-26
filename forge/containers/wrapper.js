@@ -87,7 +87,7 @@ module.exports = {
                 // If billing is enabled, remove the project from the subscription
                 if (this._isBillingEnabled()) {
                     const billingState = await project.getSetting(this.KEY_BILLING_STATE)
-                    if (billingState === this.BILLING_STATES.BILLED) {
+                    if (billingState === this.BILLING_STATES.BILLED || billingState === this.BILLING_STATES.UNDEFINED) {
                         await this._subscriptionHandler.requireSubscription(project.Team)
                         try {
                             await this._app.billing.removeProject(project.Team, project)
@@ -135,16 +135,19 @@ module.exports = {
         }
 
         if (this._isBillingEnabled()) {
-            const subscription = await this._subscriptionHandler.requireSubscription(project.Team)
-            if (!subscription.isCanceled()) {
-                try {
-                    await this._app.billing.removeProject(project.Team, project)
-                } catch (err) {
-                    this._app.log.error(`Problem removing project from subscription: ${err}`)
-                    throw new Error('Problem with removing project from subscription')
+            const billingState = await project.getSetting(this.KEY_BILLING_STATE)
+            if (billingState === this.BILLING_STATES.BILLED || billingState === this.BILLING_STATES.UNDEFINED) {
+                const subscription = await this._subscriptionHandler.requireSubscription(project.Team)
+                if (!subscription.isCanceled()) {
+                    try {
+                        await this._app.billing.removeProject(project.Team, project)
+                    } catch (err) {
+                        this._app.log.error(`Problem removing project from subscription: ${err}`)
+                        throw new Error('Problem with removing project from subscription')
+                    }
+                } else {
+                    this._app.log.warn(`Skipped removing project '${project.id}' from subscription for canceled subscription '${subscription.subscription}'`)
                 }
-            } else {
-                this._app.log.warn(`Skipped removing project '${project.id}' from subscription for canceled subscription '${subscription.subscription}'`)
             }
         }
     },
@@ -168,16 +171,19 @@ module.exports = {
         if (project.state !== 'suspended') {
             // Only updated billing if the project isn't already suspended
             if (this._isBillingEnabled()) {
-                const subscription = await this._subscriptionHandler.requireSubscription(project.Team)
-                if (!subscription.isCanceled()) {
-                    try {
-                        await this._app.billing.removeProject(project.Team, project)
-                    } catch (err) {
-                        this._app.log.error(`Problem removing project from subscription: ${err}`)
-                        throw new Error('Problem with removing project from subscription')
+                const billingState = await project.getSetting(this.KEY_BILLING_STATE)
+                if (billingState === this.BILLING_STATES.BILLED || billingState === this.BILLING_STATES.UNDEFINED) {
+                    const subscription = await this._subscriptionHandler.requireSubscription(project.Team)
+                    if (!subscription.isCanceled()) {
+                        try {
+                            await this._app.billing.removeProject(project.Team, project)
+                        } catch (err) {
+                            this._app.log.error(`Problem removing project from subscription: ${err}`)
+                            throw new Error('Problem with removing project from subscription')
+                        }
+                    } else {
+                        this._app.log.warn(`Skipped removing project '${project.id}' from subscription for canceled subscription '${subscription.subscription}'`)
                     }
-                } else {
-                    this._app.log.warn(`Skipped removing project '${project.id}' from subscription for canceled subscription '${subscription.subscription}'`)
                 }
             }
         }
