@@ -1,4 +1,3 @@
-
 class SubscriptionHandler {
     constructor (app) {
         this._app = app
@@ -59,6 +58,7 @@ module.exports = {
             try {
                 await this._app.billing.addProject(project.Team, project)
             } catch (err) {
+                this._app.log.error(`Problem adding project to subscription: ${err}`)
                 throw new Error('Problem adding project to subscription')
             }
         }
@@ -85,6 +85,7 @@ module.exports = {
                     try {
                         await this._app.billing.removeProject(project.Team, project)
                     } catch (err) {
+                        this._app.log.error(`Problem removing project from subscription: ${err}`)
                         throw new Error('Problem removing project from subscription')
                     }
                 }
@@ -131,6 +132,7 @@ module.exports = {
                 try {
                     await this._app.billing.removeProject(project.Team, project)
                 } catch (err) {
+                    this._app.log.error(`Problem removing project from subscription: ${err}`)
                     throw new Error('Problem with removing project from subscription')
                 }
             } else {
@@ -163,6 +165,7 @@ module.exports = {
                     try {
                         await this._app.billing.removeProject(project.Team, project)
                     } catch (err) {
+                        this._app.log.error(`Problem removing project from subscription: ${err}`)
                         throw new Error('Problem with removing project from subscription')
                     }
                 } else {
