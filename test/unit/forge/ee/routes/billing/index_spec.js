@@ -12,7 +12,6 @@ describe('Billing routes', function () {
     const TestObjects = {}
 
     async function getLog () {
-        // console.log('getLog1')
         const logs = await app.db.models.AuditLog.forEntity()
         return (await app.db.views.AuditLog.auditLog({ log: logs.log })).log[0]
     }
@@ -812,6 +811,81 @@ describe('Billing routes', function () {
                     cookies: { sid: TestObjects.tokens.alice }
                 })
                 response2.statusCode.should.equal(402)
+            })
+
+            it('Cannot create a project if trial-mode has expired', async function () {
+                app.settings.set('user:team:trial-mode', true)
+                app.settings.set('user:team:trial-mode:duration', 5)
+                app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
+
+                // Create trial team - with trialEndsAt in the past
+                const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id, trialEndsAt: Date.now() - 86400000 })
+                await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+
+                // Try to create project using the permitted projectType for trials - projectType1
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/projects',
+                    payload: {
+                        name: 'billing-project',
+                        team: trialTeam.hashid,
+                        projectType: TestObjects.projectType1.hashid,
+                        template: TestObjects.template1.hashid,
+                        stack: TestObjects.stack1.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(402)
+            })
+
+            it('Cannot restart suspended project if trial-mode has expired', async function () {
+                app.settings.set('user:team:trial-mode', true)
+                app.settings.set('user:team:trial-mode:duration', 5)
+                app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
+
+                // Create trial team
+                const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id, trialEndsAt: Date.now() + 86400000 })
+                await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+
+                // Create project
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/projects',
+                    payload: {
+                        name: 'billing-project',
+                        team: trialTeam.hashid,
+                        projectType: TestObjects.projectType1.hashid,
+                        template: TestObjects.template1.hashid,
+                        stack: TestObjects.stack1.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                const project = response.json()
+
+                // Suspend it
+                const suspendResponse = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/projects/${project.id}/actions/suspend`,
+                    payload: {},
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                suspendResponse.statusCode.should.equal(200)
+                const createdProject = await app.db.models.Project.byId(project.id)
+                createdProject.state.should.equal('suspended')
+
+                // Update team trial expiry
+                trialTeam.trialEndsAt = new Date(Date.now() - 1000)
+                await trialTeam.save()
+
+                // Attempt to restart the project
+                const unsuspendResponse = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/projects/${project.id}/actions/start`,
+                    payload: {},
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                unsuspendResponse.statusCode.should.equal(402)
             })
         })
     })

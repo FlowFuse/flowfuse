@@ -324,6 +324,7 @@ module.exports.init = async function (app) {
          * Check to see if the team is allowed to create a project of the given type
          * @param {*} team
          * @param {*} projectType
+         * @returns boolean - whether the project can be created
          */
         isProjectCreateAllowed: async (team, projectType) => {
             const subscription = await app.db.models.Subscription.byTeamId(team.id)
@@ -347,6 +348,26 @@ module.exports.init = async function (app) {
                 }
                 return false
             }
+        },
+        /**
+         * Checks to see if the team is allowed to unsuspend a project.
+         * @param {*} team
+         * @param {*} project
+         * @returns boolean - whether the project can be unsuspended
+         */
+        isProjectStartAllowed: async (team, project) => {
+            const subscription = await app.db.models.Subscription.byTeamId(team.id)
+            if (subscription && subscription.isActive()) {
+                return true
+            } else {
+                if (app.settings.get('user:team:trial-mode') && team.isTrialMode()) {
+                    if (team.isTrialEnded()) {
+                        // Cannot resume if trial mode has ended
+                        return false
+                    }
+                }
+            }
+            return true
         },
         /**
          * Sets the billing_state setting on the project if it is a trial mode project
