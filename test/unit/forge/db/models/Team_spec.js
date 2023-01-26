@@ -11,6 +11,35 @@ describe('Team model', function () {
             app = null
         }
     })
+
+    it('projectCount reports correct counts', async function () {
+        app = await setup({})
+        const ATeam = await app.db.models.Team.findOne({ where: { name: 'ATeam' } })
+        const pt1 = await app.db.models.ProjectType.create({ name: 'pt1', properties: {}, active: true })
+        const pt2 = await app.db.models.ProjectType.create({ name: 'pt2', properties: {}, active: true })
+
+        const p1 = await app.db.models.Project.create({ name: 'testProject1', type: '', url: '' })
+        await p1.setProjectType(pt1)
+        await p1.setTeam(ATeam)
+
+        const p2 = await app.db.models.Project.create({ name: 'testProject2', type: '', url: '' })
+        await p2.setProjectType(pt1)
+        await p2.setTeam(ATeam)
+
+        const p3 = await app.db.models.Project.create({ name: 'testProject3', type: '', url: '' })
+        await p3.setProjectType(pt2)
+        await p3.setTeam(ATeam)
+
+        const allCount = await ATeam.projectCount()
+        allCount.should.equal(3)
+
+        const pt1Count = await ATeam.projectCount(pt1.hashid)
+        pt1Count.should.equal(2)
+
+        const pt2Count = await ATeam.projectCount(pt2.hashid)
+        pt2Count.should.equal(1)
+    })
+
     describe('Team Trials', function () {
         it('reports team trial status correctly', async function () {
             app = await setup({})

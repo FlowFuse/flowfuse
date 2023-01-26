@@ -231,8 +231,15 @@ module.exports = {
                     // All Team owners
                     return this.memberCount(Roles.Owner)
                 },
-                projectCount: async function () {
-                    return await M.Project.count({ where: { TeamId: this.id } })
+                projectCount: async function (type) {
+                    const where = { TeamId: this.id }
+                    if (type) {
+                        if (typeof type === 'string') {
+                            type = M.ProjectType.decodeHashid(type)
+                        }
+                        where.ProjectTypeId = type
+                    }
+                    return await M.Project.count({ where })
                 },
                 pendingInviteCount: async function () {
                     return await M.Invitation.count({ where: { teamId: this.id } })
