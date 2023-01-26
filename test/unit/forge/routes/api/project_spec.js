@@ -407,29 +407,6 @@ describe('Project API', function () {
             runtimeSettings.settings.header.should.have.property('title', 'New-Project')
         })
 
-        describe('Billing', function () {
-            it('Fails to create project if billing is not setup', async function () {
-                const response = await app.inject({
-                    method: 'POST',
-                    url: '/api/v1/projects',
-                    payload: {
-                        name: 'billing-project',
-                        team: TestObjects.ATeam.hashid,
-                        projectType: TestObjects.projectType1.hashid,
-                        template: TestObjects.template1.hashid,
-                        stack: TestObjects.stack1.hashid
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                response.statusCode.should.equal(402)
-                const result = response.json()
-                result.should.have.property('code', 'billing_required')
-            }).setup = {
-                license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo0LCJwcm9qZWN0cyI6NTAsImRldmljZXMiOjUwLCJkZXYiOnRydWUsImlhdCI6MTY2MjYzMTU4N30.J6ceWv3SdFC-J_dt05geeQZHosD1D102u54tVLeu_4EwRO5OYGiqMxFW3mx5pygod3xNT68e2Wq8A7wNVCt3Rg',
-                billing: { stripe: {} }
-            }
-        })
-
         describe('Copy project', function () {
             it('Create a project cloned from existing one - include everything', async function () {
                 // Setup some flows/credentials

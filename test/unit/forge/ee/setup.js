@@ -18,14 +18,24 @@ module.exports = async function (config = {}) {
     await forge.db.models.PlatformSettings.upsert({ key: 'setup:initialised', value: true })
     const userAlice = await forge.db.models.User.create({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
 
-    const defaultTeamType = await forge.db.models.TeamType.findOne()
+    forge.defaultTeamType = await forge.db.models.TeamType.findOne()
 
-    const team1 = await forge.db.models.Team.create({ name: 'ATeam', TeamTypeId: defaultTeamType.id })
+    const team1 = await forge.db.models.Team.create({ name: 'ATeam', TeamTypeId: forge.defaultTeamType.id })
     await team1.addUser(userAlice, { through: { role: Roles.Owner } })
 
     await team1.reload({
         include: [{ model: forge.db.models.TeamType }]
     })
+
+    const projectType = {
+        name: 'projectType1',
+        description: 'default project type',
+        active: true,
+        properties: { foo: 'bar' },
+        order: 1
+    }
+    forge.projectType = await forge.db.models.ProjectType.create(projectType)
+
     const templateProperties = {
         name: 'template1',
         active: true,
@@ -43,6 +53,7 @@ module.exports = async function (config = {}) {
         properties: { nodered: '2.2.2' }
     }
     const stack = await forge.db.models.ProjectStack.create(stackProperties)
+    await stack.setProjectType(forge.projectType)
 
     const subscription = 'sub_1234567890'
     const customer = 'cus_1234567890'
@@ -51,6 +62,7 @@ module.exports = async function (config = {}) {
     forge.user = userAlice
     forge.team = team1
     forge.stack = stack
+    forge.template = template
 
     return forge
 }

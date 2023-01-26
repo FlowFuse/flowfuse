@@ -318,6 +318,54 @@ module.exports.init = async function (app) {
             })
             subscription.status = app.db.models.Subscription.STATUS.CANCELED
             await subscription.save()
+        },
+
+        /**
+         * Check to see if the team is allowed to create a project of the given type
+         * @param {*} team
+         * @param {*} projectType
+         */
+        isProjectCreateAllowed: async (team, projectType) => {
+            const subscription = await app.db.models.Subscription.byTeamId(team.id)
+            if (subscription && subscription.isActive()) {
+                return true
+            } else {
+                // No subscription, but this could be a trial team
+                if (app.settings.get('user:team:trial-mode') && team.isTrialMode()) {
+                    if (team.isTrialEnded()) {
+                        // Nothing can be created if the trial has ended
+                        return false
+                    }
+                    if (projectType.hashid !== app.settings.get('user:team:trial-mode:projectType')) {
+                        // Not the nominated trial project type
+                        return false
+                    }
+                    const existingProjectCount = await team.projectCount(projectType.id)
+                    if (existingProjectCount === 0) {
+                        return true
+                    }
+                }
+                return false
+            }
+        },
+        /**
+         * Sets the billing_state setting on the project if it is a trial mode project
+         * This ensures it doesn't get added to billing when created
+         * @param {*} team
+         * @param {*} project
+         */
+        initialiseProjectBillingState: async (team, project) => {
+            // Check if the team is in trial mode
+            if (app.settings.get('user:team:trial-mode') && team.isTrialMode() && !team.isTrialEnded()) {
+                // Check the project is eligable for trial mode
+                if (project.ProjectType.hashid === app.settings.get('user:team:trial-mode:projectType')) {
+                    // Check this is the only project of this type in the team
+                    const existingProjectCount = await team.projectCount(project.ProjectTypeId)
+                    if (existingProjectCount === 1) {
+                        await project.updateSetting(KEY_BILLING_STATE, BILLING_STATES.TRIAL)
+                    }
+                }
+            }
         }
     }
 }

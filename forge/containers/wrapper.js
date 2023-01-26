@@ -36,6 +36,8 @@ module.exports = {
         this._isBillingEnabled = () => {
             return app.license.active() && app.billing
         }
+        this.KEY_BILLING_STATE = require('../db/models/ProjectSettings').KEY_BILLING_STATE
+        this.BILLING_STATES = this._app.db.models.ProjectSettings.BILLING_STATES
     },
     /**
      * Start a container.
@@ -54,12 +56,15 @@ module.exports = {
      */
     start: async (project) => {
         if (this._isBillingEnabled()) {
-            await this._subscriptionHandler.requireActiveSubscription(project.Team)
-            try {
-                await this._app.billing.addProject(project.Team, project)
-            } catch (err) {
-                this._app.log.error(`Problem adding project to subscription: ${err}`)
-                throw new Error('Problem adding project to subscription')
+            const billingState = await project.getSetting(this.KEY_BILLING_STATE)
+            if (billingState !== this.BILLING_STATES.TRIAL) {
+                await this._subscriptionHandler.requireActiveSubscription(project.Team)
+                try {
+                    await this._app.billing.addProject(project.Team, project)
+                } catch (err) {
+                    this._app.log.error(`Problem adding project to subscription: ${err}`)
+                    throw new Error('Problem adding project to subscription')
+                }
             }
         }
 
@@ -81,12 +86,15 @@ module.exports = {
 
                 // If billing is enabled, remove the project from the subscription
                 if (this._isBillingEnabled()) {
-                    await this._subscriptionHandler.requireSubscription(project.Team)
-                    try {
-                        await this._app.billing.removeProject(project.Team, project)
-                    } catch (err) {
-                        this._app.log.error(`Problem removing project from subscription: ${err}`)
-                        throw new Error('Problem removing project from subscription')
+                    const billingState = await project.getSetting(this.KEY_BILLING_STATE)
+                    if (billingState === this.BILLING_STATES.BILLED) {
+                        await this._subscriptionHandler.requireSubscription(project.Team)
+                        try {
+                            await this._app.billing.removeProject(project.Team, project)
+                        } catch (err) {
+                            this._app.log.error(`Problem removing project from subscription: ${err}`)
+                            throw new Error('Problem removing project from subscription')
+                        }
                     }
                 }
             })

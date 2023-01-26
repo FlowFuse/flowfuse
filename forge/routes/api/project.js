@@ -149,13 +149,14 @@ module.exports = async function (app) {
 
         const team = teamMembership.get('Team')
 
+        const projectType = await app.db.models.ProjectType.byId(request.body.projectType)
+        if (!projectType) {
+            reply.code(400).send({ code: 'invalid_project_type', error: 'Invalid project type' })
+            return
+        }
+
         if (app.license.active() && app.billing) {
-            const subscription = await app.db.models.Subscription.byTeamId(team.id)
-            if (subscription && subscription.isActive()) {
-                // TODO: this create can continue. Will need additional check to
-                // see if this needs to be billed or not
-            } else {
-                // No billing setup.
+            if (!await app.billing.isProjectCreateAllowed(team, projectType)) {
                 reply.code(402).send({ code: 'billing_required', error: 'Team billing not configured' })
                 return
             }
@@ -171,12 +172,6 @@ module.exports = async function (app) {
                 reply.code(403).send({ code: 'invalid_source_project', error: 'Source Project Not in Same Team' })
                 return
             }
-        }
-
-        const projectType = await app.db.models.ProjectType.byId(request.body.projectType)
-        if (!projectType) {
-            reply.code(400).send({ code: 'invalid_project_type', error: 'Invalid project type' })
-            return
         }
 
         const stack = await app.db.models.ProjectStack.byId(request.body.stack)
@@ -234,6 +229,10 @@ module.exports = async function (app) {
                 { model: app.db.models.ProjectTemplate }
             ]
         })
+
+        if (app.license.active() && app.billing) {
+            await app.billing.initialiseProjectBillingState(team, project)
+        }
 
         if (sourceProject) {
             // need to copy values over
