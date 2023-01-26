@@ -1,3 +1,9 @@
+#### 1.3.1: Release
+
+ - Move the credit banner into the project type section (backport #1613) (#1614) @github-actions
+ - First pass at Digital Ocean Droplet doc (backport #1604) (#1608) @github-actions
+ - Identify User at registration, rather than on return to app (backport #1600) (#1601) @github-actions
+
 #### 1.3.0: Release
 
  - docs: Add missing dot
