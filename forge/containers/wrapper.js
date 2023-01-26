@@ -1,3 +1,5 @@
+const { KEY_BILLING_STATE } = require('../../../db/models/ProjectSettings')
+
 class SubscriptionHandler {
     constructor (app) {
         this._app = app
@@ -33,6 +35,13 @@ class SubscriptionHandler {
         }
     }
 
+    /**
+     * Removes a project from the project teams billing subscription
+     * If the `skipBilling` option is set, the change is not sent to Stripe, leaving the project in billed state
+     * this can be used to stop & restart the project without triggering Stripe events
+     * @param {*} project
+     * @param {*} options
+     */
     async removeProject (project, { skipBilling = false }) {
         const subscription = await this.requireSubscription(project.Team)
         if (subscription.isCanceled()) {
@@ -41,6 +50,12 @@ class SubscriptionHandler {
         }
 
         if (skipBilling) {
+            const BILLING_STATES = this._app.db.models.ProjectSettings.BILLING_STATES
+            if (await project.getSetting(KEY_BILLING_STATE) === BILLING_STATES.UNKNOWN) {
+                this._app.log.info('Billing state of project is unknown, but remove attempt that skips billing made, assuming it is currently billed')
+                await project.updateSetting(KEY_BILLING_STATE, BILLING_STATES.BILLED)
+            }
+
             this._app.log.info(`Skipped removing project '${project.id}' from subscription - skip billing flag set'`)
             return
         }
