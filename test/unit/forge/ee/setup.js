@@ -31,7 +31,10 @@ module.exports = async function (config = {}) {
         name: 'projectType1',
         description: 'default project type',
         active: true,
-        properties: { foo: 'bar' },
+        properties: {
+            billingProductId: 'product_123',
+            billingPriceId: 'price_123'
+        },
         order: 1
     }
     forge.projectType = await forge.db.models.ProjectType.create(projectType)

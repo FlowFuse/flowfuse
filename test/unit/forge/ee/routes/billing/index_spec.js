@@ -3,6 +3,7 @@ const sinon = require('sinon')
 const setup = require('../../setup')
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
+const { KEY_BILLING_STATE } = FF_UTIL.require('forge/db/models/ProjectSettings')
 
 describe('Billing routes', function () {
     const sandbox = sinon.createSandbox()
@@ -38,16 +39,58 @@ describe('Billing routes', function () {
 
     beforeEach(async function () {
         // TODO: we don't currently verify what gets passed to stripe is correct
+        const stripeData = {}
+        const stripeItems = {}
+        let stripeItemCounter = 0
+
+        // This is a very crude mock of the strip subscription api that behaves
+        // how we expect it to.
         setupStripe({
+            _: {
+                data: stripeData,
+                items: stripeItems
+            },
             customers: {
                 createBalanceTransaction: sinon.stub().resolves({ status: 'ok' })
             },
             subscriptions: {
-                retrieve: sinon.stub().resolves({ items: { data: [] } }),
-                update: sinon.stub().resolves(true)
+                retrieve: sinon.stub().callsFake(async function (subId) {
+                    if (!stripeData[subId]) {
+                        stripeData[subId] = { metadata: {}, items: { data: [] } }
+                    }
+                    return stripeData[subId]
+                }),
+                update: sinon.stub().callsFake(async function (subId, update) {
+                    if (!stripeData[subId]) {
+                        throw new Error('unknown subscription')
+                    }
+                    if (update.metadata) {
+                        stripeData[subId].metadata = update.metadata
+                    }
+                    // This is the initial add of an item
+                    if (update.items) {
+                        update.items.forEach(item => {
+                            item.id = `item-${stripeItemCounter++}`
+                            item.plan = {
+                                product: item.price.replace('price', 'product')
+                            }
+                            stripeItems[item.id] = item
+                        })
+                        stripeData[subId].items = {
+                            data: update.items
+                        }
+                    }
+                })
             },
             subscriptionItems: {
-                update: sinon.stub().resolves(true)
+                update: sinon.stub().callsFake(async function (itemId, update) {
+                    if (!stripeItems[itemId]) {
+                        throw new Error('unknown item')
+                    }
+                    for (const [key, value] of Object.entries(update)) {
+                        stripeItems[itemId][key] = value
+                    }
+                })
             }
         })
 
@@ -684,7 +727,110 @@ describe('Billing routes', function () {
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
+            const projectDetails = response.json()
+            // Check the billing state is set to billed
+            const project = await app.db.models.Project.byId(projectDetails.id)
+            const billingState = await project.getSetting(KEY_BILLING_STATE)
+            billingState.should.equal(app.db.models.ProjectSettings.BILLING_STATES.BILLED)
+            // Check we updated stripe
+            stripe.subscriptions.update.called.should.be.true()
+
+            should.exist(stripe._.data.sub_1234567890)
+            stripe._.data.sub_1234567890.metadata.should.have.property(project.id, 'true')
+            stripe._.data.sub_1234567890.items.data.should.have.length(1)
+            const item = stripe._.data.sub_1234567890.items.data[0]
+            item.should.have.property('price', 'price_123')
+            item.should.have.property('quantity', 1)
+            item.plan.should.have.property('product', 'product_123')
         })
+
+        it('Suspend/resume project with billing setup', async function () {
+            // TestObjects.ATeam already has a subscription created via ../../setup
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/projects',
+                payload: {
+                    name: 'test-project',
+                    team: TestObjects.ATeam.hashid,
+                    projectType: TestObjects.projectType1.hashid,
+                    template: TestObjects.template1.hashid,
+                    stack: TestObjects.stack1.hashid
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const projectDetails = response.json()
+            // Check the billing state is set to billed
+            const project = await app.db.models.Project.byId(projectDetails.id)
+            ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.BILLED)
+            // Check we updated stripe
+            stripe.subscriptions.update.callCount.should.equal(1)
+            stripe.subscriptionItems.update.callCount.should.equal(0)
+            stripe._.data.sub_1234567890.metadata.should.have.property(project.id, 'true')
+            stripe._.data.sub_1234567890.items.data.should.have.length(1)
+            stripe._.data.sub_1234567890.items.data[0].should.have.property('price', 'price_123')
+            stripe._.data.sub_1234567890.items.data[0].should.have.property('quantity', 1)
+            stripe._.data.sub_1234567890.items.data[0].plan.should.have.property('product', 'product_123')
+
+            // Suspend it
+            const suspendResponse = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${projectDetails.id}/actions/suspend`,
+                payload: {},
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            suspendResponse.statusCode.should.equal(200)
+            await project.reload()
+            project.state.should.equal('suspended')
+            // Check the billing state is set to trial
+            ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.NOT_BILLED)
+            // Check we updated stripe
+            stripe.subscriptions.update.callCount.should.equal(2)
+            stripe.subscriptionItems.update.callCount.should.equal(1)
+            stripe._.data.sub_1234567890.metadata.should.have.property(project.id, '')
+            stripe._.data.sub_1234567890.items.data.should.have.length(1)
+            stripe._.data.sub_1234567890.items.data[0].should.have.property('price', 'price_123')
+            stripe._.data.sub_1234567890.items.data[0].should.have.property('quantity', 0)
+            stripe._.data.sub_1234567890.items.data[0].plan.should.have.property('product', 'product_123')
+
+            // Resume it
+            const startResponse = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${projectDetails.id}/actions/start`,
+                payload: {},
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            startResponse.statusCode.should.equal(200)
+            await project.reload()
+            project.state.should.equal('running')
+            // Check the billing state is set to trial
+            ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.BILLED)
+            // Check we updated stripe
+            stripe.subscriptions.update.callCount.should.equal(3)
+            stripe.subscriptionItems.update.callCount.should.equal(2)
+            stripe._.data.sub_1234567890.metadata.should.have.property(project.id, 'true')
+            stripe._.data.sub_1234567890.items.data.should.have.length(1)
+            stripe._.data.sub_1234567890.items.data[0].should.have.property('price', 'price_123')
+            stripe._.data.sub_1234567890.items.data[0].should.have.property('quantity', 1)
+            stripe._.data.sub_1234567890.items.data[0].plan.should.have.property('product', 'product_123')
+
+            // Wait for the stub driver to start the project to avoid
+            // an async call to the audit log completing after the test
+            // has finished
+            app.db.controllers.Project.getInflightState(project).should.equal('starting')
+            const { START_DELAY } = FF_UTIL.require('forge/containers/stub')
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    try {
+                        should.not.exist(app.db.controllers.Project.getInflightState(project))
+                        resolve()
+                    } catch (err) {
+                        reject(err)
+                    }
+                }, START_DELAY + 50)
+            })
+        })
+
         describe('Trial Mode', function () {
             it('Fails to create project for trial-mode team if project-type not allowed', async function () {
                 app.settings.set('user:team:trial-mode', true)
@@ -772,6 +918,15 @@ describe('Billing routes', function () {
                     cookies: { sid: TestObjects.tokens.alice }
                 })
                 response.statusCode.should.equal(200)
+                const projectDetails = response.json()
+
+                // Check the billing state is set to trial
+                const project = await app.db.models.Project.byId(projectDetails.id)
+                const billingState = await project.getSetting(KEY_BILLING_STATE)
+                billingState.should.equal(app.db.models.ProjectSettings.BILLING_STATES.TRIAL)
+
+                // Check we didn't try to update stripe
+                stripe.subscriptions.update.called.should.be.false()
             })
 
             it('Cannot create more than one trial project for trial-mode team', async function () {
@@ -811,6 +966,84 @@ describe('Billing routes', function () {
                     cookies: { sid: TestObjects.tokens.alice }
                 })
                 response2.statusCode.should.equal(402)
+            })
+
+            it('Can suspend/resume a trial project without touching billing', async function () {
+                app.settings.set('user:team:trial-mode', true)
+                app.settings.set('user:team:trial-mode:duration', 5)
+                app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
+
+                // Create trial team
+                const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id, trialEndsAt: Date.now() + 86400000 })
+                await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+
+                // Create project using the permitted projectType for trials - projectType1
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/projects',
+                    payload: {
+                        name: 'billing-project',
+                        team: trialTeam.hashid,
+                        projectType: TestObjects.projectType1.hashid,
+                        template: TestObjects.template1.hashid,
+                        stack: TestObjects.stack1.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                const projectDetails = response.json()
+
+                // Suspend it
+                const suspendResponse = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/projects/${projectDetails.id}/actions/suspend`,
+                    payload: {},
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                suspendResponse.statusCode.should.equal(200)
+                const createdProject = await app.db.models.Project.byId(projectDetails.id)
+                createdProject.state.should.equal('suspended')
+
+                // Check the billing state is set to trial
+                const project = await app.db.models.Project.byId(projectDetails.id)
+                const billingState = await project.getSetting(KEY_BILLING_STATE)
+                billingState.should.equal(app.db.models.ProjectSettings.BILLING_STATES.TRIAL)
+
+                // Check we didn't try to update stripe
+                stripe.subscriptions.update.called.should.be.false()
+
+                // Resume it
+                const startResponse = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/projects/${projectDetails.id}/actions/start`,
+                    payload: {},
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                startResponse.statusCode.should.equal(200)
+                await createdProject.reload()
+                createdProject.state.should.equal('running')
+
+                const billingState2 = await project.getSetting(KEY_BILLING_STATE)
+                billingState2.should.equal(app.db.models.ProjectSettings.BILLING_STATES.TRIAL)
+
+                // Check we didn't try to update stripe
+                stripe.subscriptions.update.called.should.be.false()
+
+                // Wait for the stub driver to start the project to avoid
+                // an async call to the audit log completing after the test
+                // has finished
+                app.db.controllers.Project.getInflightState(createdProject).should.equal('starting')
+                const { START_DELAY } = FF_UTIL.require('forge/containers/stub')
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        try {
+                            should.not.exist(app.db.controllers.Project.getInflightState(createdProject))
+                            resolve()
+                        } catch (err) {
+                            reject(err)
+                        }
+                    }, START_DELAY + 50)
+                })
             })
 
             it('Cannot create a project if trial-mode has expired', async function () {
