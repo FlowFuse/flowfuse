@@ -422,6 +422,18 @@ module.exports = fp(async function (app, opts, done) {
                 }
                 const team = await app.db.controllers.Team.createTeamForUser(teamProperties, verifiedUser)
                 await app.auditLog.User.account.verify.autoCreateTeam(request.session?.User || verifiedUser, null, team)
+                if (teamProperties.trialEndsAt) {
+                    await app.postoffice.send(
+                        verifiedUser,
+                        'TrialTeamCreated',
+                        {
+                            username: verifiedUser.name,
+                            teamName: teamProperties.name,
+                            trialDuration: parseInt(app.settings.get('user:team:trial-mode:duration')),
+                            trialProjectTypeName: (await app.db.models.ProjectType.byId(app.settings.get('user:team:trial-mode:projectType')))?.name
+                        }
+                    )
+                }
             }
 
             const pendingInvitations = await app.db.models.Invitation.forExternalEmail(verifiedUser.email)

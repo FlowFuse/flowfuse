@@ -14,6 +14,8 @@ module.exports.init = async function (app) {
         run: require('./trialTask').init(app)
     })
 
+    app.postoffice.registerTemplate('TrialTeamCreated', require('./emailTemplates/TrialTeamCreated'))
+
     /**
      * Get the Stripe product/price ids for the given team.
      *
