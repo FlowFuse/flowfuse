@@ -29,6 +29,7 @@
 
 <script>
 import FormRow from '@/components/FormRow'
+
 /**
  * flows
  * credentials
@@ -38,13 +39,13 @@ import FormRow from '@/components/FormRow'
  * envVarsKo
  */
 export default {
-    name: 'ExportProjectComponets',
+    name: 'ExportProjectComponents',
     props: ['modelValue', 'showSecret', 'showTemplate', 'showSettings'],
     data () {
         return {
             envVarOpts: {
                 envVars: true,
-                envVarsKo: false
+                envVarsKo: ''
             }
         }
     },
