@@ -1,7 +1,7 @@
 <template>
     <div class="w-full max-w-4xl" data-el="change-project">
         <ff-loading v-if="saving" message="Updating Project..." />
-        <ProjectForm v-else :project="projectDetails || project" :team="team" :billingEnabled="!!features.billing" @on-submit="changeProjectType" />
+        <ProjectForm v-else :project="projectDetails || project" :team="team" :billingEnabled="!!features.billing" @on-submit="changeProjectDefinition" />
     </div>
 </template>
 
@@ -36,12 +36,12 @@ export default {
         ...mapState('account', ['team', 'features'])
     },
     methods: {
-        changeProjectType (projectDetails) {
+        changeProjectDefinition (projectDetails) {
             if (typeof projectDetails.projectType !== 'string' || projectDetails.projectType === '') {
                 Alerts.emit('No project is selected. Try refreshing your browser and try again', 'warning', 3500)
                 return
             }
-            const changePayload = { ...projectDetails, team: this.team.id, changeProjectType: true }
+            const changePayload = { ...projectDetails, team: this.team.id, changeProjectDefinition: true }
             this.saving = true
             projectApi.updateProject(this.project.id, changePayload).then(() => {
                 this.$emit('projectUpdated')

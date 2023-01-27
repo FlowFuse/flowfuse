@@ -360,17 +360,14 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        let changed = false
-        if (request.body.changeProjectType === true) {
+        // Updating a projects definition
+        if (request.body.changeProjectDefinition === true) {
             if (!request.body.projectType) {
                 reply.code(400).send({ code: 'invalid_request', error: 'Invalid project type' })
             }
             if (!request.body.stack) {
                 reply.code(400).send({ code: 'invalid_request', error: 'Invalid stack' })
             }
-            // if (!request.body.template) {
-            //     reply.code(400).send({ code: 'invalid_request', error: 'Invalid template' })
-            // }
             const newProjectType = await app.db.models.ProjectType.byId(request.body.projectType)
             if (!newProjectType) {
                 reply.code(400).send({ code: 'invalid_project_type', error: 'Invalid project type' })
@@ -408,7 +405,9 @@ module.exports = async function (app) {
                 await app.auditLog.Project.project.stack.changed(request.session.User, null, request.project, stack)
             }
             await unSuspendProject(resumeProject, targetState)
-            reply.send({}) // Send response before doing the heavy lifting
+            reply.send({})
+
+        // Changing only the stack - used for stack upgrades
         } else if (request.body.stack) {
             if (request.body.stack !== request.project.ProjectStack?.id) {
                 const stack = await app.db.models.ProjectStack.byId(request.body.stack)
@@ -431,6 +430,8 @@ module.exports = async function (app) {
                 await app.auditLog.Project.project.stack.changed(request.session.User, null, request.project, stack)
                 await unSuspendProject(resumeProject, targetState)
             }
+
+        // Setting the project type for the first time (legacy)
         } else if (request.body.projectType) {
             if (request.project.ProjectType) {
                 reply.code(400).send({ code: 'invalid_request', error: 'Cannot change project type' })
@@ -450,6 +451,8 @@ module.exports = async function (app) {
             await request.project.setProjectType(newProjectType)
 
             reply.code(200).send({})
+
+        // Export this one project over another
         } else if (request.body.sourceProject) {
             const sourceProject = await app.db.models.Project.byId(request.body.sourceProject.id)
             const options = request.body.sourceProject.options
@@ -559,11 +562,15 @@ module.exports = async function (app) {
             }
 
             await unSuspendProject(resumeProject, targetState)
+
+        // Updating a project settings
         } else {
             const reqName = request.body.name?.trim()
             const reqSafeName = reqName?.toLowerCase()
             const projectName = request.project.name?.trim()
             const updates = new app.auditLog.formatters.UpdatesCollection()
+
+            let changed = false
             if (reqName && projectName !== reqName) {
                 if (bannedNameList.includes(reqSafeName)) {
                     reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name not allowed' })
