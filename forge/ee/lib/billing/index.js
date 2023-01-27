@@ -2,6 +2,9 @@ module.exports.init = async function (app) {
     // Set the billing feature flag
     app.config.features.register('billing', true, true)
 
+    const { KEY_BILLING_STATE } = require('../../../db/models/ProjectSettings')
+    const BILLING_STATES = app.db.models.ProjectSettings.BILLING_STATES
+
     const stripe = require('stripe')(app.config.billing.stripe.key)
 
     /**
@@ -42,6 +45,10 @@ module.exports.init = async function (app) {
             result.product = app.config.billing.stripe.teams[team.TeamType.name].product || result.product
         }
         return result
+    }
+
+    async function setProjectBillingState (project, state) {
+        return await project.updateSetting(KEY_BILLING_STATE, state)
     }
 
     return {
@@ -149,11 +156,13 @@ module.exports.init = async function (app) {
                 }
                 // TODO update meta data?
                 try {
+                    await setProjectBillingState(project, BILLING_STATES.BILLED)
                     await stripe.subscriptionItems.update(projectItem.id, update)
                     await stripe.subscriptions.update(subscription.subscription, {
                         metadata
                     })
                 } catch (error) {
+                    await setProjectBillingState(project, BILLING_STATES.NOT_BILLED)
                     app.log.warn(`Problem adding project to subscription\n${error.message}`)
                 }
             } else {
@@ -168,8 +177,10 @@ module.exports.init = async function (app) {
                     metadata
                 }
                 try {
+                    await setProjectBillingState(project, BILLING_STATES.BILLED)
                     await stripe.subscriptions.update(subscription.subscription, update)
                 } catch (error) {
+                    await setProjectBillingState(project, BILLING_STATES.NOT_BILLED)
                     app.log.warn(`Problem adding first project to subscription\n${error.message}`)
                     throw error
                 }
@@ -210,11 +221,13 @@ module.exports.init = async function (app) {
                 }
 
                 try {
+                    await setProjectBillingState(project, BILLING_STATES.NOT_BILLED)
                     await stripe.subscriptionItems.update(projectItem.id, update)
                     await stripe.subscriptions.update(subscription.subscription, {
                         metadata
                     })
                 } catch (err) {
+                    await setProjectBillingState(project, BILLING_STATES.BILLED)
                     app.log.warn(`failed removing project from subscription\n${err.message}`)
                     throw err
                 }

@@ -37,7 +37,9 @@ const iconMap = {
     nodered: [
         'crashed',
         'stopped',
-        'settings.update'
+        'settings.update',
+        'flows.set',
+        'library.set'
     ],
     project: [
         'project.created',

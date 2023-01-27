@@ -4,13 +4,27 @@ This version of the FlowForge platform is intended for running in the Docker Con
 
 ## Prerequisites
 
+### Platform
+
+The following instructions assume you are running Docker on a Linux or MacOS host system.
+
+#### Digital Ocean
+
+If you are using the Digital Ocean Docker Droplet to host FlowForge you will need to ensure that port 80 & 443 are opened in the UFW firewall before starting.
+
+```bash
+sudo ufw apply http
+sudo ufw apply https
+```
+
+We have a 1-Click Digital Ocean Droplet that will install and configure FlowForge for you. Details can be found [here](./digital-ocean.md)
+
 ### Docker Compose
 
 FlowForge uses Docker Compose to install and manage the required components. Instructions on how to install Docker Compose on your system can be found here:
 
 [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/)
 
-The following instructions assume you are running Docker on a Linux or MacOS host system.
 
 ### DNS
 

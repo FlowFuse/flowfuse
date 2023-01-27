@@ -7,7 +7,7 @@
                 <ChevronLeftIcon v-if="!disabled" class="ff-icon" />
             </div>
         </button>
-        <div ref="content" class="ff-accordion--content" :style="{'max-height': contentHeight}">
+        <div ref="content" class="ff-accordion--content">
             <slot name="content"></slot>
         </div>
     </div>

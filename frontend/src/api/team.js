@@ -96,9 +96,9 @@ const removeTeamMember = (teamId, userId) => {
     return client.delete(`/api/v1/teams/${teamId}/members/${userId}`)
 }
 
-const getTeamAuditLog = async (teamId, cursor, limit) => {
+const getTeamAuditLog = async (teamId, params, cursor, limit) => {
     const url = paginateUrl(`/api/v1/teams/${teamId}/audit-log`, cursor, limit)
-    return client.get(url).then(res => res.data)
+    return client.get(url, { params }).then(res => res.data)
 }
 const getTeamUserMembership = (teamId) => {
     return client.get(`/api/v1/teams/${teamId}/user`).then(res => res.data)
@@ -115,6 +115,12 @@ const getTeamDevices = async (teamId, cursor, limit) => {
     res.data.devices.forEach(device => {
         device.lastSeenSince = device.lastSeenAt ? daysSince(device.lastSeenAt) : ''
     })
+    return res.data
+}
+
+const getTeamLibrary = async (teamId, parentDir, cursor, limit) => {
+    const url = paginateUrl(`/storage/library/${teamId}/${parentDir || ''}`, cursor, limit)
+    const res = await client.get(url)
     return res.data
 }
 
@@ -137,5 +143,6 @@ export default {
     removeTeamInvitation,
     getTeamAuditLog,
     getTeamUserMembership,
-    getTeamDevices
+    getTeamDevices,
+    getTeamLibrary
 }

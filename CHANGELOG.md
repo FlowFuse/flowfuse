@@ -1,3 +1,57 @@
+#### 1.3.0: Release
+
+ - docs: Add missing dot
+ - Add configurable banner on Create Account page (rework) (#1591) @knolleary
+ - Fix front end tests (#1592) @knolleary
+ - Small update to Stack docs (#1590) @hardillb
+ - docs: Add 1.3 update notes (#1588) @knolleary
+ - Add email to the Person object for PostHog <> Hubspot mapping (#1587) @joepavitt
+ - Audit Filtering UI (#1584) @joepavitt
+ - chore: Fix formatting of backport PRs (#1585) @knolleary
+ - Add instructions to open HTTP/S ports on Digitial Ocean (#1498) @hardillb
+ - Team Library UI (#1576) @joepavitt
+ - Remove deprecated plausible docs (#1577) @knolleary
+ - Add audit log entries to app.log (#1563) @Steve-Mcl
+ - Add Security section to Template/Project and httpNodeAuth_type (#1522) @knolleary
+ - Update @flowforge/forge-ui-components to 0.5.1 (#1574) @knolleary
+ - Improve Shared Library api for platform access (#1572) @knolleary
+ - Allow AuditLog paginated api to also filter on event and username (#1569) @knolleary
+ - Show custom message when sso-enabled user signs up (#1547) @knolleary
+ - Log credit applied in audit log (#1560) @Steve-Mcl
+ - Add snapshot name and description to download (#1567) @hardillb
+ - Tests: Limit Postgres to 3GB memory (#1565) @hardillb
+ - Change text on Stripe checkout (#1558) @Pezmc
+ - Improve polling on project overview (#1559) @Steve-Mcl
+ - Guard against incomplete support/telemetry config (#1564) @knolleary
+ - Free Trials: Billing Page Banner Polish (#1557) @Pezmc
+ - Free Trials: Charges section on create project page (#1555) @Pezmc
+ - Doc Link Tests (#1553) @joepavitt
+ - Fix merge conflict resolution issue (#1554) @Pezmc
+ - Allow sso-user to edit non-email settings (#1546) @knolleary
+ - Allow download of snapshot package.json (#1506) @hardillb
+ - Free Trials in the Form of Stripe Credit (#1544) @Pezmc
+ - Improve stuck intermediate status of project when starting (#1539) @Steve-Mcl
+ - Docs: Fix 404 Links (#1545) @joepavitt
+ - "Remote Deployments" Terminology (#1531) @joepavitt
+ - Docs Update: Concepts to include "Deployments" (#1536) @joepavitt
+ - Add storage api routes for shared team library (#1529) @knolleary
+ - docs: Re-request a verification email (#1534) @ZJvandeWeg
+ - Add HubSpot Support/Chat Widget (#1533) @joepavitt
+ - docs: Simplify billing docs (#1511) @ZJvandeWeg
+ - Start to flesh out the Context Store config (#1487) @hardillb
+ - Fix sso warning (#1515) @hardillb
+ - docs: Add Payload to large details (#1512) @ZJvandeWeg
+ - Stripe Callback Improvements (#1507) @Pezmc
+ - Bump webpack-cli from 4.10.0 to 5.0.1 (#1467) @dependabot
+ - Bump dotenv-webpack from 7.1.1 to 8.0.1 (#1468) @dependabot
+ - Allow SSO login to redirect to originally requested url (#1505) @knolleary
+ - Upgrade of dev dependencies to latest minor version (#1499) @Pezmc
+ - Docs: More explicit explanation of card failure handling (#1500) @Pezmc
+ - Billing: Explicitly log team ID and Stripe customer ID in webhook logs (#1501) @Pezmc
+ - Remove the test step from the release GHA (#1491) @hardillb
+ - docs: Create architecture diagram (#1485) @ZJvandeWeg
+ - Ensure resync-maintenance task runs individual commands (#1486) @knolleary
+
 #### 1.2.0: Release
 
  - Add upgrading docs for file server (#1482) @knolleary

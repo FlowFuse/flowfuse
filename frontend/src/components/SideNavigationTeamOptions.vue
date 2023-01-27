@@ -34,7 +34,7 @@ import { mapState } from 'vuex'
 import permissionsMixin from '@/mixins/Permissions'
 
 import ProjectsIcon from '@/components/icons/Projects'
-import { ChipIcon, UsersIcon, DatabaseIcon, TemplateIcon, CurrencyDollarIcon, CogIcon } from '@heroicons/vue/solid'
+import { ChipIcon, UsersIcon, DatabaseIcon, TemplateIcon, CurrencyDollarIcon, CogIcon, FolderIcon } from '@heroicons/vue/solid'
 import NavItem from '@/components/NavItem'
 
 export default {
@@ -133,6 +133,15 @@ export default {
             }
         },
         checkFeatures () {
+            if (this.features['shared-library']) {
+                // insert billing in second slot of admin
+                this.routes.general.splice(3, 0, {
+                    label: 'Library',
+                    to: '/library',
+                    tag: 'shared-library',
+                    icon: FolderIcon
+                })
+            }
             if (this.features.billing) {
                 // insert billing in second slot of admin
                 this.routes.admin.splice(1, 0, {
