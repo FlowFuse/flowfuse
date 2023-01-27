@@ -64,6 +64,7 @@
             class="flex flex-wrap items-stretch"
         >
             <label class="w-full block text-sm font-medium text-gray-700">Choose your Project Type</label>
+            <ProjectCreditBanner :subscription="subscription" />
             <ff-tile-selection
                 v-model="input.projectType"
                 class="mt-5"
@@ -154,8 +155,8 @@
         <div v-if="billingEnabled">
             <ProjectChargesTable
                 v-model:confirmed="input.billingConfirmation"
-                :team="team"
                 :project-type="selectedProjectType"
+                :subscription="subscription"
             />
         </div>
 
@@ -198,7 +199,9 @@ import { ChevronLeftIcon } from '@heroicons/vue/solid'
 
 import ExportProjectComponents from './ExportProjectComponents'
 import ProjectChargesTable from './ProjectChargesTable'
+import ProjectCreditBanner from './ProjectCreditBanner'
 
+import billingApi from '@/api/billing'
 import projectTypesApi from '@/api/projectTypes'
 import stacksApi from '@/api/stacks'
 import templatesApi from '@/api/templates'
@@ -214,6 +217,7 @@ export default {
         ExportProjectComponents,
         FormRow,
         ProjectChargesTable,
+        ProjectCreditBanner,
         RefreshIcon,
         SectionTopMenu
     },
@@ -252,6 +256,7 @@ export default {
             stacks: [],
             templates: [],
             projectTypes: [],
+            subscription: null,
             input: {
                 billingConfirmation: false,
 
@@ -323,9 +328,11 @@ export default {
     async created () {
         const projectTypesPromise = projectTypesApi.getProjectTypes()
         const templateListPromise = templatesApi.getTemplates()
+        const subscriptionPromise = billingApi.getSubscriptionInfo(this.team.id)
 
         this.projectTypes = (await projectTypesPromise).types
         this.templates = (await templateListPromise).templates.filter(template => template.active)
+        this.subscription = await subscriptionPromise
 
         if (this.projectTypes.length === 0) {
             this.errors.projectType = 'No project types available. Ask an Administrator to create a new project type'

@@ -8,13 +8,6 @@
             Charges
         </h1>
         <div
-            v-if="subscription?.customer?.balance"
-            class="text-sm text-blue-600 italic"
-            data-el="credit-balance-banner"
-        >
-            You have a credit balance of {{ formatCurrency(Math.abs(subscription.customer.balance)) }} that will be applied to this project
-        </div>
-        <div
             class="grid grid gap-x-1 gap-y-4 text-sm text-sm mt-4 ml-4"
             style="grid-template-columns: 1fr 75px auto"
         >
@@ -71,7 +64,6 @@
 
 <script>
 
-import billingApi from '@/api/billing.js'
 import FormRow from '@/components/FormRow'
 
 import formatCurrency from '@/mixins/Currency.js'
@@ -83,9 +75,9 @@ export default {
     },
     mixins: [formatCurrency],
     props: {
-        team: {
+        subscription: {
             type: Object,
-            required: true
+            default: null
         },
         confirmed: {
             type: Boolean,
@@ -99,11 +91,6 @@ export default {
     emits: [
         'update:confirmed'
     ],
-    data () {
-        return {
-            subscription: null
-        }
-    },
     computed: {
         selectedCostAfterCredit () {
             return (this.pricingDetails?.cost ?? 0) + (this.subscription?.customer?.balance ?? 0)
@@ -128,9 +115,6 @@ export default {
                 interval: this.projectType.properties?.billingDescription?.split('/')[1]
             }
         }
-    },
-    async created () {
-        this.subscription = await billingApi.getSubscriptionInfo(this.team.id)
     }
 }
 </script>
