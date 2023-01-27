@@ -17,15 +17,6 @@ describe('Billing routes', function () {
         return (await app.db.views.AuditLog.auditLog({ log: logs.log })).log[0]
     }
 
-    function setupStripe (mock) {
-        require.cache[require.resolve('stripe')] = {
-            exports: function (apiKey) {
-                return mock
-            }
-        }
-        stripe = mock
-    }
-
     async function login (username, password) {
         const response = await app.inject({
             method: 'POST',
@@ -38,61 +29,7 @@ describe('Billing routes', function () {
     }
 
     beforeEach(async function () {
-        // TODO: we don't currently verify what gets passed to stripe is correct
-        const stripeData = {}
-        const stripeItems = {}
-        let stripeItemCounter = 0
-
-        // This is a very crude mock of the strip subscription api that behaves
-        // how we expect it to.
-        setupStripe({
-            _: {
-                data: stripeData,
-                items: stripeItems
-            },
-            customers: {
-                createBalanceTransaction: sinon.stub().resolves({ status: 'ok' })
-            },
-            subscriptions: {
-                retrieve: sinon.stub().callsFake(async function (subId) {
-                    if (!stripeData[subId]) {
-                        stripeData[subId] = { metadata: {}, items: { data: [] } }
-                    }
-                    return stripeData[subId]
-                }),
-                update: sinon.stub().callsFake(async function (subId, update) {
-                    if (!stripeData[subId]) {
-                        throw new Error('unknown subscription')
-                    }
-                    if (update.metadata) {
-                        stripeData[subId].metadata = update.metadata
-                    }
-                    // This is the initial add of an item
-                    if (update.items) {
-                        update.items.forEach(item => {
-                            item.id = `item-${stripeItemCounter++}`
-                            item.plan = {
-                                product: item.price.replace('price', 'product')
-                            }
-                            stripeItems[item.id] = item
-                        })
-                        stripeData[subId].items = {
-                            data: update.items
-                        }
-                    }
-                })
-            },
-            subscriptionItems: {
-                update: sinon.stub().callsFake(async function (itemId, update) {
-                    if (!stripeItems[itemId]) {
-                        throw new Error('unknown item')
-                    }
-                    for (const [key, value] of Object.entries(update)) {
-                        stripeItems[itemId][key] = value
-                    }
-                })
-            }
-        })
+        stripe = setup.setupStripe()
 
         app = await setup()
         TestObjects.tokens = {}
@@ -112,7 +49,7 @@ describe('Billing routes', function () {
 
     afterEach(async function () {
         await app.close()
-        delete require.cache[require.resolve('stripe')]
+        setup.resetStripe()
         sandbox.restore()
     })
 

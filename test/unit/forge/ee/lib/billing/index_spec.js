@@ -7,30 +7,17 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 describe('Billing', function () {
     let app
 
-    function setupStripe (mock) {
-        require.cache[require.resolve('stripe')] = {
-            exports: function (apiKey) {
-                return mock
-            }
-        }
-    }
-
     afterEach(async function () {
         if (app) {
             await app.close()
             app = null
         }
+        setup.resetStripe()
         delete require.cache[require.resolve('stripe')]
     })
     describe('createSubscriptionSession', async function () {
         beforeEach(async function () {
-            setupStripe({
-                checkout: {
-                    sessions: {
-                        create: sub => JSON.parse(JSON.stringify(sub))
-                    }
-                }
-            })
+            setup.setupStripe()
         })
 
         it('creates a session using default product/price', async function () {
@@ -198,7 +185,7 @@ describe('Billing', function () {
         beforeEach(async function () {
             updateId = null
             updateData = null
-            setupStripe({
+            setup.setupStripe({
                 subscriptions: {
                     retrieve: async sub => {
                         return {
@@ -266,7 +253,7 @@ describe('Billing', function () {
             beforeEach(async function () {
                 updateId = null
                 updateData = null
-                setupStripe({
+                setup.setupStripe({
                     subscriptions: {
                         retrieve: async sub => {
                             return { items: { data: [] } }
@@ -332,7 +319,7 @@ describe('Billing', function () {
                 updateId = null
                 updateData = null
                 const itemData = { id: '123', quantity: 27, plan: { product: 'defaultdeviceprod' } }
-                setupStripe({
+                setup.setupStripe({
                     subscriptions: {
                         retrieve: async sub => {
                             return {
