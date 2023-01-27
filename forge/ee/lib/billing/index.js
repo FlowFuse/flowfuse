@@ -7,6 +7,13 @@ module.exports.init = async function (app) {
 
     const stripe = require('stripe')(app.config.billing.stripe.key)
 
+    app.housekeeper.registerTask({
+        name: 'teamTrialManager',
+        startup: false,
+        schedule: '0,30  *  *  *  *',
+        run: require('./trialTask').init(app)
+    })
+
     /**
      * Get the Stripe product/price ids for the given team.
      *
