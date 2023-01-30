@@ -217,6 +217,13 @@ module.exports = {
                 }
             },
             instance: {
+                getOwners: async function () {
+                    const where = {
+                        TeamId: this.id,
+                        role: Roles.Owner
+                    }
+                    return (await M.TeamMember.findAll({ where, include: M.User })).map(tm => tm.User)
+                },
                 memberCount: async function (role) {
                     const where = {
                         TeamId: this.id

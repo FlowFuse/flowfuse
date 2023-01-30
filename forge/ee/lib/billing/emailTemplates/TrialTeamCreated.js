@@ -9,7 +9,7 @@ module.exports = {
     text:
 `Hello {{{username}}}
 
-Welcome to your FlowForge trial. We've created a team called {{{teamName}}} just
+Welcome to your FlowForge trial. We've created a team called '{{{teamName}}}' just
 for you.
 
 Your trial will last for {{{trialDuration}}} days and you'll be able to create
@@ -32,7 +32,7 @@ Your friendly FlowForge Team
     html:
 `<p>Hello {{{username}}}</p>
 
-<p>Welcome to your FlowForge trial. We've created a team called {{{teamName}}} just
+<p>Welcome to your FlowForge trial. We've created a team called '{{{teamName}}}' just
 for you.</p>
 
 <p>Your trial will last for {{{trialDuration}}} days and you'll be able to create

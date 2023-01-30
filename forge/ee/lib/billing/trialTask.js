@@ -3,8 +3,7 @@ const { KEY_BILLING_STATE } = require('../../../db/models/ProjectSettings')
 
 module.exports.init = function (app) {
     async function trialTask (app) {
-        // 1. find teams that have expired since we last ran (trialEndsAt != null && < now)
-
+        // Find teams that have expired since we last ran (trialEndsAt != null && < now)
         const expiredSubscriptions = await app.db.models.Subscription.findAll({
             where: { trialEndsAt: { [Op.lt]: Date.now() } },
             include: [app.db.models.Team]
@@ -14,10 +13,20 @@ module.exports.init = function (app) {
             if (subscription.isActive()) {
                 // The subscription has been setup on Stripe.
                 // Add all trial projects to billing.
-                await addTrialProjectsToBilling(subscription.Team)
+                const trialProjects = await addTrialProjectsToBilling(subscription.Team)
+                let trialProjectName
+                if (trialProjects.length > 0) {
+                    trialProjectName = trialProjects[0].name
+                }
+                await sendTrialEmail(subscription.Team, 'TrialTeamEnded', {
+                    trialProjectName
+                })
             } else {
                 // Stripe not configured - suspend the lot
                 await suspendAllProjects(subscription.Team)
+                await sendTrialEmail(subscription.Team, 'TrialTeamSuspended', {
+                    teamSettingsURL: ''
+                })
             }
 
             // We have dealt with this team
@@ -26,6 +35,21 @@ module.exports.init = function (app) {
         }
 
         // TODO: send emails at appropriate intervals
+    }
+
+    async function sendTrialEmail (team, template, inserts) {
+        const owners = await team.getOwners()
+        for (const user of owners) {
+            await app.postoffice.send(
+                user,
+                template,
+                {
+                    username: user.name,
+                    teamName: team.name,
+                    ...inserts
+                }
+            )
+        }
     }
 
     async function addTrialProjectsToBilling (team) {
@@ -45,6 +69,7 @@ module.exports.init = function (app) {
         for (const project of trialProjects) {
             await app.billing.addProject(team, project.Project)
         }
+        return trialProjects
     }
 
     async function suspendAllProjects (team) {
