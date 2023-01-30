@@ -161,7 +161,7 @@
         </div>
 
         <!-- Submit -->
-        <div class="flex flex-wrap gap-1">
+        <div class="flex flex-wrap gap-1 items-center">
             <ff-button
                 v-if="!creatingNew"
                 class="ff-btn--secondary"
@@ -181,14 +181,16 @@
                 <template v-else>
                     Confirm Changes
                 </template>
+
             </ff-button>
+            <label
+                v-if="!creatingNew && !formDirty"
+                class="text-sm text-gray-400"
+            >
+                No changes have been made
+            </label>
         </div>
-        <label
-            v-if="!creatingNew && !formDirty"
-            class="text-sm text-gray-400"
-        >
-            No changes have been made
-        </label>
+
     </form>
 </template>
 
