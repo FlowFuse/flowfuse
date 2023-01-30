@@ -60,7 +60,8 @@ describe('Billing - Trial Housekeeper Task', function () {
         // TestObjects.ATeam - has billing setup, should not get touched
 
         // Create trial team without billing setup
-        const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id, trialEndsAt: Date.now() + 86400000 })
+        const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id })
+        const trialSub = await app.db.controllers.Subscription.createTrialSubscription(trialTeam, Date.now() + 86400000)
         await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
 
         // Create project using the permitted projectType for trials - projectType1
@@ -83,8 +84,8 @@ describe('Billing - Trial Housekeeper Task', function () {
         ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.TRIAL)
 
         // Expire the trial
-        trialTeam.trialEndsAt = new Date(Date.now() - 1000)
-        await trialTeam.save()
+        trialSub.trialEndsAt = new Date(Date.now() - 1000)
+        await trialSub.save()
 
         // Run the task
         await task(app)
@@ -93,8 +94,8 @@ describe('Billing - Trial Housekeeper Task', function () {
         project.state.should.equal('suspended')
         ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.NOT_BILLED)
 
-        await trialTeam.reload()
-        should.not.exist(trialTeam.trialEndsAt)
+        await trialSub.reload()
+        should.not.exist(trialSub.trialEndsAt)
     })
 
     it('adds trial projects to billing the team trial has ended', async function () {
@@ -105,7 +106,9 @@ describe('Billing - Trial Housekeeper Task', function () {
         // TestObjects.ATeam - has billing setup, should not get touched
 
         // Create trial team without billing setup
-        const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id, trialEndsAt: Date.now() + 86400000 })
+        const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id })
+        const trialSub = await app.db.controllers.Subscription.createTrialSubscription(trialTeam, Date.now() + 86400000)
+
         await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
 
         // Create project using the permitted projectType for trials - projectType1
@@ -133,6 +136,7 @@ describe('Billing - Trial Housekeeper Task', function () {
         const subscription = 'sub_1234567890'
         const customer = 'cus_1234567890'
         await app.db.controllers.Subscription.createSubscription(trialTeam, subscription, customer)
+        await trialSub.reload()
 
         // Create another project - which should get billed normalled
         const response2 = await app.inject({
@@ -155,8 +159,8 @@ describe('Billing - Trial Housekeeper Task', function () {
         stripe._.data.sub_1234567890.items.data[0].should.have.property('quantity', 1)
 
         // Expire the trial
-        trialTeam.trialEndsAt = new Date(Date.now() - 1000)
-        await trialTeam.save()
+        trialSub.trialEndsAt = new Date(Date.now() - 1000)
+        await trialSub.save()
 
         // Run the task
         await task(app)
@@ -168,7 +172,7 @@ describe('Billing - Trial Housekeeper Task', function () {
         stripe._.data.sub_1234567890.metadata.should.have.property(projectDetails2.id, 'true')
         stripe._.data.sub_1234567890.items.data[0].should.have.property('quantity', 2)
 
-        await trialTeam.reload()
-        should.not.exist(trialTeam.trialEndsAt)
+        await trialSub.reload()
+        should.not.exist(trialSub.trialEndsAt)
     })
 })

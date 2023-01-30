@@ -4,18 +4,25 @@ const { KEY_BILLING_STATE } = require('../../../db/models/ProjectSettings')
 module.exports.init = function (app) {
     async function trialTask (app) {
         // 1. find teams that have expired since we last ran (trialEndsAt != null && < now)
-        const expiredTeams = await app.db.models.Team.findAll({ where: { trialEndsAt: { [Op.lt]: Date.now() } } })
 
-        for (const team of expiredTeams) {
-            const subscription = await app.db.models.Subscription.byTeamId(team.id)
-            if (subscription && subscription.isActive()) {
-                await addTrialProjectsToBilling(team)
+        const expiredSubscriptions = await app.db.models.Subscription.findAll({
+            where: { trialEndsAt: { [Op.lt]: Date.now() } },
+            include: [app.db.models.Team]
+        })
+
+        for (const subscription of expiredSubscriptions) {
+            if (subscription.isActive()) {
+                // The subscription has been setup on Stripe.
+                // Add all trial projects to billing.
+                await addTrialProjectsToBilling(subscription.Team)
             } else {
-                await suspendAllProjects(team)
+                // Stripe not configured - suspend the lot
+                await suspendAllProjects(subscription.Team)
             }
 
-            team.trialEndsAt = null
-            await team.save()
+            // We have dealt with this team
+            subscription.trialEndsAt = null
+            await subscription.save()
         }
 
         // TODO: send emails at appropriate intervals

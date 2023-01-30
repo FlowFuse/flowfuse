@@ -13,9 +13,6 @@ module.exports = {
                 memberCount: d.memberCount,
                 links: d.Team.links
             }
-            if (d.Team.trialEndsAt > Date.now()) {
-                filtered.trialEndsAt = d.Team.trialEndsAt
-            }
             return filtered
         })
     },
@@ -27,9 +24,6 @@ module.exports = {
             slug: d.slug,
             avatar: d.avatar,
             links: d.links
-        }
-        if (d.trialEndsAt > Date.now()) {
-            result.trialEndsAt = d.trialEndsAt
         }
         return result
     },
@@ -47,9 +41,6 @@ module.exports = {
                 createdAt: result.createdAt,
                 updatedAt: result.updatedAt,
                 links: result.links
-            }
-            if (result.trialEndsAt > Date.now()) {
-                filtered.trialEndsAt = result.trialEndsAt
             }
             return filtered
         } else {

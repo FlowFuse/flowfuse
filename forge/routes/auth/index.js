@@ -413,26 +413,11 @@ module.exports = fp(async function (app, opts, done) {
                     slug: verifiedUser.username,
                     TeamTypeId: (await app.db.models.TeamType.byName('starter')).id
                 }
-                if (app.license.active() && app.billing && app.settings.get('user:team:trial-mode')) {
-                    // teamTrialDuration: number of days the trial should run for
-                    const teamTrialDuration = parseInt(app.settings.get('user:team:trial-mode:duration'))
-                    if (teamTrialDuration) {
-                        teamProperties.trialEndsAt = Date.now() + teamTrialDuration * 86400000
-                    }
-                }
                 const team = await app.db.controllers.Team.createTeamForUser(teamProperties, verifiedUser)
                 await app.auditLog.User.account.verify.autoCreateTeam(request.session?.User || verifiedUser, null, team)
-                if (teamProperties.trialEndsAt) {
-                    await app.postoffice.send(
-                        verifiedUser,
-                        'TrialTeamCreated',
-                        {
-                            username: verifiedUser.name,
-                            teamName: teamProperties.name,
-                            trialDuration: parseInt(app.settings.get('user:team:trial-mode:duration')),
-                            trialProjectTypeName: (await app.db.models.ProjectType.byId(app.settings.get('user:team:trial-mode:projectType')))?.name
-                        }
-                    )
+
+                if (app.license.active() && app.billing && app.settings.get('user:team:trial-mode')) {
+                    await app.billing.setupTrialTeamSubscription(team, verifiedUser)
                 }
             }
 

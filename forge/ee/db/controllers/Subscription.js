@@ -20,11 +20,12 @@ module.exports = {
             return newSubscription
         }
     },
-    createTrialSubscription: async function (app, team) {
+    createTrialSubscription: async function (app, team, trialEndsAt) {
         const newSubscription = await app.db.models.Subscription.create({
             customer: '',
             subscription: '',
-            status: app.db.models.Subscription.STATUS.TRIAL_INIT
+            status: app.db.models.Subscription.STATUS.TRIAL_INIT,
+            trialEndsAt
         })
         await newSubscription.setTeam(team)
         return newSubscription

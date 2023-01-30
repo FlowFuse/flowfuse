@@ -775,7 +775,8 @@ describe('Billing routes', function () {
                 app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
 
                 // Create trial team
-                const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id, trialEndsAt: Date.now() + 86400000 })
+                const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id })
+                await app.db.controllers.Subscription.createTrialSubscription(trialTeam, Date.now() + 86400000)
                 await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
 
                 // Create a forbidden second projectType
@@ -812,7 +813,9 @@ describe('Billing routes', function () {
                 app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
 
                 // Create trial team - trialEndsAt in the past
-                const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id, trialEndsAt: Date.now() - 86400000 })
+                const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id })
+                await app.db.controllers.Subscription.createTrialSubscription(trialTeam, Date.now() - 86400000)
+
                 await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
 
                 const response = await app.inject({
@@ -838,7 +841,9 @@ describe('Billing routes', function () {
                 app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
 
                 // Create trial team
-                const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id, trialEndsAt: Date.now() + 86400000 })
+                const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id })
+                await app.db.controllers.Subscription.createTrialSubscription(trialTeam, Date.now() + 86400000)
+
                 await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
 
                 // Create project using the permitted projectType for trials - projectType1
@@ -872,7 +877,8 @@ describe('Billing routes', function () {
                 app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
 
                 // Create trial team
-                const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id, trialEndsAt: Date.now() + 86400000 })
+                const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id })
+                await app.db.controllers.Subscription.createTrialSubscription(trialTeam, Date.now() + 86400000)
                 await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
 
                 // Create project using the permitted projectType for trials - projectType1
@@ -911,7 +917,8 @@ describe('Billing routes', function () {
                 app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
 
                 // Create trial team
-                const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id, trialEndsAt: Date.now() + 86400000 })
+                const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id })
+                await app.db.controllers.Subscription.createTrialSubscription(trialTeam, Date.now() + 86400000)
                 await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
 
                 // Create project using the permitted projectType for trials - projectType1
@@ -989,7 +996,8 @@ describe('Billing routes', function () {
                 app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
 
                 // Create trial team - with trialEndsAt in the past
-                const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id, trialEndsAt: Date.now() - 86400000 })
+                const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id })
+                await app.db.controllers.Subscription.createTrialSubscription(trialTeam, Date.now() - 86400000)
                 await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
 
                 // Try to create project using the permitted projectType for trials - projectType1
@@ -1014,7 +1022,8 @@ describe('Billing routes', function () {
                 app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
 
                 // Create trial team
-                const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id, trialEndsAt: Date.now() + 86400000 })
+                const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id })
+                const trialSub = await app.db.controllers.Subscription.createTrialSubscription(trialTeam, Date.now() + 86400000)
                 await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
 
                 // Create project
@@ -1044,9 +1053,9 @@ describe('Billing routes', function () {
                 const createdProject = await app.db.models.Project.byId(project.id)
                 createdProject.state.should.equal('suspended')
 
-                // Update team trial expiry
-                trialTeam.trialEndsAt = new Date(Date.now() - 1000)
-                await trialTeam.save()
+                // Update team subscription trial expiry
+                trialSub.trialEndsAt = new Date(Date.now() - 1000)
+                await trialSub.save()
 
                 // Attempt to restart the project
                 const unsuspendResponse = await app.inject({

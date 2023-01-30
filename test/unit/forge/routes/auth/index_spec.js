@@ -210,7 +210,7 @@ describe('Accounts API', async function () {
         it('auto-creates personal team if option set - in trial mode', async function () {
             const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTA4ODAwLCJleHAiOjc5ODY5ODg3OTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjo1LCJ0ZWFtcyI6NTAsInByb2plY3RzIjo1MCwiZGV2aWNlcyI6NTAsImRldiI6dHJ1ZSwiaWF0IjoxNjYyNTQ4NjAyfQ.vvSw6pm-NP5e0NUL7yMOG-w0AgB8H3NRGGN7b5Dw_iW5DiIBbVQ4HVLEi3dyy9fk7WgKnloiCCkIFJvN79fK_g'
             const TEST_TRIAL_DURATION = 5
-            const TEST_TRIAL_DURATION_MS = TEST_TRIAL_DURATION * 1000 * 60 * 60 * 24
+            // const TEST_TRIAL_DURATION_MS = TEST_TRIAL_DURATION * 1000 * 60 * 60 * 24
             app = await setup({ license, billing: { stripe: {} } })
             app.settings.set('user:signup', true)
             app.settings.set('user:team:auto-create', true)
@@ -246,8 +246,12 @@ describe('Accounts API', async function () {
             userTeams.should.have.property('teams')
             userTeams.teams.should.have.length(1)
 
-            userTeams.teams[0].should.have.property('trialEndsAt')
-            ;(new Date(userTeams.teams[0].trialEndsAt) - Date.now()).should.be.within(TEST_TRIAL_DURATION_MS - 5000, TEST_TRIAL_DURATION_MS)
+            const userTeam = await app.db.models.Team.byId(userTeams.teams[0].id)
+            const subscription = await app.db.models.Subscription.byTeamId(userTeam.id)
+            should.exist(subscription)
+            subscription.isActive().should.be.false()
+            subscription.isTrial().should.be.true()
+            subscription.isTrialEnded().should.be.false()
         })
     })
 

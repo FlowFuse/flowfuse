@@ -274,7 +274,7 @@ module.exports = {
                         include: [
                             {
                                 model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'trialEndsAt']
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links']
                             },
                             {
                                 model: M.ProjectType,
@@ -308,7 +308,7 @@ module.exports = {
                             {
                                 model: M.Team,
                                 where: { id: teamId },
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'trialEndsAt']
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links']
                             },
                             {
                                 model: M.ProjectType,

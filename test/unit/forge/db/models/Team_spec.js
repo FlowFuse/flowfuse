@@ -40,34 +40,6 @@ describe('Team model', function () {
         pt2Count.should.equal(1)
     })
 
-    describe('Team Trials', function () {
-        it('reports team trial status correctly', async function () {
-            app = await setup({})
-
-            const ATeam = await app.db.models.Team.findOne({ where: { name: 'ATeam' } })
-            ATeam.isTrialMode().should.be.false()
-            ATeam.isTrialEnded().should.be.false()
-
-            const defaultTeamType = await app.db.models.TeamType.findOne()
-            const TrialTeam = await app.db.models.Team.create({
-                name: 'TrialTeam',
-                TeamTypeId: defaultTeamType.id,
-                trialEndsAt: Date.now() + (5 * 86400000)
-            })
-
-            TrialTeam.isTrialMode().should.be.true()
-            TrialTeam.isTrialEnded().should.be.false()
-
-            const EndedTrialTeam = await app.db.models.Team.create({
-                name: 'EndedTrialTeam',
-                TeamTypeId: defaultTeamType.id,
-                trialEndsAt: Date.now() - 100
-            })
-
-            EndedTrialTeam.isTrialMode().should.be.true()
-            EndedTrialTeam.isTrialEnded().should.be.true()
-        })
-    })
     describe('License limits', function () {
         it('limits how many teams can be created according to license', async function () {
             // This license has limit of 4 teams (3 created by default test setup)
