@@ -2,7 +2,7 @@ const { defineConfig } = require('cypress')
 
 module.exports = defineConfig({
     e2e: {
-        baseUrl: 'http://localhost:3000',
+        baseUrl: 'http://localhost:4000',
         experimentalSessionAndOrigin: true,
         downloadsFolder: 'test/e2e/frontend/cypress/downloads',
         fixturesFolder: 'test/e2e/frontend/cypress/fixtures',
