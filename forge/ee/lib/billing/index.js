@@ -249,7 +249,7 @@ module.exports.init = async function (app) {
             const billingIds = getBillingIdsForTeam(team)
 
             const subscription = await app.db.models.Subscription.byTeamId(team.id)
-            if (subscription) {
+            if (subscription && subscription.isActive()) {
                 const existingSub = await stripe.subscriptions.retrieve(subscription.subscription)
                 const subItems = existingSub.items
 
@@ -279,7 +279,7 @@ module.exports.init = async function (app) {
                 return
             }
             const subscription = await app.db.models.Subscription.byTeamId(team.id)
-            if (subscription) {
+            if (subscription && subscription.isActive()) {
                 const deviceCount = await team.deviceCount()
                 const deviceFreeAllocation = team.TeamType.getProperty('deviceFreeAllocation') || 0
                 const billableCount = Math.max(0, deviceCount - deviceFreeAllocation)

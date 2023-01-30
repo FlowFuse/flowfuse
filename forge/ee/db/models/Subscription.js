@@ -4,9 +4,14 @@ const {
 
 // A subset of the statuses on Stripe that are important to FlowForge
 // https://stripe.com/docs/billing/subscriptions/overview#subscription-statuses
+// And the statuses used to track team trial state
 const STATUS = {
     ACTIVE: 'active',
-    CANCELED: 'canceled'
+    CANCELED: 'canceled',
+    TRIAL_INIT: 'trial:init',
+    TRIAL_7_DAY_SENT: 'trial:7daysent',
+    TRIAL_1_DAY_SENT: 'trial:1daysent',
+    TRIAL_ENDED: 'trial:ended'
 }
 Object.freeze(STATUS)
 
@@ -42,10 +47,13 @@ module.exports = {
                 // Should this subscription be treated as active/usable
                 // Stripe states such as past_due and trialing are still active
                 isActive () {
-                    return !this.isCanceled()
+                    return this.status === STATUS.ACTIVE
                 },
                 isCanceled () {
                     return this.status === STATUS.CANCELED
+                },
+                isTrial () {
+                    return /^trial:/.test(this.status)
                 }
             },
             static: {

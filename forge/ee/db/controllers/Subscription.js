@@ -1,19 +1,34 @@
 
 module.exports = {
     createSubscription: async function (app, team, subscription, customer) {
-        // Replace any existing subscription for this team
-        await this.deleteSubscription(app, team)
+        // Check to see if there is an existing subscription for this team.
+        const existingSub = await app.db.models.Subscription.byTeamId(team.id)
+        if (existingSub) {
+            existingSub.customer = customer
+            existingSub.subscription = subscription
+            existingSub.status = app.db.models.Subscription.STATUS.ACTIVE
+            await existingSub.save()
+            return existingSub
+        } else {
+            // Create the subscription
+            const newSubscription = await app.db.models.Subscription.create({
+                customer,
+                subscription
+            })
+            await newSubscription.setTeam(team)
 
-        // Create the subscription
+            return newSubscription
+        }
+    },
+    createTrialSubscription: async function (app, team) {
         const newSubscription = await app.db.models.Subscription.create({
-            customer,
-            subscription
+            customer: '',
+            subscription: '',
+            status: app.db.models.Subscription.STATUS.TRIAL_INIT
         })
         await newSubscription.setTeam(team)
-
         return newSubscription
     },
-
     deleteSubscription: async function (app, team) {
         const subscription = await app.db.models.Subscription.byTeamId(team.id)
         if (subscription) {

@@ -764,7 +764,7 @@ describe('Billing routes', function () {
                     } catch (err) {
                         reject(err)
                     }
-                }, START_DELAY + 50)
+                }, START_DELAY + 150)
             })
         })
 
@@ -979,7 +979,7 @@ describe('Billing routes', function () {
                         } catch (err) {
                             reject(err)
                         }
-                    }, START_DELAY + 50)
+                    }, START_DELAY + 150)
                 })
             })
 

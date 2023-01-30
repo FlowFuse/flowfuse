@@ -67,7 +67,7 @@ module.exports = async function (app) {
         const result = app.db.views.Team.team(team)
         if (app.license.active() && app.billing) {
             const subscription = await app.db.models.Subscription.byTeamId(team.id)
-            result.billingSetup = !!subscription
+            result.billingSetup = subscription && !subscription.isTrial()
             result.subscriptionActive = !!subscription?.isActive()
         }
         reply.send(result)
@@ -240,7 +240,7 @@ module.exports = async function (app) {
         try {
             if (app.license.active() && app.billing) {
                 const subscription = await app.db.models.Subscription.byTeamId(request.team.id)
-                if (subscription) {
+                if (subscription && !subscription.isTrial()) {
                     // const subId = subscription.subscription
                     await app.billing.closeSubscription(subscription)
                 }

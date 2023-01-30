@@ -15,8 +15,8 @@ class SubscriptionHandler {
     async requireActiveSubscription (team) {
         const subscription = await this.requireSubscription(team)
 
-        if (subscription.isCanceled()) {
-            throw new Error('Teams subscription is currently canceled')
+        if (!subscription.isActive()) {
+            throw new Error(`Teams subscription is not active. State is ${subscription.status}`)
         }
 
         return subscription
@@ -138,7 +138,7 @@ module.exports = {
             const billingState = await project.getSetting(this.KEY_BILLING_STATE)
             if (billingState === this.BILLING_STATES.BILLED || billingState === this.BILLING_STATES.UNDEFINED) {
                 const subscription = await this._subscriptionHandler.requireSubscription(project.Team)
-                if (!subscription.isCanceled()) {
+                if (subscription.isActive()) {
                     try {
                         await this._app.billing.removeProject(project.Team, project)
                     } catch (err) {
@@ -174,7 +174,7 @@ module.exports = {
                 const billingState = await project.getSetting(this.KEY_BILLING_STATE)
                 if (billingState === this.BILLING_STATES.BILLED || billingState === this.BILLING_STATES.UNDEFINED) {
                     const subscription = await this._subscriptionHandler.requireSubscription(project.Team)
-                    if (!subscription.isCanceled()) {
+                    if (subscription.isActive()) {
                         try {
                             await this._app.billing.removeProject(project.Team, project)
                         } catch (err) {

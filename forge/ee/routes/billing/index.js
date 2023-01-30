@@ -278,7 +278,7 @@ module.exports = async function (app) {
     }, async (request, response) => {
         const team = request.team
         const sub = await app.db.models.Subscription.byTeamId(team.id)
-        if (!sub) {
+        if (!sub || !sub.isActive()) {
             return response.code(404).send({ code: 'not_found', error: 'Team does not have a subscription' })
         }
 

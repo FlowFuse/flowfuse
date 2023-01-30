@@ -177,7 +177,7 @@ describe('Container Wrapper', function () {
                 should(subscription.isCanceled()).equal(true)
 
                 const promise = app.containers.start(project)
-                await promise.should.be.rejectedWith(/Teams subscription is currently canceled/)
+                await promise.should.be.rejectedWith(/Teams subscription is not active/)
             })
 
             it('adds project to team subscription', async function () {
@@ -389,7 +389,7 @@ describe('Container Wrapper', function () {
                     should(subscription.isCanceled()).equal(true)
 
                     const promise = app.containers.startFlows(project, {})
-                    await promise.should.be.rejectedWith(/Teams subscription is currently canceled/)
+                    await promise.should.be.rejectedWith(/Teams subscription is not active/)
 
                     mockDriver.startFlows.callCount.should.equal(0)
                 })
@@ -432,7 +432,7 @@ describe('Container Wrapper', function () {
                     should(subscription.isCanceled()).equal(true)
 
                     const promise = app.containers.restartFlows(project, {})
-                    await promise.should.be.rejectedWith(/Teams subscription is currently canceled/)
+                    await promise.should.be.rejectedWith(/Teams subscription is not active/)
 
                     mockDriver.restartFlows.callCount.should.equal(0)
                 })
