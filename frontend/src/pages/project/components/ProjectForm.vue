@@ -370,36 +370,42 @@ export default {
         refreshName () {
             this.input.name = NameGenerator()
         },
+        findStackById (stackId) {
+            return this.stacks.find(stack => stack.id === stackId)
+        },
         async updateProjectType (projectTypeId) {
             const projectType = this.projectTypes.find(pt => pt.id === projectTypeId)
             this.selectedProjectType = projectType
             await this.updateStacks(projectType)
         },
         async updateStacks (projectType) {
-            this.input.stack = null
             this.errors.stack = ''
 
             const stackList = await stacksApi.getStacks(null, null, null, projectType.id)
             this.stacks = stackList.stacks.filter(stack => stack.active)
 
             if (this.stacks.length === 0) {
+                this.input.stack = null
                 this.errors.stack = 'No stacks available for this project type. Ask an Administrator to create a new stack definition'
                 return
             }
 
             // Read stack from source project
-            if (this.sourceProject && this.stacks.find(st => st.id === this.sourceProject.stack.id)) {
+            if (this.sourceProject?.stack && this.findStackById(this.sourceProject.stack.id)) {
                 this.input.stack = this.sourceProject.stack.id
                 return
             }
 
+            // Read from currently edited project
+            if (this.project?.stack && this.findStackById(this.project.stack.id)) {
+                this.input.stack = this.project.stack.id
+                return
+            }
+
             // Read from project type
-            if (projectType.defaultStack) {
-                const defaultStack = this.stacks.find(st => st.id === projectType.defaultStack)
-                if (defaultStack) {
-                    this.input.stack = projectType.defaultStack
-                    return
-                }
+            if (projectType.defaultStack && this.findStackById(projectType.defaultStack)) {
+                this.input.stack = projectType.defaultStack
+                return
             }
 
             // Fallback to first
