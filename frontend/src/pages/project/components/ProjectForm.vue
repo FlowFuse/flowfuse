@@ -152,7 +152,7 @@
         </template>
 
         <!-- Billing details -->
-        <div v-if="billingEnabled">
+        <div v-if="showBilling">
             <ProjectChargesTable
                 v-model:confirmed="input.billingConfirmation"
                 :project-type="selectedProjectType"
@@ -301,6 +301,9 @@ export default {
         formDirty () {
             return this.creatingNew || this.projectTypeChanged || this.projectStackChanged
         },
+        showBilling () {
+            return this.billingEnabled && (this.creatingNew || this.projectTypeChanged)
+        },
         formValid () {
             return this.input.name && !this.errors.name &&
               this.input.projectType && !this.errors.projectType &&
@@ -308,7 +311,7 @@ export default {
               (this.creatingNew ? (this.input.template && !this.errors.template) : true)
         },
         submitEnabled () {
-            const billingConfirmed = (this.billingEnabled ? this.input.billingConfirmation : true)
+            const billingConfirmed = (this.showBilling ? this.input.billingConfirmation : true)
 
             return billingConfirmed && this.formValid && this.formDirty
         }
