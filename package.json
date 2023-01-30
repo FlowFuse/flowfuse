@@ -68,7 +68,7 @@
         "fastify-plugin": "^4.3.0",
         "handlebars": "^4.7.7",
         "hashids": "^2.2.10",
-        "jsonwebtoken": "^8.5.1",
+        "jsonwebtoken": "^9.0.0",
         "lottie-web-vue": "^2.0.6",
         "lru-cache": "^7.14.0",
         "marked": "^4.1.1",
