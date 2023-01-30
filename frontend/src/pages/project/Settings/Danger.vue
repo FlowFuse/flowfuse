@@ -10,25 +10,37 @@
         <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
             <div class="flex-grow">
                 <div class="max-w-sm pt-2 space-y-1">
-                    <p>Changing the Project Type or Stack will restart the project. The flows will not be running whilst this happens.</p>
+                    Changing the Project Type will restart the project.
+                    The flows will not be running whilst this happens.
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
                 <ff-button kind="secondary" @click="showProjectChangeTypePage()" data-nav="change-project-settings">Change Project Type</ff-button>
             </div>
         </div>
-        <div v-if="project.stack && project.stack.replacedBy">
-            <FormHeading>Update Project Stack</FormHeading>
-            <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
-                <div class="flex-grow">
-                    <div class="max-w-sm pt-2">
-                        There is a new version of the current stack available.
-                        Updating the stack will restart the project.
-                    </div>
+
+        <FormHeading>Change Project Stack</FormHeading>
+        <div v-if="project.stack && project.stack.replacedBy" class="flex flex-col lg:flex-row max-w-2xl space-y-4">
+            <div class="flex-grow">
+                <div class="max-w-sm pt-2">
+                    There is a new version of the current stack available.
+                    Updating the stack will restart the project.
                 </div>
-                <div class="min-w-fit flex-shrink-0">
-                    <ff-button :disabled="!project.projectType" kind="secondary" @click="upgradeStack()">Update Stack</ff-button>
+            </div>
+            <div class="min-w-fit flex-shrink-0">
+                <ff-button :disabled="!project.projectType" kind="secondary" @click="upgradeStack()">Update Stack</ff-button>
+            </div>
+        </div>
+        <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
+            <div class="flex-grow">
+                <div class="max-w-sm pt-2">
+                    Changing the project stack requires the project to be restarted.
+                    The flows will not be running whilst this happens.
                 </div>
+            </div>
+            <div class="min-w-fit flex-shrink-0">
+                <ff-button :disabled="!project.projectType" kind="secondary" @click="showChangeStackDialog()">Change Stack</ff-button>
+                <ChangeStackDialog @confirm="changeStack" ref="changeStackDialog"/>
             </div>
         </div>
 
@@ -119,6 +131,7 @@ import permissionsMixin from '@/mixins/Permissions'
 
 import FormHeading from '@/components/FormHeading'
 import ConfirmProjectDeleteDialog from './dialogs/ConfirmProjectDeleteDialog'
+import ChangeStackDialog from './dialogs/ChangeStackDialog'
 import ExportToProjectDialog from './dialogs/ExportToProjectDialog'
 import ImportProjectDialog from './dialogs/ImportProjectDialog'
 import { useRouter } from 'vue-router'
@@ -184,6 +197,9 @@ export default {
                 params: { team_slug: this.team.slug },
                 query: { projectId: this.project.id }
             })
+        },
+        showChangeStackDialog () {
+            this.$refs.changeStackDialog.show(this.project)
         },
         showExportProjectDialog () {
             this.$refs.exportProjectDialog.show(this.project)
@@ -269,6 +285,7 @@ export default {
     components: {
         FormHeading,
         ConfirmProjectDeleteDialog,
+        ChangeStackDialog,
         // ExportProjectDialog,
         ExportToProjectDialog,
         ImportProjectDialog
