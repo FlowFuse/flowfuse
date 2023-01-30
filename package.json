@@ -59,7 +59,7 @@
         "@fastify/static": "^6.5.0",
         "@flowforge/forge-ui-components": "^0.5.2",
         "@flowforge/localfs": "^1.3.0",
-        "@headlessui/vue": "1.7.7",
+        "@headlessui/vue": "1.7.8",
         "@heroicons/vue": "1.0.6",
         "axios": "^1.1.3",
         "bcrypt": "^5.1.0",
