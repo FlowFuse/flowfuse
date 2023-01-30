@@ -6,7 +6,7 @@
     <ff-loading v-if="loading.suspend" message="Suspending Project..." />
     <ff-loading v-if="loading.importing" message="Importing Project..." />
     <form v-if="!isLoading" class="space-y-6">
-        <FormHeading>Update Project Settings</FormHeading>
+        <FormHeading>Change Project Type</FormHeading>
         <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
             <div class="flex-grow">
                 <div class="max-w-sm pt-2 space-y-1">
@@ -14,14 +14,15 @@
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="secondary" @click="showProjectChangeTypePage()" data-nav="change-project-settings">Change Project Settings</ff-button>
+                <ff-button kind="secondary" @click="showProjectChangeTypePage()" data-nav="change-project-settings">Change Project Type</ff-button>
             </div>
         </div>
         <div v-if="project.stack && project.stack.replacedBy">
             <FormHeading>Update Project Stack</FormHeading>
             <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
                 <div class="flex-grow">
-                    <div class="max-w-sm pt-2">There is a new version of the current stack available.
+                    <div class="max-w-sm pt-2">
+                        There is a new version of the current stack available.
                         Updating the stack will restart the project.
                     </div>
                 </div>
