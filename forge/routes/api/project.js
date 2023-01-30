@@ -764,18 +764,6 @@ module.exports = async function (app) {
 
     /**
      *
-     * @name /api/v1/project/:id/export
-     * @memberof forge.routes.api.project
-     */
-    // app.get('/:projectId/export', async (request, reply) => {
-    //     const components = request.body?.components
-    //     // reply.header('content-disposition', 'attachment; filename="project.json"')
-    //     const projectExport = await app.db.controllers.Project.exportProject(request.project, components)
-    //     reply.send(projectExport)
-    // })
-
-    /**
-     *
      * @name /api/v1/project/:id/import
      * @memberof forge.routes.api.project
      */
