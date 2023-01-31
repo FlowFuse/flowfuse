@@ -819,6 +819,61 @@ describe('Project API', function () {
                 await sleep(400)
             })
 
+            it('Can change only the stack, keeping the project type the same', async function () {
+                const project = TestObjects.project1
+                const projectType = project.ProjectType
+
+                // Create a new stack
+                const stackProperties = {
+                    name: 'stack-new',
+                    active: true,
+                    properties: { nodered: '9.9.8' }
+                }
+                const stack = await app.db.models.ProjectStack.create(stackProperties)
+                await stack.setProjectType(projectType)
+
+                // Put project in running state
+                await app.containers.start(project)
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/projects/${TestObjects.project1.id}`,
+                    payload: {
+                        projectType: projectType.id,
+                        stack: stack.id,
+                        changeProjectDefinition: true
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(200)
+
+                await project.reload({
+                    include: [
+                        { model: app.db.models.ProjectType },
+                        { model: app.db.models.ProjectStack }
+                    ]
+                })
+
+                project.ProjectType.id.should.equal(projectType.id)
+                project.ProjectStack.id.should.equal(stack.id)
+
+                const newAccessToken = (await project.refreshAuthTokens()).token
+                const runtimeSettings = (await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/projects/${project.id}/settings`,
+                    headers: {
+                        authorization: `Bearer ${newAccessToken}`
+                    }
+                })).json()
+                runtimeSettings.should.have.property('state', 'running')
+                runtimeSettings.should.have.property('stack', { nodered: '9.9.8' })
+
+                // Sleep so the project finishes starting before test ends (as set in stub driver)
+                // This avoids the project start being logged after the project has been torn down
+                await sleep(400)
+            })
+
             it('Requires both the type and stack to be specified', async function () {
                 const response1 = await app.inject({
                     method: 'PUT',
