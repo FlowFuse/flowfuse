@@ -12,6 +12,7 @@ import ProjectSnapshots from '@/pages/project/Snapshots/index.vue'
 import ProjectDeployments from '@/pages/project/Deployments.vue'
 import ProjectLogs from '@/pages/project/Logs.vue'
 import ProjectActivity from '@/pages/project/Activity.vue'
+import ChangeProjectTypePage from './Settings/ChangeProjectType.vue'
 
 export default [
     {
@@ -41,7 +42,15 @@ export default [
                     { path: 'editor', component: ProjectSettingsEditor },
                     { path: 'security', component: ProjectSettingsSecurity },
                     { path: 'palette', component: ProjectSettingsPalette },
-                    { path: 'danger', component: ProjectSettingsDanger }
+                    { path: 'danger', component: ProjectSettingsDanger },
+                    {
+                        name: 'ChangeProjectType',
+                        path: 'danger',
+                        component: ChangeProjectTypePage,
+                        meta: {
+                            title: 'Project - Change Type'
+                        }
+                    }
                 ]
             },
             {

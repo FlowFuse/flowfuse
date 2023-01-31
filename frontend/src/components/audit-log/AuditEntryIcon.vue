@@ -54,7 +54,8 @@ const iconMap = {
     'project-types': [
         'platform.project-type.created',
         'platform.project-type.deleted',
-        'platform.project-type.updated'
+        'platform.project-type.updated',
+        'project.type.changed'
     ],
     stacks: [
         'platform.stack.created',

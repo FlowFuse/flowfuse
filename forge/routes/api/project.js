@@ -360,8 +360,55 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        let changed = false
-        if (request.body.stack) {
+        // Updating a projects definition
+        if (request.body.changeProjectDefinition === true) {
+            if (!request.body.projectType) {
+                reply.code(400).send({ code: 'invalid_request', error: 'Invalid project type' })
+            }
+            if (!request.body.stack) {
+                reply.code(400).send({ code: 'invalid_request', error: 'Invalid stack' })
+            }
+            const newProjectType = await app.db.models.ProjectType.byId(request.body.projectType)
+            if (!newProjectType) {
+                reply.code(400).send({ code: 'invalid_project_type', error: 'Invalid project type' })
+                return
+            }
+            const stack = await app.db.models.ProjectStack.byId(request.body.stack)
+            if (!stack) {
+                reply.code(400).send({ code: 'invalid_stack', error: 'Invalid stack' })
+                return
+            }
+            app.log.info(`Updating project ${request.project.id} to type: '${newProjectType.hashid}',  stack: '${stack.hashid}'`)
+            const { resumeProject, targetState } = await suspendProject()
+            const t = await app.db.sequelize.transaction() // start a transaction
+            let typeChanged = false
+            let stackChanged = false
+            try {
+                if (request.project.ProjectType?.id !== newProjectType.id) {
+                    await request.project.setProjectType(newProjectType, { transaction: t })
+                    typeChanged = true
+                }
+                if (request.project.ProjectStack?.id !== stack.id) {
+                    await request.project.setProjectStack(stack, { transaction: t })
+                    stackChanged = true
+                }
+                await t.commit() // all good, commit the transaction
+            } catch (error) {
+                await t.rollback() // rollback the transaction.
+                reply.code(500).send({ code: 'unexpected_error', error: error.message })
+                return
+            }
+            if (typeChanged) {
+                await app.auditLog.Project.project.type.changed(request.session.User, null, request.project, newProjectType)
+            }
+            if (stackChanged) {
+                await app.auditLog.Project.project.stack.changed(request.session.User, null, request.project, stack)
+            }
+            await unSuspendProject(resumeProject, targetState)
+            reply.send({})
+
+        // Changing only the stack - used for stack upgrades
+        } else if (request.body.stack) {
             if (request.body.stack !== request.project.ProjectStack?.id) {
                 const stack = await app.db.models.ProjectStack.byId(request.body.stack)
                 if (!stack) {
@@ -374,40 +421,38 @@ module.exports = async function (app) {
                 app.db.controllers.Project.setInflightState(request.project, 'starting')
 
                 // With the project stopped, respond to the request so the UI
-                // can refresh to show 'progress'. We may want to move this even
-                // earlier.
-
+                // can refresh to show 'progress'. We may want to move this even earlier.
                 reply.send({})
 
-                let resumeProject = false
-                // Remember the state to return the project back to
-                const targetState = request.project.state
-                if (request.project.state !== 'suspended') {
-                    resumeProject = true
-                    app.log.info(`Stopping project ${request.project.id}`)
-                    await app.containers.stop(request.project)
-                    await app.auditLog.Project.project.suspended(request.session.User, null, request.project)
-                }
+                const { resumeProject, targetState } = await suspendProject()
                 await request.project.setProjectStack(stack)
                 await request.project.save()
-
                 await app.auditLog.Project.project.stack.changed(request.session.User, null, request.project, stack)
-
-                if (resumeProject) {
-                    app.log.info(`Restarting project ${request.project.id}`)
-                    request.project.state = targetState
-                    await request.project.save()
-                    // Ensure the project has the full stack object
-                    await request.project.reload()
-                    const startResult = await app.containers.start(request.project)
-                    startResult.started.then(async () => {
-                        await app.auditLog.Project.project.started(request.session.User, null, request.project)
-                        app.db.controllers.Project.clearInflightState(request.project)
-                    })
-                } else {
-                    app.db.controllers.Project.clearInflightState(request.project)
-                }
+                await unSuspendProject(resumeProject, targetState)
             }
+
+        // Setting the project type for the first time (legacy)
+        } else if (request.body.projectType) {
+            if (request.project.ProjectType) {
+                reply.code(400).send({ code: 'invalid_request', error: 'Cannot change project type' })
+                return
+            }
+            const existingStackProjectType = request.project.ProjectStack.ProjectTypeId
+            const newProjectType = await app.db.models.ProjectType.byId(request.body.projectType)
+            if (!newProjectType) {
+                reply.code(400).send({ code: 'invalid_project_type', error: 'Invalid project type' })
+                return
+            }
+            if (existingStackProjectType && newProjectType.id !== existingStackProjectType) {
+                reply.code(400).send({ code: 'invalid_request', error: 'Mismatch between stack project type and new project type' })
+                return
+            }
+
+            await request.project.setProjectType(newProjectType)
+
+            reply.code(200).send({})
+
+        // Export this one project over another
         } else if (request.body.sourceProject) {
             const sourceProject = await app.db.models.Project.byId(request.body.sourceProject.id)
             const options = request.body.sourceProject.options
@@ -420,14 +465,7 @@ module.exports = async function (app) {
 
             reply.send({})
 
-            let resumeProject = false
-            const targetState = request.project.state
-            if (request.project.state !== 'suspended') {
-                resumeProject = true
-                app.log.info(`Stopping project ${request.project.id}`)
-                await app.containers.stop(request.project)
-                await app.auditLog.Project.project.suspended(request.session.User, null, request.project)
-            }
+            const { resumeProject, targetState } = await suspendProject()
 
             const sourceSettingsString = ((await app.db.models.StorageSettings.byProject(sourceProject.id))?.settings) || '{}'
             const sourceSettings = JSON.parse(sourceSettingsString)
@@ -523,43 +561,16 @@ module.exports = async function (app) {
                 await request.project.updateSetting('settings', targetProjectSettings)
             }
 
-            if (resumeProject) {
-                app.log.info(`Restarting project ${request.project.id}`)
-                request.project.state = targetState
-                await request.project.save()
-                await request.project.reload()
-                const startResult = await app.containers.start(request.project)
-                startResult.started.then(async () => {
-                    await app.auditLog.Project.project.started(request.session.User, null, request.project)
-                    app.db.controllers.Project.clearInflightState(request.project)
-                })
-            } else {
-                app.db.controllers.Project.clearInflightState(request.project)
-            }
-        } else if (request.body.projectType) {
-            if (request.project.ProjectType) {
-                reply.code(400).send({ code: 'invalid_request', error: 'Cannot change project type' })
-                return
-            }
-            const existingStackProjectType = request.project.ProjectStack.ProjectTypeId
-            const newProjectType = await app.db.models.ProjectType.byId(request.body.projectType)
-            if (!newProjectType) {
-                reply.code(400).send({ code: 'invalid_project_type', error: 'Invalid project type' })
-                return
-            }
-            if (existingStackProjectType && newProjectType.id !== existingStackProjectType) {
-                reply.code(400).send({ code: 'invalid_request', error: 'Mismatch between stack project type and new project type' })
-                return
-            }
+            await unSuspendProject(resumeProject, targetState)
 
-            await request.project.setProjectType(newProjectType)
-
-            reply.code(200).send({})
+        // Updating a project settings
         } else {
             const reqName = request.body.name?.trim()
             const reqSafeName = reqName?.toLowerCase()
             const projectName = request.project.name?.trim()
             const updates = new app.auditLog.formatters.UpdatesCollection()
+
+            let changed = false
             if (reqName && projectName !== reqName) {
                 if (bannedNameList.includes(reqSafeName)) {
                     reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name not allowed' })
@@ -650,6 +661,35 @@ module.exports = async function (app) {
             result.meta = await app.containers.details(request.project) || { state: 'unknown' }
             result.team = await app.db.views.Team.teamSummary(request.project.Team)
             reply.send(result)
+        }
+
+        async function unSuspendProject (resumeProject, targetState) {
+            if (resumeProject) {
+                app.log.info(`Restarting project ${request.project.id}`)
+                request.project.state = targetState
+                await request.project.save()
+                // Ensure the project has the full stack object
+                await request.project.reload()
+                const startResult = await app.containers.start(request.project)
+                startResult.started.then(async () => {
+                    await app.auditLog.Project.project.started(request.session.User, null, request.project)
+                    app.db.controllers.Project.clearInflightState(request.project)
+                })
+            } else {
+                app.db.controllers.Project.clearInflightState(request.project)
+            }
+        }
+
+        async function suspendProject () {
+            let resumeProject = false
+            const targetState = request.project.state
+            if (request.project.state !== 'suspended') {
+                resumeProject = true
+                app.log.info(`Stopping project ${request.project.id}`)
+                await app.containers.stop(request.project)
+                await app.auditLog.Project.project.suspended(request.session.User, null, request.project)
+            }
+            return { resumeProject, targetState }
         }
     })
 

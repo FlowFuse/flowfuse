@@ -1,6 +1,6 @@
 <template>
     <form class="space-y-4" @submit.prevent>
-        <FormHeading class="pt-8">HTTP Node Security</FormHeading>
+        <FormHeading>HTTP Node Security</FormHeading>
         <div class="flex flex-col sm:flex-row sm:ml-4">
             <div class="space-y-4 w-full max-w-md sm:mr-8">
                 <FormRow>
