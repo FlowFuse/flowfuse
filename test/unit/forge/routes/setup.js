@@ -56,7 +56,8 @@ module.exports = async function (config = {}) {
 
     await project1.reload({
         include: [
-            { model: forge.db.models.Team }
+            { model: forge.db.models.Team },
+            { model: forge.db.models.ProjectStack }
         ]
     })
     forge.team = team1
