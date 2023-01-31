@@ -10,7 +10,7 @@ describe('FlowForge - Templates', () => {
     })
 
     it('loads templates into the data table', () => {
-        cy.get('[data-el="templates"] tbody').find('tr').should('have.length', 1)
+        cy.get('[data-el="templates"] tbody').find('tr').should('have.length', 2)
         cy.get('[data-el="templates"] tbody').contains('td', 'template1')
     })
 
@@ -26,10 +26,10 @@ describe('FlowForge - Templates', () => {
         cy.wait('@getTemplates')
 
         // check we have two templates
-        cy.get('[data-el="templates"] tbody').find('tr').should('have.length', 2)
+        cy.get('[data-el="templates"] tbody').find('tr').should('have.length', 3)
 
-        cy.get('[data-el="templates"] tbody').find('.ff-kebab-menu').eq(1).click()
-        cy.get('[data-el="templates"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(1).click()
+        cy.get('[data-el="templates"] tbody tr:last').find('.ff-kebab-menu').click()
+        cy.get('[data-el="templates"] tbody tr:last .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(1).click()
 
         cy.get('.ff-dialog-box').should('be.visible')
 
@@ -40,13 +40,11 @@ describe('FlowForge - Templates', () => {
         cy.wait('@deleteTemplate')
 
         // check it has been deleted
-        cy.get('[data-el="templates"] tbody').find('tr').should('have.length', 1)
+        cy.get('[data-el="templates"] tbody').find('tr').should('have.length', 2)
     })
 
     it('can not delete a template from the table if template is in use', () => {
         cy.intercept('DELETE', '/api/*/templates/*').as('deleteTemplate')
-        // add a template that we will then delete
-        cy.request('POST', '/api/v1/templates', { name: 'New Template', settings: { disableEditor: false, httpAdminRoot: '', codeEditor: 'monaco', theme: 'forge-light', page: { title: 'FlowForge', favicon: '' }, header: { title: 'FlowForge', url: '' }, timeZone: 'UTC', palette: { allowInstall: true, nodesExcludes: '', denyList: [] }, modules: { allowInstall: true, denyList: [] }, env: [] }, policy: { disableEditor: false, httpAdminRoot: false, codeEditor: false, theme: false, page: { title: false, favicon: false }, header: { title: false, url: false }, timeZone: false, palette: { allowInstall: false, nodesExcludes: false, denyList: false }, modules: { allowInstall: false, denyList: false } } })
 
         cy.visit('/admin/templates')
 
@@ -57,8 +55,8 @@ describe('FlowForge - Templates', () => {
         // check we have two templates
         cy.get('[data-el="templates"] tbody').find('tr').should('have.length', 2)
 
-        cy.get('[data-el="templates"] tbody').find('.ff-kebab-menu').eq(0).click()
-        cy.get('[data-el="templates"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(1).click()
+        cy.get('[data-el="templates"] tbody tr:first').find('.ff-kebab-menu').click()
+        cy.get('[data-el="templates"] tbody tr:first .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(1).click()
 
         cy.get('.ff-dialog-box').should('be.visible')
 

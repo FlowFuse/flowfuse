@@ -289,9 +289,19 @@
         <span v-if="!error && entry.body?.project">Device '{{ entry.body.device?.name }}' was unassigned from Project '{{ entry.body.project?.name }}'</span>
         <span v-else-if="!error">Project data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'project.type.changed'">
+        <label>Project Type Changed</label>
+        <span v-if="!error && entry.body?.project">The type for Project '{{ entry.body.project?.name }}' has been changed to Type '{{ entry.body.projectType?.name }}'</span>
+        <span v-else-if="!error">Project data not found in audit entry.</span>
+    </template>
     <template v-else-if="entry.event === 'project.stack.changed'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.project">The stack for Project '{{ entry.body.project?.name }}' has been changed to Stack '{{ entry.body.stack?.name }}'</span>
+        <span v-else-if="!error">Project data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'project.stack.restart'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.project">The stack for Project '{{ entry.body.project?.name }}' has been restarted</span>
         <span v-else-if="!error">Project data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.settings.updated'">

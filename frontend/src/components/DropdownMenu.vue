@@ -39,7 +39,7 @@
                             </router-link>
                         </template>
                         <template v-else>
-                            <a @click="item.action" :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm text-gray-700',...(item.class||[])]">
+                            <a @click="item.action" :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm text-gray-700',...(item.class||[])]" :data-action="`menu-${item.name.toLowerCase()}`">
                                 <component v-if="item.icon" class="w-4 inline" :is="item.icon"></component>
                                 <img v-if="item.imgUrl" :src="item.imgUrl" class="h-4 v-4 inline rounded mr-1"/>
                                 {{ item.name }}

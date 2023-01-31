@@ -182,6 +182,12 @@ module.exports = async function (settings = {}, config = {}) {
     const template = await factory.createProjectTemplate({ name: 'template1' }, userAlice)
     const projectType = await factory.createProjectType({ name: 'type1' })
     const stack = await factory.createStack({ name: 'stack1' }, projectType)
+    await factory.createStack({ name: 'stack2' }, projectType)
+
+    // Unused templates and project types
+    await factory.createProjectTemplate({ name: 'template2' }, userAlice)
+    const spareProjectType = await factory.createProjectType({ name: 'type2' })
+    await factory.createStack({ name: 'stack1-for-type2' }, spareProjectType)
 
     /// Team 1
     const team1 = await factory.createTeam({ name: 'ATeam' })
