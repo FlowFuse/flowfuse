@@ -460,6 +460,7 @@ module.exports = async function (app) {
                 const newStack = request.body.stack
                 if (!newStack) {
                     reply.code(400).send({ code: 'invalid_request', error: 'Stack must be set when changing project type' })
+                    return
                 }
             }
 
@@ -480,15 +481,15 @@ module.exports = async function (app) {
         /// Persist the changes
         const updates = new app.auditLog.formatters.UpdatesCollection()
         const transaction = await app.db.sequelize.transaction() // start a transaction
-        let returnedEarly = false
         const changesToProjectDefinition = (changesToPersist.stack || changesToPersist.projectType) && !changesToPersist.projectType?.firstUpdate
+        let repliedEarly = false
         try {
             let resumeProject, targetState
             if (changesToProjectDefinition) {
                 // Early return and complete the rest async
                 app.db.controllers.Project.setInflightState(request.project, 'starting') // TODO: better inflight state needed
                 reply.code(200).send({})
-                returnedEarly = true
+                repliedEarly = true
 
                 const result = await suspendProject()
                 resumeProject = result.resumeProject
@@ -554,16 +555,18 @@ module.exports = async function (app) {
                 await unSuspendProject(resumeProject, targetState)
             }
         } catch (error) {
-            await transaction.rollback() // rollback the transaction.
             app.log.error('Error while updating project:')
             app.log.error(error)
-            if (!returnedEarly) {
+
+            await transaction.rollback() // rollback the transaction.
+
+            if (!repliedEarly) {
                 reply.code(500).send({ code: 'unexpected_error', error: error.message })
             }
             return
         }
 
-        if (returnedEarly) {
+        if (repliedEarly) {
             // No further response needed
             return
         }
