@@ -252,6 +252,7 @@ describe('Accounts API', async function () {
             subscription.isActive().should.be.false()
             subscription.isTrial().should.be.true()
             subscription.isTrialEnded().should.be.false()
+            subscription.TRIAL_STATUS.should.equal(app.db.models.Subscription.TRIAL_STATUS.CREATED)
         })
     })
 

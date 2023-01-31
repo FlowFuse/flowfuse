@@ -24,7 +24,8 @@ module.exports = {
         const newSubscription = await app.db.models.Subscription.create({
             customer: '',
             subscription: '',
-            status: app.db.models.Subscription.STATUS.TRIAL_INIT,
+            status: app.db.models.Subscription.STATUS.TRIAL,
+            trialStatus: app.db.models.Subscription.TRIAL_STATUS.CREATED,
             trialEndsAt
         })
         await newSubscription.setTeam(team)

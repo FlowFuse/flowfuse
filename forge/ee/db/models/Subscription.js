@@ -10,11 +10,17 @@ const STATUS = {
     // See forge/db/migrations/20230130-01-add-subscription-trial-date.js for example
     ACTIVE: 'active',
     CANCELED: 'canceled',
-    TRIAL_INIT: 'trial:init',
-    TRIAL_EMAIL_1_SENT: 'trial:email_1_sent',
-    TRIAL_EMAIL_2_SENT: 'trial:email_2_sent',
-    TRIAL_EMAIL_3_SENT: 'trial:email_3_sent'
+    TRIAL: 'trial'
 }
+
+const TRIAL_STATUS = {
+    NONE: 'none',
+    CREATED: 'created',
+    WEEK_EMAIL_SENT: 'week_email_sent',
+    DAY_EMAIL_SENT: 'day_email_sent',
+    ENDED: 'ended'
+}
+
 Object.freeze(STATUS)
 
 module.exports = {
@@ -37,6 +43,11 @@ module.exports = {
             type: DataTypes.ENUM(Object.values(STATUS)),
             allowNull: false,
             defaultValue: STATUS.ACTIVE
+        },
+        trialStatus: {
+            type: DataTypes.ENUM(Object.values(TRIAL_STATUS)),
+            allowNull: false,
+            defaultValue: TRIAL_STATUS.NONE
         },
         trialEndsAt: { type: DataTypes.DATE, defaultValue: null, allowNull: true }
     },
@@ -65,6 +76,7 @@ module.exports = {
             },
             static: {
                 STATUS,
+                TRIAL_STATUS,
                 byTeamId: async function (teamId) {
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)

@@ -22,12 +22,22 @@ module.exports = {
             allowNull: true
         })
 
+        const TRIAL_STATUS = {
+            NONE: 'none',
+            CREATED: 'created',
+            WEEK_EMAIL_SENT: 'week_email_sent',
+            DAY_EMAIL_SENT: 'day_email_sent',
+            ENDED: 'ended'
+        }
+
+        await queryInterface.addColumn('Subscriptions', 'trialState', {
+            type: DataTypes.ENUM(Object.values(TRIAL_STATUS)),
+            defaultValue: TRIAL_STATUS.NONE,
+            allowNull: true
+        })
         if (queryInterface.sequelize.options.dialog === 'postgres') {
             // Postgres enums need to be explicitly updated
-            queryInterface.sequelize.query("ALTER TYPE \"enum_Subscriptions_status\" ADD VALUE 'trial:init';")
-            queryInterface.sequelize.query("ALTER TYPE \"enum_Subscriptions_status\" ADD VALUE 'trial:email_1_sent';")
-            queryInterface.sequelize.query("ALTER TYPE \"enum_Subscriptions_status\" ADD VALUE 'trial:email_2_sent';")
-            queryInterface.sequelize.query("ALTER TYPE \"enum_Subscriptions_status\" ADD VALUE 'trial:email_3_sent';")
+            queryInterface.sequelize.query("ALTER TYPE \"enum_Subscriptions_status\" ADD VALUE 'trial';")
         }
     },
     down: async (context) => {
