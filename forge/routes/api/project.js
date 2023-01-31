@@ -448,7 +448,8 @@ module.exports = async function (app) {
             }
 
             // Setting of project type for first time only (legacy)
-            if (!request.project.ProjectType) {
+            const legacyFirstUpdate = !request.project.ProjectType
+            if (legacyFirstUpdate) {
                 const existingStackProjectType = request.project.ProjectStack.ProjectTypeId
                 if (existingStackProjectType && newProjectType.id !== existingStackProjectType) {
                     reply.code(400).send({ code: 'invalid_request', error: 'Mismatch between stack project type and new project type' })
@@ -462,7 +463,7 @@ module.exports = async function (app) {
                 }
             }
 
-            changesToPersist.projectType = { from: request.project.projectType, to: newProjectType }
+            changesToPersist.projectType = { from: request.project.projectType, to: newProjectType, firstUpdate: legacyFirstUpdate }
         }
 
         // Project Stack
@@ -479,8 +480,8 @@ module.exports = async function (app) {
         /// Persist the changes
         const updates = new app.auditLog.formatters.UpdatesCollection()
         const transaction = await app.db.sequelize.transaction() // start a transaction
-        const changesToProjectDefinition = changesToPersist.stack || changesToPersist.projectType
         let returnedEarly = false
+        const changesToProjectDefinition = (changesToPersist.stack || changesToPersist.projectType) && !changesToPersist.projectType?.firstUpdate
         try {
             let resumeProject, targetState
             if (changesToProjectDefinition) {
@@ -518,17 +519,19 @@ module.exports = async function (app) {
             }
 
             if (changesToPersist.stack || changesToPersist.projectType) {
-                if (changesToPersist.projectType) {
+                if (changesToPersist.projectType && changesToPersist.stack) {
                     app.log.info(`Updating project ${request.project.id} to type: '${changesToPersist.projectType.to.hashid}',  stack: '${changesToPersist.stack.to.hashid}'`)
+                } else if (changesToPersist.projectType) {
+                    app.log.info(`Updating project ${request.project.id} to use type ${changesToPersist.projectType.to.hashid} for the first time (legacy)`)
                 } else {
                     app.log.info(`Updating project ${request.project.id} to use stack ${changesToPersist.stack.to.hashid}`)
                 }
 
-                if (changesToPersist.projectType.to) {
+                if (changesToPersist.projectType?.to) {
                     await request.project.setProjectType(changesToPersist.projectType.to, { transaction })
                 }
 
-                if (changesToPersist.stack.to) {
+                if (changesToPersist.stack?.to) {
                     await request.project.setProjectStack(changesToPersist.stack.to, { transaction })
                 }
             }

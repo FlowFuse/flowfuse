@@ -774,6 +774,7 @@ describe('Project API', function () {
             })
             response.statusCode.should.equal(400)
         })
+
         it('Cannot set to project-type that does not match existing stack', async function () {
             const project2 = await app.db.models.Project.create({ name: 'project2', type: '', url: '' })
             await TestObjects.ATeam.addProject(project2)
@@ -799,6 +800,7 @@ describe('Project API', function () {
             })
             response.statusCode.should.equal(400)
         })
+
         it('Can change project-type if not set', async function () {
             const project2 = await app.db.models.Project.create({ name: 'project2', type: '', url: '' })
             await TestObjects.ATeam.addProject(project2)
