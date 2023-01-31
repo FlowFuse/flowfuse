@@ -10,6 +10,7 @@
             <Teleport v-if="mounted" to="#platform-banner">
                 <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-team-as-admin">You are viewing this team as an Administrator</div>
                 <SubscriptionExpiredBanner :team="team" />
+                <TeamTrialBanner v-if="team.trialEndsAt" :team="team" />
             </Teleport>
             <router-view :team="team" :teamMembership="teamMembership" />
         </div>
@@ -24,13 +25,15 @@ import { mapState } from 'vuex'
 import Loading from '@/components/Loading'
 import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '@/components/banners/SubscriptionExpired.vue'
+import TeamTrialBanner from '@/components/banners/TeamTrial.vue'
 
 export default {
     name: 'TeamPage',
     components: {
         Loading,
         SideNavigationTeamOptions,
-        SubscriptionExpiredBanner
+        SubscriptionExpiredBanner,
+        TeamTrialBanner
     },
     async beforeRouteUpdate (to, from, next) {
         await this.$store.dispatch('account/setTeam', to.params.team_slug)
@@ -48,6 +51,16 @@ export default {
         ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange', 'features']),
         isVisitingAdmin: function () {
             return (this.teamMembership.role === Roles.Admin)
+        },
+        isTrialMode: function () {
+            return !!this.team.trialEndsAt
+        },
+        isTrialEnded: function () {
+            if (this.team.trialEndsAt) {
+                const trialEndDate = new Date(this.team.trialEndsAt)
+                return trialEndDate < Date.now()
+            }
+            return true
         }
     },
     mounted () {
@@ -72,7 +85,10 @@ export default {
         },
         checkBilling: async function () {
             // Team Billing
-            if (this.features.billing && !this.team.billingSetup) {
+            if (this.features.billing &&
+                (!this.isTrialMode || this.isTrialEnded) &&
+                !this.team.billingSetup
+            ) {
                 this.$router.push({
                     path: `/team/${this.team.slug}/billing`
                 })
