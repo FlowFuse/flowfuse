@@ -30,7 +30,7 @@ module.exports = {
             ENDED: 'ended'
         }
 
-        await queryInterface.addColumn('Subscriptions', 'trialState', {
+        await queryInterface.addColumn('Subscriptions', 'trialStatus', {
             type: DataTypes.ENUM(Object.values(TRIAL_STATUS)),
             defaultValue: TRIAL_STATUS.NONE,
             allowNull: true

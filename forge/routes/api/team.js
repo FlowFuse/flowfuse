@@ -69,6 +69,9 @@ module.exports = async function (app) {
             const subscription = await app.db.models.Subscription.byTeamId(team.id)
             result.billingSetup = subscription && !subscription.isTrial()
             result.subscriptionActive = !!subscription?.isActive()
+            if (subscription?.trialEndsAt) {
+                result.trialEndsAt = subscription.trialEndsAt
+            }
         }
         reply.send(result)
     }
