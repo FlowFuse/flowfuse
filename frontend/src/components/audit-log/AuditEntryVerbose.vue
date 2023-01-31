@@ -299,6 +299,11 @@
         <span v-if="!error && entry.body?.project">The stack for Project '{{ entry.body.project?.name }}' has been changed to Stack '{{ entry.body.stack?.name }}'</span>
         <span v-else-if="!error">Project data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'project.stack.restart'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.project">The stack for Project '{{ entry.body.project?.name }}' has been restarted</span>
+        <span v-else-if="!error">Project data not found in audit entry.</span>
+    </template>
     <template v-else-if="entry.event === 'project.settings.updated'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.project">Project '{{ entry.body.project?.name }}' has had the following changes made to its settings: <AuditEntryUpdates :updates="entry.body.updates" /></span>

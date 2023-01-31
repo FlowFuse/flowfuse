@@ -61,7 +61,8 @@ const iconMap = {
         'platform.stack.created',
         'platform.stack.deleted',
         'platform.stack.updated',
-        'project.stack.changed'
+        'project.stack.changed',
+        'project.stack.restart'
     ],
     login: [
         'account.login',

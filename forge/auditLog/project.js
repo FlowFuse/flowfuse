@@ -44,6 +44,9 @@ module.exports = {
             stack: {
                 async changed (actionedBy, error, project, stack) {
                     await log('project.stack.changed', actionedBy, project?.id, generateBody({ error, project, stack }))
+                },
+                async restart (actionedBy, error, project) {
+                    await log('project.stack.restart', actionedBy, project?.id, generateBody({ error, project }))
                 }
             },
             settings: {
