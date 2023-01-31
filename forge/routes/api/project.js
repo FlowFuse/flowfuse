@@ -571,6 +571,15 @@ module.exports = async function (app) {
             return
         }
 
+        // Bust sequelize caching on project settings
+        if (changesToPersist.hostname || changesToPersist.settings) {
+            await request.project.reload({
+                include: [
+                    { model: app.db.models.ProjectSettings }
+                ]
+            })
+        }
+
         // Result
         const project = await app.db.models.Project.byId(request.project.id) // Reload project entirely
         const projectView = await app.db.views.Project.project(request.project)
