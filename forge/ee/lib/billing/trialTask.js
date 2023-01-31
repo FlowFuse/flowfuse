@@ -25,16 +25,52 @@ module.exports.init = function (app) {
                 // Stripe not configured - suspend the lot
                 await suspendAllProjects(subscription.Team)
                 await sendTrialEmail(subscription.Team, 'TrialTeamSuspended', {
-                    teamSettingsURL: ''
+                    teamSettingsURL: `${app.config.base_url}/team/${subscription.Team.slug}/billing`
                 })
             }
 
             // We have dealt with this team
             subscription.trialEndsAt = null
+            subscription.trialStatus = app.db.models.Subscription.TRIAL_STATUS.ENDED
             await subscription.save()
         }
 
-        // TODO: send emails at appropriate intervals
+        // Email sending intervals
+        // - 8 days => Subscription.status = TRIAL_STATUS.WEEK_EMAIL_SENT
+        // - 2 days => Subscription.status = TRIAL_STATUS.DAY_EMAIL_SENT
+
+        const pendingEmailSubscriptions = await app.db.models.Subscription.findAll({
+            where: {
+                [Op.or]: [
+                    {
+                        // Expires in 8 days, need to send Week Reminder email
+                        trialStatus: app.db.models.Subscription.TRIAL_STATUS.CREATED,
+                        trialEndsAt: { [Op.lt]: Date.now() + (8 * 86400000) }
+                    },
+                    {
+                        // Expires in 2 days, need to send Day Reminder email
+                        trialStatus: app.db.models.Subscription.TRIAL_STATUS.WEEK_EMAIL_SENT,
+                        trialEndsAt: { [Op.lt]: Date.now() + (2 * 86400000) }
+                    }
+                ]
+            },
+            include: [app.db.models.Team]
+        })
+
+        for (const subscription of pendingEmailSubscriptions) {
+            const endingInDurationDays = Math.ceil((subscription.trialEndsAt - Date.now()) / 86400000)
+            const endingInDuration = endingInDurationDays + ' day' + ((endingInDurationDays !== 1) ? 's' : '')
+            await sendTrialEmail(subscription.Team, 'TrialTeamReminder', {
+                endingInDuration,
+                billingSetup: subscription.isActive()
+            })
+            if (subscription.trialStatus === app.db.models.Subscription.TRIAL_STATUS.CREATED) {
+                subscription.trialStatus = app.db.models.Subscription.TRIAL_STATUS.WEEK_EMAIL_SENT
+            } else {
+                subscription.trialStatus = app.db.models.Subscription.TRIAL_STATUS.DAY_EMAIL_SENT
+            }
+            await subscription.save()
+        }
     }
 
     async function sendTrialEmail (team, template, inserts) {

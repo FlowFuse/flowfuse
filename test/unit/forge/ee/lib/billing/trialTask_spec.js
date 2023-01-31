@@ -96,6 +96,12 @@ describe('Billing - Trial Housekeeper Task', function () {
 
         await trialSub.reload()
         should.not.exist(trialSub.trialEndsAt)
+
+        app.config.email.transport.messages.should.have.length(1)
+        const email = app.config.email.transport.messages[0]
+        email.should.have.property('to', TestObjects.alice.email)
+        email.text.includes(TestObjects.alice.name).should.be.true()
+        // Testing the specific body text is going to be too brittle
     })
 
     it('adds trial projects to billing the team trial has ended', async function () {
@@ -174,5 +180,60 @@ describe('Billing - Trial Housekeeper Task', function () {
 
         await trialSub.reload()
         should.not.exist(trialSub.trialEndsAt)
+
+        app.config.email.transport.messages.should.have.length(1)
+        const email = app.config.email.transport.messages[0]
+        email.should.have.property('to', TestObjects.alice.email)
+        email.text.includes(TestObjects.alice.name).should.be.true()
+    })
+
+    it.only('sends trial reminder emails at appropriate intervals', async function () {
+        app.settings.set('user:team:trial-mode', true)
+        app.settings.set('user:team:trial-mode:duration', 5)
+        app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
+        const DAY_MS = 86400000
+        // TestObjects.ATeam - has billing setup, should not get touched
+
+        // Create trial team without billing setup
+        const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id })
+        // Start with a 30 day trial
+        const trialSub = await app.db.controllers.Subscription.createTrialSubscription(trialTeam, Date.now() + 30 * DAY_MS)
+        await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+
+        await task(app)
+
+        // Nothing should have happened
+        app.config.email.transport.messages.should.have.length(0)
+        await trialSub.reload()
+        trialSub.trialStatus.should.equal(app.db.models.Subscription.TRIAL_STATUS.CREATED)
+
+        // Change end date to 7 days
+        trialSub.trialEndsAt = Date.now() + 7 * DAY_MS
+        await trialSub.save()
+
+        await task(app)
+        app.config.email.transport.messages.should.have.length(1)
+        await trialSub.reload()
+        trialSub.trialStatus.should.equal(app.db.models.Subscription.TRIAL_STATUS.WEEK_EMAIL_SENT)
+        app.config.email.transport.messages[0].text.includes(' 7 days.').should.be.true()
+
+
+        // Rerun task - ensure email not sent again
+        await task(app)
+        app.config.email.transport.messages.should.have.length(1)
+
+        // Change end date to 1 day
+        trialSub.trialEndsAt = Date.now() + 1 * DAY_MS
+        await trialSub.save()
+
+        await task(app)
+        app.config.email.transport.messages.should.have.length(2)
+        await trialSub.reload()
+        trialSub.trialStatus.should.equal(app.db.models.Subscription.TRIAL_STATUS.DAY_EMAIL_SENT)
+        app.config.email.transport.messages[1].text.includes(' 1 day.').should.be.true()
+
+        // Rerun task - ensure email not sent again
+        await task(app)
+        app.config.email.transport.messages.should.have.length(2)
     })
 })
