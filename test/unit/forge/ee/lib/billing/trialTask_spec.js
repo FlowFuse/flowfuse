@@ -187,7 +187,7 @@ describe('Billing - Trial Housekeeper Task', function () {
         email.text.includes(TestObjects.alice.name).should.be.true()
     })
 
-    it.only('sends trial reminder emails at appropriate intervals', async function () {
+    it('sends trial reminder emails at appropriate intervals', async function () {
         app.settings.set('user:team:trial-mode', true)
         app.settings.set('user:team:trial-mode:duration', 5)
         app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
@@ -216,7 +216,6 @@ describe('Billing - Trial Housekeeper Task', function () {
         await trialSub.reload()
         trialSub.trialStatus.should.equal(app.db.models.Subscription.TRIAL_STATUS.WEEK_EMAIL_SENT)
         app.config.email.transport.messages[0].text.includes(' 7 days.').should.be.true()
-
 
         // Rerun task - ensure email not sent again
         await task(app)

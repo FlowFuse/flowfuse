@@ -4,7 +4,6 @@ const {
 
 // A subset of the statuses on Stripe that are important to FlowForge
 // https://stripe.com/docs/billing/subscriptions/overview#subscription-statuses
-// And the statuses used to track team trial state
 const STATUS = {
     // Any changes to this list *must* be made via migration.
     // See forge/db/migrations/20230130-01-add-subscription-trial-date.js for example
@@ -13,7 +12,12 @@ const STATUS = {
     TRIAL: 'trial'
 }
 
+Object.freeze(STATUS)
+
+// Statuses used to track team trial state
 const TRIAL_STATUS = {
+    // Any changes to this list *must* be made via migration.
+    // See forge/db/migrations/20230130-01-add-subscription-trial-date.js for example
     NONE: 'none',
     CREATED: 'created',
     WEEK_EMAIL_SENT: 'week_email_sent',
@@ -21,7 +25,7 @@ const TRIAL_STATUS = {
     ENDED: 'ended'
 }
 
-Object.freeze(STATUS)
+Object.freeze(TRIAL_STATUS)
 
 module.exports = {
     name: 'Subscription',
