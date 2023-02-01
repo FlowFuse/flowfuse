@@ -1,5 +1,3 @@
-const { KEY_BILLING_STATE } = require('../db/models/ProjectSettings')
-
 class SubscriptionHandler {
     constructor (app) {
         this._app = app
@@ -51,9 +49,9 @@ class SubscriptionHandler {
 
         if (skipBilling) {
             const BILLING_STATES = this._app.db.models.ProjectSettings.BILLING_STATES
-            if (await project.getSetting(KEY_BILLING_STATE) === BILLING_STATES.UNKNOWN) {
+            if (await this._app.billing.getProjectBillingState(project) === BILLING_STATES.UNKNOWN) {
                 this._app.log.info('Billing state of project is unknown, but remove attempt that skips billing made, assuming it is currently billed')
-                await project.updateSetting(KEY_BILLING_STATE, BILLING_STATES.BILLED)
+                await this._app.billing.setProjectBillingState(project, BILLING_STATES.BILLED)
             }
 
             this._app.log.info(`Skipped removing project '${project.id}' from subscription - skip billing flag set'`)

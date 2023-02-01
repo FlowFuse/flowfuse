@@ -48,7 +48,14 @@ module.exports.init = async function (app) {
     }
 
     async function setProjectBillingState (project, state) {
+        if (!Object.values(BILLING_STATES).includes(state)) {
+            throw new Error(`Unsupported project billing state ${state}`)
+        }
         return await project.updateSetting(KEY_BILLING_STATE, state)
+    }
+
+    async function getProjectBillingState (project) {
+        return await project.getSetting(KEY_BILLING_STATE)
     }
 
     return {
@@ -119,7 +126,7 @@ module.exports.init = async function (app) {
             return session
         },
         addProject: async (team, project) => {
-            if (await project.getSetting(KEY_BILLING_STATE) === BILLING_STATES.BILLED) {
+            if (await getProjectBillingState(project) === BILLING_STATES.BILLED) {
                 app.log.info(`Project ${project.id} is already marked billed, skipping adding it to Subscription for team ${team.hashid}`)
                 return
             }
@@ -192,7 +199,7 @@ module.exports.init = async function (app) {
             }
         },
         removeProject: async (team, project) => {
-            if (await project.getSetting(KEY_BILLING_STATE) === BILLING_STATES.NOT_BILLED) {
+            if (await getProjectBillingState(project) === BILLING_STATES.NOT_BILLED) {
                 app.log.info(`Project ${project.id} is already marked non-billed, skipping removing from Subscription for team ${team.hashid}`)
                 return
             }
@@ -328,6 +335,8 @@ module.exports.init = async function (app) {
             })
             subscription.status = app.db.models.Subscription.STATUS.CANCELED
             await subscription.save()
-        }
+        },
+        getProjectBillingState,
+        setProjectBillingState
     }
 }
