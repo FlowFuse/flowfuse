@@ -16,10 +16,9 @@ new version available.
 To change a project's stack:
 
 1. Go to the project's page and select **Settings** in the sidebar.
-2. Select the **Danger** section in the side menu
-3. Click the **Change Project Stack** button
-4. You will be prompted to select the new stack for the project.
-5. Click **Change Stack**
+2. Click the **Change Project Stack** button
+3. You will be prompted to select the new stack for the project.
+4. Click **Change Stack**
 
 Your project will now be restart on the new stack.
 
