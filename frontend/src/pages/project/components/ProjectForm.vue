@@ -158,7 +158,7 @@
                 v-model:confirmed="input.billingConfirmation"
                 :project-type="selectedProjectType"
                 :subscription="subscription"
-                :trialMode="team.billing?.trial && !team.billing?.active"
+                :trialMode="team.billing?.trial && (!team.billing?.active || (team.billing.trialProjectAllowed && selectedProjectType?.id === this.settings['user:team:trial-mode:projectType']))"
             />
         </div>
 
