@@ -104,7 +104,7 @@ describe('FlowForge - Projects', () => {
             .then((response) => {
                 cy.intercept('GET', '/api/*/projects/*').as('getProject')
                 const project = response.body
-                cy.visit(`/project/${project.id}/settings/danger`)
+                cy.visit(`/project/${project.id}/settings`)
                 cy.wait('@getProject')
 
                 cy.get('[data-el="delete-project"]').should('not.be.visible')
@@ -141,7 +141,6 @@ describe('FlowForge - Projects', () => {
         cy.wait('@getProject')
 
         cy.get('[data-nav="project-settings"]').click()
-        cy.get('[data-nav="danger"]').click()
         cy.get('[data-nav="change-project-settings"]').click()
 
         cy.intercept('PUT', '/api/*/projects/*').as('updateProject')
@@ -178,7 +177,6 @@ describe('FlowForge - Projects', () => {
 
         // Put it back how it was
         cy.get('[data-nav="project-settings"]').click()
-        cy.get('[data-nav="danger"]').click()
         cy.get('[data-nav="change-project-settings"]').click()
 
         cy.get('[data-el="change-project"]').within(($form) => {
@@ -223,7 +221,6 @@ describe('FlowForge - Projects', () => {
         cy.wait('@getProject')
 
         cy.get('[data-nav="project-settings"]').click()
-        cy.get('[data-nav="danger"]').click()
         cy.get('[data-nav="copy-project"]').click()
 
         // Does not use same name
