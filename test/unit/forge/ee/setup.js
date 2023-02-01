@@ -37,20 +37,45 @@ module.exports = async function (config = {}) {
     template.setOwner(userAlice)
     await template.save()
 
+    const projectTypeProperties = {
+        name: 'projectType1',
+        description: 'default project type',
+        active: true,
+        properties: { foo: 'bar' },
+        order: 1
+    }
+    const projectType = await forge.db.models.ProjectType.create(projectTypeProperties)
+
     const stackProperties = {
         name: 'stack1',
         active: true,
         properties: { nodered: '2.2.2' }
     }
     const stack = await forge.db.models.ProjectStack.create(stackProperties)
+    await stack.setProjectType(forge.projectType)
 
     const subscription = 'sub_1234567890'
     const customer = 'cus_1234567890'
     await forge.db.controllers.Subscription.createSubscription(team1, subscription, customer)
 
+    const project = await forge.db.models.Project.create({ name: 'project1', type: '', url: '' })
+    await team1.addProject(project)
+    await project.setProjectStack(stack)
+    await project.setProjectTemplate(template)
+    await project.setProjectType(projectType)
+    await project.reload({
+        include: [
+            { model: forge.db.models.Team },
+            { model: forge.db.models.ProjectStack },
+            { model: forge.db.models.ProjectType }
+        ]
+    })
+
     forge.user = userAlice
     forge.team = team1
     forge.stack = stack
+    forge.projectType = projectType
+    forge.project = project
 
     return forge
 }

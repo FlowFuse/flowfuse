@@ -1,4 +1,4 @@
-const { KEY_BILLING_STATE } = require('../../../db/models/ProjectSettings')
+const { KEY_BILLING_STATE } = require('../db/models/ProjectSettings')
 
 class SubscriptionHandler {
     constructor (app) {
@@ -80,7 +80,7 @@ module.exports = {
         }
         this._subscriptionHandler = new SubscriptionHandler(app)
         this._isBillingEnabled = () => {
-            return app.license.active() && app.billing
+            return app.license.active() && !!app.billing
         }
     },
     /**
