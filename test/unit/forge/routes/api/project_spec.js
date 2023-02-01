@@ -5,7 +5,8 @@ const crypto = require('crypto')
 const sleep = require('util').promisify(setTimeout)
 const setup = require('../setup')
 
-const { KEY_HOSTNAME } = require('../../../../../forge/db/models/ProjectSettings')
+const { KEY_HOSTNAME } = FF_UTIL.require('forge/db/models/ProjectSettings')
+const { START_DELAY, STOP_DELAY } = FF_UTIL.require('forge/containers/stub/index.js')
 
 function encryptCredentials (key, plain) {
     const initVector = crypto.randomBytes(16)
@@ -1026,7 +1027,7 @@ describe('Project API', function () {
                     cookies: { sid: TestObjects.tokens.alice }
                 })
                 response.statusCode.should.equal(200)
-                await sleep(850) // "Update a project" returns early so it is necessary to wait at least 250ms+500ms (stop/start time as set in stub driver)
+                await sleep(STOP_DELAY + START_DELAY + 50) // "Update a project" returns early so it is necessary to wait (stop/start time as set in stub driver)
                 const newAccessToken = (await newProject.refreshAuthTokens()).token
                 const runtimeSettings = (await app.inject({
                     method: 'GET',
@@ -1091,7 +1092,7 @@ describe('Project API', function () {
                         cookies: { sid: TestObjects.tokens.alice }
                     })
                     response.statusCode.should.equal(200)
-                    await sleep(850) // "Update a project" returns early so it is necessary to wait at least 250ms+500ms (stop/start time as set in stub driver)
+                    await sleep(STOP_DELAY + START_DELAY + 50) // "Update a project" returns early so it is necessary to wai (stop/start time as set in stub driver)
                     const newAccessToken = (await newProject.refreshAuthTokens()).token
                     const runtimeSettings = (await app.inject({
                         method: 'GET',
@@ -1171,7 +1172,7 @@ describe('Project API', function () {
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
-            await sleep(850) // "Update a project" returns early so it is necessary to wait at least 250ms+500ms (stop/start time as set in stub driver)
+
             const newSettings = await TestObjects.project1.getSetting('settings')
             newSettings.should.have.property('codeEditor', 'ace') // should be changed
             newSettings.should.have.property('httpAdminRoot', '/test-red') // should be unchanged
@@ -1226,7 +1227,7 @@ describe('Project API', function () {
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
-            await sleep(850) // "Update a project" returns early so it is necessary to wait at least 250ms+500ms (stop/start time as set in stub driver)
+
             const newSettings = await TestObjects.project1.getSetting('settings')
             newSettings.should.have.property('codeEditor', 'monaco') // should be unchanged
             newSettings.should.have.property('httpAdminRoot', '/test-red') // should be unchanged
@@ -1266,7 +1267,7 @@ describe('Project API', function () {
                 cookies: { sid: TestObjects.tokens.bob }
             })
             response.statusCode.should.equal(200)
-            await sleep(850) // "Update a project" returns early so it is necessary to wait at least 250ms+500ms (stop/start time as set in stub driver)
+
             const newSettings = await TestObjects.project1.getSetting('settings')
             newSettings.should.have.property('codeEditor', 'monaco') // should be unchanged
             newSettings.should.have.property('httpAdminRoot', '/test-red') // should be unchanged
@@ -1416,7 +1417,7 @@ describe('Project API', function () {
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
-            await sleep(850) // "Update a project" returns early so it is necessary to wait at least 250ms+500ms (stop/start time as set in stub driver)
+            await sleep(STOP_DELAY + START_DELAY + 50) // "Update a project" returns early so it is necessary to wait (stop/start time as set in stub driver)
 
             const newAccessToken = (await newProject.refreshAuthTokens()).token
             const newFlows = await getProjectInfo(newProject.id, newAccessToken, 'flows')
@@ -1499,7 +1500,7 @@ describe('Project API', function () {
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
-            await sleep(850) // "Update a project" returns early so it is necessary to wait at least 250ms+500ms (stop/start time as set in stub driver)
+            await sleep(STOP_DELAY + START_DELAY + 50) // "Update a project" returns early so it is necessary to wait (stop/start time as set in stub driver)
             const newAccessToken = (await newProject.refreshAuthTokens()).token
             const runtimeSettings = (await app.inject({
                 method: 'GET',
@@ -1569,7 +1570,7 @@ describe('Project API', function () {
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
-            await sleep(850) // "Update a project" returns early so it is necessary to wait at least 250ms+500ms (stop/start time as set in stub driver)
+            await sleep(STOP_DELAY + START_DELAY + 50) // "Update a project" returns early so it is necessary to wait (stop/start time as set in stub driver)
             const newAccessToken = (await newProject.refreshAuthTokens()).token
             const runtimeSettings = (await app.inject({
                 method: 'GET',
@@ -1628,7 +1629,7 @@ describe('Project API', function () {
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
-            await sleep(850) // "Update a project" returns early so it is necessary to wait at least 250ms+500ms (stop/start time as set in stub driver)
+            await sleep(STOP_DELAY + START_DELAY + 50) // "Update a project" returns early so it is necessary to wait (stop/start time as set in stub driver)
             const newAccessToken = (await newProject.refreshAuthTokens()).token
             const newCreds = await getProjectInfo(newProject.id, newAccessToken, 'credentials')
             Object.keys(newCreds).should.have.length(0)
@@ -1674,7 +1675,7 @@ describe('Project API', function () {
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
-            await sleep(850) // "Update a project" returns early so it is necessary to wait at least 250ms+500ms (stop/start time as set in stub driver)
+            await sleep(STOP_DELAY + START_DELAY + 50) // "Update a project" returns early so it is necessary to wait (stop/start time as set in stub driver)
             const newAccessToken = (await newProject.refreshAuthTokens()).token
             // Flows should be empty
             const newFlows = await getProjectInfo(newProject.id, newAccessToken, 'flows')
