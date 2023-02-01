@@ -793,9 +793,17 @@ describe('Project API', function () {
 
                 response.statusCode.should.equal(200)
 
-                // Project is stopped and restarted async and returns early
-                // Wait for at least 250ms+500ms (stop/start time as set in stub driver)
-                await sleep(800)
+                // Project is stopped and restarted async
+                // Wait for time stub driver takes to stop project
+                await sleep(STOP_DELAY)
+                await project.reload()
+
+                // Project has been stopped but is presented as "starting"
+                project.state.should.equal('suspended')
+                app.db.controllers.Project.getInflightState(project).should.equal('starting')
+
+                // Wait for at least start delay as set in stub driver
+                await sleep(START_DELAY + 100)
 
                 await project.reload({
                     include: [
@@ -804,6 +812,11 @@ describe('Project API', function () {
                     ]
                 })
 
+                // Project is re-running
+                project.state.should.equal('running')
+                should(app.db.controllers.Project.getInflightState(project)).equal(undefined)
+
+                // Type and stack updated
                 project.ProjectType.id.should.equal(projectType.id)
                 project.ProjectStack.id.should.equal(stack.id)
 
@@ -847,9 +860,17 @@ describe('Project API', function () {
 
                 response.statusCode.should.equal(200)
 
-                // Project is stopped and restarted async and returns early
-                // Wait for at least 250ms+500ms (stop/start time as set in stub driver)
-                await sleep(800)
+                // Project is stopped and restarted async
+                // Wait for time stub driver takes to stop project
+                await sleep(STOP_DELAY)
+                await project.reload()
+
+                // Project has been stopped but is presented as "starting"
+                project.state.should.equal('suspended')
+                app.db.controllers.Project.getInflightState(project).should.equal('starting')
+
+                // Wait for at least start delay as set in stub driver
+                await sleep(START_DELAY + 100)
 
                 await project.reload({
                     include: [
@@ -858,6 +879,11 @@ describe('Project API', function () {
                     ]
                 })
 
+                // Project is re-running
+                project.state.should.equal('running')
+                should(app.db.controllers.Project.getInflightState(project)).equal(undefined)
+
+                // Stack has been updated
                 project.ProjectType.id.should.equal(projectType.id)
                 project.ProjectStack.id.should.equal(stack.id)
 
