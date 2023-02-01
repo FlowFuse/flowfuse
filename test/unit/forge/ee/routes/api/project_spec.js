@@ -13,7 +13,6 @@ describe('Projects API - with billing enabled', function () {
     const TestObjects = { tokens: {} }
 
     let app
-    let stripe
 
     async function login (username, password) {
         const response = await app.inject({
@@ -26,28 +25,7 @@ describe('Projects API - with billing enabled', function () {
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
-    async function getLog () {
-        const logs = await app.db.models.AuditLog.forEntity()
-        logs.log.should.have.length(1)
-        return (await app.db.views.AuditLog.auditLog({ log: logs.log })).log[0]
-    }
-
-    function setupStripe (mock) {
-        require.cache[require.resolve('stripe')] = {
-            exports: function (apiKey) {
-                return mock
-            }
-        }
-        stripe = mock
-    }
-
     beforeEach(async function () {
-        setupStripe({
-            customers: {
-                createBalanceTransaction: sinon.stub().resolves({ status: 'ok' })
-            }
-        })
-
         app = await setup()
         sandbox.stub(app.log, 'info')
         sandbox.stub(app.log, 'warn')
@@ -63,7 +41,7 @@ describe('Projects API - with billing enabled', function () {
         sandbox.restore()
     })
 
-    describe.only('Update Project', function () {
+    describe('Update Project', function () {
         describe('Change project type', function () {
             it('Removes and re-adds the project to billing', async function () {
                 const project = app.project
