@@ -1,4 +1,5 @@
 <template>
+    <FormHeading class="mb-6">Project Details</FormHeading>
     <div class="space-y-6">
         <FormRow v-model="input.projectId" type="uneditable" id="projectId" inputClass="font-mono">
             Project ID
@@ -23,12 +24,14 @@
         <FormRow v-model="input.templateName" type="uneditable">
             Template
         </FormRow>
-
+        <DangerSettings :project="project"/>
     </div>
 </template>
 
 <script>
 import FormRow from '@/components/FormRow'
+import FormHeading from '@/components/FormHeading'
+import DangerSettings from './Danger.vue'
 
 export default {
     name: 'ProjectSettings',
@@ -81,7 +84,9 @@ export default {
         }
     },
     components: {
-        FormRow
+        FormRow,
+        FormHeading,
+        DangerSettings
     }
 }
 </script>
