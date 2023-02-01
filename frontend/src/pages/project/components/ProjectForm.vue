@@ -75,9 +75,10 @@
                     :key="index"
                     :label="projType.name"
                     :description="projType.description"
-                    :price="projType.properties?.billingDescription?.split('/')[0]"
-                    :price-interval="projType.properties?.billingDescription?.split('/')[1]"
+                    :price="projType.price"
+                    :price-interval="projType.priceInterval"
                     :value="projType.id"
+                    :disabled="projType.disabled"
                 />
             </ff-tile-selection>
         </div>
@@ -157,6 +158,7 @@
                 v-model:confirmed="input.billingConfirmation"
                 :project-type="selectedProjectType"
                 :subscription="subscription"
+                :trialMode="team.billing?.trial && !team.billing?.active"
             />
         </div>
 
@@ -195,9 +197,9 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
 
 import { RefreshIcon } from '@heroicons/vue/outline'
-import { ChevronLeftIcon } from '@heroicons/vue/solid'
 
 import ExportProjectComponents from './ExportProjectComponents'
 import ProjectChargesTable from './ProjectChargesTable'
@@ -251,10 +253,6 @@ export default {
         const project = this.project || this.sourceProject
 
         return {
-            mounted: false,
-            icons: {
-                chevronLeft: ChevronLeftIcon
-            },
             stacks: [],
             templates: [],
             projectTypes: [],
@@ -286,6 +284,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['settings']),
         creatingNew () {
             return !this.project?.id
         },
@@ -311,8 +310,7 @@ export default {
               (this.creatingNew ? (this.input.template && !this.errors.template) : true)
         },
         submitEnabled () {
-            const billingConfirmed = (this.showBilling ? this.input.billingConfirmation : true)
-
+            const billingConfirmed = !this.showBilling || this.team.billing?.trial || this.input.billingConfirmation
             return billingConfirmed && this.formValid && this.formDirty
         }
     },
@@ -333,14 +331,48 @@ export default {
     async created () {
         const projectTypesPromise = projectTypesApi.getProjectTypes()
         const templateListPromise = templatesApi.getTemplates()
-        const subscriptionPromise = billingApi.getSubscriptionInfo(this.team.id)
 
         this.projectTypes = (await projectTypesPromise).types
         this.templates = (await templateListPromise).templates.filter(template => template.active)
-        this.subscription = await subscriptionPromise
+
+        let activeProjectTypeCount = this.projectTypes.length
+        if (this.billingEnabled) {
+            try {
+                this.subscription = await billingApi.getSubscriptionInfo(this.team.id)
+            } catch (err) {
+                if (err.response?.data?.code === 'not_found') {
+                    // This team has no subscription.
+                    if (!this.team.billing?.trial || this.team.billing?.trialEnded) {
+                        throw err
+                    }
+                }
+            }
+            this.projectTypes.forEach(pt => {
+                if (pt.properties?.billingDescription) {
+                    pt.price = pt.properties?.billingDescription?.split('/')[0]
+                    pt.priceInterval = pt.properties?.billingDescription?.split('/')[1]
+                }
+                if (this.team.billing?.trial) {
+                    const isTrialProjectType = pt.id === this.settings['user:team:trial-mode:projectType']
+                    if (!this.team.billing?.active) {
+                        // No active billing - only allow the trial project type
+                        pt.disabled = !isTrialProjectType
+                    }
+                    if (isTrialProjectType && this.team.billing?.trialProjectAllowed) {
+                        pt.price = 'Free Trial'
+                        pt.priceInterval = pt.properties?.billingDescription
+                    }
+                    if (pt.disabled) {
+                        activeProjectTypeCount--
+                    }
+                }
+            })
+        }
 
         if (this.projectTypes.length === 0) {
             this.errors.projectType = 'No project types available. Ask an Administrator to create a new project type'
+        } else if (activeProjectTypeCount === 1) {
+            this.input.projectType = this.projectTypes.find(pt => !pt.disabled).id
         }
 
         if (this.creatingNew && this.templates.length === 0) {
@@ -357,14 +389,28 @@ export default {
         }
     },
     async beforeMount () {
-        if (this.billing && !this.team.billingSetup) {
+        // Redirect to billing if:
+        // - billing feature is enabled, and:
+        // - team has no billing configured and:
+        //    - team is not a trial team, or:
+        //    - team is a trial team and:
+        //       - has expired, or:
+        //       - already has a project created
+        if (this.billingEnabled &&
+            !this.team.billing?.active &&
+            (
+                this.team.billing?.canceled ||
+                (
+                    !this.team.billing?.trial || (
+                        this.team.billing?.trialEnded || this.team.projectCount > 0
+                    )
+                )
+            )
+        ) {
             this.$router.push({
                 path: `/team/${this.team.slug}/billing`
             })
         }
-    },
-    async mounted () {
-        this.mounted = true
     },
     methods: {
         refreshName () {

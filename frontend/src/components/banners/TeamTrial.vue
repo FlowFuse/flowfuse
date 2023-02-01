@@ -1,6 +1,6 @@
 <template>
     <div
-        v-if="trialEndsIn > 0"
+        v-if="team.billing?.trial"
         class="ff-banner ff-banner-warning"
         :class="{
             'cursor-pointer': linkToBilling
@@ -10,9 +10,21 @@
     >
         <span >
             <ExclamationCircleIcon class="ff-icon mr-2" />
-            <span v-if="!isTrialEnded">You have <span class="font-bold">{{ trialEndsIn }} days left</span> of your free trial.</span>
-            <span v-else>Your trial has eneded.</span>
-            Click here to setup billing at any time to keep your project running after the trial the ends.
+            <span v-if="!team.billing?.trialEnded">
+                You have <span class="font-bold">{{ trialEndsIn }} left</span> of your free trial.
+                <span v-if="team.billing?.active">
+                    You trial projects will be added to your billing subscription at the end of your trial.
+                </span>
+                <span v-else>
+                    Click here to setup billing at any time to keep your project running after the trial the ends.
+                </span>
+            </span>
+            <span v-else>
+                Your trial has ended.
+                <span v-if="!team.billing?.active">
+                    You will need to setup billing to continuing using this team.
+                </span>
+            </span>
         </span>
         <template v-if="linkToBilling">
             <ChevronRightIcon class="ff-icon align-self-right" />
@@ -51,29 +63,14 @@ export default {
         onBillingPage () {
             return this.$route.path.includes(this.billingPath)
         },
-        isTrialMode: function () {
-            return !!this.team.trialEndsAt
-        },
-        isTrialEnded: function () {
-            if (this.team.trialEndsAt) {
-                const trialEndDate = new Date(this.team.trialEndsAt)
-                return trialEndDate < Date.now()
-            }
-            return true
-        },
         trialEndsIn () {
-            if (this.team.trialEndsAt) {
-                const trialEndDate = new Date(this.team.trialEndsAt)
-                return Math.ceil((trialEndDate.getTime() - Date.now()) / 86400000)
+            if (this.team.billing?.trialEndsAt) {
+                const trialEndDate = new Date(this.team.billing.trialEndsAt)
+                const daysLeft = Math.ceil((trialEndDate.getTime() - Date.now()) / 86400000)
+                return daysLeft + ' day' + (daysLeft !== 1 ? 's' : '')
             }
-            return -1
+            return ''
         }
-        // subscriptionExpired () {
-        //     if (this.team.trialEndsAt) {
-        //         const trialEndDate
-        //     }
-        //     return this.team.billingSetup && !this.team.subscriptionActive
-        // }
     },
     methods: {
         navigateToBilling () {

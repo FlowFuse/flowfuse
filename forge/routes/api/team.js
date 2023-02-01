@@ -66,11 +66,19 @@ module.exports = async function (app) {
     async function getTeamDetails (request, reply, team) {
         const result = app.db.views.Team.team(team)
         if (app.license.active() && app.billing) {
+            result.billing = {}
             const subscription = await app.db.models.Subscription.byTeamId(team.id)
-            result.billingSetup = subscription && !subscription.isTrial()
-            result.subscriptionActive = !!subscription?.isActive()
-            if (subscription?.trialEndsAt) {
-                result.trialEndsAt = subscription.trialEndsAt
+            if (subscription) {
+                result.billing.active = subscription.isActive()
+                result.billing.canceled = subscription.isCanceled()
+                if (subscription.isTrial()) {
+                    result.billing.trial = true
+                    result.billing.trialEnded = subscription.isTrialEnded()
+                    result.billing.trialEndsAt = subscription.trialEndsAt
+                    result.billing.trialProjectAllowed = (await team.projectCount(app.settings.get('user:team:trial-mode:projectType'))) === 0
+                }
+            } else {
+                result.billing.active = false
             }
         }
         reply.send(result)

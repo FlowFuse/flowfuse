@@ -10,7 +10,7 @@
             <Teleport v-if="mounted" to="#platform-banner">
                 <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-team-as-admin">You are viewing this team as an Administrator</div>
                 <SubscriptionExpiredBanner :team="team" />
-                <TeamTrialBanner v-if="team.trialEndsAt" :team="team" />
+                <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
             </Teleport>
             <router-view :team="team" :teamMembership="teamMembership" />
         </div>
@@ -52,12 +52,9 @@ export default {
         isVisitingAdmin: function () {
             return (this.teamMembership.role === Roles.Admin)
         },
-        isTrialMode: function () {
-            return !!this.team.trialEndsAt
-        },
         isTrialEnded: function () {
-            if (this.team.trialEndsAt) {
-                const trialEndDate = new Date(this.team.trialEndsAt)
+            if (this.team.billing?.trialEndsAt) {
+                const trialEndDate = new Date(this.team.billing?.trialEndsAt)
                 return trialEndDate < Date.now()
             }
             return true
@@ -86,8 +83,8 @@ export default {
         checkBilling: async function () {
             // Team Billing
             if (this.features.billing &&
-                (!this.isTrialMode || this.isTrialEnded) &&
-                !this.team.billingSetup
+                (!this.team.billing?.trial || this.team.billing?.trialEnded) &&
+                !this.team.billing?.active
             ) {
                 this.$router.push({
                     path: `/team/${this.team.slug}/billing`

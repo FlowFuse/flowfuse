@@ -71,7 +71,7 @@ module.exports = {
                     return this.status === STATUS.CANCELED
                 },
                 isTrial () {
-                    return !!this.trialEndsAt
+                    return !!this.trialEndsAt || this.status === STATUS.TRIAL
                 },
                 isTrialEnded () {
                     return this.isTrial() && this.trialEndsAt < Date.now()

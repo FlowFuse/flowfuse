@@ -16,6 +16,7 @@
         <Teleport v-if="mounted" to="#platform-banner">
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">You are viewing this project as an Administrator</div>
             <SubscriptionExpiredBanner :team="team" />
+            <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
         </Teleport>
         <router-view
             :project="project"
@@ -43,8 +44,8 @@ import snapshotApi from '@/api/projectSnapshots'
 
 import NavItem from '@/components/NavItem'
 import SubscriptionExpiredBanner from '@/components/banners/SubscriptionExpired.vue'
-// import SideNavigation from '@/components/SideNavigation'
-// import SideTeamSelection from '@/components/SideTeamSelection'
+import TeamTrialBanner from '@/components/banners/TeamTrial.vue'
+
 import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vue'
 
 import ProjectsIcon from '@/components/icons/Projects'
@@ -226,7 +227,8 @@ export default {
         },
         deleteProject () {
             this.loading.deleting = true
-            projectApi.deleteProject(this.project.id).then(() => {
+            projectApi.deleteProject(this.project.id).then(async () => {
+                await this.$store.dispatch('account/refreshTeam')
                 this.$router.push({ name: 'Home' })
                 alerts.emit('Project successfully deleted.', 'confirmation')
             }).catch(err => {
@@ -260,7 +262,8 @@ export default {
         NavItem,
         SideNavigationTeamOptions,
         ConfirmProjectDeleteDialog,
-        SubscriptionExpiredBanner
+        SubscriptionExpiredBanner,
+        TeamTrialBanner
     }
 }
 </script>

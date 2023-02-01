@@ -57,7 +57,7 @@ export default {
             return this.$route.path.includes(this.billingPath)
         },
         subscriptionExpired () {
-            return this.team.billingSetup && !this.team.subscriptionActive
+            return this.team.billing?.canceled
         }
     },
     methods: {
