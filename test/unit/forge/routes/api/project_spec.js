@@ -785,13 +785,16 @@ describe('Project API', function () {
                     url: `/api/v1/projects/${TestObjects.project1.id}`,
                     payload: {
                         projectType: projectType.id,
-                        stack: stack.id,
-                        changeProjectDefinition: true
+                        stack: stack.id
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
 
                 response.statusCode.should.equal(200)
+
+                // Project is stopped and restarted async and returns early
+                // Wait for at least 250ms+500ms (stop/start time as set in stub driver)
+                await sleep(800)
 
                 await project.reload({
                     include: [
@@ -813,10 +816,6 @@ describe('Project API', function () {
                 })).json()
                 runtimeSettings.should.have.property('state', 'running')
                 runtimeSettings.should.have.property('stack', { nodered: '9.9.9' })
-
-                // Sleep so the project finishes starting before test ends (as set in stub driver)
-                // This avoids the project start being logged after the project has been torn down
-                await sleep(400)
             })
 
             it('Can change only the stack, keeping the project type the same', async function () {
@@ -840,13 +839,16 @@ describe('Project API', function () {
                     url: `/api/v1/projects/${TestObjects.project1.id}`,
                     payload: {
                         projectType: projectType.id,
-                        stack: stack.id,
-                        changeProjectDefinition: true
+                        stack: stack.id
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
 
                 response.statusCode.should.equal(200)
+
+                // Project is stopped and restarted async and returns early
+                // Wait for at least 250ms+500ms (stop/start time as set in stub driver)
+                await sleep(800)
 
                 await project.reload({
                     include: [
@@ -868,38 +870,20 @@ describe('Project API', function () {
                 })).json()
                 runtimeSettings.should.have.property('state', 'running')
                 runtimeSettings.should.have.property('stack', { nodered: '9.9.8' })
-
-                // Sleep so the project finishes starting before test ends (as set in stub driver)
-                // This avoids the project start being logged after the project has been torn down
-                await sleep(400)
             })
 
-            it('Requires both the type and stack to be specified', async function () {
+            it('Requires the project type to be specified with a stack', async function () {
                 const response1 = await app.inject({
                     method: 'PUT',
                     url: `/api/v1/projects/${TestObjects.project1.id}`,
                     payload: {
-                        projectType: 123,
-                        changeProjectDefinition: true
+                        projectType: TestObjects.projectType1.id
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
 
                 response1.statusCode.should.equal(400)
                 response1.json().should.have.property('code', 'invalid_request')
-
-                const response2 = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/projects/${TestObjects.project1.id}`,
-                    payload: {
-                        stack: 123,
-                        changeProjectDefinition: true
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-
-                response2.statusCode.should.equal(400)
-                response2.json().should.have.property('code', 'invalid_request')
             })
 
             it('Requires both the type and stack to exist', async function () {
@@ -908,8 +892,7 @@ describe('Project API', function () {
                     url: `/api/v1/projects/${TestObjects.project1.id}`,
                     payload: {
                         projectType: 123,
-                        stack: 123,
-                        changeProjectDefinition: true
+                        stack: 123
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -922,8 +905,7 @@ describe('Project API', function () {
                     url: `/api/v1/projects/${TestObjects.project1.id}`,
                     payload: {
                         projectType: TestObjects.projectType1.id,
-                        stack: 123,
-                        changeProjectDefinition: true
+                        stack: 123
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -979,7 +961,7 @@ describe('Project API', function () {
                     response.statusCode.should.equal(400)
                 })
 
-                it('Can change project-type if not set', async function () {
+                it('Can change only project-type (without stack) if not set', async function () {
                     const project2 = await app.db.models.Project.create({ name: 'project2', type: '', url: '' })
                     await TestObjects.ATeam.addProject(project2)
                     await project2.setProjectStack(TestObjects.stack1)
