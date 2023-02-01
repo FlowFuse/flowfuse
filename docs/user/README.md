@@ -42,3 +42,13 @@ FlowForge supports reading and writing persistent files and persistent context.
 
  - [Working with Files](filenodes.md)
  - [Working with Context](persistent-context.md)
+
+## Debugging and fixing Node-RED issues
+
+### Node-RED Safe Mode
+
+When a Node-RED instance is unresponsive, for example due to an infinate loop,
+it can be put into Safe Mode. This is done by updating the [Enivronment Variables](envvar.md)
+for a project. Set `NODE_RED_ENABLE_SAFE_MODE` as variable name to the value
+`true`, then suspend and restart the project. This will load the editor but not
+start the flow which will let you log in and recover.
