@@ -375,9 +375,11 @@ module.exports = async function (app) {
         if (request.body.changeProjectDefinition === true) {
             if (!request.body.projectType) {
                 reply.code(400).send({ code: 'invalid_request', error: 'Invalid project type' })
+                return
             }
             if (!request.body.stack) {
                 reply.code(400).send({ code: 'invalid_request', error: 'Invalid stack' })
+                return
             }
             const newProjectType = await app.db.models.ProjectType.byId(request.body.projectType)
             if (!newProjectType) {
