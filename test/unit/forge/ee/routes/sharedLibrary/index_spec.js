@@ -10,8 +10,7 @@ describe('Library Storage API', function () {
 
     beforeEach(async function () {
         app = await setup()
-        project = await app.db.models.Project.create({ name: 'project1', type: '', url: '' })
-        await app.team.addProject(project)
+        project = app.project
         tokens = await project.refreshAuthTokens()
         project2 = await app.db.models.Project.create({ name: 'project2', type: '', url: '' })
         await app.team.addProject(project2)
