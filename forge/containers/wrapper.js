@@ -40,7 +40,7 @@ class SubscriptionHandler {
      * @param {*} project
      * @param {*} options
      */
-    async removeProject (project, { skipBilling = false }) {
+    async removeProject (project, { skipBilling = false } = {}) {
         const subscription = await this.requireSubscription(project.Team)
         if (subscription.isCanceled()) {
             this._app.log.warn(`Skipped removing project '${project.id}' from subscription for canceled subscription '${subscription.subscription}'`)

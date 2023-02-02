@@ -30,7 +30,8 @@ describe('Projects API - with billing enabled', function () {
         sandbox.stub(app.log, 'info')
         sandbox.stub(app.log, 'warn')
         sandbox.stub(app.log, 'error')
-        sandbox.stub(app.billing)
+        sandbox.stub(app.billing, 'addProject')
+        sandbox.stub(app.billing, 'removeProject')
 
         await login('alice', 'aaPassword')
     })
