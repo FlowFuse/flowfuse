@@ -175,6 +175,12 @@
         @apply border-green-400;
         @apply text-green-700;
     }
+    .forge-status-importing {
+        @apply bg-green-100;
+        @apply border-green-300;
+        @apply border-dashed;
+        @apply text-green-700;
+    }
 
     th {
         @apply text-left;

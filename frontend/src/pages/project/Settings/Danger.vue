@@ -220,8 +220,15 @@ export default {
             this.changeStack(this.project.stack.replacedBy)
         },
         exportProject (parts) {
+            console.log('export project')
             // call projectApi to generate zipped json
             projectApi.exportProject(this.project.id, parts)
+                .then(() => {
+                    alerts.emit('Project export has started successfully.', 'confirmation')
+                })
+                .catch(() => {
+                    alerts.emit('Something went wrong. Project was not exported.', 'warning')
+                })
         },
         duplicateProject (parts) {
             this.loading.duplicating = true
@@ -236,10 +243,17 @@ export default {
             })
         },
         exportToProject (parts) {
+            console.log('export project')
             const options = {
                 sourceProject: parts.sourceProject
             }
             projectApi.updateProject(parts.target, options)
+                .then(() => {
+                    alerts.emit(`Project export to '${parts.target}' has successfully started`, 'confirmation')
+                })
+                .catch(() => {
+                    alerts.emit('Something went wrong. Project was not exported.', 'warning')
+                })
         },
         importProject (parts) {
             this.loading.importing = true

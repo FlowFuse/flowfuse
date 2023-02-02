@@ -465,6 +465,8 @@ module.exports = async function (app) {
                 reply.code(403).send('Source Project and Target not in same team')
             }
 
+            app.db.controllers.Project.setInflightState(request.project, 'importing')
+
             reply.send({})
 
             const { resumeProject, targetState } = await suspendProject()

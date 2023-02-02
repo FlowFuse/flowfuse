@@ -35,7 +35,6 @@ import DangerSettings from './Danger.vue'
 
 export default {
     name: 'ProjectSettings',
-
     props: ['project'],
     data () {
         return {
