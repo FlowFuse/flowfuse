@@ -491,7 +491,11 @@ module.exports = async function (app) {
                 reply.code(200).send({})
                 repliedEarly = true
 
-                const result = await suspendProject()
+                const suspendOptions = {
+                    skipBilling: changesToPersist.stack && !changesToPersist.projectType
+                }
+
+                const result = await suspendProject(request.project, suspendOptions)
                 resumeProject = result.resumeProject
                 targetState = result.targetState
             }
@@ -626,13 +630,13 @@ module.exports = async function (app) {
             }
         }
 
-        async function suspendProject (project = request.project) {
+        async function suspendProject (project = request.project, options) {
             let resumeProject = false
             const targetState = project.state
             if (project.state !== 'suspended') {
                 resumeProject = true
                 app.log.info(`Stopping project ${project.id}`)
-                await app.containers.stop(project)
+                await app.containers.stop(project, options)
                 await app.auditLog.Project.project.suspended(request.session.User, null, project)
             }
             return { resumeProject, targetState }
