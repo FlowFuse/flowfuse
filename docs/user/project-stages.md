@@ -1,4 +1,4 @@
-# Project Staging
+# Project Staged Deployments
 
 In FlowForge it is possible to configure a DevOps pipeline for your Projects,
 these are done by configuring "Stages" in the Settings of a given Project.

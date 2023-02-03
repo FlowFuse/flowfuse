@@ -20,7 +20,7 @@ For more details on these and other core concepts, you can learn about them [her
  - [Change Project Stack](changestack.md) - How to change a projects stack, for example to upgrade Node-RED.
  - [Logs](logs.md) - The Logs available in the FlowForge application.
  - [Project Link Nodes](projectnodes.md) - Custom nodes for sending messages between projects and devices.
- - [Project Staging](project-staging.md) - Instruction on how to use FlowForge projects to build a DevOps staging pipeline.
+ - [Staged Deployments](project-stages.md) - Instruction on how to use FlowForge projects to deploy to the next stage in a DevOps pipeline.
  - [Project Settings](project-settings.md) - Settings available for projects.
  - [Shared Team Library](shared-library.md) - Share flows easily between different projects in your team.
  - [Node-RED Tools Plugin](node-red-tools.md) - A plugin for Node-RED that lets you work with your projects outside of FlowForge.
