@@ -12,14 +12,17 @@
             <ChevronRightIcon class="ff-icon"></ChevronRightIcon>
         </span>
     </div>
-    <ff-data-table :columns="columns" :rows="rows">
-        <template v-slot:rows>
-            <ff-data-table-row v-for="row in rows" :key="row" :selectable="row.type === 'folder'" @click="entrySelected(row)">
-                <ff-data-table-cell><TypeIcon :type="row.type"/></ff-data-table-cell>
-                <ff-data-table-cell>{{ row.name }}</ff-data-table-cell>
-            </ff-data-table-row>
-        </template>
-    </ff-data-table>
+    <div>
+        <ff-data-table v-if="!contents" :columns="columns" :rows="rows">
+            <template v-slot:rows>
+                <ff-data-table-row v-for="row in rows" :key="row" :selectable="true" @click="entrySelected(row)">
+                    <ff-data-table-cell><TypeIcon :type="row.type"/></ff-data-table-cell>
+                    <ff-data-table-cell>{{ row.name }}</ff-data-table-cell>
+                </ff-data-table-row>
+            </template>
+        </ff-data-table>
+        <ff-code-previewer v-else :snippet="contents"></ff-code-previewer>
+    </div>
 </template>
 
 <script>
@@ -28,6 +31,7 @@ import teamApi from '@/api/team'
 import { ChevronRightIcon } from '@heroicons/vue/solid'
 import SectionTopMenu from '@/components/SectionTopMenu'
 import TypeIcon from './components/LibraryEntryTypeIcon.vue'
+import CodePreviewer from '@/components/CodePreviewer.vue'
 
 export default {
     name: 'SharedLibrary',
@@ -46,7 +50,8 @@ export default {
                 key: 'name',
                 label: 'Name'
             }],
-            rows: []
+            rows: [],
+            contents: null
         }
     },
     mounted () {
@@ -61,22 +66,26 @@ export default {
             })
         },
         entrySelected (entry) {
+            let parentDir = ''
+            this.breadcrumbs.push(entry)
+
+            for (let i = 1; i < this.breadcrumbs.length; i++) {
+                parentDir += `${this.breadcrumbs[i].name}/`
+            }
+
             if (entry.type === 'folder') {
-                let parentDir = ''
-                this.breadcrumbs.push(entry)
-
-                for (let i = 1; i < this.breadcrumbs.length; i++) {
-                    parentDir += `${this.breadcrumbs[i].name}/`
-                }
-
                 this.loadLibrary(parentDir).then((contents) => {
                     this.rows = this.formatEntries(contents, entry)
                 })
             } else {
-                console.log('TODO - handle file clicking')
+                const filepath = parentDir.substring(0, parentDir.length - 1)
+                this.loadLibrary(filepath).then((contents) => {
+                    this.contents = contents
+                })
             }
         },
         goToFolder (entry, index) {
+            this.contents = null
             this.loadLibrary(entry.path).then((contents) => {
                 this.rows = this.formatEntries(contents, this.breadcrumbs[0])
                 this.breadcrumbs = this.breadcrumbs.slice(0, index + 1)
@@ -109,6 +118,7 @@ export default {
     components: {
         SectionTopMenu,
         ChevronRightIcon,
+        'ff-code-previewer': CodePreviewer,
         TypeIcon
     }
 }
