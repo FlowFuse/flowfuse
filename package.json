@@ -72,7 +72,6 @@
         "lottie-web-vue": "^2.0.6",
         "lru-cache": "^7.14.0",
         "marked": "^4.1.1",
-        "moment": "^2.29.4",
         "mqtt": "^4.3.7",
         "nodemailer": "^6.8.0",
         "passport-saml": "^3.2.4",

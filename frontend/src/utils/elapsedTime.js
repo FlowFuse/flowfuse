@@ -1,38 +1,32 @@
-import moment from 'moment'
-
-// const SECOND = 1
-// const MINUTE = 60 * SECOND
-// const HOUR = 60 * MINUTE
-// const DAY = 24 * HOUR
-// const MONTH = 30 * DAY
-// const YEAR = 365 * DAY
 const reportTime = (s, v) => `${v} ${v !== 1 ? s + 's' : s}`
 
-export default function (to, from) {
-    const toDate = moment(to)
-    const fromDate = moment(from)
-    const years = toDate.diff(fromDate, 'years')
-    fromDate.add(years, 'years')
-    const months = toDate.diff(fromDate, 'months')
-    fromDate.add(months, 'months')
-    const days = toDate.diff(fromDate, 'days')
-    fromDate.add(days, 'days')
-    const hours = toDate.diff(fromDate, 'hours')
-    fromDate.add(hours, 'hours')
-    const minutes = toDate.diff(fromDate, 'minutes')
-    fromDate.add(minutes, 'minutes')
-    const seconds = toDate.diff(fromDate, 'seconds')
-    const periods = {
-        years,
-        months,
-        days,
-        hours,
-        minutes,
-        seconds
+const periodSeconds = {
+    years: 31536000,
+    months: 2592000,
+    weeks: 604800,
+    days: 86400,
+    hours: 3600,
+    minutes: 60,
+    seconds: 1
+}
+
+function dateDiff (to, from) {
+    let delta = Math.abs(to - from) / 1000
+    const res = {}
+
+    for (const key in periodSeconds) {
+        res[key] = Math.floor(delta / periodSeconds[key])
+        delta -= res[key] * periodSeconds[key]
     }
+
+    return res
+}
+
+export default function (to, from) {
+    const periods = dateDiff(to, from)
+
     const parts = []
     let fineGrained = true
-
     if (periods.years > 0) {
         parts.push(reportTime('year', periods.years))
         fineGrained = false

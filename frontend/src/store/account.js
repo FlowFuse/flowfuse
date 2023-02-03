@@ -172,6 +172,7 @@ const actions = {
 
             if (teams.count === 0) {
                 state.commit('clearPending')
+                state.commit('setTeam', null)
                 if (/^\/team\//.test(router.currentRoute.value.path)) {
                     router.push({ name: 'Home' })
                 }

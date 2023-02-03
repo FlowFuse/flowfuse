@@ -37,6 +37,8 @@ describe('Stripe Callbacks', function () {
         sandbox.stub(app.log, 'warn')
         sandbox.stub(app.log, 'error')
         sandbox.stub(app.billing)
+
+        await app.project.destroy() // clean up test project
     })
 
     afterEach(async function () {
