@@ -8,15 +8,15 @@
         <template #input>&nbsp;</template>
     </FormRow>
 
-    <FormRow v-model="input.target" :options="projects">
+    <FormRow v-model="input.target" :options="projects" data-el="target-project">
         <template v-slot:default>Target Project</template>
     </FormRow>
 
     <div class="mt-6 flex gap-4">
-        <ff-button :disabled="!input.target || loading" @click="deploy()">
+        <ff-button :disabled="!input.target || loading" @click="deploy()" data-action="push-stage">
             {{ deploying ? 'Pushing Stage...' : 'Push to Stage' }}
         </ff-button>
-        <ff-button kind="secondary" :to="{name: 'Project', params: { 'id': input.target }}" :disabled="!input.target">
+        <ff-button kind="secondary" :to="{name: 'Project', params: { 'id': input.target }}" :disabled="!input.target" data-action="view-target-project">
             View Target Project
         </ff-button>
     </div>
@@ -84,7 +84,7 @@ export default {
             })
         },
         async loadProjects () {
-            if (this.project) {
+            if (this.project && this.project.team) {
                 const projectList = await TeamAPI.getTeamProjects(this.project.team.id)
                 this.projects = []
                 for (let i = 0; i < projectList.count; i++) {
