@@ -1,3 +1,7 @@
+---
+navGroup: Overview
+navTitle: Administering FlowForge
+---
 # Administering FlowForge
 
 ## Getting started

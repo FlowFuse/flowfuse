@@ -1,3 +1,8 @@
+---
+navGroup: Running FlowForge
+navTitle: Installing FlowForge
+---
+
 # Installing FlowForge
 
 FlowForge can be installed on most Linux distributions, Windows, and MacOS.
