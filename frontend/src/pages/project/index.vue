@@ -94,10 +94,7 @@ export default {
         }
     },
     watch: {
-        project: function () {
-            // this.updateProject()
-            this.checkAccess()
-        },
+        project: 'checkAccess',
         // 'project.id': function () {
         //     console.log('project id updated')
         //     this.updateProject()
