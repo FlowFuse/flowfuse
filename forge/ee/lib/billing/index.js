@@ -60,7 +60,14 @@ module.exports.init = async function (app) {
     }
 
     async function setProjectBillingState (project, state) {
+        if (!Object.values(BILLING_STATES).includes(state)) {
+            throw new Error(`Unsupported project billing state ${state}`)
+        }
         return await project.updateSetting(KEY_BILLING_STATE, state)
+    }
+
+    async function getProjectBillingState (project) {
+        return await project.getSetting(KEY_BILLING_STATE)
     }
 
     return {
@@ -130,7 +137,13 @@ module.exports.init = async function (app) {
             app.log.info(`Creating Subscription for team ${team.hashid}`)
             return session
         },
+
         addProject: async (team, project) => {
+            if (await getProjectBillingState(project) === BILLING_STATES.BILLED) {
+                app.log.info(`Project ${project.id} is already marked billed, skipping adding it to Subscription for team ${team.hashid}`)
+                return
+            }
+
             let projectProduct = app.config.billing.stripe.project_product
             let projectPrice = app.config.billing.stripe.project_price
             const projectType = await project.getProjectType()
@@ -198,7 +211,13 @@ module.exports.init = async function (app) {
                 }
             }
         },
+
         removeProject: async (team, project) => {
+            if (await getProjectBillingState(project) === BILLING_STATES.NOT_BILLED) {
+                app.log.info(`Project ${project.id} is already marked non-billed, skipping removing from Subscription for team ${team.hashid}`)
+                return
+            }
+
             let projectProduct = app.config.billing.stripe.project_product
             const projectType = await project.getProjectType()
             if (projectType) {
@@ -248,6 +267,7 @@ module.exports.init = async function (app) {
                 app.log.warn('Project not found in Subscription, possible Grandfathered in')
             }
         },
+
         updateTeamMemberCount: async (team) => {
             const billingIds = getBillingIdsForTeam(team)
 
@@ -276,6 +296,7 @@ module.exports.init = async function (app) {
                 }
             }
         },
+
         updateTeamDeviceCount: async (team) => {
             const billingIds = getBillingIdsForTeam(team)
             if (!billingIds.device.product) {
@@ -321,6 +342,7 @@ module.exports.init = async function (app) {
                 }
             }
         },
+
         closeSubscription: async (subscription) => {
             app.log.info(`Closing subscription for team ${subscription.Team.hashid}`)
 
@@ -384,6 +406,7 @@ module.exports.init = async function (app) {
             }
             return false
         },
+
         /**
          * Checks to see if the team is allowed to unsuspend a project.
          * @param {*} team
@@ -404,6 +427,7 @@ module.exports.init = async function (app) {
             }
             return true
         },
+
         /**
          * Sets the billing_state setting on the project if it is a trial mode project
          * This ensures it doesn't get added to billing when created
@@ -425,6 +449,8 @@ module.exports.init = async function (app) {
                     }
                 }
             }
-        }
+        },
+        getProjectBillingState,
+        setProjectBillingState
     }
 }

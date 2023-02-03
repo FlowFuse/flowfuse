@@ -14,6 +14,7 @@ const forgeUtils = require('../../db/utils')
 
 module.exports = {
     START_DELAY: 500,
+    STOP_DELAY: 250,
     /**
      * Initialises this driver
      *
@@ -134,7 +135,7 @@ module.exports = {
                 setTimeout(() => {
                     list[project.id].state = 'suspended'
                     resolve()
-                }, 250)
+                }, module.exports.STOP_DELAY)
             })
         } else {
             throw new Error(`${project.id} not found`)

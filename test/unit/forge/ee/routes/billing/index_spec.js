@@ -45,6 +45,8 @@ describe('Billing routes', function () {
         sandbox.stub(app.log, 'info')
         sandbox.stub(app.log, 'warn')
         sandbox.stub(app.log, 'error')
+
+        await app.project.destroy() // clean up test project
     })
 
     afterEach(async function () {

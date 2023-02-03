@@ -5,7 +5,8 @@ const crypto = require('crypto')
 const sleep = require('util').promisify(setTimeout)
 const setup = require('../setup')
 
-const { KEY_HOSTNAME } = require('../../../../../forge/db/models/ProjectSettings')
+const { KEY_HOSTNAME } = FF_UTIL.require('forge/db/models/ProjectSettings')
+const { START_DELAY, STOP_DELAY } = FF_UTIL.require('forge/containers/stub/index.js')
 
 function encryptCredentials (key, plain) {
     const initVector = crypto.randomBytes(16)
@@ -789,13 +790,24 @@ describe('Project API', function () {
                     url: `/api/v1/projects/${TestObjects.project1.id}`,
                     payload: {
                         projectType: projectType.id,
-                        stack: stack.id,
-                        changeProjectDefinition: true
+                        stack: stack.id
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
 
                 response.statusCode.should.equal(200)
+
+                // Project is stopped and restarted async
+                // Wait for time stub driver takes to stop project
+                await sleep(STOP_DELAY)
+                await project.reload()
+
+                // Project has been stopped but is presented as "starting"
+                project.state.should.equal('suspended')
+                app.db.controllers.Project.getInflightState(project).should.equal('starting')
+
+                // Wait for at least start delay as set in stub driver
+                await sleep(START_DELAY + 100)
 
                 await project.reload({
                     include: [
@@ -804,6 +816,11 @@ describe('Project API', function () {
                     ]
                 })
 
+                // Project is re-running
+                project.state.should.equal('running')
+                should(app.db.controllers.Project.getInflightState(project)).equal(undefined)
+
+                // Type and stack updated
                 project.ProjectType.id.should.equal(projectType.id)
                 project.ProjectStack.id.should.equal(stack.id)
 
@@ -817,10 +834,6 @@ describe('Project API', function () {
                 })).json()
                 runtimeSettings.should.have.property('state', 'running')
                 runtimeSettings.should.have.property('stack', { nodered: '9.9.9' })
-
-                // Sleep so the project finishes starting before test ends (as set in stub driver)
-                // This avoids the project start being logged after the project has been torn down
-                await sleep(400)
             })
 
             it('Can change only the stack, keeping the project type the same', async function () {
@@ -844,13 +857,24 @@ describe('Project API', function () {
                     url: `/api/v1/projects/${TestObjects.project1.id}`,
                     payload: {
                         projectType: projectType.id,
-                        stack: stack.id,
-                        changeProjectDefinition: true
+                        stack: stack.id
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
 
                 response.statusCode.should.equal(200)
+
+                // Project is stopped and restarted async
+                // Wait for time stub driver takes to stop project
+                await sleep(STOP_DELAY)
+                await project.reload()
+
+                // Project has been stopped but is presented as "starting"
+                project.state.should.equal('suspended')
+                app.db.controllers.Project.getInflightState(project).should.equal('starting')
+
+                // Wait for at least start delay as set in stub driver
+                await sleep(START_DELAY + 100)
 
                 await project.reload({
                     include: [
@@ -859,6 +883,11 @@ describe('Project API', function () {
                     ]
                 })
 
+                // Project is re-running
+                project.state.should.equal('running')
+                should(app.db.controllers.Project.getInflightState(project)).equal(undefined)
+
+                // Stack has been updated
                 project.ProjectType.id.should.equal(projectType.id)
                 project.ProjectStack.id.should.equal(stack.id)
 
@@ -872,38 +901,20 @@ describe('Project API', function () {
                 })).json()
                 runtimeSettings.should.have.property('state', 'running')
                 runtimeSettings.should.have.property('stack', { nodered: '9.9.8' })
-
-                // Sleep so the project finishes starting before test ends (as set in stub driver)
-                // This avoids the project start being logged after the project has been torn down
-                await sleep(400)
             })
 
-            it('Requires both the type and stack to be specified', async function () {
+            it('Requires the project type to be specified with a stack', async function () {
                 const response1 = await app.inject({
                     method: 'PUT',
                     url: `/api/v1/projects/${TestObjects.project1.id}`,
                     payload: {
-                        projectType: 123,
-                        changeProjectDefinition: true
+                        projectType: TestObjects.projectType1.id
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
 
                 response1.statusCode.should.equal(400)
                 response1.json().should.have.property('code', 'invalid_request')
-
-                const response2 = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/projects/${TestObjects.project1.id}`,
-                    payload: {
-                        stack: 123,
-                        changeProjectDefinition: true
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-
-                response2.statusCode.should.equal(400)
-                response2.json().should.have.property('code', 'invalid_request')
             })
 
             it('Requires both the type and stack to exist', async function () {
@@ -912,8 +923,7 @@ describe('Project API', function () {
                     url: `/api/v1/projects/${TestObjects.project1.id}`,
                     payload: {
                         projectType: 123,
-                        stack: 123,
-                        changeProjectDefinition: true
+                        stack: 123
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -926,8 +936,7 @@ describe('Project API', function () {
                     url: `/api/v1/projects/${TestObjects.project1.id}`,
                     payload: {
                         projectType: TestObjects.projectType1.id,
-                        stack: 123,
-                        changeProjectDefinition: true
+                        stack: 123
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -983,7 +992,7 @@ describe('Project API', function () {
                     response.statusCode.should.equal(400)
                 })
 
-                it('Can change project-type if not set', async function () {
+                it('Can change only project-type (without stack) if not set', async function () {
                     const project2 = await app.db.models.Project.create({ name: 'project2', type: '', url: '' })
                     await TestObjects.ATeam.addProject(project2)
                     await project2.setProjectStack(TestObjects.stack1)
@@ -1048,7 +1057,7 @@ describe('Project API', function () {
                     cookies: { sid: TestObjects.tokens.alice }
                 })
                 response.statusCode.should.equal(200)
-                await sleep(850) // "Update a project" returns early so it is necessary to wait at least 250ms+500ms (stop/start time as set in stub driver)
+                await sleep(STOP_DELAY + START_DELAY + 50) // "Update a project" returns early so it is necessary to wait (stop/start time as set in stub driver)
                 const newAccessToken = (await newProject.refreshAuthTokens()).token
                 const runtimeSettings = (await app.inject({
                     method: 'GET',
@@ -1113,7 +1122,7 @@ describe('Project API', function () {
                         cookies: { sid: TestObjects.tokens.alice }
                     })
                     response.statusCode.should.equal(200)
-                    await sleep(850) // "Update a project" returns early so it is necessary to wait at least 250ms+500ms (stop/start time as set in stub driver)
+                    await sleep(STOP_DELAY + START_DELAY + 50) // "Update a project" returns early so it is necessary to wai (stop/start time as set in stub driver)
                     const newAccessToken = (await newProject.refreshAuthTokens()).token
                     const runtimeSettings = (await app.inject({
                         method: 'GET',
@@ -1193,7 +1202,7 @@ describe('Project API', function () {
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
-            await sleep(850) // "Update a project" returns early so it is necessary to wait at least 250ms+500ms (stop/start time as set in stub driver)
+
             const newSettings = await TestObjects.project1.getSetting('settings')
             newSettings.should.have.property('codeEditor', 'ace') // should be changed
             newSettings.should.have.property('httpAdminRoot', '/test-red') // should be unchanged
@@ -1248,7 +1257,7 @@ describe('Project API', function () {
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
-            await sleep(850) // "Update a project" returns early so it is necessary to wait at least 250ms+500ms (stop/start time as set in stub driver)
+
             const newSettings = await TestObjects.project1.getSetting('settings')
             newSettings.should.have.property('codeEditor', 'monaco') // should be unchanged
             newSettings.should.have.property('httpAdminRoot', '/test-red') // should be unchanged
@@ -1288,7 +1297,7 @@ describe('Project API', function () {
                 cookies: { sid: TestObjects.tokens.bob }
             })
             response.statusCode.should.equal(200)
-            await sleep(850) // "Update a project" returns early so it is necessary to wait at least 250ms+500ms (stop/start time as set in stub driver)
+
             const newSettings = await TestObjects.project1.getSetting('settings')
             newSettings.should.have.property('codeEditor', 'monaco') // should be unchanged
             newSettings.should.have.property('httpAdminRoot', '/test-red') // should be unchanged
@@ -1438,7 +1447,7 @@ describe('Project API', function () {
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
-            await sleep(850) // "Update a project" returns early so it is necessary to wait at least 250ms+500ms (stop/start time as set in stub driver)
+            await sleep(STOP_DELAY + START_DELAY + 50) // "Update a project" returns early so it is necessary to wait (stop/start time as set in stub driver)
 
             const newAccessToken = (await newProject.refreshAuthTokens()).token
             const newFlows = await getProjectInfo(newProject.id, newAccessToken, 'flows')
@@ -1521,7 +1530,7 @@ describe('Project API', function () {
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
-            await sleep(850) // "Update a project" returns early so it is necessary to wait at least 250ms+500ms (stop/start time as set in stub driver)
+            await sleep(STOP_DELAY + START_DELAY + 50) // "Update a project" returns early so it is necessary to wait (stop/start time as set in stub driver)
             const newAccessToken = (await newProject.refreshAuthTokens()).token
             const runtimeSettings = (await app.inject({
                 method: 'GET',
@@ -1591,7 +1600,7 @@ describe('Project API', function () {
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
-            await sleep(850) // "Update a project" returns early so it is necessary to wait at least 250ms+500ms (stop/start time as set in stub driver)
+            await sleep(STOP_DELAY + START_DELAY + 50) // "Update a project" returns early so it is necessary to wait (stop/start time as set in stub driver)
             const newAccessToken = (await newProject.refreshAuthTokens()).token
             const runtimeSettings = (await app.inject({
                 method: 'GET',
@@ -1650,7 +1659,7 @@ describe('Project API', function () {
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
-            await sleep(850) // "Update a project" returns early so it is necessary to wait at least 250ms+500ms (stop/start time as set in stub driver)
+            await sleep(STOP_DELAY + START_DELAY + 50) // "Update a project" returns early so it is necessary to wait (stop/start time as set in stub driver)
             const newAccessToken = (await newProject.refreshAuthTokens()).token
             const newCreds = await getProjectInfo(newProject.id, newAccessToken, 'credentials')
             Object.keys(newCreds).should.have.length(0)
@@ -1696,7 +1705,7 @@ describe('Project API', function () {
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
-            await sleep(850) // "Update a project" returns early so it is necessary to wait at least 250ms+500ms (stop/start time as set in stub driver)
+            await sleep(STOP_DELAY + START_DELAY + 50) // "Update a project" returns early so it is necessary to wait (stop/start time as set in stub driver)
             const newAccessToken = (await newProject.refreshAuthTokens()).token
             // Flows should be empty
             const newFlows = await getProjectInfo(newProject.id, newAccessToken, 'flows')
