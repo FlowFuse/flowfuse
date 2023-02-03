@@ -2,13 +2,16 @@ const {
     DataTypes
 } = require('sequelize')
 
-// A subset of the statuses on Stripe that are important to FlowForge
-// https://stripe.com/docs/billing/subscriptions/overview#subscription-statuses
 const STATUS = {
     // Any changes to this list *must* be made via migration.
     // See forge/db/migrations/20230130-01-add-subscription-trial-date.js for example
+
+    // A subset of the statuses on Stripe that are important to FlowForge
+    // https://stripe.com/docs/billing/subscriptions/overview#subscription-statuses
     ACTIVE: 'active',
     CANCELED: 'canceled',
+
+    // Local only status, not from Stripe
     TRIAL: 'trial'
 }
 
@@ -63,7 +66,6 @@ module.exports = {
         return {
             instance: {
                 // Should this subscription be treated as active/usable
-                // Stripe states such as past_due and trialing are still active
                 isActive () {
                     return this.status === STATUS.ACTIVE
                 },
