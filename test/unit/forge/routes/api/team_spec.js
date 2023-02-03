@@ -239,4 +239,29 @@ describe('Team API', function () {
     describe('Get team audit-log', async function () {
         // GET /api/v1/teams/:teamId/audit-log
     })
+
+    describe('Check slug availability', async function () {
+        it('reports if slug is available', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/teams/check-slug',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    slug: 'new-slug'
+                }
+            })
+            response.statusCode.should.equal(200)
+        })
+        it('reports if slug is unavailable', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/teams/check-slug',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    slug: 'ateam'
+                }
+            })
+            response.statusCode.should.equal(409)
+        })
+    })
 })
