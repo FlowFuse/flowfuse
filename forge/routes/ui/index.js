@@ -42,9 +42,10 @@ module.exports = async function (app) {
             }
 
             if (telemetry.frontend.posthog?.apikey) {
+                const apihost = telemetry.frontend.posthog.apihost || 'https://app.posthog.com'
                 const apikey = telemetry.frontend.posthog.apikey
                 const options = {
-                    api_host: 'https://app.posthog.com'
+                    api_host: apihost
                 }
                 if ('capture_pageview' in telemetry.frontend.posthog) {
                     options.capture_pageview = telemetry.frontend.posthog.capture_pageview
