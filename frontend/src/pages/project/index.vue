@@ -95,11 +95,6 @@ export default {
     },
     watch: {
         project: 'checkAccess',
-        // 'project.id': function () {
-        //     console.log('project id updated')
-        //     this.updateProject()
-        //     // this.checkAccess()
-        // },
         teamMembership: 'checkAccess',
         'project.pendingStateChange': 'refreshProject'
     },
