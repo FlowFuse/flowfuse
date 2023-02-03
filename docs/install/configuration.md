@@ -112,6 +112,7 @@ For more information about this feature, see [here](/docs/admin/telemetry.md)
 Option        | Description
 --------------|------------
 `telemetry.enabled` | Enables the anonymous usage telemetry of the platform. Default: `true`
+`telemetry.frontend.posthog.apihost` | The API host for PostHog, either 'https://app.posthog.com' or 'https://eu.posthog.com'. Default: `null`
 `telemetry.frontend.posthog.apikey` | The API key provided to you from your own PostHog account. Default: `null`
 `telemetry.frontend.posthog.capture_pageview` | FlowForge is designed as to provide custom posthog `$pageview` events that provide more detail on navigation than the default, and suit a single page application better. As such, we recommend setting this to false in order to prevent duplicate `pageleave`/`pageview` events firing. Default: `true`
 
