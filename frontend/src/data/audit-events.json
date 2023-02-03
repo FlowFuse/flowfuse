@@ -32,6 +32,8 @@
         "project.stopped": "Project Stopped",
         "project.restarted": "Project Restarted",
         "project.suspended": "Project Suspended",
+        "project.copied": "Project Copied",
+        "project.imported": "Project Imported",
         "project.device.assigned": "Device Assigned to Project",
         "project.device.unassigned": "Device Unassigned from Project",
         "project.stack.changed": "Project Stack Changed",

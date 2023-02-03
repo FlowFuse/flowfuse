@@ -466,6 +466,8 @@ module.exports = async function (app) {
             }
 
             app.db.controllers.Project.setInflightState(request.project, 'importing')
+            await app.auditLog.Project.project.copied(request.session.User.id, null, sourceProject, request.project)
+            await app.auditLog.Project.project.imported(request.session.User.id, null, request.project, sourceProject)
 
             reply.send({})
 
