@@ -389,10 +389,14 @@ module.exports.init = async function (app) {
             if (!subscription) {
                 // No billing subscription - not allowed to create anything
                 return false
-            } else if (subscription.isActive()) {
+            }
+
+            if (subscription.isActive()) {
                 // Billing setup, allowed to create projects
                 return true
-            } else if (subscription.isTrial()) {
+            }
+
+            if (subscription.isTrial()) {
                 // Trial mode
                 if (subscription.isTrialEnded()) {
                     // Nothing can be created if the trial has ended
@@ -407,6 +411,7 @@ module.exports.init = async function (app) {
                     return true
                 }
             }
+
             return false
         },
 
@@ -420,14 +425,15 @@ module.exports.init = async function (app) {
             const subscription = await app.db.models.Subscription.byTeamId(team.id)
             if (subscription && subscription.isActive()) {
                 return true
-            } else {
-                if (subscription.isTrial()) {
-                    if (subscription.isTrialEnded()) {
-                        // Cannot resume if trial mode has ended
-                        return false
-                    }
+            }
+
+            if (subscription.isTrial()) {
+                if (subscription.isTrialEnded()) {
+                    // Cannot resume if trial mode has ended
+                    return false
                 }
             }
+
             return true
         },
 
@@ -438,17 +444,19 @@ module.exports.init = async function (app) {
          * @param {*} project
          */
         initialiseProjectBillingState: async (team, project) => {
-            // Check if the team is in trial mode
-            if (app.settings.get('user:team:trial-mode')) {
-                const subscription = await app.db.models.Subscription.byTeamId(team.id)
-                if (subscription.isTrial() && !subscription.isTrialEnded()) {
-                    // Check the project is eligable for trial mode
-                    if (project.ProjectType.hashid === app.settings.get('user:team:trial-mode:projectType')) {
-                        // Check this is the only project of this type in the team
-                        const existingProjectCount = await team.projectCount(project.ProjectTypeId)
-                        if (existingProjectCount === 1) {
-                            await setProjectBillingState(project, BILLING_STATES.TRIAL)
-                        }
+            // Only needed if trial-mode is enabled
+            if (!app.settings.get('user:team:trial-mode')) {
+                return
+            }
+
+            const subscription = await app.db.models.Subscription.byTeamId(team.id)
+            if (subscription.isTrial() && !subscription.isTrialEnded()) {
+                // Check the project is eligable for trial mode
+                if (project.ProjectType.hashid === app.settings.get('user:team:trial-mode:projectType')) {
+                    // Check this is the only project of this type in the team
+                    const existingProjectCount = await team.projectCount(project.ProjectTypeId)
+                    if (existingProjectCount === 1) {
+                        await setProjectBillingState(project, BILLING_STATES.TRIAL)
                     }
                 }
             }
