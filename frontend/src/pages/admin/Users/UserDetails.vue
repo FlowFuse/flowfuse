@@ -48,6 +48,7 @@ import FormHeading from '@/components/FormHeading'
 import { mapState } from 'vuex'
 import TeamCell from '@/components/tables/cells/TeamCell'
 import TeamTypeCell from '@/components/tables/cells/TeamTypeCell'
+import UserRoleCell from '@/components/tables/cells/UserRoleCell'
 import { markRaw } from 'vue'
 
 export default {
@@ -60,6 +61,7 @@ export default {
             loading: false,
             columns: [
                 { label: 'Name', class: ['w-full'], component: { is: markRaw(TeamCell) }, sortable: true },
+                { label: 'Role', component: { is: markRaw(UserRoleCell) }, sortable: true },
                 { label: 'Type', key: 'type', component: { is: markRaw(TeamTypeCell) }, sortable: true },
                 { label: 'Members', class: ['w-54', 'text-center'], key: 'memberCount', sortable: true },
                 { label: 'Projects', class: ['w-54', 'text-center'], key: 'projectCount', sortable: true }
@@ -83,6 +85,7 @@ export default {
                 this.loading = false
                 usersApi.getUserTeams(this.$route.params.id).then((result) => {
                     this.teams = result.teams
+                    console.log(this.teams)
                 }).finally(() => {
                     this.loadingTeams = false
                 })
