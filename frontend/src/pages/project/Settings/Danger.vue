@@ -220,7 +220,6 @@ export default {
             this.changeStack(this.project.stack.replacedBy)
         },
         exportProject (parts) {
-            console.log('export project')
             // call projectApi to generate zipped json
             projectApi.exportProject(this.project.id, parts)
                 .then(() => {
