@@ -76,11 +76,16 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const slug = request.body.slug.toLowerCase()
+        // Handle reserved names
+        if (slug === 'create') {
+            reply.code(409).send({ code: 'invalid_slug', error: 'Slug not available' })
+            return
+        }
         const existingCount = await app.db.models.Team.count({ where: { slug } })
         if (existingCount === 0) {
             reply.send({ status: 'okay' })
         } else {
-            reply.code(409).send({ code: 'slug_unavailable', error: 'Slug unavailable' })
+            reply.code(409).send({ code: 'invalid_slug', error: 'Slug not available' })
         }
     })
 

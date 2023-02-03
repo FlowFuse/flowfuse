@@ -12,6 +12,12 @@ const getTeams = async (cursor, limit, query) => {
     })
 }
 
+const checkSlug = async (slug) => {
+    return client.post('/api/v1/teams/check-slug', { slug }).then(res => {
+        return res.data
+    })
+}
 export default {
-    getTeams
+    getTeams,
+    checkSlug
 }

@@ -263,5 +263,16 @@ describe('Team API', function () {
             })
             response.statusCode.should.equal(409)
         })
+        it('reports if slug is reserved', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/teams/check-slug',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    slug: 'create'
+                }
+            })
+            response.statusCode.should.equal(409)
+        })
     })
 })
