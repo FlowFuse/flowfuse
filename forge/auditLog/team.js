@@ -62,6 +62,20 @@ module.exports = {
                 },
                 async credentialsGenerated (actionedBy, error, team, device) {
                     await log('team.device.credentials-generated', actionedBy, team?.id, generateBody({ error, device }))
+                },
+                provisioning: {
+                    async created (actionedBy, error, tokenId, tokenName, team, project) {
+                        const info = { tokenId, tokenName }
+                        await log('team.device.provisioning.created', actionedBy, team?.id, generateBody({ error, project, info }))
+                    },
+                    async updated (actionedBy, error, tokenId, tokenName, team, updates) {
+                        const info = { tokenId, tokenName }
+                        await log('team.device.provisioning.updated', actionedBy, team?.id, generateBody({ error, updates, info }))
+                    },
+                    async deleted (actionedBy, error, tokenId, tokenName, team) {
+                        const info = { tokenId, tokenName }
+                        await log('team.device.provisioning.deleted', actionedBy, team?.id, generateBody({ error, info }))
+                    }
                 }
             }
         }
