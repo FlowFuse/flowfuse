@@ -18,6 +18,7 @@ module.exports = async function (app) {
                 'user:tcs-required': app.settings.get('user:tcs-required'),
                 'user:tcs-url': app.settings.get('user:tcs-url'),
                 'user:tcs-date': app.settings.get('user:tcs-date'),
+                'device:auto-provisioning': app.settings.get('device:auto-provisioning'),
                 email: app.postoffice.enabled(),
                 stacks: app.containers.properties().stack || {},
                 features: app.config.features.getAllFeatures(),

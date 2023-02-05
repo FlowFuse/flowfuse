@@ -35,6 +35,9 @@ module.exports = {
     // Can user's create their own teams
     'team:create': false,
 
+    // Projects can use auto provisioning
+    'device:auto-provisioning': true,
+
     // Should we auto-create a team for a user when they register
     'user:team:auto-create': false,
 
