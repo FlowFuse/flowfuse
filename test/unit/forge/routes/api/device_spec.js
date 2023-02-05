@@ -6,6 +6,9 @@ const dbUtils = FF_UTIL.require('forge/db/utils')
 /** @type {import("mocha").describe} */
 describe('Device API', async function () {
     let app
+    /** @type {import('../../../../../forge/db/controllers/AccessToken') */
+    let AccessTokenController
+
     const TestObjects = {}
 
     async function createDevice (options) {
@@ -28,6 +31,7 @@ describe('Device API', async function () {
             setupConfig.license = this.currentTest.license
         }
         app = await setup(setupConfig)
+        AccessTokenController = app.db.controllers.AccessToken
 
         // alice : admin
         // bob
@@ -53,6 +57,12 @@ describe('Device API', async function () {
         await TestObjects.BTeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
         await TestObjects.BTeam.addUser(TestObjects.chris, { through: { role: Roles.Member } })
         await TestObjects.CTeam.addUser(TestObjects.chris, { through: { role: Roles.Owner } })
+
+        TestObjects.Project1 = app.project
+        TestObjects.provisioningTokens = {
+            token1: await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 1', TestObjects.ATeam),
+            token2: await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 2', TestObjects.ATeam, TestObjects.Project1)
+        }
 
         TestObjects.defaultTeamType = app.defaultTeamType
 
@@ -148,13 +158,124 @@ describe('Device API', async function () {
             result.should.have.property('id')
             result.should.have.property('name', 'my device')
             result.should.have.property('type', 'test device')
-            result.should.have.property('links')
-            result.should.have.property('team')
-            result.team.should.have.property('id', TestObjects.ATeam.hashid)
+            result.should.have.property('links').and.be.an.Object()
+            result.should.have.property('team').and.be.an.Object()
             result.should.not.have.property('project')
-
-            result.should.have.property('credentials')
+            result.should.have.property('credentials').and.be.an.Object()
+            
+            result.team.should.have.property('id', TestObjects.ATeam.hashid)
             result.credentials.should.have.property('token')
+        })
+
+        it('creates a device in the team using a provisioning token', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/devices',
+                body: {
+                    name: '00:11:22:33:44:55',
+                    type: 'test device',
+                    team: TestObjects.ATeam.hashid
+                },
+                headers: {
+                    authorization: `Bearer ${TestObjects.provisioningTokens.token1.token}`
+                }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('name', '00:11:22:33:44:55')
+            result.should.have.property('type', 'test device')
+            result.should.have.property('links').and.be.an.Object()
+            result.should.have.property('team').and.be.an.Object()
+            result.should.not.have.property('project')
+            result.should.have.property('credentials').and.be.an.Object()
+
+            result.team.should.have.property('id', TestObjects.ATeam.hashid)
+            result.credentials.should.have.property('token')
+        })
+
+        it('creates a device in the team and assigns it to a project using a provisioning token', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/devices',
+                body: {
+                    name: '00:11:22:33:44:55',
+                    type: 'test device',
+                    team: TestObjects.ATeam.hashid,
+                },
+                headers: {
+                    authorization: `Bearer ${TestObjects.provisioningTokens.token2.token}`
+                }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('name', '00:11:22:33:44:55')
+            result.should.have.property('type', 'test device')
+            result.should.have.property('links').and.be.an.Object()
+            result.should.have.property('team').and.be.an.Object()
+            result.should.have.property('project').and.be.an.Object()
+            result.should.have.property('credentials').and.be.an.Object()
+
+            result.team.should.have.property('id', TestObjects.ATeam.hashid)
+            result.project.should.have.property('id', TestObjects.Project1.id)
+            result.credentials.should.have.property('token')
+        })
+
+        it('should not provision a device for a different team', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/devices',
+                body: {
+                    name: '00:11:22:33:44:55',
+                    type: 'test device',
+                    team: TestObjects.BTeam.hashid,
+                },
+                headers: {
+                    authorization: `Bearer ${TestObjects.provisioningTokens.token1.token}`
+                }
+            })
+            response.statusCode.should.equal(401)
+            const result = response.json()
+            result.should.have.property('error', 'unauthorized')
+            result.should.have.property('code', 'unauthorized')
+        })
+
+        it('should not provision a device when provisioning is disabled at platform level', async function () {
+            await app.settings.set('device:auto-provisioning', false)
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/devices',
+                body: {
+                    name: '00:11:22:33:44:55',
+                    type: 'test device',
+                    team: TestObjects.ATeam.hashid,
+                },
+                headers: {
+                    authorization: `Bearer ${TestObjects.provisioningTokens.token1.token}`
+                }
+            })
+            response.statusCode.should.equal(401)
+            const result = response.json()
+            result.should.have.property('error', 'unauthorized')
+            result.should.have.property('code', 'unauthorized')
+        })
+
+        it('should not create a device if the provisioning token is invalid', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/devices',
+                body: {
+                    name: '00:11:22:33:44:55',
+                    type: 'test device',
+                    team: TestObjects.ATeam.hashid,
+                },
+                headers: {
+                    authorization: `Bearer token_does_not_exist`
+                }
+            })
+            response.statusCode.should.equal(401)
+            const result = response.json()
+            result.should.have.property('error', 'unauthorized')
+            result.should.have.property('code', 'unauthorized')
         })
 
         it('limits how many devices can be added to a team according to TeamType', async function () {
@@ -468,7 +589,7 @@ describe('Device API', async function () {
         // - Admin/Owner/Member
         it('team owner can delete device', async function () {
             const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
-            const startTokenCount = await app.db.models.AccessToken.count()
+            const startTokenCount = await app.db.models.AccessToken.count({ where: { scope: 'device' }})
             startTokenCount.should.equal(1)
             const response = await app.inject({
                 method: 'DELETE',
@@ -476,7 +597,7 @@ describe('Device API', async function () {
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
-            const endTokenCount = await app.db.models.AccessToken.count()
+            const endTokenCount = await app.db.models.AccessToken.count({ where: { scope: 'device' }})
             endTokenCount.should.equal(0)
         })
 
