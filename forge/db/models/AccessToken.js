@@ -74,7 +74,7 @@ module.exports = {
                     const rows = await this.findAll({
                         where: {
                             ownerType: 'team',
-                            ownerId: +team.id
+                            ownerId: ('' + team.id)
                         },
                         order: [['id', 'ASC']],
                         // limit,
