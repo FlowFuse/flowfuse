@@ -64,6 +64,35 @@ module.exports = {
                 byRefreshToken: async (refreshToken) => {
                     const hashedToken = sha256(refreshToken)
                     return await this.findOne({ where: { refreshToken: hashedToken } })
+                },
+                getProvisioningTokens: async (pagination = {}, team) => {
+                    // pagination not implemented at this time
+                    // const limit = parseInt(pagination.limit) || 1000
+                    // if (pagination.cursor) {
+                    //     pagination.cursor = decodeHashid(pagination.cursor)
+                    // }
+                    const rows = await this.findAll({
+                        where: {
+                            ownerType: 'team',
+                            ownerId: team.id
+                        },
+                        order: [['id', 'ASC']],
+                        // limit,
+                        attributes: ['id', 'ownerType', 'ownerId', 'scope', 'expiresAt']
+                    })
+                    const tokens = []
+                    rows.forEach(row => {
+                        if (row.scope.includes('device:provision')) {
+                            tokens.push(row)
+                        }
+                    })
+                    return {
+                        meta: {
+                            next_cursor: undefined
+                        },
+                        count: tokens.length,
+                        tokens
+                    }
                 }
             },
             instance: {
