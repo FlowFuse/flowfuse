@@ -112,7 +112,7 @@ describe('AccessToken controller', function () {
             const token = await AccessTokenController.getOrExpire(result.token)
             should.exist(token)
             token.should.have.property('scope', ['device:provision', 'name:Provisioning Token'])
-            
+
             await AccessTokenController.updateTokenForTeamDeviceProvisioning(token, project) // update the token to have a project
             ;(await app.db.models.AccessToken.count()).should.equal(1) // should still have only 1 token
             const editedToken = await AccessTokenController.getOrExpire(result.token)
@@ -133,7 +133,7 @@ describe('AccessToken controller', function () {
             const token = await AccessTokenController.getOrExpire(result.token)
             should.exist(token)
             token.should.have.property('scope', ['device:provision', 'name:Provisioning Token', 'project:' + project.id])
-            
+
             await AccessTokenController.updateTokenForTeamDeviceProvisioning(token, null) // update the token to have a project
             ;(await app.db.models.AccessToken.count()).should.equal(1) // should still have only 1 token
             const editedToken = await AccessTokenController.getOrExpire(result.token)

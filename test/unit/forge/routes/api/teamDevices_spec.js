@@ -26,7 +26,6 @@ describe('Team Devices API', function () {
             token1: await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 1', TestObjects.ATeam),
             token2: await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 2', TestObjects.ATeam, TestObjects.Project1)
         }
-        
 
         // set bob as an owner of ATeam
         await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
@@ -60,11 +59,11 @@ describe('Team Devices API', function () {
             // GET /api/v1/team/:teamId/devices
             // needsPermission('team:device:list')
 
-            //first ensure we have 0 devices
+            // first ensure we have 0 devices
             const currentDeviceCount = await app.db.models.Device.count()
             should(currentDeviceCount).equal(0)
 
-            //add 2 devices
+            // add 2 devices
             const device1 = await app.db.models.Device.create({
                 name: 'device 1',
                 type: 'test device',
@@ -173,7 +172,6 @@ describe('Team Devices API', function () {
             const result = response.json()
             result.should.have.property('code', 'unexpected_error')
             result.should.have.property('error')
-            
         })
         it('Edit a provisioning token to assign a project', async function () {
             // PUT /api/v1/team/:teamId/devices/provisioning/:tokenId

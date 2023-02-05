@@ -162,7 +162,7 @@ describe('Device API', async function () {
             result.should.have.property('team').and.be.an.Object()
             result.should.not.have.property('project')
             result.should.have.property('credentials').and.be.an.Object()
-            
+
             result.team.should.have.property('id', TestObjects.ATeam.hashid)
             result.credentials.should.have.property('token')
         })
@@ -200,7 +200,7 @@ describe('Device API', async function () {
                 body: {
                     name: '00:11:22:33:44:55',
                     type: 'test device',
-                    team: TestObjects.ATeam.hashid,
+                    team: TestObjects.ATeam.hashid
                 },
                 headers: {
                     authorization: `Bearer ${TestObjects.provisioningTokens.token2.token}`
@@ -227,7 +227,7 @@ describe('Device API', async function () {
                 body: {
                     name: '00:11:22:33:44:55',
                     type: 'test device',
-                    team: TestObjects.BTeam.hashid,
+                    team: TestObjects.BTeam.hashid
                 },
                 headers: {
                     authorization: `Bearer ${TestObjects.provisioningTokens.token1.token}`
@@ -247,7 +247,7 @@ describe('Device API', async function () {
                 body: {
                     name: '00:11:22:33:44:55',
                     type: 'test device',
-                    team: TestObjects.ATeam.hashid,
+                    team: TestObjects.ATeam.hashid
                 },
                 headers: {
                     authorization: `Bearer ${TestObjects.provisioningTokens.token1.token}`
@@ -266,10 +266,10 @@ describe('Device API', async function () {
                 body: {
                     name: '00:11:22:33:44:55',
                     type: 'test device',
-                    team: TestObjects.ATeam.hashid,
+                    team: TestObjects.ATeam.hashid
                 },
                 headers: {
-                    authorization: `Bearer token_does_not_exist`
+                    authorization: 'Bearer token_does_not_exist'
                 }
             })
             response.statusCode.should.equal(401)
@@ -589,7 +589,7 @@ describe('Device API', async function () {
         // - Admin/Owner/Member
         it('team owner can delete device', async function () {
             const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
-            const startTokenCount = await app.db.models.AccessToken.count({ where: { scope: 'device' }})
+            const startTokenCount = await app.db.models.AccessToken.count({ where: { scope: 'device' } })
             startTokenCount.should.equal(1)
             const response = await app.inject({
                 method: 'DELETE',
@@ -597,7 +597,7 @@ describe('Device API', async function () {
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
-            const endTokenCount = await app.db.models.AccessToken.count({ where: { scope: 'device' }})
+            const endTokenCount = await app.db.models.AccessToken.count({ where: { scope: 'device' } })
             endTokenCount.should.equal(0)
         })
 
