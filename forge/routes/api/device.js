@@ -193,8 +193,6 @@ module.exports = async function (app) {
                 const response = app.db.views.Device.device(device)
                 response.credentials = credentials
                 reply.send(response)
-            } catch (error) {
-                throw error
             } finally {
                 if (app.license.active() && app.billing) {
                     await app.billing.updateTeamDeviceCount(team)
