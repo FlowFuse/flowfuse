@@ -4,9 +4,14 @@ const { uppercaseFirst, sha256 } = require('../utils')
 module.exports = {
     name: 'AccessToken',
     schema: {
+        id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+        },
         token: {
             type: DataTypes.STRING,
-            primaryKey: true,
+            primaryKey: false,
             allowNull: false,
             set (value) {
                 this.setDataValue('token', sha256(value))
@@ -40,6 +45,7 @@ module.exports = {
         }
     },
     associations: function (M) {
+        this.belongsTo(M.Team, { foreignKey: 'ownerId', constraints: false })
         this.belongsTo(M.Project, { foreignKey: 'ownerId', constraints: false })
         this.belongsTo(M.Device, { foreignKey: 'ownerId', constraints: false })
         this.belongsTo(M.User, { foreignKey: 'ownerId', constraints: false })
@@ -47,6 +53,14 @@ module.exports = {
     finders: function (M) {
         return {
             static: {
+                byId: async (id) => {
+                    if (typeof id === 'string') {
+                        id = M.AccessToken.decodeHashid(id)
+                    }
+                    return this.findOne({
+                        where: { id }
+                    })
+                },
                 byRefreshToken: async (refreshToken) => {
                     const hashedToken = sha256(refreshToken)
                     return await this.findOne({ where: { refreshToken: hashedToken } })
