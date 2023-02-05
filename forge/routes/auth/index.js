@@ -71,6 +71,9 @@ module.exports = fp(async function (app, opts, done) {
                         ownerType: accessToken.ownerType,
                         scope: accessToken.scope
                     }
+                    if (accessToken.ownerType === 'team' && app.settings.get('device:auto-provisioning') === true && request.session.scope?.includes('device:provision')) {
+                        request.session.provisioning = app.db.views.AccessToken.provisioningTokenSummary(accessToken)
+                    }
                     if (accessToken.ownerType === 'user') {
                         request.session.User = await app.db.models.User.findOne({ where: { id: parseInt(accessToken.ownerId) } })
                         // Unlike a cookie based session, we'll allow user tokens to continue

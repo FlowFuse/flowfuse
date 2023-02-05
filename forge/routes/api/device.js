@@ -70,13 +70,37 @@ module.exports = async function (app) {
     app.post('/', {
         preHandler: [
             async (request, reply) => {
-                // Attach the team membership to the request so needsPermission can
-                // verify the user has the required role
-                if (request.body && request.body.team) {
+                // * If this is a Device Provisioning action: verify the device has the required scope
+                //   & session has been populated with provisioning data
+                // * If this is a User action: verify the user has the required role
+                if (request.session.provisioning) {
+                    // A device is auto-provisioning. First check the request body team matches the token
+                    // NOTE: If the token was not valid, the request would have been rejected by
+                    // the verifySession decorator & request.session.provisioning would not be populated
+                    const teamOK = request.body.team && request.body.team === request.session.provisioning.team
+                    if (teamOK) {
+                        request.deviceProvisioning = true
+                        const hasPermission = app.needsPermission('device:provision')
+                        try {
+                            hasPermission(request, reply)
+                            return // Request has permission
+                        } catch (error) {
+                            return // Request does not have permission (error will be sent by needsPermission)
+                        }
+                    }
+                } else if (request.body?.team && request.session.User) {
+                    // User action: check if the user is in the team and has the required role
                     request.teamMembership = await request.session.User.getTeamMembership(request.body.team)
+                    const hasPermission = app.needsPermission('device:create')
+                    try {
+                        hasPermission(request, reply)
+                        return // Request has permission
+                    } catch (error) {
+                        return // Request does not have permission (error will be sent by needsPermission)
+                    }
                 }
-            },
-            app.needsPermission('device:create')
+                reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+            }
         ],
         schema: {
             body: {
@@ -90,16 +114,37 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const teamMembership = await request.session.User.getTeamMembership(request.body.team, true)
-        // Assume membership is enough to allow project creation.
-        // If we have roles that limit creation, that will need to be checked here.
-
-        if (!teamMembership) {
-            reply.code(401).send({ code: 'unauthorized', error: 'Current user not in team ' + request.body.team })
-            return
+        let team, project
+        // Additional checks. (initial membership/team/token checks done in preHandler and auth verifySession decorator)
+        if (request.deviceProvisioning) {
+            team = await app.db.models.Team.byId(request.session.provisioning.team)
+            if (!team) {
+                reply.code(400).send({ code: 'invalid_team', error: 'Invalid team' })
+                return
+            }
+            if (request.session.provisioning.project) {
+                project = await app.db.models.Project.byId(request.session.provisioning.project)
+                if (!project) {
+                    reply.code(400).send({ code: 'invalid_project', error: 'Invalid project' })
+                    return
+                }
+                const projectTeam = await project.getTeam()
+                if (projectTeam.id !== team.id) {
+                    reply.code(400).send({ code: 'invalid_project', error: 'Invalid project' })
+                    return
+                }
+            }
+        } else {
+            // Assume membership is enough to allow project creation.
+            // If we have roles that limit creation, that will need to be checked here.
+            if (!request.teamMembership) {
+                reply.code(401).send({ code: 'unauthorized', error: 'Current user not in team ' + request.body.team })
+                return
+            }
+            const teamMembership = await request.session.User.getTeamMembership(request.body.team, true)
+            team = teamMembership.get('Team')
         }
 
-        const team = teamMembership.get('Team')
         await team.reload({
             include: [
                 { model: app.db.models.TeamType }
@@ -115,30 +160,46 @@ module.exports = async function (app) {
         }
 
         try {
+            const actionedBy = request.deviceProvisioning ? 'system' : request.session.User
             const device = await app.db.models.Device.create({
                 name: request.body.name,
                 type: request.body.type,
                 credentialSecret: ''
             })
 
-            await team.addDevice(device)
+            try {
+                await team.addDevice(device)
 
-            await device.reload({
-                include: [
-                    { model: app.db.models.Team }
-                ]
-            })
+                await device.reload({
+                    include: [
+                        { model: app.db.models.Team }
+                    ]
+                })
 
-            const credentials = await device.refreshAuthTokens()
-            await app.auditLog.Team.team.device.created(request.session.User, null, team, device)
+                const credentials = await device.refreshAuthTokens()
+                await app.auditLog.Team.team.device.created(actionedBy, null, team, device)
 
-            const response = app.db.views.Device.device(device)
-            response.credentials = credentials
-
-            if (app.license.active() && app.billing) {
-                await app.billing.updateTeamDeviceCount(team)
+                // When device provisioning: if a project was specified, add the device to the project
+                if (request.deviceProvisioning && project) {
+                    await assignDeviceToProject(device, project)
+                    await device.reload({
+                        include: [
+                            { model: app.db.models.Project }
+                        ]
+                    })
+                    await app.auditLog.Team.team.device.assigned(actionedBy, null, device.Team, device.Project, device)
+                    await app.auditLog.Project.project.device.assigned(actionedBy, null, device.Project, device)
+                }
+                const response = app.db.views.Device.device(device)
+                response.credentials = credentials
+                reply.send(response)
+            } catch (error) {
+                throw error
+            } finally {
+                if (app.license.active() && app.billing) {
+                    await app.billing.updateTeamDeviceCount(team)
+                }
             }
-            reply.send(response)
         } catch (err) {
             reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
         }
@@ -181,16 +242,20 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('device:edit')
     }, async (request, reply) => {
         let sendDeviceUpdate = false
+        const device = request.device
         if (request.body.project !== undefined) {
+            // ### Add/Remove device to/from project ###
+
             if (request.body.project === null) {
-                // Remove device from project if it is currently assigned
-                if (request.device.Project !== null) {
-                    const oldProject = request.device.Project
+                // ### Remove device from project ###
+
+                if (device.Project !== null) {
+                    const oldProject = device.Project
                     // unassign from project
-                    await request.device.setProject(null)
+                    await device.setProject(null)
                     // Clear its target snapshot, so the next time it calls home
                     // it will stop the current snapshot
-                    await request.device.setTargetSnapshot(null)
+                    await device.setTargetSnapshot(null)
                     sendDeviceUpdate = true
 
                     await app.auditLog.Team.team.device.unassigned(request.session.User, null, request.device?.Team, oldProject, request.device)
@@ -199,8 +264,10 @@ module.exports = async function (app) {
                     // project is already unassigned - nothing to do
                 }
             } else {
-                // Update includes a project id
-                if (request.device.Project?.id === request.body.project) {
+                // ### Add device to project ###
+
+                // Update includes a project id?
+                if (device.Project?.id === request.body.project) {
                     // Project is already assigned to this project - nothing to do
                 } else {
                     // Check if the specified project is in the same team
@@ -209,44 +276,39 @@ module.exports = async function (app) {
                         reply.code(400).send({ code: 'invalid_project', error: 'invalid project' })
                         return
                     }
-                    if (project.Team.id !== request.device.Team.id) {
+                    if (project.Team.id !== device.Team.id) {
                         reply.code(400).send({ code: 'invalid_project', error: 'invalid project' })
                         return
                     }
-                    // Project exists and is in the right team
-                    await request.device.setProject(project)
-                    // Set the target snapshot to match the project's one
-                    const deviceSettings = await project.getSetting('deviceSettings')
-                    request.device.targetSnapshotId = deviceSettings?.targetSnapshot
-
-                    sendDeviceUpdate = true
-                    await app.auditLog.Team.team.device.assigned(request.session.User, null, request.device.Team, project, request.device)
+                    // Project exists and is in the right team - assign it to the project
+                    sendDeviceUpdate = await assignDeviceToProject(device, project)
+                    await app.auditLog.Team.team.device.assigned(request.session.User, null, device.Team, project, request.device)
                     await app.auditLog.Project.project.device.assigned(request.session.User, null, project, request.device)
                 }
             }
-            // await TestObjects.deviceOne.setProject(TestObjects.deviceProject)
         } else {
+            // ### Modify device properties ###
             let changed = false
             const updates = new app.auditLog.formatters.UpdatesCollection()
-            if (request.body.name !== undefined && request.body.name !== request.device.name) {
-                updates.push('name', request.device.name, request.body.name)
-                request.device.name = request.body.name
+            if (request.body.name !== undefined && request.body.name !== device.name) {
+                updates.push('name', device.name, request.body.name)
+                device.name = request.body.name
                 sendDeviceUpdate = true
                 changed = true
             }
-            if (request.body.type !== undefined && request.body.type !== request.device.type) {
-                updates.push('type', request.device.type, request.body.type)
-                request.device.type = request.body.type
+            if (request.body.type !== undefined && request.body.type !== device.type) {
+                updates.push('type', device.type, request.body.type)
+                device.type = request.body.type
                 sendDeviceUpdate = true
                 changed = true
             }
             if (changed) {
-                await app.auditLog.Team.team.device.updated(request.session.User, null, request.device.Team, request.device, updates)
+                await app.auditLog.Team.team.device.updated(request.session.User, null, device.Team, request.device, updates)
             }
         }
-        await request.device.save()
+        await device.save()
 
-        const updatedDevice = await app.db.models.Device.byId(request.device.id)
+        const updatedDevice = await app.db.models.Device.byId(device.id)
         if (sendDeviceUpdate) {
             app.db.controllers.Device.sendDeviceUpdateCommand(updatedDevice)
         }
@@ -288,4 +350,11 @@ module.exports = async function (app) {
             })
         }
     })
+}
+async function assignDeviceToProject (device, project) {
+    await device.setProject(project)
+    // Set the target snapshot to match the project's one
+    const deviceSettings = await project.getSetting('deviceSettings')
+    device.targetSnapshotId = deviceSettings?.targetSnapshot
+    return true
 }
