@@ -34,25 +34,27 @@ module.exports = fp(async function (app, _opts, next) {
         // Allow the housekeeper to be disabled - this allows the tests
         // to run without fear the housekeeper may fire off a task at the same
         // time.
-        if (app.config.housekeeper !== false) {
-            tasks[task.name] = task
+        if (!app.config.housekeeper) {
+            return
+        }
 
-            // Startup tasks are run instantly
-            if (task.startup) {
-                await task.run(app).catch(err => {
+        tasks[task.name] = task
+
+        // Startup tasks are run instantly
+        if (task.startup) {
+            await task.run(app).catch(err => {
+                app.log.error(`Error running task '${task.name}: ${err.toString()}`)
+            })
+        }
+
+        // If the task has a schedule (cron-string), setup the job
+        if (task.schedule) {
+            task.job = scheduleTask(task.schedule, (timestamp) => {
+                app.log.trace(`Running task '${task.name}'`)
+                task.run(app).catch(err => {
                     app.log.error(`Error running task '${task.name}: ${err.toString()}`)
                 })
-            }
-
-            // If the task has a schedule (cron-string), setup the job
-            if (task.schedule) {
-                task.job = scheduleTask(task.schedule, (timestamp) => {
-                    app.log.trace(`Running task '${task.name}'`)
-                    task.run(app).catch(err => {
-                        app.log.error(`Error running task '${task.name}: ${err.toString()}`)
-                    })
-                })
-            }
+            })
         }
     }
 
