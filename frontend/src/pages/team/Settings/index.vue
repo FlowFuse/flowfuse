@@ -28,6 +28,7 @@ export default {
         return {
             sideOptions: [
                 { name: 'General', path: './general' },
+                { name: 'Devices', path: './devices' },
                 { name: 'Danger', path: './danger' }
             ]
         }
