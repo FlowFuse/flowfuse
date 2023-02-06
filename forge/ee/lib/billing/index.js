@@ -358,10 +358,12 @@ module.exports.init = async function (app) {
         setupTrialTeamSubscription: async (team, user) => {
             // teamTrialDuration: number of days the trial should run for
             const teamTrialDuration = parseInt(app.settings.get('user:team:trial-mode:duration'))
-            if (teamTrialDuration) {
+            const teamTrialProjectTypeId = app.settings.get('user:team:trial-mode:projectType')
+            if (teamTrialDuration && teamTrialProjectTypeId) {
+                const trialProjectType = await app.db.models.ProjectType.byId(teamTrialProjectTypeId)
                 await app.db.controllers.Subscription.createTrialSubscription(
                     team,
-                    Date.now() + teamTrialDuration * 86400000
+                    Date.now() + teamTrialDuration * ONE_DAY
                 )
                 await app.postoffice.send(
                     user,
@@ -369,8 +371,8 @@ module.exports.init = async function (app) {
                     {
                         username: user.name,
                         teamName: team.name,
-                        trialDuration: parseInt(app.settings.get('user:team:trial-mode:duration')),
-                        trialProjectTypeName: (await app.db.models.ProjectType.byId(app.settings.get('user:team:trial-mode:projectType')))?.name
+                        trialDuration: teamTrialDuration,
+                        trialProjectTypeName: trialProjectType.name
                     }
                 )
             }
@@ -445,7 +447,7 @@ module.exports.init = async function (app) {
                         // Check this is the only project of this type in the team
                         const existingProjectCount = await team.projectCount(project.ProjectTypeId)
                         if (existingProjectCount === 1) {
-                            await project.updateSetting(KEY_BILLING_STATE, BILLING_STATES.TRIAL)
+                            await setProjectBillingState(project, BILLING_STATES.TRIAL)
                         }
                     }
                 }
