@@ -91,6 +91,23 @@
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
 
+    <!-- Team Device Auto Provisioning Tokens Events -->
+    <template v-else-if="entry.event === 'team.device.provisioning.created'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.info">Token name '{{ entry.body.info.tokenName }}' was generated.</span>
+        <span v-else-if="!error">Provisioning data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'team.device.provisioning.updated'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.info">Token name '{{ entry.body.info.tokenName }}' with ID '{{ entry.body.info.tokenId }}' has been updated with the following changes: <AuditEntryUpdates :updates="entry.body.updates" /></span>
+        <span v-else-if="!error">Provisioning data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'team.device.provisioning.deleted'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.info">Token Name '{{ entry.body.info.tokenName }}' with ID '{{ entry.body.info.tokenId }}' was deleted.</span>
+        <span v-else-if="!error">Provisioning data not found in audit entry.</span>
+    </template>
+
     <!-- Account Scoped Events -->
     <template v-else-if="entry.event === 'account.register'">
         <label>{{ AuditEvents[entry.event] }}</label>
