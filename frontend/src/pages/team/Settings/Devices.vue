@@ -1,0 +1,216 @@
+<template>
+    <SectionTopMenu hero="Device Provisioning" help-header="Team - Settings - Devices" info="A list of device provisioning tokens. Assign them to devices to facilitate auto enrolment.">
+        <template v-slot:helptext>
+            <p>FlowForge can be used to manage instances of Node-RED running on remote devices.</p>
+            <p>Each device must run the <a href="https://flowforge.com/docs/user/devices/" target="_blank">FlowForge Device Agent</a>, which connects back to the platform to receive updates.</p>
+            <p>Here, we can generate provisioning tokens that permit a device to be automatically registered to a Team.</p>
+            <p>Additionally, when the token has project set, the newly provisioned device be automatically assigned to a Project.</p>
+        </template>
+        <template v-slot:tools>
+            <ff-button v-if="addEnabled" data-action="create-provisioning-token" kind="primary" size="small" @click="showCreateDeviceDialog"><template v-slot:icon-left><PlusSmIcon /></template>Create Provisioning Token</ff-button>
+        </template>
+    </SectionTopMenu>
+
+    <div class="space-y-6">
+        <ff-loading v-if="loading" message="Loading Tokens..." />
+        <ff-loading v-else-if="creatingDevice" message="Creating Token..." />
+        <ff-loading v-else-if="deletingItem" message="Deleting Token..." />
+        <template v-else>
+            <template v-if="this.tokens.size === 0">
+                <div class="ff-no-data ff-no-data-large">
+                    You don't have any tokens yet
+                </div>
+            </template>
+            <template v-if="this.tokens.size > 0">
+                <ff-data-table
+                    data-el="provisioning-tokens"
+                    :columns="columns"
+                    :rows="Array.from(this.tokens.values())"
+                    :show-search="true"
+                    search-placeholder="Search Tokens..."
+                    :show-load-more="!!nextCursor"
+                    @load-more="loadMore"
+                >
+                    <template v-if="editEnabled || deleteEnabled" v-slot:context-menu="{row}">
+                        <ff-list-item :disabled="!editEnabled" label="Edit Details" @click="menuAction('edit', row.id)"/>
+                        <ff-list-item :disabled="!deleteEnabled" kind="danger" label="Delete Token" @click="menuAction('delete', row.id)" />
+                    </template>
+                </ff-data-table>
+            </template>
+        </template>
+    </div>
+    <CreateProvisioningTokenDialog :team="team" @tokenCreating="tokenCreating" @tokenCreated="tokenCreated" @tokenUpdated="tokenUpdated" ref="CreateProvisioningTokenDialog"/>
+    <ProvisioningCredentialsDialog ref="provisioningCredentialsDialog" />
+</template>
+
+<script>
+import { markRaw } from 'vue'
+import { KeyIcon, PlusSmIcon } from '@heroicons/vue/outline'
+import SectionTopMenu from '@/components/SectionTopMenu'
+import permissionsMixin from '@/mixins/Permissions'
+import Alerts from '@/services/alerts'
+import Dialog from '@/services/dialog'
+import teamApi from '@/api/team'
+
+import CreateProvisioningTokenDialog from '../Devices/dialogs/CreateProvisioningTokenDialog.vue'
+import ProvisioningCredentialsDialog from '../Devices/dialogs/ProvisioningCredentialsDialog.vue'
+
+const TokenFieldFormatter = {
+    template: '<span><span v-if="name">{{name}}</span><span v-else class="italic text-gray-500">unnamed</span></span>',
+    props: ['name'],
+    components: { KeyIcon }
+}
+
+const ProjectFieldFormatter = {
+    template: `
+        <template v-if="project">
+            <router-link :to="{ name: 'ProjectDeployments', params: { id: project }}">{{projectName}}</router-link>
+        </template>
+        <template v-else><span class="italic text-gray-500">Don't assign</span></template>`,
+    props: ['project', 'projectName']
+}
+
+export default {
+    name: 'TeamDeviceProvisioningTokens',
+    mixins: [permissionsMixin],
+    data () {
+        return {
+            loading: true,
+            creatingDevice: false,
+            deletingItem: false,
+            tokens: new Map(),
+            checkInterval: null,
+            nextCursor: null,
+            projectNames: []
+        }
+    },
+    watch: {
+        team: 'fetchData'
+    },
+    async mounted () {
+        await this.fetchData()
+        this.loading = false
+        this.checkInterval = setTimeout(this.pollForData, 10000)
+    },
+    unmounted () {
+        clearInterval(this.checkInterval)
+    },
+    methods: {
+        async pollForData () {
+            try {
+                await this.fetchData(null, true) // TODO: Implement pagination
+            } finally {
+                this.checkInterval = setTimeout(this.pollForData, 10000)
+            }
+        },
+        async fetchData (nextCursor = null, polled = false) {
+            // load project names into local cache (TODO: consider moving this to a vuex store for global access)
+            this.projectNames = await teamApi.getTeamProjectList(this.team.id)
+            // get the tokens
+            const data = await teamApi.getTeamDeviceProvisioningTokens(this.team.id, nextCursor)
+
+            // Polling never resets the devices list
+            if (!nextCursor && !polled) {
+                this.tokens = new Map()
+            }
+            data.tokens.forEach(token => {
+                this.updateTokenCache(token)
+            })
+
+            // TODO: Implement pagination
+            if (!polled) {
+                this.nextCursor = data.meta.next_cursor
+            }
+        },
+        getProjectName (id) {
+            const project = this.projectNames?.find(p => p.id === id)
+            return project ? project.name : id
+        },
+        async loadMore () {
+            await this.fetchData(this.nextCursor)
+        },
+        showCreateDeviceDialog () {
+            this.$refs.CreateProvisioningTokenDialog.show(null, this.project)
+        },
+        showEditDialog (token) {
+            this.$refs.CreateProvisioningTokenDialog.show(token)
+        },
+        tokenCreating () {
+            this.creatingDevice = true
+        },
+        async tokenCreated (token) {
+            this.creatingDevice = false
+            if (token) {
+                setTimeout(() => {
+                    this.$refs.provisioningCredentialsDialog.show(token)
+                }, 500)
+                this.updateTokenCache(token)
+            }
+        },
+        tokenUpdated (token) {
+            this.updateTokenCache(token)
+        },
+        updateTokenCache (token) {
+            token.projectName = this.getProjectName(token.project)
+            this.tokens.set(token.id, token)
+        },
+        menuAction (action, tokenId) {
+            const token = this.tokens.get(tokenId)
+            if (action === 'edit') {
+                this.showEditDialog(token)
+            } else if (action === 'delete') {
+                Dialog.show({
+                    header: 'Delete Provisioning Token',
+                    kind: 'danger',
+                    text: 'Are you sure you want to delete this provisioning token? Once deleted, devices with this token will no longer be auto provisioned.',
+                    confirmLabel: 'Delete'
+                }, async () => {
+                    this.deletingItem = true
+                    try {
+                        await teamApi.deleteTeamDeviceProvisioningToken(this.team.id, token.id)
+                        Alerts.emit('Successfully deleted the token', 'confirmation')
+                        this.tokens.delete(token.id)
+                    } catch (err) {
+                        Alerts.emit('Failed to delete token: ' + err.toString(), 'warning', 7500)
+                    } finally {
+                        this.deletingItem = false
+                    }
+                })
+            } else if (action === 'updateCredentials') {
+                this.$refs.provisioningCredentialsDialog.show(token)
+            }
+        }
+    },
+    computed: {
+        addEnabled: function () {
+            return this.hasPermission('team:device:provisioning-token:create')
+        },
+        editEnabled: function () {
+            return this.hasPermission('team:device:provisioning-token:edit')
+        },
+        deleteEnabled: function () {
+            return this.hasPermission('team:device:provisioning-token:delete')
+        },
+        columns: function () {
+            return [
+                { label: 'Token Name', class: ['w-64'], key: 'name', sortable: true, component: { is: markRaw(TokenFieldFormatter) } },
+                { label: 'Auto Assign Project', class: ['w-64'], key: 'project', sortable: true, component: { is: markRaw(ProjectFieldFormatter) } }
+            ]
+        }
+    },
+    props: {
+        team: {
+            required: true
+        },
+        teamMembership: {
+            required: true
+        }
+    },
+    components: {
+        CreateProvisioningTokenDialog,
+        ProvisioningCredentialsDialog,
+        SectionTopMenu,
+        PlusSmIcon
+    }
+}
+</script>
