@@ -158,7 +158,7 @@
                 v-model:confirmed="input.billingConfirmation"
                 :project-type="selectedProjectType"
                 :subscription="subscription"
-                :trialMode="team.billing?.trial && (!team.billing?.active || (team.billing.trialProjectAllowed && selectedProjectType?.id === this.settings['user:team:trial-mode:projectType']))"
+                :trialMode="isTrialProjectSelected"
             />
         </div>
 
@@ -312,6 +312,19 @@ export default {
         submitEnabled () {
             const billingConfirmed = !this.showBilling || this.team.billing?.trial || this.input.billingConfirmation
             return billingConfirmed && this.formValid && this.formDirty
+        },
+        isTrialProjectSelected () {
+            //  - Team is in trial mode, and
+            //  - Team billing is not configured, or
+            //  - team billing is configured, but they still have an available
+            //     trial project to create, and they have selected the trial
+            //     project type
+            return this.team.billing?.trial && (
+                !this.team.billing?.active || (
+                    this.team.billing.trialProjectAllowed &&
+                    this.selectedProjectType?.id === this.settings['user:team:trial-mode:projectType']
+                )
+            )
         }
     },
     watch: {
