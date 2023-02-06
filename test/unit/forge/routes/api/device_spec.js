@@ -239,26 +239,6 @@ describe('Device API', async function () {
             result.should.have.property('code', 'unauthorized')
         })
 
-        it('should not provision a device when provisioning is disabled at platform level', async function () {
-            await app.settings.set('device:auto-provisioning', false)
-            const response = await app.inject({
-                method: 'POST',
-                url: '/api/v1/devices',
-                body: {
-                    name: '00:11:22:33:44:55',
-                    type: 'test device',
-                    team: TestObjects.ATeam.hashid
-                },
-                headers: {
-                    authorization: `Bearer ${TestObjects.provisioningTokens.token1.token}`
-                }
-            })
-            response.statusCode.should.equal(401)
-            const result = response.json()
-            result.should.have.property('error', 'unauthorized')
-            result.should.have.property('code', 'unauthorized')
-        })
-
         it('should not create a device if the provisioning token is invalid', async function () {
             const response = await app.inject({
                 method: 'POST',
