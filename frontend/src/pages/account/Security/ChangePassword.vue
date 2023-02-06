@@ -10,6 +10,8 @@
         </ff-button>
         <div v-if="errors.password_change" class="ml-4 text-red-400 font-medium inline text-sm">{{errors.password_change}}</div>
         <div v-if="changeComplete" class="ml-4 font-medium inline text-md">Password changed</div>
+        <!-- https://community.hubspot.com/t5/Lead-Capture-Tools/Ignore-a-specific-non-Hubspot-form-from-being-collected/m-p/246957 -->
+        <span id="CollectedForms-1234"></span>
     </form>
 </template>
 
