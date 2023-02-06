@@ -1,6 +1,8 @@
 const { Op } = require('sequelize')
 const { KEY_BILLING_STATE } = require('../../../db/models/ProjectSettings')
 
+const ONE_DAY = 86400000
+
 module.exports.init = function (app) {
     async function trialTask (app) {
         // Find teams that have expired since we last ran (trialEndsAt != null && < now)
@@ -45,12 +47,12 @@ module.exports.init = function (app) {
                     {
                         // Expires in 8 days, need to send Week Reminder email
                         trialStatus: app.db.models.Subscription.TRIAL_STATUS.CREATED,
-                        trialEndsAt: { [Op.lt]: Date.now() + (8 * 86400000) }
+                        trialEndsAt: { [Op.lt]: Date.now() + (8 * ONE_DAY) }
                     },
                     {
                         // Expires in 2 days, need to send Day Reminder email
                         trialStatus: app.db.models.Subscription.TRIAL_STATUS.WEEK_EMAIL_SENT,
-                        trialEndsAt: { [Op.lt]: Date.now() + (2 * 86400000) }
+                        trialEndsAt: { [Op.lt]: Date.now() + (2 * ONE_DAY) }
                     }
                 ]
             },
@@ -58,7 +60,7 @@ module.exports.init = function (app) {
         })
 
         for (const subscription of pendingEmailSubscriptions) {
-            const endingInDurationDays = Math.ceil((subscription.trialEndsAt - Date.now()) / 86400000)
+            const endingInDurationDays = Math.ceil((subscription.trialEndsAt - Date.now()) / ONE_DAY)
             const endingInDuration = endingInDurationDays + ' day' + ((endingInDurationDays !== 1) ? 's' : '')
             await sendTrialEmail(subscription.Team, 'TrialTeamReminder', {
                 endingInDuration,

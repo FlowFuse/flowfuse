@@ -4,6 +4,7 @@ module.exports.init = async function (app) {
 
     const { KEY_BILLING_STATE } = require('../../../db/models/ProjectSettings')
     const BILLING_STATES = app.db.models.ProjectSettings.BILLING_STATES
+    const ONE_DAY = 86400000
 
     const stripe = require('stripe')(app.config.billing.stripe.key)
 
