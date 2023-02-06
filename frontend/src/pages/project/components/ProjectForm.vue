@@ -402,23 +402,25 @@ export default {
         }
     },
     async beforeMount () {
+        // Billing feature must be enabled
+        if (!this.billingEnabled) {
+            return
+        }
+
+        // Team must not have billing set up
+        if (this.team.billing?.active ?? true) {
+            return
+        }
+
         // Redirect to billing if:
-        // - billing feature is enabled, and:
-        // - team has no billing configured and:
-        //    - team is not a trial team, or:
-        //    - team is a trial team and:
-        //       - has expired, or:
-        //       - already has a project created
-        if (this.billingEnabled &&
-            !this.team.billing?.active &&
-            (
-                this.team.billing?.canceled ||
-                (
-                    !this.team.billing?.trial || (
-                        this.team.billing?.trialEnded || this.team.projectCount > 0
-                    )
-                )
-            )
+        //   - team has cancelled their subscription
+        //   - team is not a trial team, or:
+        //   - team is a trial team and:
+        //     - has expired, or:
+        //     - already has a project created
+        if (this.team.billing?.canceled ||
+            !this.team.billing?.trial ||
+            (this.team.billing?.trialEnded || this.team.projectCount > 0)
         ) {
             this.$router.push({
                 path: `/team/${this.team.slug}/billing`
