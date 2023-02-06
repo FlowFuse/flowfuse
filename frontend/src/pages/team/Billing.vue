@@ -128,10 +128,10 @@ export default {
     },
     computed: {
         billingSetUp () {
-            return this.team.billingSetup
+            return this.team.billing?.active
         },
         subscriptionExpired () {
-            return this.billingSetUp && !this.team.subscriptionActive
+            return this.team.billing?.canceled
         }
     },
     watch: { },

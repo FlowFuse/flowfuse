@@ -9,7 +9,7 @@
         </h1>
         <div
             class="grid grid gap-x-1 gap-y-4 text-sm text-sm mt-4 ml-4"
-            style="grid-template-columns: 1fr 75px auto"
+            style="grid-template-columns: 1fr 200px auto"
         >
             <template v-if="pricingDetails?.cost">
                 <div data-el="selected-project-type-name">
@@ -19,6 +19,9 @@
                     data-el="selected-project-type-cost"
                     class="text-right"
                 >
+                    <template v-if="trialMode">
+                        Free during the trial, then
+                    </template>
                     {{ formatCurrency(pricingDetails.cost) }}
                 </div>
                 <div
@@ -48,6 +51,7 @@
         id="billing-confirmation"
         v-model="localConfirmed"
         type="checkbox"
+        v-if="!trialMode"
     >
         Confirm additional charges
         <template
@@ -86,6 +90,10 @@ export default {
         projectType: {
             type: Object,
             default: null
+        },
+        trialMode: {
+            type: Boolean,
+            default: false
         }
     },
     emits: [

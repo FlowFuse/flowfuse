@@ -134,18 +134,6 @@ describe('Container Wrapper', function () {
 
     describe('billing', function () {
         let billingProjects = {}
-        const stubBilling = {
-            addProject: sinon.fake(async (team, project) => {
-                if (project.name === 'fail_billing_add') {
-                    throw new Error('Billing add error')
-                }
-                billingProjects[team.id] = billingProjects[team.id] || {}
-                billingProjects[team.id][project.id] = project
-            }),
-            removeProject: sinon.fake(async (team, project) => {
-                billingProjects[team.id][project.id] = null
-            })
-        }
 
         beforeEach(async function () {
             app = await setup({
@@ -154,10 +142,26 @@ describe('Container Wrapper', function () {
                     stripe: {}
                 }
             })
-            app.billing = stubBilling
+
+            sinon.stub(app.billing)
+            app.billing.addProject.callsFake(async (team, project) => {
+                if (project.name === 'fail_billing_add') {
+                    throw new Error('Billing add error')
+                }
+                billingProjects[team.id] = billingProjects[team.id] || {}
+                billingProjects[team.id][project.id] = project
+            })
+
+            app.billing.removeProject.callsFake(async (team, project) => {
+                billingProjects[team.id][project.id] = null
+            })
+        })
+
+        afterEach(function () {
+            app.billing.addProject.resetHistory()
+            app.billing.removeProject.resetHistory()
+
             billingProjects = {}
-            stubBilling.addProject.resetHistory()
-            stubBilling.removeProject.resetHistory()
         })
 
         describe('start', function () {
@@ -177,7 +181,7 @@ describe('Container Wrapper', function () {
                 should(subscription.isCanceled()).equal(true)
 
                 const promise = app.containers.start(project)
-                await promise.should.be.rejectedWith(/Teams subscription is currently canceled/)
+                await promise.should.be.rejectedWith(/Teams subscription is not active/)
             })
 
             it('adds project to team subscription', async function () {
@@ -231,8 +235,8 @@ describe('Container Wrapper', function () {
                 project.state.should.equal('suspended')
                 billingProjects.should.have.property(1)
                 billingProjects[1].should.have.property(project.id, null)
-                stubBilling.addProject.callCount.should.equal(1)
-                stubBilling.removeProject.callCount.should.equal(1)
+                app.billing.addProject.callCount.should.equal(1)
+                app.billing.removeProject.callCount.should.equal(1)
             })
 
             it('does not remove a suspended project from billing when stopping', async function () {
@@ -243,8 +247,8 @@ describe('Container Wrapper', function () {
                 await project.save()
                 await app.containers.stop(project)
                 project.state.should.equal('suspended')
-                stubBilling.addProject.callCount.should.equal(0)
-                stubBilling.removeProject.callCount.should.equal(0)
+                app.billing.addProject.callCount.should.equal(0)
+                app.billing.removeProject.callCount.should.equal(0)
             })
 
             it('rejects stop project if team does not have a subscription', async function () {
@@ -293,8 +297,8 @@ describe('Container Wrapper', function () {
                 await app.containers.remove(project)
                 billingProjects.should.have.property(1)
                 billingProjects[1].should.have.property(project.id, null)
-                stubBilling.addProject.callCount.should.equal(1)
-                stubBilling.removeProject.callCount.should.equal(1)
+                app.billing.addProject.callCount.should.equal(1)
+                app.billing.removeProject.callCount.should.equal(1)
             })
 
             it('does not remove a suspended project from billing when removing', async function () {
@@ -311,7 +315,7 @@ describe('Container Wrapper', function () {
                 await project.save()
 
                 await app.containers.remove(project)
-                stubBilling.removeProject.callCount.should.equal(0)
+                app.billing.removeProject.callCount.should.equal(0)
             })
 
             it('rejects the removal if the team does not have a subscription', async function () {
@@ -346,7 +350,7 @@ describe('Container Wrapper', function () {
                 should(subscription.isCanceled()).equal(true)
 
                 await app.containers.remove(project)
-                stubBilling.removeProject.callCount.should.equal(0)
+                app.billing.removeProject.callCount.should.equal(0)
             })
         })
 
@@ -389,7 +393,7 @@ describe('Container Wrapper', function () {
                     should(subscription.isCanceled()).equal(true)
 
                     const promise = app.containers.startFlows(project, {})
-                    await promise.should.be.rejectedWith(/Teams subscription is currently canceled/)
+                    await promise.should.be.rejectedWith(/Teams subscription is not active/)
 
                     mockDriver.startFlows.callCount.should.equal(0)
                 })
@@ -432,7 +436,7 @@ describe('Container Wrapper', function () {
                     should(subscription.isCanceled()).equal(true)
 
                     const promise = app.containers.restartFlows(project, {})
-                    await promise.should.be.rejectedWith(/Teams subscription is currently canceled/)
+                    await promise.should.be.rejectedWith(/Teams subscription is not active/)
 
                     mockDriver.restartFlows.callCount.should.equal(0)
                 })

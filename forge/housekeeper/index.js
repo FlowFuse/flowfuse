@@ -31,6 +31,13 @@ module.exports = fp(async function (app, _opts, next) {
 
     // Register a task to be run on a particular schedule
     async function registerTask (task) {
+        // Allow the housekeeper to be disabled - this allows the tests
+        // to run without fear the housekeeper may fire off a task at the same
+        // time.
+        if (!app.config.housekeeper) {
+            return
+        }
+
         tasks[task.name] = task
 
         // Startup tasks are run instantly
@@ -52,6 +59,10 @@ module.exports = fp(async function (app, _opts, next) {
     }
 
     await registerTask(require('./tasks/expireTokens'))
+
+    app.decorate('housekeeper', {
+        registerTask
+    })
 
     next()
 })

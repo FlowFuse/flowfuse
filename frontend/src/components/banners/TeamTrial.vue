@@ -1,24 +1,31 @@
 <template>
     <div
-        v-if="subscriptionExpired"
+        v-if="team.billing?.trial"
         class="ff-banner ff-banner-warning"
         :class="{
             'cursor-pointer': linkToBilling
         }"
-        data-el="banner-subscription-expired"
+        data-el="banner-team-trial"
         @click="navigateToBilling"
     >
-        <span>
-            <ExclamationCircleIcon class="ff-icon mr-2" /> The subscription for this team has expired.
-
-            <template v-if="linkToBilling">
-                Please visit <strong>Billing settings</strong> to renew.
-            </template>
-            <template v-else-if="!hasPermission('team:edit')">
-                Please ask a team administrator to renew the subscription.
-            </template>
+        <span >
+            <ExclamationCircleIcon class="ff-icon mr-2" />
+            <span v-if="!team.billing?.trialEnded">
+                You have <span class="font-bold">{{ trialEndsIn }} left</span> of your free trial.
+                <span v-if="team.billing?.active">
+                    You trial projects will be added to your billing subscription at the end of your trial.
+                </span>
+                <span v-else>
+                    Click here to setup billing at any time to keep your project running after the trial the ends.
+                </span>
+            </span>
+            <span v-else>
+                Your trial has ended.
+                <span v-if="!team.billing?.active">
+                    You will need to setup billing to continuing using this team.
+                </span>
+            </span>
         </span>
-
         <template v-if="linkToBilling">
             <ChevronRightIcon class="ff-icon align-self-right" />
         </template>
@@ -33,7 +40,7 @@ import { mapState } from 'vuex'
 import permissionsMixin from '@/mixins/Permissions'
 
 export default {
-    name: 'SubscriptionExpired',
+    name: 'TeamTrialBanner',
     components: {
         ExclamationCircleIcon,
         ChevronRightIcon
@@ -56,8 +63,13 @@ export default {
         onBillingPage () {
             return this.$route.path.includes(this.billingPath)
         },
-        subscriptionExpired () {
-            return this.team.billing?.canceled
+        trialEndsIn () {
+            if (this.team.billing?.trialEndsAt) {
+                const trialEndDate = new Date(this.team.billing.trialEndsAt)
+                const daysLeft = Math.ceil((trialEndDate.getTime() - Date.now()) / 86400000)
+                return daysLeft + ' day' + (daysLeft !== 1 ? 's' : '')
+            }
+            return ''
         }
     },
     methods: {

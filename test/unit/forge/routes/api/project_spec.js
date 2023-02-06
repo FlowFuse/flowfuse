@@ -26,7 +26,9 @@ describe('Project API', function () {
     let app
     const TestObjects = {}
     beforeEach(async function () {
-        app = await setup({ domain: 'flowforge.dev' })
+        // Allow individual tests to provide custom settings via 'setup' property
+        // set on the test case itself
+        app = await setup({ domain: 'flowforge.dev', ...(this.currentTest.setup || {}) })
 
         TestObjects.project1 = app.project
 
@@ -406,352 +408,354 @@ describe('Project API', function () {
             runtimeSettings.settings.header.should.have.property('title', 'New-Project')
         })
 
-        it('Create a project cloned from existing one - include everything', async function () {
-            // Setup some flows/credentials
-            await addFlowsToProject(TestObjects.project1.id,
-                TestObjects.tokens.project,
-                [{ id: 'node1' }],
-                { testCreds: 'abc' },
-                'key1',
-                {
-                    httpAdminRoot: '/test-red',
-                    dashboardUI: '/test-dash',
-                    env: [
-                        { name: 'one', value: 'a' },
-                        { name: 'two', value: 'b' }
-                    ]
-                }
-            )
-            const response = await app.inject({
-                method: 'POST',
-                url: '/api/v1/projects',
-                payload: {
-                    name: 'test-project',
-                    team: TestObjects.ATeam.hashid,
-                    projectType: TestObjects.projectType1.hashid,
-                    template: TestObjects.template1.hashid,
-                    stack: TestObjects.stack1.hashid,
-                    sourceProject: {
-                        id: TestObjects.project1.id,
-                        options: {
-                            flows: true,
-                            credentials: true,
-                            envVars: true
-                        }
+        describe('Copy project', function () {
+            it('Create a project cloned from existing one - include everything', async function () {
+                // Setup some flows/credentials
+                await addFlowsToProject(TestObjects.project1.id,
+                    TestObjects.tokens.project,
+                    [{ id: 'node1' }],
+                    { testCreds: 'abc' },
+                    'key1',
+                    {
+                        httpAdminRoot: '/test-red',
+                        dashboardUI: '/test-dash',
+                        env: [
+                            { name: 'one', value: 'a' },
+                            { name: 'two', value: 'b' }
+                        ]
                     }
-                },
-                cookies: { sid: TestObjects.tokens.alice }
-            })
-            response.statusCode.should.equal(200)
-
-            const newProject = await app.db.models.Project.byId(response.json().id)
-            const newAccessToken = (await newProject.refreshAuthTokens()).token
-
-            const newFlows = await getProjectInfo(newProject.id, newAccessToken, 'flows')
-            newFlows.should.have.length(1)
-            newFlows[0].should.have.property('id', 'node1')
-            const newCreds = await getProjectInfo(newProject.id, newAccessToken, 'credentials')
-            newCreds.should.have.property('$')
-            const newSettings = await getProjectInfo(newProject.id, newAccessToken, 'settings')
-            newSettings.should.not.have.property('_credentialSecret')
-            const newCredKey = await newProject.getSetting('credentialSecret')
-            should(newCredKey).be.type('string', 'credentialSecret should be an auto generated string')
-            should(newCredKey.length).be.Number().eql(64, 'credentialSecret should be an auto generated string of 64 characters')
-            const srcCredKey = await TestObjects.project1.getSetting('credentialSecret')
-            newCredKey.should.not.eql(srcCredKey)
-            const newKey = crypto.createHash('sha256').update(newCredKey).digest()
-            const decrypted = decryptCredentials(newKey, newCreds)
-            decrypted.should.have.property('testCreds', 'abc')
-
-            const runtimeSettings = (await app.inject({
-                method: 'GET',
-                url: `/api/v1/projects/${newProject.id}/settings`,
-                headers: {
-                    authorization: `Bearer ${newAccessToken}`
-                }
-            })).json()
-            runtimeSettings.should.have.property('settings')
-            runtimeSettings.settings.should.have.property('header')
-            // ensure settings.header.title gets the project name set by default
-            runtimeSettings.settings.header.should.have.property('title', 'test-project')
-            runtimeSettings.settings.should.not.have.property('credentialSecret')
-            runtimeSettings.settings.should.have.property('httpAdminRoot', '/test-red')
-            runtimeSettings.settings.should.have.property('dashboardUI', '/test-dash')
-            runtimeSettings.should.have.property('env')
-            runtimeSettings.env.should.have.property('one', 'a')
-            runtimeSettings.env.should.have.property('two', 'b')
-        })
-
-        it('Create a project cloned from existing one - env-var keys only', async function () {
-            // Setup some flows/credentials
-            await addFlowsToProject(TestObjects.project1.id,
-                TestObjects.tokens.project,
-                [{ id: 'node1' }],
-                { testCreds: 'abc' },
-                'key1',
-                {
-                    httpAdminRoot: '/test-red',
-                    env: [
-                        { name: 'one', value: 'a' },
-                        { name: 'two', value: 'b' }
-                    ]
-                }
-            )
-
-            const response = await app.inject({
-                method: 'POST',
-                url: '/api/v1/projects',
-                payload: {
-                    name: 'test-project',
-                    projectType: TestObjects.projectType1.hashid,
-                    template: TestObjects.template1.hashid,
-                    stack: TestObjects.stack1.hashid,
-                    team: TestObjects.ATeam.hashid,
-                    sourceProject: {
-                        id: TestObjects.project1.id,
-                        options: {
-                            flows: true,
-                            credentials: true,
-                            envVars: 'keys'
+                )
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/projects',
+                    payload: {
+                        name: 'test-project',
+                        team: TestObjects.ATeam.hashid,
+                        projectType: TestObjects.projectType1.hashid,
+                        template: TestObjects.template1.hashid,
+                        stack: TestObjects.stack1.hashid,
+                        sourceProject: {
+                            id: TestObjects.project1.id,
+                            options: {
+                                flows: true,
+                                credentials: true,
+                                envVars: true
+                            }
                         }
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                const newProject = await app.db.models.Project.byId(response.json().id)
+                const newAccessToken = (await newProject.refreshAuthTokens()).token
+
+                const newFlows = await getProjectInfo(newProject.id, newAccessToken, 'flows')
+                newFlows.should.have.length(1)
+                newFlows[0].should.have.property('id', 'node1')
+                const newCreds = await getProjectInfo(newProject.id, newAccessToken, 'credentials')
+                newCreds.should.have.property('$')
+                const newSettings = await getProjectInfo(newProject.id, newAccessToken, 'settings')
+                newSettings.should.not.have.property('_credentialSecret')
+                const newCredKey = await newProject.getSetting('credentialSecret')
+                should(newCredKey).be.type('string', 'credentialSecret should be an auto generated string')
+                should(newCredKey.length).be.Number().eql(64, 'credentialSecret should be an auto generated string of 64 characters')
+                const srcCredKey = await TestObjects.project1.getSetting('credentialSecret')
+                newCredKey.should.not.eql(srcCredKey)
+                const newKey = crypto.createHash('sha256').update(newCredKey).digest()
+                const decrypted = decryptCredentials(newKey, newCreds)
+                decrypted.should.have.property('testCreds', 'abc')
+
+                const runtimeSettings = (await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/projects/${newProject.id}/settings`,
+                    headers: {
+                        authorization: `Bearer ${newAccessToken}`
                     }
-                },
-                cookies: { sid: TestObjects.tokens.alice }
+                })).json()
+                runtimeSettings.should.have.property('settings')
+                runtimeSettings.settings.should.have.property('header')
+                // ensure settings.header.title gets the project name set by default
+                runtimeSettings.settings.header.should.have.property('title', 'test-project')
+                runtimeSettings.settings.should.not.have.property('credentialSecret')
+                runtimeSettings.settings.should.have.property('httpAdminRoot', '/test-red')
+                runtimeSettings.settings.should.have.property('dashboardUI', '/test-dash')
+                runtimeSettings.should.have.property('env')
+                runtimeSettings.env.should.have.property('one', 'a')
+                runtimeSettings.env.should.have.property('two', 'b')
             })
-            response.statusCode.should.equal(200)
 
-            const newProject = await app.db.models.Project.byId(response.json().id)
-            const newAccessToken = (await newProject.refreshAuthTokens()).token
+            it('Create a project cloned from existing one - env-var keys only', async function () {
+                // Setup some flows/credentials
+                await addFlowsToProject(TestObjects.project1.id,
+                    TestObjects.tokens.project,
+                    [{ id: 'node1' }],
+                    { testCreds: 'abc' },
+                    'key1',
+                    {
+                        httpAdminRoot: '/test-red',
+                        env: [
+                            { name: 'one', value: 'a' },
+                            { name: 'two', value: 'b' }
+                        ]
+                    }
+                )
 
-            const runtimeSettings = (await app.inject({
-                method: 'GET',
-                url: `/api/v1/projects/${newProject.id}/settings`,
-                headers: {
-                    authorization: `Bearer ${newAccessToken}`
-                }
-            })).json()
-            runtimeSettings.settings.should.not.have.property('credentialSecret')
-            const newCredsKey = await newProject.getSetting('credentialSecret')
-            should(newCredsKey).be.type('string', 'credentialSecret should be an auto generated string')
-            should(newCredsKey.length).be.Number().eql(64, 'credentialSecret should be an auto generated string of 64 characters')
-            runtimeSettings.should.have.property('env')
-            runtimeSettings.env.should.have.property('one', '')
-            runtimeSettings.env.should.have.property('two', '')
-        })
-
-        it('Create a project cloned from existing one - no env-vars', async function () {
-            // Setup some flows/credentials
-            await addFlowsToProject(TestObjects.project1.id,
-                TestObjects.tokens.project,
-                [{ id: 'node1' }],
-                { testCreds: 'abc' },
-                'key1',
-                {
-                    httpAdminRoot: '/test-red',
-                    env: [
-                        { name: 'one', value: 'a' },
-                        { name: 'two', value: 'b' }
-                    ]
-                }
-            )
-
-            const response = await app.inject({
-                method: 'POST',
-                url: '/api/v1/projects',
-                payload: {
-                    name: 'test-project',
-                    projectType: TestObjects.projectType1.hashid,
-                    template: TestObjects.template1.hashid,
-                    stack: TestObjects.stack1.hashid,
-                    team: TestObjects.ATeam.hashid,
-                    sourceProject: {
-                        id: TestObjects.project1.id,
-                        options: {
-                            flows: true,
-                            credentials: true,
-                            envVars: false
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/projects',
+                    payload: {
+                        name: 'test-project',
+                        projectType: TestObjects.projectType1.hashid,
+                        template: TestObjects.template1.hashid,
+                        stack: TestObjects.stack1.hashid,
+                        team: TestObjects.ATeam.hashid,
+                        sourceProject: {
+                            id: TestObjects.project1.id,
+                            options: {
+                                flows: true,
+                                credentials: true,
+                                envVars: 'keys'
+                            }
                         }
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                const newProject = await app.db.models.Project.byId(response.json().id)
+                const newAccessToken = (await newProject.refreshAuthTokens()).token
+
+                const runtimeSettings = (await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/projects/${newProject.id}/settings`,
+                    headers: {
+                        authorization: `Bearer ${newAccessToken}`
                     }
-                },
-                cookies: { sid: TestObjects.tokens.alice }
+                })).json()
+                runtimeSettings.settings.should.not.have.property('credentialSecret')
+                const newCredsKey = await newProject.getSetting('credentialSecret')
+                should(newCredsKey).be.type('string', 'credentialSecret should be an auto generated string')
+                should(newCredsKey.length).be.Number().eql(64, 'credentialSecret should be an auto generated string of 64 characters')
+                runtimeSettings.should.have.property('env')
+                runtimeSettings.env.should.have.property('one', '')
+                runtimeSettings.env.should.have.property('two', '')
             })
-            response.statusCode.should.equal(200)
 
-            const newProject = await app.db.models.Project.byId(response.json().id)
-            const newAccessToken = (await newProject.refreshAuthTokens()).token
+            it('Create a project cloned from existing one - no env-vars', async function () {
+                // Setup some flows/credentials
+                await addFlowsToProject(TestObjects.project1.id,
+                    TestObjects.tokens.project,
+                    [{ id: 'node1' }],
+                    { testCreds: 'abc' },
+                    'key1',
+                    {
+                        httpAdminRoot: '/test-red',
+                        env: [
+                            { name: 'one', value: 'a' },
+                            { name: 'two', value: 'b' }
+                        ]
+                    }
+                )
 
-            const runtimeSettings = (await app.inject({
-                method: 'GET',
-                url: `/api/v1/projects/${newProject.id}/settings`,
-                headers: {
-                    authorization: `Bearer ${newAccessToken}`
-                }
-            })).json()
-            runtimeSettings.settings.should.not.have.property('credentialSecret')
-            const newCredsKey = await newProject.getSetting('credentialSecret')
-            should(newCredsKey).be.type('string', 'credentialSecret should be an auto generated string')
-            should(newCredsKey.length).be.Number().eql(64, 'credentialSecret should be an auto generated string of 64 characters')
-            runtimeSettings.should.have.property('env')
-            runtimeSettings.env.should.not.have.property('one')
-            runtimeSettings.env.should.not.have.property('two')
-        })
-
-        it('Create a project cloned from existing one - no credentials', async function () {
-            // Setup some flows/credentials
-            await addFlowsToProject(TestObjects.project1.id,
-                TestObjects.tokens.project,
-                [{ id: 'node1' }],
-                { testCreds: 'abc' },
-                'key1',
-                {
-                    httpAdminRoot: '/test-red',
-                    env: [
-                        { name: 'one', value: 'a' },
-                        { name: 'two', value: 'b' }
-                    ]
-                }
-            )
-
-            const response = await app.inject({
-                method: 'POST',
-                url: '/api/v1/projects',
-                payload: {
-                    name: 'test-project',
-                    projectType: TestObjects.projectType1.hashid,
-                    template: TestObjects.template1.hashid,
-                    stack: TestObjects.stack1.hashid,
-                    team: TestObjects.ATeam.hashid,
-                    sourceProject: {
-                        id: TestObjects.project1.id,
-                        options: {
-                            flows: true,
-                            credentials: false,
-                            envVars: false
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/projects',
+                    payload: {
+                        name: 'test-project',
+                        projectType: TestObjects.projectType1.hashid,
+                        template: TestObjects.template1.hashid,
+                        stack: TestObjects.stack1.hashid,
+                        team: TestObjects.ATeam.hashid,
+                        sourceProject: {
+                            id: TestObjects.project1.id,
+                            options: {
+                                flows: true,
+                                credentials: true,
+                                envVars: false
+                            }
                         }
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                const newProject = await app.db.models.Project.byId(response.json().id)
+                const newAccessToken = (await newProject.refreshAuthTokens()).token
+
+                const runtimeSettings = (await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/projects/${newProject.id}/settings`,
+                    headers: {
+                        authorization: `Bearer ${newAccessToken}`
                     }
-                },
-                cookies: { sid: TestObjects.tokens.alice }
+                })).json()
+                runtimeSettings.settings.should.not.have.property('credentialSecret')
+                const newCredsKey = await newProject.getSetting('credentialSecret')
+                should(newCredsKey).be.type('string', 'credentialSecret should be an auto generated string')
+                should(newCredsKey.length).be.Number().eql(64, 'credentialSecret should be an auto generated string of 64 characters')
+                runtimeSettings.should.have.property('env')
+                runtimeSettings.env.should.not.have.property('one')
+                runtimeSettings.env.should.not.have.property('two')
             })
-            response.statusCode.should.equal(200)
 
-            const newProject = await app.db.models.Project.byId(response.json().id)
-            const newAccessToken = (await newProject.refreshAuthTokens()).token
+            it('Create a project cloned from existing one - no credentials', async function () {
+                // Setup some flows/credentials
+                await addFlowsToProject(TestObjects.project1.id,
+                    TestObjects.tokens.project,
+                    [{ id: 'node1' }],
+                    { testCreds: 'abc' },
+                    'key1',
+                    {
+                        httpAdminRoot: '/test-red',
+                        env: [
+                            { name: 'one', value: 'a' },
+                            { name: 'two', value: 'b' }
+                        ]
+                    }
+                )
 
-            // Creds should be empty
-            const newCreds = await getProjectInfo(newProject.id, newAccessToken, 'credentials')
-            Object.keys(newCreds).should.have.length(0)
-        })
-
-        it('Create a project cloned from existing one - no flows/creds', async function () {
-            // Setup some flows/credentials
-            await addFlowsToProject(TestObjects.project1.id,
-                TestObjects.tokens.project,
-                [{ id: 'node1' }],
-                { testCreds: 'abc' },
-                'key1',
-                {
-                    httpAdminRoot: '/test-red',
-                    env: [
-                        { name: 'one', value: 'a' },
-                        { name: 'two', value: 'b' }
-                    ]
-                }
-            )
-
-            const response = await app.inject({
-                method: 'POST',
-                url: '/api/v1/projects',
-                payload: {
-                    name: 'test-project',
-                    projectType: TestObjects.projectType1.hashid,
-                    template: TestObjects.template1.hashid,
-                    stack: TestObjects.stack1.hashid,
-                    team: TestObjects.ATeam.hashid,
-                    sourceProject: {
-                        id: TestObjects.project1.id,
-                        options: {
-                            flows: false,
-                            credentials: false,
-                            envVars: true
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/projects',
+                    payload: {
+                        name: 'test-project',
+                        projectType: TestObjects.projectType1.hashid,
+                        template: TestObjects.template1.hashid,
+                        stack: TestObjects.stack1.hashid,
+                        team: TestObjects.ATeam.hashid,
+                        sourceProject: {
+                            id: TestObjects.project1.id,
+                            options: {
+                                flows: true,
+                                credentials: false,
+                                envVars: false
+                            }
                         }
-                    }
-                },
-                cookies: { sid: TestObjects.tokens.alice }
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                const newProject = await app.db.models.Project.byId(response.json().id)
+                const newAccessToken = (await newProject.refreshAuthTokens()).token
+
+                // Creds should be empty
+                const newCreds = await getProjectInfo(newProject.id, newAccessToken, 'credentials')
+                Object.keys(newCreds).should.have.length(0)
             })
-            response.statusCode.should.equal(200)
 
-            const newProject = await app.db.models.Project.byId(response.json().id)
-            const newAccessToken = (await newProject.refreshAuthTokens()).token
+            it('Create a project cloned from existing one - no flows/creds', async function () {
+                // Setup some flows/credentials
+                await addFlowsToProject(TestObjects.project1.id,
+                    TestObjects.tokens.project,
+                    [{ id: 'node1' }],
+                    { testCreds: 'abc' },
+                    'key1',
+                    {
+                        httpAdminRoot: '/test-red',
+                        env: [
+                            { name: 'one', value: 'a' },
+                            { name: 'two', value: 'b' }
+                        ]
+                    }
+                )
 
-            // Flows should be empty
-            const newFlows = await getProjectInfo(newProject.id, newAccessToken, 'flows')
-            newFlows.should.have.length(0)
-            // Creds should be empty
-            const newCreds = await getProjectInfo(newProject.id, newAccessToken, 'credentials')
-            Object.keys(newCreds).should.have.length(0)
-
-            const runtimeSettings = (await app.inject({
-                method: 'GET',
-                url: `/api/v1/projects/${newProject.id}/settings`,
-                headers: {
-                    authorization: `Bearer ${newAccessToken}`
-                }
-            })).json()
-            runtimeSettings.settings.should.not.have.property('credentialSecret')
-            const newCredsKey = await newProject.getSetting('credentialSecret')
-            should(newCredsKey).be.type('string', 'credentialSecret should be an auto generated string')
-            should(newCredsKey.length).be.Number().eql(64, 'credentialSecret should be an auto generated string of 64 characters')
-            runtimeSettings.should.have.property('env')
-            runtimeSettings.env.should.have.property('one')
-            runtimeSettings.env.should.have.property('two')
-        })
-
-        it('Fails to copy project to a different team', async function () {
-            const response = await app.inject({
-                method: 'POST',
-                url: '/api/v1/projects',
-                payload: {
-                    name: 'test-project',
-                    team: TestObjects.BTeam.hashid,
-                    projectType: TestObjects.projectType1.hashid,
-                    template: TestObjects.template1.hashid,
-                    stack: TestObjects.stack1.hashid,
-                    sourceProject: {
-                        id: TestObjects.project1.id,
-                        options: {
-                            flows: true,
-                            credentials: true,
-                            envVars: true
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/projects',
+                    payload: {
+                        name: 'test-project',
+                        projectType: TestObjects.projectType1.hashid,
+                        template: TestObjects.template1.hashid,
+                        stack: TestObjects.stack1.hashid,
+                        team: TestObjects.ATeam.hashid,
+                        sourceProject: {
+                            id: TestObjects.project1.id,
+                            options: {
+                                flows: false,
+                                credentials: false,
+                                envVars: true
+                            }
                         }
-                    }
-                },
-                cookies: { sid: TestObjects.tokens.alice }
-            })
-            response.statusCode.should.equal(403)
-        })
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
 
-        it('Fails to copy unknown project', async function () {
-            const response = await app.inject({
-                method: 'POST',
-                url: '/api/v1/projects',
-                payload: {
-                    name: 'test-project',
-                    team: TestObjects.ATeam.hashid,
-                    projectType: TestObjects.projectType1.hashid,
-                    template: TestObjects.template1.hashid,
-                    stack: TestObjects.stack1.hashid,
-                    sourceProject: {
-                        id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-                        options: {
-                            flows: true,
-                            credentials: true,
-                            envVars: true
-                        }
+                const newProject = await app.db.models.Project.byId(response.json().id)
+                const newAccessToken = (await newProject.refreshAuthTokens()).token
+
+                // Flows should be empty
+                const newFlows = await getProjectInfo(newProject.id, newAccessToken, 'flows')
+                newFlows.should.have.length(0)
+                // Creds should be empty
+                const newCreds = await getProjectInfo(newProject.id, newAccessToken, 'credentials')
+                Object.keys(newCreds).should.have.length(0)
+
+                const runtimeSettings = (await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/projects/${newProject.id}/settings`,
+                    headers: {
+                        authorization: `Bearer ${newAccessToken}`
                     }
-                },
-                cookies: { sid: TestObjects.tokens.alice }
+                })).json()
+                runtimeSettings.settings.should.not.have.property('credentialSecret')
+                const newCredsKey = await newProject.getSetting('credentialSecret')
+                should(newCredsKey).be.type('string', 'credentialSecret should be an auto generated string')
+                should(newCredsKey.length).be.Number().eql(64, 'credentialSecret should be an auto generated string of 64 characters')
+                runtimeSettings.should.have.property('env')
+                runtimeSettings.env.should.have.property('one')
+                runtimeSettings.env.should.have.property('two')
             })
-            response.statusCode.should.equal(400)
+
+            it('Fails to copy project to a different team', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/projects',
+                    payload: {
+                        name: 'test-project',
+                        team: TestObjects.BTeam.hashid,
+                        projectType: TestObjects.projectType1.hashid,
+                        template: TestObjects.template1.hashid,
+                        stack: TestObjects.stack1.hashid,
+                        sourceProject: {
+                            id: TestObjects.project1.id,
+                            options: {
+                                flows: true,
+                                credentials: true,
+                                envVars: true
+                            }
+                        }
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(403)
+            })
+
+            it('Fails to copy unknown project', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/projects',
+                    payload: {
+                        name: 'test-project',
+                        team: TestObjects.ATeam.hashid,
+                        projectType: TestObjects.projectType1.hashid,
+                        template: TestObjects.template1.hashid,
+                        stack: TestObjects.stack1.hashid,
+                        sourceProject: {
+                            id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+                            options: {
+                                flows: true,
+                                credentials: true,
+                                envVars: true
+                            }
+                        }
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(400)
+            })
         })
     })
 

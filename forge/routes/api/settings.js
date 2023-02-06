@@ -18,6 +18,7 @@ module.exports = async function (app) {
                 'user:tcs-required': app.settings.get('user:tcs-required'),
                 'user:tcs-url': app.settings.get('user:tcs-url'),
                 'user:tcs-date': app.settings.get('user:tcs-date'),
+                'user:team:trial-mode:projectType': app.settings.get('user:team:trial-mode:projectType'),
                 email: app.postoffice.enabled(),
                 stacks: app.containers.properties().stack || {},
                 features: app.config.features.getAllFeatures(),
@@ -32,6 +33,8 @@ module.exports = async function (app) {
                 response.email = app.postoffice.exportSettings(true)
                 response['version:forge'] = app.settings.get('version:forge')
                 response['version:node'] = app.settings.get('version:node')
+                response['user:team:trial-mode'] = app.settings.get('user:team:trial-mode')
+                response['user:team:trial-mode:duration'] = app.settings.get('user:team:trial-mode:duration')
             }
             reply.send(response)
         } else {
