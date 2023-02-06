@@ -41,7 +41,8 @@ module.exports = {
     // Can external users be invited to join teams
     'team:user:invite:external': false,
 
+    // Is the trial feature enabled?
     'user:team:trial-mode': false,
-    'user:team:trial-mode:duration': 0,
-    'user:team:trial-mode:projectType': null
+    'user:team:trial-mode:duration': 0, // How many days - required if trials enabled
+    'user:team:trial-mode:projectType': null // Project type that is included in the trial - required if trials enabled
 }
