@@ -56,7 +56,7 @@ export default {
         credentials: function () {
             let result = ''
             if (this.token) {
-                result = `token: ${this.token.token}\nforgeURL: ${this.settings.base_url}`
+                result = `provisioningToken: ${this.token.token}\nforgeURL: ${this.settings.base_url}`
             }
             return result
         }
