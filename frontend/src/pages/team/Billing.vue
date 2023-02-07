@@ -32,14 +32,20 @@
             </div>
         </div>
         <div v-else class="ff-no-data ff-no-data-large">
-            Billing has not yet been configured for this team. Before proceeding further, you must continue to Stripe and complete this.
+            <div v-if="trialMode">
+                You are currently in a free trial. During the trial you can only create one project in the team. To unlock other features you will need
+                to configure your billing details.
+            </div>
+            <div v-else>
+                Billing has not yet been configured for this team. Before proceeding further, you must continue to Stripe and complete this.
+            </div>
             <div v-if="coupon">
                 <div class="my-3 text-sm">Will apply coupon code <strong>{{ coupon }}</strong> at checkout</div>
             </div>
             <div v-else-if="errors.coupon">
                 <div class="my-3 text-red-400">{{ errors.coupon }}</div>
             </div>
-            <div class="mt-3">
+            <div class="mt-6">
                 <ff-button data-action="setup-payment-details" class="mx-auto mt-3" @click="setupBilling()">
                     <template #icon-right><ExternalLinkIcon /></template>
                     Setup Payment Details
