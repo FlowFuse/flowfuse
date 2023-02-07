@@ -89,11 +89,6 @@ const ProjectLink = {
     props: ['project']
 }
 
-const LastSeen = {
-    template: '<span><span v-if="lastSeenSince">{{lastSeenSince}}</span><span v-else class="italic text-gray-500">never</span></span>',
-    props: ['lastSeenSince']
-}
-
 export default {
     name: 'TeamDevices',
     mixins: [permissionsMixin],

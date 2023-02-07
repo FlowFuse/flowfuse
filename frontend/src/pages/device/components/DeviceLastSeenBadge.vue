@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import { ExclamationIcon, ExclamationCircleIcon, PlayIcon, StopIcon, DotsCircleHorizontalIcon, SupportIcon, CloudDownloadIcon, CloudUploadIcon } from '@heroicons/vue/outline'
+import { ExclamationCircleIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'ProjectStatusBadge',
