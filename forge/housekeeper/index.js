@@ -34,7 +34,7 @@ module.exports = fp(async function (app, _opts, next) {
         // Allow the housekeeper to be disabled - this allows the tests
         // to run without fear the housekeeper may fire off a task at the same
         // time.
-        if (!app.config.housekeeper) {
+        if (app.config.housekeeper === false) {
             return
         }
 
