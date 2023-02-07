@@ -5,10 +5,13 @@
             <p>The contents of your Team Library are available across any of your projects in FlowForge.</p>
             <p>You can read more about <a href="https://nodered.org/docs/user-guide/editor/workspace/import-export" target="_blank">Import & Exporting Flows</a> in the Node-RED documentation</p>
         </template>
+        <template v-slot:tools>
+            <ff-button v-if="contents" @click="copyToClipboard()">Copy to Clipboard</ff-button>
+        </template>
     </SectionTopMenu>
     <div class="ff-breadcrumbs">
         <span v-for="(crumb, $index) in breadcrumbs" :key="$index" class="flex">
-            <a @click="goToFolder(crumb, $index)">{{ crumb.name }}</a>
+            <label @click="goToFolder(crumb, $index)">{{ crumb.name }}</label>
             <ChevronRightIcon class="ff-icon"></ChevronRightIcon>
         </span>
     </div>
@@ -21,11 +24,12 @@
                 </ff-data-table-row>
             </template>
         </ff-data-table>
-        <ff-code-previewer v-else :snippet="contents"></ff-code-previewer>
+        <ff-code-previewer v-else :snippet="contents" ref="code-preview"></ff-code-previewer>
     </div>
 </template>
 
 <script>
+import Alert from '@/services/alerts'
 import teamApi from '@/api/team'
 
 import { ChevronRightIcon } from '@heroicons/vue/solid'
@@ -113,6 +117,10 @@ export default {
                 // folders first, then names
                 return folderSort || nameSort
             })
+        },
+        copyToClipboard () {
+            navigator.clipboard.writeText(JSON.stringify(this.contents))
+            Alert.emit('Copied to Clipboard.', 'confirmation')
         }
     },
     components: {

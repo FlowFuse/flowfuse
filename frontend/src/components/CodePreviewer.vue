@@ -17,7 +17,6 @@ export default {
     },
     computed: {
         strippedSnippet: function () {
-            console.log(this.snippet)
             return this.snippet
         }
     }

@@ -103,14 +103,14 @@ label {
     align-items: center;
     margin-top: 12px;
     margin-bottom: 12px;
-    a {
+    label {
         color: $ff-blue-600;
+        cursor: pointer;
         &:hover {
-            cursor: pointer;
             text-decoration: underline;
         }
     }
-    span:last-child a {
+    span:last-child label {
         pointer-events: none;
         color: black;
     }
