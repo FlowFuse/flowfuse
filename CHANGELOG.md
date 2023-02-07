@@ -1,3 +1,10 @@
+#### 1.3.2: Release
+
+ - Validate internal links that include # (backport #1666) (#1667) @app/github-actions
+ - Change PostHog config: apihost to apiurl (backport #1651) (#1652) @app/github-actions
+ - Make Posthog API Host configurable in flowforge.yml (backport #1649) (#1650) @app/github-actions
+ - docs: Add Safe mode for Node-RED (backport #1643) (#1644) @app/github-actions
+
 #### 1.3.1: Release
 
  - Move the credit banner into the project type section (backport #1613) (#1614) @github-actions
