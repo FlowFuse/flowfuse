@@ -89,6 +89,7 @@ by ticking the `active` checkbox and clicking `Update configuration`.
 The following is a non-exhaustive list of the providers that are known to work
 with FlowForge SAML SSO.
 
+ - Azure AD
  - [Google Workspace](#google-workspace)
  - [OneLogin](#onelogin)
 
