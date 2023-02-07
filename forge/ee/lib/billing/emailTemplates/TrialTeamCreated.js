@@ -7,46 +7,52 @@
 module.exports = {
     subject: 'Welcome to your free FlowForge trial',
     text:
-`Hello {{{username}}}
+`Hello {{{username}}},
 
-Welcome to your FlowForge trial. We've created a team called '{{{teamName}}}' just
-for you.
+Welcome to FlowForge. We hope you enjoy your free trial for your first
+{{{trialDuration}}} days with us.
 
-Your trial will last for {{{trialDuration}}} days and you'll be able to create
-a {{{trialProjectTypeName}}} project for free.
+To get started using FlowForge, log in to your new team, '{{{teamName}}}' 
+and create your first Node-RED Project.
 
-Once the trial ends, you can setup billing details on your team to keep the project
-running. But do not worry - we'll let you know when the trial is nearing its end so you
-can choose what to do nearer the time.
+You can also invite other users to join your team to collaborate on your projects.
 
-If you want to do more with your team during the trial, you will need to setup
-billing details. You will still get your one {{{trialProjectTypeName}}} project
-for free during the trial and we will only add it to your billing subscription
-once the trial ends. Again, we'll email to let you know what is happening so
-you can cancel at any time.
+Your {{{trialDuration}}} day trial allows you to create a {{{trialProjectTypeName}}} project
+for free. Once the trial ends, you will need to add your credit card details to
+keep the project running. But don't worry - we'll remind you when the trial is
+nearing its end.
+
+If you want to do more with your team during the trial, you can add your credit
+card details at any time and create more projects.  Again, we'll email to remind
+you what is happening with the trial.
+
+We hope you enjoy the FlowForge experience.
 
 Cheers!
 
 Your friendly FlowForge Team
 `,
     html:
-`<p>Hello {{{username}}}</p>
+`<p>Hello {{{username}}},</p>
 
-<p>Welcome to your FlowForge trial. We've created a team called '{{{teamName}}}' just
-for you.</p>
+<p>Welcome to FlowForge. We hope you enjoy your free trial for your first
+{{{trialDuration}}} days with us.</p>
 
-<p>Your trial will last for {{{trialDuration}}} days and you'll be able to create
-a {{{trialProjectTypeName}}} project for free.</p>
+<p>To get started using FlowForge, log in to your new team, '{{{teamName}}}' 
+and create your first Node-RED Project.</p>
 
-<p>Once the trial ends, you can setup billing details on your team to keep the project
-running. But do not worry - we'll let you know when the trial is nearing its end so you
-can choose what to do nearer the time.</p>
+<p>You can also invite other users to join your team to collaborate on your projects.</p>
 
-<p>If you want to do more with your team during the trial, you will need to setup
-billing details. You will still get your one {{{trialProjectTypeName}}} project
-for free during the trial and we will only add it to your billing subscription
-once the trial ends. Again, we'll email to let you know what is happening so
-you can cancel at any time.</p>
+<p>Your {{{trialDuration}}} day trial allows you to create a {{{trialProjectTypeName}}} project
+for free. Once the trial ends, you will need to add your credit card details to
+keep the project running. But don't worry - we'll remind you when the trial is
+nearing its end.</p>
+
+<p>If you want to do more with your team during the trial, you can add your credit
+card details at any time and create more projects.  Again, we'll email to remind
+you what is happening with the trial.</p>
+
+<p>We hope you enjoy the FlowForge experience.</p>
 
 <p>Cheers!</p>
 
