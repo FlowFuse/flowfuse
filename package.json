@@ -1,6 +1,6 @@
 {
     "name": "@flowforge/flowforge",
-    "version": "1.3.1",
+    "version": "1.3.2",
     "description": "An open source low-code development platform",
     "scripts": {
         "start": "node forge/app.js",
