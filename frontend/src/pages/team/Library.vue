@@ -102,7 +102,7 @@ export default {
                 return {
                     type,
                     name,
-                    path: parent.path ? parent.path + '/' + name + '/' : name + '/'
+                    path: parent.path ? (parent.path + name + '/') : name + '/'
                 }
             }).sort((a, b) => {
                 const typeOrder = ['folder', 'flows', 'functions']
