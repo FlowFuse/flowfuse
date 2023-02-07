@@ -64,7 +64,7 @@ This release introduces an MQTT Broker into the FlowForge platform used to commu
 between devices and the core platform.
 
 For LocalFS users, they will need to manually setup the broker and ensure it is
-properly configured. The documentation for this is available [here](./local/README.md#mosquitto)
+properly configured. The documentation for this is available [here](../install/local/README.md#mosquitto)
 
 #### LocalFS Users
 

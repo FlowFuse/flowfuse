@@ -6,26 +6,11 @@
     <ff-loading v-if="loading.suspend" message="Suspending Project..." />
     <ff-loading v-if="loading.importing" message="Importing Project..." />
     <form v-if="!isLoading" class="space-y-6">
-        <template v-if="!project.projectType">
-            <FormHeading>Set Project Type</FormHeading>
-            <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
-                <div class="flex-grow">
-                    <div class="max-w-sm pt-2 space-y-1">
-                        <p>You need to pick a type for this
-                            project before you can make any changes to its stack.</p>
-                        <p>This is a one-time action - you cannot change the project type once it has been set.</p>
-                    </div>
-                </div>
-                <div class="min-w-fit flex-shrink-0">
-                    <ff-button kind="secondary" @click="showChangeTypeDialog()">Set Project Type</ff-button>
-                    <ChangeTypeDialog @confirm="changeType" ref="changeTypeDialog"/>
-                </div>
-            </div>
-        </template>
         <FormHeading>Change Project Stack</FormHeading>
-        <div v-if="project.stack && project.stack.replacedBy" class="flex flex-col lg:flex-row max-w-2xl space-y-4">
+        <div v-if="project.stack && project.stack.replacedBy" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
-                <div class="max-w-sm pt-2">There is a new version of the current stack available.
+                <div class="max-w-sm">
+                    There is a new version of the current stack available.
                     Updating the stack will restart the project.
                 </div>
             </div>
@@ -33,11 +18,11 @@
                 <ff-button :disabled="!project.projectType" kind="secondary" @click="upgradeStack()">Update Stack</ff-button>
             </div>
         </div>
-        <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
+        <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
-                <div class="max-w-sm pt-2">Changing the project stack requires the
-                    project to be restarted. The flows will not be running whilst
-                    this happens.
+                <div class="max-w-sm">
+                    Changing the Project Stack requires the project to be restarted.
+                    The flows will not be running while this happens.
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
@@ -48,20 +33,19 @@
 
         <FormHeading>Copy Project</FormHeading>
 
-        <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
+        <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
-                <div class="max-w-sm pt-2">
+                <div class="max-w-sm">
                     Create a copy of this project.
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="secondary" @click="showDuplicateProjectDialog()">Copy Project</ff-button>
+                <ff-button kind="secondary" @click="showDuplicateProjectDialog()" data-nav="copy-project">Copy Project</ff-button>
             </div>
         </div>
-
-        <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
+        <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
-                <div class="max-w-sm pt-2">
+                <div class="max-w-sm">
                     Copy the project's state to an existing project.
                 </div>
             </div>
@@ -72,10 +56,9 @@
         </div>
 
         <FormHeading>Import Project</FormHeading>
-
-        <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
+        <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
-                <div class="max-w-sm pt-2">
+                <div class="max-w-sm">
                     Import an existing Node-RED project.
                 </div>
             </div>
@@ -85,14 +68,28 @@
             </div>
         </div>
 
-        <FormHeading class="text-red-700">Suspend Project</FormHeading>
-        <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
+        <FormHeading>Change Project Type</FormHeading>
+        <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
-                <div class="max-w-sm pt-2" v-if="project?.meta?.state === 'suspended'">
+                <div class="max-w-sm">
+                    Changing the Project Type will restart the project.
+                    The flows will not be running while this happens.
+                </div>
+            </div>
+            <div class="min-w-fit flex-shrink-0">
+                <ff-button kind="secondary" @click="showProjectChangeTypePage()" data-nav="change-project-settings">Change Project Type</ff-button>
+            </div>
+        </div>
+
+        <FormHeading class="text-red-700">Suspend Project</FormHeading>
+        <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+            <div class="flex-grow">
+                <div class="max-w-sm" v-if="project?.meta?.state === 'suspended'">
                     Your project is already suspended. To restart the project, select "Start" from the Project actions.
                 </div>
-                <div class="max-w-sm pt-2" v-else>
-                    Once suspended, your project will not be available until restarted. Whilst suspended, the project will consume no <span v-if="features.billing">billable</span> resources.
+                <div class="max-w-sm" v-else>
+                    Once suspended, your project will not be available until restarted.
+                    While suspended, the project will consume no <span v-if="features.billing">billable</span> resources.
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
@@ -101,9 +98,9 @@
         </div>
 
         <FormHeading class="text-red-700">Delete Project</FormHeading>
-        <div class="flex flex-col lg:flex-row max-w-2xl space-y-4">
+        <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
-                <div class="max-w-sm pt-2">
+                <div class="max-w-sm">
                     Once deleted, your project is gone. This cannot be undone.
                 </div>
             </div>
@@ -125,7 +122,6 @@ import permissionsMixin from '@/mixins/Permissions'
 import FormHeading from '@/components/FormHeading'
 import ConfirmProjectDeleteDialog from './dialogs/ConfirmProjectDeleteDialog'
 import ChangeStackDialog from './dialogs/ChangeStackDialog'
-import ChangeTypeDialog from './dialogs/ChangeTypeDialog'
 import ExportToProjectDialog from './dialogs/ExportToProjectDialog'
 import ImportProjectDialog from './dialogs/ImportProjectDialog'
 import { useRouter } from 'vue-router'
@@ -185,8 +181,12 @@ export default {
                 })
             })
         },
-        showChangeTypeDialog () {
-            this.$refs.changeTypeDialog.show(this.project)
+        showProjectChangeTypePage () {
+            this.$router.push({
+                name: 'ChangeProjectType',
+                params: { team_slug: this.team.slug },
+                query: { projectId: this.project.id }
+            })
         },
         showChangeStackDialog () {
             this.$refs.changeStackDialog.show(this.project)
@@ -239,7 +239,8 @@ export default {
         },
         deleteProject () {
             this.loading.deleting = true
-            projectApi.deleteProject(this.project.id).then(() => {
+            projectApi.deleteProject(this.project.id).then(async () => {
+                await this.$store.dispatch('account/refreshTeam')
                 this.$router.push({ name: 'Home' })
                 alerts.emit('Project successfully deleted.', 'confirmation')
             }).catch(err => {
@@ -248,19 +249,6 @@ export default {
             }).finally(() => {
                 this.loading.deleting = false
             })
-        },
-        changeType (selectedType) {
-            if (!this.project.projectType && selectedType) {
-                this.loading.settingType = true
-                projectApi.updateProject(this.project.id, {
-                    projectType: selectedType
-                }).catch(err => {
-                    console.warn(err)
-                }).finally(() => {
-                    this.$emit('projectUpdated')
-                    this.loading.settingType = false
-                })
-            }
         },
         changeStack (selectedStack) {
             if (this.project.stack?.id !== selectedStack) {

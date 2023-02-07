@@ -10,9 +10,17 @@
  */
 module.exports = async function (app) {
     const changeStatusPreHandler = { preHandler: app.needsPermission('project:change-status') }
+
     app.post('/start', changeStatusPreHandler, async (request, reply) => {
         try {
             if (request.project.state === 'suspended') {
+                if (app.license.active() && app.billing) {
+                    if (!await app.billing.isProjectStartAllowed(request.project.Team, request.project)) {
+                        reply.code(402).send({ code: 'billing_required', error: 'Team billing not configured' })
+                        return
+                    }
+                }
+
                 // Restart the container
                 request.project.state = 'running'
                 await request.project.save()
@@ -133,6 +141,35 @@ module.exports = async function (app) {
 
             const resp = { code: 'unexpected_error', error: err.toString() }
             await app.auditLog.Project.project.snapshot.rolledBack(request.session.User, resp, request.project)
+            reply.code(500).send(resp)
+        }
+    })
+
+    app.post('/restartStack', changeStatusPreHandler, async (request, reply) => {
+        try {
+            await app.auditLog.Project.project.stack.restart(request.session.User, null, request.project)
+            if (request.project.state !== 'suspended') {
+                app.db.controllers.Project.setInflightState(request.project, 'suspending')
+                await app.containers.stop(request.project)
+                app.db.controllers.Project.clearInflightState(request.project)
+                await app.auditLog.Project.project.suspended(request.session.User, null, request.project)
+            }
+
+            request.project.state = 'running'
+            await request.project.save()
+            app.db.controllers.Project.setInflightState(request.project, 'starting')
+            const startResult = await app.containers.start(request.project)
+            startResult.started.then(async () => {
+                await app.auditLog.Project.project.started(request.session.User, null, request.project)
+                app.db.controllers.Project.clearInflightState(request.project)
+            })
+
+            reply.send()
+        } catch (err) {
+            app.db.controllers.Project.clearInflightState(request.project)
+
+            const resp = { code: 'unexpected_error', error: err.toString() }
+            await app.auditLog.Project.project.stack.restart(request.session.User, resp, request.project)
             reply.code(500).send(resp)
         }
     })

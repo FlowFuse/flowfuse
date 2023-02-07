@@ -116,4 +116,23 @@ describe('Subscription controller', function () {
             should.equal(eligible, true)
         })
     })
+
+    describe('Team Trials', function () {
+        it('reports team trial status correctly', async function () {
+            const defaultTeamType = await app.db.models.TeamType.findOne()
+            const team = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: defaultTeamType.id })
+            const trialSubscription = await app.db.controllers.Subscription.createTrialSubscription(team, Date.now() + (5 * 86400000))
+
+            trialSubscription.isActive().should.be.false()
+            trialSubscription.isCanceled().should.be.false()
+            trialSubscription.isTrial().should.be.true()
+            trialSubscription.isTrialEnded().should.be.false()
+
+            const endedSubscription = await app.db.controllers.Subscription.createTrialSubscription(team, Date.now() - (5 * 86400000))
+            endedSubscription.isActive().should.be.false()
+            endedSubscription.isCanceled().should.be.false()
+            endedSubscription.isTrial().should.be.true()
+            endedSubscription.isTrialEnded().should.be.true()
+        })
+    })
 })

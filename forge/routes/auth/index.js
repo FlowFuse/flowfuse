@@ -408,12 +408,17 @@ module.exports = fp(async function (app, opts, done) {
 
             // only create a personal team if no other teams exist
             if (app.settings.get('user:team:auto-create') && !((await app.db.models.Team.forUser(verifiedUser)).length)) {
-                const team = await app.db.controllers.Team.createTeamForUser({
+                const teamProperties = {
                     name: `Team ${verifiedUser.name}`,
                     slug: verifiedUser.username,
                     TeamTypeId: (await app.db.models.TeamType.byName('starter')).id
-                }, verifiedUser)
+                }
+                const team = await app.db.controllers.Team.createTeamForUser(teamProperties, verifiedUser)
                 await app.auditLog.User.account.verify.autoCreateTeam(request.session?.User || verifiedUser, null, team)
+
+                if (app.license.active() && app.billing && app.settings.get('user:team:trial-mode')) {
+                    await app.billing.setupTrialTeamSubscription(team, verifiedUser)
+                }
             }
 
             const pendingInvitations = await app.db.models.Invitation.forExternalEmail(verifiedUser.email)

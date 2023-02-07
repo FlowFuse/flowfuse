@@ -102,12 +102,16 @@ module.exports = fp(async function (app, _opts, next) {
 
     function loadTemplate (templateName) {
         const template = require(`./templates/${templateName}`)
+        registerTemplate(templateName, template)
+        return templates[templateName]
+    }
+
+    function registerTemplate (templateName, template) {
         templates[templateName] = {
             subject: handlebars.compile(template.subject, { noEscape: true }),
             text: handlebars.compile(template.text, { noEscape: true }),
             html: handlebars.compile(template.html)
         }
-        return templates[templateName]
     }
 
     /**
@@ -162,7 +166,8 @@ ${mail.text}
     app.decorate('postoffice', {
         enabled,
         send,
-        exportSettings
+        exportSettings,
+        registerTemplate
     })
 
     next()

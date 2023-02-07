@@ -4,7 +4,7 @@ const ProjectActions = require('./projectActions')
 const ProjectDevices = require('./projectDevices')
 const ProjectSnapshots = require('./projectSnapshots')
 
-const { KEY_HOSTNAME } = require('../../db/models/ProjectSettings')
+const { KEY_HOSTNAME, KEY_SETTINGS } = require('../../db/models/ProjectSettings')
 const { isFQDN } = require('../../lib/validate')
 
 /**
@@ -149,6 +149,19 @@ module.exports = async function (app) {
 
         const team = teamMembership.get('Team')
 
+        const projectType = await app.db.models.ProjectType.byId(request.body.projectType)
+        if (!projectType) {
+            reply.code(400).send({ code: 'invalid_project_type', error: 'Invalid project type' })
+            return
+        }
+
+        if (app.license.active() && app.billing) {
+            if (!await app.billing.isProjectCreateAllowed(team, projectType)) {
+                reply.code(402).send({ code: 'billing_required', error: 'Team billing not configured' })
+                return
+            }
+        }
+
         let sourceProject
         if (request.body.sourceProject && request.body.sourceProject.id) {
             sourceProject = await app.db.models.Project.byId(request.body.sourceProject.id)
@@ -159,12 +172,6 @@ module.exports = async function (app) {
                 reply.code(403).send({ code: 'invalid_source_project', error: 'Source Project Not in Same Team' })
                 return
             }
-        }
-
-        const projectType = await app.db.models.ProjectType.byId(request.body.projectType)
-        if (!projectType) {
-            reply.code(400).send({ code: 'invalid_project_type', error: 'Invalid project type' })
-            return
         }
 
         const stack = await app.db.models.ProjectStack.byId(request.body.stack)
@@ -223,6 +230,10 @@ module.exports = async function (app) {
             ]
         })
 
+        if (app.license.active() && app.billing) {
+            await app.billing.initialiseProjectBillingState(team, project)
+        }
+
         if (sourceProject) {
             // need to copy values over
             const settingsString = (await app.db.models.StorageSettings.byProject(sourceProject.id))?.settings
@@ -272,7 +283,7 @@ module.exports = async function (app) {
             })
             await settings.save()
 
-            const sourceProjectSettings = await sourceProject.getSetting('settings') || { env: [] }
+            const sourceProjectSettings = await sourceProject.getSetting(KEY_SETTINGS) || { env: [] }
             const sourceProjectEnvVars = sourceProjectSettings.env || []
             const newProjectSettings = { ...sourceProjectSettings }
             newProjectSettings.env = []
@@ -286,10 +297,10 @@ module.exports = async function (app) {
                 })
             }
             newProjectSettings.header = { title: name }
-            await project.updateSetting('settings', newProjectSettings)
+            await project.updateSetting(KEY_SETTINGS, newProjectSettings)
         } else {
             const newProjectSettings = { header: { title: name } }
-            await project.updateSetting('settings', newProjectSettings)
+            await project.updateSetting(KEY_SETTINGS, newProjectSettings)
             await project.updateSetting('credentialSecret', generateCredentialSecret())
         }
 
@@ -360,56 +371,10 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        let changed = false
-        if (request.body.stack) {
-            if (request.body.stack !== request.project.ProjectStack?.id) {
-                const stack = await app.db.models.ProjectStack.byId(request.body.stack)
-                if (!stack) {
-                    reply.code(400).send({ code: 'invalid_stack', error: 'Invalid stack' })
-                    return
-                }
-                app.log.info(`Updating project ${request.project.id} to use stack ${stack.hashid}`)
-
-                // TODO: better inflight state needed
-                app.db.controllers.Project.setInflightState(request.project, 'starting')
-
-                // With the project stopped, respond to the request so the UI
-                // can refresh to show 'progress'. We may want to move this even
-                // earlier.
-
-                reply.send({})
-
-                let resumeProject = false
-                // Remember the state to return the project back to
-                const targetState = request.project.state
-                if (request.project.state !== 'suspended') {
-                    resumeProject = true
-                    app.log.info(`Stopping project ${request.project.id}`)
-                    await app.containers.stop(request.project)
-                    await app.auditLog.Project.project.suspended(request.session.User, null, request.project)
-                }
-                await request.project.setProjectStack(stack)
-                await request.project.save()
-
-                await app.auditLog.Project.project.stack.changed(request.session.User, null, request.project, stack)
-
-                if (resumeProject) {
-                    app.log.info(`Restarting project ${request.project.id}`)
-                    request.project.state = targetState
-                    await request.project.save()
-                    // Ensure the project has the full stack object
-                    await request.project.reload()
-                    const startResult = await app.containers.start(request.project)
-                    startResult.started.then(async () => {
-                        await app.auditLog.Project.project.started(request.session.User, null, request.project)
-                        app.db.controllers.Project.clearInflightState(request.project)
-                    })
-                } else {
-                    app.db.controllers.Project.clearInflightState(request.project)
-                }
-            }
-        } else if (request.body.sourceProject) {
+        // Export this one project over another
+        if (request.body.sourceProject) {
             const sourceProject = await app.db.models.Project.byId(request.body.sourceProject.id)
+            const targetProject = request.project
             const options = request.body.sourceProject.options
             if (!sourceProject) {
                 reply.code(404).send('Source Project not found')
@@ -418,20 +383,284 @@ module.exports = async function (app) {
                 reply.code(403).send('Source Project and Target not in same team')
             }
 
-            reply.send({})
+            // Early return, status is loaded async
+            reply.code(200).send({})
 
-            let resumeProject = false
-            const targetState = request.project.state
-            if (request.project.state !== 'suspended') {
-                resumeProject = true
-                app.log.info(`Stopping project ${request.project.id}`)
-                await app.containers.stop(request.project)
-                await app.auditLog.Project.project.suspended(request.session.User, null, request.project)
+            exportProjectToExistingProject(sourceProject, targetProject, options) // runs async
+
+            return
+        }
+
+        /// Validation of changes
+        const changesToPersist = {}
+
+        // Name
+        const reqName = request.body.name?.trim()
+        const reqSafeName = reqName?.toLowerCase()
+        const projectName = request.project.name?.trim()
+        if (reqName && projectName !== reqName) {
+            if (bannedNameList.includes(reqSafeName)) {
+                reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name not allowed' })
+                return
+            }
+            if (await app.db.models.Project.isNameUsed(reqSafeName)) {
+                reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name in use' })
+                return
             }
 
+            changesToPersist.name = { from: projectName, to: reqName }
+        }
+
+        // Hostname
+        const newHostname = request.body.hostname?.toLowerCase().replace(/\.$/, '') // trim trailing .
+        const oldHostname = await request.project.getSetting(KEY_HOSTNAME)
+        if (newHostname && newHostname !== oldHostname) {
+            if (!isFQDN(newHostname)) {
+                reply.status(409).type('application/json').send({ code: 'invalid_hostname', error: 'Hostname is not an FQDN' })
+                return
+            }
+
+            const hostnameInUse = await app.db.models.ProjectSettings.isHostnameUsed(newHostname)
+            const hostnameMatchesDomain = (app.config.domain && newHostname.endsWith(app.config.domain.toLowerCase()))
+            if (hostnameInUse || hostnameMatchesDomain) {
+                reply.status(409).type('application/json').send({ code: 'invalid_hostname', error: 'Hostname is already in use' })
+                return
+            }
+
+            changesToPersist.hostname = { from: oldHostname, to: newHostname }
+        }
+
+        // Settings
+        if (request.body.settings) {
+            let bodySettings
+            if (request.allSettingsEdit) {
+                // store all body settings if user is owner
+                bodySettings = request.body.settings
+            } else {
+                // only store settings.env if user is member
+                bodySettings = {
+                    env: request.body.settings.env
+                }
+            }
+            const newSettings = app.db.controllers.ProjectTemplate.validateSettings(bodySettings, request.project.ProjectTemplate)
+            // Merge the settings into the existing values
+            const currentProjectSettings = await request.project.getSetting(KEY_SETTINGS) || {}
+            const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings)
+
+            changesToPersist.settings = { from: currentProjectSettings, to: updatedSettings }
+        }
+
+        // Project Type
+        if (request.body.projectType) {
+            const newProjectType = await app.db.models.ProjectType.byId(request.body.projectType)
+            if (!newProjectType) {
+                reply.code(400).send({ code: 'invalid_project_type', error: 'Invalid project type' })
+                return
+            }
+
+            // Setting of project type for first time only (legacy)
+            const legacyFirstUpdate = !request.project.ProjectType
+            if (legacyFirstUpdate) {
+                const existingStackProjectType = request.project.ProjectStack.ProjectTypeId
+                if (existingStackProjectType && newProjectType.id !== existingStackProjectType) {
+                    reply.code(400).send({ code: 'invalid_request', error: 'Mismatch between stack project type and new project type' })
+                    return
+                }
+            } else {
+                // Must specify stack if changing project
+                const newStack = request.body.stack
+                if (!newStack) {
+                    reply.code(400).send({ code: 'invalid_request', error: 'Stack must be set when changing project type' })
+                    return
+                }
+            }
+
+            changesToPersist.projectType = { from: request.project.projectType, to: newProjectType, firstUpdate: legacyFirstUpdate }
+        }
+
+        // Project Stack
+        if (request.body.stack) {
+            const stack = await app.db.models.ProjectStack.byId(request.body.stack)
+            if (!stack) {
+                reply.code(400).send({ code: 'invalid_stack', error: 'Invalid stack' })
+                return
+            }
+
+            changesToPersist.stack = { from: request.project.stack, to: stack }
+        }
+
+        /// Persist the changes
+        const updates = new app.auditLog.formatters.UpdatesCollection()
+        const transaction = await app.db.sequelize.transaction() // start a transaction
+        const changesToProjectDefinition = (changesToPersist.stack || changesToPersist.projectType) && !changesToPersist.projectType?.firstUpdate
+        let repliedEarly = false
+        try {
+            let resumeProject, targetState
+            if (changesToProjectDefinition) {
+                // Early return and complete the rest async
+                app.db.controllers.Project.setInflightState(request.project, 'starting') // TODO: better inflight state needed
+                reply.code(200).send({})
+                repliedEarly = true
+
+                const suspendOptions = {
+                    skipBilling: changesToPersist.stack && !changesToPersist.projectType
+                }
+
+                const result = await suspendProject(request.project, suspendOptions)
+                resumeProject = result.resumeProject
+                targetState = result.targetState
+            }
+
+            if (changesToPersist.name) {
+                request.project.name = changesToPersist.name.to
+                await request.project.save({ transaction })
+
+                updates.push('name', changesToPersist.name.from, changesToPersist.name.to)
+            }
+
+            if (changesToPersist.hostname) {
+                await request.project.updateSetting(KEY_HOSTNAME, changesToPersist.hostname.to, { transaction })
+
+                updates.push('hostname', changesToPersist.hostname.from, changesToPersist.hostname.to)
+            }
+
+            if (changesToPersist.settings) {
+                await request.project.updateSetting(KEY_SETTINGS, changesToPersist.settings.to, { transaction })
+
+                if (request.allSettingsEdit) {
+                    updates.pushDifferences(changesToPersist.settings.from, changesToPersist.settings.to)
+                } else {
+                    updates.pushDifferences({ env: changesToPersist.settings.from.env }, { env: changesToPersist.settings.to.env })
+                }
+            }
+
+            if (changesToPersist.stack || changesToPersist.projectType) {
+                if (changesToPersist.projectType && changesToPersist.stack) {
+                    app.log.info(`Updating project ${request.project.id} to type: '${changesToPersist.projectType.to.hashid}',  stack: '${changesToPersist.stack.to.hashid}'`)
+                } else if (changesToPersist.projectType) {
+                    app.log.info(`Updating project ${request.project.id} to use type ${changesToPersist.projectType.to.hashid} for the first time (legacy)`)
+                } else {
+                    app.log.info(`Updating project ${request.project.id} to use stack ${changesToPersist.stack.to.hashid}`)
+                }
+
+                if (changesToPersist.projectType?.to) {
+                    await request.project.setProjectType(changesToPersist.projectType.to, { transaction })
+                }
+
+                if (changesToPersist.stack?.to) {
+                    await request.project.setProjectStack(changesToPersist.stack.to, { transaction })
+                }
+            }
+
+            await transaction.commit() // all good, commit the transaction
+
+            // Log the updates
+            if (updates.length > 0) {
+                await app.auditLog.Project.project.settings.updated(request.session.User.id, null, request.project, updates)
+            }
+            if (changesToPersist.projectType) {
+                await app.auditLog.Project.project.type.changed(request.session.User, null, request.project, changesToPersist.projectType.to)
+            }
+            if (changesToPersist.stack) {
+                await app.auditLog.Project.project.stack.changed(request.session.User, null, request.project, changesToPersist.stack.to)
+            }
+
+            // Awaken the project
+            if (changesToProjectDefinition) {
+                await unSuspendProject(resumeProject, targetState)
+            }
+        } catch (error) {
+            app.log.error('Error while updating project:')
+            app.log.error(error)
+
+            await transaction.rollback() // rollback the transaction.
+
+            if (!repliedEarly) {
+                reply.code(500).send({ code: 'unexpected_error', error: error.message })
+            }
+            return
+        }
+
+        if (repliedEarly) {
+            // No further response needed
+            return
+        }
+
+        // Bust sequelize caching on project settings
+        if (changesToPersist.hostname || changesToPersist.settings) {
+            await request.project.reload({
+                include: [
+                    { model: app.db.models.ProjectSettings }
+                ]
+            })
+        }
+
+        // Result
+        const project = await app.db.models.Project.byId(request.project.id) // Reload project entirely
+        const projectView = await app.db.views.Project.project(request.project)
+        let result
+        if (request.teamMembership.role >= Roles.Owner) {
+            result = projectView
+        } else {
+            // exclude template object in response when not owner
+            result = {
+                createdAt: projectView.createdAt,
+                id: projectView.id,
+                name: projectView.name,
+                links: projectView.links,
+                projectType: projectView.projectType,
+                stack: projectView.stack,
+                team: projectView.team,
+                updatedAt: projectView.updatedAt,
+                url: projectView.url,
+                settings: {
+                    env: projectView.settings?.env
+                }
+            }
+        }
+
+        result.meta = await app.containers.details(project) || { state: 'unknown' }
+        result.team = await app.db.views.Team.teamSummary(project.Team)
+
+        reply.send(result)
+
+        async function unSuspendProject (resumeProject, targetState) {
+            if (resumeProject) {
+                app.log.info(`Restarting project ${request.project.id}`)
+                request.project.state = targetState
+                await request.project.save()
+                // Ensure the project has the full stack object
+                await request.project.reload()
+                const startResult = await app.containers.start(request.project)
+                startResult.started.then(async () => {
+                    await app.auditLog.Project.project.started(request.session.User, null, request.project)
+                    app.db.controllers.Project.clearInflightState(request.project)
+                })
+            } else {
+                app.db.controllers.Project.clearInflightState(request.project)
+            }
+        }
+
+        async function suspendProject (project = request.project, options) {
+            let resumeProject = false
+            const targetState = project.state
+            if (project.state !== 'suspended') {
+                resumeProject = true
+                app.log.info(`Stopping project ${project.id}`)
+                await app.containers.stop(project, options)
+                await app.auditLog.Project.project.suspended(request.session.User, null, project)
+            }
+            return { resumeProject, targetState }
+        }
+
+        async function exportProjectToExistingProject (sourceProject, targetProject, options) {
+            const { resumeProject, targetState } = await suspendProject(targetProject)
+
+            // Nodes
             const sourceSettingsString = ((await app.db.models.StorageSettings.byProject(sourceProject.id))?.settings) || '{}'
             const sourceSettings = JSON.parse(sourceSettingsString)
-            let targetStorageSettings = await app.db.models.StorageSettings.byProject(request.project.id)
+
+            let targetStorageSettings = await app.db.models.StorageSettings.byProject(targetProject.id)
             const targetSettingString = targetStorageSettings?.settings || '{}'
             const targetSettings = JSON.parse(targetSettingString)
 
@@ -441,14 +670,15 @@ module.exports = async function (app) {
             } else {
                 targetStorageSettings = await app.db.models.StorageSettings.create({
                     settings: JSON.stringify(targetSettings),
-                    ProjectId: request.project.id
+                    ProjectId: targetProject.id
                 })
             }
             await targetStorageSettings.save()
 
+            // Flows
             if (options.flows) {
                 let sourceFlow = await app.db.models.StorageFlow.byProject(sourceProject.id)
-                let targetFlow = await app.db.models.StorageFlow.byProject(request.project.id)
+                let targetFlow = await app.db.models.StorageFlow.byProject(targetProject.id)
                 if (!sourceFlow) {
                     sourceFlow = {
                         flow: '[]'
@@ -459,55 +689,58 @@ module.exports = async function (app) {
                 } else {
                     targetFlow = await app.db.models.StorageFlow.create({
                         flow: sourceFlow.flow,
-                        ProjectId: request.project.id
+                        ProjectId: targetProject.id
                     })
                 }
                 await targetFlow.save()
             }
+
+            // Credentials
             if (options.credentials) {
-                // To copy over the credentials, we have to:
-                //  - get the source credentials + credentialSecret
-                //  - get the target credentials + credentialSecret
-                //  - decrypt credentials from src and re-encrypt the
-                //  - credentials using the target key for target StorageCredentials
+                /*
+                    To copy over the credentials, we have to:
+                    - get the source credentials + credentialSecret
+                    - get the target credentials + credentialSecret
+                    - decrypt credentials from src and re-encrypt the
+                    - credentials using the target key for target StorageCredentials
+                */
                 const origCredentials = await app.db.models.StorageCredentials.byProject(sourceProject.id)
                 if (origCredentials) {
-                    let trgCredentialSecret = await request.project.getSetting('credentialSecret')
+                    let trgCredentialSecret = await targetProject.getSetting('credentialSecret')
                     if (trgCredentialSecret == null) {
                         trgCredentialSecret = targetSettings?._credentialSecret || generateCredentialSecret()
-                        request.project.updateSetting('credentialSecret', trgCredentialSecret)
+                        targetProject.updateSetting('credentialSecret', trgCredentialSecret)
                         delete targetSettings._credentialSecret
                     }
                     const srcCredentials = JSON.parse(origCredentials.credentials)
                     const srcCredentialSecret = await sourceProject.getSetting('credentialSecret') || sourceSettings._credentialSecret
-                    let targetCreds = await app.db.models.StorageCredentials.byProject(request.project.id)
+                    let targetCreds = await app.db.models.StorageCredentials.byProject(targetProject.id)
                     if (targetCreds && srcCredentials) {
                         targetCreds.credentials = JSON.stringify(app.db.controllers.Project.exportCredentials(srcCredentials, srcCredentialSecret, trgCredentialSecret))
                         await targetCreds.save()
                     } else if (srcCredentials) {
                         targetCreds = await app.db.models.StorageCredentials.create({
                             credentials: JSON.stringify(app.db.controllers.Project.exportCredentials(srcCredentials, srcCredentialSecret, trgCredentialSecret)),
-                            ProjectId: request.project.id
+                            ProjectId: targetProject.id
                         })
                         await targetCreds.save()
                     }
                 }
             }
+
+            // Template
             if (options.template) {
-                request.project.ProjectTemplateId = sourceProject.ProjectTemplateId
-                await request.project.save()
-                await request.project.reload()
+                targetProject.ProjectTemplateId = sourceProject.ProjectTemplateId
+                await targetProject.save()
+                await targetProject.reload()
             }
-            // Get the source project settings - ignore hostname
-            const sourceProjectSettings = await sourceProject.getSetting('settings') || { env: [] }
-            // Get the target project settings
-            let targetProjectSettings = await request.project.getSetting('settings') || { env: [] }
-            const targetProjectEnvVars = targetProjectSettings.env
 
+            // Settings
             let updateSettings = false
-
+            const sourceProjectSettings = await sourceProject.getSetting(KEY_SETTINGS) || { env: [] }
+            let targetProjectSettings = await targetProject.getSetting(KEY_SETTINGS) || { env: [] }
+            const targetProjectEnvVars = targetProjectSettings.env
             if (options.settings) {
-                // The target project needs to pickup the source project settings
                 targetProjectSettings = sourceProjectSettings
                 if (!options.envVars) {
                     // Need to keep the existing env vars
@@ -515,141 +748,17 @@ module.exports = async function (app) {
                 }
                 updateSettings = true
             }
+
             if (options.envVars) {
                 targetProjectSettings.env = mergeEnvVars(options, sourceProjectSettings.env, targetProjectEnvVars)
                 updateSettings = true
             }
+
             if (updateSettings) {
-                await request.project.updateSetting('settings', targetProjectSettings)
+                await targetProject.updateSetting(KEY_SETTINGS, targetProjectSettings)
             }
 
-            if (resumeProject) {
-                app.log.info(`Restarting project ${request.project.id}`)
-                request.project.state = targetState
-                await request.project.save()
-                await request.project.reload()
-                const startResult = await app.containers.start(request.project)
-                startResult.started.then(async () => {
-                    await app.auditLog.Project.project.started(request.session.User, null, request.project)
-                    app.db.controllers.Project.clearInflightState(request.project)
-                })
-            } else {
-                app.db.controllers.Project.clearInflightState(request.project)
-            }
-        } else if (request.body.projectType) {
-            if (request.project.ProjectType) {
-                reply.code(400).send({ code: 'invalid_request', error: 'Cannot change project type' })
-                return
-            }
-            const existingStackProjectType = request.project.ProjectStack.ProjectTypeId
-            const newProjectType = await app.db.models.ProjectType.byId(request.body.projectType)
-            if (!newProjectType) {
-                reply.code(400).send({ code: 'invalid_project_type', error: 'Invalid project type' })
-                return
-            }
-            if (existingStackProjectType && newProjectType.id !== existingStackProjectType) {
-                reply.code(400).send({ code: 'invalid_request', error: 'Mismatch between stack project type and new project type' })
-                return
-            }
-
-            await request.project.setProjectType(newProjectType)
-
-            reply.code(200).send({})
-        } else {
-            const reqName = request.body.name?.trim()
-            const reqSafeName = reqName?.toLowerCase()
-            const projectName = request.project.name?.trim()
-            const updates = new app.auditLog.formatters.UpdatesCollection()
-            if (reqName && projectName !== reqName) {
-                if (bannedNameList.includes(reqSafeName)) {
-                    reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name not allowed' })
-                    return
-                }
-                if (await app.db.models.Project.isNameUsed(reqSafeName)) {
-                    reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name in use' })
-                    return
-                }
-                request.project.name = reqName
-                changed = true
-                updates.push('name', projectName, reqName)
-            }
-
-            const newHostname = request.body.hostname?.toLowerCase().replace(/\.$/, '') // trim trailing .
-            const oldHostname = await request.project.getSetting('hostname')
-            if (newHostname && newHostname !== oldHostname) {
-                if (!isFQDN(newHostname)) {
-                    reply.status(409).type('application/json').send({ code: 'invalid_hostname', error: 'Hostname is not an FQDN' })
-                    return
-                }
-
-                const hostnameInUse = await app.db.models.ProjectSettings.isHostnameUsed(newHostname)
-                const hostnameMatchesDomain = (app.config.domain && newHostname.endsWith(app.config.domain.toLowerCase()))
-                if (hostnameInUse || hostnameMatchesDomain) {
-                    reply.status(409).type('application/json').send({ code: 'invalid_hostname', error: 'Hostname is already in use' })
-                    return
-                }
-
-                await request.project.updateSetting(KEY_HOSTNAME, newHostname)
-                await request.project.reload({
-                    include: [
-                        { model: app.db.models.ProjectSettings }
-                    ]
-                })
-                changed = true
-                updates.push('hostname', newHostname, oldHostname)
-            }
-
-            if (request.body.settings) {
-                let bodySettings
-                if (request.allSettingsEdit) {
-                    // store all body settings if user is owner
-                    bodySettings = request.body.settings
-                } else {
-                    // only store settings.env if user is member
-                    bodySettings = {
-                        env: request.body.settings.env
-                    }
-                }
-                const newSettings = app.db.controllers.ProjectTemplate.validateSettings(bodySettings, request.project.ProjectTemplate)
-                // Merge the settings into the existing values
-                const currentProjectSettings = await request.project.getSetting('settings') || {}
-                const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings)
-                await request.project.updateSetting('settings', updatedSettings)
-                changed = true
-                if (request.allSettingsEdit) {
-                    updates.pushDifferences(currentProjectSettings, updatedSettings)
-                } else {
-                    updates.pushDifferences({ env: currentProjectSettings.env }, { env: newSettings.env })
-                }
-            }
-            if (changed) {
-                await request.project.save()
-                await app.auditLog.Project.project.settings.updated(request.session.User.id, null, request.project, updates)
-            }
-            const project = await app.db.views.Project.project(request.project)
-            let result
-            if (request.teamMembership.role >= Roles.Owner) {
-                result = project
-            } else {
-                // exclude template object in response when not owner
-                result = {
-                    createdAt: project.createdAt,
-                    id: project.id,
-                    name: project.name,
-                    links: project.links,
-                    projectType: project.projectType,
-                    stack: project.stack,
-                    team: project.team,
-                    updatedAt: project.updatedAt,
-                    url: project.url,
-                    settings: {
-                        env: project.settings?.env
-                    }
-                }
-            }
-            result.meta = await app.containers.details(request.project) || { state: 'unknown' }
-            result.team = await app.db.views.Team.teamSummary(request.project.Team)
-            reply.send(result)
+            await unSuspendProject(resumeProject, targetState)
         }
     })
 

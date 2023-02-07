@@ -16,6 +16,27 @@
                 to join an existing team.
             </template>
         </FormRow>
+
+        <template v-if="features.billing">
+            <FormRow v-if="input['user:team:auto-create']" v-model="input['user:team:trial-mode']" type="checkbox" containerClass="max-w-sm ml-9">
+                Enable trial mode for personal teams
+                <template #description>
+                    This allows the user to access their personal team without setting
+                    up billing first. Whilst in trial mode, the features are limited.
+                </template>
+            </FormRow>
+            <FormRow v-if="input['user:team:trial-mode']" v-model="input['user:team:trial-mode:duration']" type="input" containerClass="max-w-sm ml-16">
+                Duration, in days, for the trial
+            </FormRow>
+            <FormRow v-if="input['user:team:trial-mode']" v-model="input['user:team:trial-mode:projectType']" :options="projectTypes" containerClass="max-w-sm ml-16">
+                Trial ProjectType
+                <template #description>
+                    Users will only be able to create one of them before being prompted to setup
+                    billing to create anything else.
+                </template>
+            </FormRow>
+        </template>
+
         <FormRow v-model="input['user:reset-password']" type="checkbox" :error="errors.requiresEmail" :disabled="errors.requiresEmail">
             Allow users to reset their password on the login screen
             <template #description>
@@ -81,6 +102,7 @@
 
 <script>
 import settingsApi from '@/api/settings'
+import projectTypesApi from '@/api/projectTypes'
 import Dialog from '@/services/dialog'
 import Alerts from '@/services/alerts'
 import FormRow from '@/components/FormRow'
@@ -96,7 +118,10 @@ const validSettings = [
     'user:tcs-date',
     'team:create',
     'team:user:invite:external',
-    'telemetry:enabled'
+    'telemetry:enabled',
+    'user:team:trial-mode',
+    'user:team:trial-mode:duration',
+    'user:team:trial-mode:projectType'
 ]
 
 export default {
@@ -109,11 +134,12 @@ export default {
             errors: {
                 requiresEmail: null,
                 termsAndConditions: null
-            }
+            },
+            projectTypes: []
         }
     },
     computed: {
-        ...mapState('account', ['settings']),
+        ...mapState('account', ['features', 'settings']),
         tcsDate () {
             const _tcsDate = this.input['user:tcs-date']
             if (_tcsDate && (typeof _tcsDate === 'string' || (_tcsDate instanceof Date && !isNaN(_tcsDate) && _tcsDate > 0))) {
@@ -140,12 +166,19 @@ export default {
             return result
         }
     },
-    created () {
+    async created () {
         if (!this.settings.email) {
             this.errors.requiresEmail = 'This option requires email to be configured'
         }
         validSettings.forEach(s => {
             this.input[s] = this.settings[s]
+        })
+        const projectTypes = await projectTypesApi.getProjectTypes()
+        this.projectTypes = projectTypes.types.map(pt => {
+            return {
+                value: pt.id,
+                label: pt.name
+            }
         })
     },
     methods: {

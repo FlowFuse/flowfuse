@@ -36,9 +36,17 @@ module.exports = {
                     await log('project.device.assigned', actionedBy, project?.id, generateBody({ error, project, device }))
                 }
             },
+            type: {
+                async changed (actionedBy, error, project, projectType) {
+                    await log('project.type.changed', actionedBy, project?.id, generateBody({ error, project, projectType }))
+                }
+            },
             stack: {
                 async changed (actionedBy, error, project, stack) {
                     await log('project.stack.changed', actionedBy, project?.id, generateBody({ error, project, stack }))
+                },
+                async restart (actionedBy, error, project) {
+                    await log('project.stack.restart', actionedBy, project?.id, generateBody({ error, project }))
                 }
             },
             settings: {

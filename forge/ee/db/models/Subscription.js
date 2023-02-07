@@ -2,13 +2,33 @@ const {
     DataTypes
 } = require('sequelize')
 
-// A subset of the statuses on Stripe that are important to FlowForge
-// https://stripe.com/docs/billing/subscriptions/overview#subscription-statuses
 const STATUS = {
+    // Any changes to this list *must* be made via migration.
+    // See forge/db/migrations/20230130-01-add-subscription-trial-date.js for example
+
+    // A subset of the statuses on Stripe that are important to FlowForge
+    // https://stripe.com/docs/billing/subscriptions/overview#subscription-statuses
     ACTIVE: 'active',
-    CANCELED: 'canceled'
+    CANCELED: 'canceled',
+
+    // Local only status, not from Stripe
+    TRIAL: 'trial'
 }
+
 Object.freeze(STATUS)
+
+// Statuses used to track team trial state
+const TRIAL_STATUS = {
+    // Any changes to this list *must* be made via migration.
+    // See forge/db/migrations/20230130-01-add-subscription-trial-date.js for example
+    NONE: 'none',
+    CREATED: 'created',
+    WEEK_EMAIL_SENT: 'week_email_sent',
+    DAY_EMAIL_SENT: 'day_email_sent',
+    ENDED: 'ended'
+}
+
+Object.freeze(TRIAL_STATUS)
 
 module.exports = {
     name: 'Subscription',
@@ -30,7 +50,13 @@ module.exports = {
             type: DataTypes.ENUM(Object.values(STATUS)),
             allowNull: false,
             defaultValue: STATUS.ACTIVE
-        }
+        },
+        trialStatus: {
+            type: DataTypes.ENUM(Object.values(TRIAL_STATUS)),
+            allowNull: false,
+            defaultValue: TRIAL_STATUS.NONE
+        },
+        trialEndsAt: { type: DataTypes.DATE, defaultValue: null, allowNull: true }
     },
     associations: function (M) {
         this.belongsTo(M.Team)
@@ -40,16 +66,23 @@ module.exports = {
         return {
             instance: {
                 // Should this subscription be treated as active/usable
-                // Stripe states such as past_due and trialing are still active
                 isActive () {
-                    return !this.isCanceled()
+                    return this.status === STATUS.ACTIVE
                 },
                 isCanceled () {
                     return this.status === STATUS.CANCELED
+                },
+                isTrial () {
+                    return !!this.trialEndsAt || this.status === STATUS.TRIAL
+                },
+                isTrialEnded () {
+                    return this.isTrial() && this.trialEndsAt < Date.now()
                 }
+
             },
             static: {
                 STATUS,
+                TRIAL_STATUS,
                 byTeamId: async function (teamId) {
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)

@@ -54,13 +54,15 @@ const iconMap = {
     'project-types': [
         'platform.project-type.created',
         'platform.project-type.deleted',
-        'platform.project-type.updated'
+        'platform.project-type.updated',
+        'project.type.changed'
     ],
     stacks: [
         'platform.stack.created',
         'platform.stack.deleted',
         'platform.stack.updated',
-        'project.stack.changed'
+        'project.stack.changed',
+        'project.stack.restart'
     ],
     login: [
         'account.login',
