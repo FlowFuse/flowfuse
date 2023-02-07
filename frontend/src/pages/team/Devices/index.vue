@@ -59,6 +59,7 @@ import deviceApi from '@/api/devices'
 
 import SectionTopMenu from '@/components/SectionTopMenu'
 import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
+import DeviceLastSeenBadge from '@/pages/device/components/DeviceLastSeenBadge'
 
 import { ChipIcon, PlusSmIcon } from '@heroicons/vue/outline'
 
@@ -216,8 +217,8 @@ export default {
         columns: function () {
             return [
                 { label: 'Device', class: ['w-64'], key: 'name', sortable: true, component: { is: markRaw(DeviceLink) } },
-                { label: 'Status', class: ['w-20'], key: 'status', sortable: true, component: { is: markRaw(ProjectStatusBadge) } },
-                { label: 'Last Seen', class: ['w-64'], key: 'last seen', sortable: true, component: { is: markRaw(LastSeen) } },
+                { label: 'Last Seen', class: ['w-32'], key: 'lastSeenAt', sortable: true, component: { is: markRaw(DeviceLastSeenBadge) } },
+                { label: 'Last Known Status', class: ['w-32'], key: 'status', sortable: true, component: { is: markRaw(ProjectStatusBadge) } },
                 { label: 'Project', class: ['w-64'], key: 'project', sortable: true, component: { is: markRaw(ProjectLink) } }
             ]
         }
