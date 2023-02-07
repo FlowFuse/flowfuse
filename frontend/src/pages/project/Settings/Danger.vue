@@ -270,7 +270,6 @@ export default {
         FormHeading,
         ConfirmProjectDeleteDialog,
         ChangeStackDialog,
-        ChangeTypeDialog,
         ExportToProjectDialog,
         ImportProjectDialog
     }
