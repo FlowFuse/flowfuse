@@ -11,6 +11,11 @@
         </SideNavigationTeamOptions>
     </Teleport>
     <main>
+        <Teleport v-if="mounted" to="#platform-banner">
+            <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">You are viewing this project as an Administrator</div>
+            <SubscriptionExpiredBanner :team="team" />
+            <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
+        </Teleport>
         <SectionTopMenu>
             <template #hero>
                 <div class="flex-grow space-x-6 items-center inline-flex">
@@ -41,6 +46,8 @@ import { Roles } from '@core/lib/roles'
 import NavItem from '@/components/NavItem'
 import SectionTopMenu from '@/components/SectionTopMenu'
 import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions'
+import SubscriptionExpiredBanner from '@/components/banners/SubscriptionExpired.vue'
+import TeamTrialBanner from '@/components/banners/TeamTrial.vue'
 
 // icons
 import { ChipIcon, CogIcon } from '@heroicons/vue/solid'
@@ -50,7 +57,9 @@ export default {
     components: {
         NavItem,
         SectionTopMenu,
-        SideNavigationTeamOptions
+        SideNavigationTeamOptions,
+        SubscriptionExpiredBanner,
+        TeamTrialBanner
     },
     data: function () {
         const navigation = [
