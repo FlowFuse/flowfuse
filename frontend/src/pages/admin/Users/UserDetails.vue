@@ -5,24 +5,43 @@
                 <router-link class="ff-link font-bold" :to="{path: '/admin/users'}">Users</router-link>
                 <!-- <nav-item :icon="icons.breadcrumbSeparator" label="sss"></nav-item> -->
                 <ChevronRightIcon class="ff-icon" />
-                <span>{{ user.username }}</span>
+                <span>{{user.username}}</span>
             </div>
+        </div>
+        <div>
+            <ff-button @click="showEditUserDialog()" data-action="editUser">Edit</ff-button>
         </div>
     </div>
     <div>
+        <div class="flex items-center mb-4">
+            <div class="mr-3"><img :src="user.avatar" class="h-14 v-14 rounded-md"/></div>
+            <div class="flex flex-col">
+                <div class="text-xl font-bold">{{ user.name }}</div>
+                <div class="text-l text-gray-400">{{ user.username }}</div>
+            </div>
+            <div class="ml-3 space-x-1">
+                <span v-if="user.admin" class="forge-badge forge-status-running">admin</span>
+                <span v-if="user.suspended" class="forge-badge forge-status-error">suspended</span>
+            </div>
+        </div>
         <div class="mb-4">
-            <FormRow v-model="user.username" type="uneditable">
-                <template #default>Username</template>
-            </FormRow>
-            <FormRow v-model="user.name" type="uneditable">
-                <template #default>Name</template>
-            </FormRow>
-            <FormRow v-model="user.email" type="uneditable">
-                <template #default>Email</template>
-            </FormRow>
-            <FormRow v-model="user.createdAt" type="uneditable">
-                <template #default>Created</template>
-            </FormRow>
+            <table class="table-fixed w-full mb-2">
+                <tr class="border-b">
+                    <td class="w-1/4 font-medium py-2">Email</td>
+                    <td class="flex">
+                        {{user.email}}
+                        <div class="ml-3 space-x-1">
+                            <span v-if="user.sso_enabled" class="forge-badge forge-status-safe">sso-enabled</span>
+                            <span v-else-if="user.email_verified" class="forge-badge forge-status-running">verified</span>
+                            <span v-else class="forge-badge forge-status-error">unverified</span>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="border-b">
+                    <td class="w-1/4 font-medium py-2">Registered At</td>
+                    <td class="py-1">{{user.createdAt}}</td>
+                </tr>
+            </table>
         </div>
         <FormHeading>Teams</FormHeading>
         <ff-data-table
@@ -35,6 +54,7 @@
             data-el="teams-table"
         />
     </div>
+    <AdminUserEditDialog @userUpdated="userUpdated" @userDeleted="userDeleted" ref="adminUserEditDialog"/>
 </template>
 
 <script>
@@ -42,8 +62,9 @@
 import usersApi from '@/api/users'
 import { ChevronRightIcon } from '@heroicons/vue/solid'
 
-import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
+
+import AdminUserEditDialog from './dialogs/AdminUserEditDialog'
 
 import { mapState } from 'vuex'
 import TeamCell from '@/components/tables/cells/TeamCell'
@@ -98,10 +119,19 @@ export default {
                     hash: this.$router.currentRoute.value.hash
                 })
             }
+        },
+        showEditUserDialog (user) {
+            this.$refs.adminUserEditDialog.show(this.user)
+        },
+        userUpdated (user) {
+            this.loadUser()
+        },
+        userDeleted (userId) {
+            this.$router.push({ path: '/admin/users' })
         }
     },
     components: {
-        FormRow,
+        AdminUserEditDialog,
         FormHeading,
         ChevronRightIcon
     }
