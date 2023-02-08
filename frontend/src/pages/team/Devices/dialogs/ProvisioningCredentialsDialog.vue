@@ -54,16 +54,16 @@ export default {
             return !!this.token?.token
         },
         credentials: function () {
-            let result = ''
+            const result = ['### PROVISIONING TOKEN ###']
             if (this.token) {
-                result = `### PROVISIONING TOKEN ###
-provisioningName: ${this.token.name || 'No Name'}
-provisioningTeam: ${this.token.team || '-'}
-provisioningToken: ${this.token.token}
-forgeURL: ${this.settings.base_url}
-`
+                if (this.token.name) {
+                    result.push(`provisioningName: ${this.token.name}`)
+                }
+                result.push(`provisioningTeam: ${this.token.team}`)
+                result.push(`provisioningToken: ${this.token.token}`)
             }
-            return result
+            result.push(`forgeURL: ${this.settings.base_url}`)
+            return result.join('\n')
         }
     },
     setup () {
