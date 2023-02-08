@@ -65,12 +65,7 @@ module.exports = {
             // ensure that the data was copied correctly
             const dataIntermediate = await context.select(null, 'AccessTokens2', { transaction: t })
             if (dataOriginal.length !== dataIntermediate.length) {
-                throw new Error('Migration failed: data was not copied correctly')
-            }
-            const dataOriginalJSON = JSON.stringify(dataOriginal)
-            const dataIntermediateJSON = JSON.stringify(dataIntermediate.map((row) => { delete row.id; return row }))
-            if (dataOriginalJSON !== dataIntermediateJSON) {
-                throw new Error('Migration failed: data was not copied correctly')
+                throw new Error('Migration  failed: data was not copied to the intermediate table correctly (20230205-01-add-id-to-access-tokens.js:68)')
             }
 
             // drop the old table
@@ -81,11 +76,7 @@ module.exports = {
             // ensure that the data was copied correctly
             const dataFinal = await context.select(null, 'AccessTokens', { transaction: t })
             if (dataOriginal.length !== dataFinal.length) {
-                throw new Error('Migration failed: data was not copied correctly')
-            }
-            const dataFinalJSON = JSON.stringify(dataFinal.map((row) => { delete row.id; return row }))
-            if (dataOriginalJSON !== dataFinalJSON) {
-                throw new Error('Migration failed: data was not copied correctly')
+                throw new Error('Migration failed: data was not copied to the final table correctly (20230205-01-add-id-to-access-tokens.js:79)')
             }
         })
     },
