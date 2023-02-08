@@ -11,7 +11,7 @@
             </form>
         </template>
         <template v-slot:actions>
-            <ff-button kind="secondary" @click="downloadCredentials()"><template v-slot:icon-left><DocumentDownloadIcon /></template>Download provisioning-token.yml</ff-button>
+            <ff-button kind="secondary" @click="downloadCredentials()"><template v-slot:icon-left><DocumentDownloadIcon /></template>Download device.yml</ff-button>
             <ff-button class="ml-4" @click="close()">Done</ff-button>
         </template>
     </ff-dialog>
@@ -37,7 +37,7 @@ export default {
         downloadCredentials () {
             const element = document.createElement('a')
             element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(this.credentials))
-            element.setAttribute('download', 'provisioning-token.yml')
+            element.setAttribute('download', 'device.yml')
             element.style.display = 'none'
             document.body.appendChild(element)
             element.click()
@@ -56,7 +56,12 @@ export default {
         credentials: function () {
             let result = ''
             if (this.token) {
-                result = `provisioningToken: ${this.token.token}\nforgeURL: ${this.settings.base_url}`
+                result = `### PROVISIONING TOKEN ###
+provisioningName: ${this.token.name || 'No Name'}
+provisioningTeam: ${this.token.team || '-'}
+provisioningToken: ${this.token.token}
+forgeURL: ${this.settings.base_url}
+`
             }
             return result
         }

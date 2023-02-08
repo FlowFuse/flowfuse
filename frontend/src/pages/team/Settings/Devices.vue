@@ -40,7 +40,7 @@
         </template>
     </div>
     <CreateProvisioningTokenDialog :team="team" @tokenCreating="tokenCreating" @tokenCreated="tokenCreated" @tokenUpdated="tokenUpdated" ref="CreateProvisioningTokenDialog"/>
-    <ProvisioningCredentialsDialog ref="provisioningCredentialsDialog" />
+    <ProvisioningCredentialsDialog :team="team" ref="provisioningCredentialsDialog" />
 </template>
 
 <script>
