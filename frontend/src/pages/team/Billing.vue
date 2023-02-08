@@ -173,7 +173,6 @@ export default {
                     total_price: 0
                 })
             }
-            console.log(this.team.billing)
         }
         this.loading = false
     },
