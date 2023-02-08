@@ -1,8 +1,10 @@
 <template>
     <div
         v-if="team.billing?.trial"
-        class="ff-banner ff-banner-warning"
+        class="ff-banner"
         :class="{
+            'ff-banner-warning': !team.billing?.active,
+            'ff-banner-info': team.billing?.active,
             'cursor-pointer': linkToBilling
         }"
         data-el="banner-team-trial"

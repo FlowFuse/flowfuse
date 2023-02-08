@@ -8,7 +8,7 @@
 module.exports = {
     subject: 'Your FlowForge trial has ended',
     text:
-`Hello {{{username}}}
+`Hello {{{username}}},
 
 Your FlowForge trial has now ended on '{{teamName}}'.
 {{#if trialProjectName}}
@@ -27,7 +27,7 @@ Cheers!
 Your friendly FlowForge Team
 `,
     html:
-`<p>Hello {{{username}}}</p>
+`<p>Hello {{{username}}},</p>
 
 <p>Your FlowForge trial has now ended on '{{teamName}}'.</p>
 {{#if trialProjectName}}

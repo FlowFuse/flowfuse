@@ -7,7 +7,7 @@
 module.exports = {
     subject: 'Your FlowForge trial ends soon',
     text:
-`Hello {{{username}}}
+`Hello {{{username}}},
 
 Just to let you know, your free trial on team '{{{teamName}}}' ends in {{{endingInDuration}}}.
 
@@ -31,7 +31,7 @@ Cheers!
 Your friendly FlowForge Team
 `,
     html:
-`<p>Hello {{{username}}}</p>
+`<p>Hello {{{username}}},</p>
 
 <p>Just to let you know, your free trial on team '{{{teamName}}}' ends in {{{endingInDuration}}}.</p>
 

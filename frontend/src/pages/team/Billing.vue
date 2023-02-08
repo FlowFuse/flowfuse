@@ -13,6 +13,7 @@
     <form class="pt-4">
         <Loading v-if="loading" size="small" />
         <div v-else-if="billingSetUp">
+            <FormHeading v-if="trialMode" class="mb-6">Trial Ends:  <span class="font-normal">{{ formatDate(team.billing.trialEndsAt) }}</span></FormHeading>
             <FormHeading class="mb-6">Next Payment: <span v-if="subscription && !subscriptionExpired" class="font-normal">{{ formatDate(subscription.next_billing_date) }}</span></FormHeading>
             <div v-if="subscriptionExpired" class="ff-no-data ff-no-data-large">
                 Your subscription has expired. Please renew it to continue using FlowForge.
@@ -24,20 +25,27 @@
             </div>
             <div v-else-if="subscription">
                 <ff-data-table :columns="columns" :rows="subscription.items" />
+                <div v-if="hasTrialProject" class="text-gray-400 mt-1 pl-2 text-sm">Your trial project will be automatically added to your subscription when the trial ends</div>
             </div>
             <div v-else class="ff-no-data ff-no-data-large">
                 Something went wrong loading your subscription information, please try again.
             </div>
         </div>
         <div v-else class="ff-no-data ff-no-data-large">
-            Billing has not yet been configured for this team. Before proceeding further, you must continue to Stripe and complete this.
+            <div v-if="trialMode">
+                You are currently in a free trial. During the trial you can only create one project in the team. To unlock other features you will need
+                to configure your billing details.
+            </div>
+            <div v-else>
+                Billing has not yet been configured for this team. Before proceeding further, you must continue to Stripe and complete this.
+            </div>
             <div v-if="coupon">
                 <div class="my-3 text-sm">Will apply coupon code <strong>{{ coupon }}</strong> at checkout</div>
             </div>
             <div v-else-if="errors.coupon">
                 <div class="my-3 text-red-400">{{ errors.coupon }}</div>
             </div>
-            <div class="mt-3">
+            <div class="mt-6">
                 <ff-button data-action="setup-payment-details" class="mx-auto mt-3" @click="setupBilling()">
                     <template #icon-right><ExternalLinkIcon /></template>
                     Setup Payment Details
@@ -132,6 +140,13 @@ export default {
         },
         subscriptionExpired () {
             return this.team.billing?.canceled
+        },
+        trialMode () {
+            return this.team.billing?.trial
+        },
+        hasTrialProject () {
+            // Infer that if they cannot create a trial project, they must already have one.
+            return this.trialMode && !this.team.billing.trialProjectAllowed
         }
     },
     watch: { },
@@ -149,6 +164,16 @@ export default {
             item.total_price = item.price * item.quantity
             return item
         })
+        if (this.trialMode) {
+            if (this.hasTrialProject) {
+                this.subscription.items.push({
+                    name: 'Trial Project',
+                    quantity: 1,
+                    price: 0,
+                    total_price: 0
+                })
+            }
+        }
         this.loading = false
     },
     methods: {
