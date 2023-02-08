@@ -47,6 +47,7 @@
 import alerts from '@/services/alerts'
 
 import teamApi from '@/api/team'
+import teamsApi from '@/api/teams'
 import FormRow from '@/components/FormRow'
 
 export default {
@@ -63,7 +64,8 @@ export default {
                 slug: '',
                 teamName: '',
                 teamType: ''
-            }
+            },
+            pendingSlugCheck: null
         }
     },
     watch: {
@@ -74,6 +76,7 @@ export default {
             } else if (!/^[a-z0-9-_]+$/i.test(v)) {
                 this.errors.slug = 'Must only contain a-z 0-9 - _'
             } else {
+                this.checkSlug()
                 this.errors.slug = ''
             }
         },
@@ -87,11 +90,15 @@ export default {
     },
     computed: {
         formValid () {
-            return this.input.teamName && !this.errors.slug && !this.errors.teamName
+            return this.input.teamName && !this.pendingSlugCheck && !this.errors.slug && !this.errors.teamName
         },
         teamId () {
             return this.team.id
+        },
+        slugValid () {
+            return /^[a-z0-9-_]+$/i.test(this.input.slug)
         }
+
     },
     mounted () {
         this.fetchData()
@@ -140,6 +147,25 @@ export default {
 
         async fetchData () {
             this.cancelEditName()
+        },
+        checkSlug () {
+            if (this.pendingSlugCheck) {
+                clearTimeout(this.pendingSlugCheck)
+            }
+            this.pendingSlugCheck = setTimeout(() => {
+                this.pendingSlugCheck = null
+                if (this.input.slug && this.slugValid && this.input.slug !== this.team.slug) {
+                    teamsApi.checkSlug(this.input.slug).then(() => {
+                        if (this.slugValid) {
+                            this.errors.slug = ''
+                        }
+                    }).catch(_ => {
+                        if (this.slugValid) {
+                            this.errors.slug = 'Slug unavailable'
+                        }
+                    })
+                }
+            }, 200)
         }
     },
     components: {

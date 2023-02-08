@@ -63,6 +63,32 @@ module.exports = async function (app) {
         }
     })
 
+    app.post('/check-slug', {
+        preHandler: app.needsPermission('team:create'),
+        schema: {
+            body: {
+                type: 'object',
+                required: ['slug'],
+                properties: {
+                    slug: { type: 'string' }
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const slug = request.body.slug.toLowerCase()
+        const reservedNames = ['create']
+        if (reservedNames.includes(slug)) {
+            reply.code(409).send({ code: 'invalid_slug', error: 'Slug not available' })
+            return
+        }
+        const existingCount = await app.db.models.Team.count({ where: { slug } })
+        if (existingCount === 0) {
+            reply.send({ status: 'okay' })
+        } else {
+            reply.code(409).send({ code: 'invalid_slug', error: 'Slug not available' })
+        }
+    })
+
     async function getTeamDetails (request, reply, team) {
         const result = app.db.views.Team.team(team)
         if (app.license.active() && app.billing) {
