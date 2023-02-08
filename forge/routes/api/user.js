@@ -28,8 +28,8 @@ module.exports = async function (app) {
         const user = request.session.User
 
         const response = await app.db.views.User.userProfile(user)
-        if (app.license.active() && app.billing && app.db.controllers.Subscription.freeTrialsEnabled()) {
-            response.free_trial_available = await app.db.controllers.Subscription.userEligibleForFreeTrial(user)
+        if (app.license.active() && app.billing && app.db.controllers.Subscription.freeTrialCreditEnabled()) {
+            response.free_trial_available = await app.db.controllers.Subscription.userEligibleForFreeTrialCredit(user)
         }
 
         reply.send(response)

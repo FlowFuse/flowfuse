@@ -39,7 +39,11 @@ module.exports = {
         return null
     },
 
-    freeTrialsEnabled: function (app) {
+    freeTrialCreditEnabled: function (app) {
+        // Team trial mode overrides team credit
+        if (app.settings.get('user:team:trial-mode')) {
+            return false
+        }
         const creditAmount = app.config.billing?.stripe?.new_customer_free_credit
         if (!creditAmount) {
             return false
@@ -55,7 +59,7 @@ module.exports = {
 
     // Users are only eligible for the free trial if they're not part of any team
     // newTeamAlreadyCreated is required during subscription creation as the team is created before the subscription
-    userEligibleForFreeTrial: async function (app, user, newTeamAlreadyCreated = false) {
+    userEligibleForFreeTrialCredit: async function (app, user, newTeamAlreadyCreated = false) {
         const teamCount = await user.teamCount()
 
         return teamCount <= (newTeamAlreadyCreated ? 1 : 0)

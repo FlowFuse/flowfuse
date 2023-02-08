@@ -192,7 +192,7 @@ module.exports = async function (app) {
                     return
                 }
 
-                if (!app.db.controllers.Subscription.freeTrialsEnabled()) {
+                if (!app.db.controllers.Subscription.freeTrialCreditEnabled()) {
                     app.log.error(`Received a new subscription with the trial flag set for ${team.hashid}, but trials are not configured.`)
                     return
                 }

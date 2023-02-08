@@ -123,9 +123,9 @@ module.exports.init = async function (app) {
             }
 
             // Set the flag to enable a free trial
-            if (app.db.controllers.Subscription.freeTrialsEnabled() && user) {
+            if (app.db.controllers.Subscription.freeTrialCreditEnabled() && user) {
                 const newTeamAlreadyCreated = true // team is created before this step
-                const eligibleForTrial = await app.db.controllers.Subscription.userEligibleForFreeTrial(user, newTeamAlreadyCreated)
+                const eligibleForTrial = await app.db.controllers.Subscription.userEligibleForFreeTrialCredit(user, newTeamAlreadyCreated)
 
                 if (eligibleForTrial) {
                     app.log.info(`User ${user.name} (${user.username}) is eligible for a free trial, set the flag in the subscription metadata.`)
