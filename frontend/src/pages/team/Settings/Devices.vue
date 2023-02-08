@@ -194,7 +194,8 @@ export default {
         columns: function () {
             return [
                 { label: 'Token Name', class: ['w-64'], key: 'name', sortable: true, component: { is: markRaw(TokenFieldFormatter) } },
-                { label: 'Auto Assign Project', class: ['w-64'], key: 'project', sortable: true, component: { is: markRaw(ProjectFieldFormatter) } }
+                { label: 'Auto Assign Project', class: ['w-64'], key: 'project', sortable: true, component: { is: markRaw(ProjectFieldFormatter) } },
+                { label: 'Target Snapshot', class: ['w-64'], key: 'targetSnapshot', sortable: true }
             ]
         }
     },
