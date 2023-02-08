@@ -182,6 +182,7 @@ module.exports = async function (app) {
                 // When device provisioning: if a project was specified, add the device to the project
                 if (request.deviceProvisioning && project) {
                     await assignDeviceToProject(device, project)
+                    await device.save()
                     await device.reload({
                         include: [
                             { model: app.db.models.Project }
