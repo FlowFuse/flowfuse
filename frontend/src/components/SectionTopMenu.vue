@@ -75,8 +75,6 @@ export default {
     },
     methods: {
         openInfoDialog () {
-            console.log('hello world')
-            console.log(this.$refs['help-dialog'])
             this.$refs['help-dialog'].show()
         }
     },
