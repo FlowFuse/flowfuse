@@ -88,6 +88,7 @@ export default [
                 }
             },
             {
+                name: 'TeamSettings',
                 path: 'settings',
                 component: TeamSettings,
                 meta: {
@@ -99,7 +100,7 @@ export default [
                 children: [
                     { path: 'general', component: TeamSettingsGeneral },
                     // { path: 'permissions', component: TeamSettingsPermissions},
-                    { path: 'devices', component: TeamSettingsDevices },
+                    { path: 'devices', name: 'TeamSettingsDevices', component: TeamSettingsDevices },
                     { path: 'danger', component: TeamSettingsDanger }
                 ]
             },
