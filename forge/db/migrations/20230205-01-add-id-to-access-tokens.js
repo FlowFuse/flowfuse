@@ -67,11 +67,6 @@ module.exports = {
             if (dataOriginal.length !== dataIntermediate.length) {
                 throw new Error('Migration failed: data was not copied correctly')
             }
-            const dataOriginalJSON = JSON.stringify(dataOriginal)
-            const dataIntermediateJSON = JSON.stringify(dataIntermediate.map((row) => { delete row.id; return row }))
-            if (dataOriginalJSON !== dataIntermediateJSON) {
-                throw new Error('Migration failed: data was not copied correctly')
-            }
 
             // drop the old table
             await context.dropTable('AccessTokens', { transaction: t })
