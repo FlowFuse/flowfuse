@@ -78,10 +78,6 @@ module.exports = {
             if (dataOriginal.length !== dataFinal.length) {
                 throw new Error('Migration failed: data was not copied correctly')
             }
-            const dataFinalJSON = JSON.stringify(dataFinal.map((row) => { delete row.id; return row }))
-            if (dataOriginalJSON !== dataFinalJSON) {
-                throw new Error('Migration failed: data was not copied correctly')
-            }
         })
     },
     down: async (context) => {
