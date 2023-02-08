@@ -79,7 +79,6 @@ module.exports = async function (app) {
                     // the verifySession decorator & request.session.provisioning would not be populated
                     const teamOK = request.body.team && request.body.team === request.session.provisioning.team
                     if (teamOK) {
-                        request.deviceProvisioning = true
                         const hasPermission = app.needsPermission('device:provision')
                         try {
                             hasPermission(request, reply)
@@ -114,9 +113,10 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
+        const provisioningMode = !!request.session.provisioning
         let team, project
         // Additional checks. (initial membership/team/token checks done in preHandler and auth verifySession decorator)
-        if (request.deviceProvisioning) {
+        if (provisioningMode) {
             team = await app.db.models.Team.byId(request.session.provisioning.team)
             if (!team) {
                 reply.code(400).send({ code: 'invalid_team', error: 'Invalid team' })
@@ -160,7 +160,7 @@ module.exports = async function (app) {
         }
 
         try {
-            const actionedBy = request.deviceProvisioning ? 'system' : request.session.User
+            const actionedBy = provisioningMode ? 'system' : request.session.User
             const device = await app.db.models.Device.create({
                 name: request.body.name,
                 type: request.body.type,
@@ -180,7 +180,7 @@ module.exports = async function (app) {
                 await app.auditLog.Team.team.device.created(actionedBy, null, team, device)
 
                 // When device provisioning: if a project was specified, add the device to the project
-                if (request.deviceProvisioning && project) {
+                if (provisioningMode && project) {
                     await assignDeviceToProject(device, project)
                     await device.save()
                     await device.reload({
