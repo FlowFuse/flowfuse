@@ -13,6 +13,7 @@ module.exports = {
             type: DataTypes.STRING,
             primaryKey: false,
             allowNull: false,
+            unique: true,
             set (value) {
                 this.setDataValue('token', sha256(value))
             }
