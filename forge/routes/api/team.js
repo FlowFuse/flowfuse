@@ -76,8 +76,8 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const slug = request.body.slug.toLowerCase()
-        // Handle reserved names
-        if (slug === 'create') {
+        const reservedNames = ['create']
+        if (reservedNames.includes(slug)) {
             reply.code(409).send({ code: 'invalid_slug', error: 'Slug not available' })
             return
         }
