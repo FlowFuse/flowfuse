@@ -2,12 +2,8 @@
     <ff-dialog ref="dialog" :header="device ? 'Update Device' : 'Register Device'"
                :confirm-label="device ? 'Update' : 'Register'" @confirm="confirm()" :disable-primary="!formValid">
         <template v-slot:default>
-            <p>Here, you can register a new device to your team. This will provide you with a <b>device.yml</b>
-                to be moved to the respective device. Further details on Devices in FlowForge can be found
-                <a href="https://flowforge.com/docs/user/devices/" target="_blank">here</a>.</p>
-            <p class="mt-4">If you want to register devices straight to a particular project you can use provisioning tokens
-                in your <router-link :to="{'name': 'TeamSettingsDevices', 'params': {team_slug: team.slug}}">Team Settings</router-link></p>
-            <form class="space-y-6 mt-4">
+            <slot name="description"></slot>
+            <form class="space-y-6 mt-2">
                 <FormRow data-form="device-name" v-model="input.name" :error="errors.name" :disabled="editDisabled">Name</FormRow>
                 <FormRow data-form="device-type" v-model="input.type" :error="errors.type" :disabled="editDisabled">Type</FormRow>
                 <FormRow v-if="deviceIsBillable" type="checkbox" v-model="input.billingConfirmation" id="billing-confirmation">
