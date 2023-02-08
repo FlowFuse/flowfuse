@@ -19,8 +19,7 @@ module.exports = {
         'modules_denyList',
         'httpNodeAuth_type',
         'httpNodeAuth_user',
-        'httpNodeAuth_pass',
-        'deviceAutoProvision'
+        'httpNodeAuth_pass'
     ],
     passwordTypes: [
         'httpNodeAuth_pass'
@@ -45,8 +44,7 @@ module.exports = {
         modules_denyList: '',
         httpNodeAuth_type: '',
         httpNodeAuth_user: '',
-        httpNodeAuth_pass: '',
-        deviceAutoProvision: 'none'
+        httpNodeAuth_pass: ''
     },
     defaultTemplatePolicy: {
         disableEditor: true,
@@ -68,7 +66,6 @@ module.exports = {
         modules_denyList: false,
         httpNodeAuth_type: true,
         httpNodeAuth_user: true,
-        httpNodeAuth_pass: true,
-        deviceAutoProvision: true
+        httpNodeAuth_pass: true
     }
 }
