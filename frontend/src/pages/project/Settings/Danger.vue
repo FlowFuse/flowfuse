@@ -32,30 +32,21 @@
         </div>
 
         <FormHeading>Copy Project</FormHeading>
-        <!-- Hiding for now (0.5) -->
-        <!-- <div>
-            <div>
-                <ff-button kind="secondary" @click="showExportProjectDialog()">Export Project</ff-button>
-                <ExportProjectDialog @confirm="exportProject" ref="exportProjectDialog"/>
-            </div>
-            <div class="max-w-sm pt-2">Allows you to export a snapshot of the
-                project's current state.</div>
-        </div> -->
 
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
                 <div class="max-w-sm">
-                    Create a copy of this project.
+                    Add a new project to your team, that is a copy of this project.
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="secondary" @click="showDuplicateProjectDialog()" data-nav="copy-project">Copy Project</ff-button>
+                <ff-button kind="secondary" @click="showDuplicateProjectDialog()" data-nav="copy-project">Duplicate Project</ff-button>
             </div>
         </div>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
                 <div class="max-w-sm">
-                    Copy the project's state to an existing project.
+                    Copy a selection of the project's state to an existing project.
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
