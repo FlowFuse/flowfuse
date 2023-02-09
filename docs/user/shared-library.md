@@ -1,10 +1,10 @@
-# Shared Team Library
+# Shared Team Library
 
-Node-RED allows you to import and export flows to a local library. This is helpful
+Node-RED allows you to import and export **flows** and **functions** to a local library. This is helpful
 for saving pieces of flow that you want to reuse.
 
 With FlowForge Premium, each project also has access to a Team Library that makes
-it very easy to share flows between the projects without having to manually copy
+it very easy to share flows and functions between the projects without having to manually copy
 them around.
 
 For example, you may have a standard set of flows that you want each project to
@@ -34,3 +34,8 @@ To import flows within the Node-RED editor:
 
 ![](./images/shared-lib-import.png)
 
+### Viewing Team Library
+
+It is possible to explore your Team Library within FlowForge by clicking "Library" in your Team options.
+
+You can inspect the contents of any `.json` flow file, or `.js` function file here too.
