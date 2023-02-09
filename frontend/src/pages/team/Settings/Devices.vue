@@ -162,7 +162,7 @@ export default {
                 Dialog.show({
                     header: 'Delete Provisioning Token',
                     kind: 'danger',
-                    text: 'Are you sure you want to delete this provisioning token? Once deleted, devices with this token will no longer be auto provisioned.',
+                    text: 'Are you sure you want to delete this provisioning token? Once deleted, it can no longer be used to provision new devices to the team.',
                     confirmLabel: 'Delete'
                 }, async () => {
                     this.deletingItem = true
