@@ -1,6 +1,6 @@
 <template>
     <div class="ff-dropdown" :class="'ff-dropdown--' + (isOpen ? 'open' : 'closed')" :disabled="disabled">
-        <div v-if="dropdownStyle === 'select'" @click="open()" class="ff-dropdown-selected">
+        <div v-if="dropdownStyle === 'select'" ref="dropdownLabel" class="ff-dropdown-selected" tabindex="0" @click="open()" @keydown.space.stop.prevent="open()">
             <slot name="placeholder">
                 {{ selected?.label || placeholder }}
             </slot>
@@ -11,7 +11,7 @@
             <template #icon-right><ChevronDownIcon /></template>
         </ff-button>
         <div v-show="isOpen">
-            <div class="ff-dropdown-options" ref="options" v-click-outside="close" :class="{'ff-dropdown-options--full-width': dropdownStyle === 'select', 'ff-dropdown-options--fit': dropdownStyle === 'button', 'ff-dropdown-options--align-left': optionsAlign === 'left', 'ff-dropdown-options--align-right': optionsAlign === 'right'}">
+            <div ref="options" v-click-outside="close" class="ff-dropdown-options" :class="{'ff-dropdown-options--full-width': dropdownStyle === 'select', 'ff-dropdown-options--fit': dropdownStyle === 'button', 'ff-dropdown-options--align-left': optionsAlign === 'left', 'ff-dropdown-options--align-right': optionsAlign === 'right'}">
                 <slot></slot>
             </div>
         </div>
@@ -56,12 +56,6 @@ export default {
             options: []
         }
     },
-    watch: {
-        modelValue: function () {
-            // handle async setting of modelvalue where value is set after options have loaded
-            this.checkOptions()
-        }
-    },
     computed: {
         value: {
             get () {
@@ -74,7 +68,19 @@ export default {
             }
         }
     },
+    watch: {
+        modelValue: function () {
+            // handle async setting of modelvalue where value is set after options have loaded
+            this.checkOptions()
+        }
+    },
     methods: {
+        focus () {
+            this.$refs.dropdownLabel?.focus()
+        },
+        blur () {
+            this.$refs.dropdownLabel?.blur()
+        },
         open: function () {
             if (!this.disabled) {
                 this.isOpen = !this.isOpen

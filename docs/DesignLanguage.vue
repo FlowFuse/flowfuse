@@ -406,11 +406,13 @@
                 <h2 ref="ff-dropdown"><pre>ff-dropdown</pre></h2>
                 <h3>Properties:</h3>
                 <props-table :rows="cGroups['input'].components[1].props"></props-table>
+                <h3>Methods:</h3>
+                <methods-table :rows="cGroups['input'].components[1].methods" @callMethod="this.$refs['dropbox-input']?.[$event]()"></methods-table>
                 <h3>Examples:</h3>
                 <div class="examples">
                     <div class="example">
                         <h5>Default</h5>
-                        <ff-dropdown v-model="models.dropdown0">
+                        <ff-dropdown v-model="models.dropdown0" ref="dropbox-input">
                             <ff-dropdown-option label="Option 1" :value="1"></ff-dropdown-option>
                             <ff-dropdown-option label="Option 2" :value="2"></ff-dropdown-option>
                             <ff-dropdown-option label="Option 3" :value="3"></ff-dropdown-option>
