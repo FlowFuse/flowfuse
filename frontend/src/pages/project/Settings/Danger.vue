@@ -43,17 +43,6 @@
                 <ff-button kind="secondary" @click="showDuplicateProjectDialog()" data-nav="copy-project">Duplicate Project</ff-button>
             </div>
         </div>
-        <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-            <div class="flex-grow">
-                <div class="max-w-sm">
-                    Copy a selection of the project's state to an existing project.
-                </div>
-            </div>
-            <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="secondary" @click="showExportToProjectDialog()">Export to existing project</ff-button>
-                <ExportToProjectDialog @confirm="exportToProject" ref="exportToProjectDialog"/>
-            </div>
-        </div>
 
         <FormHeading>Import Project</FormHeading>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
@@ -122,7 +111,6 @@ import permissionsMixin from '@/mixins/Permissions'
 import FormHeading from '@/components/FormHeading'
 import ConfirmProjectDeleteDialog from './dialogs/ConfirmProjectDeleteDialog'
 import ChangeStackDialog from './dialogs/ChangeStackDialog'
-import ExportToProjectDialog from './dialogs/ExportToProjectDialog'
 import ImportProjectDialog from './dialogs/ImportProjectDialog'
 import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
@@ -191,9 +179,6 @@ export default {
         showChangeStackDialog () {
             this.$refs.changeStackDialog.show(this.project)
         },
-        showExportProjectDialog () {
-            this.$refs.exportProjectDialog.show(this.project)
-        },
         showDuplicateProjectDialog () {
             this.$router.push({
                 name: 'CreateTeamProject',
@@ -201,24 +186,11 @@ export default {
                 query: { sourceProject: this.project.id }
             })
         },
-        showExportToProjectDialog () {
-            this.$refs.exportToProjectDialog.show(this.project)
-        },
         showImportProjectDialog () {
             this.$refs.importProjectDialog.show(this.project)
         },
         upgradeStack () {
             this.changeStack(this.project.stack.replacedBy)
-        },
-        exportProject (parts) {
-            // call projectApi to generate zipped json
-            projectApi.exportProject(this.project.id, parts)
-                .then(() => {
-                    alerts.emit('Project export has started successfully.', 'confirmation')
-                })
-                .catch(() => {
-                    alerts.emit('Something went wrong. Project was not exported.', 'warning')
-                })
         },
         duplicateProject (parts) {
             this.loading.duplicating = true
@@ -231,19 +203,6 @@ export default {
             }).finally(() => {
                 this.loading.duplicating = false
             })
-        },
-        exportToProject (parts) {
-            console.log('export project')
-            const options = {
-                sourceProject: parts.sourceProject
-            }
-            projectApi.updateProject(parts.target, options)
-                .then(() => {
-                    alerts.emit(`Project export to '${parts.target}' has successfully started`, 'confirmation')
-                })
-                .catch(() => {
-                    alerts.emit('Something went wrong. Project was not exported.', 'warning')
-                })
         },
         importProject (parts) {
             this.loading.importing = true
@@ -289,8 +248,6 @@ export default {
         FormHeading,
         ConfirmProjectDeleteDialog,
         ChangeStackDialog,
-        // ExportProjectDialog,
-        ExportToProjectDialog,
         ImportProjectDialog
     }
 }
