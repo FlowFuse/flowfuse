@@ -10,7 +10,7 @@ import { ExclamationCircleIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'ProjectStatusBadge',
-    props: ['lastSeenAt'],
+    props: ['lastSeenAt', 'lastSeenSince'],
     computed: {
         since: function () {
             if (this.lastSeenAt) {
@@ -25,25 +25,22 @@ export default {
             }
         },
         status: function () {
+            // re-uses the status from last known status in order to get respective colour styling
             if (this.since < 0) {
-                return 'never'
-            } else if (this.since < 1) {
+                return 'never' // green
+            } else if (this.since < 1.5) {
                 return 'running'
+            } else if (this.since < 3) {
+                return 'safe' // yellow
             } else {
-                return 'error'
+                return 'error' // red
             }
         },
         label: function () {
             if (this.since < 0) {
                 return 'never'
-            } else if (this.since < 1) {
-                return 'less than a minute ago'
-            } else if (this.since < 2) {
-                return `${Math.floor(this.since)} minute ago`
-            } else if (this.since < 60) {
-                return `${Math.floor(this.since)} minutes ago`
             } else {
-                return 'over an hour ago'
+                return this.lastSeenSince
             }
         }
     },
