@@ -50,12 +50,15 @@ flowforge-device-agent --port=1881
 ```
 
 ## Register the device
+To connect a device to the platform, it needs a set of credentials. 
 
-To connect a device to the platform it must be registered in order to generate
-a set of credentials for it to use.
+There are two types of credentials to choose from:
 
-The device is first registered to a team and then assigned to the project it
-should run.
+* **Device Credentials**: for connecting a single device to the platform
+* **Provisioning Credentials**: for setting up one or more devices to automatically register themselves on the platform
+
+### Generating "Device Credentials" 
+_for a single device_
 
 1. Go to your teams's **Devices** page.
 2. Click the **Register Device** button.
@@ -68,23 +71,57 @@ dialog. This is the only time the platform will show you this information withou
 resetting it. Make sure to take a copy or use the **Download** button to save
 the configuration file locally.
 
+Repeat these steps for each device you want to connect to the platform.
+
+
+### Generating "Provisioning Credentials" 
+_for automatic registration of one or more devices_
+
+1. Go to your teams's **Settings** page.
+2. Open the **Device** tab.
+2. Click the **Create Provisioning Token** tab.
+3. You will be prompted to give the token a **name** and optionally, chose an auto assigned **project**.
+   Setting the "Auto assign project" will automatically assign the project for any devices that subsequently auto register using this token.
+4. Click **Create**
+
+Once the Provisioning Token has been created, you will be shown the 
+**Device Provisioning Credentials** dialog. This is the only time the 
+platform will show you this information. 
+Make sure to take a copy or use the **Download** button to save
+the configuration file locally.
+
 ## Connect the device
 
+### Using Device Credentials
 Copy the **Device Credentials** information into a file called `device.yml` in
 the device configuration directory (`/opt/flowforge-device` or whatever is set
 with the `-d` option).
 
-The agent can then be started with the command:
+The agent can then be started with the command: [^global-install]
 
 ```bash
 flowforge-device-agent
 ```
 
-*Note:* This assume the agent was installed as a global npm module and your path
-is properly configured to pick that up.
-
 You will see the device start and perform a 'call-home' where it connects back
 to the platform to check what it should be running.
+
+### Using Provisioning Credentials
+Copy the **Device Provisioning Credentials** information into a file called `device.yml` in
+the device configuration directory (`/opt/flowforge-device` or whatever is set
+with the `-d` option).
+
+The agent can then be started with the command: [^global-install]
+
+```bash
+flowforge-device-agent
+```
+
+You will see the device start and perform a 'call-home' where it connects back
+to the platform to auto register itself in the team devices.  If successful,
+the real **Device Credentials** are generated and downloaded to the device. 
+The original **Provisioning Credentials** will be overwritten meaning subsequent 
+runs will not need to perform the auto registration again.
 
 ## Assign the device to a project
 
@@ -94,6 +131,8 @@ The next step is to assign the device to a project.
 2. Open the dropdown menu to the right of the device you want to assign and
    select the **Add to project** option.
 3. Select the project to add the project to in the dialog - click **Add** to continue.
+
+NOTE: Auto registered devices may already be assigned to a project. 
 
 ## Deploying a project to the device
 
@@ -170,3 +209,7 @@ device, and then copy the modules on to your device.
 3. Run `npm install` to install the modules. This will create a `node_modules` directory.
 4. On your target device, create a directory called `module_cache` inside the Device Agent Configuration directory.
 5. Copy the `node_modules` directory from your local device to the target device so that it is under the `module_cache` directory.
+
+<br>
+
+[^global-install]: Starting the agent via the command `flowforge-device-agent` assumes it was installed as a global npm module and your path is properly configured to pick that up.
