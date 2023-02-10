@@ -63,7 +63,6 @@ export default {
     data () {
         return {
             teams: [],
-            splash: null, // content to show on left of sign up page
             emailSent: false,
             ssoCreated: false,
             input: {
@@ -82,10 +81,12 @@ export default {
     },
     mounted () {
         this.input.email = useRoute().query.email || ''
-        this.loadCustomContent()
     },
     computed: {
         ...mapState('account', ['settings', 'pending']),
+        splash () {
+            return this.settings['branding:account:signUpLeftBanner']
+        },
         formValid () {
             return (this.input.email && !this.errors.email) &&
                    (this.input.username && !this.errors.username) &&
@@ -123,14 +124,6 @@ export default {
         }
     },
     methods: {
-        loadCustomContent () {
-            SettingsAPI.getSettings().then((settings) => {
-                if (settings['branding:account:signUpLeftBanner']) {
-                    console.log(settings['branding:account:signUpLeftBanner'])
-                    this.splash = settings['branding:account:signUpLeftBanner']
-                }
-            })
-        },
         checkPassword () {
             if (this.input.password.length < 8) {
                 this.errors.password = 'Password must be at least 8 characters'
