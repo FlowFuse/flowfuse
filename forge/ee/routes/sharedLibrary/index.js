@@ -135,7 +135,7 @@ module.exports = async function (app) {
                 const shortName = entry.name.substring(name.length)
                 const pathParts = shortName.split('/')
                 if (pathParts.length === 1) {
-                    reply.push({ fn: shortName, ...JSON.parse(entry.meta), type: entry.type })
+                    reply.push({ fn: shortName, ...JSON.parse(entry.meta), type: entry.type, updatedAt: entry.updatedAt })
                 } else {
                     subPaths.add(pathParts[0])
                 }
