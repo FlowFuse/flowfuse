@@ -243,3 +243,13 @@
         @apply text-red-400;
     }
 }
+
+@layer components {
+    .ff-layout--box--left,
+    .ff-layout--box--right {
+        @apply p-0 md:p-12;
+    }
+    .ff-layout--box--right .ff-layout--box--content {
+        @apply rounded-none md:rounded-xl;
+    }
+}

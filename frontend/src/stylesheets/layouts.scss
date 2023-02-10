@@ -1,3 +1,8 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @import '~@flowforge/forge-ui-components/dist/scss/forge-colors.scss';
 @import '~@flowforge/forge-ui-components/dist/scss/forge-variables.scss';
 
@@ -44,9 +49,7 @@ $nav_height: 60px;
 .ff-layout--box--left,
 .ff-layout--box--right {
     border-top: 2px solid $ff-red-400;
-    padding: 64px 48px;
     height: 100%;
-    display: flex;
     justify-content: center;
     align-items: center;
 }
@@ -72,14 +75,10 @@ $nav_height: 60px;
 }
 
 .ff-layout--box--right .ff-layout--box--content {
-
-}
-
-.ff-layout--box--right .ff-layout--box--content {
     background-color: $ff-grey-700;
     min-height: 400px;
     padding: 64px 24px;
-    border-radius: 32px;
+    @apply rounded-xl;
     color: white;
     h2 {
         margin-top: -12px;
