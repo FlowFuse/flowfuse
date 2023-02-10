@@ -1,9 +1,10 @@
 <template>
-    <FormHeading>Pipeline Stages</FormHeading>
+    <FormHeading>DevOps Pipeline</FormHeading>
     <FormRow>
         <template #description>
-            <p class="mb-3">Here, you can configure a "Stage". This will enable you to deploy the updates to this project, directly onto the next "Stage" in your development Pipeline.</p>
-            <p class="">This feature is often used to create a Dev > Staging > Production pipeline, where each Stage of your pipeline is a standalone Project.</p>
+            <p class="mb-3">Here, you can configure the next stage in your DevOps Pipeline. You can deploy changes made to this project, directly onto the next stage in your DevOps Pipeline.</p>
+            <p class="">This feature is often used to create a Dev > Staging > Production pipeline, where each stage of your pipeline is a standalone FlowForge Project.</p>
+            <p class="">Changes are only pushed to the next stage upon manual actioning of the "Push" button below.</p>
         </template>
         <template #input>&nbsp;</template>
     </FormRow>
@@ -14,7 +15,7 @@
 
     <div class="mt-6 flex gap-4">
         <ff-button :disabled="!input.target || loading" @click="deploy()" data-action="push-stage">
-            {{ deploying ? 'Pushing Stage...' : 'Push to Stage' }}
+            {{ deploying ? `Pushing to "${input.target.name}"...` : 'Push to Stage' }}
         </ff-button>
         <ff-button kind="secondary" :to="{name: 'Project', params: { 'id': input.target }}" :disabled="!input.target" data-action="view-target-project">
             View Target Project
@@ -54,9 +55,10 @@ export default {
     },
     methods: {
         async deploy () {
+            const target = this.input.target
             const msg = {
-                header: 'Push to Stage',
-                html: '<p>Are you sure you want to push to your target project?</p><p>This will copy over all flows, nodes and credentials from this project.</p><p>It will also transfer the keys of any newly created Environment Variables that your target project does not currently have.</p>'
+                header: `Push to "${target.name}"`,
+                html: `<p>Are you sure you want to push to "${target.name}"?</p><p>This will copy over all flows, nodes and credentials from "${this.project.name}".</p><p>It will also transfer the keys of any newly created Environment Variables that your target project does not currently have.</p>`
             }
 
             Dialog.show(msg, async () => {
@@ -71,16 +73,15 @@ export default {
                     envVars: 'keys'
                 }
 
-                const target = this.input.target
                 const source = {
                     id: this.project.id,
                     options: { ...this.parts }
                 }
 
-                await ProjectAPI.updateProject(target, { sourceProject: source })
+                await ProjectAPI.updateProject(target.id, { sourceProject: source })
 
                 this.deploying = false
-                Alerts.emit(`Project successfully pushed to ${target}.`, 'confirmation')
+                Alerts.emit(`Project successfully pushed "${this.project.name}" to "${target.name}".`, 'confirmation')
             })
         },
         async loadProjects () {
@@ -91,7 +92,10 @@ export default {
                     if (this.project.id !== projectList.projects[i].id) {
                         this.projects.push({
                             label: projectList.projects[i].name,
-                            value: projectList.projects[i].id
+                            value: {
+                                id: projectList.projects[i].id,
+                                name: projectList.projects[i].name
+                            }
                         })
                     }
                 }
