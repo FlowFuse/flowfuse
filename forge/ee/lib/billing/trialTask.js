@@ -23,6 +23,9 @@ module.exports.init = function (app) {
                 await sendTrialEmail(subscription.Team, 'TrialTeamEnded', {
                     trialProjectName
                 })
+                // Ensure device count is updated (if device billing enabled)
+                await subscription.Team.reload({ include: [app.db.models.TeamType] })
+                await app.billing.updateTeamDeviceCount(subscription.Team)
             } else {
                 // Stripe not configured - suspend the lot
                 await suspendAllProjects(subscription.Team)

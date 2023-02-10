@@ -8,6 +8,11 @@ module.exports = {
             existingSub.subscription = subscription
             existingSub.status = app.db.models.Subscription.STATUS.ACTIVE
             await existingSub.save()
+
+            // This *could* be a trial team that has devices in it. In which case,
+            // we need to reconcile the subscription device count in case device billing
+            // is enabled.
+            await app.billing.updateTeamDeviceCount(team)
             return existingSub
         } else {
             // Create the subscription
