@@ -266,7 +266,7 @@ test against PostgreSQL. To enable the use of PostgreSQL in the tests:
 1. Ensure you have an instance of PostgreSQL running locally. For example, via
    docker:
 
-        docker run -it -p 5432:5432 --name ff-postgres -e POSTGRES_PASSWORD=secret postgres
+        docker run -it -p 5432:5432 --name ff-postgres -e POSTGRES_PASSWORD=secret postgres:14
 
 2. Enable PostgrSQL mode by setting the following environment variable:
 
