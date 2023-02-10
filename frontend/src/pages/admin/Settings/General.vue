@@ -9,6 +9,15 @@
                 and provide their login details manually
             </template>
         </FormRow>
+        <template v-if="input['user:signup']">
+            <FormRow v-model="input['branding:account:signUpTopBanner']" containerClass="max-w-sm ml-9">
+                HTML content to show above the sign-up form
+            </FormRow>
+            <FormRow v-model="input['branding:account:signUpLeftBanner']" containerClass="max-w-sm ml-9">
+                HTML content to show to the left of the sign-up form
+                <template #input><textarea class="w-full" rows="6" v-model="input['branding:account:signUpLeftBanner']"></textarea></template>
+            </FormRow>
+        </template>
         <FormRow v-model="input['user:team:auto-create']" type="checkbox">
             Create a personal team for users when they register
             <template #description>
@@ -121,7 +130,9 @@ const validSettings = [
     'telemetry:enabled',
     'user:team:trial-mode',
     'user:team:trial-mode:duration',
-    'user:team:trial-mode:projectType'
+    'user:team:trial-mode:projectType',
+    'branding:account:signUpTopBanner',
+    'branding:account:signUpLeftBanner'
 ]
 
 export default {

@@ -35,9 +35,29 @@ module.exports = async function (app) {
                 response['version:node'] = app.settings.get('version:node')
                 response['user:team:trial-mode'] = app.settings.get('user:team:trial-mode')
                 response['user:team:trial-mode:duration'] = app.settings.get('user:team:trial-mode:duration')
+
+                // `signUpTopBanner` was added to flowforge.yml in 1.3. But to make it more flexible, 1.4 moved
+                // to allow it to be set via Admin Settings. This handles the cross over between
+                // the two
+                if (app.config.branding?.account?.signUpTopBanner) {
+                    response['branding:account:signUpTopBanner'] = app.config.branding?.account?.signUpTopBanner
+                }
+                // For now these are the only pieces of customisable text we have.
+                // As this list grows we'll need a better strategy for managing them.
+                ;[
+                    'branding:account:signUpTopBanner',
+                    'branding:account:signUpLeftBanner'
+                ].forEach(prop => {
+                    const value = app.settings.get(prop)
+                    if (value) {
+                        response[prop] = value
+                    }
+                })
             }
             reply.send(response)
         } else {
+            // This is for an unauthenticated request. Return settings related
+            // to branding and the login/signup pages
             const publicSettings = {
                 features: app.config.features.getPublicFeatures(),
                 'user:signup': app.settings.get('user:signup') && app.postoffice.enabled(),
@@ -45,9 +65,25 @@ module.exports = async function (app) {
                 'user:tcs-required': app.settings.get('user:tcs-required') && app.postoffice.enabled(),
                 'user:tcs-url': app.settings.get('user:tcs-url')
             }
-            if (app.config.branding) {
-                publicSettings.branding = app.config.branding
+
+            // `signUpTopBanner` was added to flowforge.yml in 1.3. But to make it more flexible, 1.4 moved
+            // to allow it to be set via Admin Settings. This handles the cross over between
+            // the two
+            if (app.config.branding?.account?.signUpTopBanner) {
+                publicSettings['branding:account:signUpTopBanner'] = app.config.branding?.account?.signUpTopBanner
             }
+            // These are the only branding properties needed for the sign-up page.
+            // Keeping this a separate list to those returned in the admin response
+            // even if, in 1.4, they are the same set of values.
+            ;[
+                'branding:account:signUpTopBanner',
+                'branding:account:signUpLeftBanner'
+            ].forEach(prop => {
+                const value = app.settings.get(prop)
+                if (value) {
+                    publicSettings[prop] = value
+                }
+            })
             reply.send(publicSettings)
         }
     })
