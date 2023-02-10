@@ -3,7 +3,7 @@ import ProjectOverview from '@/pages/project/Overview.vue'
 import ProjectSettings from '@/pages/project/Settings/index.vue'
 import ProjectSettingsGeneral from '@/pages/project/Settings/General.vue'
 import ProjectSettingsDanger from '@/pages/project/Settings/Danger.vue'
-import ProjectSettingsStages from '@/pages/project/Settings/Stages.vue'
+import ProjectSettingsDevOps from '@/pages/project/Settings/DevOps.vue'
 import ProjectSettingsEditor from '@/pages/project/Settings/Editor.vue'
 import ProjectSettingsSecurity from '@/pages/project/Settings/Security.vue'
 import ProjectSettingsPalette from '@/pages/project/Settings/Palette.vue'
@@ -40,7 +40,7 @@ export default [
                 children: [
                     { path: 'general', component: ProjectSettingsGeneral },
                     { path: 'environment', component: ProjectSettingsEnvVar },
-                    { path: 'stages', component: ProjectSettingsStages },
+                    { path: 'devops', component: ProjectSettingsDevOps },
                     { path: 'editor', component: ProjectSettingsEditor },
                     { path: 'security', component: ProjectSettingsSecurity },
                     { path: 'palette', component: ProjectSettingsPalette },
