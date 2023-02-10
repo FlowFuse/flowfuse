@@ -51,6 +51,20 @@ describe('Library Storage API', function () {
             })).json()
         }
 
+        async function deleteFromLibrary (libraryURL, name, type) {
+            let query = ''
+            if (type) {
+                query = `?type=${type}`
+            }
+            return (await app.inject({
+                method: 'DELETE',
+                url: `${libraryURL}${name}${query}`,
+                headers: {
+                    authorization: `Bearer ${tokens.token}`
+                }
+            })).json()
+        }
+
         async function shouldRejectGet (url, token) {
             const response = await app.inject({
                 method: 'GET',
@@ -232,6 +246,104 @@ describe('Library Storage API', function () {
             // Now try to create an entry that clashes with the directory test/foo
             const response2 = await addToLibrary(libraryURL, 'test/foo', 'functions')
             response2.statusCode.should.equal(400)
+        })
+
+        it('Deletes an individual entry', async function () {
+            const libraryURL = `/storage/library/${app.team.hashid}/`
+            /*
+              Library file structure:
+                ├── bar3 (flows)
+                └── test
+                    └── foo
+                    |   ├── bar (flows)
+                    |   └── bar2 (flows)
+                    └── funcs
+                        └── bar4 (funcs)
+            */
+            await addToLibrary(libraryURL, 'test/foo/bar', 'flows')
+            await addToLibrary(libraryURL, 'test/foo/bar2', 'flows')
+            await addToLibrary(libraryURL, 'bar3', 'flows')
+            await addToLibrary(libraryURL, 'test/funcs/bar4', 'functions')
+
+            ;(await app.db.models.StorageSharedLibrary.count()).should.equal(4)
+
+            const result = await deleteFromLibrary(libraryURL, 'test/foo/bar')
+            result.should.have.property('status', 'okay')
+            result.should.have.property('deleteCount', 1)
+            ;(await app.db.models.StorageSharedLibrary.count()).should.equal(3)
+        })
+
+        it('Deletes a folder - all types', async function () {
+            const libraryURL = `/storage/library/${app.team.hashid}/`
+            /*
+              Library file structure:
+                ├── bar3 (flows)
+                └── test
+                    └── foo
+                    |   ├── bar (flows)
+                    |   └── bar2 (flows)
+                    └── funcs
+                        └── bar4 (funcs)
+            */
+            await addToLibrary(libraryURL, 'test/foo/bar', 'flows')
+            await addToLibrary(libraryURL, 'test/foo/bar2', 'flows')
+            await addToLibrary(libraryURL, 'bar3', 'flows')
+            await addToLibrary(libraryURL, 'test/funcs/bar4', 'functions')
+
+            ;(await app.db.models.StorageSharedLibrary.count()).should.equal(4)
+
+            const result = await deleteFromLibrary(libraryURL, 'test')
+            result.should.have.property('status', 'okay')
+            result.should.have.property('deleteCount', 3)
+            ;(await app.db.models.StorageSharedLibrary.count()).should.equal(1)
+        })
+        it('Deletes a folder - specific type', async function () {
+            const libraryURL = `/storage/library/${app.team.hashid}/`
+            /*
+              Library file structure:
+                ├── bar3 (flows)
+                └── test
+                    └── foo
+                    |   ├── bar (flows)
+                    |   └── bar2 (flows)
+                    └── funcs
+                        └── bar4 (funcs)
+            */
+            await addToLibrary(libraryURL, 'test/foo/bar', 'flows')
+            await addToLibrary(libraryURL, 'test/foo/bar2', 'flows')
+            await addToLibrary(libraryURL, 'bar3', 'flows')
+            await addToLibrary(libraryURL, 'test/funcs/bar4', 'functions')
+
+            ;(await app.db.models.StorageSharedLibrary.count()).should.equal(4)
+
+            const result = await deleteFromLibrary(libraryURL, 'test', 'flows')
+            result.should.have.property('status', 'okay')
+            result.should.have.property('deleteCount', 2)
+            ;(await app.db.models.StorageSharedLibrary.count()).should.equal(2)
+        })
+
+        it('Delete returns 404 if path not matched', async function () {
+            const libraryURL = `/storage/library/${app.team.hashid}/`
+            /*
+              Library file structure:
+                ├── bar3 (flows)
+                └── test
+                    └── foo
+                    |   ├── bar (flows)
+                    |   └── bar2 (flows)
+                    └── funcs
+                        └── bar4 (funcs)
+            */
+            await addToLibrary(libraryURL, 'test/foo/bar', 'flows')
+            await addToLibrary(libraryURL, 'test/foo/bar2', 'flows')
+            await addToLibrary(libraryURL, 'bar3', 'flows')
+            await addToLibrary(libraryURL, 'test/funcs/bar4', 'functions')
+
+            ;(await app.db.models.StorageSharedLibrary.count()).should.equal(4)
+
+            const result = await deleteFromLibrary(libraryURL, 'test/fo')
+            result.should.have.property('code', 'not_found')
+            ;(await app.db.models.StorageSharedLibrary.count()).should.equal(4)
         })
     })
 })

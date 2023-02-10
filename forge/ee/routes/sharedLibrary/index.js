@@ -4,7 +4,8 @@ const { Roles } = require('../../../lib/roles.js')
 module.exports = async function (app) {
     registerPermissions({
         'library:entry:create': { description: 'Create entries in a team library', role: Roles.Member },
-        'library:entry:list': { description: 'List entries in a team library', role: Roles.Member }
+        'library:entry:list': { description: 'List entries in a team library', role: Roles.Member },
+        'library:entry:delete': { description: 'Delete an entry in a team library', role: Roles.Member }
     })
 
     app.addHook('preHandler', app.verifySession)
@@ -143,5 +144,40 @@ module.exports = async function (app) {
             reply.push(...subPaths)
         }
         response.send(reply)
+    })
+
+    app.delete('/storage/library/:libraryId/*', {
+        preHandler: async (request, reply) => {
+            if (request.teamMembership) {
+                return app.needsPermission('library:entry:delete')(request, reply)
+            }
+        }
+    }, async (request, response) => {
+        const type = request.query.type
+        let name = request.params['*']
+
+        let deleteCount = 0
+        // Try to get the exact name
+        const direct = await app.db.models.StorageSharedLibrary.byName(request.team.id, type, name)
+        if (direct) {
+            await direct.destroy()
+            deleteCount++
+        } else {
+            // No entry with that exact name. Check to see if its a partial
+            // path name
+            if (name.length > 0 && name[name.length - 1] !== '/') {
+                name += '/'
+            }
+            const entries = await app.db.models.StorageSharedLibrary.byPath(request.team.id, type, name)
+            for (const entry of entries) {
+                await entry.destroy()
+                deleteCount++
+            }
+        }
+        if (deleteCount === 0) {
+            response.status(404).send({ code: 'not_found', error: 'Not Found' })
+        } else {
+            response.send({ status: 'okay', deleteCount })
+        }
     })
 }
