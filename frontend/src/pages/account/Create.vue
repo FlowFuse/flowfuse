@@ -49,7 +49,6 @@
 import { mapState } from 'vuex'
 
 import userApi from '@/api/user'
-import SettingsAPI from '@/api/settings'
 
 import { useRoute } from 'vue-router'
 
