@@ -1,11 +1,9 @@
 const should = require('should') // eslint-disable-line
 const sinon = require('sinon')
 const setup = require('../../setup')
-const sleep = require('util').promisify(setTimeout)
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 const { KEY_BILLING_STATE } = FF_UTIL.require('forge/db/models/ProjectSettings')
-const { STOP_DELAY } = FF_UTIL.require('forge/containers/stub/index.js')
 const trialTask = FF_UTIL.require('forge/ee/lib/billing/trialTask')
 
 describe('Billing - Trial Housekeeper Task', function () {
@@ -187,72 +185,6 @@ describe('Billing - Trial Housekeeper Task', function () {
         const email = app.config.email.transport.messages[0]
         email.should.have.property('to', TestObjects.alice.email)
         email.text.includes(TestObjects.alice.name).should.be.true()
-    })
-
-    it('does not add a suspended trial project to billing when team trial has ended', async function () {
-        app.settings.set('user:team:trial-mode', true)
-        app.settings.set('user:team:trial-mode:duration', 5)
-        app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
-
-        // TestObjects.ATeam - has billing setup, should not get touched
-
-        // Create trial team without billing setup
-        const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id })
-        const trialSub = await app.db.controllers.Subscription.createTrialSubscription(trialTeam, Date.now() + 86400000)
-
-        await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
-
-        // Create project using the permitted projectType for trials - projectType1
-        const response = await app.inject({
-            method: 'POST',
-            url: '/api/v1/projects',
-            payload: {
-                name: 'billing-project',
-                team: trialTeam.hashid,
-                projectType: TestObjects.projectType1.hashid,
-                template: TestObjects.template1.hashid,
-                stack: TestObjects.stack1.hashid
-            },
-            cookies: { sid: TestObjects.tokens.alice }
-        })
-        response.statusCode.should.equal(200)
-        const projectDetails = response.json()
-
-        // Suspend the project
-        const suspendResponse = await app.inject({
-            method: 'POST',
-            url: `/api/v1/projects/${projectDetails.id}/actions/suspend`,
-            cookies: { sid: TestObjects.tokens.alice }
-        })
-        suspendResponse.statusCode.should.equal(200)
-
-        await sleep(STOP_DELAY + 50)
-
-        // Verify the project is suspended and the billing state is still 'trial'
-        const project = await app.db.models.Project.byId(projectDetails.id)
-        project.state.should.equal('suspended')
-        ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.TRIAL)
-        stripe.subscriptions.update.callCount.should.equal(0)
-        stripe.subscriptionItems.update.callCount.should.equal(0)
-
-        // Enable billing on the team
-        const subscription = 'sub_1234567890'
-        const customer = 'cus_1234567890'
-        await app.db.controllers.Subscription.createSubscription(trialTeam, subscription, customer)
-        await trialSub.reload()
-
-        // Expire the trial
-        trialSub.trialEndsAt = new Date(Date.now() - 1000)
-        await trialSub.save()
-
-        // Run the task
-        await task(app)
-
-        // Verify the trial project has not been added to billing
-        // and its billing state has been moved to not_billed
-        ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.NOT_BILLED)
-        stripe.subscriptions.update.callCount.should.equal(0)
-        stripe.subscriptionItems.update.callCount.should.equal(0)
     })
 
     it('sends trial reminder emails at appropriate intervals', async function () {

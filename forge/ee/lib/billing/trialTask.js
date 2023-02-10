@@ -108,11 +108,7 @@ module.exports.init = function (app) {
             }
         })
         for (const project of trialProjects) {
-            if (project.Project.state !== 'suspended') {
-                await app.billing.addProject(team, project.Project)
-            } else {
-                await project.Project.updateSetting(KEY_BILLING_STATE, app.db.models.ProjectSettings.BILLING_STATES.NOT_BILLED)
-            }
+            await app.billing.addProject(team, project.Project)
         }
         return trialProjects
     }
