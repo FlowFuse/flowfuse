@@ -106,7 +106,7 @@ module.exports = {
             ownerId: teamId,
             ownerType: 'team'
         })
-        const token = app.db.views.AccessToken.provisioningTokenSummary(newToken)
+        const token = await app.db.views.AccessToken.provisioningTokenSummary(newToken)
         token.token = generatedToken
         return token
     },

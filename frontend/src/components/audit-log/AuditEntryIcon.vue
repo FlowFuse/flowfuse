@@ -16,6 +16,7 @@
     <LoginIcon v-if="icon === 'login'" class="ff-icon text-blue-700" />
     <LogoutIcon v-if="icon === 'logout'" class="ff-icon text-gray-600" />
     <ExclamationCircleIcon v-if="icon === 'error'" class="ff-icon text-red-500" />
+    <TicketIcon v-if="icon === 'token'" class="ff-icon text-blue-500" />
 </template>
 
 <script>
@@ -27,7 +28,7 @@ import {
     UserIcon, UserGroupIcon, LockClosedIcon,
     MailIcon, LoginIcon, LogoutIcon, KeyIcon,
     CurrencyDollarIcon, CogIcon, ExclamationCircleIcon,
-    ChipIcon, IdentificationIcon
+    ChipIcon, IdentificationIcon, TicketIcon
 } from '@heroicons/vue/outline'
 
 const iconMap = {
@@ -149,6 +150,11 @@ const iconMap = {
         'team.device.credentials-generated',
         'team.device.credentialsGenerated', // legacy event
         'project.snapshot.deviceTarget' // legacy event
+    ],
+    token: [
+        'team.device.provisioning.created',
+        'team.device.provisioning.updated',
+        'team.device.provisioning.deleted'
     ]
 }
 
@@ -189,7 +195,8 @@ export default {
         LoginIcon,
         LogoutIcon,
         CurrencyDollarIcon,
-        ExclamationCircleIcon
+        ExclamationCircleIcon,
+        TicketIcon
     }
 }
 </script>

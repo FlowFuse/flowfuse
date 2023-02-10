@@ -63,7 +63,9 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const result = await app.db.models.AccessToken.getProvisioningTokens(paginationOptions, request.team)
-        result.tokens = result.tokens?.map(t => app.db.views.AccessToken.provisioningTokenSummary(t))
+        result.tokens = await Promise.all(result.tokens?.map(async t => {
+            return await app.db.views.AccessToken.provisioningTokenSummary(t)
+        }))
         reply.send(result)
     })
 
@@ -155,7 +157,7 @@ module.exports = async function (app) {
         try {
             const accessToken = await app.db.models.AccessToken.byId(tokenId)
             if (accessToken) {
-                const tokenDetails = app.db.views.AccessToken.provisioningTokenSummary(accessToken)
+                const tokenDetails = await app.db.views.AccessToken.provisioningTokenSummary(accessToken)
                 let updatedTokenDetails
                 tokenName = tokenDetails.name || '[unnamed]'
                 /** @type {import('../../auditLog/formatters').UpdatesCollection} */
@@ -166,7 +168,7 @@ module.exports = async function (app) {
                 )
                 if (updates.length) {
                     await AccessTokenController.updateTokenForTeamDeviceProvisioning(accessToken, project, expiresAt)
-                    updatedTokenDetails = app.db.views.AccessToken.provisioningTokenSummary(await app.db.models.AccessToken.byId(tokenId))
+                    updatedTokenDetails = await app.db.views.AccessToken.provisioningTokenSummary(await app.db.models.AccessToken.byId(tokenId))
                     await app.auditLog.Team.team.device.provisioning.updated(request.session.User, null, tokenId, tokenName, team, updates)
                 }
                 reply.send(updatedTokenDetails || tokenDetails)
@@ -200,7 +202,7 @@ module.exports = async function (app) {
         try {
             const accessToken = await app.db.models.AccessToken.byId(tokenId)
             if (accessToken) {
-                const tokenDetails = app.db.views.AccessToken.provisioningTokenSummary(accessToken)
+                const tokenDetails = await app.db.views.AccessToken.provisioningTokenSummary(accessToken)
                 tokenName = tokenDetails.name || '[unnamed]'
                 await accessToken.destroy()
                 await app.auditLog.Team.team.device.provisioning.deleted(request.session.User, null, tokenId, tokenName, request.team)

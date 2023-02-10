@@ -1,6 +1,6 @@
 <template>
-    <div class="">
-        <SectionTopMenu hero="Team Settings" :options="sideOptions" />
+    <div class="flex flex-col sm:flex-row">
+        <SectionSideMenu :options="sideOptions" />
         <div class="flex-grow pt-4">
             <router-view :team="team" :teamMembership="teamMembership"></router-view>
         </div>
@@ -10,7 +10,7 @@
 <script>
 import { mapState } from 'vuex'
 
-import SectionTopMenu from '@/components/SectionTopMenu'
+import SectionSideMenu from '@/components/SectionSideMenu'
 import { useRouter } from 'vue-router'
 import permissionsMixin from '@/mixins/Permissions'
 
@@ -19,7 +19,7 @@ export default {
     props: ['team', 'teamMembership'],
     mixins: [permissionsMixin],
     components: {
-        SectionTopMenu
+        SectionSideMenu
     },
     computed: {
         ...mapState('account', ['features'])
@@ -28,6 +28,7 @@ export default {
         return {
             sideOptions: [
                 { name: 'General', path: './general' },
+                { name: 'Devices', path: './devices' },
                 { name: 'Danger', path: './danger' }
             ]
         }

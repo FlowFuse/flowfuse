@@ -72,7 +72,7 @@ module.exports = fp(async function (app, opts, done) {
                         scope: accessToken.scope
                     }
                     if (accessToken.ownerType === 'team' && request.session.scope?.includes('device:provision')) {
-                        request.session.provisioning = app.db.views.AccessToken.provisioningTokenSummary(accessToken)
+                        request.session.provisioning = await app.db.views.AccessToken.provisioningTokenSummary(accessToken)
                     }
                     if (accessToken.ownerType === 'user') {
                         request.session.User = await app.db.models.User.findOne({ where: { id: parseInt(accessToken.ownerId) } })
