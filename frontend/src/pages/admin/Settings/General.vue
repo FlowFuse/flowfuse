@@ -231,9 +231,11 @@ export default {
                 .then(() => {
                     this.$store.dispatch('account/refreshSettings')
                     this.input['user:tcs-date'] = this.settings['user:tcs-date']
+                    Alerts.emit('Settings changed successfully.', 'confirmation')
                 })
                 .catch((err) => {
                     console.warn(err)
+                    Alerts.emit(`Something went wrong: ${err}`, 'warning')
                 })
                 .finally(() => {
                     this.loading = false
