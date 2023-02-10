@@ -23,7 +23,6 @@ module.exports = {
             }
             if (project && deviceSettings?.targetSnapshot) {
                 const snapshot = await app.db.models.ProjectSnapshot.byId(deviceSettings.targetSnapshot)
-                console.log(snapshot)
                 tokenSummary.targetSnapshot = snapshot?.name
             }
         }
