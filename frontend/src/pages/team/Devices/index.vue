@@ -41,7 +41,15 @@
             </template>
         </template>
     </div>
-    <TeamDeviceCreateDialog :team="team" @deviceCreating="deviceCreating" @deviceCreated="deviceCreated" @deviceUpdated="deviceUpdated" ref="teamDeviceCreateDialog"/>
+    <TeamDeviceCreateDialog :team="team" @deviceCreating="deviceCreating" @deviceCreated="deviceCreated" @deviceUpdated="deviceUpdated" ref="teamDeviceCreateDialog">
+        <template v-slot:description>
+            <p>Here, you can register a new device to your team. This will provide you with a <b>device.yml</b>
+                to be moved to the respective device. Further details on Devices in FlowForge can be found
+                <a href="https://flowforge.com/docs/user/devices/" target="_blank">here</a>.</p>
+            <p class="mt-4 mb-2">If you want to register devices straight to a particular project you can use provisioning tokens
+                in your <router-link :to="{'name': 'TeamSettingsDevices', 'params': {team_slug: team.slug}}">Team Settings</router-link></p>
+        </template>
+    </TeamDeviceCreateDialog>
     <DeviceCredentialsDialog ref="deviceCredentialsDialog" />
     <DeviceAssignProjectDialog :team="team" @assignDevice="assignDevice" ref="deviceAssignProjectDialog" />
 </template>

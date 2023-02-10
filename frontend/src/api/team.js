@@ -29,6 +29,11 @@ const deleteTeam = async (teamId) => {
     return await client.delete(`/api/v1/teams/${teamId}`)
 }
 
+/**
+ * Get a list of projects for a team.
+ * The status of each project will be added to the project object.
+ * @param {string} teamId The Team ID (hash) to get projects for
+ */
 const getTeamProjects = async (teamId) => {
     const res = await client.get(`/api/v1/teams/${teamId}/projects`)
     const promises = []
@@ -47,6 +52,24 @@ const getTeamProjects = async (teamId) => {
     })
     await Promise.all(promises)
     return res.data
+}
+
+/**
+ * Get a list of projects (names & id  only)
+ * This function does not get project status
+ * @param {string} teamId The Team ID (hash) to get projects for
+ * @see getTeamProjects
+ * @returns {[{id: string, name: string}]} An array of project objects containing name and id
+ */
+const getTeamProjectList = async (teamId) => {
+    const res = await client.get(`/api/v1/teams/${teamId}/projects`)
+    const list = res.data.projects.map(r => {
+        return {
+            id: r.id,
+            name: r.name
+        }
+    })
+    return list
 }
 
 const getTeamMembers = (teamId) => {
@@ -125,6 +148,74 @@ const getTeamLibrary = async (teamId, parentDir, cursor, limit) => {
 }
 
 /**
+ *
+ * @param {string} teamId Team ID (hash)
+ * @param {*} cursor The next page cursor (not implemented)
+ * @param {number} limit The number of results to return (not implemented)
+ * @returns { meta: { next_cursor }, tokens: [ { } ] }
+ */
+const getTeamDeviceProvisioningTokens = async (teamId, cursor, limit) => {
+    const url = paginateUrl(`/api/v1/teams/${teamId}/devices/provisioning`, cursor, limit)
+    const res = await client.get(url)
+    return res.data
+}
+
+/**
+ * Generate an auto provisioning token
+ * @param {string} teamId The team ID (hash)
+ * @param {object} options
+ * @param {string} options.name The name of the token
+ * @param {string} [options.project] The project ID (hash)
+ * @param {string} [options.expiresAt] The expiry date of the token
+ * @returns
+ */
+const generateTeamDeviceProvisioningToken = async (teamId, options) => {
+    options = options || {}
+    const { name, project, expiresAt } = options
+    return client.post(`/api/v1/teams/${teamId}/devices/provisioning`,
+        {
+            name: name || 'Auto Provisioning Token',
+            project,
+            expiresAt
+        }
+    ).then(res => {
+        return res.data
+    })
+}
+
+/**
+ * Update an auto provisioning token
+ * @param {string} teamId The team ID (hash)
+ * @param {string} tokenId The token ID (hash)
+ * @param {object} options
+ * @param {string} [options.project] The project ID (hash)
+ * @param {string} [options.expiresAt] The expiry date of the token
+ * @returns
+ */
+const updateTeamDeviceProvisioningToken = async (teamId, tokenId, options) => {
+    options = options || {}
+    const { project, expiresAt } = options
+    return client.put(`/api/v1/teams/${teamId}/devices/provisioning/${tokenId}`,
+        {
+            project,
+            expiresAt
+        }
+    ).then(res => {
+        return res.data
+    })
+}
+
+/**
+ * Delete a provisioning token
+ * @param {string} teamId The team ID (hash)
+ * @param {string} tokenId The token ID (hash)
+ * @returns
+ */
+const deleteTeamDeviceProvisioningToken = async (teamId, tokenId) => {
+    return await client.delete(`/api/v1/teams/${teamId}/devices/provisioning/${tokenId}`)
+}
+
+/**
  * Calls api routes in team.js
  * See [routes/api/team.js](../../../forge/routes/api/team.js)
 */
@@ -135,6 +226,7 @@ export default {
     updateTeam,
     getTeams,
     getTeamProjects,
+    getTeamProjectList,
     getTeamMembers,
     changeTeamMemberRole,
     removeTeamMember,
@@ -144,5 +236,9 @@ export default {
     getTeamAuditLog,
     getTeamUserMembership,
     getTeamDevices,
-    getTeamLibrary
+    getTeamLibrary,
+    getTeamDeviceProvisioningTokens,
+    generateTeamDeviceProvisioningToken,
+    updateTeamDeviceProvisioningToken,
+    deleteTeamDeviceProvisioningToken
 }

@@ -9,6 +9,11 @@ const Permissions = {
     'team:edit': { description: 'Edit Team', role: Roles.Owner },
     'team:delete': { description: 'Delete Team', role: Roles.Owner },
     'team:audit-log': { description: 'Access Team Audit Log', role: Roles.Owner },
+    // Team Auto Device Provisioning Tokens
+    'team:device:provisioning-token:create': { description: 'Create a Team Auto Device Provisioning Token', role: Roles.Owner },
+    'team:device:provisioning-token:edit': { description: 'Edit a Team Auto Device Provisioning Token', role: Roles.Owner },
+    'team:device:provisioning-token:list': { description: 'List Team Auto Device Provisioning Tokens', role: Roles.Owner },
+    'team:device:provisioning-token:delete': { description: 'Delete a Team Auto Device Provisioning Token', role: Roles.Owner },
     // Team Members
     'team:user:add': { description: 'Add Members', role: Roles.Admin },
     'team:user:list': { description: 'List Team Members', role: Roles.Viewer },
@@ -52,6 +57,7 @@ const Permissions = {
     'team:device:list': { description: 'List Team Devices', role: Roles.Viewer },
     'device:list': { description: 'List Devices', role: Roles.Admin },
     'device:create': { description: 'Create a Device', role: Roles.Owner },
+    'device:provision': { description: 'Provision a Device', role: null },
     'device:read': { description: 'View a Device', role: Roles.Viewer },
     'device:delete': { description: 'Delete a Device', role: Roles.Owner },
     'device:edit': { description: 'Edit a Device', role: Roles.Owner },

@@ -2,6 +2,7 @@
     <ff-dialog ref="dialog" :header="device ? 'Update Device' : 'Register Device'"
                :confirm-label="device ? 'Update' : 'Register'" @confirm="confirm()" :disable-primary="!formValid">
         <template v-slot:default>
+            <slot name="description"></slot>
             <form class="space-y-6 mt-2">
                 <FormRow data-form="device-name" v-model="input.name" :error="errors.name" :disabled="editDisabled">Name</FormRow>
                 <FormRow data-form="device-type" v-model="input.type" :error="errors.type" :disabled="editDisabled">Type</FormRow>

@@ -81,6 +81,60 @@ module.exports = {
         return { token, expiresAt, refreshToken }
     },
 
+    /**
+     * Create a (restricted) auto device provisioning token (adp) for the given team.
+     * The token is hashed in the database. The only time the
+     * true value is available is when it is returned from this function.
+     * @param {Object} app - The app object
+     * @param {string} name - A name for this token
+     * @param {Object|number} team - The team object or id
+     * @param {Object|string} project - The project object or id
+     * @param {Date|'never'} [expiresAt] - The expiry date. If `undefined`, the token never expires
+     */
+    createTokenForTeamDeviceProvisioning: async function (app, name, team, project, expiresAt) {
+        const generatedToken = generateToken(32, 'ffadp')
+        const scope = ['device:provision', `name:${name}`]
+        const projectId = (project && typeof project === 'object') ? project.id : project
+        const teamId = (team && typeof team === 'object') ? team.id : team
+        if (projectId) {
+            scope.push(`project:${projectId}`)
+        }
+        const newToken = await app.db.models.AccessToken.create({
+            token: generatedToken,
+            expiresAt,
+            scope, // scope format: ['device:provision', `name:${token name}`, `project:${project id}`]
+            ownerId: teamId,
+            ownerType: 'team'
+        })
+        const token = await app.db.views.AccessToken.provisioningTokenSummary(newToken)
+        token.token = generatedToken
+        return token
+    },
+
+    /**
+     * Update an auto device provisioning token (adp).
+     * Only the project and expiry date can be updated.
+     * @param {Object} app - The app object
+     * @param {Object} token - The token to update
+     * @param {Object|string} [project] - The project object or id (set to `null` or `undefined` to remove project scope)
+     * @param {Date|'never'} [expiresAt] - The expiry date. If `undefined`, the token never expires
+     */
+    updateTokenForTeamDeviceProvisioning: async function (app, token, project, expiresAt) {
+        let scope = [...(token.scope || [])]
+        const projectId = (project && typeof project === 'object') ? project.id : project
+        // remove project scope & add updated project scope (if set)
+        scope = scope.filter((s) => !s.startsWith('project:'))
+        if (projectId) {
+            scope.push(`project:${projectId}`)
+        }
+        const tokenUpdates = {
+            scope, // scope format: ['device:provision', `name:${token name}`, `project:${project id}`]
+            expiresAt
+        }
+        await app.db.models.AccessToken.update(tokenUpdates, { where: { id: token.id } })
+        return { token: token.id }
+    },
+
     refreshToken: async function (app, refreshToken) {
         const existingToken = await app.db.models.AccessToken.byRefreshToken(refreshToken)
         if (existingToken) {

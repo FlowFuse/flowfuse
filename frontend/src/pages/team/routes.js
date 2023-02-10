@@ -10,6 +10,7 @@ import TeamAuditLog from '@/pages/team/AuditLog.vue'
 import TeamSettings from '@/pages/team/Settings/index.vue'
 import TeamSettingsGeneral from '@/pages/team/Settings/General.vue'
 import TeamSettingsDanger from '@/pages/team/Settings/Danger.vue'
+import TeamSettingsDevices from '@/pages/team/Settings/Devices.vue'
 // import TeamSettingsPermissions from '@/pages/team/Settings/Permissions.vue'
 import CreateTeam from '@/pages/team/create.vue'
 import CreateProject from '@/pages/team/createProject.vue'
@@ -87,6 +88,7 @@ export default [
                 }
             },
             {
+                name: 'TeamSettings',
                 path: 'settings',
                 component: TeamSettings,
                 meta: {
@@ -98,6 +100,7 @@ export default [
                 children: [
                     { path: 'general', component: TeamSettingsGeneral },
                     // { path: 'permissions', component: TeamSettingsPermissions},
+                    { path: 'devices', name: 'TeamSettingsDevices', component: TeamSettingsDevices },
                     { path: 'danger', component: TeamSettingsDanger }
                 ]
             },

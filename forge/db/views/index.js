@@ -18,6 +18,7 @@ const modelTypes = [
     'Device',
     'Invitation',
     'AuditLog',
+    'AccessToken',
     'ProjectType',
     'ProjectStack',
     'ProjectTemplate',

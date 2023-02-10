@@ -433,5 +433,64 @@ describe('Audit Log > Team', async function () {
         logEntry.body.updates.should.have.length(1)
         logEntry.body.updates[0].should.eql({ key: 'credit', new: 10 })
     })
+
+    it('Provides a logger for creating an provisioning token', async function () {
+        await teamLogger.team.device.provisioning.created(ACTIONED_BY, null, 'ABC123', 'Token Name', TEAM, null)
+        // {"info":{"tokenId":"Znqv1kl7kg","tokenName":"Auto Provision and join to Data-Processing project"}}
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'team.device.provisioning.created')
+        logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('info')
+        logEntry.body.info.should.only.have.keys('tokenId', 'tokenName')
+        logEntry.body.info.tokenId.should.equal('ABC123')
+        logEntry.body.info.tokenName.should.equal('Token Name')
+    })
+    it('Provides a logger for creating a provisioning token with a project assigned', async function () {
+        await teamLogger.team.device.provisioning.created(ACTIONED_BY, null, 'DEF456', 'Token Name 2', TEAM, PROJECT)
+        // {"info":{"tokenId":"Znqv1kl7kg","tokenName":"Auto Provision and join to Data-Processing project"}}
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'team.device.provisioning.created')
+        logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('info', 'project')
+        logEntry.body.info.should.only.have.keys('tokenId', 'tokenName')
+        logEntry.body.info.tokenId.should.equal('DEF456')
+        logEntry.body.info.tokenName.should.equal('Token Name 2')
+    })
+    it('Provides a logger for editing a provisioning token - to assign a project', async function () {
+        const updates = [{ key: 'project', old: null, new: 'new' }]
+        await teamLogger.team.device.provisioning.updated(ACTIONED_BY, null, 'AAA111', 'Token Name 3', TEAM, updates)
+        // {"info":{"tokenId":"Znqv1kl7kg","tokenName":"Auto Provision and join to Data-Processing project"}}
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'team.device.provisioning.updated')
+        logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('info', 'updates')
+        logEntry.body.info.should.only.have.keys('tokenId', 'tokenName')
+        logEntry.body.info.tokenId.should.equal('AAA111')
+        logEntry.body.info.tokenName.should.equal('Token Name 3')
+        logEntry.body.updates.should.have.length(1)
+        logEntry.body.updates[0].should.eql({ key: 'project', old: null, new: 'new' })
+    })
+    it('Provides a logger for deleting a provisioning token', async function () {
+        await teamLogger.team.device.provisioning.deleted(ACTIONED_BY, null, 'BBB222', 'Token Name 4', TEAM)
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'team.device.provisioning.deleted')
+        logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('info')
+        logEntry.body.info.should.only.have.keys('tokenId', 'tokenName')
+        logEntry.body.info.should.have.property('tokenId', 'BBB222')
+        logEntry.body.info.should.have.property('tokenName', 'Token Name 4')
+    })
     // #endregion
 })
