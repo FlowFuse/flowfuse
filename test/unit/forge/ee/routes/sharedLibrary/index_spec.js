@@ -131,22 +131,26 @@ describe('Library Storage API', function () {
                 url: `${libraryURL}test/foo/bar`,
                 payload: {
                     type: 'functions',
-                    meta: {},
+                    meta: { outputs: 123 },
                     body: funcText
                 },
                 headers: {
                     authorization: `Bearer ${tokens.token}`
                 }
             })
-            const response = await app.inject({
-                method: 'GET',
-                url: `${libraryURL}test`,
-                headers: {
-                    authorization: `Bearer ${tokens.token}`
-                }
-            })
-            const libraryEntry = response.json()
-            should(libraryEntry).containDeep(['foo'])
+            const libraryEntryFolderListing = await getFromLibrary(libraryURL, 'test')
+            libraryEntryFolderListing.should.have.length(1)
+            libraryEntryFolderListing[0].should.equal('foo')
+
+            const libraryEntryListing = await getFromLibrary(libraryURL, 'test/foo')
+            libraryEntryListing.should.have.length(1)
+            const entry = libraryEntryListing[0]
+            entry.should.have.property('fn', 'bar')
+            entry.should.have.property('type', 'functions')
+            entry.should.have.property('outputs', 123)
+            entry.should.have.property('updatedAt')
+            const updatedAt = new Date(entry.updatedAt)
+            ;(Math.abs(Date.now() - updatedAt) < 1000).should.be.true()
         })
 
         it('Add to Library - access from another team project', async function () {
