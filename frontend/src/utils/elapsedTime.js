@@ -11,7 +11,12 @@ const periodSeconds = {
 }
 
 function dateDiff (to, from) {
+    if (typeof from === 'string') {
+        from = (new Date(from)).getTime()
+    }
+
     let delta = Math.abs(to - from) / 1000
+
     const res = {}
 
     for (const key in periodSeconds) {
