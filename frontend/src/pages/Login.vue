@@ -1,6 +1,6 @@
 <template>
     <ff-layout-box class="ff-login">
-        <template v-slot:form>
+        <template>
             <div v-if="!pending">
                 <ff-loading v-if="loggingIn" message="Logging in..." color="white"/>
                 <template v-else>
