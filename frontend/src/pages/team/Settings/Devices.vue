@@ -1,10 +1,9 @@
 <template>
-    <SectionTopMenu hero="Device Provisioning" help-header="Team - Settings - Devices" info="A list of device provisioning tokens that can be used to auto register devices to the team.">
+    <SectionTopMenu hero="Device Provisioning" help-header="Device Provisioning Tokens" info="A list of device provisioning tokens that can be used to auto register devices to a team and, optionally, a project.">
         <template v-slot:helptext>
             <p>FlowForge can be used to manage instances of Node-RED running on remote devices.</p>
             <p>Each device must run the <a href="https://flowforge.com/docs/user/devices/" target="_blank">FlowForge Device Agent</a>, which connects back to the platform to receive updates.</p>
-            <p>Provisioning tokens can be created to allow devices to automatically connect to a team without having to register them first.</p>
-            <p>The token can also be configured to assign a device directly to a project within the team.</p>
+            <p>Provisioning tokens can be created to allow devices to automatically connect to a team and project without having to register them first.</p>
         </template>
         <template v-slot:tools>
             <ff-button v-if="addEnabled" data-action="create-provisioning-token" kind="primary" size="small" @click="showCreateDeviceDialog"><template v-slot:icon-left><PlusSmIcon /></template>Create Provisioning Token</ff-button>
