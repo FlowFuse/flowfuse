@@ -1,4 +1,4 @@
-describe('FlowForge - Project Stages', () => {
+describe('FlowForge - Project Settings - DevOps', () => {
     function navigateToProjectStaging (teamName, projectName) {
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {
@@ -11,7 +11,7 @@ describe('FlowForge - Project Stages', () => {
                 const project = response.body.projects.find(
                     (project) => project.name === projectName
                 )
-                cy.visit(`/project/${project.id}/settings/stages`)
+                cy.visit(`/project/${project.id}/settings/devops`)
             })
     }
 
@@ -41,7 +41,7 @@ describe('FlowForge - Project Stages', () => {
 
         cy.get('[data-action="push-stage"]').click()
 
-        cy.get('.ff-dialog-header').contains('Push to Stage')
+        cy.get('.ff-dialog-header').contains('Push to "project-with-devices"')
         cy.get('.ff-dialog-box .ff-btn--primary').contains('Confirm').click()
     })
 })
