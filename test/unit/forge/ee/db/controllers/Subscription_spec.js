@@ -64,38 +64,44 @@ describe('Subscription controller', function () {
         })
     })
 
-    describe('freeTrialsEnabled', function () {
+    describe('freeTrialCreditEnabled', function () {
         it('returns true if new_customer_free_credit is set to an amount above zero', async function () {
             app.config.billing.stripe.new_customer_free_credit = 1
-            should.equal(app.db.controllers.Subscription.freeTrialsEnabled(), true)
+            should.equal(app.db.controllers.Subscription.freeTrialCreditEnabled(), true)
 
             app.config.billing.stripe.new_customer_free_credit = 100
-            should.equal(app.db.controllers.Subscription.freeTrialsEnabled(), true)
+            should.equal(app.db.controllers.Subscription.freeTrialCreditEnabled(), true)
 
             app.config.billing.stripe.new_customer_free_credit = 1000
-            should.equal(app.db.controllers.Subscription.freeTrialsEnabled(), true)
+            should.equal(app.db.controllers.Subscription.freeTrialCreditEnabled(), true)
         })
 
         it('returns false if new_customer_free_credit is unset or less than or equal to zero', async function () {
             delete app.config.billing.stripe.new_customer_free_credit
-            should.equal(app.db.controllers.Subscription.freeTrialsEnabled(), false)
+            should.equal(app.db.controllers.Subscription.freeTrialCreditEnabled(), false)
 
             app.config.billing.stripe.new_customer_free_credit = null
-            should.equal(app.db.controllers.Subscription.freeTrialsEnabled(), false)
+            should.equal(app.db.controllers.Subscription.freeTrialCreditEnabled(), false)
 
             app.config.billing.stripe.new_customer_free_credit = 0
-            should.equal(app.db.controllers.Subscription.freeTrialsEnabled(), false)
+            should.equal(app.db.controllers.Subscription.freeTrialCreditEnabled(), false)
 
             app.config.billing.stripe.new_customer_free_credit = -1000
-            should.equal(app.db.controllers.Subscription.freeTrialsEnabled(), false)
+            should.equal(app.db.controllers.Subscription.freeTrialCreditEnabled(), false)
+        })
+
+        it('returns false if configured, but team trial mode is enabled', async function () {
+            app.config.billing.stripe.new_customer_free_credit = 1
+            app.settings.set('user:team:trial-mode', true)
+            should.equal(app.db.controllers.Subscription.freeTrialCreditEnabled(), false)
         })
     })
 
-    describe('userEligibleForFreeTrial', function () {
+    describe('userEligibleForFreeTrialCredit', function () {
         it('returns true if the user has no teams', async function () {
             const newUser = await app.db.models.User.create({ admin: true, username: 'new', name: 'New', email: 'new@example.com', email_verified: true, password: 'aaPassword' })
 
-            const eligible = await app.db.controllers.Subscription.userEligibleForFreeTrial(newUser)
+            const eligible = await app.db.controllers.Subscription.userEligibleForFreeTrialCredit(newUser)
             should.equal(eligible, true)
         })
 
@@ -103,7 +109,7 @@ describe('Subscription controller', function () {
             const user = await app.db.models.User.byEmail('alice@example.com')
             should.equal(await user.teamCount() > 0, true)
 
-            const eligible = await app.db.controllers.Subscription.userEligibleForFreeTrial(user)
+            const eligible = await app.db.controllers.Subscription.userEligibleForFreeTrialCredit(user)
             should.equal(eligible, false)
         })
 
@@ -112,7 +118,7 @@ describe('Subscription controller', function () {
             should.equal(await user.teamCount() === 1, true)
 
             const newTeamAlreadyCreated = true
-            const eligible = await app.db.controllers.Subscription.userEligibleForFreeTrial(user, newTeamAlreadyCreated)
+            const eligible = await app.db.controllers.Subscription.userEligibleForFreeTrialCredit(user, newTeamAlreadyCreated)
             should.equal(eligible, true)
         })
     })

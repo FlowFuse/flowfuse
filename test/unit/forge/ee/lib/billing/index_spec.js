@@ -128,7 +128,7 @@ describe('Billing', function () {
                     const newTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
                     const user = await app.db.models.User.create({ admin: true, username: 'new', name: 'New User', email: 'new@example.com', email_verified: true, password: 'aaPassword' })
                     await newTeam.addUser(user, { through: { role: Roles.Owner } })
-                    should.equal(await app.db.controllers.Subscription.userEligibleForFreeTrial(user, true), true)
+                    should.equal(await app.db.controllers.Subscription.userEligibleForFreeTrialCredit(user, true), true)
 
                     const result = await app.billing.createSubscriptionSession(newTeam, null, user)
 
@@ -142,7 +142,7 @@ describe('Billing', function () {
                     const secondTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
                     const userAlice = await app.db.models.User.byEmail('alice@example.com')
                     await secondTeam.addUser(userAlice, { through: { role: Roles.Owner } })
-                    should.equal(await app.db.controllers.Subscription.userEligibleForFreeTrial(userAlice, true), false)
+                    should.equal(await app.db.controllers.Subscription.userEligibleForFreeTrialCredit(userAlice, true), false)
 
                     const result = await app.billing.createSubscriptionSession(secondTeam, null, userAlice)
 
@@ -172,7 +172,7 @@ describe('Billing', function () {
                 const newTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
                 const user = await app.db.models.User.create({ admin: true, username: 'new', name: 'New User', email: 'new@example.com', email_verified: true, password: 'aaPassword' })
                 await newTeam.addUser(user, { through: { role: Roles.Owner } })
-                should.equal(await app.db.controllers.Subscription.userEligibleForFreeTrial(user, true), true)
+                should.equal(await app.db.controllers.Subscription.userEligibleForFreeTrialCredit(user, true), true)
 
                 const result = await app.billing.createSubscriptionSession(newTeam, null, user)
 
