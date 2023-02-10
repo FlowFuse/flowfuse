@@ -252,9 +252,4 @@ describe('Project controller', function () {
             decrypted.should.only.have.keys('foo')
         })
     })
-    // describe('exportProject', function () {
-    //     it('', async function () {
-    //         //
-    //     })
-    // })
 })

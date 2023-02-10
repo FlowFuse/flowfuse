@@ -32,15 +32,6 @@
         </div>
 
         <FormHeading>Copy Project</FormHeading>
-        <!-- Hiding for now (0.5) -->
-        <!-- <div>
-            <div>
-                <ff-button kind="secondary" @click="showExportProjectDialog()">Export Project</ff-button>
-                <ExportProjectDialog @confirm="exportProject" ref="exportProjectDialog"/>
-            </div>
-            <div class="max-w-sm pt-2">Allows you to export a snapshot of the
-                project's current state.</div>
-        </div> -->
 
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
@@ -200,9 +191,6 @@ export default {
         showChangeStackDialog () {
             this.$refs.changeStackDialog.show(this.project)
         },
-        showExportProjectDialog () {
-            this.$refs.exportProjectDialog.show(this.project)
-        },
         showDuplicateProjectDialog () {
             this.$router.push({
                 name: 'CreateTeamProject',
@@ -218,10 +206,6 @@ export default {
         },
         upgradeStack () {
             this.changeStack(this.project.stack.replacedBy)
-        },
-        exportProject (parts) {
-            // call projectApi to generate zipped json
-            projectApi.exportProject(this.project.id, parts)
         },
         duplicateProject (parts) {
             this.loading.duplicating = true
@@ -286,7 +270,6 @@ export default {
         FormHeading,
         ConfirmProjectDeleteDialog,
         ChangeStackDialog,
-        // ExportProjectDialog,
         ExportToProjectDialog,
         ImportProjectDialog
     }

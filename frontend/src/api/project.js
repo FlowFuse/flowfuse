@@ -58,21 +58,6 @@ const changeStack = async (projectId, stackId) => {
         return res.data
     })
 }
-// const exportProject = async (projectId, components) => {
-//     return client.post(`/api/v1/projects/${projectId}/export`, { components: components }).then(res => {
-//         console.log(res.data, typeof res.data)
-//         const blob = new Blob([JSON.stringify(res.data)], { type: 'application/json' })
-//         const disposition = res.headers['content-disposition']
-//         const matches = /"([^"]*)"/.exec(disposition)
-//         const filename = (matches != null && matches[1] ? matches[1] : 'project.json')
-//         const link = document.createElement('a')
-//         link.href = window.URL.createObjectURL(blob)
-//         link.download = filename
-//         document.body.appendChild(link)
-//         link.click()
-//         document.body.removeChild(link)
-//     })
-// }
 
 const importProject = async (projectId, components) => {
     return client.post(`/api/v1/projects/${projectId}/import`, components).then(res => {
