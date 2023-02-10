@@ -123,7 +123,7 @@ describe('Library Storage API', function () {
             should(libraryEntry).equal('\nreturn msg;')
         })
 
-        it.only('Add to Library with path', async function () {
+        it('Add to Library with path', async function () {
             const funcText = '\nreturn msg;'
             const libraryURL = `/storage/library/${app.team.hashid}/`
             await app.inject({
