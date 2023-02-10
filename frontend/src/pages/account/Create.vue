@@ -3,45 +3,43 @@
         <template v-slot:splash-content v-if="splash">
             <div v-html="splash"></div>
         </template>
-        <template v-slot:form>
-            <form v-if="!emailSent && !ssoCreated" class="max-w-md m-auto">
-                <p v-if="settings['branding:account:signUpTopBanner']" class="text-center -mt-6 pb-4 text-gray-400" v-html="settings['branding:account:signUpTopBanner']"></p>
-                <div>
-                    <label>Username</label>
-                    <ff-text-input ref="signup-username" label="username" :error="errors.username" v-model="input.username" />
-                    <span class="ff-error-inline">{{ errors.username }}</span>
-                    <label>Full Name</label>
-                    <ff-text-input ref="signup-fullname" label="Full Name" :error="errors.name" v-model="input.name" />
-                    <span class="ff-error-inline">{{ errors.name }}</span>
-                    <label>E-Mail Address</label>
-                    <ff-text-input ref="signup-email" label="E-Mail Address" :error="errors.email" v-model="input.email" />
-                    <span class="ff-error-inline">{{ errors.email }}</span>
-                    <label>Password</label>
-                    <ff-text-input ref="signup-password" label="password" :error="errors.password" v-model="input.password" type="password"/>
-                    <span class="ff-error-inline">{{ errors.password }}</span>
-                </div>
-                <div v-if="settings['user:tcs-required']">
-                    <ff-checkbox v-model="input.tcs_accepted">
-                        I accept the <a target="_blank" :href="settings['user:tcs-url']">FlowForge Terms &amp; Conditions.</a>
-                    </ff-checkbox>
-                </div>
-                <label v-if="errors.general" class="pt-4 ff-error-inline">{{ errors.general }}</label>
-                <div class="ff-actions pt-4">
-                    <ff-button :disabled="!formValid" @click="registerUser()" data-action="sign-up">Sign Up</ff-button>
-                    <p class="flex text-gray-400 font-light mt-6 gap-2 w-full justify-center">
-                        Already registered? <a href="/" data-action="login">Log in here</a>
-                    </p>
-                </div>
-            </form>
-            <div v-else-if="emailSent">
-                <h5>Confirm your e-mail address.</h5>
-                <p>Please click the link in the email we sent to {{ input.email }}</p>
+        <form v-if="!emailSent && !ssoCreated" class="max-w-md m-auto">
+            <p v-if="settings['branding:account:signUpTopBanner']" class="text-center -mt-6 pb-4 text-gray-400" v-html="settings['branding:account:signUpTopBanner']"></p>
+            <div>
+                <label>Username</label>
+                <ff-text-input ref="signup-username" label="username" :error="errors.username" v-model="input.username" />
+                <span class="ff-error-inline">{{ errors.username }}</span>
+                <label>Full Name</label>
+                <ff-text-input ref="signup-fullname" label="Full Name" :error="errors.name" v-model="input.name" />
+                <span class="ff-error-inline">{{ errors.name }}</span>
+                <label>E-Mail Address</label>
+                <ff-text-input ref="signup-email" label="E-Mail Address" :error="errors.email" v-model="input.email" />
+                <span class="ff-error-inline">{{ errors.email }}</span>
+                <label>Password</label>
+                <ff-text-input ref="signup-password" label="password" :error="errors.password" v-model="input.password" type="password"/>
+                <span class="ff-error-inline">{{ errors.password }}</span>
             </div>
-            <div v-else>
-                <p>You can now login using your SSO Provider.</p>
-                <ff-button :to="{ name: 'Home' }" data-action="login">Login</ff-button>
+            <div v-if="settings['user:tcs-required']">
+                <ff-checkbox v-model="input.tcs_accepted">
+                    I accept the <a target="_blank" :href="settings['user:tcs-url']">FlowForge Terms &amp; Conditions.</a>
+                </ff-checkbox>
             </div>
-        </template>
+            <label v-if="errors.general" class="pt-4 ff-error-inline">{{ errors.general }}</label>
+            <div class="ff-actions pt-4">
+                <ff-button :disabled="!formValid" @click="registerUser()" data-action="sign-up">Sign Up</ff-button>
+                <p class="flex text-gray-400 font-light mt-6 gap-2 w-full justify-center">
+                    Already registered? <a href="/" data-action="login">Log in here</a>
+                </p>
+            </div>
+        </form>
+        <div v-else-if="emailSent">
+            <h5>Confirm your e-mail address.</h5>
+            <p>Please click the link in the email we sent to {{ input.email }}</p>
+        </div>
+        <div v-else>
+            <p>You can now login using your SSO Provider.</p>
+            <ff-button :to="{ name: 'Home' }" data-action="login">Login</ff-button>
+        </div>
     </ff-layout-box>
 </template>
 
