@@ -63,12 +63,49 @@ module.exports = async function (app) {
         }
     })
 
+    app.post('/check-slug', {
+        preHandler: app.needsPermission('team:create'),
+        schema: {
+            body: {
+                type: 'object',
+                required: ['slug'],
+                properties: {
+                    slug: { type: 'string' }
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const slug = request.body.slug.toLowerCase()
+        const reservedNames = ['create']
+        if (reservedNames.includes(slug)) {
+            reply.code(409).send({ code: 'invalid_slug', error: 'Slug not available' })
+            return
+        }
+        const existingCount = await app.db.models.Team.count({ where: { slug } })
+        if (existingCount === 0) {
+            reply.send({ status: 'okay' })
+        } else {
+            reply.code(409).send({ code: 'invalid_slug', error: 'Slug not available' })
+        }
+    })
+
     async function getTeamDetails (request, reply, team) {
         const result = app.db.views.Team.team(team)
         if (app.license.active() && app.billing) {
+            result.billing = {}
             const subscription = await app.db.models.Subscription.byTeamId(team.id)
-            result.billingSetup = !!subscription
-            result.subscriptionActive = !!subscription?.isActive()
+            if (subscription) {
+                result.billing.active = subscription.isActive()
+                result.billing.canceled = subscription.isCanceled()
+                if (subscription.isTrial()) {
+                    result.billing.trial = true
+                    result.billing.trialEnded = subscription.isTrialEnded()
+                    result.billing.trialEndsAt = subscription.trialEndsAt
+                    result.billing.trialProjectAllowed = (await team.projectCount(app.settings.get('user:team:trial-mode:projectType'))) === 0
+                }
+            } else {
+                result.billing.active = false
+            }
         }
         reply.send(result)
     }
@@ -240,7 +277,7 @@ module.exports = async function (app) {
         try {
             if (app.license.active() && app.billing) {
                 const subscription = await app.db.models.Subscription.byTeamId(request.team.id)
-                if (subscription) {
+                if (subscription && !subscription.isTrial()) {
                     // const subId = subscription.subscription
                     await app.billing.closeSubscription(subscription)
                 }

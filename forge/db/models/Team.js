@@ -217,6 +217,13 @@ module.exports = {
                 }
             },
             instance: {
+                getOwners: async function () {
+                    const where = {
+                        TeamId: this.id,
+                        role: Roles.Owner
+                    }
+                    return (await M.TeamMember.findAll({ where, include: M.User })).map(tm => tm.User)
+                },
                 memberCount: async function (role) {
                     const where = {
                         TeamId: this.id
@@ -230,8 +237,15 @@ module.exports = {
                     // All Team owners
                     return this.memberCount(Roles.Owner)
                 },
-                projectCount: async function () {
-                    return await M.Project.count({ where: { TeamId: this.id } })
+                projectCount: async function (projectTypeId) {
+                    const where = { TeamId: this.id }
+                    if (projectTypeId) {
+                        if (typeof projectTypeId === 'string') {
+                            projectTypeId = M.ProjectType.decodeHashid(projectTypeId)
+                        }
+                        where.ProjectTypeId = projectTypeId
+                    }
+                    return await M.Project.count({ where })
                 },
                 pendingInviteCount: async function () {
                     return await M.Invitation.count({ where: { teamId: this.id } })

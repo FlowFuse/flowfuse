@@ -39,5 +39,10 @@ module.exports = {
     'user:team:auto-create': false,
 
     // Can external users be invited to join teams
-    'team:user:invite:external': false
+    'team:user:invite:external': false,
+
+    // Is the trial feature enabled?
+    'user:team:trial-mode': false,
+    'user:team:trial-mode:duration': 0, // How many days - required if trials enabled
+    'user:team:trial-mode:projectType': null // Project type that is included in the trial - required if trials enabled
 }

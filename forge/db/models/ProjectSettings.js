@@ -16,7 +16,8 @@ const KEY_BILLING_STATE = 'billingState'
 const BILLING_STATES = {
     UNKNOWN: undefined,
     NOT_BILLED: 'not_billed',
-    BILLED: 'billed'
+    BILLED: 'billed',
+    TRIAL: 'trial'
 }
 Object.freeze(BILLING_STATES)
 

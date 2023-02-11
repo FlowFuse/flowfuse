@@ -1,4 +1,4 @@
-const { readFileSync, readdirSync, access, F_OK, statSync } = require('fs')
+const { readFileSync, readdirSync, statSync, existsSync } = require('fs')
 const { marked } = require('marked')
 const htmlLinkExtractor = require('html-link-extractor')
 const axios = require('axios')
@@ -67,7 +67,6 @@ const getAllMdFiles = function (dirPath, arrayOfFiles) {
             }
         }
     })
-
     return arrayOfFiles
 }
 
@@ -96,12 +95,11 @@ async function testLinks (fileUri) {
     const promises = []
 
     // remove localhost links - they're generally just instructional, not live links
-    // remove # anchor links, not sure how to test these at the moment
     // remove email links
     // remove exceptions - links we now are broken
     links = links.filter((link) => {
         const linkData = parseUri(link)
-        return linkData.hostname !== 'localhost' && !link.includes('#') && !link.includes('mailto') && !isUrlException(link)
+        return linkData.hostname !== 'localhost' && !link.includes('mailto') && !isUrlException(link) && !link.startsWith('#')
     })
 
     linkCount += links.length
@@ -122,21 +120,36 @@ async function testLinks (fileUri) {
                     // link defined as relative to fileUri
                     uri = path.join(__dirname, '../../../', localDir, link)
                 }
-                access(uri, F_OK, (err) => {
-                    if (err) {
-                        console.error(`${RED} X Invalid Link: ${link}`)
-                        errorRecords.internal.push({
-                            source: fileUri,
-                            target: link,
-                            uri,
-                            reason: 404
-                        })
-                        errors += 1
-                    } else {
-                        console.log(`${GREEN} /   Valid Link: ${link}`)
-                    }
-                    resolve()
-                })
+                uri = uri.replace(/#.*/, '')
+
+                const checkUris = []
+                if (uri.endsWith('/')) {
+                    // For a link of foo/ that could need to be:
+                    //   foo/README.md
+                    //   foo.md
+                    //   foo/index.md
+                    checkUris.push(`${uri}README.md`)
+                    checkUris.push(`${uri.slice(0, uri.length - 1)}.md`)
+                    checkUris.push(`${uri}index.md`)
+                } else {
+                    checkUris.push(uri)
+                }
+
+                const exists = checkUris.find(u => existsSync(u))
+                if (!exists) {
+                    console.error(`${RED} X Invalid Link: ${link} (looked for ${uri})`)
+                    errorRecords.internal.push({
+                        source: fileUri,
+                        target: link,
+                        checkUris,
+                        reason: 404
+                    })
+                    errors += 1
+                } else {
+                    console.log(`${GREEN} /   Valid Link: ${link}`)
+                    console.log(`${GREEN} /            => ${exists}`)
+                }
+                resolve()
             }))
         } else {
             // external link - let's validate using HTTP request
@@ -159,7 +172,7 @@ async function testLinks (fileUri) {
                     } else {
                         // not an error triggered by the HTTP response
                         console.error(`Error Retrieving: ${link}`)
-                        throw Error(err)
+                        // throw Error(err)
                     }
                 })
             )

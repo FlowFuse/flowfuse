@@ -110,3 +110,6 @@ A user can create a [project snapshot](#project-snapshot) and then mark it as th
 *target* snapshot for devices. The platform will then deploy that snapshot to
 all of the devices assigned to the project.
 
+To further simplify device registration, Provisioning Tokens can be created to allow 
+devices to automatically connect to a team without having to manually register them first.
+The token can also be configured to assign a device directly to a project within the team.

@@ -10,9 +10,17 @@
  */
 module.exports = async function (app) {
     const changeStatusPreHandler = { preHandler: app.needsPermission('project:change-status') }
+
     app.post('/start', changeStatusPreHandler, async (request, reply) => {
         try {
             if (request.project.state === 'suspended') {
+                if (app.license.active() && app.billing) {
+                    if (!await app.billing.isProjectStartAllowed(request.project.Team, request.project)) {
+                        reply.code(402).send({ code: 'billing_required', error: 'Team billing not configured' })
+                        return
+                    }
+                }
+
                 // Restart the container
                 request.project.state = 'running'
                 await request.project.save()

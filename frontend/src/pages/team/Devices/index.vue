@@ -41,7 +41,15 @@
             </template>
         </template>
     </div>
-    <TeamDeviceCreateDialog :team="team" @deviceCreating="deviceCreating" @deviceCreated="deviceCreated" @deviceUpdated="deviceUpdated" ref="teamDeviceCreateDialog"/>
+    <TeamDeviceCreateDialog :team="team" @deviceCreating="deviceCreating" @deviceCreated="deviceCreated" @deviceUpdated="deviceUpdated" ref="teamDeviceCreateDialog">
+        <template v-slot:description>
+            <p>Here, you can register a new device to your team. This will provide you with a <b>device.yml</b>
+                to be moved to the respective device. Further details on Devices in FlowForge can be found
+                <a href="https://flowforge.com/docs/user/devices/" target="_blank">here</a>.</p>
+            <p class="mt-4 mb-2">If you want to register devices straight to a particular project you can use provisioning tokens
+                in your <router-link :to="{'name': 'TeamSettingsDevices', 'params': {team_slug: team.slug}}">Team Settings</router-link></p>
+        </template>
+    </TeamDeviceCreateDialog>
     <DeviceCredentialsDialog ref="deviceCredentialsDialog" />
     <DeviceAssignProjectDialog :team="team" @assignDevice="assignDevice" ref="deviceAssignProjectDialog" />
 </template>
@@ -59,6 +67,7 @@ import deviceApi from '@/api/devices'
 
 import SectionTopMenu from '@/components/SectionTopMenu'
 import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
+import DeviceLastSeenBadge from '@/pages/device/components/DeviceLastSeenBadge'
 
 import { ChipIcon, PlusSmIcon } from '@heroicons/vue/outline'
 
@@ -86,11 +95,6 @@ const ProjectLink = {
         </template>
         <template v-else><span class="italic text-gray-500">unassigned</span></template>`,
     props: ['project']
-}
-
-const LastSeen = {
-    template: '<span><span v-if="lastSeenSince">{{lastSeenSince}}</span><span v-else class="italic text-gray-500">never</span></span>',
-    props: ['lastSeenSince']
 }
 
 export default {
@@ -216,8 +220,8 @@ export default {
         columns: function () {
             return [
                 { label: 'Device', class: ['w-64'], key: 'name', sortable: true, component: { is: markRaw(DeviceLink) } },
-                { label: 'Status', class: ['w-20'], key: 'status', sortable: true, component: { is: markRaw(ProjectStatusBadge) } },
-                { label: 'Last Seen', class: ['w-64'], key: 'last seen', sortable: true, component: { is: markRaw(LastSeen) } },
+                { label: 'Last Seen', class: ['w-32'], key: 'lastSeenAt', sortable: true, component: { is: markRaw(DeviceLastSeenBadge) } },
+                { label: 'Last Known Status', class: ['w-32'], key: 'status', sortable: true, component: { is: markRaw(ProjectStatusBadge) } },
                 { label: 'Project', class: ['w-64'], key: 'project', sortable: true, component: { is: markRaw(ProjectLink) } }
             ]
         }

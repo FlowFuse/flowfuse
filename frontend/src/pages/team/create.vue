@@ -75,6 +75,7 @@ import { mapState } from 'vuex'
 
 import teamApi from '@/api/team'
 import teamTypesApi from '@/api/teamTypes'
+import teamsApi from '@/api/teams'
 import slugify from '@/utils/slugify'
 import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
@@ -108,7 +109,8 @@ export default {
             coupon: false,
             needsBilling: false,
             newTeam: null,
-            errors: {}
+            errors: {},
+            pendingSlugCheck: null
         }
     },
     watch: {
@@ -121,9 +123,12 @@ export default {
             this.input.slug = slugify(this.input.name)
         },
         'input.slug': function (v) {
-            if (v && !/^[a-z0-9-_]+$/i.test(v)) {
+            if (!v) {
+                this.input.slugError = 'Must not be blank'
+            } else if (!this.slugValid) {
                 this.input.slugError = 'Must only contain a-z 0-9 - _'
             } else {
+                this.checkSlug()
                 this.input.slugError = ''
             }
         },
@@ -138,10 +143,13 @@ export default {
     computed: {
         ...mapState('account', ['user', 'team', 'features']),
         formValid () {
-            return this.input.teamTypeId && this.input.name && !this.input.slugError && !this.errors.name
+            return this.input.teamTypeId && this.input.name && this.input.slug && !this.pendingSlugCheck && !this.input.slugError && !this.errors.name
         },
         billingEnabled () {
             return this.features.billing
+        },
+        slugValid () {
+            return /^[a-z0-9-_]+$/i.test(this.input.slug)
         }
     },
     async created () {
@@ -188,6 +196,25 @@ export default {
             }).finally(() => {
                 this.loading = false
             })
+        },
+        checkSlug () {
+            if (this.pendingSlugCheck) {
+                clearTimeout(this.pendingSlugCheck)
+            }
+            this.pendingSlugCheck = setTimeout(() => {
+                this.pendingSlugCheck = null
+                if (this.input.slug && this.slugValid) {
+                    teamsApi.checkSlug(this.input.slug).then(() => {
+                        if (this.slugValid) {
+                            this.input.slugError = ''
+                        }
+                    }).catch(_ => {
+                        if (this.slugValid) {
+                            this.input.slugError = 'Slug unavailable'
+                        }
+                    })
+                }
+            }, 200)
         }
     },
     components: {

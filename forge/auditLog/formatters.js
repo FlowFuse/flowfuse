@@ -7,10 +7,10 @@ const isObject = (obj) => {
 /**
  * Generate a standard format body for the audit log display and database.
  * Any items null or missing must not generate a property in the body
- * @param {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType? } == {}} objects objects to include in body
- * @returns {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType? }
+ * @param {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType?, info? } == {}} objects objects to include in body
+ * @returns {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType? info? }
  */
-const generateBody = ({ error, team, project, sourceProject, targetProject, device, user, stack, billingSession, subscription, license, updates, snapshot, role, projectType } = {}) => {
+const generateBody = ({ error, team, project, sourceProject, targetProject?, device, user, stack, billingSession, subscription, license, updates, snapshot, role, projectType, info } = {}) => {
     const body = {}
 
     if (isObject(error) || typeof error === 'string') {
@@ -60,6 +60,12 @@ const generateBody = ({ error, team, project, sourceProject, targetProject, devi
     if (isObject(projectType)) {
         body.projectType = projectTypeObject(projectType)
     }
+    if (isObject(info)) {
+        body.info = info
+    } else if (isStringWithLength(info)) {
+        body.info = { info }
+    }
+
     return body
 }
 
@@ -116,7 +122,8 @@ const formatLogEntry = (auditLogDbRow) => {
                 snapshot: body?.snapshot,
                 updates: body?.updates,
                 device: body?.device,
-                projectType: body?.projectType
+                projectType: body?.projectType,
+                info: body?.info
             })
             const roleObj = body?.role && roleObject(body.role)
             if (roleObj) {

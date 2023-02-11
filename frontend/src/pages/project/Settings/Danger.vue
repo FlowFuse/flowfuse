@@ -218,7 +218,8 @@ export default {
         },
         deleteProject () {
             this.loading.deleting = true
-            projectApi.deleteProject(this.project.id).then(() => {
+            projectApi.deleteProject(this.project.id).then(async () => {
+                await this.$store.dispatch('account/refreshTeam')
                 this.$router.push({ name: 'Home' })
                 alerts.emit('Project successfully deleted.', 'confirmation')
             }).catch(err => {

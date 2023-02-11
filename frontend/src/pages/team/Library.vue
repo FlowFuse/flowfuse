@@ -5,29 +5,37 @@
             <p>The contents of your Team Library are available across any of your projects in FlowForge.</p>
             <p>You can read more about <a href="https://nodered.org/docs/user-guide/editor/workspace/import-export" target="_blank">Import & Exporting Flows</a> in the Node-RED documentation</p>
         </template>
+        <template v-slot:tools>
+            <ff-button v-if="contents" @click="copyToClipboard()">Copy to Clipboard</ff-button>
+        </template>
     </SectionTopMenu>
     <div class="ff-breadcrumbs">
         <span v-for="(crumb, $index) in breadcrumbs" :key="$index" class="flex">
-            <a @click="goToFolder(crumb, $index)">{{ crumb.name }}</a>
+            <label @click="goToFolder(crumb, $index)">{{ crumb.name }}</label>
             <ChevronRightIcon class="ff-icon"></ChevronRightIcon>
         </span>
     </div>
-    <ff-data-table :columns="columns" :rows="rows">
-        <template v-slot:rows>
-            <ff-data-table-row v-for="row in rows" :key="row" :selectable="row.type === 'folder'" @click="entrySelected(row)">
-                <ff-data-table-cell><TypeIcon :type="row.type"/></ff-data-table-cell>
-                <ff-data-table-cell>{{ row.name }}</ff-data-table-cell>
-            </ff-data-table-row>
-        </template>
-    </ff-data-table>
+    <div>
+        <ff-data-table v-if="!contents" :columns="columns" :rows="rows">
+            <template v-slot:rows>
+                <ff-data-table-row v-for="row in rows" :key="row" :selectable="true" @click="entrySelected(row)">
+                    <ff-data-table-cell><TypeIcon :type="row.type"/></ff-data-table-cell>
+                    <ff-data-table-cell>{{ row.name }}</ff-data-table-cell>
+                </ff-data-table-row>
+            </template>
+        </ff-data-table>
+        <ff-code-previewer v-else :snippet="contents" ref="code-preview"></ff-code-previewer>
+    </div>
 </template>
 
 <script>
+import Alert from '@/services/alerts'
 import teamApi from '@/api/team'
 
 import { ChevronRightIcon } from '@heroicons/vue/solid'
 import SectionTopMenu from '@/components/SectionTopMenu'
 import TypeIcon from './components/LibraryEntryTypeIcon.vue'
+import CodePreviewer from '@/components/CodePreviewer.vue'
 
 export default {
     name: 'SharedLibrary',
@@ -46,7 +54,8 @@ export default {
                 key: 'name',
                 label: 'Name'
             }],
-            rows: []
+            rows: [],
+            contents: null
         }
     },
     mounted () {
@@ -61,22 +70,26 @@ export default {
             })
         },
         entrySelected (entry) {
+            let parentDir = ''
+            this.breadcrumbs.push(entry)
+
+            for (let i = 1; i < this.breadcrumbs.length; i++) {
+                parentDir += `${this.breadcrumbs[i].name}/`
+            }
+
             if (entry.type === 'folder') {
-                let parentDir = ''
-                this.breadcrumbs.push(entry)
-
-                for (let i = 1; i < this.breadcrumbs.length; i++) {
-                    parentDir += `${this.breadcrumbs[i].name}/`
-                }
-
                 this.loadLibrary(parentDir).then((contents) => {
                     this.rows = this.formatEntries(contents, entry)
                 })
             } else {
-                console.log('TODO - handle file clicking')
+                const filepath = parentDir.substring(0, parentDir.length - 1)
+                this.loadLibrary(filepath).then((contents) => {
+                    this.contents = contents
+                })
             }
         },
         goToFolder (entry, index) {
+            this.contents = null
             this.loadLibrary(entry.path).then((contents) => {
                 this.rows = this.formatEntries(contents, this.breadcrumbs[0])
                 this.breadcrumbs = this.breadcrumbs.slice(0, index + 1)
@@ -89,7 +102,7 @@ export default {
                 return {
                     type,
                     name,
-                    path: parent.path ? parent.path + '/' + name + '/' : name + '/'
+                    path: parent.path ? (parent.path + name + '/') : name + '/'
                 }
             }).sort((a, b) => {
                 const typeOrder = ['folder', 'flows', 'functions']
@@ -104,11 +117,16 @@ export default {
                 // folders first, then names
                 return folderSort || nameSort
             })
+        },
+        copyToClipboard () {
+            navigator.clipboard.writeText(JSON.stringify(this.contents))
+            Alert.emit('Copied to Clipboard.', 'confirmation')
         }
     },
     components: {
         SectionTopMenu,
         ChevronRightIcon,
+        'ff-code-previewer': CodePreviewer,
         TypeIcon
     }
 }

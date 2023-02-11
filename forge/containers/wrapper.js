@@ -1,6 +1,7 @@
 class SubscriptionHandler {
     constructor (app) {
         this._app = app
+        this.BILLING_STATES = app.db.models.ProjectSettings.BILLING_STATES
     }
 
     async requireSubscription (team) {
@@ -15,14 +16,20 @@ class SubscriptionHandler {
     async requireActiveSubscription (team) {
         const subscription = await this.requireSubscription(team)
 
-        if (subscription.isCanceled()) {
-            throw new Error('Teams subscription is currently canceled')
+        if (!subscription.isActive()) {
+            throw new Error(`Teams subscription is not active. State is ${subscription.status}`)
         }
 
         return subscription
     }
 
     async addProject (project) {
+        const billingState = await this._app.billing.getProjectBillingState(project)
+        if (billingState === this.BILLING_STATES.TRIAL) {
+            // Trial projects can be added to an team for free (no need to add to the subscription)
+            return
+        }
+
         await this.requireActiveSubscription(project.Team)
 
         try {
@@ -41,6 +48,12 @@ class SubscriptionHandler {
      * @param {*} options
      */
     async removeProject (project, { skipBilling = false } = {}) {
+        const billingState = await this._app.billing.getProjectBillingState(project)
+        if (billingState !== this.BILLING_STATES.BILLED && billingState !== this.BILLING_STATES.UNDEFINED) {
+            // Only projects that are currently billed, or are in an unknown state should be removed from the subscription
+            return
+        }
+
         const subscription = await this.requireSubscription(project.Team)
         if (subscription.isCanceled()) {
             this._app.log.warn(`Skipped removing project '${project.id}' from subscription for canceled subscription '${subscription.subscription}'`)
@@ -48,10 +61,9 @@ class SubscriptionHandler {
         }
 
         if (skipBilling) {
-            const BILLING_STATES = this._app.db.models.ProjectSettings.BILLING_STATES
-            if (await this._app.billing.getProjectBillingState(project) === BILLING_STATES.UNKNOWN) {
+            if (await this._app.billing.getProjectBillingState(project) === this.BILLING_STATES.UNKNOWN) {
                 this._app.log.info('Billing state of project is unknown, but remove attempt that skips billing made, assuming it is currently billed')
-                await this._app.billing.setProjectBillingState(project, BILLING_STATES.BILLED)
+                await this._app.billing.setProjectBillingState(project, this.BILLING_STATES.BILLED)
             }
 
             this._app.log.info(`Skipped removing project '${project.id}' from subscription - skip billing flag set'`)

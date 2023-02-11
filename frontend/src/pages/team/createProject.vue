@@ -14,6 +14,9 @@
             </template>
         </SideNavigation>
     </Teleport>
+    <Teleport v-if="mounted" to="#platform-banner">
+        <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
+    </Teleport>
     <main>
         <div class="max-w-2xl m-auto">
             <ff-loading
@@ -40,7 +43,10 @@
 <script>
 import { mapState } from 'vuex'
 
+import { ChevronLeftIcon } from '@heroicons/vue/solid'
+
 import ProjectForm from '../project/components/ProjectForm'
+import TeamTrialBanner from '@/components/banners/TeamTrial.vue'
 
 import projectApi from '@/api/project'
 import NavItem from '@/components/NavItem'
@@ -52,7 +58,8 @@ export default {
     components: {
         ProjectForm,
         NavItem,
-        SideNavigation
+        SideNavigation,
+        TeamTrialBanner
     },
     props: {
         sourceProjectId: {
@@ -62,6 +69,9 @@ export default {
     },
     data () {
         return {
+            icons: {
+                chevronLeft: ChevronLeftIcon
+            },
             loading: false,
             sourceProject: null,
             mounted: false,
@@ -83,6 +93,9 @@ export default {
             })
         }
     },
+    async mounted () {
+        this.mounted = true
+    },
     methods: {
         createProject (projectDetails) {
             this.loading = true
@@ -93,7 +106,8 @@ export default {
                     options: { ...this.copyParts }
                 }
             }
-            projectApi.create(createPayload).then(result => {
+            projectApi.create(createPayload).then(async result => {
+                await this.$store.dispatch('account/refreshTeam')
                 this.$router.push({ name: 'Project', params: { id: result.id } })
             }).catch(err => {
                 this.loading = false

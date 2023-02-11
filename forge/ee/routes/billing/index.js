@@ -192,7 +192,7 @@ module.exports = async function (app) {
                     return
                 }
 
-                if (!app.db.controllers.Subscription.freeTrialsEnabled()) {
+                if (!app.db.controllers.Subscription.freeTrialCreditEnabled()) {
                     app.log.error(`Received a new subscription with the trial flag set for ${team.hashid}, but trials are not configured.`)
                     return
                 }
@@ -278,7 +278,7 @@ module.exports = async function (app) {
     }, async (request, response) => {
         const team = request.team
         const sub = await app.db.models.Subscription.byTeamId(team.id)
-        if (!sub) {
+        if (!sub || !sub.isActive()) {
             return response.code(404).send({ code: 'not_found', error: 'Team does not have a subscription' })
         }
 

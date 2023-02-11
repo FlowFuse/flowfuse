@@ -1,5 +1,4 @@
 const should = require('should') // eslint-disable-line
-const sinon = require('sinon')
 const setup = require('../../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
@@ -11,33 +10,18 @@ describe('Billing', function () {
 
     let stripe
 
-    function setupStripe (mock) {
-        require.cache[require.resolve('stripe')] = {
-            exports: function (apiKey) {
-                return mock
-            }
-        }
-
-        stripe = mock
-    }
-
     afterEach(async function () {
         if (app) {
             await app.close()
             app = null
         }
+        setup.resetStripe()
         delete require.cache[require.resolve('stripe')]
     })
 
     describe('createSubscriptionSession', async function () {
         beforeEach(async function () {
-            setupStripe({
-                checkout: {
-                    sessions: {
-                        create: sub => JSON.parse(JSON.stringify(sub))
-                    }
-                }
-            })
+            setup.setupStripe()
         })
 
         it('creates a session using default product/price', async function () {
@@ -144,7 +128,7 @@ describe('Billing', function () {
                     const newTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
                     const user = await app.db.models.User.create({ admin: true, username: 'new', name: 'New User', email: 'new@example.com', email_verified: true, password: 'aaPassword' })
                     await newTeam.addUser(user, { through: { role: Roles.Owner } })
-                    should.equal(await app.db.controllers.Subscription.userEligibleForFreeTrial(user, true), true)
+                    should.equal(await app.db.controllers.Subscription.userEligibleForFreeTrialCredit(user, true), true)
 
                     const result = await app.billing.createSubscriptionSession(newTeam, null, user)
 
@@ -158,7 +142,7 @@ describe('Billing', function () {
                     const secondTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
                     const userAlice = await app.db.models.User.byEmail('alice@example.com')
                     await secondTeam.addUser(userAlice, { through: { role: Roles.Owner } })
-                    should.equal(await app.db.controllers.Subscription.userEligibleForFreeTrial(userAlice, true), false)
+                    should.equal(await app.db.controllers.Subscription.userEligibleForFreeTrialCredit(userAlice, true), false)
 
                     const result = await app.billing.createSubscriptionSession(secondTeam, null, userAlice)
 
@@ -188,7 +172,7 @@ describe('Billing', function () {
                 const newTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
                 const user = await app.db.models.User.create({ admin: true, username: 'new', name: 'New User', email: 'new@example.com', email_verified: true, password: 'aaPassword' })
                 await newTeam.addUser(user, { through: { role: Roles.Owner } })
-                should.equal(await app.db.controllers.Subscription.userEligibleForFreeTrial(user, true), true)
+                should.equal(await app.db.controllers.Subscription.userEligibleForFreeTrialCredit(user, true), true)
 
                 const result = await app.billing.createSubscriptionSession(newTeam, null, user)
 
@@ -204,15 +188,8 @@ describe('Billing', function () {
         let BILLING_STATES
 
         beforeEach(async function () {
-            setupStripe({
-                subscriptions: {
-                    retrieve: sinon.stub().resolves({ items: { data: [] } }),
-                    update: sinon.stub().resolves({ status: 'ok' })
-                },
-                subscriptionItems: {
-                    update: sinon.stub().resolves({ status: 'ok' })
-                }
-            })
+            stripe = setup.setupStripe()
+            stripe.subscriptions.create('sub_1234567890') // add existing subscription to mock stripe
 
             app = await setup()
 
@@ -226,10 +203,9 @@ describe('Billing', function () {
 
             const args = stripe.subscriptions.update.lastCall.args
             args[0].should.equal('sub_1234567890')
-            args[1].should.have.property('items', [{
-                price: 'price_123',
-                quantity: 1
-            }])
+            args[1].should.have.property('items')
+            args[1].items[0].should.have.property('price', 'price_123')
+            args[1].items[0].should.have.property('quantity', 1)
             args[1].should.have.property('metadata', {
                 [app.project.id]: 'true'
             })
@@ -239,14 +215,15 @@ describe('Billing', function () {
         })
 
         it('adds a project to Stripe subscription with existing invoice item for project type', async function () {
-            // Add an already existing copy of this project type to Stripe Invoice
-            stripe.subscriptions.retrieve.resolves({ items: { data: [{ id: 'item_123', plan: { product: 'prod_123' }, quantity: 2 }] } })
+            // Add an already two existing copies of this project type to Stripe Invoice
+            await stripe.subscriptions.update('sub_1234567890', { items: [{ price: 'price_123', quantity: 2 }] })
+            stripe.subscriptions.update.resetHistory()
 
             await app.billing.addProject(app.team, app.project)
 
             should.equal(stripe.subscriptionItems.update.calledOnce, true)
             const itemsArgs = stripe.subscriptionItems.update.lastCall.args
-            itemsArgs[0].should.equal('item_123')
+            itemsArgs[0].should.equal('item-0')
             itemsArgs[1].should.have.property('quantity', 3)
             itemsArgs[1].should.have.property('proration_behavior', 'always_invoice')
 
@@ -279,15 +256,8 @@ describe('Billing', function () {
         let BILLING_STATES
 
         beforeEach(async function () {
-            setupStripe({
-                subscriptions: {
-                    retrieve: sinon.stub().resolves({ items: { data: [] } }),
-                    update: sinon.stub().resolves({ status: 'ok' })
-                },
-                subscriptionItems: {
-                    update: sinon.stub().resolves({ status: 'ok' })
-                }
-            })
+            stripe = setup.setupStripe()
+            stripe.subscriptions.create('sub_1234567890') // add existing subscription to mock stripe
 
             app = await setup()
 
@@ -295,14 +265,15 @@ describe('Billing', function () {
         })
 
         it('removes a project from a Stripe subscription with existing invoice item for project type with quantity > 1', async function () {
-            // Add an already existing copy of this project type to Stripe Invoice
-            stripe.subscriptions.retrieve.resolves({ items: { data: [{ id: 'item_123', plan: { product: 'prod_123' }, quantity: 2 }] } })
+            // Add an already two existing copies of this project type to Stripe Invoice
+            await stripe.subscriptions.update('sub_1234567890', { items: [{ price: 'price_123', quantity: 2 }] })
+            stripe.subscriptions.update.resetHistory()
 
             await app.billing.removeProject(app.team, app.project)
 
             should.equal(stripe.subscriptionItems.update.calledOnce, true)
             const itemsArgs = stripe.subscriptionItems.update.lastCall.args
-            itemsArgs[0].should.equal('item_123')
+            itemsArgs[0].should.equal('item-0')
             itemsArgs[1].should.have.property('quantity', 1)
             itemsArgs[1].should.have.not.property('proration_behavior')
 
@@ -320,13 +291,14 @@ describe('Billing', function () {
 
         it('removes a project from a Stripe subscription with existing invoice item for project type with quantity = 1', async function () {
             // Add an already existing copy of this project type to Stripe Invoice
-            stripe.subscriptions.retrieve.resolves({ items: { data: [{ id: 'item_123', plan: { product: 'prod_123' }, quantity: 1 }] } })
+            await stripe.subscriptions.update('sub_1234567890', { items: [{ price: 'price_123', quantity: 1 }] })
+            stripe.subscriptions.update.resetHistory()
 
             await app.billing.removeProject(app.team, app.project)
 
             should.equal(stripe.subscriptionItems.update.calledOnce, true)
             const itemsArgs = stripe.subscriptionItems.update.lastCall.args
-            itemsArgs[0].should.equal('item_123')
+            itemsArgs[0].should.equal('item-0')
             itemsArgs[1].should.have.property('quantity', 0)
             itemsArgs[1].should.have.property('proration_behavior', 'always_invoice')
 
@@ -361,7 +333,7 @@ describe('Billing', function () {
         beforeEach(async function () {
             updateId = null
             updateData = null
-            setupStripe({
+            setup.setupStripe({
                 subscriptions: {
                     retrieve: async sub => {
                         return {
@@ -429,7 +401,7 @@ describe('Billing', function () {
             beforeEach(async function () {
                 updateId = null
                 updateData = null
-                setupStripe({
+                setup.setupStripe({
                     subscriptions: {
                         retrieve: async sub => {
                             return { items: { data: [] } }
@@ -495,7 +467,7 @@ describe('Billing', function () {
                 updateId = null
                 updateData = null
                 const itemData = { id: '123', quantity: 27, plan: { product: 'defaultdeviceprod' } }
-                setupStripe({
+                setup.setupStripe({
                     subscriptions: {
                         retrieve: async sub => {
                             return {
