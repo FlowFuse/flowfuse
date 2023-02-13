@@ -2,7 +2,7 @@
     <ff-loading v-if="loading" message="Saving Settings..."/>
     <div v-else class="space-y-4">
         <FormHeading>Users</FormHeading>
-        <FormRow v-model="input['user:signup']" type="checkbox"  :error="errors.requiresEmail" :disabled="errors.requiresEmail">
+        <FormRow data-el="enable-signup" v-model="input['user:signup']" type="checkbox" :error="errors.requiresEmail" :disabled="errors.requiresEmail">
             Allow new users to register on the login screen
             <template #description>
                 If self-registration is not enabled, an Administrator must create users
@@ -10,12 +10,12 @@
             </template>
         </FormRow>
         <template v-if="input['user:signup']">
-            <FormRow v-model="input['branding:account:signUpTopBanner']" containerClass="max-w-sm ml-9">
+            <FormRow data-el="banner" v-model="input['branding:account:signUpTopBanner']" containerClass="max-w-sm ml-9">
                 HTML content to show above the sign-up form
             </FormRow>
             <FormRow v-model="input['branding:account:signUpLeftBanner']" containerClass="max-w-sm ml-9">
                 HTML content to show to the left of the sign-up form
-                <template #input><textarea class="w-full" rows="6" v-model="input['branding:account:signUpLeftBanner']"></textarea></template>
+                <template #input><textarea data-el="splash" class="w-full" rows="6" v-model="input['branding:account:signUpLeftBanner']"></textarea></template>
             </FormRow>
         </template>
         <FormRow v-model="input['user:team:auto-create']" type="checkbox">

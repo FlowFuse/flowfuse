@@ -1,10 +1,12 @@
 <template>
     <ff-layout-box class="ff-signup">
         <template v-slot:splash-content v-if="splash">
-            <div v-html="splash"></div>
+            <div v-html="splash" data-el="splash"></div>
         </template>
         <form v-if="!emailSent && !ssoCreated" class="max-w-md m-auto">
-            <p v-if="settings['branding:account:signUpTopBanner']" class="text-center -mt-6 pb-4 text-gray-400" v-html="settings['branding:account:signUpTopBanner']"></p>
+            <p v-if="settings['branding:account:signUpTopBanner']" data-el="banner-text"
+               class="text-center -mt-6 pb-4 text-gray-400"
+               v-html="settings['branding:account:signUpTopBanner']"></p>
             <div>
                 <label>Username</label>
                 <ff-text-input ref="signup-username" label="username" :error="errors.username" v-model="input.username" />
