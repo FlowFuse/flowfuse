@@ -10,12 +10,24 @@ const periodSeconds = {
     seconds: 1
 }
 
-function dateDiff (to, from) {
-    if (typeof from === 'string') {
-        from = (new Date(from)).getTime()
+function dateDiff (to, from = new Date()) {
+    if (typeof to === 'string') {
+        to = new Date(to)
     }
 
-    let delta = Math.abs(to - from) / 1000
+    if (typeof from === 'string') {
+        from = new Date(from)
+    }
+
+    if (!(to instanceof Date) || isNaN(to)) {
+        throw new RangeError('To field is required to be a valid ISO 8601 string or Date object')
+    }
+
+    if (!(from instanceof Date) || isNaN(from)) {
+        throw new RangeError('From field is required to be a valid ISO 8601 string or Date object')
+    }
+
+    let delta = Math.abs(to.getTime() - from.getTime()) / 1000
 
     const res = {}
 

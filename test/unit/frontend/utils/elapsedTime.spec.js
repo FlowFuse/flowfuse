@@ -28,4 +28,34 @@ describe('elapsedTime', () => {
         expect(elapsedTime(new Date(Date.UTC(2020, 0, 1, 0, 0, 0, 1)), new Date(Date.UTC(2020, 0, 1, 0, 0, 0)))).toBe('moments')
         expect(elapsedTime(new Date(Date.UTC(2020, 0, 1, 0, 0, 0, 999)), new Date(Date.UTC(2020, 0, 1, 0, 0, 0)))).toBe('moments')
     })
+
+    test('converts ISO datetime strings with and without time zone to date time', () => {
+        expect(elapsedTime('2023-01-01', '2023-01-01T05:30:00Z')).toBe('5 hours, 30 minutes') // Local timezone
+        expect(elapsedTime('2023-01-01T00:00:00.000Z', '2023-01-01T05:30:00Z')).toBe('5 hours, 30 minutes') // UTC
+        expect(elapsedTime('2023-01-01T00:00:00.000+05:00', '2023-01-01T05:30:00Z')).toBe('10 hours, 30 minutes') // EST
+        expect(elapsedTime('2023-01-01T00:00:00.000+08:00', '2023-01-01T05:30:00Z')).toBe('13 hours, 30 minutes') // PST
+    })
+
+    test('compares relative to now if only a to date is passed', () => {
+        const tomorrow = new Date()
+        tomorrow.setDate(tomorrow.getDate() + 1)
+        tomorrow.setHours(tomorrow.getHours() + 1)
+
+        expect(elapsedTime(tomorrow)).toBe('1 day')
+
+        const soon = new Date()
+        soon.setMinutes(soon.getMinutes() + 30)
+        soon.setSeconds(soon.getSeconds() + 15)
+
+        expect(elapsedTime(soon)).toBe('30 minutes, 15 seconds')
+    })
+
+    test('raises if invalid dates are passed', () => {
+        expect(() => elapsedTime(null)).toThrowError('To field is required to be a valid ISO 8601 string or Date object')
+        expect(() => elapsedTime('2023-13-01')).toThrowError('To field is required to be a valid ISO 8601 string or Date object')
+        expect(() => elapsedTime(new Date('2023-13-01'))).toThrowError('To field is required to be a valid ISO 8601 string or Date object')
+
+        expect(() => elapsedTime(new Date(), '2023-12-99')).toThrowError('From field is required to be a valid ISO 8601 string or Date object')
+        expect(() => elapsedTime(new Date(), new Date('2023-12-99'))).toThrowError('From field is required to be a valid ISO 8601 string or Date object')
+    })
 })
