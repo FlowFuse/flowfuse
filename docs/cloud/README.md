@@ -1,3 +1,8 @@
+---
+navGroup: Overview
+navTitle: FlowForge Cloud
+---
+
 # FlowForge Cloud
 
 FlowForge Cloud is a hosted service allowing users to sign-up and start creating teams and projects without having to install and manage their own instance of FlowForge.

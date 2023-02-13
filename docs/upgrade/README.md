@@ -1,3 +1,7 @@
+---
+navGroup: Running FlowForge
+navTitle: Upgrading FlowForge
+---
 # Upgrading FlowForge
 
 If you are upgrading an existing FlowForge installation, this page will list any

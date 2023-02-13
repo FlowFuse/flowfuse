@@ -1,3 +1,7 @@
+---
+navGroup: Overview
+navTitle: Contributing to FlowForge
+---
 ## Contributing to FlowForge
 
 This guide will help you get setup to contribute to the FlowForge project.
