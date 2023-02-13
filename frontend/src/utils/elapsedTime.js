@@ -10,12 +10,32 @@ const periodSeconds = {
     seconds: 1
 }
 
-function dateDiff (to, from) {
-    if (typeof from === 'string') {
-        from = (new Date(from)).getTime()
+function dateDiff (toStringDateOrNumber, fromStringDateOrNumber = new Date()) {
+    let to = toStringDateOrNumber
+    if (typeof to === 'string' || typeof to === 'number') {
+        if (!isNaN(to)) {
+            to = Number.parseInt(to)
+        }
+        to = new Date(to)
     }
 
-    let delta = Math.abs(to - from) / 1000
+    let from = fromStringDateOrNumber
+    if (typeof from === 'string' || typeof from === 'number') {
+        if (!isNaN(from)) {
+            from = Number.parseInt(from)
+        }
+        from = new Date(from)
+    }
+
+    if (!(to instanceof Date) || isNaN(to)) {
+        throw new RangeError(`To date is required to be a valid ISO 8601 string, milliseconds since epoch or Date object, received ${toStringDateOrNumber}`)
+    }
+
+    if (!(from instanceof Date) || isNaN(from)) {
+        throw new RangeError(`From date is required to be a valid ISO 8601 string, milliseconds since epoch or Date object, received ${fromStringDateOrNumber}`)
+    }
+
+    let delta = Math.abs(to.getTime() - from.getTime()) / 1000
 
     const res = {}
 
