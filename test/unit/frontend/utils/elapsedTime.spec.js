@@ -36,6 +36,14 @@ describe('elapsedTime', () => {
         expect(elapsedTime('2023-01-01T00:00:00.000+08:00', '2023-01-01T05:30:00Z')).toBe('13 hours, 30 minutes') // PST
     })
 
+    test('converts epoch numbers or strings of numbers into datetime strings', () => {
+        expect(elapsedTime(1672576200000, '2023-01-01T00:00:00Z')).toBe('12 hours, 30 minutes') // 2023-01-01 12:30 UTC
+        expect(elapsedTime('1672576200000', '2023-01-01T00:00:00Z')).toBe('12 hours, 30 minutes') // 2023-01-01 12:30 UTC
+
+        expect(elapsedTime('2023-01-01T00:00:00Z', 1672551000000)).toBe('5 hours, 30 minutes') // 2023-01-01 5:30 UTC
+        expect(elapsedTime('2023-01-01T00:00:00Z', '1672551000000')).toBe('5 hours, 30 minutes') // 2023-01-01 5:30 UTC
+    })
+
     test('compares relative to now if only a to date is passed', () => {
         const tomorrow = new Date()
         tomorrow.setDate(tomorrow.getDate() + 1)
@@ -51,11 +59,11 @@ describe('elapsedTime', () => {
     })
 
     test('raises if invalid dates are passed', () => {
-        expect(() => elapsedTime(null)).toThrowError('To field is required to be a valid ISO 8601 string or Date object')
-        expect(() => elapsedTime('2023-13-01')).toThrowError('To field is required to be a valid ISO 8601 string or Date object')
-        expect(() => elapsedTime(new Date('2023-13-01'))).toThrowError('To field is required to be a valid ISO 8601 string or Date object')
+        expect(() => elapsedTime(null)).toThrowError('To date is required to be a valid ISO 8601 string, milliseconds since epoch or Date object')
+        expect(() => elapsedTime('2023-13-01')).toThrowError('To date is required to be a valid ISO 8601 string, milliseconds since epoch or Date object')
+        expect(() => elapsedTime(new Date('2023-13-01'))).toThrowError('To date is required to be a valid ISO 8601 string, milliseconds since epoch or Date object')
 
-        expect(() => elapsedTime(new Date(), '2023-12-99')).toThrowError('From field is required to be a valid ISO 8601 string or Date object')
-        expect(() => elapsedTime(new Date(), new Date('2023-12-99'))).toThrowError('From field is required to be a valid ISO 8601 string or Date object')
+        expect(() => elapsedTime(new Date(), '2023-12-99')).toThrowError('From date is required to be a valid ISO 8601 string, milliseconds since epoch or Date object')
+        expect(() => elapsedTime(new Date(), new Date('2023-12-99'))).toThrowError('From date is required to be a valid ISO 8601 string, milliseconds since epoch or Date object')
     })
 })
