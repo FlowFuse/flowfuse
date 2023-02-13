@@ -10,7 +10,7 @@ const isObject = (obj) => {
  * @param {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType?, info? } == {}} objects objects to include in body
  * @returns {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType? info? }
  */
-const generateBody = ({ error, team, project, sourceProject, targetProject?, device, user, stack, billingSession, subscription, license, updates, snapshot, role, projectType, info } = {}) => {
+const generateBody = ({ error, team, project, sourceProject, targetProject, device, user, stack, billingSession, subscription, license, updates, snapshot, role, projectType, info } = {}) => {
     const body = {}
 
     if (isObject(error) || typeof error === 'string') {
