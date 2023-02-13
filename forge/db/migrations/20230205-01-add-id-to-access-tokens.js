@@ -60,7 +60,7 @@ module.exports = {
             }, { transaction: t })
 
             // copy the data from the old table to the new table
-            if (dataOriginal.length > 0) {
+            if (dataOriginal?.length > 0) {
                 await context.bulkInsert('AccessTokens2', dataOriginal, { transaction: t })
             }
 
