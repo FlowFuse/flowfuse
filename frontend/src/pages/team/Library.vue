@@ -1,44 +1,55 @@
 <template>
     <SectionTopMenu hero="Team Library" help-header="FlowForge - Team Library" info="Shared repository to store common flows and nodes.">
-        <template v-slot:helptext>
+        <template #helptext>
             <p>In Node-RED you can export and import flows and functions, and save them to your Team Library.</p>
             <p>The contents of your Team Library are available across any of your projects in FlowForge.</p>
             <p>You can read more about <a href="https://nodered.org/docs/user-guide/editor/workspace/import-export" target="_blank">Import & Exporting Flows</a> in the Node-RED documentation</p>
         </template>
-        <template v-slot:tools>
+        <template #tools>
             <ff-button v-if="contents" @click="copyToClipboard()">Copy to Clipboard</ff-button>
         </template>
     </SectionTopMenu>
     <div class="ff-breadcrumbs">
         <span v-for="(crumb, $index) in breadcrumbs" :key="$index" class="flex">
             <label @click="goToFolder(crumb, $index)">{{ crumb.name }}</label>
-            <ChevronRightIcon class="ff-icon"></ChevronRightIcon>
+            <ChevronRightIcon class="ff-icon" />
         </span>
     </div>
     <div>
         <ff-data-table v-if="!contents" :columns="columns" :rows="rows">
-            <template v-slot:rows>
+            <template #rows>
                 <ff-data-table-row v-for="row in rows" :key="row" :selectable="true" @click="entrySelected(row)">
-                    <ff-data-table-cell><TypeIcon :type="row.type"/></ff-data-table-cell>
+                    <ff-data-table-cell><TypeIcon :type="row.type" /></ff-data-table-cell>
                     <ff-data-table-cell>{{ row.name }}</ff-data-table-cell>
+                    <ff-data-table-cell>{{ formatDateTime(row.updatedAt) }}</ff-data-table-cell>
                 </ff-data-table-row>
             </template>
         </ff-data-table>
-        <ff-code-previewer v-else :snippet="contents" ref="code-preview"></ff-code-previewer>
+        <ff-code-previewer v-else ref="code-preview" :snippet="contents" />
     </div>
 </template>
 
 <script>
-import Alert from '@/services/alerts'
-import teamApi from '@/api/team'
 
 import { ChevronRightIcon } from '@heroicons/vue/solid'
-import SectionTopMenu from '@/components/SectionTopMenu'
+
 import TypeIcon from './components/LibraryEntryTypeIcon.vue'
+
+import teamApi from '@/api/team'
 import CodePreviewer from '@/components/CodePreviewer.vue'
+import SectionTopMenu from '@/components/SectionTopMenu'
+import formatDateMixin from '@/mixins/DateTime.js'
+import Alert from '@/services/alerts'
 
 export default {
     name: 'SharedLibrary',
+    components: {
+        SectionTopMenu,
+        ChevronRightIcon,
+        'ff-code-previewer': CodePreviewer,
+        TypeIcon
+    },
+    mixins: [formatDateMixin],
     props: ['team', 'teamMembership'],
     data () {
         return {
@@ -53,6 +64,10 @@ export default {
             }, {
                 key: 'name',
                 label: 'Name'
+            }, {
+                key: 'updatedAt',
+                label: 'Date Modified',
+                class: ['w-80']
             }],
             rows: [],
             contents: null
@@ -102,6 +117,7 @@ export default {
                 return {
                     type,
                     name,
+                    updatedAt: entry.updatedAt,
                     path: parent.path ? (parent.path + name + '/') : name + '/'
                 }
             }).sort((a, b) => {
@@ -122,12 +138,6 @@ export default {
             navigator.clipboard.writeText(JSON.stringify(this.contents))
             Alert.emit('Copied to Clipboard.', 'confirmation')
         }
-    },
-    components: {
-        SectionTopMenu,
-        ChevronRightIcon,
-        'ff-code-previewer': CodePreviewer,
-        TypeIcon
     }
 }
 </script>
