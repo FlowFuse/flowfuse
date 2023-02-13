@@ -111,9 +111,7 @@ describe('FlowForge platform admin users', () => {
 
         cy.get('[data-action="save-settings"]').click()
 
-        cy.get('.ff-navigation.ff-user-options').click()
-        cy.get('[data-nav="sign-out"]').click()
-        cy.wait('@logout')
+        cy.logout()
 
         cy.visit('/')
 
@@ -136,9 +134,7 @@ describe('FlowForge platform admin users', () => {
 
         cy.get('[data-action="save-settings"]').click()
 
-        cy.get('.ff-navigation.ff-user-options').click()
-        cy.get('[data-nav="sign-out"]').click()
-        cy.wait('@logout')
+        cy.logout()
 
         cy.visit('/')
 
