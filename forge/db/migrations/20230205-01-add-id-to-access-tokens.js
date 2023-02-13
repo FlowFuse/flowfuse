@@ -60,7 +60,9 @@ module.exports = {
             }, { transaction: t })
 
             // copy the data from the old table to the new table
-            await context.bulkInsert('AccessTokens2', dataOriginal, { transaction: t })
+            if (dataOriginal.length > 0) {
+                await context.bulkInsert('AccessTokens2', dataOriginal, { transaction: t })
+            }
 
             // ensure that the data was copied correctly
             const dataIntermediate = await context.select(null, 'AccessTokens2', { transaction: t })
