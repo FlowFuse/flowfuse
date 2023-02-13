@@ -111,7 +111,7 @@ module.exports.init = function (app) {
             if (project.Project.state !== 'suspended') {
                 await app.billing.addProject(team, project.Project)
             } else {
-                await project.Project.updateSetting(KEY_BILLING_STATE, app.db.models.ProjectSettings.BILLING_STATES.NOT_BILLED)
+                await app.billing.setProjectBillingState(project, app.db.models.ProjectSettings.BILLING_STATES.NOT_BILLED)
             }
         }
         return trialProjects
@@ -127,7 +127,7 @@ module.exports.init = function (app) {
                     app.db.controllers.Project.setInflightState(project, 'suspending')
                     await app.containers.stop(project)
                     app.db.controllers.Project.clearInflightState(project)
-                    await project.updateSetting(KEY_BILLING_STATE, app.db.models.ProjectSettings.BILLING_STATES.NOT_BILLED)
+                    await app.billing.setProjectBillingState(project, app.db.models.ProjectSettings.BILLING_STATES.NOT_BILLED)
                     await app.auditLog.Project.project.suspended(null, null, project)
                 } catch (err) {
                     app.db.controllers.Project.clearInflightState(project)
