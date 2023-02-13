@@ -111,7 +111,7 @@ module.exports.init = function (app) {
             if (project.Project.state !== 'suspended') {
                 await app.billing.addProject(team, project.Project)
             } else {
-                await app.billing.setProjectBillingState(project, app.db.models.ProjectSettings.BILLING_STATES.NOT_BILLED)
+                await app.billing.setProjectBillingState(project.Project, app.db.models.ProjectSettings.BILLING_STATES.NOT_BILLED)
             }
         }
         return trialProjects
