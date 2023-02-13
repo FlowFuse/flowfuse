@@ -7,6 +7,9 @@ Edge devices will store files on its local filesystem.
 
 ## Enabling Persistent File Storage
 
+These nodes are enabled by default on the FlowForge Cloud platform. If you're
+running a self-hosted environment you should follow the next steps.
+
 FlowForge file nodes replace the core Node-RED file nodes. To make use of these
 nodes, the FlowForge platform Administrator must ensure the core file nodes are 
 not loaded.
@@ -16,8 +19,6 @@ section of your FlowForge projects settings under  the **Palette** section.
 
 This setting is modifiable only by a project owner and only if it has not been
 locked in the [project template](concepts.md#project-template) by the platform Administrator.
-
-These nodes are enabled by default on the FlowForge cloud platform.
 
 ## Nodes
 
