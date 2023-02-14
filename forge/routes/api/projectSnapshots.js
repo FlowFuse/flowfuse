@@ -79,6 +79,7 @@ module.exports = async function (app) {
 
     /**
      * Create a snapshot
+     * @name /api/v1/projects/:projectId/snapshots
      */
     app.post('/', {
         preHandler: app.needsPermission('project:snapshot:create')
@@ -90,6 +91,24 @@ module.exports = async function (app) {
         )
         snapShot.User = request.session.User
         await app.auditLog.Project.project.snapshot.created(request.session.User, null, request.project, snapShot)
+        if (request.body.setAsTarget) {
+            await snapShot.reload()
+            await request.project.updateSetting('deviceSettings', {
+                targetSnapshot: snapShot.id
+            })
+            // Update the targetSnapshot of the devices assigned to this project
+            await app.db.models.Device.update({ targetSnapshotId: snapShot.id }, {
+                where: {
+                    ProjectId: request.project.id
+                }
+            })
+            await app.auditLog.Project.project.snapshot.deviceTargetSet(request.session.User, null, request.project, snapShot)
+            if (app.comms) {
+                app.comms.devices.sendCommandToProjectDevices(request.project.Team.hashid, request.project.id, 'update', {
+                    snapshot: snapShot.hashid
+                })
+            }
+        }
         reply.send(app.db.views.ProjectSnapshot.snapshot(snapShot))
     })
 }

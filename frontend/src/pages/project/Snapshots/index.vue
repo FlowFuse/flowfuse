@@ -74,7 +74,7 @@ export default {
         this.fetchData()
     },
     methods: {
-        fetchData: async function (newVal) {
+        fetchData: async function () {
             if (this.project.id) {
                 this.loading = true
                 const deviceCounts = await this.countDevices()
@@ -148,6 +148,9 @@ export default {
         },
         snapshotCreated (snapshot) {
             this.snapshots.unshift(snapshot)
+            // on next tick, update the table data to ensure
+            // the new snapshot is shown and the correct status are shown
+            this.$emit('projectUpdated')
         },
         async downloadSnapshotPackage (snapshot) {
             const ss = await snapshotApi.getSnapshot(this.project.id, snapshot.id)
