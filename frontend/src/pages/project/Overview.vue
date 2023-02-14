@@ -124,7 +124,6 @@ export default {
     emits: ['project-start', 'project-delete', 'project-suspend', 'project-restart', 'project-overview-exit', 'project-overview-enter'],
     watch: {
         project: function () {
-            console.log('set project')
             this.loadLogs()
         }
     },

@@ -60,7 +60,8 @@ const projectTransitionStates = [
     'starting',
     'stopping',
     'restarting',
-    'suspending'
+    'suspending',
+    'importing'
 ]
 
 export default {
@@ -106,7 +107,8 @@ export default {
         this.onOverviewExit(true)
     },
     methods: {
-        onOverviewEnter () {
+        async onOverviewEnter () {
+            await this.updateProject()
             this.overviewActive = true
             if (this.project.pendingRestart && !this.projectTransitionStates.includes(this.project.state)) {
                 this.project.pendingRestart = false

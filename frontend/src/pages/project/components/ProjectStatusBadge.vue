@@ -4,6 +4,7 @@
         <ExclamationIcon v-if="status === 'suspended'" class="w-4 h-4" />
         <PlayIcon v-if="status === 'running'" class="w-4 h-4" />
         <StopIcon v-if="status === 'stopped'" class="w-4 h-4" />
+        <DownloadIcon v-if="status === 'importing'" class="w-4 h-4" />
         <DotsCircleHorizontalIcon v-if="status === 'starting'" class="w-4 h-4" />
         <CloudUploadIcon v-if="status === 'loading'" class="w-4 h-4" />
         <CloudDownloadIcon v-if="status === 'installing'" class="w-4 h-4" />
@@ -13,13 +14,13 @@
 </template>
 
 <script>
-import { ExclamationIcon, ExclamationCircleIcon, PlayIcon, StopIcon, DotsCircleHorizontalIcon, SupportIcon, CloudDownloadIcon, CloudUploadIcon } from '@heroicons/vue/outline'
+import { DownloadIcon, ExclamationIcon, ExclamationCircleIcon, PlayIcon, StopIcon, DotsCircleHorizontalIcon, SupportIcon, CloudDownloadIcon, CloudUploadIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'ProjectStatusBadge',
     props: ['status', 'pendingStateChange'],
     components: {
-        ExclamationIcon, ExclamationCircleIcon, PlayIcon, StopIcon, DotsCircleHorizontalIcon, SupportIcon, CloudDownloadIcon, CloudUploadIcon
+        DownloadIcon, ExclamationIcon, ExclamationCircleIcon, PlayIcon, StopIcon, DotsCircleHorizontalIcon, SupportIcon, CloudDownloadIcon, CloudUploadIcon
     }
 }
 </script>

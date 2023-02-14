@@ -88,6 +88,8 @@ const iconMap = {
         'platform.licence.inspect'
     ],
     settings: [
+        'project.copied',
+        'project.imported',
         'platform.settings.updated',
         'platform.settings.update',
         'team.settings.updated',
