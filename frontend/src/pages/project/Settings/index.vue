@@ -40,6 +40,7 @@ export default {
                 { name: 'Environment', path: './environment' }
             ]
             if (this.hasPermission('project:edit')) {
+                console.log('testing')
                 this.sideNavigation.push({ name: 'DevOps', path: './devops' })
                 this.sideNavigation.push({ name: 'Editor', path: './editor' })
                 this.sideNavigation.push({ name: 'Security', path: './security' })
