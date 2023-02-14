@@ -22,6 +22,9 @@
                     <ff-data-table-cell><TypeIcon :type="row.type" /></ff-data-table-cell>
                     <ff-data-table-cell>{{ row.name }}</ff-data-table-cell>
                     <ff-data-table-cell>{{ formatDateTime(row.updatedAt) }}</ff-data-table-cell>
+                    <template #context-menu>
+                        <ff-list-item class="ff-list-item--danger" label="Delete" @click.stop="deleteFile(row)" />
+                    </template>
                 </ff-data-table-row>
             </template>
         </ff-data-table>
@@ -39,7 +42,8 @@ import teamApi from '@/api/team'
 import CodePreviewer from '@/components/CodePreviewer.vue'
 import SectionTopMenu from '@/components/SectionTopMenu'
 import formatDateMixin from '@/mixins/DateTime.js'
-import Alert from '@/services/alerts'
+import Alerts from '@/services/alerts'
+import Dialog from '@/services/dialog'
 
 export default {
     name: 'SharedLibrary',
@@ -68,17 +72,22 @@ export default {
                 key: 'updatedAt',
                 label: 'Date Modified',
                 class: ['w-80']
+            }, {
+                key: 'actions'
             }],
             rows: [],
             contents: null
         }
     },
     mounted () {
-        this.loadLibrary().then((contents) => {
-            this.rows = this.formatEntries(contents, this.breadcrumbs[0])
-        })
+        this.loadTable()
     },
     methods: {
+        loadTable () {
+            this.loadLibrary().then((contents) => {
+                this.rows = this.formatEntries(contents, this.breadcrumbs[0])
+            })
+        },
         loadLibrary (parentDir) {
             return teamApi.getTeamLibrary(this.team.id, parentDir).then((library) => {
                 return library
@@ -136,7 +145,25 @@ export default {
         },
         copyToClipboard () {
             navigator.clipboard.writeText(JSON.stringify(this.contents))
-            Alert.emit('Copied to Clipboard.', 'confirmation')
+            Alerts.emit('Copied to Clipboard.', 'confirmation')
+        },
+        async deleteFile (file) {
+            Dialog.show({
+                header: 'Delete File',
+                kind: 'danger',
+                text: 'Are you sure you want to delete this file? Once deleted, there is no going back.',
+                confirmLabel: 'Delete'
+            }, async () => {
+                try {
+                    const response = await teamApi.deleteFromTeamLibrary(this.team.id, file.name, file.type)
+                    const deletedCount = response.data.deleteCount
+                    Alerts.emit(`Successfully deleted ${deletedCount} file${deletedCount > 1 ? 's' : ''}.`, 'confirmation')
+                } catch (err) {
+                    Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)
+                } finally {
+                    this.loadTable()
+                }
+            })
         }
     }
 }
