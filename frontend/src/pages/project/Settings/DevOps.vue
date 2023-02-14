@@ -10,11 +10,11 @@
     </FormRow>
 
     <FormRow v-model="input.target" :options="projects" data-el="target-project">
-        <template v-slot:default>Target Project</template>
+        <template #default>Target Project</template>
     </FormRow>
 
     <div class="mt-6 flex gap-4">
-        <ff-button :disabled="!input.target || loading" @click="deploy()" data-action="push-stage">
+        <ff-button :disabled="!input.target || loading" data-action="push-stage" @click="deploy()">
             {{ deploying ? `Pushing to "${input.target.name}"...` : 'Push to Stage' }}
         </ff-button>
         <ff-button kind="secondary" :to="{name: 'Project', params: { 'id': input.target }}" :disabled="!input.target" data-action="view-target-project">
@@ -24,17 +24,21 @@
 </template>
 
 <script>
-import Alerts from '@/services/alerts'
-import Dialog from '@/services/dialog'
 
 import ProjectAPI from '@/api/project'
 import TeamAPI from '@/api/team'
 
 import FormHeading from '@/components/FormHeading'
 import FormRow from '@/components/FormRow'
+import Alerts from '@/services/alerts'
+import Dialog from '@/services/dialog'
 
 export default {
     name: 'ProjectSettingsStages',
+    components: {
+        FormHeading,
+        FormRow
+    },
     props: ['project'],
     data: function () {
         return {
@@ -101,10 +105,6 @@ export default {
                 }
             }
         }
-    },
-    components: {
-        FormHeading,
-        FormRow
     }
 }
 </script>
