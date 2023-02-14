@@ -1,11 +1,18 @@
 <template>
     <div class="ff-layout--box">
-        <div class="ff-layout--box--wrapper">
-            <div class="ff-layout--box--content">
-                <div class="ff-logo">
-                    <img src="@/images/ff-logo--wordmark-caps--dark.png" />
+        <div class="ff-layout--box--wrapper" :class="{'md:grid-cols-2 max-w-6xl': !!this.$slots['splash-content'], 'max-w-2xl': !this.$slots['splash-content']}">
+            <div v-if="!!this.$slots['splash-content']" class="ff-layout--box--left hidden md:flex">
+                <div class="ff-layout--box--content">
+                    <slot name="splash-content"></slot>
                 </div>
-                <slot></slot>
+            </div>
+            <div class="ff-layout--box--right">
+                <div class="ff-layout--box--content">
+                    <div class="ff-logo">
+                        <img src="@/images/ff-logo--wordmark-caps--dark.png" />
+                    </div>
+                    <slot></slot>
+                </div>
             </div>
         </div>
         <TransitionGroup class="ff-notifications" name="notifictions-list" tag="div">

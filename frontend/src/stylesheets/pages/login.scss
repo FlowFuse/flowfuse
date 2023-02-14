@@ -1,1 +1,14 @@
 @import '~@flowforge/forge-ui-components/dist/scss/forge-colors.scss';
+
+.ff-login {
+    .ff-layout--box--wrapper {
+        width: 75%;
+        max-width: 1048px;
+        .ff-layout--box--right {
+            padding: 128px 48px;
+        }
+        .ff-layout--box--content {
+            max-width: 380px;
+        }
+    }
+}

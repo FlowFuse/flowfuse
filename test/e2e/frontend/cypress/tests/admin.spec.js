@@ -98,6 +98,53 @@ describe('FlowForge platform admin users', () => {
 
         cy.get('[data-el="banner-device-as-admin"]').should('exist')
     })
+
+    it('can enable sign up', () => {
+        cy.intercept('GET', '/api/*/settings').as('getSettings')
+        cy.intercept('POST', '/account/logout').as('logout')
+
+        cy.visit('/admin/settings/general')
+        cy.wait('@getSettings')
+
+        // enable sign up
+        cy.get('[data-el="enable-signup"] [data-el="form-row-title"]').click()
+
+        cy.get('[data-action="save-settings"]').click()
+
+        cy.logout()
+
+        cy.visit('/')
+
+        cy.get('[data-action="sign-up"]').click()
+
+        cy.url().should('include', '/account/create')
+
+        cy.get('[data-el="banner-text"]').should('not.exist')
+        cy.get('[data-el="splash"]').should('not.exist')
+    })
+
+    it('can customise the content of the "Sign Up" screen', () => {
+        cy.intercept('GET', '/api/*/settings').as('getSettings')
+
+        cy.visit('/admin/settings/general')
+        cy.wait('@getSettings')
+
+        cy.get('[data-el="banner"]').type('this is banner')
+        cy.get('[data-el="splash"]').type('<h1>Welcome to FlowForge</h1>')
+
+        cy.get('[data-action="save-settings"]').click()
+
+        cy.logout()
+
+        cy.visit('/')
+
+        cy.get('[data-action="sign-up"]').click()
+
+        cy.url().should('include', '/account/create')
+
+        cy.get('[data-el="banner-text"]').contains('this is banner')
+        cy.get('[data-el="splash"]').contains('Welcome to FlowForge')
+    })
 })
 
 describe('FlowForge platform non-admin users', () => {

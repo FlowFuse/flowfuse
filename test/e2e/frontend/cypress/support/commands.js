@@ -37,8 +37,11 @@ Cypress.Commands.add('login', (username, password) => {
     })
 })
 
-Cypress.Commands.add('logout', (username, password) => {
-    cy.request('post', '/account/logout')
+Cypress.Commands.add('logout', () => {
+    // clear Cypress session, and logout from FlowForge
+    cy.session([null, null], () => {
+        cy.request('post', '/account/logout')
+    })
 })
 
 // Navigate to the home page, and given we are logged in,
