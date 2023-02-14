@@ -24,6 +24,21 @@ const updateUser = async (userId, options) => {
     })
 }
 
+const getUser = async (userId) => {
+    return client.get(`/api/v1/users/${userId}`).then(res => {
+        return res.data
+    })
+}
+const getUserTeams = async (userId, cursor, limit, query) => {
+    const url = paginateUrl(`/api/v1/users/${userId}/teams`, cursor, limit, query)
+    return client.get(url).then(res => {
+        res.data.teams = res.data.teams.map(r => {
+            r.link = { name: 'Team', params: { team_slug: r.slug } }
+            return r
+        })
+        return res.data
+    })
+}
 /**
  * Calls api routes in users.js
  * See [routes/api/users.js](../../../forge/routes/api/users.js)
@@ -32,5 +47,7 @@ export default {
     create,
     getUsers,
     deleteUser,
-    updateUser
+    updateUser,
+    getUser,
+    getUserTeams
 }

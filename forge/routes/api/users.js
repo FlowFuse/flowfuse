@@ -161,4 +161,20 @@ module.exports = async function (app) {
             reply.code(400).send(resp)
         }
     })
+
+    /**
+     * Get the teams of the current logged in user
+     * @name /api/v1/user/teams
+     * @static
+     * @memberof forge.routes.api.user
+     */
+    app.get('/:userId/teams', async (request, reply) => {
+        const teams = await app.db.models.Team.forUser(request.user)
+        const result = await app.db.views.Team.userTeamList(teams)
+        reply.send({
+            meta: {}, // For future pagination
+            count: result.length,
+            teams: result
+        })
+    })
 }
