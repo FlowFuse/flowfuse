@@ -194,24 +194,22 @@ import { mapState } from 'vuex'
 import Alerts from '@/services/alerts'
 import Dialog from '@/services/dialog'
 
-import SectionTopMenu from '@/components/SectionTopMenu'
+import deviceApi from '@/api/devices'
+import projectApi from '@/api/project'
 
-import DeviceCredentialsDialog from '../team/Devices/dialogs/DeviceCredentialsDialog'
-import TeamDeviceCreateDialog from '../team/Devices/dialogs/TeamDeviceCreateDialog'
-
-import SnapshotAssignDialog from './Snapshots/dialogs/SnapshotAssignDialog'
+import permissionsMixin from '@/mixins/Permissions'
 
 import DeploymentLink from './components/cells/DeploymentLink.vue'
+import DeviceCredentialsDialog from '../team/Devices/dialogs/DeviceCredentialsDialog'
+import DeviceLastSeenBadge from '@/pages/device/components/DeviceLastSeenBadge'
 import DeviceLink from './components/cells/DeviceLink.vue'
 import LastSeen from './components/cells/LastSeen.vue'
 import ProjectEditorLink from './components/cells/ProjectEditorLink.vue'
-import Snapshot from './components/cells/Snapshot.vue'
-
-import deviceApi from '@/api/devices'
-import projectApi from '@/api/project'
-import permissionsMixin from '@/mixins/Permissions'
 import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
-import DeviceLastSeenBadge from '@/pages/device/components/DeviceLastSeenBadge'
+import SectionTopMenu from '@/components/SectionTopMenu'
+import Snapshot from './components/cells/Snapshot.vue'
+import SnapshotAssignDialog from './Snapshots/dialogs/SnapshotAssignDialog'
+import TeamDeviceCreateDialog from '../team/Devices/dialogs/TeamDeviceCreateDialog'
 
 export default {
     name: 'ProjectDeployments',
