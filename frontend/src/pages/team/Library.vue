@@ -105,10 +105,7 @@ export default {
                 path: ''
             }]
             for (const entry of entryPathArray) {
-                const isFile = /\.\w+/.test(entry)
                 this.breadcrumbs.push(this.formatEntry(entry, this.breadcrumbs.at(-1)))
-                // if (!isFile) {
-                // }
             }
 
             this.viewingFile = entryIsFile
