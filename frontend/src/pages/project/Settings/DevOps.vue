@@ -17,7 +17,7 @@
         <ff-button :disabled="!input.target || loading" data-action="push-stage" @click="deploy()">
             {{ deploying ? `Pushing to "${input.target.name}"...` : 'Push to Stage' }}
         </ff-button>
-        <ff-button kind="secondary" :to="{name: 'Project', params: { 'id': input.target }}" :disabled="!input.target" data-action="view-target-project">
+        <ff-button kind="secondary" :to="{name: 'Project', params: { 'id': input.target?.id }}" :disabled="!input.target" data-action="view-target-project">
             View Target Project
         </ff-button>
     </div>
