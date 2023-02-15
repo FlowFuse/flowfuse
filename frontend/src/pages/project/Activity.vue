@@ -1,7 +1,7 @@
 <template>
     <div class="ff-admin-audit">
         <div data-el="audit-log">
-            <SectionTopMenu hero="Project Activity" info="Recorded events that have taken place in Project.">
+            <SectionTopMenu hero="Project Audit Log" info="Recorded events that have taken place in Project.">
             </SectionTopMenu>
             <AuditLog :entries="entries" />
         </div>

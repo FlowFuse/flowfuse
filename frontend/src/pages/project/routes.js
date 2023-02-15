@@ -10,7 +10,7 @@ import ProjectSettingsPalette from '@/pages/project/Settings/Palette.vue'
 import ProjectSettingsEnvVar from '@/pages/project/Settings/Environment.vue'
 // import ProjectDebug from '@/pages/project/Debug.vue'
 import ProjectSnapshots from '@/pages/project/Snapshots/index.vue'
-import ProjectDeployments from '@/pages/project/Deployments.vue'
+import ProjectInstances from '@/pages/project/Instances.vue'
 import ProjectLogs from '@/pages/project/Logs.vue'
 import ProjectActivity from '@/pages/project/Activity.vue'
 import ChangeProjectTypePage from './Settings/ChangeProjectType.vue'
@@ -56,11 +56,11 @@ export default [
                 ]
             },
             {
-                name: 'ProjectDeployments',
-                path: 'devices',
-                component: ProjectDeployments,
+                name: 'ProjectInstances',
+                path: 'instances',
+                component: ProjectInstances,
                 meta: {
-                    title: 'Project - Deployments'
+                    title: 'Project - Instances'
                 }
             },
             {
