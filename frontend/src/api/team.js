@@ -149,6 +149,21 @@ const getTeamLibrary = async (teamId, parentDir, cursor, limit) => {
 
 /**
  *
+ * @param {*} teamId Team ID (hash)
+ * @param {*} name Name of file to delete
+ * @param {*} type File type e.g. flows/functions filter
+ */
+const deleteFromTeamLibrary = async (teamId, name, type = null) => {
+    let query = ''
+    if (type) {
+        query = `?type=${type}`
+    }
+
+    return await client.delete(`/storage/library/${teamId}/${name}${query}`)
+}
+
+/**
+ *
  * @param {string} teamId Team ID (hash)
  * @param {*} cursor The next page cursor (not implemented)
  * @param {number} limit The number of results to return (not implemented)
@@ -237,6 +252,7 @@ export default {
     getTeamUserMembership,
     getTeamDevices,
     getTeamLibrary,
+    deleteFromTeamLibrary,
     getTeamDeviceProvisioningTokens,
     generateTeamDeviceProvisioningToken,
     updateTeamDeviceProvisioningToken,
