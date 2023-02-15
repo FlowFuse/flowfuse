@@ -9,14 +9,14 @@
             <ff-button v-if="contents" @click="copyToClipboard()">Copy to Clipboard</ff-button>
         </template>
     </SectionTopMenu>
-    <div class="ff-breadcrumbs">
+    <div :class="{'ff-breadcrumbs': true, 'disable-last': !viewingFile}">
         <span v-for="(crumb, $index) in breadcrumbs" :key="$index" class="flex">
-            <label @click="goToFolder(crumb, $index)">{{ crumb.name }}</label>
+            <label @click="entrySelected(crumb)">{{ crumb.name }}</label>
             <ChevronRightIcon class="ff-icon" />
         </span>
     </div>
     <div>
-        <ff-data-table v-if="!contents" :columns="columns" :rows="rows">
+        <ff-data-table v-if="!viewingFile " :columns="columns" :rows="rows">
             <template #rows>
                 <ff-data-table-row v-for="row in rows" :key="row" :selectable="true" @click="entrySelected(row)">
                     <ff-data-table-cell><TypeIcon :type="row.type" /></ff-data-table-cell>
@@ -54,13 +54,13 @@ export default {
         TypeIcon
     },
     mixins: [formatDateMixin],
-    props: ['team', 'teamMembership'],
+    props: {
+        team: { required: true, type: Object },
+        teamMembership: { required: true, type: Object }
+    },
     data () {
         return {
-            breadcrumbs: [{
-                name: 'Library',
-                path: ''
-            }],
+            breadcrumbs: [],
             columns: [{
                 key: 'type',
                 label: '',
@@ -76,60 +76,68 @@ export default {
                 key: 'actions'
             }],
             rows: [],
-            contents: null
+            contents: null,
+            viewingFile: false
         }
     },
-    mounted () {
-        this.loadTable()
+    created () {
+        this.$watch(
+            () => this.$route.params,
+            () => {
+                this.pathChanged(this.$route.params.entryPath || [])
+            }
+        )
+
+        this.pathChanged(this.$route.params.entryPath || [])
     },
     methods: {
-        loadTable () {
-            this.loadLibrary().then((contents) => {
-                this.rows = this.formatEntries(contents, this.breadcrumbs[0])
-            })
+        pathChanged (pathArray = []) {
+            this.loadEntry(pathArray.filter((entry) => entry))
         },
-        loadLibrary (parentDir) {
-            return teamApi.getTeamLibrary(this.team.id, parentDir).then((library) => {
-                return library
-            })
+        async loadEntry (entryPathArray) {
+            const entryPath = entryPathArray.join('/')
+            const entryIsFile = /\.\w+/.test(entryPath)
+
+            const contents = await teamApi.getTeamLibrary(this.team.id, entryPath)
+
+            this.breadcrumbs = [{
+                name: 'Library',
+                path: ''
+            }]
+            for (const entry of entryPathArray) {
+                const isFile = /\.\w+/.test(entry)
+                if (!isFile) {
+                    this.breadcrumbs.push(this.formatEntry(entry, this.breadcrumbs.at(-1)))
+                }
+            }
+
+            this.viewingFile = entryIsFile
+            if (entryIsFile) {
+                this.contents = contents
+            } else {
+                this.rows = this.formatEntries(contents, this.breadcrumbs.at(-1))
+            }
         },
         entrySelected (entry) {
-            let parentDir = ''
-            this.breadcrumbs.push(entry)
-
-            for (let i = 1; i < this.breadcrumbs.length; i++) {
-                parentDir += `${this.breadcrumbs[i].name}/`
-            }
-
-            if (entry.type === 'folder') {
-                this.loadLibrary(parentDir).then((contents) => {
-                    this.rows = this.formatEntries(contents, entry)
-                })
-            } else {
-                const filepath = parentDir.substring(0, parentDir.length - 1)
-                this.loadLibrary(filepath).then((contents) => {
-                    this.contents = contents
-                })
-            }
-        },
-        goToFolder (entry, index) {
-            this.contents = null
-            this.loadLibrary(entry.path).then((contents) => {
-                this.rows = this.formatEntries(contents, this.breadcrumbs[0])
-                this.breadcrumbs = this.breadcrumbs.slice(0, index + 1)
+            this.$router.push({
+                name: 'TeamLibrary',
+                params: {
+                    entryPath: entry.path.split('/')
+                }
             })
         },
+        formatEntry (contents, parent) {
+            const type = (typeof (contents) === 'string') ? 'folder' : contents.type
+            const name = (typeof (contents) === 'string') ? contents : contents.fn
+            return {
+                type,
+                name,
+                updatedAt: contents.updatedAt,
+                path: parent.path ? (parent.path + '/' + name) : name
+            }
+        },
         formatEntries (contents, parent) {
-            return contents.map((entry) => {
-                const type = (typeof (entry) === 'string') ? 'folder' : entry.type
-                const name = (typeof (entry) === 'string') ? entry : entry.fn
-                return {
-                    type,
-                    name,
-                    updatedAt: entry.updatedAt,
-                    path: parent.path ? (parent.path + name + '/') : name + '/'
-                }
-            }).sort((a, b) => {
+            return contents.map((entry) => this.formatEntry(entry, parent)).sort((a, b) => {
                 const typeOrder = ['folder', 'flows', 'functions']
                 // folders at top
                 const aType = typeOrder.indexOf(a.type)
@@ -155,12 +163,13 @@ export default {
                 confirmLabel: 'Delete'
             }, async () => {
                 try {
-                    await teamApi.deleteFromTeamLibrary(this.team.id, file.name)
+                    await teamApi.deleteFromTeamLibrary(this.team.id, file.path)
                     Alerts.emit('Successfully deleted!', 'confirmation')
                 } catch (err) {
                     Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)
                 } finally {
-                    this.loadTable()
+                    // Trigger a refresh
+                    this.pathChanged(this.$route.params.entryPath || [])
                 }
             })
         }

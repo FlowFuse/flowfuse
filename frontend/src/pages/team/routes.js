@@ -60,7 +60,7 @@ export default [
             },
             {
                 name: 'TeamLibrary',
-                path: 'library',
+                path: 'library/:entryPath*',
                 component: TeamLibrary,
                 meta: {
                     title: 'Team - Library'
