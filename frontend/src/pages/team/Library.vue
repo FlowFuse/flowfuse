@@ -155,9 +155,8 @@ export default {
                 confirmLabel: 'Delete'
             }, async () => {
                 try {
-                    const response = await teamApi.deleteFromTeamLibrary(this.team.id, file.name, file.type)
-                    const deletedCount = response.data.deleteCount
-                    Alerts.emit(`Successfully deleted ${deletedCount} file${deletedCount > 1 ? 's' : ''}.`, 'confirmation')
+                    await teamApi.deleteFromTeamLibrary(this.team.id, file.name)
+                    Alerts.emit('Successfully deleted!', 'confirmation')
                 } catch (err) {
                     Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)
                 } finally {
