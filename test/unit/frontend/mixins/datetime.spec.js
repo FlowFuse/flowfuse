@@ -3,11 +3,12 @@ import DateTime from '../../../../frontend/src/mixins/DateTime.js'
 
 describe('DateTime', () => {
     describe('#formatDateTime', () => {
+        // Timezone needs to be set to tests can run anywhere
         test('that a UNIX timestamp is formatted correctly', () => {
-            expect(DateTime.methods.formatDateTime(1652794780548, 'en-US')).toBe('May 17, 2022 at 3:39 PM')
+            expect(DateTime.methods.formatDateTime(1652794780548, 'en-US', { timeZone: 'Etc/UTC' })).toBe('May 17, 2022 at 1:39 PM')
         })
         test('that a UNIX timestamp is formatted correctly, with an alternative locale', () => {
-            expect(DateTime.methods.formatDateTime(1652794780548, 'en-GB')).toBe('17 May 2022 at 15:39')
+            expect(DateTime.methods.formatDateTime(1652794780548, 'en-GB', { timeZone: 'Etc/UTC' })).toBe('17 May 2022 at 13:39')
         })
     })
 
@@ -24,11 +25,12 @@ describe('DateTime', () => {
     })
 
     describe('#formatTime', () => {
+        // Timezone needs to be set to tests can run anywhere
         test('that a UNIX timestamp is formatted correctly', () => {
-            expect(DateTime.methods.formatTime(1652794780548, 'en-US')).toBe('3:39 PM')
+            expect(DateTime.methods.formatTime(1652794780548, 'en-US', { timeZone: 'Etc/UTC' })).toBe('1:39 PM')
         })
         test('that a UNIX timestamp is formatted correctly, with an alternative locale', () => {
-            expect(DateTime.methods.formatTime(1652794780548, 'en-GB')).toBe('15:39')
+            expect(DateTime.methods.formatTime(1652794780548, 'en-GB', { timeZone: 'Etc/UTC' })).toBe('13:39')
         })
     })
 })
