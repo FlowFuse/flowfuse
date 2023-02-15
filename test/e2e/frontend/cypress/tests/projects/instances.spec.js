@@ -1,4 +1,4 @@
-describe('FlowForge - Project Deployments', () => {
+describe('FlowForge - Project Instances', () => {
     function navigateToProject (teamName, projectName) {
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {
@@ -11,13 +11,13 @@ describe('FlowForge - Project Deployments', () => {
                 const project = response.body.projects.find(
                     (project) => project.name === projectName
                 )
-                cy.visit(`/project/${project.id}/devices`)
-                cy.wait('@getProjectDeployments')
+                cy.visit(`/project/${project.id}/instances`)
+                cy.wait('@getProjectDevices')
             })
     }
 
     beforeEach(() => {
-        cy.intercept('GET', '/api/*/projects/*/devices').as('getProjectDeployments')
+        cy.intercept('GET', '/api/*/projects/*/devices').as('getProjectDevices')
         cy.intercept('GET', '/api/*/projects/*/snapshots').as('getProjectSnapshots')
 
         cy.login('bob', 'bbPassword')

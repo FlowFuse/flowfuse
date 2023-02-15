@@ -1,19 +1,19 @@
 <template>
     <div>
-        <SectionTopMenu hero="FlowForge Hosted" help-header="FlowForge - Deployments - Cloud" info="Your Node-RED Deployments hosted on the same domain as FlowForge">
+        <SectionTopMenu hero="FlowForge Hosted Instances" help-header="FlowForge - Instances - Local" info="Instances of Node-RED running at the same domain as FlowForge">
             <template v-slot:pictogram>
                 <img src="../../images/pictograms/edge_red.png" />
             </template>
             <template v-slot:helptext>
-                <p>This is a list of all deployments of this Project hosted on the same domain as FlowForge.</p>
+                <p>This is a list of all instances of this Project hosted on the same domain as FlowForge.</p>
                 <p>It will always run the latest flow deployed in Node-RED and use the latest credentials and runtime settings defined in the Projects settings.</p>
-                <p>To edit a Projects flow, open the editor of this Deployment.</p>
+                <p>To edit a Projects flow, open the editor of this Instance.</p>
             </template>
         </SectionTopMenu>
 
-        <div class="space-y-6 mb-6">
+        <div class="space-y-6 mb-12">
             <ff-data-table
-                data-el="cloud-deployments"
+                data-el="cloud-instances"
                 :columns="cloudColumns"
                 :rows="cloudRows"
             >
@@ -50,7 +50,7 @@
             </ff-data-table>
         </div>
 
-        <SectionTopMenu hero="Remote Deployments" help-header="FlowForge - Deployments - Remote" info="Remote Deployments can be managed through 'Devices' attached to this Project.">
+        <SectionTopMenu hero="Remote Instances" help-header="FlowForge - Instances - Remote" info="Instances of Node-RED running remotely, managed by this Project and the FlowForge Device Agent.">
             <template v-slot:pictogram>
                 <img src="../../images/pictograms/edge_red.png" />
             </template>
@@ -88,11 +88,11 @@
             <template v-else>
                 <template v-if="devices.length > 0">
                     <ff-data-table
-                        data-el="devices"
+                        data-el="remote-instances"
                         :columns="columns"
                         :rows="devices"
                         :show-search="true"
-                        search-placeholder="Search Device Deployments..."
+                        search-placeholder="Search Remote Instances..."
                     >
                         <template
                             v-if="hasPermission('project:snapshot:create')"
@@ -191,28 +191,28 @@ import { PlusSmIcon } from '@heroicons/vue/solid'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import SectionTopMenu from '@/components/SectionTopMenu'
-
-import DeviceCredentialsDialog from '../team/Devices/dialogs/DeviceCredentialsDialog'
-import TeamDeviceCreateDialog from '../team/Devices/dialogs/TeamDeviceCreateDialog'
-
-import SnapshotAssignDialog from './Snapshots/dialogs/SnapshotAssignDialog'
-
-import DeploymentLink from './components/cells/DeploymentLink.vue'
-import DeviceLink from './components/cells/DeviceLink.vue'
-import LastSeen from './components/cells/LastSeen.vue'
-import ProjectEditorLink from './components/cells/ProjectEditorLink.vue'
-import Snapshot from './components/cells/Snapshot.vue'
-
-import deviceApi from '@/api/devices'
-import projectApi from '@/api/project'
-import permissionsMixin from '@/mixins/Permissions'
-import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
 import Alerts from '@/services/alerts'
 import Dialog from '@/services/dialog'
 
+import deviceApi from '@/api/devices'
+import projectApi from '@/api/project'
+
+import permissionsMixin from '@/mixins/Permissions'
+
+import DeploymentLink from './components/cells/DeploymentLink.vue'
+import DeviceCredentialsDialog from '../team/Devices/dialogs/DeviceCredentialsDialog'
+import DeviceLastSeenBadge from '@/pages/device/components/DeviceLastSeenBadge'
+import DeviceLink from './components/cells/DeviceLink.vue'
+import LastSeen from './components/cells/LastSeen.vue'
+import ProjectEditorLink from './components/cells/ProjectEditorLink.vue'
+import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
+import SectionTopMenu from '@/components/SectionTopMenu'
+import Snapshot from './components/cells/Snapshot.vue'
+import SnapshotAssignDialog from './Snapshots/dialogs/SnapshotAssignDialog'
+import TeamDeviceCreateDialog from '../team/Devices/dialogs/TeamDeviceCreateDialog'
+
 export default {
-    name: 'ProjectDeployments',
+    name: 'ProjectInstances',
     components: {
         ClockIcon,
         DeviceCredentialsDialog,
@@ -242,17 +242,17 @@ export default {
         ...mapState('account', ['team', 'teamMembership']),
         columns () {
             return [
-                { label: 'Device', class: ['w-64'], sortable: true, component: { is: markRaw(DeviceLink) } },
-                { label: 'Last Seen', class: ['w-48'], sortable: true, component: { is: markRaw(LastSeen) } },
-                { label: 'Deployed Snapshot', class: ['w-32'], component: { is: markRaw(Snapshot) } },
-                { label: '', class: ['w-20'], component: { is: markRaw(ProjectStatusBadge) } }
+                { label: 'Device', key: 'name', class: ['w-64'], sortable: true, component: { is: markRaw(DeviceLink) } },
+                { label: 'Last Seen', key: 'lastSeenAt', class: ['w-32'], sortable: true, component: { is: markRaw(DeviceLastSeenBadge) } },
+                { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(ProjectStatusBadge) } },
+                { label: 'Deployed Snapshot', class: ['w-48'], component: { is: markRaw(Snapshot) } }
             ]
         },
         cloudColumns () {
             return [
                 { label: 'Location', class: ['w-64'], component: { is: markRaw(DeploymentLink), extraProps: { disabled: !this.projectRunning || this.isVisitingAdmin } } },
                 { label: 'Last Deployed', class: ['w-48'], component: { is: markRaw(LastSeen), map: { lastSeenSince: 'flowLastUpdatedSince' } } },
-                { label: 'Deployment Status', class: ['w-32'], component: { is: markRaw(ProjectStatusBadge), map: { status: 'meta.state' } } },
+                { label: 'Deployment Status', class: ['w-48'], component: { is: markRaw(ProjectStatusBadge), map: { status: 'meta.state' } } },
                 { label: '', class: ['w-20'], component: { is: markRaw(ProjectEditorLink), extraProps: { disabled: !this.projectRunning || this.isVisitingAdmin } } }
             ]
         },

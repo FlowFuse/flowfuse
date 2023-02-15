@@ -19,7 +19,8 @@ module.exports = {
     },
     output: {
         path: getPath('frontend/dist/app'),
-        publicPath: '/app'
+        publicPath: '/app/',
+        assetModuleFilename: './assets/[hash][ext][query]'
     },
     module: {
         rules: [
@@ -72,7 +73,10 @@ module.exports = {
                 test: /\.scss$/,
                 use: [
                     'style-loader',
-                    'css-loader',
+                    {
+                        loader: 'css-loader',
+                        options: { import: true, url: true }
+                    },
                     'sass-loader'
                 ]
             },
@@ -85,11 +89,7 @@ module.exports = {
             },
             {
                 test: /\.(png|jpe?g|gif|webm|mp4|svg)$/,
-                loader: 'file-loader',
-                options: {
-                    outputPath: '/assets',
-                    esModule: false
-                }
+                type: 'asset'
             }
         ]
     },

@@ -7,10 +7,10 @@ const isObject = (obj) => {
 /**
  * Generate a standard format body for the audit log display and database.
  * Any items null or missing must not generate a property in the body
- * @param {{ error?, team?, project?, sourceProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType?, info? } == {}} objects objects to include in body
- * @returns {{ error?, team?, project?, sourceProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType? info? }
+ * @param {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType?, info? } == {}} objects objects to include in body
+ * @returns {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType? info? }
  */
-const generateBody = ({ error, team, project, sourceProject, device, user, stack, billingSession, subscription, license, updates, snapshot, role, projectType, info } = {}) => {
+const generateBody = ({ error, team, project, sourceProject, targetProject, device, user, stack, billingSession, subscription, license, updates, snapshot, role, projectType, info } = {}) => {
     const body = {}
 
     if (isObject(error) || typeof error === 'string') {
@@ -24,6 +24,9 @@ const generateBody = ({ error, team, project, sourceProject, device, user, stack
     }
     if (isObject(sourceProject)) {
         body.sourceProject = projectObject(sourceProject)
+    }
+    if (isObject(targetProject)) {
+        body.targetProject = projectObject(targetProject)
     }
     if (isObject(device)) {
         body.device = deviceObject(device)
@@ -110,6 +113,7 @@ const formatLogEntry = (auditLogDbRow) => {
                 team: body?.team,
                 project: body?.project,
                 sourceProject: body?.sourceProject,
+                targetProject: body?.targetProject,
                 user: body?.user,
                 stack: body?.stack,
                 billingSession: body?.billingSession,

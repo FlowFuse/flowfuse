@@ -10,6 +10,7 @@ import AdminSettingsSSOEdit from '@/pages/admin/Settings/SSO/createEditProvider.
 import AdminUsers from '@/pages/admin/Users/index.vue'
 import AdminUsersGeneral from '@/pages/admin/Users/General.vue'
 import AdminUsersInvitations from '@/pages/admin/Users/Invitations.vue'
+import AdminUserDetails from '@/pages/admin/Users/UserDetails.vue'
 import AdminTeams from '@/pages/admin/Teams.vue'
 import AdminProjectTypes from '@/pages/admin/ProjectTypes/index.vue'
 import AdminStacks from '@/pages/admin/Stacks/index.vue'
@@ -85,6 +86,14 @@ export default [
                     { path: 'general', component: AdminUsersGeneral, name: 'AdminUsersGeneral' },
                     { path: 'invitations', component: AdminUsersInvitations }
                 ]
+            },
+            {
+                name: 'Admin User Details',
+                path: 'users/:id',
+                component: AdminUserDetails,
+                meta: {
+                    title: 'Admin - User'
+                }
             },
             {
                 path: 'teams',

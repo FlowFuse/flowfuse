@@ -25,6 +25,12 @@ module.exports = {
             async suspended (actionedBy, error, project) {
                 await log('project.suspended', actionedBy, project?.id, generateBody({ error, project }))
             },
+            async copied (actionedBy, error, project, targetProject) {
+                await log('project.copied', actionedBy, project?.id, generateBody({ error, project, targetProject }))
+            },
+            async imported (actionedBy, error, project, sourceProject) {
+                await log('project.imported', actionedBy, project?.id, generateBody({ error, project, sourceProject }))
+            },
             async flowImported (actionedBy, error, project) {
                 await log('project.flow-imported', actionedBy, project?.id, generateBody({ error, project }))
             },

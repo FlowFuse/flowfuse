@@ -12,6 +12,7 @@
             loading-message="Loading Users"
             @load-more="loadItems"
             no-data-message="No Users Found"
+            :rows-selectable="true" @row-selected="showUser"
         >
             <template v-slot:actions>
                 <ff-button to="./create">
@@ -22,7 +23,7 @@
                 </ff-button>
             </template>
             <template v-slot:context-menu="{row}">
-                <ff-list-item label="Edit User" @click="showEditUserDialog(row)"></ff-list-item>
+                <ff-list-item label="Edit User" @click.stop="showEditUserDialog(row)"></ff-list-item>
             </template>
         </ff-data-table>
         <AdminUserEditDialog @userUpdated="userUpdated" @userDeleted="userDeleted" ref="adminUserEditDialog"/>
@@ -117,6 +118,12 @@ export default {
                 this.users.push(v)
             })
             this.loading = false
+        },
+        showUser (user) {
+            this.$router.push({
+                name: 'Admin User Details',
+                params: { id: user.id }
+            })
         }
     },
     components: {

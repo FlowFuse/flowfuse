@@ -1,3 +1,8 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @import '~@flowforge/forge-ui-components/dist/scss/forge-colors.scss';
 @import '~@flowforge/forge-ui-components/dist/scss/forge-variables.scss';
 
@@ -17,24 +22,22 @@ $nav_height: 60px;
     justify-content: center;
     align-items: center;
     min-height: inherit;
-    background-image: url("@/images/ff-flow-bg-white.svg");
+    background-image: url("./images/ff-flow-bg-white.svg");
     background-size: contain;
     background-repeat: no-repeat;
     background-position-y: 90%;
     .ff-error-inline {
-        color: $ff-red-300;
+        font-size: 0.875rem;;
+        display: block;
+        margin-top: 0.25rem;
+        color: $ff-red-200;
     }
 }
 
 .ff-layout--box--wrapper {
     width: calc(100% - 48px);
-    border-top: 2px solid $ff-red-400;
-    max-width: 1024px;
     height: 60%;
-    padding: 64px 24px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    display: grid;
     background-color: rgba($ff-grey-600, 0.2);
     .ff-logo {
         max-width: 200px;
@@ -43,12 +46,39 @@ $nav_height: 60px;
     }
 }
 
+.ff-layout--box--left,
+.ff-layout--box--right {
+    border-top: 2px solid $ff-red-400;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+.ff-layout--box--left {
+    color: white;
+    background-color: rgba($ff-grey-900, 0.5);
+    h1 {
+        max-width: 420px;
+    }
+    h3 {
+        font-size: 1.25rem;
+    }
+    p {
+        font-weight: 200;
+        line-height: 1.5rem;
+        color: $ff-grey-300;
+    }
+}
+
 .ff-layout--box--content {
-    background-color: $ff-grey-700;
     width: 100%;
+}
+
+.ff-layout--box--right .ff-layout--box--content {
+    background-color: $ff-grey-700;
     min-height: 400px;
     padding: 64px 24px;
-    border-radius: 32px;
+    @apply rounded-xl;
     color: white;
     h2 {
         margin-top: -12px;
@@ -308,7 +338,6 @@ $nav_height: 60px;
         position: absolute;
         top: 100%;
         margin-top: 2px;
-        // display: none;
         img {
             padding: 0;
             margin-right: 9px;
@@ -608,13 +637,7 @@ $nav_height: 60px;
 @media screen and (min-width: $ff-screen-sm) {
     /* Box */
     .ff-layout--box--wrapper {
-        width: 75%;
-        padding: 128px 0;
-    }
-    .ff-layout--box--content {
-        min-width: 400px;
-        width: initial;
-        padding: 64px;
+        width: 85%;
     }
     /* Platform */
     .ff-layout--platform--wrapper {

@@ -44,5 +44,8 @@ module.exports = {
     // Is the trial feature enabled?
     'user:team:trial-mode': false,
     'user:team:trial-mode:duration': 0, // How many days - required if trials enabled
-    'user:team:trial-mode:projectType': null // Project type that is included in the trial - required if trials enabled
+    'user:team:trial-mode:projectType': null, // Project type that is included in the trial - required if trials enabled
+
+    'branding:account:signUpTopBanner': null,
+    'branding:account:signUpLeftBanner': null
 }

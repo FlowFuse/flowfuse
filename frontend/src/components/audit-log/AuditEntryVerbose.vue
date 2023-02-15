@@ -296,6 +296,16 @@
         <span v-if="!error && entry.body?.project">Project '{{ entry.body.project.name }}' was suspended.</span>
         <span v-else-if="!error">Project data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'project.copied'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.project && entry.body?.targetProject">Project '{{ entry.body.project.name }}' was copied to '{{ entry.body.targetProject.name }}'</span>
+        <span v-else-if="!error">Project data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'project.imported'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.project && entry.body?.sourceProject">Project '{{ entry.body.sourceProject.name }}' was copied to '{{ entry.body.project.name }}'</span>
+        <span v-else-if="!error">Project data not found in audit entry.</span>
+    </template>
     <template v-else-if="entry.event === 'project.device.assigned'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.project">Device '{{ entry.body.device?.name }}' was assigned to Project '{{ entry.body.project?.name }}'</span>

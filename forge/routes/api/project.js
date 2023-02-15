@@ -383,6 +383,10 @@ module.exports = async function (app) {
                 reply.code(403).send('Source Project and Target not in same team')
             }
 
+            app.db.controllers.Project.setInflightState(request.project, 'importing')
+            await app.auditLog.Project.project.copied(request.session.User.id, null, sourceProject, request.project)
+            await app.auditLog.Project.project.imported(request.session.User.id, null, request.project, sourceProject)
+
             // Early return, status is loaded async
             reply.code(200).send({})
 
