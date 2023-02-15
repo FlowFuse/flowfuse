@@ -10,9 +10,9 @@
         </template>
     </SectionTopMenu>
     <div :class="{'ff-breadcrumbs': true, 'disable-last': !viewingFile}">
-        <span v-for="(crumb, $index) in breadcrumbs" :key="$index" class="flex">
+        <span v-for="(crumb, $index) in breadcrumbs" :key="$index" class="flex items-center">
             <label @click="entrySelected(crumb)">{{ crumb.name }}</label>
-            <ChevronRightIcon class="ff-icon" />
+            <ChevronRightIcon v-if="breadcrumbs.length === 1 || $index !== breadcrumbs.length - 1" class="ff-icon" />
         </span>
     </div>
     <div>
@@ -106,9 +106,9 @@ export default {
             }]
             for (const entry of entryPathArray) {
                 const isFile = /\.\w+/.test(entry)
-                if (!isFile) {
-                    this.breadcrumbs.push(this.formatEntry(entry, this.breadcrumbs.at(-1)))
-                }
+                this.breadcrumbs.push(this.formatEntry(entry, this.breadcrumbs.at(-1)))
+                // if (!isFile) {
+                // }
             }
 
             this.viewingFile = entryIsFile
