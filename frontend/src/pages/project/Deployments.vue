@@ -191,6 +191,9 @@ import { PlusSmIcon } from '@heroicons/vue/solid'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
+import Alerts from '@/services/alerts'
+import Dialog from '@/services/dialog'
+
 import SectionTopMenu from '@/components/SectionTopMenu'
 
 import DeviceCredentialsDialog from '../team/Devices/dialogs/DeviceCredentialsDialog'
@@ -208,8 +211,7 @@ import deviceApi from '@/api/devices'
 import projectApi from '@/api/project'
 import permissionsMixin from '@/mixins/Permissions'
 import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
-import Alerts from '@/services/alerts'
-import Dialog from '@/services/dialog'
+import DeviceLastSeenBadge from '@/pages/device/components/DeviceLastSeenBadge'
 
 export default {
     name: 'ProjectDeployments',
@@ -242,17 +244,17 @@ export default {
         ...mapState('account', ['team', 'teamMembership']),
         columns () {
             return [
-                { label: 'Device', class: ['w-64'], sortable: true, component: { is: markRaw(DeviceLink) } },
-                { label: 'Last Seen', class: ['w-48'], sortable: true, component: { is: markRaw(LastSeen) } },
-                { label: 'Deployed Snapshot', class: ['w-32'], component: { is: markRaw(Snapshot) } },
-                { label: '', class: ['w-20'], component: { is: markRaw(ProjectStatusBadge) } }
+                { label: 'Device', key: 'name', class: ['w-64'], sortable: true, component: { is: markRaw(DeviceLink) } },
+                { label: 'Last Seen', key: 'lastSeenAt', class: ['w-32'], sortable: true, component: { is: markRaw(DeviceLastSeenBadge) } },
+                { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(ProjectStatusBadge) } },
+                { label: 'Deployed Snapshot', class: ['w-48'], component: { is: markRaw(Snapshot) } }
             ]
         },
         cloudColumns () {
             return [
                 { label: 'Location', class: ['w-64'], component: { is: markRaw(DeploymentLink), extraProps: { disabled: !this.projectRunning || this.isVisitingAdmin } } },
                 { label: 'Last Deployed', class: ['w-48'], component: { is: markRaw(LastSeen), map: { lastSeenSince: 'flowLastUpdatedSince' } } },
-                { label: 'Deployment Status', class: ['w-32'], component: { is: markRaw(ProjectStatusBadge), map: { status: 'meta.state' } } },
+                { label: 'Deployment Status', class: ['w-48'], component: { is: markRaw(ProjectStatusBadge), map: { status: 'meta.state' } } },
                 { label: '', class: ['w-20'], component: { is: markRaw(ProjectEditorLink), extraProps: { disabled: !this.projectRunning || this.isVisitingAdmin } } }
             ]
         },
