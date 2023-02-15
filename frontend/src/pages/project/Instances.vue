@@ -1,19 +1,19 @@
 <template>
     <div>
-        <SectionTopMenu hero="FlowForge Hosted" help-header="FlowForge - Deployments - Cloud" info="Your Node-RED Deployments hosted on the same domain as FlowForge">
+        <SectionTopMenu hero="FlowForge Hosted Instances" help-header="FlowForge - Instances - Local" info="Instances of Node-RED running at the same domain as FlowForge">
             <template v-slot:pictogram>
                 <img src="../../images/pictograms/edge_red.png" />
             </template>
             <template v-slot:helptext>
-                <p>This is a list of all deployments of this Project hosted on the same domain as FlowForge.</p>
+                <p>This is a list of all instances of this Project hosted on the same domain as FlowForge.</p>
                 <p>It will always run the latest flow deployed in Node-RED and use the latest credentials and runtime settings defined in the Projects settings.</p>
-                <p>To edit a Projects flow, open the editor of this Deployment.</p>
+                <p>To edit a Projects flow, open the editor of this Instance.</p>
             </template>
         </SectionTopMenu>
 
-        <div class="space-y-6 mb-6">
+        <div class="space-y-6 mb-12">
             <ff-data-table
-                data-el="cloud-deployments"
+                data-el="cloud-instances"
                 :columns="cloudColumns"
                 :rows="cloudRows"
             >
@@ -50,7 +50,7 @@
             </ff-data-table>
         </div>
 
-        <SectionTopMenu hero="Remote Deployments" help-header="FlowForge - Deployments - Remote" info="Remote Deployments can be managed through 'Devices' attached to this Project.">
+        <SectionTopMenu hero="Remote Instances" help-header="FlowForge - Instances - Remote" info="Instances of Node-RED running remotely, managed by this Project and the FlowForge Device Agent.">
             <template v-slot:pictogram>
                 <img src="../../images/pictograms/edge_red.png" />
             </template>
@@ -88,11 +88,11 @@
             <template v-else>
                 <template v-if="devices.length > 0">
                     <ff-data-table
-                        data-el="devices"
+                        data-el="remote-instances"
                         :columns="columns"
                         :rows="devices"
                         :show-search="true"
-                        search-placeholder="Search Device Deployments..."
+                        search-placeholder="Search Remote Instances..."
                     >
                         <template
                             v-if="hasPermission('project:snapshot:create')"
@@ -212,7 +212,7 @@ import SnapshotAssignDialog from './Snapshots/dialogs/SnapshotAssignDialog'
 import TeamDeviceCreateDialog from '../team/Devices/dialogs/TeamDeviceCreateDialog'
 
 export default {
-    name: 'ProjectDeployments',
+    name: 'ProjectInstances',
     components: {
         ClockIcon,
         DeviceCredentialsDialog,
