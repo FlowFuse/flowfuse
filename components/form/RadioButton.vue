@@ -1,7 +1,7 @@
 <template>
     <label class="ff-radio-btn" :disabled="disabled" @click="select(value)">
         <input type="radio" :value="value" />
-        <span class="checkbox" :checked="checked"></span>
+        <span ref="input" class="checkbox" :checked="checked" tabindex="0" @keydown.space.prevent="select(value)"></span>
         <label>{{ label }}</label>
         <p v-if="description && !hideDescription" class="ff-description">{{ description }}</p>
     </label>
@@ -42,6 +42,12 @@ export default {
             if (!this.disabled) {
                 this.$emit('select', value)
             }
+        },
+        focus () {
+            this.$refs.input?.focus()
+        },
+        blur () {
+            this.$refs.input?.blur()
         }
     }
 }
