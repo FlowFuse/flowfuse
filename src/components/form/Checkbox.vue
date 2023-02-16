@@ -1,7 +1,7 @@
 <template>
     <label class="ff-checkbox" :disabled="disabled">
         <input v-model="model" type="checkbox" :value="modelValue" :disabled="disabled" />
-        <span class="checkbox" :checked="model" ref="input" tabindex="0" @keydown.space.stop.prevent="toggle"></span>
+        <span ref="input" class="checkbox" :checked="model" tabindex="0" @keydown.space.stop.prevent="toggle"></span>
         <label v-if="label !== null || $slots.default" @click="toggle">
             <slot>{{ label }}</slot>
         </label>

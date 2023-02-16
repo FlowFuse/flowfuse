@@ -44,10 +44,12 @@
                 <props-table :rows="cGroups['button'].components[0].props"></props-table>
                 <h3>Slots:</h3>
                 <slots-table :rows="cGroups['button'].components[0].slots"></slots-table>
+                <h3>Methods:</h3>
+                <methods-table :rows="cGroups['button'].components[0].methods" @callMethod="this.$refs['button-input']?.[$event]()"></methods-table>
                 <h3>Examples:</h3>
                 <div class="examples">
                     <div class="example">
-                        <ff-button>Hello World</ff-button>
+                        <ff-button ref="button-input" @click="doSomething('Button clicked')">Hello World</ff-button>
                         <code>{{ cGroups['button'].components[0].examples[0].code }}</code>
                     </div>
                     <div class="example">
