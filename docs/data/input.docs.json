@@ -70,6 +70,13 @@
             "key": "disabled",
             "default": "false",
             "description": "(optional) Whether or not he dropdown should render in a disabled state - preventing user interaction"
+        }],
+        "methods": [{
+            "name": "focus",
+            "description": "Focuses on the element"
+        },{
+            "name": "blur",
+            "description": "Removes focus from the element"
         }]
     }, {
         "name": "ff-checkbox",
