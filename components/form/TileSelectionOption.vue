@@ -79,6 +79,10 @@ export default {
     },
     methods: {
         select (allowEdit = false) {
+            if (this.disabled) {
+                return
+            }
+
             if (!this.editable) {
                 this.$parent.setSelected({
                     value: this.value,
