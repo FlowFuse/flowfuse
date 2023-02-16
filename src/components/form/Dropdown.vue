@@ -1,6 +1,6 @@
 <template>
     <div class="ff-dropdown" :class="'ff-dropdown--' + (isOpen ? 'open' : 'closed')" :disabled="disabled">
-        <div v-if="dropdownStyle === 'select'" ref="dropdownLabel" class="ff-dropdown-selected" tabindex="0" @click="open()" @keydown.space.stop.prevent="open()">
+        <div v-if="dropdownStyle === 'select'" ref="dropdownLabel" class="ff-dropdown-selected" tabindex="0" @click="open()" @keydown.space.prevent="open()">
             <slot name="placeholder">
                 {{ selected?.label || placeholder }}
             </slot>

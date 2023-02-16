@@ -117,11 +117,18 @@
         }, {
             "key": "label",
             "default": "''",
-            "description": "(optional) Use this to provide guidance/intructions for what the radio buttons are being used for."
+            "description": "(optional) Use this to provide guidance/instructions for what the radio buttons are being used for."
         }, {
             "key": "orientation",
             "default": "horizontal",
             "description": "(optional) The direction that the radio group renders."
+        }],
+        "methods": [{
+            "name": "focus",
+            "description": "Focuses on the first radio button"
+        },{
+            "name": "blur",
+            "description": "Removes focus from the element"
         }]
     }, {
         "name": "ff-tile-selection",
