@@ -1,4 +1,10 @@
 <template>
+    <!-- Used to show interactivity -->
+    <div style="position: absolute;right: 12px;top: 12px;z-index: 10;min-width: 350px;">
+        <ff-notification-toast v-for="(a, $index) in alerts.slice().reverse()" :key="a.timestamp"
+                               :type="a.type" :message="a.message"
+                               :countdown="a.countdown || 3000" @close="clearAlert($index)" />
+    </div>
     <nav :class="{'ff-bg-light': theme === 'light', 'ff-bg-dark': theme === 'dark'}">
         <h2 class="">Components</h2>
         <ul id="grouplist">
@@ -588,7 +594,7 @@
                                 We can also define content using a slot instead, and use the actions slot to add our own buttons
                             </template>
                             <template v-slot:actions>
-                                <ff-button @click="doSomething()">Example</ff-button>
+                                <ff-button @click="doSomething('Slot example')">Example</ff-button>
                             </template>
                         </ff-notification-toast>
                         <code>{{ cGroups['notifications'].components[1].examples[4].code }}</code>
@@ -721,6 +727,7 @@ export default {
     data () {
         return {
             theme: 'light',
+            alerts: [],
             models: {
                 dialog0: '',
                 textInput0: '',
@@ -950,8 +957,24 @@ export default {
         pretty: function (value) {
             return JSON.stringify(value, null, 2)
         },
-        rowSelected () {
-            console.log('row selected')
+        doSomething (message) {
+            this.displayAlert(message, 'info')
+        },
+        /**
+         * @param {string} msg The message to show
+         * @param {'info'|'confirmation'|'warning'} [type] Toast style
+         * @param {number} [countdown] How long to show (defaults to 3s)
+         */
+        displayAlert (msg, type, countdown) {
+            this.alerts.push({
+                message: msg,
+                type,
+                countdown,
+                timestamp: Date.now()
+            })
+        },
+        clearAlert (i) {
+            this.alerts.splice(this.alerts.length - 1 - i, 1)
         }
     }
 }
