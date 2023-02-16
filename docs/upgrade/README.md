@@ -13,6 +13,14 @@ for each version you are upgrading across.
 Note that we do not support downgrading FlowForge to previous levels once an upgrade
 has been performed.
 
+### Upgrading to 1.4
+
+Details of how to upgrade can be found for each deployment model:
+
+- [LocalFS](../install/local/README.md#upgrade)
+- [Docker](../install/docker/README.md#upgrade)
+- [Kubernetes](../install/kubernetes/README.md#upgrade)
+
 ### Upgrading to 1.3
 
 Details of how to upgrade can be found for each deployment model:
