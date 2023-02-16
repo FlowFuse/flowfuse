@@ -91,7 +91,7 @@ const DeviceLink = {
 const ProjectLink = {
     template: `
         <template v-if="project">
-            <router-link :to="{ name: 'ProjectDeployments', params: { id: project.id }}">{{project.name}}</router-link>
+            <router-link :to="{ name: 'ProjectInstances', params: { id: project.id }}">{{ project.name }}</router-link>
         </template>
         <template v-else><span class="italic text-gray-500">unassigned</span></template>`,
     props: ['project']

@@ -63,7 +63,7 @@ const TokenFieldFormatter = {
 const ProjectFieldFormatter = {
     template: `
         <template v-if="project">
-            <router-link :to="{ name: 'ProjectDeployments', params: { id: project }}">{{projectName}}</router-link>
+            <router-link :to="{ name: 'ProjectInstances', params: { id: project }}">{{projectName}}</router-link>
         </template>
         <template v-else><span class="italic text-gray-500">Don't assign</span></template>`,
     props: ['project', 'projectName']
