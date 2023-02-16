@@ -1,8 +1,8 @@
 <template>
     <label class="ff-checkbox" :disabled="disabled">
-        <input type="checkbox" :value="modelValue" :disabled="disabled" v-model="model" />
-        <span class="checkbox" :checked="model"></span>
-        <label @click="toggle" v-if="label !== null || $slots.default">
+        <input v-model="model" type="checkbox" :value="modelValue" :disabled="disabled" />
+        <span class="checkbox" :checked="model" ref="input" tabindex="0" @keydown.space.stop.prevent="toggle"></span>
+        <label v-if="label !== null || $slots.default" @click="toggle">
             <slot>{{ label }}</slot>
         </label>
     </label>
@@ -37,6 +37,12 @@ export default {
         }
     },
     methods: {
+        focus () {
+            this.$refs.input?.focus()
+        },
+        blur () {
+            this.$refs.input?.blur()
+        },
         toggle () {
             if (!this.disabled) {
                 this.model = !this.model
