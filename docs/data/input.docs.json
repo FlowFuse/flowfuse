@@ -179,6 +179,13 @@
             "key": "meta",
             "default": "null",
             "description": "An array of objects. Each object will be shown as a key/value pair in a table."
+        }],
+        "methods": [{
+            "name": "focus",
+            "description": "Focuses on the first time selection"
+        },{
+            "name": "blur",
+            "description": "Removes focus from all tile selections"
         }]
     }]
 }

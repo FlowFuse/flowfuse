@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-tile-selection" ref="options">
+    <div ref="options" class="ff-tile-selection">
         <slot name="default"></slot>
     </div>
 </template>
@@ -8,11 +8,17 @@
 
 export default {
     name: 'ff-tile-selection',
-    emits: ['update:modelValue'],
     props: {
         modelValue: {
             default: null,
             type: [String, Number]
+        }
+    },
+    emits: ['update:modelValue'],
+    data () {
+        return {
+            selected: null,
+            children: []
         }
     },
     watch: {
@@ -22,11 +28,16 @@ export default {
             })
         }
     },
-    data () {
-        return {
-            selected: null,
-            children: []
-        }
+    mounted () {
+        this.$nextTick(() => {
+            for (let i = 0; i < this.children.length; i++) {
+                if (this.modelValue !== this.children[i].value) {
+                    this.children[i].selected = false
+                } else {
+                    this.children[i].selected = true
+                }
+            }
+        })
     },
     methods: {
         registerOption: function (child) {
@@ -44,18 +55,15 @@ export default {
             for (let i = 0; i < this.children.length; i++) {
                 this.children[i].selected = value === this.children[i].value
             }
-        }
-    },
-    mounted () {
-        this.$nextTick(() => {
-            for (let i = 0; i < this.children.length; i++) {
-                if (this.modelValue !== this.children[i].value) {
-                    this.children[i].selected = false
-                } else {
-                    this.children[i].selected = true
-                }
+        },
+        focus () {
+            this.children?.[0].focus()
+        },
+        blur () {
+            for (const child of this.children) {
+                child.blur()
             }
-        })
+        }
     }
 }
 </script>
