@@ -1,3 +1,75 @@
+#### 1.4.0: Release
+
+ - Revert "Ensure a suspended trial project is not added to billing at trial end"
+ - Ensure a suspended trial project is not added to billing at trial end
+ - bump forge-ui-components (#1715) @hardillb
+ - Fix the router-link name for ProjectLink component (#1714) @joepavitt
+ - Team Library: Navigation (#1713) @Pezmc
+ - Updated At and Delete Option for Team Library (#1704) @Pezmc
+ - Update Deployments > Instances & respective tests (#1711) @joepavitt
+ - Add "Last Seen" status pill (#1710) @joepavitt
+ - add option to activate a new snapshot on creation (#1705) @Steve-Mcl
+ - Fixes the "View Target Project" button & adds E2E test coverage (#1706) @joepavitt
+ - Allow signup page to be customised from admin settings (#1692) @knolleary
+ - Add admin view of user details and teams (#1658) @knolleary
+ - Staged Deployments (#1653) @joepavitt
+ - Fix extra whitespace on code preview (#1702) @Pezmc
+ - ElapsedTime handles timezones and strings (#1701) @Pezmc
+ - Add meta descriptions to the top-level doc files (#1656) @joepavitt
+ - Ensure a suspended trial project is not added to billing at trial end (#1696) @knolleary
+ - Only copy AccessToken data, if it exists (#1697) @Pezmc
+ - docs: Reorder doc line order for explict skip step (#1698) @ZJvandeWeg
+ - Device provisioning API (#1659) @Steve-Mcl
+ - Add delete route for shared library api (#1690) @knolleary
+ - docs: info on Device Provisioning and Auto Registration (#1687) @Steve-Mcl
+ - removes context "async only" limitations notice (#1685) @Steve-Mcl
+ - Remove unused export to JSON feature (#1624) @Pezmc
+ - Add updatedAt to library entry meta data (#1691) @knolleary
+ - Disable free team credit if team trials is enabled (#1683) @knolleary
+ - Ensure device billing counts are updated during trial mode (#1682) @knolleary
+ - Add "Last Seen" device badge (#1679) @joepavitt
+ - Team Library - File Preview (#1672) @joepavitt
+ - Team slug check (#1655) @knolleary
+ - Team Trial UX improvements (#1677) @knolleary
+ - Remove console.log (#1680) @knolleary
+ - doc: Add Azure to SSO providers (#1674) @ZJvandeWeg
+ - Fix logic to disable housekeeper (#1673) @knolleary
+ - Bump postcss-preset-env from 7.8.3 to 8.0.1 (#1671) @dependabot
+ - Bump vitest from 0.26.3 to 0.28.4 (#1670) @dependabot
+ - Bump @headlessui/vue from 1.7.8 to 1.7.9 (#1669) @dependabot
+ - Team trial mode (#1611) @knolleary
+ - Validate internal links that include # (#1666) @knolleary
+ - ci: Update Node version for test-docs (#1665) @ZJvandeWeg
+ - 404: Fix broken link (#1662) @ZJvandeWeg
+ - Change PostHog config: apihost to apiurl (#1651) @joepavitt
+ - Make Posthog API Host configurable in flowforge.yml (#1649) @joepavitt
+ - Change Project Stack without Affecting Billing (#1642) @Pezmc
+ - Refactor project put method to a single route (#1634) @Pezmc
+ - Remove moment.js (#1636) @Pezmc
+ - Reset team state after user deletes their last team (#1645) @knolleary
+ - docs: Add Safe mode for Node-RED (#1643) @ZJvandeWeg
+ - Move "Danger" settings into the "General" tab (#1637) @joepavitt
+ - Add "w-full" to credit banner (#1635) @joepavitt
+ - Change project type API unit tests (#1631) @Pezmc
+ - Backend for stack restart API (#1615) @hardillb
+ - Change Project Type Form (#1610) @Pezmc
+ - Bump jsdom from 20.0.3 to 21.1.0 (#1629) @dependabot
+ - Bump jsonwebtoken from 8.5.1 to 9.0.0 (#1627) @dependabot
+ - Bump vue-loader from 16.8.3 to 17.0.1 (#1626) @dependabot
+ - Bump @headlessui/vue from 1.7.7 to 1.7.8 (#1625) @dependabot
+ - Bump cypress from 11.2.0 to 12.4.1 (#1628) @dependabot
+ - license: Allow custom expiration date (#1605) @ZJvandeWeg
+ - Store project billing state when adding/removing subscription (#1619) @Pezmc
+ - devtool: Add --repl flag to start app in interactive node shell (#1617) @knolleary
+ - Bump postcss-preset-env from 6.7.1 to 7.8.3 (#1519) @dependabot
+ - Bump sinon from 14.0.2 to 15.0.1 (#1517) @dependabot
+ - Bump @headlessui/vue from 1.7.3 to 1.7.7 (#1469) @dependabot
+ - Move the credit banner into the project type section (#1613) @Pezmc
+ - First pass at Digital Ocean Droplet doc (#1604) @hardillb
+ - chore: Fix newline escaping in backport action (#1602) @knolleary
+ - Identify User at registration, rather than on return to app (#1600) @joepavitt
+ - Fix resync maintenance release task (#1595) @knolleary
+
 #### 1.3.0: Release
 
  - docs: Add missing dot
