@@ -93,6 +93,13 @@
             "key": "disabled",
             "default": "false",
             "description": "Whether or not the checkbox can be toggled."
+        }],
+        "methods": [{
+            "name": "focus",
+            "description": "Focuses on the element"
+        },{
+            "name": "blur",
+            "description": "Removes focus from the element"
         }]
     }, {
         "name": "ff-radio-group",

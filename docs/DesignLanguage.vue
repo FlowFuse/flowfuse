@@ -171,7 +171,7 @@
                     <div class="example">
                         <h5>Example 4: Filtering via Search &amp; Actions</h5>
                         <ff-data-table :columns="data.table3.columns" :rows="data.table3.rows"
-                            :show-search="true" search-placeholder="Search here..." v-model:search="data.table3.search">
+                                       :show-search="true" search-placeholder="Search here..." v-model:search="data.table3.search">
                             <template v-slot:actions>
                                 <ff-button>Press Me!</ff-button>
                                 <ff-button>Click Me!</ff-button>
@@ -216,7 +216,7 @@
                         </p>
                         <p style="margin-bottom: 12px;">This method does still enable searching and sorting out of the box.</p>
                         <ff-data-table :columns="data.table4.columns" :rows="data.table4.rows"
-                            :show-search="true" :search-fields="['sName', 'number']" search-placeholder="search-fields limits which properties the search applies to."></ff-data-table>
+                                       :show-search="true" :search-fields="['sName', 'number']" search-placeholder="search-fields limits which properties the search applies to."></ff-data-table>
                         <code style="margin-top: 24px;">{{ cGroups['data-table'].components[0].examples[8].code }}</code>
                         <code style="margin-top: 24px;">cols = {{ pretty(data.table4DocVersion.columns) }}</code>
                     </div>
@@ -309,7 +309,7 @@
                         <ff-button @click="$refs['dialog0'].show()">Show Dialog</ff-button>
                         <ff-dialog ref="dialog0" header="My Dialog Box" :disable-primary="!models.dialog0">
                             <p style="margin-bottom: 12px">The main message for the dialog box goes here. We can put any elements we like here.
-                            For example, a text input:</p>
+                                For example, a text input:</p>
                             <ff-text-input placeholder="My Text Input" v-model="models.dialog0"/>
                         </ff-dialog>
                         <code>{{ cGroups['dialog'].components[0].examples[0].code }}</code>
@@ -453,11 +453,13 @@
                 <h2 ref="ff-checkbox"><pre>ff-checkbox</pre></h2>
                 <h3>Properties:</h3>
                 <props-table :rows="cGroups['input'].components[2].props"></props-table>
+                <h3>Methods:</h3>
+                <methods-table :rows="cGroups['input'].components[2].methods" @callMethod="this.$refs['checkbox-input']?.[$event]()"></methods-table>
                 <h3>Examples:</h3>
                 <div class="examples">
                     <div class="example">
                         <h5>Example 1: Default</h5>
-                        <ff-checkbox label="My Checkbox" v-model="models.checkbox0"></ff-checkbox>
+                        <ff-checkbox label="My Checkbox" v-model="models.checkbox0" ref="checkbox-input"></ff-checkbox>
                         {{ models.checkbox0 }}
                         <code>{{ cGroups['input'].components[2].examples[0].code }}</code>
                     </div>
