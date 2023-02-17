@@ -36,15 +36,11 @@ Your palette manager should now only include nodes that are required for your fl
 
 Presently it is not possible to install older versions of a package into Node-RED so your flows will need to run on the latest version of each package, you may want to consider updating before you migrate.
 
-
 ### Backup your flows
 
 From the Node-RED editor go to the hamburger menu, and select **_Export_**.![](./images/mig_export_menu.png)
 
 Ensure that you have **_ all flows _** selected in the modal and then click the download button. This will download a file called **_flows.json_** to your browser, keep it safe.
-
-![](https://lh5.googleusercontent.com/rY4vl2YoHINNMoK0MTTrLITrBJgr9Detxd6w3KRJQWXkvRoEv6625Ope0QG3WmCTtRHeJFOk6KCoBfniONIjSP1lxNTltEROkpys8j0CsHuPqKM74HoNMqt0AYufg8z9JRDsrJOa197op8hXwZzgiDU)
-
 
 ### Credentials.
 
