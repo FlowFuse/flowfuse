@@ -1,8 +1,8 @@
 <template>
-    <div class="ff-tile-selection-option" :class="{'editable': editable, 'disabled': disabled, 'active': selected}" @click="select()">
+    <div ref="input" class="ff-tile-selection-option" :class="{'editable': editable, 'disabled': disabled, 'active': selected}" tabindex="0" @click="select(false)" @keydown.space.prevent="select(true)">
         <div class="ff-tile-selection-option--header">
             <h2>
-                <PencilAltIcon class="ff-tile-selection-option--edit" v-if="editable" @click="$emit('edit')" />
+                <PencilAltIcon v-if="editable" class="ff-tile-selection-option--edit" @click="select(true)" />
                 <CheckCircleIcon v-else />
                 {{ label }}
             </h2>
@@ -30,7 +30,10 @@ import { CheckCircleIcon, PencilAltIcon } from '@heroicons/vue/solid'
 
 export default {
     name: 'ff-tile-selection-option',
-    emits: ['edit'],
+    components: {
+        CheckCircleIcon,
+        PencilAltIcon
+    },
     props: {
         value: {
             required: true,
@@ -65,10 +68,7 @@ export default {
             type: Array
         }
     },
-    components: {
-        CheckCircleIcon,
-        PencilAltIcon
-    },
+    emits: ['edit'],
     data () {
         return {
             selected: false
@@ -78,7 +78,11 @@ export default {
         this.$parent.registerOption(this)
     },
     methods: {
-        select () {
+        select (allowEdit = false) {
+            if (this.disabled) {
+                return
+            }
+
             if (!this.editable) {
                 this.$parent.setSelected({
                     value: this.value,
@@ -87,7 +91,15 @@ export default {
                     price: this.price
                 })
                 this.selected = !this.selected
+            } else if (allowEdit) {
+                this.$emit('edit')
             }
+        },
+        focus () {
+            this.$refs.input?.focus()
+        },
+        blur () {
+            this.$refs.input?.blur()
         }
     }
 }

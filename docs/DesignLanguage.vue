@@ -1,4 +1,10 @@
 <template>
+    <!-- Used to show interactivity -->
+    <div style="position: absolute;right: 12px;top: 12px;z-index: 10;min-width: 350px;">
+        <ff-notification-toast v-for="(a, $index) in alerts.slice().reverse()" :key="a.timestamp"
+                               :type="a.type" :message="a.message"
+                               :countdown="a.countdown || 3000" @close="clearAlert($index)" />
+    </div>
     <nav :class="{'ff-bg-light': theme === 'light', 'ff-bg-dark': theme === 'dark'}">
         <h2 class="">Components</h2>
         <ul id="grouplist">
@@ -38,10 +44,12 @@
                 <props-table :rows="cGroups['button'].components[0].props"></props-table>
                 <h3>Slots:</h3>
                 <slots-table :rows="cGroups['button'].components[0].slots"></slots-table>
+                <h3>Methods:</h3>
+                <methods-table :rows="cGroups['button'].components[0].methods" @callMethod="this.$refs['button-input']?.[$event]()"></methods-table>
                 <h3>Examples:</h3>
                 <div class="examples">
                     <div class="example">
-                        <ff-button>Hello World</ff-button>
+                        <ff-button ref="button-input" @click="doSomething('Button clicked')">Hello World</ff-button>
                         <code>{{ cGroups['button'].components[0].examples[0].code }}</code>
                     </div>
                     <div class="example">
@@ -171,7 +179,7 @@
                     <div class="example">
                         <h5>Example 4: Filtering via Search &amp; Actions</h5>
                         <ff-data-table :columns="data.table3.columns" :rows="data.table3.rows"
-                            :show-search="true" search-placeholder="Search here..." v-model:search="data.table3.search">
+                                       :show-search="true" search-placeholder="Search here..." v-model:search="data.table3.search">
                             <template v-slot:actions>
                                 <ff-button>Press Me!</ff-button>
                                 <ff-button>Click Me!</ff-button>
@@ -216,7 +224,7 @@
                         </p>
                         <p style="margin-bottom: 12px;">This method does still enable searching and sorting out of the box.</p>
                         <ff-data-table :columns="data.table4.columns" :rows="data.table4.rows"
-                            :show-search="true" :search-fields="['sName', 'number']" search-placeholder="search-fields limits which properties the search applies to."></ff-data-table>
+                                       :show-search="true" :search-fields="['sName', 'number']" search-placeholder="search-fields limits which properties the search applies to."></ff-data-table>
                         <code style="margin-top: 24px;">{{ cGroups['data-table'].components[0].examples[8].code }}</code>
                         <code style="margin-top: 24px;">cols = {{ pretty(data.table4DocVersion.columns) }}</code>
                     </div>
@@ -309,7 +317,7 @@
                         <ff-button @click="$refs['dialog0'].show()">Show Dialog</ff-button>
                         <ff-dialog ref="dialog0" header="My Dialog Box" :disable-primary="!models.dialog0">
                             <p style="margin-bottom: 12px">The main message for the dialog box goes here. We can put any elements we like here.
-                            For example, a text input:</p>
+                                For example, a text input:</p>
                             <ff-text-input placeholder="My Text Input" v-model="models.dialog0"/>
                         </ff-dialog>
                         <code>{{ cGroups['dialog'].components[0].examples[0].code }}</code>
@@ -453,11 +461,13 @@
                 <h2 ref="ff-checkbox"><pre>ff-checkbox</pre></h2>
                 <h3>Properties:</h3>
                 <props-table :rows="cGroups['input'].components[2].props"></props-table>
+                <h3>Methods:</h3>
+                <methods-table :rows="cGroups['input'].components[2].methods" @callMethod="this.$refs['checkbox-input']?.[$event]()"></methods-table>
                 <h3>Examples:</h3>
                 <div class="examples">
                     <div class="example">
                         <h5>Example 1: Default</h5>
-                        <ff-checkbox label="My Checkbox" v-model="models.checkbox0"></ff-checkbox>
+                        <ff-checkbox label="My Checkbox" v-model="models.checkbox0" ref="checkbox-input"></ff-checkbox>
                         {{ models.checkbox0 }}
                         <code>{{ cGroups['input'].components[2].examples[0].code }}</code>
                     </div>
@@ -480,11 +490,13 @@
                 <h2 ref="ff-radio-group"><pre>ff-radio-group</pre></h2>
                 <h3>Properties:</h3>
                 <props-table :rows="cGroups['input'].components[3].props"></props-table>
+                <h3>Methods:</h3>
+                <methods-table :rows="cGroups['input'].components[3].methods" @callMethod="this.$refs['radio-group-input']?.[$event]()"></methods-table>
                 <h3>Examples:</h3>
                 <div class="examples">
                     <div class="example">
                         <h5>Example 1: Horizontal</h5>
-                        <ff-radio-group v-model="models.radio0" :options="[{label: 'Option 1', value: 1, checked: false}, {label: 'Option 2', value: 2}]"></ff-radio-group>
+                        <ff-radio-group ref="radio-group-input" v-model="models.radio0" :options="[{label: 'Option 1', value: 1, checked: false}, {label: 'Option 2', value: 2}]"></ff-radio-group>
                         {{ models.radio0 }}
                         <code>{{ cGroups['input'].components[3].examples[0].code }}</code>
                     </div>
@@ -526,8 +538,8 @@
                     </div>
                     <div class="example">
                         <ff-tile-selection>
-                            <ff-tile-selection-option :editable="true" value="1" label="Option 1" :description="'Markdown supported in the description.'" price="$15.00" price-interval="/month" :meta="[{key: 'a', value: 1}, {key: 'b', value: 2}]"/>
-                            <ff-tile-selection-option :editable="true" value="2" label="Option 2" :description="'\n * So we can offer bullet point lists\n* That help summarise the selection option'" price="$50.00" price-interval="/month" :meta="[{key: 'c', value: 3}, {key: 'd', value: 4}]"/>
+                            <ff-tile-selection-option @edit="doSomething('Triggered edit on option 1')" :editable="true" value="1" label="Option 1" :description="'Markdown supported in the description.'" price="$15.00" price-interval="/month" :meta="[{key: 'a', value: 1}, {key: 'b', value: 2}]"/>
+                            <ff-tile-selection-option @edit="doSomething('Triggered edit on option 2')"  :editable="true" value="2" label="Option 2" :description="'\n * So we can offer bullet point lists\n* That help summarise the selection option'" price="$50.00" price-interval="/month" :meta="[{key: 'c', value: 3}, {key: 'd', value: 4}]"/>
                         </ff-tile-selection>
                         <code>{{ cGroups['input'].components[4].examples[2].code }}</code>
                     </div>
@@ -586,7 +598,7 @@
                                 We can also define content using a slot instead, and use the actions slot to add our own buttons
                             </template>
                             <template v-slot:actions>
-                                <ff-button @click="doSomething()">Example</ff-button>
+                                <ff-button @click="doSomething('Slot example')">Example</ff-button>
                             </template>
                         </ff-notification-toast>
                         <code>{{ cGroups['notifications'].components[1].examples[4].code }}</code>
@@ -719,6 +731,7 @@ export default {
     data () {
         return {
             theme: 'light',
+            alerts: [],
             models: {
                 dialog0: '',
                 textInput0: '',
@@ -948,8 +961,24 @@ export default {
         pretty: function (value) {
             return JSON.stringify(value, null, 2)
         },
-        rowSelected () {
-            console.log('row selected')
+        doSomething (message) {
+            this.displayAlert(message, 'info')
+        },
+        /**
+         * @param {string} msg The message to show
+         * @param {'info'|'confirmation'|'warning'} [type] Toast style
+         * @param {number} [countdown] How long to show (defaults to 3s)
+         */
+        displayAlert (msg, type, countdown) {
+            this.alerts.push({
+                message: msg,
+                type,
+                countdown,
+                timestamp: Date.now()
+            })
+        },
+        clearAlert (i) {
+            this.alerts.splice(this.alerts.length - 1 - i, 1)
         }
     }
 }

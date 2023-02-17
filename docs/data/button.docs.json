@@ -48,6 +48,13 @@
         }, {
             "name": "icon-right",
             "description": "Can be used to add an icon to the right of any value/label"
+        }],
+        "methods": [{
+            "name": "focus",
+            "description": "Focuses on the element"
+        },{
+            "name": "blur",
+            "description": "Removes focus from the element"
         }]
     }, {
         "name": "ff-kebab-menu",

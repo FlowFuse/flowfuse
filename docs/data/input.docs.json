@@ -93,6 +93,13 @@
             "key": "disabled",
             "default": "false",
             "description": "Whether or not the checkbox can be toggled."
+        }],
+        "methods": [{
+            "name": "focus",
+            "description": "Focuses on the element"
+        },{
+            "name": "blur",
+            "description": "Removes focus from the element"
         }]
     }, {
         "name": "ff-radio-group",
@@ -110,11 +117,18 @@
         }, {
             "key": "label",
             "default": "''",
-            "description": "(optional) Use this to provide guidance/intructions for what the radio buttons are being used for."
+            "description": "(optional) Use this to provide guidance/instructions for what the radio buttons are being used for."
         }, {
             "key": "orientation",
             "default": "horizontal",
             "description": "(optional) The direction that the radio group renders."
+        }],
+        "methods": [{
+            "name": "focus",
+            "description": "Focuses on the first radio button"
+        },{
+            "name": "blur",
+            "description": "Removes focus from the element"
         }]
     }, {
         "name": "ff-tile-selection",
@@ -165,6 +179,13 @@
             "key": "meta",
             "default": "null",
             "description": "An array of objects. Each object will be shown as a key/value pair in a table."
+        }],
+        "methods": [{
+            "name": "focus",
+            "description": "Focuses on the first time selection"
+        },{
+            "name": "blur",
+            "description": "Removes focus from all tile selections"
         }]
     }]
 }

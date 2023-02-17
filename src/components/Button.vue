@@ -1,5 +1,5 @@
 <template>
-    <button class="ff-btn transition-fade--color" :type="type" :class="'ff-btn--' + kind + (hasIcon ? ' ff-btn-icon' : '') + (size === 'small' ? ' ff-btn-small' : '') + (size === 'full-width' ? ' ff-btn-fwidth' : '')" @click="go()">
+    <button ref="input" class="ff-btn transition-fade--color" :type="type" :class="'ff-btn--' + kind + (hasIcon ? ' ff-btn-icon' : '') + (size === 'small' ? ' ff-btn-small' : '') + (size === 'full-width' ? ' ff-btn-fwidth' : '')" @click="go()">
         <span v-if="hasIconLeft" class="ff-btn--icon ff-btn--icon-left">
             <slot name="icon-left"></slot>
         </span>
@@ -53,6 +53,12 @@ export default {
             if (this.to) {
                 this.$router.push(this.to)
             }
+        },
+        focus () {
+            this.$refs.input?.focus()
+        },
+        blur () {
+            this.$refs.input?.blur()
         }
     }
 }

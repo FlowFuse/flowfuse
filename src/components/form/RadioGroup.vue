@@ -1,7 +1,7 @@
 <template>
     <div class="ff-radio-group" :class="'ff-radio-group--' + orientation">
-        <label class="ff-radio-group-label" v-if="label">{{ label }}</label>
-        <ff-radio-button v-for="option in internalOptions" :key="option.label"
+        <label v-if="label" class="ff-radio-group-label">{{ label }}</label>
+        <ff-radio-button v-for="option in internalOptions" :key="option.label" ref="inputs"
             :value="option.value" :label="option.label" :checked="option.checked"
             :description="option.description"
             :disabled="option.disabled"
@@ -60,6 +60,14 @@ export default {
                     this.$emit('update:modelValue', option.value)
                 }
             })
+        },
+        focus () {
+            this.$refs.inputs?.[0]?.focus()
+        },
+        blur () {
+            for (const input of this.$refs.inputs) {
+                input.blur()
+            }
         }
     }
 }
