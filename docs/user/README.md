@@ -53,8 +53,8 @@ FlowForge supports reading and writing persistent files and persistent context.
 
 ### Node-RED Safe Mode
 
-When a Node-RED instance is unresponsive, for example due to an infinate loop,
-it can be put into Safe Mode. This is done by updating the [Enivronment Variables](envvar.md)
+When a Node-RED instance is unresponsive, for example due to an infinite loop,
+it can be put into Safe Mode. This is done by updating the [Environment Variables](envvar.md)
 for a project. Set `NODE_RED_ENABLE_SAFE_MODE` as variable name to the value
 `true`, then suspend and restart the project. This will load the editor but not
 start the flow which will let you log in and recover. The flows will be started on the next Deploy from the editor.

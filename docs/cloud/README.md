@@ -41,7 +41,7 @@ Each Project has a quota of `100MB` of file storage. A single write operation is
 limited to `10MB` in size.
 
 Some 3rd party nodes try to access the filesystem directly. This can lead to
-unpredicatable results if the data is not persisted between restarts.
+unpredictable results if the data is not persisted between restarts.
 
 ## Node-RED context
 

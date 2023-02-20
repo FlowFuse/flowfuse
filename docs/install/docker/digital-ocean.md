@@ -30,18 +30,18 @@ You can do this in 2 ways
 
 1. With SSH, either using keys or password depending on what Authentication mechanism you picked at creation time
     ```
-    ssh -i digtial-ocean-ssh.key root@xxx.xxx.xxx.xxx
+    ssh -i digital-ocean-ssh.key root@xxx.xxx.xxx.xxx
     ```
 2. Opening a Console from the Web Interface
     ![Digital Ocean Console](../images/do-droplet-console.png)
 
 Once logged in you will be presented with a wizard to set the domain and confirm by entering `1` or `2` to enter the domain again.
 
-![Digial Ocean Wizard](../images/do-wizard.png)
+![Digital Ocean Wizard](../images/do-wizard.png)
 
 The wizard will then update the configuration files and start FlowForge
 
-![Digial Ocean Direct to Setsup](../images/do-direct-to-setup.png)
+![Digital Ocean Direct to Setup](../images/do-direct-to-setup.png)
 
 It will then present a link to complete setup in the browser. You can now close the console connection to the droplet.
 
