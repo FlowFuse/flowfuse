@@ -71,10 +71,10 @@ If a migration is adding a new constraint to an existing table, you need to cons
 very carefully what impact that could have on an existing system with real data.
 
 For example, adding a new 'unique' constraint where you cannot guarantee that
-constaint hasn't already been broken. What strategy will you use to guard against
+constraint hasn't already been broken. What strategy will you use to guard against
 that or to help recover from it? What additional testing is needed of the migration
 to verify its behaviour in those situations.
 
-The prefered method to add a new unique constraint is by adding a new index to the
+The preferred method to add a new unique constraint is by adding a new index to the
 database. This is because sqlite doesn't provide a way to alter columns that doesn't
 involve dropping the whole table and triggering any cascade triggers.

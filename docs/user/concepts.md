@@ -50,7 +50,7 @@ Project Stacks are created and owned by the platform Administrator. When a User
 comes to create a new project, they chose from the available stacks associated
 with the chosen Project Type.
 
-For details on how to adminster and manage Stacks, please see the
+For details on how to administer and manage Stacks, please see the
 [Administering FlowForge](../admin/#managing-stacks) docs.
 
 #### Project Template
