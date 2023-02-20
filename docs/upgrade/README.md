@@ -42,7 +42,7 @@ Details of how to upgrade can be found for each deployment model:
 
 #### Persistent Context added
 
-The new Persistent Context feature is avalable to projects when running with a
+The new Persistent Context feature is available to projects when running with a
 [premium license](./open-source-to-premium.md).
 
 This feature requires additional configuration to be added to the File Server component
@@ -58,7 +58,7 @@ Details of how to configure this can be found at the following links:
 
 #### File Server added
 
-This release introduces a system for supporting persitant file storage when running on
+This release introduces a system for supporting persistent file storage when running on
 Docker or Kubernetes (it will also work with LocalFS, but is not required as projects
 have access to the hosts filesystem).
 
@@ -83,7 +83,7 @@ properly configured. The documentation for this is available [here](../install/l
 With the 0.8 release we have updated the version of the SQLite3 module used by the localfs 
 container driver. We are moving from v5.0.2 to v5.0.8.
 
-There appears to be a clash with the bcrypt module when doing an inplace upgrade of the
+There appears to be a clash with the bcrypt module when doing an in place upgrade of the
 SQLite3 module that gives an error similar to the following:
 
 ```bash

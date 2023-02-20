@@ -17,7 +17,7 @@ Overview of your Target Project.
 restart itself with the relevant updates applied
 
 **Environment Variables** - A point should be made, that when pushing to a next stage, only your environment variable keys
-will be copied over. Values must be set on your Target Project explicitely.
+will be copied over. Values must be set on your Target Project explicitly.
 
-**Project Settings** - None of your Project Settings will be moved over (e.g. Editor, Palette or Security Setings).
+**Project Settings** - None of your Project Settings will be moved over (e.g. Editor, Palette or Security Settings).
 This ensures a split between your staging environments.
