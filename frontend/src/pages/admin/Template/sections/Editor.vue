@@ -95,7 +95,7 @@
                 <FormRow v-model="editable.settings.modules_denyList" :disabled="!editTemplate && !editable.policy.modules_denyList" :error="editable.errors.modules_denyList" :type="(editTemplate||editable.policy.modules_denyList)?'text':'uneditable'">
                     Prevent Install of External modules
                     <template #description>
-                        This can be used to prevent the installation of modules in Function nodes. A comma-seperated list of the form e.g. <pre>'package-name@semVer, foo@^0.1.0, @scope/*'</pre>
+                        This can be used to prevent the installation of modules in Function nodes. A comma-separated list of the form e.g. <pre>'package-name@semVer, foo@^0.1.0, @scope/*'</pre>
                     </template>
                     <template #append><ChangeIndicator :value="editable.changed.settings.modules_denyList"></ChangeIndicator></template>
                 </FormRow>

@@ -45,7 +45,7 @@ Option        | Description
 The File Storage configuration determines where the files used by Node-RED File
 nodes are stored.
 
-This can be configured to either store the files on the local filesytem of the 
+This can be configured to either store the files on the local filesystem of the 
 File Storage server, or using an AWS S3 compatible service.
 
 #### LocalFS

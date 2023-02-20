@@ -179,7 +179,7 @@ If you are developing locally and need to enable external email sending, you can
 If you need to develop features covered by the Billing EE feature, you will need
 to configure the platform with a set of valid Stripe API keys and an EE license.
 
-The *development-only* EE licence is provided in `forgeforge/forge/licensing/index.js`. This
+The *development-only* EE licence is provided in `flowforge/forge/licensing/index.js`. This
 licence is not valid for production usage.
 
 For FlowForge Inc. employees the configuration is provided in 1Password as 'Stripe Testing Configuration'.
@@ -272,7 +272,7 @@ test against PostgreSQL. To enable the use of PostgreSQL in the tests:
 
         docker run -it -p 5432:5432 --name ff-postgres -e POSTGRES_PASSWORD=secret postgres:14
 
-2. Enable PostgrSQL mode by setting the following environment variable:
+2. Enable PostgreSQL mode by setting the following environment variable:
 
         export FF_TEST_DB_POSTGRES=true
 

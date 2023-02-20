@@ -86,7 +86,7 @@ nodeGroups:
       allow: false
 ```
 
-Add oidc provider for Loadbalance and IAM roles
+Add oidc provider for the Load Balancer and IAM roles
 ```bash
 eksctl utils associate-iam-oidc-provider --cluster flowforge-test --approve
 ```
@@ -185,7 +185,7 @@ The following script creates a AWS RDS PostgreSQL instance, it also
 sets up some network access rules so only the FlowForge app can access
 it from inside the cluster (and not the Node-RED Projects).
 
-Please read it carfully before running it to ensure you understand it.
+Please read it carefully before running it to ensure you understand it.
 
 A copy of this file can be found [here](setup-rds.sh)
 
@@ -195,7 +195,7 @@ Run the following command
 ./setup-rds.sh
 ```
 
-Make a note of the postgress hostname
+Make a note of the postgres hostname
 ```bash
 aws rds describe-db-instances | jq .DBInstances[].Endpoint.Address
 ```
