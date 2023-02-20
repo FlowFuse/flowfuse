@@ -119,7 +119,7 @@ const iconMap = {
         'user.invite.accepted',
         'user.invite.deleted',
         'team.user.invited',
-        'team.user.univited',
+        'team.user.uninvited',
         'team.user.invite.accepted',
         'team.user.invite.rejected',
         'user.invited', // legacy event
