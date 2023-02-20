@@ -1,0 +1,19 @@
+{
+  "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+  "version": "0.2",
+  "dictionaries": [],
+  "ignorePaths": [
+    "./docs/contribute/images/*.xml",
+    "./frontend/dist",
+    "./frontend/src/utils/name-generator",
+    "./node_modules",
+    "./test",
+    "./var",
+    "CHANGELOG.md",
+    "frontend/src/data/timezones.json",
+    "forge/licensing/index.js",
+    "forge/db/test-data.js",
+    "*.svg"
+  ],
+  "import": ["../../node_modules/@flowforge/cspell-dictionary/cspell-ext.json"]
+}
