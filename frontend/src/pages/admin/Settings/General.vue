@@ -89,7 +89,7 @@
             </template>
         </FormRow>
         <FormHeading>Platform</FormHeading>
-        <FormRow v-model="input['telemetry:enabled']" type="checkbox">
+        <FormRow v-model="input['telemetry:enabled']" type="checkbox" :disabled="isLicensed">
             Enable collection of anonymous statistics
             <template #description>
                 <p>
@@ -100,6 +100,7 @@
                     For more information about the data we collect and how it is used,
                     please see our <a class="forge-link" href="https://github.com/flowforge/flowforge/tree/main/docs/admin/telemetry.md" target="_blank">Usage Data Collection Policy</a>
                 </p>
+                <p v-if="isLicensed"><b>NOTE: Telemetry is always enabled for licensed installs.</b></p>
             </template>
         </FormRow>
         <div>
@@ -151,6 +152,9 @@ export default {
     },
     computed: {
         ...mapState('account', ['features', 'settings']),
+        isLicensed () {
+            return !!this.settings['platform:licensed']
+        },
         tcsDate () {
             const _tcsDate = this.input['user:tcs-date']
             if (_tcsDate && (typeof _tcsDate === 'string' || (_tcsDate instanceof Date && !isNaN(_tcsDate) && _tcsDate > 0))) {

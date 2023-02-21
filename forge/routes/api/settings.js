@@ -12,6 +12,7 @@ module.exports = async function (app) {
         //   to change via the UI
 
         if (request.session && request.session.User) {
+            const isLicensed = app.license.active()
             const response = {
                 'team:user:invite:external': app.settings.get('team:user:invite:external') && app.postoffice.enabled(),
                 'team:create': app.settings.get('team:create'),
@@ -26,7 +27,8 @@ module.exports = async function (app) {
             }
 
             if (request.session.User.admin) {
-                response['telemetry:enabled'] = app.settings.get('telemetry:enabled')
+                response['platform:licensed'] = isLicensed
+                response['telemetry:enabled'] = isLicensed || app.settings.get('telemetry:enabled')
                 response['user:signup'] = app.settings.get('user:signup')
                 response['user:reset-password'] = app.settings.get('user:reset-password')
                 response['user:team:auto-create'] = app.settings.get('user:team:auto-create')
