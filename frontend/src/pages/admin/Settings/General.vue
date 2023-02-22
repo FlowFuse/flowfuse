@@ -88,8 +88,8 @@
                     sent to that email address.</p>
             </template>
         </FormRow>
-        <FormHeading>Platform</FormHeading>
-        <FormRow v-model="input['telemetry:enabled']" type="checkbox" :disabled="isLicensed">
+        <FormHeading v-if="!isLicensed">Platform</FormHeading>
+        <FormRow v-model="input['telemetry:enabled']" type="checkbox" v-if="!isLicensed">
             Enable collection of anonymous statistics
             <template #description>
                 <p>
@@ -100,7 +100,6 @@
                     For more information about the data we collect and how it is used,
                     please see our <a class="forge-link" href="https://github.com/flowforge/flowforge/tree/main/docs/admin/telemetry.md" target="_blank">Usage Data Collection Policy</a>
                 </p>
-                <p v-if="isLicensed"><b>NOTE: Telemetry is always enabled for licensed installs.</b></p>
             </template>
         </FormRow>
         <div>
