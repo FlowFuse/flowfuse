@@ -28,7 +28,7 @@ module.exports = async function (app) {
 
             if (request.session.User.admin) {
                 response['platform:licensed'] = isLicensed
-                response['telemetry:enabled'] = isLicensed || app.settings.get('telemetry:enabled')
+                response['telemetry:enabled'] = app.settings.get('telemetry:enabled')
                 response['user:signup'] = app.settings.get('user:signup')
                 response['user:reset-password'] = app.settings.get('user:reset-password')
                 response['user:team:auto-create'] = app.settings.get('user:team:auto-create')

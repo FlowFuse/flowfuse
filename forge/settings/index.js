@@ -33,6 +33,9 @@ module.exports = fp(async function (app, _opts, next) {
 
     const settingsApi = {
         get: (key) => {
+            if (key === 'telemetry:enabled' && app.license.active()) {
+                return true
+            }
             return settings[key]
         },
         set: async (key, value) => {
