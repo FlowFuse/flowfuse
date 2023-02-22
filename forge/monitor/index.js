@@ -78,7 +78,11 @@ module.exports = fp(async function (app, _opts, next) {
         // - setup:initialised is true - the system has been setup
         // - telemetry:enabled is true - the admin has not disabled the callback
 
-        if (app.license.active() || (app.config.telemetry.enabled !== false && app.settings.get('setup:initialised') && app.settings.get('telemetry:enabled'))) {
+        const isLicensed = app.license.active()
+        const isInitialised = app.settings.get('setup:initialised')
+        const isTelemetryEnabled = (app.config.telemetry.enabled !== false && app.settings.get('telemetry:enabled'))
+
+        if (isInitialised && (isLicensed || isTelemetryEnabled)) {
             const payload = await gather()
             try {
                 app.log.trace('Sending ping callback')
