@@ -141,6 +141,27 @@ describe('First run setup', function () {
             forge.settings.get('setup:initialised').should.be.false()
         })
     })
+
+    describe('Apply settings (pre-license)', function () {
+        it('should accept settings', async function () {
+            forge.settings.get('telemetry:enabled').should.be.true()
+
+            const response = await forge.inject({
+                method: 'POST',
+                url: '/setup/settings',
+                payload: {
+                    _csrf: CSRF_TOKEN,
+                    telemetry: false
+                },
+                cookies: CSRF_COOKIE
+            })
+            const body = response.json()
+            body.should.have.property('status', 'okay')
+            // Telemetry can be disabled because license is not yet applied
+            forge.settings.get('telemetry:enabled').should.be.false()
+            forge.settings.get('setup:initialised').should.be.false()
+        })
+    })
     describe('Upload license', function () {
         it('should reject missing csrf - secret', async function () {
             const response = await forge.inject({
@@ -213,7 +234,7 @@ describe('First run setup', function () {
         })
     })
 
-    describe('Apply settings', function () {
+    describe('Apply settings (post-license)', function () {
         it('should reject missing csrf - secret', async function () {
             const response = await forge.inject({
                 method: 'POST',
@@ -239,7 +260,7 @@ describe('First run setup', function () {
             body.should.have.property('message').match(/Invalid csrf token/)
         })
 
-        it('should accept settings', async function () {
+        it('should not disable telemetry', async function () {
             forge.settings.get('telemetry:enabled').should.be.true()
 
             const response = await forge.inject({
@@ -253,7 +274,8 @@ describe('First run setup', function () {
             })
             const body = response.json()
             body.should.have.property('status', 'okay')
-            forge.settings.get('telemetry:enabled').should.be.false()
+            // Telemetry should not be disabled because license is active
+            forge.settings.get('telemetry:enabled').should.be.true()
             forge.settings.get('setup:initialised').should.be.false()
         })
     })
