@@ -13,7 +13,7 @@ be pushed out to your Project's devices through FlowForge.
 ## Install
 
 This plugin can be installed through the Manage Palette option by searching for
-`FlowForge nr-tools` in the Node-RED editor, or on the command-line:
+`@flowforge/nr-tools-plugin` in the Node-RED editor, or on the command-line:
 
 ```bash
 cd ~/.node-red
