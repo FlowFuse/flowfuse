@@ -220,7 +220,7 @@
     </template>
     <template v-else-if="entry.event === 'platform.license.overage'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && typeof entry.body?.info === 'object'">Type: {{entry.body.info.resource }}, Count: {{ entry.body.info.count }}, Limit: {{ entry.body.info.limit }}</span>
+        <span v-if="!error && typeof entry.body?.info === 'object'">Type: '{{entry.body.info.resource }}', Limit: {{ entry.body.info.limit }}, Count: {{ entry.body.info.count }}</span>
         <span v-else-if="!error">License data not found in audit entry.</span>
     </template>
     <!-- Platform project type Events -->
