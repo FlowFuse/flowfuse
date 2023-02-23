@@ -109,6 +109,12 @@ module.exports = {
                     }
                 }
             },
+            afterCreate: async (project, opts) => {
+                const { projects } = await app.license.usage('projects')
+                if (projects.count > projects.limit) {
+                    await app.auditLog.Platform.platform.license.overage('system', null, projects)
+                }
+            },
             afterDestroy: async (project, opts) => {
                 await M.AccessToken.destroy({
                     where: {
