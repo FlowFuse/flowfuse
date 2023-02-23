@@ -200,10 +200,26 @@ describe('User model', function () {
     })
 
     describe('License limits', function () {
-        it('limits how many users can be created according to license', async function () {
+        it('Permits overage when licensed', async function () {
             // This license has limit of 5 users (3 created by default test setup)
             const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTA4ODAwLCJleHAiOjc5ODY5ODg3OTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjo1LCJ0ZWFtcyI6NTAsInByb2plY3RzIjo1MCwiZGV2aWNlcyI6NTAsImRldiI6dHJ1ZSwiaWF0IjoxNjYyNTQ4NjAyfQ.vvSw6pm-NP5e0NUL7yMOG-w0AgB8H3NRGGN7b5Dw_iW5DiIBbVQ4HVLEi3dyy9fk7WgKnloiCCkIFJvN79fK_g'
             app = await setup({ license })
+            // Default setup creates 3 users
+            ;(await app.db.models.User.count()).should.equal(3)
+
+            await app.db.models.User.create({ username: 'u4', password: '12345678' })
+            ;(await app.db.models.User.count()).should.equal(4)
+
+            await app.db.models.User.create({ username: 'u5', password: '12345678' })
+            ;(await app.db.models.User.count()).should.equal(5)
+
+            await app.db.models.User.create({ username: 'u6', password: '12345678' })
+            ;(await app.db.models.User.count()).should.equal(6)
+        })
+        it('Does not permit overage when unlicensed', async function () {
+            app = await setup({ })
+            app.license.defaults.users = 5 // override default
+
             // Default setup creates 3 users
             ;(await app.db.models.User.count()).should.equal(3)
 

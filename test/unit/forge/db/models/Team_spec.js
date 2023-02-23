@@ -14,6 +14,8 @@ describe('Team model', function () {
 
     it('projectCount reports correct counts', async function () {
         app = await setup({})
+        const usage = await app.license.usage()
+        console.log(usage)
         const ATeam = await app.db.models.Team.findOne({ where: { name: 'ATeam' } })
         const pt1 = await app.db.models.ProjectType.create({ name: 'pt1', properties: {}, active: true })
         const pt2 = await app.db.models.ProjectType.create({ name: 'pt2', properties: {}, active: true })
@@ -41,10 +43,25 @@ describe('Team model', function () {
     })
 
     describe('License limits', function () {
-        it('limits how many teams can be created according to license', async function () {
+        it('Permits overage when licensed', async function () {
             // This license has limit of 4 teams (3 created by default test setup)
             const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo0LCJwcm9qZWN0cyI6NTAsImRldmljZXMiOjUwLCJkZXYiOnRydWUsImlhdCI6MTY2MjYzMTU4N30.J6ceWv3SdFC-J_dt05geeQZHosD1D102u54tVLeu_4EwRO5OYGiqMxFW3mx5pygod3xNT68e2Wq8A7wNVCt3Rg'
             app = await setup({ license })
+            // Default setup creates 3 teams
+            ;(await app.db.models.Team.count()).should.equal(3)
+
+            const defaultTeamType = await app.db.models.TeamType.findOne()
+
+            await app.db.models.Team.create({ name: 'T4', TeamTypeId: defaultTeamType.id })
+            ;(await app.db.models.Team.count()).should.equal(4)
+
+            await app.db.models.Team.create({ name: 'T5', TeamTypeId: defaultTeamType.id })
+            ;(await app.db.models.Team.count()).should.equal(5)
+        })
+        it('Does not permit overage when unlicensed', async function () {
+            app = await setup({ })
+            app.license.defaults.teams = 4 // override default
+
             // Default setup creates 3 teams
             ;(await app.db.models.Team.count()).should.equal(3)
 

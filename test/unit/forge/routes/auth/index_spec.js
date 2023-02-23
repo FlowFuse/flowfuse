@@ -132,13 +132,30 @@ describe('Accounts API', async function () {
             // TODO: check user audit logs - expect 'account.xxx-yyy' { code: '', error, '' }
         })
 
-        it('limits how many users can be created according to license', async function () {
+        it('Does not limit how many users can be created when licensed', async function () {
             // This license has limit of 5 users (1 created by default test setup (test/unit/forge/routes/setup.js))
             const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTA4ODAwLCJleHAiOjc5ODY5ODg3OTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjo1LCJ0ZWFtcyI6NTAsInByb2plY3RzIjo1MCwiZGV2aWNlcyI6NTAsImRldiI6dHJ1ZSwiaWF0IjoxNjYyNTQ4NjAyfQ.vvSw6pm-NP5e0NUL7yMOG-w0AgB8H3NRGGN7b5Dw_iW5DiIBbVQ4HVLEi3dyy9fk7WgKnloiCCkIFJvN79fK_g'
             app = await setup({ license })
             app.settings.set('user:signup', true)
+            // Register 5 more users to breach the limit
+            for (let i = 1; i <= 5; i++) {
+                const resp = await registerUser({
+                    username: `u${i}`,
+                    password: '12345678',
+                    name: `u${i}`,
+                    email: `u${i}@example.com`
+                })
+                resp.statusCode.should.equal(200)
+            }
+            // TODO: check user audit logs - expect 'account.xxx-yyy' { code: '', error, '' }
+        })
+
+        it('Limits how many users can be created when unlicensed', async function () {
+            app = await setup({ })
+            app.license.defaults.users = 5
+            app.settings.set('user:signup', true)
             // Register 4 more users to reach the limit
-            for (let i = 1; i <= 4; i++) {
+            for (let i = 2; i <= 5; i++) {
                 const resp = await registerUser({
                     username: `u${i}`,
                     password: '12345678',

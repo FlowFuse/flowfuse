@@ -277,7 +277,22 @@ describe('Device API', async function () {
             response.error.should.match(/limit reached/)
         })
 
-        const licenseTest = it('limits how many devices can be created according to license', async function () {
+        it('Does not limit how many devices can be created when licensed', async function () {
+            // Limited to 2 devices
+            await app.license.apply('eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A')
+            // Check we're at the starting point we expect
+            ;(await app.db.models.Device.count()).should.equal(0)
+
+            for (let i = 0; i < 3; i++) {
+                const response = await createDevice({ name: `D${i + 1}`, type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                response.should.not.have.property('error')
+                response.should.have.property('id')
+            }
+            ;(await app.db.models.Device.count()).should.equal(3)
+        })
+        it('Limits how many devices can be created when unlicensed', async function () {
+            // Limited to 2 devices
+            app.license.defaults.devices = 2
             // Check we're at the starting point we expect
             ;(await app.db.models.Device.count()).should.equal(0)
 
@@ -292,8 +307,6 @@ describe('Device API', async function () {
             response.should.have.property('error')
             response.error.should.match(/license limit/)
         })
-        // Limited to 2 devices
-        licenseTest.license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
     })
     describe('Get device details', async function () {
         it('provides device details including project and team', async function () {

@@ -140,10 +140,41 @@ describe('Team API', function () {
             // GET /api/v1/teams/:teamId/audit-log
         })
     })
-    describe('license limits', async function () {
-        const test = it('limits how many teams can be created according to license', async function () {
+    describe('License limits', async function () {
+        it('Permits overage when licensed', async function () {
             // This license has limit of 4 teams (2 created by default test setup)
+            await app.license.apply('eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo0LCJwcm9qZWN0cyI6NTAsImRldmljZXMiOjUwLCJkZXYiOnRydWUsImlhdCI6MTY2MjYzMTU4N30.J6ceWv3SdFC-J_dt05geeQZHosD1D102u54tVLeu_4EwRO5OYGiqMxFW3mx5pygod3xNT68e2Wq8A7wNVCt3Rg')
             // Alice create in setup()
+            TestObjects.alice = await app.db.models.User.byUsername('alice')
+            TestObjects.defaultTeamType = await app.db.models.TeamType.findOne()
+            TestObjects.tokens = {}
+            await login('alice', 'aaPassword')
+
+            // Check we're at the starting point we expect - want 2 teams
+            await TestObjects.CTeam.destroy()
+            await TestObjects.DTeam.destroy()
+            ;(await app.db.models.Team.count()).should.equal(2)
+
+            for (let i = 0; i < 3; i++) {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/teams',
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: {
+                        name: `t${i}`,
+                        slug: `t${i}`,
+                        type: TestObjects.defaultTeamType.hashid
+                    }
+                })
+                response.statusCode.should.equal(200)
+            }
+
+            ;(await app.db.models.Team.count()).should.equal(5)
+        })
+
+        it('Does not permit overage when unlicensed', async function () {
+            app.license.defaults.teams = 4 // override default
+            // Alice created in setup()
             TestObjects.alice = await app.db.models.User.byUsername('alice')
             TestObjects.defaultTeamType = await app.db.models.TeamType.findOne()
             TestObjects.tokens = {}
@@ -183,7 +214,6 @@ describe('Team API', function () {
             failResponse.statusCode.should.equal(400)
             failResponse.json().error.should.match(/license limit/)
         })
-        test.license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo0LCJwcm9qZWN0cyI6NTAsImRldmljZXMiOjUwLCJkZXYiOnRydWUsImlhdCI6MTY2MjYzMTU4N30.J6ceWv3SdFC-J_dt05geeQZHosD1D102u54tVLeu_4EwRO5OYGiqMxFW3mx5pygod3xNT68e2Wq8A7wNVCt3Rg'
     })
 
     describe('Create team', async function () {
