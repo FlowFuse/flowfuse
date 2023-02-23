@@ -12,8 +12,8 @@ be pushed out to your Project's devices through FlowForge.
 
 ## Install
 
-This plugin can be installed through the Manage Palette option in the Node-RED
-editor, or on the command-line:
+This plugin can be installed through the Manage Palette option by searching for
+`@flowforge/nr-tools-plugin` in the Node-RED editor, or on the command-line:
 
 ```bash
 cd ~/.node-red
@@ -73,7 +73,6 @@ to deploy it to your project's devices.
 We'll be working on improving this workflow in future releases of the plugin - to
 allow you to manage more from within the Node-RED plugin.
 
-
 #### Adding modules to a snapshot
 
 The snapshot created by the sidebar includes a list of the modules used by the flows.
@@ -90,5 +89,4 @@ environment variables.
 
 To manage your Project's environment variables, use the `Project Settings -> Environment`
 view in the platform.
-
 
