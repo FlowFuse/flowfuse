@@ -88,8 +88,8 @@
                     sent to that email address.</p>
             </template>
         </FormRow>
-        <FormHeading>Platform</FormHeading>
-        <FormRow v-model="input['telemetry:enabled']" type="checkbox">
+        <FormHeading v-if="!isLicensed">Platform</FormHeading>
+        <FormRow v-model="input['telemetry:enabled']" type="checkbox" v-if="!isLicensed">
             Enable collection of anonymous statistics
             <template #description>
                 <p>
@@ -151,6 +151,9 @@ export default {
     },
     computed: {
         ...mapState('account', ['features', 'settings']),
+        isLicensed () {
+            return !!this.settings['platform:licensed']
+        },
         tcsDate () {
             const _tcsDate = this.input['user:tcs-date']
             if (_tcsDate && (typeof _tcsDate === 'string' || (_tcsDate instanceof Date && !isNaN(_tcsDate) && _tcsDate > 0))) {

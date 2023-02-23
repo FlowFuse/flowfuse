@@ -22,6 +22,8 @@ Settings section of the platform UI.
 It is also possible to disable in the `flowforge.yml` configuration file. This
 overrides whatever option is set in the Admin Settings UI.
 
+**IMPORTANT: Licensed installations cannot disable telemetry**
+
 ```yaml
 telemetry:
   enabled: false
