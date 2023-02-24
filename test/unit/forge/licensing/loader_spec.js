@@ -13,7 +13,6 @@ describe('License Loader', function () {
         const TEST_LICENSE = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsImV4cCI6NzI1ODExODQwMCwic3ViIjoiQWNtZSBDdXN0b21lciIsInRpZXIiOiJ0ZWFtcyIsImlhdCI6MTYyNzU4NzkxOX0.5B57eY_fP51mOqwQTf2fB6MmpLUwsZgEeMkiK_kFDqTh_0htFdUsIj6BKuDBOl3Xpm2g93kS7U3DwIrS_qx2yQ'
         const licenseDetails = await licensing.verifyLicense(TEST_LICENSE)
         licenseDetails.should.have.property('organisation', 'Acme Customer')
-        licenseDetails.should.have.property('id').and.be.a.string()
         licenseDetails.expired.should.false()
     })
     it('should load a newer license with id', async function () {
