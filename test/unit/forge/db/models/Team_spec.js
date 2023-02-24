@@ -15,7 +15,6 @@ describe('Team model', function () {
     it('projectCount reports correct counts', async function () {
         app = await setup({})
         const usage = await app.license.usage()
-        console.log(usage)
         const ATeam = await app.db.models.Team.findOne({ where: { name: 'ATeam' } })
         const pt1 = await app.db.models.ProjectType.create({ name: 'pt1', properties: {}, active: true })
         const pt2 = await app.db.models.ProjectType.create({ name: 'pt2', properties: {}, active: true })
