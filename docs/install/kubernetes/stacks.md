@@ -1,3 +1,7 @@
+---
+navTitle: Kubernetes Project Stacks
+---
+
 # Kubernetes Stacks
 
 A Stack defines a set of platform configuration options that will get

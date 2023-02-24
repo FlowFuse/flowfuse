@@ -1,3 +1,7 @@
+---
+navTitle: FlowForge File Nodes
+---
+
 # FlowForge File Nodes
 
 Node-RED instances running within FlowForge include a set of nodes that make it possible

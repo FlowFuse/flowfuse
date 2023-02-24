@@ -1,3 +1,7 @@
+---
+title: Team creation Flow
+---
+
 # Sequence For Team Creation
 
 ```mermaid

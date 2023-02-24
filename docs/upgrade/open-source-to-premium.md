@@ -1,3 +1,7 @@
+---
+navTitle: Upgrading to Premium
+---
+
 ## Upgrading to Premium
 
 For self-managed FlowForge installations without a license you can unlock more

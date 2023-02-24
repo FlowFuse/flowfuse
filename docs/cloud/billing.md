@@ -1,3 +1,7 @@
+---
+navTitle: FlowForge Cloud Billing
+---
+
 # Billing
 
 ## Payment Methods 

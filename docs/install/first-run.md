@@ -1,3 +1,7 @@
+---
+navTitle: First Run Setup
+---
+
 # First-run Setup
 
 Following a successful install, you will be able to access the platform to go

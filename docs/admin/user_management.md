@@ -1,3 +1,7 @@
+---
+navTitle: User Management
+---
+
 # User management
 
 ## User registration

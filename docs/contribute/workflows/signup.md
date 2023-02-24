@@ -1,3 +1,7 @@
+---
+title: User Sign up Flow
+---
+
 # User Sign Up Flow
 
 ```mermaid

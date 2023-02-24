@@ -1,3 +1,7 @@
+---
+title: State Flows
+---
+
 # Workflows
 
 A collection of sequence diagrams for key parts of the FlowForge platform

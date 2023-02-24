@@ -1,3 +1,7 @@
+---
+navTitle: Documentation
+---
+
 # FlowForge Docs
 
 FlowForge helps Node-RED developers deliver applications in a more reliable,

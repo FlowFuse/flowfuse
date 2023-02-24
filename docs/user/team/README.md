@@ -1,3 +1,7 @@
+---
+navTitle: Teams
+---
+
 # Teams
 
 Teams are groups of users that collaborate on their Node-RED applications.

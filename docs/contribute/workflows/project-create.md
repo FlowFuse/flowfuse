@@ -1,3 +1,7 @@
+---
+navTitle: Project Creation
+---
+
 # Sequence For Project Creation
 
 ```mermaid

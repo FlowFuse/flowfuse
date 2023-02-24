@@ -1,3 +1,7 @@
+---
+navTitle: Email configuration
+---
+
 ## Example configuration for common email platforms
 
 ### GMail

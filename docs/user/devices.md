@@ -1,3 +1,7 @@
+---
+navtitle: FlowForge Device Agent
+---
+
 # Devices
 
 The FlowForge platform can be used to manage Node-RED instances running on remote Devices.
