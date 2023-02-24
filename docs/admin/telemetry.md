@@ -31,19 +31,38 @@ telemetry:
 
 The following pieces of information are included in the telemetry sent back to us:
 
-```js
+```json
 {
-  instanceId: '5db51f99-c6fb-4340-9c19-78adce58cc1b',
-  os: { type: 'Darwin', release: '20.5.0', arch: 'x64' },
-  env: { nodejs: 'v16.13.1', flowforge: '0.1.1' },
-  platform: {
-    counts: {
-        users: 0,
-        teams: 0,
-        projects: 0
+  "instanceId": "5db51f99-c6fb-4340-9c19-78adce58cc1b",
+  "os": { "type": "Darwin", "release": "20.5.0", "arch": "x64" },
+  "env": { "nodejs": "v16.19.1", "flowforge": "1.0.0" },
+  "platform": {
+    "counts": {
+      "users": 6,
+      "teams": 5,
+      "projects": 4,
+      "devices": 9,
+      "projectSnapshots": 16,
+      "projectTemplates": 7,
+      "projectStacks": 2,
+      "libraryEntries": 0,
+      "sharedLibraryEntries": 2
     },
-    config: {
-        driver: 'localfs'
+    "config": {
+      "driver": "localfs",
+      "broker": {
+        "enabled": true
+      },
+      "fileStore": {
+        "enabled": true
+      },
+      "email": {
+        "enabled": false
+      }
+    },
+    "license": {
+      "id": "4c105579-782b-4d53-af62-cf7fa69f6b43",
+      "type": "DEV"
     }
   }
 }
@@ -54,8 +73,14 @@ Property | Description
 `instanceId` | A unique identifier for the FlowForge instance.
 `os` | Information about the operating system
 `env` | Node.js and FlowForge versions
-`platform.counts` | A snap-shot of the number of users, teams and projects on the platform.
+`platform.counts` | A snapshot of the number of users, teams, projects, etc, in use on the platform.
 `platform.config.driver` | Which backend driver is being used
+`platform.config.broker.enabled` | A flag indicating whether the the internal comms broker is enabled
+`platform.config.fileStore.enabled` | A flag indicating whether the file store is enabled
+`platform.config.email.enabled` | A flag indicating whether email is enabled
+`platform.license.id` | The ID of the license loaded
+`platform.license.type` | The type of the license
+
 
 
 When the data is collected, we also store the timestamp the data was received and
