@@ -1,6 +1,11 @@
 # AWS EKS Specific details
 
-This document includes details of installing FlowForge on AWS EKS
+This document includes details of installing FlowForge on AWS EKS.
+
+The following assumptions have been made in the examples:
+
+ 1. The user has the correct AWS IAM policy access to complete all tasks
+ 2. All AWS services are running in `eu-west-1`
 
 ## Prerequisites
 
@@ -32,19 +37,6 @@ Request a certificate for `*.[DOMAIN]` from Amazon Certificate Manager
 
 Do this in AWS Console, with Route53 validation
 
-## Create AWS Container Repositories
-
-https://eu-west-1.console.aws.amazon.com/ecr/repositories
-
-(URL above assumes setting up in eu-west-1, change this to the region you intent to run)
-
-To start with we need the following 2 repositories (more later when we have more templates)
-
-- `flowforge/forge-k8s`
-- `flowforge/node-red`
-
-Record the host name it will look like `[aws id].dkr.ecr.[aws region].amazonaws.com`
-
 ## Create EKS Cluster
 Edit the `cluster.yml` file in `aws_eks` to set your preferred instance type and count along with AWS Region
 
@@ -59,7 +51,7 @@ kind: ClusterConfig
 
 metadata:
   name: flowforge
-  region: us-east-1
+  region: eu-west-1
 
 nodeGroups:
   - name: management
@@ -88,7 +80,7 @@ nodeGroups:
 
 Add oidc provider for the Load Balancer and IAM roles
 ```bash
-eksctl utils associate-iam-oidc-provider --cluster flowforge-test --approve
+eksctl utils associate-iam-oidc-provider --cluster flowforge --approve
 ```
 
 Add AWS Load balancer (remember to update `[aws id]`)
@@ -96,13 +88,13 @@ Add AWS Load balancer (remember to update `[aws id]`)
 curl -o iam_policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.2.0/docs/install/iam_policy.json
 
 aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document file://iam_policy.json
-eksctl create iamserviceaccount --cluster=flowforge-test --namespace=kube-system --name=aws-load-balancer-controller --attach-policy-arn=arn:aws:iam::[aws id]:policy/AWSLoadBalancerControllerIAMPolicy --override-existing-serviceaccounts --approve
+eksctl create iamserviceaccount --cluster=flowforge --namespace=kube-system --name=aws-load-balancer-controller --attach-policy-arn=arn:aws:iam::[aws id]:policy/AWSLoadBalancerControllerIAMPolicy --override-existing-serviceaccounts --approve
 
 helm repo add eks https://aws.github.io/eks-charts
 kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
 
-K8S_VPC_ID=$(aws ec2 describe-vpcs --filters "Name=tag:eksctl.cluster.k8s.io/v1alpha1/cluster-name,Values=flowforge-test" | jq -r '.Vpcs[].VpcId')
-helm install aws-load-balancer-controller eks/aws-load-balancer-controller --set clusterName=flowforge-test --set serviceAccount.create=false --set region=eu-west-1 --set vpcId=$K8S_VPC_ID --set serviceAccount.name=aws-load-balancer-controller -n kube-system
+K8S_VPC_ID=$(aws ec2 describe-vpcs --filters "Name=tag:eksctl.cluster.k8s.io/v1alpha1/cluster-name,Values=flowforge" | jq -r '.Vpcs[].VpcId')
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller --set clusterName=flowforge --set serviceAccount.create=false --set region=eu-west-1 --set vpcId=$K8S_VPC_ID --set serviceAccount.name=aws-load-balancer-controller -n kube-system
 ```
 
 ### References
