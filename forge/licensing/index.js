@@ -49,6 +49,9 @@ module.exports = fp(async function (app, opts, next) {
             return await loader.verifyLicense(license)
         },
         active: () => activeLicense !== null,
+        usage: async (resource) => {
+            return await usage(resource)
+        },
         get: (key) => {
             if (!key) {
                 return activeLicense
@@ -78,16 +81,55 @@ module.exports = fp(async function (app, opts, next) {
 
     next()
 
+    /**
+     * Get usage and limits information for the license (all, or by resource)
+     * @param {'users'|'teams'|'projects'|'devices'} [resource] The name of resource usage to get. Leave null to get all usage
+     * @returns The usage information
+     */
+    async function usage (resource) {
+        const usage = {}
+        if (!resource || resource === 'users') {
+            usage.users = {
+                resource: 'users',
+                count: await app.db.models.User.count(),
+                limit: licenseApi.get('users')
+            }
+        }
+        if (!resource || resource === 'teams') {
+            usage.teams = {
+                resource: 'teams',
+                count: await app.db.models.Team.count(),
+                limit: licenseApi.get('teams')
+            }
+        }
+        if (!resource || resource === 'projects') {
+            usage.projects = {
+                resource: 'projects',
+                count: await app.db.models.Project.count(),
+                limit: licenseApi.get('projects')
+            }
+        }
+        if (!resource || resource === 'devices') {
+            usage.devices = {
+                resource: 'devices',
+                count: await app.db.models.Device.count(),
+                limit: licenseApi.get('devices')
+            }
+        }
+        return usage
+    }
+
     async function reportUsage () {
-        const userCount = await app.db.models.User.count()
-        const teamCount = await app.db.models.Team.count()
-        const projectCount = await app.db.models.Project.count()
-        const deviceCount = await app.db.models.Device.count()
-        app.log.info('Usage:')
-        app.log.info(` Users    : ${userCount}/${licenseApi.get('users')}`)
-        app.log.info(` Teams    : ${teamCount}/${licenseApi.get('teams')}`)
-        app.log.info(` Projects : ${projectCount}/${licenseApi.get('projects')}`)
-        app.log.info(` Devices  : ${deviceCount}/${licenseApi.get('devices')}`)
+        const { users, teams, projects, devices } = await usage()
+        const logUse = (name, count, limit) => {
+            const logger = (count > limit ? app.log.warn : app.log.info).bind(app.log)
+            logger(`${name}: ${count}/${limit}`)
+        }
+        app.log.info('Usage       : count/limit')
+        logUse(' Users      ', users.count, users.limit)
+        logUse(' Teams      ', teams.count, teams.limit)
+        logUse(' Projects   ', projects.count, projects.limit)
+        logUse(' Devices    ', devices.count, devices.limit)
     }
 
     async function applyLicense (license) {
@@ -99,7 +141,7 @@ module.exports = fp(async function (app, opts, next) {
             app.log.info('  ****************************')
         }
         app.log.info(` License ID : ${activeLicense.id}`)
-        app.log.info(` Org:     ${activeLicense.organisation}`)
+        app.log.info(` Org        : ${activeLicense.organisation}`)
         app.log.info(` Valid From : ${activeLicense.validFrom.toISOString()}`)
         app.log.info(` Expires    : ${activeLicense.expiresAt.toISOString()}`)
         await reportUsage()

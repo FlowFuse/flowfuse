@@ -20,10 +20,13 @@ module.exports = {
                 if (!team.TeamTypeId) {
                     throw new Error('Cannot create team without TeamTypeId')
                 }
-                const teamLimit = app.license.get('teams')
-                const teamCount = await M.Team.count()
-                if (teamCount >= teamLimit) {
-                    throw new Error('license limit reached')
+                // if the product is licensed, we permit overage
+                const isLicensed = app.license.active()
+                if (isLicensed !== true) {
+                    const { teams } = await app.license.usage('teams')
+                    if (teams.count >= teams.limit) {
+                        throw new Error('license limit reached')
+                    }
                 }
             },
             beforeSave: (team, options) => {

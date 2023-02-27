@@ -51,10 +51,13 @@ module.exports = {
     hooks: function (M, app) {
         return {
             beforeCreate: async (user, options) => {
-                const userLimit = app.license.get('users')
-                const userCount = await M.User.count()
-                if (userCount >= userLimit) {
-                    throw new Error('license limit reached')
+                // if the product is licensed, we permit overage
+                const isLicensed = app.license.active()
+                if (isLicensed !== true) {
+                    const { users } = await app.license.usage('users')
+                    if (users.count >= users.limit) {
+                        throw new Error('license limit reached')
+                    }
                 }
                 if (!user.avatar) {
                     user.avatar = generateUserAvatar(user.name || user.username)

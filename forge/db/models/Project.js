@@ -99,10 +99,14 @@ module.exports = {
     hooks: function (M, app) {
         return {
             beforeCreate: async (project, opts) => {
-                const projectLimit = app.license.get('projects')
-                const projectCount = await M.Project.count()
-                if (projectCount >= projectLimit) {
-                    throw new Error('license limit reached')
+                // if the product is licensed, we permit overage
+                const isLicensed = app.license.active()
+                if (isLicensed !== true) {
+                    const projectLimit = app.license.get('projects')
+                    const projectCount = await M.Project.count()
+                    if (projectCount >= projectLimit) {
+                        throw new Error('license limit reached')
+                    }
                 }
             },
             afterDestroy: async (project, opts) => {

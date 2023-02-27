@@ -13,10 +13,22 @@ describe('Device model', function () {
     })
 
     describe('License limits', function () {
-        it('limits how many devices can be created according to license', async function () {
+        it('Permits overage when licensed', async function () {
             // This license has limit of 2 devices
             const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
             app = await setup({ license })
+
+            ;(await app.db.models.Device.count()).should.equal(0)
+
+            await app.db.models.Device.create({ name: 'D1', type: '', credentialSecret: '' })
+            await app.db.models.Device.create({ name: 'D2', type: '', credentialSecret: '' })
+            await app.db.models.Device.create({ name: 'D3', type: '', credentialSecret: '' })
+            ;(await app.db.models.Device.count()).should.equal(3)
+        })
+
+        it('Does not permit overage when unlicensed', async function () {
+            app = await setup({ })
+            app.license.defaults.devices = 2
 
             ;(await app.db.models.Device.count()).should.equal(0)
 

@@ -38,10 +38,14 @@ module.exports = {
     hooks: function (M, app) {
         return {
             beforeCreate: async (device, options) => {
-                const deviceLimit = app.license.get('devices')
-                const deviceCount = await M.Device.count()
-                if (deviceCount >= deviceLimit) {
-                    throw new Error('license limit reached')
+                // if the product is licensed, we permit overage
+                const isLicensed = app.license.active()
+                if (isLicensed !== true) {
+                    const deviceLimit = app.license.get('devices')
+                    const deviceCount = await M.Device.count()
+                    if (deviceCount >= deviceLimit) {
+                        throw new Error('license limit reached')
+                    }
                 }
             },
             beforeSave: async (device, options) => {
