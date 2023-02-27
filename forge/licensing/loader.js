@@ -7,6 +7,7 @@ const LICENSE_ISSUER = 'FlowForge Inc.'
 class LicenseDetails {
     constructor (license, claims) {
         // this.license = license;
+        this.id = claims.id
         this.note = claims.note
         this.organisation = claims.sub
         this.validFrom = new Date(claims.nbf * 1000)

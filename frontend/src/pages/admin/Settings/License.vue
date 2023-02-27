@@ -8,6 +8,7 @@
                 <table data-el="license-details">
                     <tr v-if="license.dev"><td class="font-medium p-2 pr-4 align-top" colspan="2"></td></tr>
                     <tr><td class="font-medium p-2 pr-4 align-top">Type</td><td class="p-2"><span v-if="!license.dev">FlowForge Enterprise Edition</span><span v-else class="font-bold">FlowForge Development Only</span></td></tr>
+                    <tr><td class="font-medium p-2 pr-4 align-top">License ID</td><td class="p-2">{{license.id}}</td></tr>
                     <tr><td class="font-medium p-2 pr-4 align-top">Organisation</td><td class="p-2">{{license.organisation}}</td></tr>
                     <tr><td class="font-medium p-2 pr-4 align-top">Tier</td><td class="p-2">{{license.tier}}</td></tr>
                     <tr><td class="font-medium p-2 pr-4 align-top">Expires</td><td class="p-2">{{license.expires}}<br><span class="text-xs">{{license.expiresAt}}</span></td></tr>
@@ -36,6 +37,7 @@
                 <FormHeading>2. Check license details</FormHeading>
                 <table>
                     <tr v-if="inspectedLicense.dev"><td class="font-medium p-2 pr-4 align-top" colspan="2">Development-mode Only</td></tr>
+                    <tr><td class="font-medium p-2 pr-4 align-top">License ID</td><td class="p-2">{{inspectedLicense.id}}</td></tr>
                     <tr><td class="font-medium p-2 pr-4 align-top">Organisation</td><td class="p-2">{{inspectedLicense.organisation}}</td></tr>
                     <tr><td class="font-medium p-2 pr-4 align-top">Expires</td><td class="p-2">{{inspectedLicense.expires}}<br><span class="text-xs">{{inspectedLicense.expiresAt}}</span></td></tr>
                 </table>

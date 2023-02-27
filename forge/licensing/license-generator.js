@@ -28,6 +28,7 @@
 const fs = require('fs')
 const jwt = require('jsonwebtoken')
 const promptly = require('promptly')
+const { v4: uuidv4 } = require('uuid')
 
 ;(async () => {
     console.log('FlowForge EE License Generator')
@@ -87,7 +88,11 @@ const promptly = require('promptly')
             }
         })
 
+        // generate a random license id (uuid)
+        const licenseId = uuidv4()
+
         const licenseDetails = {
+            id: licenseId,
             iss: 'FlowForge Inc.', // DO NOT CHANGE
             sub: licenseHolder, // Name of the license holder
             nbf: validFrom,
