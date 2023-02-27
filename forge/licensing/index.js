@@ -101,7 +101,6 @@ module.exports = fp(async function (app, opts, next) {
         }
         if (licenseApi.active()) {
             status.expiresAt = app.license.get('expiresAt')
-            status.expiresAt = new Date(now - (31 * oneDay)) // TODO: delete me
         }
         const expired = status.expiresAt < now
         status.daysRemaining = expired ? 0 : Math.floor((status.expiresAt - now) / oneDay)
