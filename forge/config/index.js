@@ -87,6 +87,15 @@ module.exports = fp(async function (app, opts, next) {
         config.base_url = config.base_url || `http://${config.host}:${config.port}`
         config.api_url = config.api_url || config.base_url
 
+        /** How many days before license expires to notify admins */
+        config.license_warn_period = 30 // TODO: make this configurable
+
+        /** How many days to allow grace after license has expired */
+        config.license_grace_period = 30 // fixed at 30 days
+
+        /** Stops all projects when the grace period is done */
+        config.license_expiry_stops_all = false // If enabled, all projects will be stopped after grace period
+
         process.env.FLOWFORGE_BASE_URL = config.base_url
         process.env.FLOWFORGE_API_URL = config.api_url
 
