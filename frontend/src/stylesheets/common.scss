@@ -110,7 +110,7 @@ label {
             text-decoration: underline;
         }
     }
-    span:last-child label {
+    &.disable-last span:last-child label {
         pointer-events: none;
         color: black;
     }

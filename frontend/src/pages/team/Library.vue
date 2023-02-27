@@ -112,7 +112,7 @@ export default {
             if (entryIsFile) {
                 this.contents = contents
             } else {
-                this.rows = this.formatEntries(contents, this.breadcrumbs.at(-1))
+                this.rows = this.formatEntries(contents || [], this.breadcrumbs.at(-1))
             }
         },
         entrySelected (entry) {
