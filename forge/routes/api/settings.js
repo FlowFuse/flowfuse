@@ -23,7 +23,8 @@ module.exports = async function (app) {
                 email: app.postoffice.enabled(),
                 stacks: app.containers.properties().stack || {},
                 features: app.config.features.getAllFeatures(),
-                base_url: app.config.base_url
+                base_url: app.config.base_url,
+                license: app.license.status
             }
 
             if (request.session.User.admin) {

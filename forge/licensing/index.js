@@ -64,6 +64,9 @@ module.exports = fp(async function (app, opts, next) {
             }
             return defaultLimits[key]
         },
+        get status () {
+            return status()
+        },
         defaults: defaultLimits
     }
 
@@ -80,6 +83,34 @@ module.exports = fp(async function (app, opts, next) {
     app.decorate('license', licenseApi)
 
     next()
+
+    function status () {
+        const PRE_WARN = app.config.license_warn_period || 30
+        const GRACE_DAYS = app.config.license_grace_period || 30
+        const now = Date.now()
+        const oneDay = 24 * 60 * 60 * 1000 // 24 hours
+        const grace = GRACE_DAYS * oneDay
+        const status = {
+            type: licenseApi.active() ? (licenseApi.get('dev') ? 'DEV' : 'EE') : 'CE',
+            expiresAt: new Date(Date.now() + (365 * oneDay)),
+            expiring: false,
+            expired: false,
+            grace: false,
+            daysRemaining: 0,
+            graceDaysRemaining: 0
+        }
+        if (licenseApi.active()) {
+            status.expiresAt = app.license.get('expiresAt')
+            status.expiresAt = new Date(now - (31 * oneDay)) // TODO: delete me
+        }
+        const expired = status.expiresAt < now
+        status.daysRemaining = expired ? 0 : Math.floor((status.expiresAt - now) / oneDay)
+        status.graceDaysRemaining = !expired ? status.daysRemaining + GRACE_DAYS : Math.floor(((status.expiresAt - now) + grace) / oneDay)
+        status.grace = expired && status.graceDaysRemaining > 0
+        status.expired = expired && !status.grace
+        status.expiring = !expired && !status.grace && status.daysRemaining <= PRE_WARN
+        return status
+    }
 
     /**
      * Get usage and limits information for the license (all, or by resource)
