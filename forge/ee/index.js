@@ -10,6 +10,9 @@ module.exports = fp(async function (app, opts, next) {
         await require('./db/index.js').init(app)
         await app.register(require('./routes'), { logLevel: app.config.logging.http })
         await app.register(require('./lib'))
+        app.postoffice.registerTemplate('LicenseReminder', require('./emailTemplates/LicenseReminder'))
+        app.postoffice.registerTemplate('LicenseGrace', require('./emailTemplates/LicenseGrace'))
+        app.postoffice.registerTemplate('LicenseExpired', require('./emailTemplates/LicenseExpired'))
     }
     next()
 })
