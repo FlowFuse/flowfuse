@@ -22,6 +22,19 @@ The Public IP address of the Droplet will be listed in the UI when it has been c
 
 ![Digital Ocean Droplet IP address ](../images/do-public-ip.png)
 
+### SMTP Server (Optional)
+
+This is used to send invites to new user and to enable password resets.
+
+You will need to know the following:
+
+- SMTP Server hostname
+- Port (Default 587)
+- Username/Password
+
+If you don't already have a SMTP server you can grab one from an email delivery service like 
+SparkPost, [Sendgrid](https://marketplace.digitalocean.com/apps/sendgrid), Mailgun, etc.
+
 ## Setup
 
 After the Droplet has been created and you have set up the DNS entry you will need to connect to the droplet to and enter the domain name 
@@ -38,6 +51,11 @@ You can do this in 2 ways
 Once logged in you will be presented with a wizard to set the domain and confirm by entering `1` or `2` to enter the domain again.
 
 ![Digital Ocean Wizard](../images/do-wizard.png)
+
+The wizard will then ask about setting up a SMTP server to allow FlowForge to send email. This used to invite users or reset passwords, 
+it is optional.
+
+![Digital Ocean Wizard SMTP](../images/do-wizard-smtp.png)
 
 The wizard will then update the configuration files and start FlowForge
 

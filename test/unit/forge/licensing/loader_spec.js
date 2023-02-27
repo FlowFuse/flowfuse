@@ -15,6 +15,26 @@ describe('License Loader', function () {
         licenseDetails.should.have.property('organisation', 'Acme Customer')
         licenseDetails.expired.should.false()
     })
+    it('should load a newer license with id', async function () {
+        // {
+        //     "id": "6f8ff7db-d7a6-4275-8abf-6c9e1a9c133b",
+        //     "iss": "FlowForge Inc.",
+        //     "sub": "Acme Customer",
+        //     "nbf": 946684800,
+        //     "exp": 7258118400,
+        //     "note": "Development-mode Only. Not for production",
+        //     "users": 150,
+        //     "teams": 50,
+        //     "projects": 50,
+        //     "devices": 50,
+        //     "dev": true
+        // }
+        const TEST_LICENSE = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZmOGZmN2RiLWQ3YTYtNDI3NS04YWJmLTZjOWUxYTljMTMzYiIsImlzcyI6IkZsb3dGb3JnZSBJbmMuIiwic3ViIjoiQWNtZSBDdXN0b21lciIsIm5iZiI6OTQ2Njg0ODAwLCJleHAiOjcyNTgxMTg0MDAsIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjo1MCwiZGV2Ijp0cnVlLCJpYXQiOjE2NzcyMzg4ODR9.aacjGQmwj918lQWvjZl3CjCPi6IilvsTEiDkU29Dc9toZS9Yu4FQtAzE9rnuwh81yWHn9yaPA1DLaAWLp1KUBw'
+        const licenseDetails = await licensing.verifyLicense(TEST_LICENSE)
+        licenseDetails.should.have.property('organisation', 'Acme Customer')
+        licenseDetails.should.have.property('id', '6f8ff7db-d7a6-4275-8abf-6c9e1a9c133b')
+        licenseDetails.expired.should.false()
+    })
     it('should prevent modification of the license', async function () {
         'use strict'
         // {

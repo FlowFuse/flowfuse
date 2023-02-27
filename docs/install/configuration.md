@@ -101,6 +101,7 @@ See [here](./email_providers.md) for example configuration with common email pro
 
 By default, the platform will send anonymous usage information back to us at FlowForge Inc.
 This can be disabled via the Admin Settings in the UI, or turned off in the configuration file with the `telemetry.enabled` option.
+**IMPORTANT: Licensed installations cannot disable telemetry**
 
 Additionally, you can configure your own instance of FlowForge to report back to you on how users are using your instance of FlowForge. FlowForge supports integration with two different services:
 
