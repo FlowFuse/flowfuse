@@ -60,6 +60,7 @@
         "platform.licence.apply": "License Applied",
         "platform.license.inspected": "License Inspected",
         "platform.licence.inspect": "License Inspected",
+        "platform.license.overage": "License Overage",
         "platform.project-type.created": "New Project Type Created",
         "platform.project-type.deleted": "Project Type Deleted",
         "platform.project-type.updated": "Project Type Updated",

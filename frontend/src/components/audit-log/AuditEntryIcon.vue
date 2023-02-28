@@ -13,6 +13,7 @@
     <UserGroupIcon v-if="icon === 'users'" class="ff-icon text-teal-700" />
     <CurrencyDollarIcon v-if="icon === 'billing'" class="ff-icon text-yellow-500" />
     <KeyIcon v-if="icon === 'key'" class="ff-icon text-green-700" />
+    <KeyIcon v-if="icon === 'overage'" class="ff-icon text-red-700" />
     <LoginIcon v-if="icon === 'login'" class="ff-icon text-blue-700" />
     <LogoutIcon v-if="icon === 'logout'" class="ff-icon text-gray-600" />
     <ExclamationCircleIcon v-if="icon === 'error'" class="ff-icon text-red-500" />
@@ -86,6 +87,9 @@ const iconMap = {
         'platform.license.inspected',
         'platform.licence.apply',
         'platform.licence.inspect'
+    ],
+    overage: [
+        'platform.license.overage'
     ],
     settings: [
         'project.copied',

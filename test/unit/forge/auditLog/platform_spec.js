@@ -189,4 +189,17 @@ describe('Audit Log > Platform', async function () {
         logEntry.body.license.should.only.have.keys('key')
         logEntry.body.license.key.should.equal('a-license')
     })
+
+    it('Provides a logger for a platform license overage', async function () {
+        // platform - license - overage
+        const overage = { resource: 'users', count: 6, limit: 5 }
+        await platformLogger.platform.license.overage('system', null, overage)
+
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'platform.license.overage')
+        logEntry.should.have.property('scope', { id: null, type: 'platform' })
+        logEntry.should.have.property('trigger', { id: 'system', type: 'system', name: 'Forge Platform' })
+        logEntry.should.have.property('body').and.be.an.Object()
+        logEntry.body.should.have.property('info', overage)
+    })
 })
