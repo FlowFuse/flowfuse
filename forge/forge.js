@@ -53,8 +53,6 @@ module.exports = async (options = {}) => {
         await server.register(db)
         // Settings
         await server.register(settings)
-        // Monitor
-        await server.register(monitor)
         // License
         await server.register(license)
         // Audit Logging
@@ -94,6 +92,9 @@ module.exports = async (options = {}) => {
         await server.register(containers)
 
         await server.register(ee)
+
+        // Monitor
+        await server.register(monitor)
 
         await server.ready()
 
