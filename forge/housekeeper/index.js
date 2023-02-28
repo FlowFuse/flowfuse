@@ -62,7 +62,6 @@ module.exports = fp(async function (app, _opts, next) {
     await registerTask(require('./tasks/licenseCheck'))
     await registerTask(require('./tasks/licenseOverage'))
 
-
     app.decorate('housekeeper', {
         registerTask
     })
