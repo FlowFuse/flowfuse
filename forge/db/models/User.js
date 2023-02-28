@@ -66,6 +66,12 @@ module.exports = {
                     user.name = user.username
                 }
             },
+            afterCreate: async (user, options) => {
+                const { users } = await app.license.usage('users')
+                if (users.count > users.limit) {
+                    await app.auditLog.Platform.platform.license.overage('system', null, users)
+                }
+            },
             beforeUpdate: async (user) => {
                 if (user._previousDataValues.admin === true && user.admin === false) {
                     const currentAdmins = await app.db.models.User.scope('admins').findAll()
