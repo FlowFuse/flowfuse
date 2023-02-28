@@ -23,6 +23,7 @@ module.exports = async (options = {}) => {
         loggerLevel = options.config.logging.level || 'info'
     }
     const server = fastify({
+        bodyLimit: 5242880,
         maxParamLength: 500,
         trustProxy: true,
         logger: {
