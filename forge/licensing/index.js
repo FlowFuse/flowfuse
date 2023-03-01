@@ -85,30 +85,25 @@ module.exports = fp(async function (app, opts, next) {
     next()
 
     function status () {
-        const PRE_WARN = app.config.license_warn_period || 30
-        const GRACE_DAYS = app.config.license_grace_period || 30
-        const now = Date.now()
+        const PRE_EXPIRE_WARNING_DAYS = 30 // hard coded
         const oneDay = 24 * 60 * 60 * 1000 // 24 hours
-        const grace = GRACE_DAYS * oneDay
-        const status = {
-            type: licenseApi.active() ? (licenseApi.get('dev') ? 'DEV' : 'EE') : 'CE',
-            expiresAt: new Date(Date.now() + (365 * oneDay)),
-            expiring: false,
-            expired: false,
-            grace: false,
-            daysRemaining: 0,
-            graceDaysRemaining: 0
+        const now = Date.now()
+        const isLicensed = licenseApi.active()
+        const licenseType = isLicensed ? (licenseApi.get('dev') ? 'DEV' : 'EE') : 'CE'
+        const expiresAt = isLicensed
+            ? licenseApi.get('expiresAt') // EE: get from license
+            : new Date(now + (365 * oneDay)) // CE: always valid (always 1 year from now)
+        const expired = expiresAt < now
+        const daysRemaining = expired ? 0 : Math.floor((expiresAt - now) / oneDay)
+        const expiring = !expired && daysRemaining <= PRE_EXPIRE_WARNING_DAYS
+        return {
+            type: licenseType, // 'CE', 'EE', or 'DEV'
+            expiresAt, // Date
+            expiring, // boolean flag
+            expired, // boolean flag
+            daysRemaining, // number of days remaining
+            PRE_EXPIRE_WARNING_DAYS // number of days before expiration to warn
         }
-        if (licenseApi.active()) {
-            status.expiresAt = app.license.get('expiresAt')
-        }
-        const expired = status.expiresAt < now
-        status.daysRemaining = expired ? 0 : Math.floor((status.expiresAt - now) / oneDay)
-        status.graceDaysRemaining = !expired ? status.daysRemaining + GRACE_DAYS : Math.floor(((status.expiresAt - now) + grace) / oneDay)
-        status.grace = expired && status.graceDaysRemaining > 0
-        status.expired = expired && !status.grace
-        status.expiring = !expired && !status.grace && status.daysRemaining <= PRE_WARN
-        return status
     }
 
     /**
@@ -164,6 +159,7 @@ module.exports = fp(async function (app, opts, next) {
 
     async function applyLicense (license) {
         activeLicense = await loader.verifyLicense(license)
+        // activeLicense = await loader.verifyLicense('eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsImV4cCI6OTc4MzA3MjAwLCJzdWIiOiJBY21lIEN1c3RvbWVyIiwidGllciI6InRlYW1zIiwiaWF0IjoxNjI3NTg4MDA5fQ.qHm0I4RWDz_JewabonqJ_i1RJY4rTE1B6BN1A-Sit5CPvqEXg-01ljeHQJIQcNqMavp9wxZQViLei2yIwAP10A')
         app.log.info('License verified:')
         if (activeLicense.dev) {
             app.log.info('  ****************************')
@@ -173,7 +169,11 @@ module.exports = fp(async function (app, opts, next) {
         app.log.info(` License ID : ${activeLicense.id}`)
         app.log.info(` Org        : ${activeLicense.organisation}`)
         app.log.info(` Valid From : ${activeLicense.validFrom.toISOString()}`)
-        app.log.info(` Expires    : ${activeLicense.expiresAt.toISOString()}`)
+        if (activeLicense.expired) {
+            app.log.warn(` Expired    : ${activeLicense.expiresAt.toISOString()}`)
+        } else {
+            app.log.info(` Expires    : ${activeLicense.expiresAt.toISOString()}`)
+        }
         await reportUsage()
     }
 })
