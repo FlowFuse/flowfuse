@@ -47,7 +47,7 @@ describe('License Loader', function () {
         const licenseDetails = await licensing.verifyLicense(TEST_LICENSE);
         (function () { licenseDetails.sub = 'please throw' }).should.throw()
     })
-    it('should reject an expired license', async function () {
+    it('should load an expired license', async function () {
         // {
         //     iss: "FlowForge Inc.",
         //     exp: 2001-01-01,
@@ -55,7 +55,10 @@ describe('License Loader', function () {
         //     tier: "teams"
         // }
         const TEST_LICENSE = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsImV4cCI6OTc4MzA3MjAwLCJzdWIiOiJBY21lIEN1c3RvbWVyIiwidGllciI6InRlYW1zIiwiaWF0IjoxNjI3NTg4MDA5fQ.qHm0I4RWDz_JewabonqJ_i1RJY4rTE1B6BN1A-Sit5CPvqEXg-01ljeHQJIQcNqMavp9wxZQViLei2yIwAP10A'
-        licensing.verifyLicense(TEST_LICENSE).should.be.rejected()
+        const licenseDetails = await licensing.verifyLicense(TEST_LICENSE)
+        should(licenseDetails).be.an.Object()
+        licenseDetails.should.have.property('expired', true)
+        licenseDetails.should.have.property('valid', false)
     })
     it('should reject an invalid issuer', async function () {
         // {
