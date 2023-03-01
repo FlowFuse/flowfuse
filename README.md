@@ -1,22 +1,16 @@
 # FlowForge
 
-FlowForge is an open-source low-code platform based on the OpenJS Foundation Node-RED
-project. It provides the tools you need to run and manage multiple Node-RED instances
-in your own environment. It was created to make it easier to run Node-RED at scale while keeping DevOps to a minimum.
+FlowForge helps Node-RED developers deliver applications in a more reliable, collaborative and secure manner. Node-RED’s intuitive, low-code development environment is great for connecting together hardware devices, APIs and online services. FlowForge adds to Node-RED collaborative development, management of remote deployments, support for DevOps deliver pipelines, and the ability to host Node-RED applications on FlowForge Cloud. FlowForge is the devops platform for Node-RED application development and delivery.
 
-## Key Benefits
 
-* FlowForge makes it easier for developers to create, update and deploy flows to Node-RED.
+## Key Features
 
-* FlowForge manages resources and user permissions to reduce operational overhead for small and large teams.
+* FlowForge adds team collaboration to Node-RED, allowing multiple developers to work together on a single instance.
+* Many organizations deploy Node-RED instances to remote servers or edge devices. FlowForge automates this process by creating snapshots on Node-RED instances that can be deployed to multiple remote targets. 
+* FlowForge simplifies the software development lifecycle of Node-RED applications. You can now set up DevOps delivery pipelines to support development, test and production environments for Node-RED application delivery.
+* FlowForge is available from FlowForge Cloud, a managed cloud service, or a self-hosted solution. 
+* FlowForge offers professional technical support for FlowForge and Node-RED.
 
-* FlowForge works natively with cloud hosted, local and edge instances of Node-RED.
-
-* FlowForge manages secure access to Node-RED's interface, dashboards and APIs created within Node-RED.
-
-* FlowForge gives a clear overview of all your projects in one easy to use dashboard.
-
-* FlowForge provides one-click deployment capability, with version control, to thousands of devices
 ## Links
 
 - [Documentation](https://github.com/flowforge/flowforge/blob/main/docs/README.md)
