@@ -159,6 +159,23 @@ module.exports = async function (app) {
         }
     })
 
+    /**
+     * @name /api/v1/teams/:teamId/applications
+     * @static
+     * @memberof forge.routes.api.team
+     */
+    app.get('/:teamId/applications', {
+        preHandler: app.needsPermission('team:projects:list') // TODO Using project level permissions
+    }, async (request, reply) => {
+        const applications = await app.db.models.Application.byTeam(request.params.teamId)
+
+        // TODO Use a view
+        reply.send({
+            count: applications.length,
+            applications
+        })
+    })
+
     app.get('/:teamId/projects', {
         preHandler: app.needsPermission('team:projects:list')
     }, async (request, reply) => {

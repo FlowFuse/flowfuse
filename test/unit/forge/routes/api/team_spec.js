@@ -1,5 +1,7 @@
 const should = require('should') // eslint-disable-line
 const setup = require('../setup')
+const FF_UTIL = require('flowforge-test-utils')
+const { Roles } = FF_UTIL.require('forge/lib/roles')
 
 describe('Team API', function () {
     let app
@@ -20,6 +22,9 @@ describe('Team API', function () {
         TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: app.defaultTeamType.id })
         TestObjects.CTeam = await app.db.models.Team.create({ name: 'CTeam abc', TeamTypeId: app.defaultTeamType.id })
         TestObjects.DTeam = await app.db.models.Team.create({ name: 'DTeAbCam', TeamTypeId: app.defaultTeamType.id })
+
+        await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Member } })
+        await TestObjects.BTeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
 
         TestObjects.tokens = {}
         await login('alice', 'aaPassword')
@@ -44,6 +49,7 @@ describe('Team API', function () {
             app = null
         }
     })
+
     describe('Team API', function async () {
         describe('Get team details', async function () {
             // GET /api/v1/teams/:teamId
@@ -109,6 +115,77 @@ describe('Team API', function () {
                 firstPage.teams.should.have.length(2)
                 firstPage.teams[0].should.have.property('name', 'CTeam abc')
                 firstPage.teams[1].should.have.property('name', 'DTeAbCam')
+            })
+        })
+
+        describe('Get list of a teams applications', async function () {
+            beforeEach(async function () {
+                await app.db.models.Application.create({ name: 'team-a-application', TeamId: TestObjects.ATeam.id })
+                await app.db.models.Application.create({ name: 'team-a-application-2', TeamId: TestObjects.ATeam.id })
+                await app.db.models.Application.create({ name: 'team-b-application', TeamId: TestObjects.BTeam.id })
+            })
+
+            it('for an admin lists all the applications in a team', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.BTeam.hashid}/applications`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(200)
+
+                // TODO Enhance test
+                const result = response.json()
+                result.should.have.property('count', 1)
+                result.should.have.property('applications').and.have.a.lengthOf(1)
+                should(result.applications.some((application) => application.name === 'team-b-application')).equal(true)
+            })
+
+            it('for an owner lists all the applications in a team', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.BTeam.hashid}/applications`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+
+                response.statusCode.should.equal(200)
+
+                // TODO Enhance test
+                const result = response.json()
+                result.should.have.property('count', 1)
+                result.should.have.property('applications').and.have.a.lengthOf(1)
+                should(result.applications.some((application) => application.name === 'team-b-application')).equal(true)
+            })
+
+            it('for an member lists all the applications in a team', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/applications`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+
+                response.statusCode.should.equal(200)
+
+                // TODO Enhance test
+                const result = response.json()
+                result.should.have.property('count', 2)
+                result.should.have.property('applications').and.have.a.lengthOf(2)
+                should(result.applications.some((application) => application.name === 'team-a-application')).equal(true)
+                should(result.applications.some((application) => application.name === 'team-a-application-2')).equal(true)
+            })
+
+            it('fails if a user is not member of the team', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/applications`,
+                    cookies: { sid: TestObjects.tokens.chris }
+                })
+
+                response.statusCode.should.equal(404)
+
+                const result = response.json()
+                result.should.have.property('code', 'not_found')
+                result.should.have.property('error')
             })
         })
 
