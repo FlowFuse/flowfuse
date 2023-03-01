@@ -12,7 +12,7 @@ This is a friendly reminder that your FlowForge License will expire in
 {{{days}}} days.
 
 You can check the status of your license by logging into your account at
-{{#if forgeURL}}{{{forgeURL}}}{{else}}https://flowforge.com{{/if}}.
+{{{forgeURL}}}.
 
 We hope you will get in touch to renew your license and continue to enjoy the 
 FlowForge experience.
@@ -28,7 +28,7 @@ Your friendly FlowForge Team
 {{{days}}} days.</p>
 
 <p>You can check the status of your license by logging into your account at
-{{#if forgeURL}}{{{forgeURL}}}{{else}}https://flowforge.com{{/if}}.</p>
+{{{forgeURL}}}.</p>
 
 <p>We hope you will get in touch to renew your license and continue to enjoy the 
 FlowForge experience.</p>
