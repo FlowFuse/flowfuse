@@ -210,6 +210,7 @@ describe('Device API', async function () {
             const result = response.json()
             result.should.have.property('name', '00:11:22:33:44:55')
             result.should.have.property('type', 'test device')
+            result.should.have.property('lastSeenMs', null) // required for device list UI
             result.should.have.property('links').and.be.an.Object()
             result.should.have.property('team').and.be.an.Object()
             result.should.have.property('project').and.be.an.Object()
@@ -349,6 +350,7 @@ describe('Device API', async function () {
             result.should.have.property('type', 'something')
             result.should.have.property('links')
             result.should.have.property('team')
+            result.should.have.property('lastSeenMs', null) // required for device list UI
             result.should.have.property('targetSnapshot')
             result.should.have.property('activeSnapshot')
             result.team.should.have.property('id', TestObjects.ATeam.hashid)
