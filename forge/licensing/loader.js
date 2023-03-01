@@ -32,6 +32,8 @@ class LicenseDetails {
 function verifyLicenseWithKey (data, key) {
     const publicKey = fs.readFileSync(path.join(__dirname, key))
     return jwt.verify(data, publicKey, {
+        // We'll check the expiration ourselves instead of throwing an error (which in turn, permits us to start up)
+        ignoreExpiration: true,
         algorithms: ['ES256'],
         issuer: LICENSE_ISSUER
     })
