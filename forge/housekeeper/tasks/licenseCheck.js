@@ -1,26 +1,30 @@
-const { Op } = require('sequelize')
-
 module.exports = {
     name: 'licenseCheck',
     startup: false,
-    schedule: '50 23 * * *', // cron syntax for every day at 23:50
+    schedule: '0 2 * * *', // every day at 2am
     run: async function (app) {
-        const { expired, expiring, grace, daysRemaining, graceDaysRemaining } = app.license.status
+        const { expired, expiring, daysRemaining, expiresAt, PRE_EXPIRE_WARNING_DAYS } = app.license.status()
+        const today = new Date()
 
-        // check license status: warn admins if expiring soon
-        if (expiring && !this._expiring_sent) {
-            await emailAdmins(app, 'LicenseReminder', { days: daysRemaining })
-            this._expiring_sent = true
+        // While in expiry period: email admins every 7 days until expiry
+        if (expiring) {
+            const isExpiryWarnStartDate = expiring && PRE_EXPIRE_WARNING_DAYS === daysRemaining
+            const modulusOffset = PRE_EXPIRE_WARNING_DAYS % 7
+            const isDayForReminder = expiring && ((daysRemaining - modulusOffset) % 7) === 0
+            if (isExpiryWarnStartDate || isDayForReminder) {
+                await emailAdmins(app, 'LicenseReminder', { days: daysRemaining })
+            }
         }
-        if (grace && !this._grace_sent) {
-            await emailAdmins(app, 'LicenseGrace', { days: graceDaysRemaining })
-            this._grace_sent = true
-        }
+
+        // On expiry date and every sunday: email admins to say license has expired
         if (expired) {
-            await suspendAllProjects(app) // stop projects when license expires (if configured)
-            if (!this._expired_sent) {
+            const isSunday = date => date.getDay() === 0
+            const expiryDate = new Date(expiresAt)
+            const isExpiryDate = today.getFullYear() === expiryDate.getFullYear() &&
+                today.getMonth() === expiryDate.getMonth() &&
+                today.getDate() === expiryDate.getDate()
+            if (isExpiryDate || isSunday(today)) {
                 await emailAdmins(app, 'LicenseExpired', {})
-                this._expired_sent = true
             }
         }
     }
@@ -30,37 +34,5 @@ async function emailAdmins (app, template, context) {
     const admins = await app.db.models.User.admins()
     for (const admin of admins) {
         await app.postoffice.send(admin, template, context)
-    }
-}
-
-async function suspendAllProjects (app) {
-    const STOP_ON_EXPIRY = app.config.license_expiry_stops_all || false
-    if (STOP_ON_EXPIRY) {
-        // get a list of all projects where state is not 'suspended' or 'suspending'
-        const projects = await app.db.models.Project.findAll({
-            where: {
-                state: {
-                    [Op.notIn]: ['suspended', 'suspending']
-                }
-            }
-        })
-        if (projects.length === 0) {
-            return Promise.resolve()
-        }
-        // stop all projects
-        await Promise.all(projects.map(project => suspendProject(app, project)))
-    }
-    return Promise.resolve()
-}
-
-async function suspendProject (app, project) {
-    try {
-        app.db.controllers.Project.setInflightState(project, 'suspending')
-        await app.containers.stop(project)
-        app.db.controllers.Project.clearInflightState(project)
-        await app.auditLog.Project.project.suspended(0, null, project)
-    } catch (error) {
-        app.db.controllers.Project.clearInflightState(project)
-        app.log.error(error)
     }
 }
