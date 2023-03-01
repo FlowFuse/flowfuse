@@ -24,7 +24,7 @@ module.exports = async function (app) {
                 stacks: app.containers.properties().stack || {},
                 features: app.config.features.getAllFeatures(),
                 base_url: app.config.base_url,
-                license: app.license.status
+                license: app.license.status()
             }
 
             if (request.session.User.admin) {

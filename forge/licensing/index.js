@@ -64,7 +64,7 @@ module.exports = fp(async function (app, opts, next) {
             }
             return defaultLimits[key]
         },
-        get status () {
+        status: () => {
             return status()
         },
         defaults: defaultLimits
