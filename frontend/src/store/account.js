@@ -213,13 +213,6 @@ const actions = {
                     hash: router.currentRoute.value.hash
                 })
             }
-            if (settings.license?.expired) {
-                state.commit('clearPending')
-                if (user.admin) {
-                    router.push('/admin/settings/license')
-                }
-                return
-            }
         } catch (err) {
             // Not logged in
             state.commit('clearPending')
