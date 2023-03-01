@@ -68,7 +68,8 @@ describe('Application API', function () {
             response.statusCode.should.equal(200)
 
             const result = response.json()
-            result.should.have.property('id')
+            const newApplication = await app.db.models.Application.byId(result.id)
+            result.should.have.property('id', newApplication.hashid)
             result.should.have.property('name', 'my first application')
         })
 
@@ -146,7 +147,7 @@ describe('Application API', function () {
             response.statusCode.should.equal(200)
 
             const result = response.json()
-            result.should.have.property('id')
+            result.should.have.property('id', TestObjects.application.hashid)
             result.should.have.property('name', 'B-team Application')
         })
 

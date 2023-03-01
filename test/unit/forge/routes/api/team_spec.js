@@ -120,9 +120,9 @@ describe('Team API', function () {
 
         describe('Get list of a teams applications', async function () {
             beforeEach(async function () {
-                await app.db.models.Application.create({ name: 'team-a-application', TeamId: TestObjects.ATeam.id })
-                await app.db.models.Application.create({ name: 'team-a-application-2', TeamId: TestObjects.ATeam.id })
-                await app.db.models.Application.create({ name: 'team-b-application', TeamId: TestObjects.BTeam.id })
+                TestObjects.TeamAApp = await app.db.models.Application.create({ name: 'team-a-application', TeamId: TestObjects.ATeam.id })
+                TestObjects.TeamAApp2 = await app.db.models.Application.create({ name: 'team-a-application-2', TeamId: TestObjects.ATeam.id })
+                TestObjects.TeamBApp = await app.db.models.Application.create({ name: 'team-b-application', TeamId: TestObjects.BTeam.id })
             })
 
             it('for an admin lists all the applications in a team', async function () {
@@ -138,7 +138,8 @@ describe('Team API', function () {
                 const result = response.json()
                 result.should.have.property('count', 1)
                 result.should.have.property('applications').and.have.a.lengthOf(1)
-                should(result.applications.some((application) => application.name === 'team-b-application')).equal(true)
+                result.applications[0].should.have.property('id', TestObjects.TeamBApp.hashid)
+                result.applications[0].should.have.property('name', 'team-b-application')
             })
 
             it('for an owner lists all the applications in a team', async function () {
@@ -150,7 +151,6 @@ describe('Team API', function () {
 
                 response.statusCode.should.equal(200)
 
-                // TODO Enhance test
                 const result = response.json()
                 result.should.have.property('count', 1)
                 result.should.have.property('applications').and.have.a.lengthOf(1)
@@ -166,7 +166,6 @@ describe('Team API', function () {
 
                 response.statusCode.should.equal(200)
 
-                // TODO Enhance test
                 const result = response.json()
                 result.should.have.property('count', 2)
                 result.should.have.property('applications').and.have.a.lengthOf(2)

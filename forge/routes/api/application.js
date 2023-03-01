@@ -28,7 +28,7 @@ module.exports = async function (app) {
     })
 
     /**
-     * Create a application
+     * Create an application
      * @name /api/v1/application
      * @memberof forge.routes.api.application
      */
@@ -54,6 +54,11 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const name = request.body.name?.trim()
 
+        if (name === '') {
+            reply.status(409).type('application/json').send({ code: 'invalid_application_name', error: 'name not allowed' })
+            return
+        }
+
         let application
         try {
             application = await app.db.models.Application.create({
@@ -63,7 +68,7 @@ module.exports = async function (app) {
             return reply.status(500).send({ code: 'unexpected_error', error: err.toString() })
         }
 
-        reply.send(application)
+        reply.send(app.db.views.Application.application(application))
     })
 
     /**
@@ -75,7 +80,7 @@ module.exports = async function (app) {
     app.get('/:applicationId', {
         preHandler: app.needsPermission('project:read') // TODO For now using project level permissions
     }, async (request, reply) => {
-        reply.send(request.application)
+        reply.send(app.db.views.Application.application(request.application))
     })
 
     /**
@@ -98,7 +103,7 @@ module.exports = async function (app) {
             return reply.code(500).send({ code: 'unexpected_error', error: error.toString() })
         }
 
-        reply.send(request.application)
+        reply.send(app.db.views.Application.application(request.application))
     })
 
     /**

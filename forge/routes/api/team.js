@@ -172,7 +172,7 @@ module.exports = async function (app) {
         // TODO Use a view
         reply.send({
             count: applications.length,
-            applications
+            applications: app.db.views.Application.teamApplicationList(applications)
         })
     })
 
