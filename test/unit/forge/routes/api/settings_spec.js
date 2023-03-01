@@ -135,12 +135,12 @@ describe('Settings API', function () {
              * Example license object:
              * ```js
                 settings.license = {
-                    type: string,
+                    type: 'EE'|'CE'|'DEV',
                     expiresAt: '2223-02-05T23:59:59.000Z',
+                    expiring: boolean,
                     expired: boolean,
-                    grace: boolean,
                     daysRemaining: number,
-                    graceDaysRemaining: number
+                    PRE_EXPIRE_WARNING_DAYS: number
                 }
             * ```
             */
@@ -158,14 +158,12 @@ describe('Settings API', function () {
                 const settings = response.json()
                 settings.should.have.property('license')
 
-                settings.license.should.only.have.keys('type', 'expiresAt', 'expiring', 'grace', 'expired', 'daysRemaining', 'graceDaysRemaining')
+                settings.license.should.only.have.keys('type', 'expiresAt', 'expiring', 'expired', 'daysRemaining', 'PRE_EXPIRE_WARNING_DAYS')
                 settings.license.should.have.property('type', 'DEV')
                 settings.license.should.have.property('expiresAt', '2223-02-05T23:59:59.000Z')
                 settings.license.should.have.property('expiring', false)
-                settings.license.should.have.property('grace', false)
                 settings.license.should.have.property('expired', false)
                 settings.license.should.have.property('daysRemaining', 35)
-                settings.license.should.have.property('graceDaysRemaining', 65)
             })
             it('Returns correct license status in warning period', async function () {
                 await app.license.apply(license)
@@ -179,37 +177,14 @@ describe('Settings API', function () {
                 const settings = response.json()
                 settings.should.have.property('license')
 
-                settings.license.should.only.have.keys('type', 'expiresAt', 'expiring', 'grace', 'expired', 'daysRemaining', 'graceDaysRemaining')
+                settings.license.should.only.have.keys('type', 'expiresAt', 'expiring', 'expired', 'daysRemaining', 'PRE_EXPIRE_WARNING_DAYS')
                 settings.license.should.have.property('type', 'DEV')
                 settings.license.should.have.property('expiresAt', '2223-02-05T23:59:59.000Z')
                 settings.license.should.have.property('expiring', true)
-                settings.license.should.have.property('grace', false)
                 settings.license.should.have.property('expired', false)
                 settings.license.should.have.property('daysRemaining', 30)
-                settings.license.should.have.property('graceDaysRemaining', 60)
             })
-            it('Returns correct license status in grace period', async function () {
-                await app.license.apply(license)
-                mockDate.set('2223-02-06')
-                await login('alice', 'aaPassword')
-                const response = await app.inject({
-                    method: 'GET',
-                    url: settingsURL,
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                const settings = response.json()
-                settings.should.have.property('license')
-
-                settings.license.should.only.have.keys('type', 'expiresAt', 'expiring', 'grace', 'expired', 'daysRemaining', 'graceDaysRemaining')
-                settings.license.should.have.property('type', 'DEV')
-                settings.license.should.have.property('expiresAt', '2223-02-05T23:59:59.000Z')
-                settings.license.should.have.property('expiring', false)
-                settings.license.should.have.property('grace', true)
-                settings.license.should.have.property('expired', false)
-                settings.license.should.have.property('daysRemaining', 0)
-                settings.license.should.have.property('graceDaysRemaining', 29)
-            })
-            it('Returns correct license status in expired period', async function () {
+            it('Returns correct license status when expired', async function () {
                 await app.license.apply(license)
                 mockDate.set('2223-03-08')
                 await login('alice', 'aaPassword')
@@ -221,14 +196,12 @@ describe('Settings API', function () {
                 const settings = response.json()
                 settings.should.have.property('license')
 
-                settings.license.should.only.have.keys('type', 'expiresAt', 'expiring', 'grace', 'expired', 'daysRemaining', 'graceDaysRemaining')
+                settings.license.should.only.have.keys('type', 'expiresAt', 'expiring', 'expired', 'daysRemaining', 'PRE_EXPIRE_WARNING_DAYS')
                 settings.license.should.have.property('type', 'DEV')
                 settings.license.should.have.property('expiresAt', '2223-02-05T23:59:59.000Z')
                 settings.license.should.have.property('expiring', false)
-                settings.license.should.have.property('grace', false)
                 settings.license.should.have.property('expired', true)
                 settings.license.should.have.property('daysRemaining', 0)
-                settings.license.should.have.property('daysRemaining').which.is.a.Number().and.is.lessThan(1)
             })
         })
         describe('CE', function () {
@@ -249,13 +222,11 @@ describe('Settings API', function () {
                 const settings = response.json()
                 settings.should.have.property('license')
 
-                settings.license.should.only.have.keys('type', 'expiresAt', 'expiring', 'grace', 'expired', 'daysRemaining', 'graceDaysRemaining')
+                settings.license.should.only.have.keys('type', 'expiresAt', 'expiring', 'expired', 'daysRemaining', 'PRE_EXPIRE_WARNING_DAYS')
                 settings.license.should.have.property('type', 'CE')
                 settings.license.should.have.property('expiresAt', midnight1YearLater.toISOString())
                 settings.license.should.have.property('expired', false)
-                settings.license.should.have.property('grace', false)
                 settings.license.should.have.property('daysRemaining', 365)
-                settings.license.should.have.property('graceDaysRemaining', 395)
             })
             it('Returns unexpired license status in 2100', async function () {
                 mockDate.set('2100-02-06')
@@ -268,13 +239,11 @@ describe('Settings API', function () {
                 const settings = response.json()
                 settings.should.have.property('license')
 
-                settings.license.should.only.have.keys('type', 'expiresAt', 'expiring', 'grace', 'expired', 'daysRemaining', 'graceDaysRemaining')
+                settings.license.should.only.have.keys('type', 'expiresAt', 'expiring', 'expired', 'daysRemaining', 'PRE_EXPIRE_WARNING_DAYS')
                 settings.license.should.have.property('type', 'CE')
                 settings.license.should.have.property('expiresAt', '2101-02-06T00:00:00.000Z')
                 settings.license.should.have.property('expired', false)
-                settings.license.should.have.property('grace', false)
                 settings.license.should.have.property('daysRemaining', 365)
-                settings.license.should.have.property('graceDaysRemaining', 395)
             })
             it('Returns unexpired license status in 2500', async function () {
                 mockDate.set('2500-02-06')
@@ -287,13 +256,11 @@ describe('Settings API', function () {
                 const settings = response.json()
                 settings.should.have.property('license')
 
-                settings.license.should.only.have.keys('type', 'expiresAt', 'expiring', 'grace', 'expired', 'daysRemaining', 'graceDaysRemaining')
+                settings.license.should.only.have.keys('type', 'expiresAt', 'expiring', 'expired', 'daysRemaining', 'PRE_EXPIRE_WARNING_DAYS')
                 settings.license.should.have.property('type', 'CE')
                 settings.license.should.have.property('expiresAt', '2501-02-06T00:00:00.000Z')
                 settings.license.should.have.property('expired', false)
-                settings.license.should.have.property('grace', false)
                 settings.license.should.have.property('daysRemaining', 365)
-                settings.license.should.have.property('graceDaysRemaining', 395)
             })
         })
     })
