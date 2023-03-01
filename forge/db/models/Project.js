@@ -75,7 +75,8 @@ module.exports = {
         { name: 'projects_safe_name_unique', fields: ['safeName'], unique: true }
     ],
     associations: function (M) {
-        this.belongsTo(M.Team)
+        this.belongsTo(M.Application)
+        this.belongsTo(M.Team) // TODO redundant now there's an application link instead
         this.hasOne(M.AuthClient, {
             foreignKey: 'ownerId',
             constraints: false,
