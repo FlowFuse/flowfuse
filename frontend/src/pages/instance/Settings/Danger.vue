@@ -111,7 +111,7 @@ import ConfirmProjectDeleteDialog from './dialogs/ConfirmProjectDeleteDialog'
 
 import ImportProjectDialog from './dialogs/ImportProjectDialog'
 
-import projectApi from '@/api/instances'
+import InstanceApi from '@/api/instances'
 
 import FormHeading from '@/components/FormHeading'
 import permissionsMixin from '@/mixins/Permissions'
@@ -161,7 +161,7 @@ export default {
                 kind: 'danger'
             }, () => {
                 this.loading.suspend = true
-                projectApi.suspendProject(this.project.id).then(() => {
+                InstanceApi.suspendInstance(this.project.id).then(() => {
                     this.$router.push({ name: 'Home' })
                     alerts.emit('Project successfully suspended.', 'confirmation')
                 }).catch(err => {
@@ -197,7 +197,7 @@ export default {
         },
         duplicateProject (parts) {
             this.loading.duplicating = true
-            projectApi.create(parts).then(result => {
+            InstanceApi.create(parts).then(result => {
                 this.$router.push({ name: 'Project', params: { id: result.id } })
                 alerts.emit('Project successfully duplicated.', 'confirmation')
             }).catch(err => {
@@ -209,7 +209,7 @@ export default {
         },
         importProject (parts) {
             this.loading.importing = true
-            projectApi.importProject(this.project.id, parts).then(result => {
+            InstanceApi.importProject(this.project.id, parts).then(result => {
                 this.$router.push({ name: 'Project', params: { id: this.project.id } })
                 alerts.emit('Project flows imported.', 'confirmation')
             }).catch(err => {
@@ -221,7 +221,7 @@ export default {
         },
         deleteProject () {
             this.loading.deleting = true
-            projectApi.deleteProject(this.project.id).then(async () => {
+            InstanceApi.deleteInstance(this.project.id).then(async () => {
                 await this.$store.dispatch('account/refreshTeam')
                 this.$router.push({ name: 'Home' })
                 alerts.emit('Project successfully deleted.', 'confirmation')
@@ -235,7 +235,7 @@ export default {
         changeStack (selectedStack) {
             if (this.project.stack?.id !== selectedStack) {
                 this.loading.changingStack = true
-                projectApi.changeStack(this.project.id, selectedStack).then(() => {
+                InstanceApi.changeStack(this.project.id, selectedStack).then(() => {
                     this.$router.push({ name: 'Project', params: { id: this.project.id } })
                     this.$emit('projectUpdated')
                     alerts.emit('Project stack successfully updated.', 'confirmation')
@@ -248,11 +248,5 @@ export default {
             }
         }
     },
-    components: {
-        FormHeading,
-        ConfirmProjectDeleteDialog,
-        ChangeStackDialog,
-        ImportProjectDialog
-    }
 }
 </script>

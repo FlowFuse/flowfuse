@@ -35,7 +35,7 @@ import { mapState } from 'vuex'
 
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
-import ProjectAPI from '@/api/instances'
+import InstanceApi from '@/api/instances'
 import TeamAPI from '@/api/team'
 
 import FormHeading from '@/components/FormHeading'
@@ -99,7 +99,7 @@ export default {
                         params.append('event', evt)
                     })
                 }
-                return await ProjectAPI.getProjectAuditLog(projectId, params, cursor, 200)
+                return await InstanceApi.getInstanceAuditLog(projectId, params, cursor, 200)
             }
         },
         async loadLog () {

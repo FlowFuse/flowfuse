@@ -334,12 +334,12 @@ export default {
         },
         'input.projectType': async function (value, oldValue) {
             if (value) {
-                await this.updateProjectType(value)
+                await this.updateInstanceType(value)
             }
         }
     },
     async created () {
-        const projectTypesPromise = projectTypesApi.getProjectTypes()
+        const projectTypesPromise = projectTypesApi.getInstanceTypes()
         const templateListPromise = templatesApi.getTemplates()
 
         this.projectTypes = (await projectTypesPromise).types
@@ -395,7 +395,7 @@ export default {
 
         // Callback loads in related stacks
         if (this.input.projectType) {
-            this.updateProjectType(this.input.projectType)
+            this.updateInstanceType(this.input.projectType)
         }
     },
     async beforeMount () {
@@ -431,7 +431,7 @@ export default {
         findStackById (stackId) {
             return this.stacks.find(stack => stack.id === stackId)
         },
-        async updateProjectType (projectTypeId) {
+        async updateInstanceType (projectTypeId) {
             const projectType = this.projectTypes.find(pt => pt.id === projectTypeId)
             this.selectedProjectType = projectType
             await this.updateStacks(projectType)

@@ -54,7 +54,7 @@
 </template>
 
 <script>
-import projectApi from '@/api/instances'
+import InstanceApi from '@/api/instances'
 import snapshotApi from '@/api/projectSnapshots'
 
 import FormRow from '@/components/FormRow'
@@ -104,7 +104,7 @@ export default {
             this.submitted = false
         },
         fetchData: async function () {
-            const data = await snapshotApi.getProjectSnapshots(this.project.id)
+            const data = await snapshotApi.getInstanceSnapshots(this.project.id)
             this.snapshots = data.snapshots
 
             this.loading = false
@@ -113,7 +113,7 @@ export default {
             if (this.formValid) {
                 this.submitted = true
 
-                await projectApi.updateProjectDeviceSettings(this.project.id, {
+                await InstanceApi.updateInstanceDeviceSettings(this.project.id, {
                     targetSnapshot: this.selectedSnapshotId
                 })
 

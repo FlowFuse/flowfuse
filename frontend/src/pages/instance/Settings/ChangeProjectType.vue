@@ -8,7 +8,7 @@
 <script>
 import { mapState } from 'vuex'
 
-import projectApi from '../../../api/instances'
+import InstanceApi from '../../../api/instances'
 
 import ProjectForm from '../components/ProjectForm'
 
@@ -43,7 +43,7 @@ export default {
             }
             const changePayload = { ...projectDetails, team: this.team.id, changeProjectDefinition: true }
             this.saving = true
-            projectApi.updateProject(this.project.id, changePayload).then(() => {
+            InstanceApi.updateInstance(this.project.id, changePayload).then(() => {
                 this.$emit('projectUpdated')
                 Alerts.emit('Project successfully updated.', 'confirmation')
                 this.$router.push({

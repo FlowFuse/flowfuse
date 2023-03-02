@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import projectApi from '@/api/instances'
+import InstanceApi from '@/api/instances'
 
 import SectionTopMenu from '@/components/SectionTopMenu'
 
@@ -79,7 +79,7 @@ export default {
             this.loadItems(this.project.id, this.nextCursor)
         },
         loadItems: async function (projectId, cursor) {
-            const entries = await projectApi.getProjectLogs(projectId, cursor)
+            const entries = await InstanceApi.getInstanceLogs(projectId, cursor)
             if (!cursor) {
                 this.logEntries = []
             }

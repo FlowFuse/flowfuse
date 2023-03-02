@@ -25,7 +25,7 @@
 
 <script>
 
-import ProjectAPI from '@/api/instances'
+import InstanceApi from '@/api/instances'
 import TeamAPI from '@/api/team'
 
 import FormHeading from '@/components/FormHeading'
@@ -82,7 +82,7 @@ export default {
                     options: { ...this.parts }
                 }
 
-                await ProjectAPI.updateProject(target.id, { sourceProject: source })
+                await InstanceApi.updateInstance(target.id, { sourceProject: source })
 
                 this.deploying = false
                 Alerts.emit(`Project successfully pushed "${this.project.name}" to "${target.name}".`, 'confirmation')

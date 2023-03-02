@@ -23,7 +23,7 @@ import {
     templateValidators
 } from '../../admin/Template/utils'
 
-import projectApi from '@/api/instances'
+import InstanceApi from '@/api/instances'
 import permissionsMixin from '@/mixins/Permissions'
 import alerts from '@/services/alerts'
 
@@ -130,7 +130,7 @@ export default {
                 setTemplateValue(settings, 'httpNodeAuth_user', '')
                 setTemplateValue(settings, 'httpNodeAuth_pass', '')
             }
-            await projectApi.updateProject(this.project.id, { settings })
+            await InstanceApi.updateInstance(this.project.id, { settings })
             this.$emit('projectUpdated')
             alerts.emit('Project successfully updated.', 'confirmation')
         }

@@ -12,7 +12,7 @@
         </SideNavigationTeamOptions>
     </Teleport>
     <main>
-        <ConfirmProjectDeleteDialog ref="confirmProjectDeleteDialog" @confirm="deleteProject" />
+        <ConfirmProjectDeleteDialog ref="confirmProjectDeleteDialog" @confirm="deleteInstance" />
         <Teleport v-if="mounted" to="#platform-banner">
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">You are viewing this project as an Administrator</div>
             <SubscriptionExpiredBanner :team="team" />
@@ -23,9 +23,9 @@
             :is-visiting-admin="isVisitingAdmin"
             @project-overview-exit="onOverviewExit"
             @project-overview-enter="onOverviewEnter"
-            @projectUpdated="updateProject"
-            @project-start="startProject"
-            @project-restart="restartProject"
+            @projectUpdated="updateInstance"
+            @project-start="startInstance"
+            @project-restart="restartInstance"
             @project-suspend="showConfirmSuspendDialog"
             @project-delete="showConfirmDeleteDialog"
         />
@@ -39,7 +39,7 @@ import { mapState } from 'vuex'
 
 import ConfirmProjectDeleteDialog from './Settings/dialogs/ConfirmProjectDeleteDialog'
 
-import projectApi from '@/api/instances'
+import InstanceApi from '@/api/instances'
 import snapshotApi from '@/api/projectSnapshots'
 
 import NavItem from '@/components/NavItem'
@@ -96,7 +96,7 @@ export default {
         'project.pendingStateChange': 'refreshProject'
     },
     async created () {
-        await this.updateProject()
+        await this.updateInstance()
     },
     mounted () {
         this.checkAccess()
@@ -107,7 +107,7 @@ export default {
     },
     methods: {
         async onOverviewEnter () {
-            await this.updateProject()
+            await this.updateInstance()
             this.overviewActive = true
             if (this.project.pendingRestart && !this.projectTransitionStates.includes(this.project.state)) {
                 this.project.pendingRestart = false
@@ -125,13 +125,13 @@ export default {
                 clearTimeout(this.checkInterval)
             }
         },
-        async updateProject () {
+        async updateInstance () {
             const projectId = this.$route.params.id
             try {
-                const data = await projectApi.getProject(projectId)
+                const data = await InstanceApi.getInstance(projectId)
                 this.project = { ...{ deviceSettings: {} }, ...this.project, ...data }
                 this.$store.dispatch('account/setTeam', this.project.team.slug)
-                this.project.deviceSettings = await projectApi.getProjectDeviceSettings(projectId)
+                this.project.deviceSettings = await InstanceApi.getInstanceDeviceSettings(projectId)
                 if (this.project.deviceSettings?.targetSnapshot) {
                     this.project.targetSnapshot = await snapshotApi.getSnapshot(projectId, this.project.deviceSettings.targetSnapshot)
                 } else {
@@ -155,7 +155,7 @@ export default {
                 clearTimeout(this.checkInterval)
                 this.checkInterval = setTimeout(async () => {
                     if (this.project.id) {
-                        const data = await projectApi.getProject(this.project.id)
+                        const data = await InstanceApi.getInstance(this.project.id)
                         const wasPendingRestart = this.project.pendingRestart
                         const wasPendingStateChange = this.project.pendingStateChange
                         const wasPendingStatePrevious = this.project.pendingStatePrevious
@@ -198,9 +198,9 @@ export default {
                 }
             }
         },
-        async startProject () {
+        async startInstance () {
             const prevState = this.project.meta.state
-            const res = await projectApi.startProject(this.project.id)
+            const res = await InstanceApi.startInstance(this.project.id)
             // check for successful start command before polling state
             if (res) {
                 console.warn('Project start failed.', res)
@@ -210,9 +210,9 @@ export default {
                 this.project.pendingStateChange = true
             }
         },
-        async restartProject () {
+        async restartInstance () {
             const prevState = this.project.meta.state
-            const res = await projectApi.restartProject(this.project.id)
+            const res = await InstanceApi.restartInstance(this.project.id)
             // check for successful restart command before polling state
             if (res) {
                 console.warn('Project restart failed.', res)
@@ -226,9 +226,9 @@ export default {
         showConfirmDeleteDialog () {
             this.$refs.confirmProjectDeleteDialog.show(this.project)
         },
-        deleteProject () {
+        deleteInstance () {
             this.loading.deleting = true
-            projectApi.deleteProject(this.project.id).then(async () => {
+            InstanceApi.deleteInstance(this.project.id).then(async () => {
                 await this.$store.dispatch('account/refreshTeam')
                 this.$router.push({ name: 'Home' })
                 alerts.emit('Project successfully deleted.', 'confirmation')
@@ -247,7 +247,7 @@ export default {
                 kind: 'danger'
             }, () => {
                 this.loading.suspend = true
-                projectApi.suspendProject(this.project.id).then(() => {
+                InstanceApi.suspendInstance(this.project.id).then(() => {
                     this.$router.push({ name: 'Home' })
                     alerts.emit('Project successfully suspended.', 'confirmation')
                 }).catch(err => {

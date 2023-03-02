@@ -91,7 +91,7 @@ import { mapState } from 'vuex'
 
 import ProjectStatusBadge from './components/ProjectStatusBadge'
 
-import projectApi from '@/api/instances'
+import InstanceApi from '@/api/instances'
 import DropdownMenu from '@/components/DropdownMenu'
 import FormHeading from '@/components/FormHeading'
 import SectionTopMenu from '@/components/SectionTopMenu'
@@ -177,7 +177,7 @@ export default {
             }
         },
         loadItems: async function (projectId, cursor) {
-            return await projectApi.getProjectAuditLog(projectId, null, cursor, 4)
+            return await InstanceApi.getInstanceAuditLog(projectId, null, cursor, 4)
         }
     }
 }

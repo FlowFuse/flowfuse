@@ -37,7 +37,6 @@
 </template>
 
 <script>
-
 import { PlusSmIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
@@ -48,8 +47,9 @@ import SnapshotName from '../../project/Snapshots/components/cells/SnapshotName'
 
 import SnapshotCreateDialog from './dialogs/SnapshotCreateDialog'
 
-import projectApi from '@/api/instances'
-import snapshotApi from '@/api/projectSnapshots'
+import InstanceApi from '@/api/instances'
+import SnapshotApi from '@/api/projectSnapshots'
+
 import SectionTopMenu from '@/components/SectionTopMenu'
 import UserCell from '@/components/tables/cells/UserCell'
 import permissionsMixin from '@/mixins/Permissions'
@@ -78,7 +78,7 @@ export default {
             if (this.project.id) {
                 this.loading = true
                 const deviceCounts = await this.countDevices()
-                const data = await snapshotApi.getProjectSnapshots(this.project.id)
+                const data = await SnapshotApi.getProjectSnapshots(this.project.id) // TODO Move to instances?
                 this.snapshots = data.snapshots.map((s) => {
                     s.deviceCount = deviceCounts[s.id]
                     return s
@@ -88,7 +88,7 @@ export default {
         },
         async countDevices () {
             // hardcoded device limit to ensure all are returned - feels dirty
-            const data = await projectApi.getProjectDevices(this.project.id, null, 10000000)
+            const data = await InstanceApi.getInstanceDevices(this.project.id, null, 10000000)
             // map devices to snapshot deployed on that device
             const deviceCounts = data.devices.reduce((acc, device) => {
                 const snapshot = device.activeSnapshot?.id
@@ -109,7 +109,7 @@ export default {
                 kind: 'danger',
                 confirmLabel: 'Delete'
             }, async () => {
-                await snapshotApi.deleteSnapshot(this.project.id, snapshot.id)
+                await SnapshotApi.deleteSnapshot(this.project.id, snapshot.id)
                 const index = this.snapshots.indexOf(snapshot)
                 this.snapshots.splice(index, 1)
                 Alerts.emit('Successfully deleted snapshot.', 'confirmation')
@@ -125,7 +125,7 @@ export default {
             <p>Are you sure you want to rollback to this snapshot?</p>`,
                 confirmLabel: 'Confirm Rollback'
             }, async () => {
-                await snapshotApi.rollbackSnapshot(this.project.id, snapshot.id)
+                await SnapshotApi.rollbackSnapshot(this.project.id, snapshot.id)
                 Alerts.emit('Successfully rollbacked snapshot.', 'confirmation')
             })
         },
@@ -137,7 +137,7 @@ export default {
             <p>All devices in this team will be restarted on this snapshot.</p>`,
                 confirmLabel: 'Set Target'
             }, async () => {
-                await projectApi.updateProjectDeviceSettings(this.project.id, {
+                await InstanceApi.updateInstanceDeviceSettings(this.project.id, {
                     targetSnapshot: snapshot.id
                 })
                 this.$emit('projectUpdated')
