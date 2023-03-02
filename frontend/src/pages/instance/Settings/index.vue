@@ -2,7 +2,7 @@
     <div class="flex flex-col sm:flex-row">
         <SectionSideMenu :options="sideNavigation" />
         <div class="flex-grow">
-            <router-view :project="project" @projectUpdated="$emit('projectUpdated')" />
+            <router-view :project="project" @instance-updated="$emit('instance-updated')" />
         </div>
     </div>
 </template>

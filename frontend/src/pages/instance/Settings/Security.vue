@@ -131,7 +131,7 @@ export default {
                 setTemplateValue(settings, 'httpNodeAuth_pass', '')
             }
             await InstanceApi.updateInstance(this.project.id, { settings })
-            this.$emit('projectUpdated')
+            this.$emit('instance-updated')
             alerts.emit('Project successfully updated.', 'confirmation')
         }
     },

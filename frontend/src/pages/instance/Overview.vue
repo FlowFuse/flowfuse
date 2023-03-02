@@ -121,7 +121,7 @@ export default {
             type: Boolean
         }
     },
-    emits: ['project-start', 'project-delete', 'project-suspend', 'project-restart', 'project-overview-exit', 'project-overview-enter'],
+    emits: ['project-start', 'project-delete', 'project-suspend', 'project-restart', 'instance-overview-exit', 'project-overview-enter'],
     watch: {
         project: function () {
             this.loadLogs()
@@ -166,7 +166,7 @@ export default {
         this.loadLogs()
     },
     unmounted () {
-        this.$emit('project-overview-exit')
+        this.$emit('instance-overview-exit')
     },
     methods: {
         loadLogs () {

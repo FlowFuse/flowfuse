@@ -25,7 +25,7 @@ export default {
             type: Object
         }
     },
-    emits: ['projectUpdated'],
+    emits: ['instance-updated'],
     data () {
         return {
             saving: false,
@@ -44,7 +44,7 @@ export default {
             const changePayload = { ...projectDetails, team: this.team.id, changeProjectDefinition: true }
             this.saving = true
             InstanceApi.updateInstance(this.project.id, changePayload).then(() => {
-                this.$emit('projectUpdated')
+                this.$emit('instance-updated')
                 Alerts.emit('Project successfully updated.', 'confirmation')
                 this.$router.push({
                     name: 'Project'

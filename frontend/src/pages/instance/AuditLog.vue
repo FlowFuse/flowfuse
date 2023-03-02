@@ -46,7 +46,7 @@ import AuditEventsService from '@/services/audit-events.js'
 export default {
     name: 'ProjectAuditLog',
     props: ['project', 'is-visiting-admin'],
-    emits: ['project-start', 'project-delete', 'project-suspend', 'project-restart', 'projectUpdated'],
+    emits: ['instance-start', 'instance-delete', 'instance-suspend', 'instance-restart', 'instance-updated'],
     data () {
         return {
             loading: true,

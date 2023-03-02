@@ -21,13 +21,13 @@
         <router-view
             :project="project"
             :is-visiting-admin="isVisitingAdmin"
-            @project-overview-exit="onOverviewExit"
-            @project-overview-enter="onOverviewEnter"
-            @projectUpdated="updateInstance"
-            @project-start="startInstance"
-            @project-restart="restartInstance"
-            @project-suspend="showConfirmSuspendDialog"
-            @project-delete="showConfirmDeleteDialog"
+            @instance-overview-exit="onOverviewExit"
+            @instance-overview-enter="onOverviewEnter"
+            @instance-updated="updateInstance"
+            @instance-start="startInstance"
+            @instance-restart="restartInstance"
+            @instance-suspend="showConfirmSuspendDialog"
+            @instance-delete="showConfirmDeleteDialog"
         />
     </main>
 </template>

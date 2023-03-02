@@ -120,15 +120,15 @@ import Dialog from '@/services/dialog'
 
 export default {
     name: 'ProjectSettingsDanger',
+    components: {
+        FormHeading,
+        ConfirmProjectDeleteDialog,
+        ChangeStackDialog,
+        ImportProjectDialog
+    },
     mixins: [permissionsMixin],
     props: ['project'],
-    emits: ['projectUpdated'],
-    computed: {
-        ...mapState('account', ['team', 'features', 'teamMembership']),
-        isLoading () {
-            return this.loading.deleting || this.loading.suspend || this.loading.changingStack || this.loading.duplicating || this.loading.settingType
-        }
-    },
+    emits: ['instance-updated'],
     data () {
         return {
             loading: {
@@ -139,6 +139,12 @@ export default {
                 suspend: false,
                 importing: false
             }
+        }
+    },
+    computed: {
+        ...mapState('account', ['team', 'features', 'teamMembership']),
+        isLoading () {
+            return this.loading.deleting || this.loading.suspend || this.loading.changingStack || this.loading.duplicating || this.loading.settingType
         }
     },
     mounted () {
@@ -237,7 +243,7 @@ export default {
                 this.loading.changingStack = true
                 InstanceApi.changeStack(this.project.id, selectedStack).then(() => {
                     this.$router.push({ name: 'Project', params: { id: this.project.id } })
-                    this.$emit('projectUpdated')
+                    this.$emit('instance-updated')
                     alerts.emit('Project stack successfully updated.', 'confirmation')
                 }).catch(err => {
                     console.warn(err)
@@ -247,6 +253,6 @@ export default {
                 })
             }
         }
-    },
+    }
 }
 </script>

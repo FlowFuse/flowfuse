@@ -140,7 +140,7 @@ export default {
                 await InstanceApi.updateInstanceDeviceSettings(this.project.id, {
                     targetSnapshot: snapshot.id
                 })
-                this.$emit('projectUpdated')
+                this.$emit('instance-updated')
             })
         },
         showCreateSnapshotDialog () {
@@ -150,7 +150,7 @@ export default {
             this.snapshots.unshift(snapshot)
             // on next tick, update the table data to ensure
             // the new snapshot is shown and the correct status are shown
-            this.$emit('projectUpdated')
+            this.$emit('instance-updated')
         },
         async downloadSnapshotPackage (snapshot) {
             const ss = await snapshotApi.getSnapshot(this.project.id, snapshot.id)
