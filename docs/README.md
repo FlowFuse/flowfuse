@@ -1,8 +1,12 @@
 # FlowForge Docs
 
-FlowForge is an open-source low-code platform based on the OpenJS Foundation Node-RED
-project. It provides the tools you need to run and manage multiple Node-RED instances
-in your own environment.
+FlowForge helps Node-RED developers deliver applications in a more reliable,
+collaborative, and secure manner. Node-RED’s intuitive, low-code development
+environment is great for connecting together hardware devices, APIs, and online
+services. FlowForge adds to Node-RED; collaborative development, management of
+remote deployments, support for DevOps deliver pipelines, and the ability to
+host Node-RED applications on FlowForge. FlowForge is the DevOps platform for
+Node-RED application development and delivery.
 
 ## Overview
 
