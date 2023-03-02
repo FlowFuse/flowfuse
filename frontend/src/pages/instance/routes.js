@@ -3,13 +3,13 @@
  * There is ongoing work to move project functionality not handled by instances up to applications
  */
 
-import ProjectAuditLog from './AuditLog.vue'
-import ProjectLogs from './Logs.vue'
-import ProjectOverview from './Overview.vue'
-import ProjectSettings from './Settings/index.vue'
-import ProjectSettingsRoutes from './Settings/routes'
-import ProjectSnapshots from './Snapshots/index.vue'
-import Project from './index.vue'
+import InstanceAuditLog from './AuditLog.vue'
+import InstanceLogs from './Logs.vue'
+import InstanceOverview from './Overview.vue'
+import InstanceSettings from './Settings/index.vue'
+import InstanceSettingsRoutes from './Settings/routes'
+import InstanceSnapshots from './Snapshots/index.vue'
+import Instance from './index.vue'
 
 export default [
     {
@@ -18,42 +18,42 @@ export default [
             return `/instance/${to.params.id}/overview`
         },
         name: 'Instance',
-        component: Project,
+        component: Instance,
         meta: {
             title: 'Instance - Overview'
         },
         children: [
-            { path: 'overview', component: ProjectOverview },
+            { path: 'overview', component: InstanceOverview },
             {
                 path: 'settings',
-                component: ProjectSettings,
+                component: InstanceSettings,
                 meta: {
                     title: 'Instance - Settings'
                 },
                 redirect: to => {
                     return `/instance/${to.params.id}/settings/general`
                 },
-                children: [...ProjectSettingsRoutes]
+                children: [...InstanceSettingsRoutes]
             },
             {
                 path: 'logs',
-                component: ProjectLogs,
+                component: InstanceLogs,
                 meta: {
-                    title: 'Project - Logs'
+                    title: 'Instance - Logs'
                 }
             },
             {
                 path: 'snapshots',
-                component: ProjectSnapshots,
+                component: InstanceSnapshots,
                 meta: {
-                    title: 'Project - Snapshots'
+                    title: 'Instance - Snapshots'
                 }
             },
             {
                 path: 'audit-log',
-                component: ProjectAuditLog,
+                component: InstanceAuditLog,
                 meta: {
-                    title: 'Project - Activity'
+                    title: 'Instance - Activity'
                 }
             }
         ]

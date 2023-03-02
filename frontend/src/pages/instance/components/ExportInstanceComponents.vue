@@ -39,11 +39,12 @@ import FormRow from '@/components/FormRow'
  * envVarsKo
  */
 export default {
-    name: 'ExportProjectComponents',
+    name: 'ExportInstanceComponents',
     components: {
         FormRow
     },
     props: ['modelValue', 'showSecret', 'showTemplate', 'showSettings'],
+    emits: ['update:modelValue'],
     setup () {
         return {
             envVarKeyOptions: [{

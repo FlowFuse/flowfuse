@@ -1,17 +1,17 @@
 <template>
-    <ff-loading v-if="loading.deleting" message="Deleting Project..." />
-    <ff-loading v-if="loading.suspend" message="Suspending Project..." />
+    <ff-loading v-if="loading.deleting" message="Deleting Instance..." />
+    <ff-loading v-if="loading.suspend" message="Suspending Instance..." />
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigationTeamOptions>
             <template #nested-menu>
-                <div class="ff-nested-title">{{ project.name }}</div>
+                <div class="ff-nested-title">{{ instance.name }}</div>
                 <router-link v-for="route in navigation" :key="route.label" :to="route.path">
                     <nav-item :icon="route.icon" :label="route.label" :data-nav="route.tag" />
                 </router-link>
             </template>
         </SideNavigationTeamOptions>
     </Teleport>
-    <main v-if="!project?.id">
+    <main v-if="!instance?.id">
         <ff-loading message="Loading Instance..." />
     </main>
     <main v-else>
@@ -23,16 +23,16 @@
                         class="inline-flex items-center"
                     >
                         <div class="text-gray-800 text-xl font-bold">
-                            {{ project.name }}
+                            {{ instance.name }}
                         </div>
                     </router-link>
-                    <ProjectStatusBadge v-if="project.meta" :status="project.meta.state" :pendingStateChange="project.pendingStateChange" />
+                    <InstanceStatusBadge v-if="instance.meta" :status="instance.meta.state" :pendingStateChange="instance.pendingStateChange" />
                 </div>
             </template>
             <template #tools>
                 <div class="space-x-2 flex">
                     <div v-if="editorAvailable">
-                        <a v-if="!isVisitingAdmin" :href="project.url" target="_blank" class="ff-btn ff-btn--secondary" data-action="open-editor">
+                        <a v-if="!isVisitingAdmin" :href="instance.url" target="_blank" class="ff-btn ff-btn--secondary" data-action="open-editor">
                             Open Editor
                             <span class="ff-btn--icon ff-btn--icon-right">
                                 <ExternalLinkIcon />
@@ -49,14 +49,14 @@
                 </div>
             </template>
         </SectionTopMenu>
-        <ConfirmProjectDeleteDialog ref="confirmProjectDeleteDialog" @confirm="deleteInstance" />
+        <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="deleteInstance" />
         <Teleport v-if="mounted" to="#platform-banner">
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">You are viewing this instance as an Administrator</div>
             <SubscriptionExpiredBanner :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
         </Teleport>
         <router-view
-            :project="project"
+            :instance="instance"
             :is-visiting-admin="isVisitingAdmin"
             @instance-overview-exit="onOverviewExit"
             @instance-overview-enter="onOverviewEnter"
@@ -71,15 +71,14 @@ import { ExternalLinkIcon } from '@heroicons/vue/outline'
 import { ChevronLeftIcon, ClockIcon, CogIcon, TemplateIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
-import ConfirmProjectDeleteDialog from './Settings/dialogs/ConfirmProjectDeleteDialog'
+import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDeleteDialog'
 
-import ProjectStatusBadge from './components/ProjectStatusBadge'
+import InstanceStatusBadge from './components/InstanceStatusBadge'
 
 import InstanceApi from '@/api/instances'
-import snapshotApi from '@/api/projectSnapshots'
+import SnapshotApi from '@/api/projectSnapshots'
 
 import DropdownMenu from '@/components/DropdownMenu'
-import Loading from '@/components/Loading'
 import NavItem from '@/components/NavItem'
 import SectionTopMenu from '@/components/SectionTopMenu'
 import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vue'
@@ -91,7 +90,7 @@ import permissionsMixin from '@/mixins/Permissions'
 import alerts from '@/services/alerts'
 import Dialog from '@/services/dialog'
 
-const projectTransitionStates = [
+const instanceTransitionStates = [
     'loading',
     'installing',
     'starting',
@@ -102,14 +101,13 @@ const projectTransitionStates = [
 ]
 
 export default {
-    name: 'ProjectPage',
+    name: 'InstancePage',
     components: {
-        ConfirmProjectDeleteDialog,
+        ConfirmInstanceDeleteDialog,
         DropdownMenu,
         ExternalLinkIcon,
-        Loading,
         NavItem,
-        ProjectStatusBadge,
+        InstanceStatusBadge,
         SectionTopMenu,
         SideNavigationTeamOptions,
         SubscriptionExpiredBanner,
@@ -122,7 +120,7 @@ export default {
             icons: {
                 chevronLeft: ChevronLeftIcon
             },
-            project: {},
+            instance: {},
             navigation: [],
             checkInterval: null,
             loading: {
@@ -139,20 +137,20 @@ export default {
         isLoading: function () {
             return this.loading.deleting || this.loading.suspend
         },
-        projectRunning () {
-            return this.project?.meta?.state === 'running'
+        instanceRunning () {
+            return this.instance?.meta?.state === 'running'
         },
         editorAvailable () {
-            return this.projectRunning
+            return this.instanceRunning
         },
         actionsDropdownOptions: function () {
-            const flowActionsDisabled = !(this.project.meta && this.project.meta.state !== 'suspended')
+            const flowActionsDisabled = !(this.instance.meta && this.instance.meta.state !== 'suspended')
 
             const result = [
                 {
                     name: 'Start',
                     action: this.startInstance,
-                    disabled: this.project.pendingStateChange || this.projectRunning
+                    disabled: this.instance.pendingStateChange || this.instanceRunning
                 },
                 { name: 'Restart', action: this.restartInstance, disabled: flowActionsDisabled },
                 { name: 'Suspend', class: ['text-red-700'], action: this.showConfirmSuspendDialog, disabled: flowActionsDisabled }
@@ -167,12 +165,11 @@ export default {
         }
     },
     watch: {
-        project: 'checkAccess',
+        instance: 'checkAccess',
         teamMembership: 'checkAccess',
-        'project.pendingStateChange': 'refreshProject'
+        'instance.pendingStateChange': 'refreshInstance'
     },
     async created () {
-        console.log()
         await this.updateInstance()
     },
     mounted () {
@@ -186,8 +183,8 @@ export default {
         async onOverviewEnter () {
             await this.updateInstance()
             this.overviewActive = true
-            if (this.project.pendingRestart && !this.projectTransitionStates.includes(this.project.state)) {
-                this.project.pendingRestart = false
+            if (this.instance.pendingRestart && !this.instanceTransitionStates.includes(this.instance.state)) {
+                this.instance.pendingRestart = false
             }
             this.checkAccess()
         },
@@ -195,24 +192,24 @@ export default {
             this.overviewActive = false
             if (unmounting) {
                 // ensure timer and flags are cleared when navigating away from page
-                if (this.project?.pendingStateChange || this.project?.pendingRestart) {
-                    this.project.pendingStateChange = false
-                    this.project.pendingRestart = false
+                if (this.instance?.pendingStateChange || this.instance?.pendingRestart) {
+                    this.instance.pendingStateChange = false
+                    this.instance.pendingRestart = false
                 }
                 clearTimeout(this.checkInterval)
             }
         },
         async updateInstance () {
-            const projectId = this.$route.params.id
+            const instanceId = this.$route.params.id
             try {
-                const data = await InstanceApi.getInstance(projectId)
-                this.project = { ...{ deviceSettings: {} }, ...this.project, ...data }
-                this.$store.dispatch('account/setTeam', this.project.team.slug)
-                this.project.deviceSettings = await InstanceApi.getInstanceDeviceSettings(projectId)
-                if (this.project.deviceSettings?.targetSnapshot) {
-                    this.project.targetSnapshot = await snapshotApi.getSnapshot(projectId, this.project.deviceSettings.targetSnapshot)
+                const data = await InstanceApi.getInstance(instanceId)
+                this.instance = { ...{ deviceSettings: {} }, ...this.instance, ...data }
+                this.$store.dispatch('account/setTeam', this.instance.team.slug)
+                this.instance.deviceSettings = await InstanceApi.getInstanceDeviceSettings(instanceId)
+                if (this.instance.deviceSettings?.targetSnapshot) {
+                    this.instance.targetSnapshot = await SnapshotApi.getSnapshot(instanceId, this.instance.deviceSettings.targetSnapshot)
                 } else {
-                    this.project.targetSnapshot = null
+                    this.instance.targetSnapshot = null
                 }
             } catch (err) {
                 this.$router.push({
@@ -224,93 +221,93 @@ export default {
                 })
             }
         },
-        async refreshProject () {
+        async refreshInstance () {
             if (!this.overviewActive) {
                 return // dont refresh if not on overview page
             }
-            if (this.project.pendingStateChange) {
+            if (this.instance.pendingStateChange) {
                 clearTimeout(this.checkInterval)
                 this.checkInterval = setTimeout(async () => {
-                    if (this.project.id) {
-                        const data = await InstanceApi.getInstance(this.project.id)
-                        const wasPendingRestart = this.project.pendingRestart
-                        const wasPendingStateChange = this.project.pendingStateChange
-                        const wasPendingStatePrevious = this.project.pendingStatePrevious
-                        this.project = data
-                        if (wasPendingRestart && this.project.meta.state !== 'running') {
-                            this.project.pendingRestart = true
+                    if (this.instance.id) {
+                        const data = await InstanceApi.getInstance(this.instance.id)
+                        const wasPendingRestart = this.instance.pendingRestart
+                        const wasPendingStateChange = this.instance.pendingStateChange
+                        const wasPendingStatePrevious = this.instance.pendingStatePrevious
+                        this.instance = data
+                        if (wasPendingRestart && this.instance.meta.state !== 'running') {
+                            this.instance.pendingRestart = true
                         }
-                        this.project.pendingStatePrevious = wasPendingStatePrevious
-                        this.project.pendingStateChange = wasPendingStateChange
+                        this.instance.pendingStatePrevious = wasPendingStatePrevious
+                        this.instance.pendingStateChange = wasPendingStateChange
                     }
                 }, 1000)
             }
         },
         checkAccess () {
             this.navigation = [
-                { label: 'Overview', path: `/instance/${this.project.id}/overview`, tag: 'project-overview', icon: TemplateIcon },
-                { label: 'Snapshots', path: `/instance/${this.project.id}/snapshots`, tag: 'project-snapshots', icon: ClockIcon },
-                { label: 'Audit Log', path: `/instance/${this.project.id}/audit-log`, tag: 'project-activity', icon: ViewListIcon },
-                { label: 'Node-RED Logs', path: `/instance/${this.project.id}/logs`, tag: 'project-logs', icon: TerminalIcon },
-                { label: 'Settings', path: `/instance/${this.project.id}/settings`, tag: 'project-settings', icon: CogIcon }
+                { label: 'Overview', path: `/instance/${this.instance.id}/overview`, tag: 'instance-overview', icon: TemplateIcon },
+                { label: 'Snapshots', path: `/instance/${this.instance.id}/snapshots`, tag: 'instance-snapshots', icon: ClockIcon },
+                { label: 'Audit Log', path: `/instance/${this.instance.id}/audit-log`, tag: 'instance-activity', icon: ViewListIcon },
+                { label: 'Node-RED Logs', path: `/instance/${this.instance.id}/logs`, tag: 'instance-logs', icon: TerminalIcon },
+                { label: 'Settings', path: `/instance/${this.instance.id}/settings`, tag: 'instance-settings', icon: CogIcon }
             ]
-            if (this.mounted && this.project.meta) {
+            if (this.mounted && this.instance.meta) {
                 let doRefresh = false
-                if (this.project.pendingStatePrevious && this.project.pendingStatePrevious !== this.project.meta.state) {
+                if (this.instance.pendingStatePrevious && this.instance.pendingStatePrevious !== this.instance.meta.state) {
                     // state has changed (i.e. something did occur) so reset pendingRestart
-                    // and rely on projectTransitionStates to continue polling
-                    this.project.pendingRestart = false
+                    // and rely on instanceTransitionStates to continue polling
+                    this.instance.pendingRestart = false
                     doRefresh = true // refresh once more to get the new state
                 }
-                if (projectTransitionStates.includes(this.project.meta.state)) {
+                if (instanceTransitionStates.includes(this.instance.meta.state)) {
                     doRefresh = true // refresh
                 }
-                this.project.pendingStatePrevious = this.project.meta.state
-                if (this.project.pendingRestart || doRefresh) {
-                    this.project.pendingStateChange = true
-                    this.refreshProject()
+                this.instance.pendingStatePrevious = this.instance.meta.state
+                if (this.instance.pendingRestart || doRefresh) {
+                    this.instance.pendingStateChange = true
+                    this.refreshInstance()
                 } else {
-                    this.project.pendingStateChange = false
+                    this.instance.pendingStateChange = false
                 }
             }
         },
         async startInstance () {
-            const prevState = this.project.meta.state
-            const res = await InstanceApi.startInstance(this.project.id)
+            const prevState = this.instance.meta.state
+            const res = await InstanceApi.startInstance(this.instance.id)
             // check for successful start command before polling state
             if (res) {
-                console.warn('Project start failed.', res)
-                alerts.emit('Project start failed.', 'warning')
+                console.warn('Instance start failed.', res)
+                alerts.emit('Instance start failed.', 'warning')
             } else {
-                this.project.pendingStatePrevious = prevState
-                this.project.pendingStateChange = true
+                this.instance.pendingStatePrevious = prevState
+                this.instance.pendingStateChange = true
             }
         },
         async restartInstance () {
-            const prevState = this.project.meta.state
-            const res = await InstanceApi.restartInstance(this.project.id)
+            const prevState = this.instance.meta.state
+            const res = await InstanceApi.restartInstance(this.instance.id)
             // check for successful restart command before polling state
             if (res) {
-                console.warn('Project restart failed.', res)
-                alerts.emit('Project restart failed.', 'warning')
+                console.warn('Instance restart failed.', res)
+                alerts.emit('Instance restart failed.', 'warning')
             } else {
-                this.project.pendingStatePrevious = prevState
-                this.project.pendingRestart = true
-                this.project.pendingStateChange = true
+                this.instance.pendingStatePrevious = prevState
+                this.instance.pendingRestart = true
+                this.instance.pendingStateChange = true
             }
         },
         showConfirmDeleteDialog () {
-            this.$refs.confirmProjectDeleteDialog.show(this.project)
+            this.$refs.confirmInstanceDeleteDialog.show(this.instance)
         },
         deleteInstance () {
             this.loading.deleting = true
-            InstanceApi.deleteInstance(this.project.id).then(async () => {
+            InstanceApi.deleteInstance(this.instance.id).then(async () => {
                 await this.$store.dispatch('account/refreshTeam')
                 this.$router.push({ name: 'Home' })
-                alerts.emit('Project successfully deleted.', 'confirmation')
+                alerts.emit('Instance successfully deleted.', 'confirmation')
             }).catch(err => {
                 console.warn(err)
-                alerts.emit('Project failed to delete.', 'warning')
+                alerts.emit('Instance failed to delete.', 'warning')
             }).finally(() => {
                 this.loading.deleting = false
             })
@@ -318,17 +315,17 @@ export default {
         showConfirmSuspendDialog () {
             Dialog.show({
                 header: 'Suspend Project',
-                text: 'Are you sure you want to suspend this project?',
+                text: 'Are you sure you want to suspend this instance?',
                 confirmLabel: 'Suspend',
                 kind: 'danger'
             }, () => {
                 this.loading.suspend = true
-                InstanceApi.suspendInstance(this.project.id).then(() => {
+                InstanceApi.suspendInstance(this.instance.id).then(() => {
                     this.$router.push({ name: 'Home' })
-                    alerts.emit('Project successfully suspended.', 'confirmation')
+                    alerts.emit('Instance successfully suspended.', 'confirmation')
                 }).catch(err => {
                     console.warn(err)
-                    alerts.emit('Project failed to suspend.', 'warning')
+                    alerts.emit('Instance failed to suspend.', 'warning')
                 }).finally(() => {
                     this.loading.suspend = false
                 })

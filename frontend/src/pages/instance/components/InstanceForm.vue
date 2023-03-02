@@ -64,7 +64,7 @@
             class="flex flex-wrap items-stretch"
         >
             <label class="w-full block text-sm font-medium text-gray-700">Choose your Project Type</label>
-            <ProjectCreditBanner :subscription="subscription" />
+            <InstanceCreditBanner :subscription="subscription" />
             <ff-tile-selection
                 v-model="input.projectType"
                 class="mt-5"
@@ -146,7 +146,7 @@
             <p class="text-gray-500">
                 Select the components to copy from '{{ sourceProject?.name }}'
             </p>
-            <ExportProjectComponents
+            <ExportInstanceComponents
                 id="exportSettings"
                 v-model="copyParts"
             />
@@ -154,7 +154,7 @@
 
         <!-- Billing details -->
         <div v-if="showBilling">
-            <ProjectChargesTable
+            <InstanceChargesTable
                 v-model:confirmed="input.billingConfirmation"
                 :project-type="selectedProjectType"
                 :subscription="subscription"
@@ -198,9 +198,9 @@
 import { RefreshIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
-import ExportProjectComponents from './ExportProjectComponents'
-import ProjectChargesTable from './ProjectChargesTable'
-import ProjectCreditBanner from './ProjectCreditBanner'
+import ExportInstanceComponents from './ExportInstanceComponents'
+import InstanceChargesTable from './InstanceChargesTable'
+import InstanceCreditBanner from './InstanceCreditBanner'
 
 import billingApi from '@/api/billing'
 import projectTypesApi from '@/api/projectTypes'
@@ -213,12 +213,12 @@ import SectionTopMenu from '@/components/SectionTopMenu'
 import NameGenerator from '@/utils/name-generator'
 
 export default {
-    name: 'ProjectForm',
+    name: 'InstanceForm',
     components: {
-        ExportProjectComponents,
+        ExportInstanceComponents,
         FormRow,
-        ProjectChargesTable,
-        ProjectCreditBanner,
+        InstanceChargesTable,
+        InstanceCreditBanner,
         RefreshIcon,
         SectionTopMenu
     },

@@ -28,9 +28,18 @@ import permissionsMixin from '@/mixins/Permissions'
 import alerts from '@/services/alerts'
 
 export default {
-    name: 'ProjectSettingsEditor',
+    name: 'InstanceSettingsEditor',
+    components: {
+        TemplateSettingsEditor
+    },
     mixins: [permissionsMixin],
-    props: ['project'],
+    props: {
+        project: {
+            type: Object,
+            required: true
+        }
+    },
+    emits: ['instance-updated'],
     data () {
         return {
             unsavedChanges: false,
@@ -130,9 +139,6 @@ export default {
             this.$emit('instance-updated')
             alerts.emit('Project successfully updated.', 'confirmation')
         }
-    },
-    components: {
-        TemplateSettingsEditor
     }
 }
 </script>

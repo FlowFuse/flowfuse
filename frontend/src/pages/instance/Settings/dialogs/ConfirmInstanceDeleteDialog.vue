@@ -22,7 +22,7 @@
 import FormRow from '@/components/FormRow'
 
 export default {
-    name: 'ConfirmProjectDeleteDialog',
+    name: 'ConfirmInstanceDeleteDialog',
     components: {
         FormRow
     },

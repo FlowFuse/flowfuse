@@ -43,8 +43,18 @@ import AuditLog from '@/components/audit-log/AuditLog'
 import AuditEventsService from '@/services/audit-events.js'
 
 export default {
-    name: 'ProjectAuditLog',
-    props: ['project'],
+    name: 'InstanceAuditLog',
+    components: {
+        AuditLog,
+        SectionTopMenu,
+        FormHeading
+    },
+    props: {
+        instance: {
+            type: Object,
+            required: true
+        }
+    },
     data () {
         return {
             loading: true,
@@ -61,7 +71,7 @@ export default {
         ...mapState('account', ['team'])
     },
     watch: {
-        project: function () {
+        instance: function () {
             this.loadLog()
         },
         'auditFilters.user': function () {
@@ -101,7 +111,7 @@ export default {
             }
         },
         async loadLog () {
-            const audit = await this.loadItems(this.project.id)
+            const audit = await this.loadItems(this.instance.id)
             if (audit) {
                 this.entries = audit.log
             }
@@ -111,11 +121,6 @@ export default {
                 this.auditFilters.users = data.members
             })
         }
-    },
-    components: {
-        AuditLog,
-        SectionTopMenu,
-        FormHeading
     }
 }
 </script>

@@ -13,7 +13,7 @@
 import formatCurrency from '@/mixins/Currency.js'
 
 export default {
-    name: 'ProjectCreditBanner',
+    name: 'InstanceCreditBanner',
     mixins: [formatCurrency],
     props: {
         subscription: {

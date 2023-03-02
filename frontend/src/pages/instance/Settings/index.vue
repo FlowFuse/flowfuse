@@ -2,7 +2,7 @@
     <div class="flex flex-col sm:flex-row">
         <SectionSideMenu :options="sideNavigation" />
         <div class="flex-grow">
-            <router-view :project="project" @instance-updated="$emit('instance-updated')" />
+            <router-view :project="instance" @instance-updated="$emit('instance-updated')" />
         </div>
     </div>
 </template>
@@ -14,19 +14,26 @@ import SectionSideMenu from '@/components/SectionSideMenu'
 import permissionsMixin from '@/mixins/Permissions'
 
 export default {
-    name: 'ProjectSettings',
-    mixins: [permissionsMixin],
-    props: ['project'],
-    computed: {
-        ...mapState('account', ['team', 'teamMembership'])
+    name: 'InstanceSettings',
+    components: {
+        SectionSideMenu
     },
+    mixins: [permissionsMixin],
+    props: {
+        instance: {
+            type: Object,
+            required: true
+        }
+    },
+
+    emits: ['instance-updated'],
     data () {
         return {
             sideNavigation: []
         }
     },
-    components: {
-        SectionSideMenu
+    computed: {
+        ...mapState('account', ['team', 'teamMembership'])
     },
     watch: {
         teamMembership: 'checkAccess'

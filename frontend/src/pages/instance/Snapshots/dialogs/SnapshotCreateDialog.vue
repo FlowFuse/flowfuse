@@ -33,8 +33,13 @@ export default {
         FormRow,
         QuestionMarkCircleIcon
     },
-    props: ['project'],
-    emits: ['snapshotCreated'],
+    props: {
+        project: {
+            type: Object,
+            required: true
+        }
+    },
+    emits: ['snapshot-created'],
     setup () {
         return {
             show () {
@@ -75,7 +80,7 @@ export default {
                     setAsTarget: this.input.setAsTarget
                 }
                 snapshotApi.create(this.project.id, opts).then((response) => {
-                    this.$emit('snapshotCreated', response)
+                    this.$emit('snapshot-created', response)
                     alerts.emit('Successfully created snapshot of project.', 'confirmation')
                 }).catch(err => {
                     console.log(err.response?.data)

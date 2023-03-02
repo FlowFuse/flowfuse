@@ -17,7 +17,7 @@
 import { CloudDownloadIcon, CloudUploadIcon, DotsCircleHorizontalIcon, DownloadIcon, ExclamationCircleIcon, ExclamationIcon, PlayIcon, StopIcon, SupportIcon } from '@heroicons/vue/outline'
 
 export default {
-    name: 'ProjectStatusBadge',
+    name: 'InstanceStatusBadge',
     components: {
         DownloadIcon, ExclamationIcon, ExclamationCircleIcon, PlayIcon, StopIcon, DotsCircleHorizontalIcon, SupportIcon, CloudDownloadIcon, CloudUploadIcon
     },

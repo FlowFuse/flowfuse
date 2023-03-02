@@ -35,13 +35,18 @@ import FormHeading from '@/components/FormHeading'
 import FormRow from '@/components/FormRow'
 
 export default {
-    name: 'ProjectSettings',
+    name: 'InstanceSettings',
     components: {
         FormRow,
         FormHeading,
         DangerSettings
     },
-    props: ['project'],
+    props: {
+        project: {
+            type: Object,
+            required: true
+        }
+    },
     data () {
         return {
             editing: {

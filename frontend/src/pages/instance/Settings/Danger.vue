@@ -52,8 +52,8 @@
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="secondary" @click="showImportProjectDialog()">Import Project</ff-button>
-                <ImportProjectDialog ref="importProjectDialog" @confirm="importProject" />
+                <ff-button kind="secondary" @click="showImportInstanceDialog()">Import Project</ff-button>
+                <ImportInstanceDialog ref="importProjectDialog" @confirm="importProject" />
             </div>
         </div>
 
@@ -95,7 +95,7 @@
             </div>
             <div class="min-w-fit flex-shrink-0">
                 <ff-button data-action="delete-project" kind="danger" @click="showConfirmDeleteDialog()">Delete Project</ff-button>
-                <ConfirmProjectDeleteDialog ref="confirmProjectDeleteDialog" data-el="delete-project" @confirm="deleteProject" />
+                <ConfirmInstanceDeleteDialog ref="confirmProjectDeleteDialog" data-el="delete-project" @confirm="deleteProject" />
             </div>
         </div>
     </form>
@@ -107,9 +107,9 @@ import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
 
 import ChangeStackDialog from './dialogs/ChangeStackDialog'
-import ConfirmProjectDeleteDialog from './dialogs/ConfirmProjectDeleteDialog'
+import ConfirmInstanceDeleteDialog from './dialogs/ConfirmInstanceDeleteDialog'
 
-import ImportProjectDialog from './dialogs/ImportProjectDialog'
+import ImportInstanceDialog from './dialogs/ImportInstanceDialog'
 
 import InstanceApi from '@/api/instances'
 
@@ -119,15 +119,20 @@ import alerts from '@/services/alerts'
 import Dialog from '@/services/dialog'
 
 export default {
-    name: 'ProjectSettingsDanger',
+    name: 'InstanceSettingsDanger',
     components: {
         FormHeading,
-        ConfirmProjectDeleteDialog,
+        ConfirmInstanceDeleteDialog,
         ChangeStackDialog,
-        ImportProjectDialog
+        ImportInstanceDialog
     },
     mixins: [permissionsMixin],
-    props: ['project'],
+    props: {
+        project: {
+            type: Object,
+            required: true
+        }
+    },
     emits: ['instance-updated'],
     data () {
         return {
@@ -195,7 +200,7 @@ export default {
                 query: { sourceProject: this.project.id }
             })
         },
-        showImportProjectDialog () {
+        showImportInstanceDialog () {
             this.$refs.importProjectDialog.show(this.project)
         },
         upgradeStack () {
@@ -204,7 +209,7 @@ export default {
         duplicateProject (parts) {
             this.loading.duplicating = true
             InstanceApi.create(parts).then(result => {
-                this.$router.push({ name: 'Project', params: { id: result.id } })
+                this.$router.push({ name: 'Instance', params: { id: result.id } })
                 alerts.emit('Project successfully duplicated.', 'confirmation')
             }).catch(err => {
                 console.log(err)
@@ -216,7 +221,7 @@ export default {
         importProject (parts) {
             this.loading.importing = true
             InstanceApi.importProject(this.project.id, parts).then(result => {
-                this.$router.push({ name: 'Project', params: { id: this.project.id } })
+                this.$router.push({ name: 'Instance', params: { id: this.project.id } })
                 alerts.emit('Project flows imported.', 'confirmation')
             }).catch(err => {
                 console.log(err)
@@ -242,7 +247,7 @@ export default {
             if (this.project.stack?.id !== selectedStack) {
                 this.loading.changingStack = true
                 InstanceApi.changeStack(this.project.id, selectedStack).then(() => {
-                    this.$router.push({ name: 'Project', params: { id: this.project.id } })
+                    this.$router.push({ name: 'Instance', params: { id: this.project.id } })
                     this.$emit('instance-updated')
                     alerts.emit('Project stack successfully updated.', 'confirmation')
                 }).catch(err => {

@@ -1,7 +1,7 @@
 <template>
     <div class="w-full max-w-4xl" data-el="change-project">
         <ff-loading v-if="saving" message="Updating Project..." />
-        <ProjectForm v-else :project="projectDetails || project" :team="team" :billingEnabled="!!features.billing" @on-submit="changeProjectDefinition" />
+        <InstanceForm v-else :project="projectDetails || project" :team="team" :billingEnabled="!!features.billing" @on-submit="changeProjectDefinition" />
     </div>
 </template>
 
@@ -10,14 +10,14 @@ import { mapState } from 'vuex'
 
 import InstanceApi from '../../../api/instances'
 
-import ProjectForm from '../components/ProjectForm'
+import InstanceForm from '../components/InstanceForm'
 
 import Alerts from '@/services/alerts'
 
 export default {
     name: 'CreateProject',
     components: {
-        ProjectForm
+        InstanceForm
     },
     props: {
         project: {
@@ -47,7 +47,7 @@ export default {
                 this.$emit('instance-updated')
                 Alerts.emit('Project successfully updated.', 'confirmation')
                 this.$router.push({
-                    name: 'Project'
+                    name: 'Instance'
                 })
             }).catch(err => {
                 console.warn(err)

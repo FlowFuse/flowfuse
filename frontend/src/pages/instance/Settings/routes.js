@@ -1,24 +1,24 @@
-import ChangeProjectTypePage from './ChangeProjectType.vue'
-import ProjectSettingsDanger from './Danger.vue'
-import ProjectSettingsDevOps from './DevOps.vue'
-import ProjectSettingsEditor from './Editor.vue'
-import ProjectSettingsEnvVar from './Environment.vue'
-import ProjectSettingsGeneral from './General.vue'
-import ProjectSettingsPalette from './Palette.vue'
-import ProjectSettingsSecurity from './Security.vue'
+import ChangeInstanceTypePage from './ChangeInstanceType.vue'
+import InstanceSettingsDanger from './Danger.vue'
+import InstanceSettingsDevOps from './DevOps.vue'
+import InstanceSettingsEditor from './Editor.vue'
+import InstanceSettingsEnvVar from './Environment.vue'
+import InstanceSettingsGeneral from './General.vue'
+import InstanceSettingsPalette from './Palette.vue'
+import InstanceSettingsSecurity from './Security.vue'
 
 export default [
-    { path: 'general', component: ProjectSettingsGeneral },
-    { path: 'environment', component: ProjectSettingsEnvVar },
-    { path: 'devops', component: ProjectSettingsDevOps },
-    { path: 'editor', component: ProjectSettingsEditor },
-    { path: 'security', component: ProjectSettingsSecurity },
-    { path: 'palette', component: ProjectSettingsPalette },
-    { path: 'danger', component: ProjectSettingsDanger },
+    { path: 'general', component: InstanceSettingsGeneral },
+    { path: 'environment', component: InstanceSettingsEnvVar },
+    { path: 'devops', component: InstanceSettingsDevOps },
+    { path: 'editor', component: InstanceSettingsEditor },
+    { path: 'security', component: InstanceSettingsSecurity },
+    { path: 'palette', component: InstanceSettingsPalette },
+    { path: 'danger', component: InstanceSettingsDanger },
     {
-        name: 'ChangeProjectType',
+        name: 'ChangeInstanceType',
         path: 'danger',
-        component: ChangeProjectTypePage,
+        component: ChangeInstanceTypePage,
         meta: {
             title: 'Instance - Change Type'
         }

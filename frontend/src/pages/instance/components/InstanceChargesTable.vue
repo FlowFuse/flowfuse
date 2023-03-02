@@ -73,7 +73,7 @@ import FormRow from '@/components/FormRow'
 import formatCurrency from '@/mixins/Currency.js'
 
 export default {
-    name: 'ProjectChargesTable',
+    name: 'InstanceChargesTable',
     components: {
         FormRow
     },

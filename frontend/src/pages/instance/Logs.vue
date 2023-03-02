@@ -1,6 +1,6 @@
 <template>
     <ff-loading v-if="loading" message="Loading Logs..." />
-    <div v-else-if="project.meta && project.meta.state !== 'suspended'" class="mx-auto text-xs border bg-gray-800 text-gray-200 rounded p-2 font-mono">
+    <div v-else-if="instance.meta && instance.meta.state !== 'suspended'" class="mx-auto text-xs border bg-gray-800 text-gray-200 rounded p-2 font-mono">
         <div v-if="prevCursor" class="flex">
             <a class=" text-center w-full hover:text-blue-400 cursor-pointer pb-1" @click="loadPrevious">Load earlier...</a>
         </div>
@@ -18,14 +18,14 @@
 <script>
 import InstanceApi from '@/api/instances'
 
-import SectionTopMenu from '@/components/SectionTopMenu'
-
 export default {
-    name: 'ProjectLogs',
-    components: {
-        SectionTopMenu
+    name: 'InstanceLogs',
+    props: {
+        instance: {
+            type: Object,
+            required: true
+        }
     },
-    props: ['project'],
     data () {
         return {
             doneInitialLoad: false,
@@ -37,15 +37,15 @@ export default {
         }
     },
     watch: {
-        project: 'fetchData'
+        instance: 'fetchData'
     },
     mounted () {
-        if (this.project.meta && this.project.meta.state === 'suspended') {
+        if (this.instance.meta && this.instance.meta.state === 'suspended') {
             this.loading = false
         }
         this.fetchData()
         this.checkInterval = setInterval(() => {
-            if (this.project.meta && this.project.meta.state !== 'suspended') {
+            if (this.instance.meta && this.instance.meta.state !== 'suspended') {
                 this.loadNext()
             } else {
                 clearInterval(this.checkInterval)
@@ -57,9 +57,9 @@ export default {
     },
     methods: {
         fetchData: async function () {
-            if (this.project.id) {
-                if (this.project.meta.state !== 'suspended') {
-                    await this.loadItems(this.project.id)
+            if (this.instance.id) {
+                if (this.instance.meta.state !== 'suspended') {
+                    await this.loadItems(this.instance.id)
                     this.loading = false
                 } else {
                     clearInterval(this.checkInterval)
@@ -67,13 +67,13 @@ export default {
             }
         },
         loadPrevious: async function () {
-            this.loadItems(this.project.id, this.prevCursor)
+            this.loadItems(this.instance.id, this.prevCursor)
         },
         loadNext: async function () {
-            this.loadItems(this.project.id, this.nextCursor)
+            this.loadItems(this.instance.id, this.nextCursor)
         },
-        loadItems: async function (projectId, cursor) {
-            const entries = await InstanceApi.getInstanceLogs(projectId, cursor)
+        loadItems: async function (instanceId, cursor) {
+            const entries = await InstanceApi.getInstanceLogs(instanceId, cursor)
             if (!cursor) {
                 this.logEntries = []
             }

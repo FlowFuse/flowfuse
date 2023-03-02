@@ -10,10 +10,10 @@
                         <td>
                             <div v-if="editorAvailable">
                                 <div v-if="isVisitingAdmin" class="my-2">
-                                    {{ project.url }}
+                                    {{ instance.url }}
                                 </div>
-                                <a v-else :href="project.url" target="_blank" class="forge-button-secondary py-1 mb-1" data-el="editor-link">
-                                    <span class="ml-r">{{ project.url }}</span>
+                                <a v-else :href="instance.url" target="_blank" class="forge-button-secondary py-1 mb-1" data-el="editor-link">
+                                    <span class="ml-r">{{ instance.url }}</span>
                                     <ExternalLinkIcon class="w-4 ml-3" />
                                 </a>
                             </div>
@@ -22,33 +22,33 @@
                     </tr>
                     <tr class="border-b">
                         <td class="font-medium">Status</td>
-                        <td><div class="py-2"><ProjectStatusBadge :status="project.meta?.state" :pendingStateChange="project.pendingStateChange" /></div></td>
+                        <td><div class="py-2"><InstanceStatusBadge :status="instance.meta?.state" :pendingStateChange="instance.pendingStateChange" /></div></td>
                     </tr>
                     <tr class="border-b">
                         <td class="font-medium">Type</td>
                         <td class="flex items-center">
-                            <div class="py-2 flex-grow">{{ project.projectType?.name || 'none' }} / {{ project.stack?.label || project.stack?.name || 'none' }}</div>
-                            <div v-if="project.stack?.replacedBy">
+                            <div class="py-2 flex-grow">{{ instance.projectType?.name || 'none' }} / {{ instance.stack?.label || instance.stack?.name || 'none' }}</div>
+                            <div v-if="instance.stack?.replacedBy">
                                 <ff-button size="small" to="./settings/danger">Update</ff-button>
                             </div>
                         </td>
                     </tr>
-                    <tr v-if="project.template?.name" class="border-b">
+                    <tr v-if="instance.template?.name" class="border-b">
                         <td class="font-medium">Template</td>
-                        <td><div class="py-2">{{ project.template?.name }}</div></td>
+                        <td><div class="py-2">{{ instance.template?.name }}</div></td>
                     </tr>
-                    <template v-if="project.meta?.versions">
+                    <template v-if="instance.meta?.versions">
                         <tr class="border-b">
                             <td class="font-medium">Node-RED Version</td>
-                            <td><div class="py-2">{{ project.meta.versions['node-red'] }}</div></td>
+                            <td><div class="py-2">{{ instance.meta.versions['node-red'] }}</div></td>
                         </tr>
                         <tr class="border-b">
                             <td class="font-medium">Launcher Version</td>
-                            <td><div class="py-2">{{ project.meta.versions.launcher }}</div></td>
+                            <td><div class="py-2">{{ instance.meta.versions.launcher }}</div></td>
                         </tr>
                         <tr class="border-b">
                             <td class="font-medium">Node.js Version</td>
-                            <td><div class="py-2">{{ project.meta.versions.node }}</div></td>
+                            <td><div class="py-2">{{ instance.meta.versions.node }}</div></td>
                         </tr>
                     </template>
                 </table>
@@ -69,7 +69,7 @@ import { ExternalLinkIcon, TemplateIcon, TrendingUpIcon } from '@heroicons/vue/o
 
 import { mapState } from 'vuex'
 
-import ProjectStatusBadge from './components/ProjectStatusBadge'
+import InstanceStatusBadge from './components/InstanceStatusBadge'
 
 import InstanceApi from '@/api/instances'
 import FormHeading from '@/components/FormHeading'
@@ -77,18 +77,18 @@ import AuditLog from '@/components/audit-log/AuditLog'
 import permissionsMixin from '@/mixins/Permissions'
 
 export default {
-    name: 'ProjectOverview',
+    name: 'InstanceOverview',
     components: {
         AuditLog,
         ExternalLinkIcon,
         FormHeading,
-        ProjectStatusBadge,
+        InstanceStatusBadge,
         TemplateIcon,
         TrendingUpIcon
     },
     mixins: [permissionsMixin],
     props: {
-        project: {
+        instance: {
             required: true,
             type: Object
         },
@@ -105,15 +105,15 @@ export default {
     },
     computed: {
         ...mapState('account', ['teamMembership']),
-        projectRunning () {
-            return this.project?.meta?.state === 'running'
+        instanceRunning () {
+            return this.instance?.meta?.state === 'running'
         },
         editorAvailable () {
-            return this.projectRunning
+            return this.instanceRunning
         }
     },
     watch: {
-        project: function () {
+        instance: function () {
             this.loadLogs()
         }
     },
@@ -126,14 +126,14 @@ export default {
     },
     methods: {
         loadLogs () {
-            if (this.project && this.project.id) {
-                this.loadItems(this.project.id).then((data) => {
+            if (this.instance && this.instance.id) {
+                this.loadItems(this.instance.id).then((data) => {
                     this.auditLog = data.log
                 })
             }
         },
-        loadItems: async function (projectId, cursor) {
-            return await InstanceApi.getInstanceAuditLog(projectId, null, cursor, 4)
+        loadItems: async function (instanceId, cursor) {
+            return await InstanceApi.getInstanceAuditLog(instanceId, null, cursor, 4)
         }
     }
 }
