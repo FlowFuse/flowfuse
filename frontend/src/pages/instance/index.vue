@@ -14,7 +14,7 @@
     <main v-if="!instance?.id">
         <ff-loading message="Loading Instance..." />
     </main>
-    <main v-else>
+    <main v-else data-el="instances-section">
         <SectionTopMenu>
             <template #hero>
                 <div class="flex-grow space-x-6 items-center inline-flex">
