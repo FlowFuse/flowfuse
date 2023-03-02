@@ -1,7 +1,6 @@
 <template>
     <div class="ff-admin-audit">
         <div data-el="audit-log">
-            <SectionTopMenu hero="Project Audit Log" info="Recorded events that have taken place in Project." />
             <AuditLog :entries="entries" />
         </div>
         <div>
@@ -45,8 +44,7 @@ import AuditEventsService from '@/services/audit-events.js'
 
 export default {
     name: 'ProjectAuditLog',
-    props: ['project', 'is-visiting-admin'],
-    emits: ['instance-start', 'instance-delete', 'instance-suspend', 'instance-restart', 'instance-updated'],
+    props: ['project'],
     data () {
         return {
             loading: true,

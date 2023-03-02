@@ -11,10 +11,47 @@
             </template>
         </SideNavigationTeamOptions>
     </Teleport>
-    <main>
+    <main v-if="!project?.id">
+        <ff-loading message="Loading Instance..." />
+    </main>
+    <main v-else>
+        <SectionTopMenu>
+            <template #hero>
+                <div class="flex-grow space-x-6 items-center inline-flex">
+                    <router-link
+                        :to="navigation[0]?.path ?? ''"
+                        class="inline-flex items-center"
+                    >
+                        <div class="text-gray-800 text-xl font-bold">
+                            {{ project.name }}
+                        </div>
+                    </router-link>
+                    <ProjectStatusBadge v-if="project.meta" :status="project.meta.state" :pendingStateChange="project.pendingStateChange" />
+                </div>
+            </template>
+            <template #tools>
+                <div class="space-x-2 flex">
+                    <div v-if="editorAvailable">
+                        <a v-if="!isVisitingAdmin" :href="project.url" target="_blank" class="ff-btn ff-btn--secondary" data-action="open-editor">
+                            Open Editor
+                            <span class="ff-btn--icon ff-btn--icon-right">
+                                <ExternalLinkIcon />
+                            </span>
+                        </a>
+                        <button v-else title="Unable to open editor when visiting as an admin" class="ff-btn ff-btn--secondary" disabled>
+                            Open Editor
+                            <span class="ff-btn--icon ff-btn--icon-right">
+                                <ExternalLinkIcon />
+                            </span>
+                        </button>
+                    </div>
+                    <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" alt="Open actions menu" :options="actionsDropdownOptions" data-action="open-actions">Actions</DropdownMenu>
+                </div>
+            </template>
+        </SectionTopMenu>
         <ConfirmProjectDeleteDialog ref="confirmProjectDeleteDialog" @confirm="deleteInstance" />
         <Teleport v-if="mounted" to="#platform-banner">
-            <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">You are viewing this project as an Administrator</div>
+            <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">You are viewing this instance as an Administrator</div>
             <SubscriptionExpiredBanner :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
         </Teleport>
@@ -24,30 +61,31 @@
             @instance-overview-exit="onOverviewExit"
             @instance-overview-enter="onOverviewEnter"
             @instance-updated="updateInstance"
-            @instance-start="startInstance"
-            @instance-restart="restartInstance"
-            @instance-suspend="showConfirmSuspendDialog"
-            @instance-delete="showConfirmDeleteDialog"
         />
     </main>
 </template>
 
 <script>
 import { Roles } from '@core/lib/roles'
+import { ExternalLinkIcon } from '@heroicons/vue/outline'
 import { ChevronLeftIcon, ClockIcon, CogIcon, TemplateIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
 import ConfirmProjectDeleteDialog from './Settings/dialogs/ConfirmProjectDeleteDialog'
 
+import ProjectStatusBadge from './components/ProjectStatusBadge'
+
 import InstanceApi from '@/api/instances'
 import snapshotApi from '@/api/projectSnapshots'
 
+import DropdownMenu from '@/components/DropdownMenu'
+import Loading from '@/components/Loading'
 import NavItem from '@/components/NavItem'
+import SectionTopMenu from '@/components/SectionTopMenu'
 import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '@/components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '@/components/banners/TeamTrial.vue'
 
-import ProjectsIcon from '@/components/icons/Projects'
 import permissionsMixin from '@/mixins/Permissions'
 
 import alerts from '@/services/alerts'
@@ -65,6 +103,18 @@ const projectTransitionStates = [
 
 export default {
     name: 'ProjectPage',
+    components: {
+        ConfirmProjectDeleteDialog,
+        DropdownMenu,
+        ExternalLinkIcon,
+        Loading,
+        NavItem,
+        ProjectStatusBadge,
+        SectionTopMenu,
+        SideNavigationTeamOptions,
+        SubscriptionExpiredBanner,
+        TeamTrialBanner
+    },
     mixins: [permissionsMixin],
     data: function () {
         return {
@@ -88,6 +138,32 @@ export default {
         },
         isLoading: function () {
             return this.loading.deleting || this.loading.suspend
+        },
+        projectRunning () {
+            return this.project?.meta?.state === 'running'
+        },
+        editorAvailable () {
+            return this.projectRunning
+        },
+        actionsDropdownOptions: function () {
+            const flowActionsDisabled = !(this.project.meta && this.project.meta.state !== 'suspended')
+
+            const result = [
+                {
+                    name: 'Start',
+                    action: this.startInstance,
+                    disabled: this.project.pendingStateChange || this.projectRunning
+                },
+                { name: 'Restart', action: this.restartInstance, disabled: flowActionsDisabled },
+                { name: 'Suspend', class: ['text-red-700'], action: this.showConfirmSuspendDialog, disabled: flowActionsDisabled }
+            ]
+
+            if (this.hasPermission('project:delete')) {
+                result.push(null)
+                result.push({ name: 'Delete', class: ['text-red-700'], action: this.showConfirmDeleteDialog })
+            }
+
+            return result
         }
     },
     watch: {
@@ -96,6 +172,7 @@ export default {
         'project.pendingStateChange': 'refreshProject'
     },
     async created () {
+        console.log()
         await this.updateInstance()
     },
     mounted () {
@@ -171,12 +248,11 @@ export default {
         },
         checkAccess () {
             this.navigation = [
-                { label: 'Overview', path: `/project/${this.project.id}/overview`, tag: 'project-overview', icon: TemplateIcon },
-                { label: 'Instances', path: `/project/${this.project.id}/instances`, tag: 'project-instances', icon: ProjectsIcon },
-                { label: 'Snapshots', path: `/project/${this.project.id}/snapshots`, tag: 'project-snapshots', icon: ClockIcon },
-                { label: 'Audit Log', path: `/project/${this.project.id}/activity`, tag: 'project-activity', icon: ViewListIcon },
-                { label: 'Node-RED Logs', path: `/project/${this.project.id}/logs`, tag: 'project-logs', icon: TerminalIcon },
-                { label: 'Settings', path: `/project/${this.project.id}/settings`, tag: 'project-settings', icon: CogIcon }
+                { label: 'Overview', path: `/instance/${this.project.id}/overview`, tag: 'project-overview', icon: TemplateIcon },
+                { label: 'Snapshots', path: `/instance/${this.project.id}/snapshots`, tag: 'project-snapshots', icon: ClockIcon },
+                { label: 'Audit Log', path: `/instance/${this.project.id}/audit-log`, tag: 'project-activity', icon: ViewListIcon },
+                { label: 'Node-RED Logs', path: `/instance/${this.project.id}/logs`, tag: 'project-logs', icon: TerminalIcon },
+                { label: 'Settings', path: `/instance/${this.project.id}/settings`, tag: 'project-settings', icon: CogIcon }
             ]
             if (this.mounted && this.project.meta) {
                 let doRefresh = false
@@ -258,13 +334,6 @@ export default {
                 })
             })
         }
-    },
-    components: {
-        NavItem,
-        SideNavigationTeamOptions,
-        ConfirmProjectDeleteDialog,
-        SubscriptionExpiredBanner,
-        TeamTrialBanner
     }
 }
 </script>

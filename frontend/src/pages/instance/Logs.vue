@@ -1,10 +1,4 @@
 <template>
-    <SectionTopMenu hero="Node-RED Logs" help-header="FlowForge - Node-RED Logs" info="Live logs from your FlowForge instance of Node-RED">
-        <template #helptext>
-            <p>This is a raw feed from the running instance of Node-RED on this domain.</p>
-            <p>Use this to debug issues if your project will not start correctly.</p>
-        </template>
-    </SectionTopMenu>
     <ff-loading v-if="loading" message="Loading Logs..." />
     <div v-else-if="project.meta && project.meta.state !== 'suspended'" class="mx-auto text-xs border bg-gray-800 text-gray-200 rounded p-2 font-mono">
         <div v-if="prevCursor" class="flex">
