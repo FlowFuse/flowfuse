@@ -83,7 +83,7 @@
 <script>
 
 // utilities
-import daysSince from '@/utils/daysSince'
+import elapsedTime from '@/utils/elapsedTime'
 
 // components
 import FormHeading from '@/components/FormHeading'
@@ -108,8 +108,8 @@ export default {
             return this.device.activeSnapshot?.id === this.device.targetSnapshot?.id
         },
         lastSeen: function () {
-            if (this.device?.lastSeenAt) {
-                return daysSince(this.device.lastSeenAt)
+            if (this.device?.lastSeenAt && typeof this.device?.lastSeenMs === 'number') {
+                return elapsedTime(0, this.device.lastSeenMs) + ' ago'
             } else {
                 return 'Not Available'
             }
