@@ -35,6 +35,7 @@ export default {
         TemplatePaletteModulesEditor
     },
     mixins: [permissionsMixin],
+    inheritAttrs: false,
     props: {
         project: {
             type: Object,

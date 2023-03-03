@@ -127,6 +127,7 @@ export default {
         ImportInstanceDialog
     },
     mixins: [permissionsMixin],
+    inheritAttrs: false,
     props: {
         project: {
             type: Object,

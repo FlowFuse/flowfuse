@@ -33,6 +33,7 @@ export default {
         TemplateSettingsEditor
     },
     mixins: [permissionsMixin],
+    inheritAttrs: false,
     props: {
         project: {
             type: Object,

@@ -20,6 +20,7 @@ import InstanceApi from '@/api/instances'
 
 export default {
     name: 'InstanceLogs',
+    inheritAttrs: false,
     props: {
         instance: {
             type: Object,

@@ -41,6 +41,7 @@ export default {
         FormHeading,
         DangerSettings
     },
+    inheritAttrs: false,
     props: {
         project: {
             type: Object,

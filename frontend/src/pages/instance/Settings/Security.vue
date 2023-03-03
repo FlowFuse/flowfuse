@@ -33,13 +33,13 @@ export default {
         TemplateSettingsSecurity
     },
     mixins: [permissionsMixin],
+    inheritAttrs: false,
     props: {
         project: {
             type: Object,
             required: true
         }
     },
-
     emits: ['instance-updated'],
     data () {
         return {

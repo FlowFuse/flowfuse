@@ -49,6 +49,7 @@ export default {
         SectionTopMenu,
         FormHeading
     },
+    inheritAttrs: false,
     props: {
         instance: {
             type: Object,

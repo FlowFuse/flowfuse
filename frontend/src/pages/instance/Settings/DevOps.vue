@@ -39,6 +39,7 @@ export default {
         FormHeading,
         FormRow
     },
+    inheritAttrs: false,
     props: {
         project: {
             type: Object,

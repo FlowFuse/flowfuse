@@ -25,6 +25,7 @@ export default {
         TemplateSettingsEnvironment
     },
     mixins: [permissionsMixin],
+    inheritAttrs: false,
     props: {
         project: {
             type: Object,

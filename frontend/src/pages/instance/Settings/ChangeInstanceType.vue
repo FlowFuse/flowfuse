@@ -19,6 +19,7 @@ export default {
     components: {
         InstanceForm
     },
+    inheritAttrs: false,
     props: {
         project: {
             required: true,
