@@ -15,7 +15,6 @@ import ProjectSettingsSecurity from '@/pages/project/Settings/Security.vue'
 import ProjectSettingsPalette from '@/pages/project/Settings/Palette.vue'
 import ProjectSettingsEnvVar from '@/pages/project/Settings/Environment.vue'
 // import ProjectDebug from '@/pages/project/Debug.vue'
-import ProjectSnapshots from '@/pages/project/Snapshots/index.vue'
 import ProjectLogs from '@/pages/project/Logs.vue'
 import ProjectActivity from '@/pages/project/Activity.vue'
 import ChangeProjectTypePage from './Settings/ChangeProjectType.vue'
@@ -65,13 +64,6 @@ export default [
                 component: ProjectLogs,
                 meta: {
                     title: 'Project - Logs'
-                }
-            },
-            {
-                path: 'snapshots',
-                component: ProjectSnapshots,
-                meta: {
-                    title: 'Project - Snapshots'
                 }
             },
             {

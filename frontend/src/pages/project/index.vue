@@ -34,7 +34,7 @@
 
 <script>
 import { Roles } from '@core/lib/roles'
-import { ChevronLeftIcon, ClockIcon, TemplateIcon, CogIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
+import { ChevronLeftIcon, CogIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
 import ConfirmProjectDeleteDialog from './Settings/dialogs/ConfirmProjectDeleteDialog'
@@ -173,7 +173,6 @@ export default {
         checkAccess () {
             this.navigation = [
                 { label: 'Overview', path: `/project/${this.project.id}/overview`, tag: 'project-overview', icon: ProjectsIcon },
-                { label: 'Snapshots', path: `/project/${this.project.id}/snapshots`, tag: 'project-snapshots', icon: ClockIcon },
                 { label: 'Audit Log', path: `/project/${this.project.id}/activity`, tag: 'project-activity', icon: ViewListIcon },
                 { label: 'Node-RED Logs', path: `/project/${this.project.id}/logs`, tag: 'project-logs', icon: TerminalIcon },
                 { label: 'Settings', path: `/project/${this.project.id}/settings`, tag: 'project-settings', icon: CogIcon }
