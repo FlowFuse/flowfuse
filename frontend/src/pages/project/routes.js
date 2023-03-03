@@ -5,6 +5,7 @@
  * No new functionality should be added here.
  */
 import Project from '@/pages/project/index.vue'
+import ProjectOverview from '@/pages/project/Overview.vue'
 import ProjectSettings from '@/pages/project/Settings/index.vue'
 import ProjectSettingsGeneral from '@/pages/project/Settings/General.vue'
 import ProjectSettingsDanger from '@/pages/project/Settings/Danger.vue'
@@ -15,7 +16,6 @@ import ProjectSettingsPalette from '@/pages/project/Settings/Palette.vue'
 import ProjectSettingsEnvVar from '@/pages/project/Settings/Environment.vue'
 // import ProjectDebug from '@/pages/project/Debug.vue'
 import ProjectSnapshots from '@/pages/project/Snapshots/index.vue'
-import ProjectInstances from '@/pages/project/Instances.vue'
 import ProjectLogs from '@/pages/project/Logs.vue'
 import ProjectActivity from '@/pages/project/Activity.vue'
 import ChangeProjectTypePage from './Settings/ChangeProjectType.vue'
@@ -32,7 +32,7 @@ export default [
             title: 'Project - Overview'
         },
         children: [
-            { path: 'overview', component: ProjectInstances },
+            { path: 'overview', component: ProjectOverview },
             {
                 path: 'settings',
                 component: ProjectSettings,
