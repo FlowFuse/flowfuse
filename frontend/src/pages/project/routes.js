@@ -5,7 +5,6 @@
  * No new functionality should be added here.
  */
 import Project from '@/pages/project/index.vue'
-import ProjectOverview from '@/pages/project/Overview.vue'
 import ProjectSettings from '@/pages/project/Settings/index.vue'
 import ProjectSettingsGeneral from '@/pages/project/Settings/General.vue'
 import ProjectSettingsDanger from '@/pages/project/Settings/Danger.vue'
@@ -33,7 +32,7 @@ export default [
             title: 'Project - Overview'
         },
         children: [
-            { path: 'overview', component: ProjectOverview },
+            { path: 'overview', component: ProjectInstances },
             {
                 path: 'settings',
                 component: ProjectSettings,
@@ -60,14 +59,6 @@ export default [
                         }
                     }
                 ]
-            },
-            {
-                name: 'ProjectInstances',
-                path: 'instances',
-                component: ProjectInstances,
-                meta: {
-                    title: 'Project - Instances'
-                }
             },
             {
                 path: 'logs',
