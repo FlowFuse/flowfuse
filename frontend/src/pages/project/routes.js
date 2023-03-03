@@ -1,3 +1,9 @@
+/**
+ * WARNING: There is ongoing work to move project functionality up into applications
+ * or down into instances.
+ *
+ * No new functionality should be added here.
+ */
 import Project from '@/pages/project/index.vue'
 import ProjectOverview from '@/pages/project/Overview.vue'
 import ProjectSettings from '@/pages/project/Settings/index.vue'

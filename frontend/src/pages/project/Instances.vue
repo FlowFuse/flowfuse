@@ -16,6 +16,8 @@
                 data-el="cloud-instances"
                 :columns="cloudColumns"
                 :rows="cloudRows"
+                :rows-selectable="true"
+                @row-selected="selectedCloudRow"
             >
                 <template
                     v-if="hasPermission('device:edit')"
@@ -199,9 +201,9 @@ import projectApi from '@/api/project'
 
 import permissionsMixin from '@/mixins/Permissions'
 
-import DeploymentLink from './components/cells/DeploymentLink.vue'
 import DeviceCredentialsDialog from '../team/Devices/dialogs/DeviceCredentialsDialog'
 import DeviceLastSeenBadge from '@/pages/device/components/DeviceLastSeenBadge'
+import DeploymentName from './components/cells/DeploymentName.vue'
 import DeviceLink from './components/cells/DeviceLink.vue'
 import LastSeen from './components/cells/LastSeen.vue'
 import ProjectEditorLink from './components/cells/ProjectEditorLink.vue'
@@ -250,7 +252,7 @@ export default {
         },
         cloudColumns () {
             return [
-                { label: 'Location', class: ['w-64'], component: { is: markRaw(DeploymentLink), extraProps: { disabled: !this.projectRunning || this.isVisitingAdmin } } },
+                { label: 'Name', class: ['w-64'], component: { is: markRaw(DeploymentName), extraProps: { disabled: !this.projectRunning || this.isVisitingAdmin } } },
                 { label: 'Last Deployed', class: ['w-48'], component: { is: markRaw(LastSeen), map: { lastSeenSince: 'flowLastUpdatedSince' } } },
                 { label: 'Deployment Status', class: ['w-48'], component: { is: markRaw(ProjectStatusBadge), map: { status: 'meta.state' } } },
                 { label: '', class: ['w-20'], component: { is: markRaw(ProjectEditorLink), extraProps: { disabled: !this.projectRunning || this.isVisitingAdmin } } }
@@ -363,7 +365,14 @@ export default {
                 })
             }
         },
-
+        selectedCloudRow (cloudInstance) {
+            this.$router.push({
+                name: 'Instance',
+                params: {
+                    id: cloudInstance.id
+                }
+            })
+        },
         showSelectTargetSnapshotDialog () {
             this.$refs.snapshotAssignDialog.show()
         }
