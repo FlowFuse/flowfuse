@@ -66,7 +66,7 @@ When a request exceeds this limit, the whole request is rejected with a `413 Pay
 
 ### TCP and UDP
 
-Incoming TCP or UDP connections will not work as routing is impossible. The TCP and UDP Nodes have therefore been removed.
+Incoming TCP or UDP connections will not work as routing arbitrary port to the containers is not possible. The TCP and UDP Nodes have therefore been removed.
 
 ### MQTT
 MQTT Connections to an external broker using the standard MQTT nodes will work fine as the connection is initiated by Node-RED.
