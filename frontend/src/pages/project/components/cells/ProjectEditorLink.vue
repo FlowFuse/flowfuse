@@ -21,6 +21,7 @@ import { ExternalLinkIcon } from '@heroicons/vue/solid'
 export default {
     name: 'ProjectEditorLink',
     components: { ExternalLinkIcon },
+    inheritAttrs: false,
     props: {
         disabled: {
             default: false,

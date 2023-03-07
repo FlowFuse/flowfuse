@@ -205,6 +205,7 @@ import DeviceCredentialsDialog from '../team/Devices/dialogs/DeviceCredentialsDi
 import DeviceLastSeenBadge from '@/pages/device/components/DeviceLastSeenBadge'
 import DeploymentName from './components/cells/DeploymentName.vue'
 import DeviceLink from './components/cells/DeviceLink.vue'
+import InstanceLink from './components/cells/InstanceLink.vue'
 import LastSeen from './components/cells/LastSeen.vue'
 import ProjectEditorLink from './components/cells/ProjectEditorLink.vue'
 import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
@@ -246,6 +247,19 @@ export default {
         columns () {
             return [
                 { label: 'Device', key: 'name', class: ['w-64'], sortable: true, component: { is: markRaw(DeviceLink) } },
+                {
+                    label: 'Instance',
+                    key: 'project',
+                    class: ['w-64'],
+                    sortable: true,
+                    component: {
+                        is: markRaw(InstanceLink),
+                        map: {
+                            id: 'project.id',
+                            name: 'project.name'
+                        }
+                    }
+                },
                 { label: 'Last Seen', key: 'lastSeenAt', class: ['w-32'], sortable: true, component: { is: markRaw(DeviceLastSeenBadge) } },
                 { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(ProjectStatusBadge) } },
                 { label: 'Deployed Snapshot', class: ['w-48'], component: { is: markRaw(Snapshot) } }

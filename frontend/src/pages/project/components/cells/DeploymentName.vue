@@ -15,6 +15,7 @@ import { CloudIcon } from '@heroicons/vue/outline'
 export default {
     name: 'DeploymentName',
     components: { CloudIcon },
+    inheritAttrs: false,
     props: {
         name: {
             required: true,
