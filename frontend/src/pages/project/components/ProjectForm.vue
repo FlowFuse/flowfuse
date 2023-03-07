@@ -183,7 +183,6 @@
                 <template v-else>
                     Confirm Changes
                 </template>
-
             </ff-button>
             <label
                 v-if="!creatingNew && !formDirty"
@@ -192,14 +191,12 @@
                 No changes have been made
             </label>
         </div>
-
     </form>
 </template>
 
 <script>
-import { mapState } from 'vuex'
-
 import { RefreshIcon } from '@heroicons/vue/outline'
+import { mapState } from 'vuex'
 
 import ExportProjectComponents from './ExportProjectComponents'
 import ProjectChargesTable from './ProjectChargesTable'

@@ -3,7 +3,7 @@
         <template v-slot:helptext>
             <p>FlowForge can be used to manage instances of Node-RED running on remote devices.</p>
             <p>Each device must run the <a href="https://flowforge.com/docs/user/devices/" target="_blank">FlowForge Device Agent</a>, which connects back to the platform to receive updates.</p>
-            <p>Provisioning tokens can be created to allow devices to automatically connect to a team and project without having to register them first.</p>
+            <p>Provisioning tokens can be created to allow devices to automatically connect to a team, application and instance without having to register them first.</p>
         </template>
         <template v-slot:tools>
             <ff-button v-if="addEnabled" data-action="create-provisioning-token" kind="primary" size="small" @click="showCreateDeviceDialog"><template v-slot:icon-left><PlusSmIcon /></template>Create Provisioning Token</ff-button>
@@ -63,7 +63,7 @@ const TokenFieldFormatter = {
 const ProjectFieldFormatter = {
     template: `
         <template v-if="project">
-            <router-link :to="{ name: 'ProjectInstances', params: { id: project }}">{{projectName}}</router-link>
+            <router-link :to="{ name: 'Instance', params: { id: project }}">{{projectName}}</router-link>
         </template>
         <template v-else><span class="italic text-gray-500">Don't assign</span></template>`,
     props: ['project', 'projectName']

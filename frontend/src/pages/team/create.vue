@@ -44,7 +44,7 @@
                         <p v-if="input.teamType">
                             <span v-if="input.teamType.isFree">You will not be charged for creating this team.</span>
                             <span v-else>You will be charged <b>{{ input.teamType.billingPrice }} for each team member per month</b>.</span>
-                            You will be charged for the projects you create within the team.
+                            You will be charged for the application instances you create within the team.
                             For more information on billing, please read our <a class="underline" href="https://flowforge.com/docs/cloud/billing/">Billing documentation</a>.
                         </p>
                         <p v-if="user.free_trial_available">

@@ -1,13 +1,13 @@
 <template>
-    <SectionTopMenu hero="Projects">
+    <SectionTopMenu hero="Applications">
         <template v-slot:tools>
-            <ff-button data-action="create-project-1" v-if="hasPermission('project:create')" kind="primary" size="small" to="./projects/create" data-nav="create-project"><template v-slot:icon-left><PlusSmIcon /></template>Create Project</ff-button>
+            <ff-button data-action="create-project-1" v-if="hasPermission('project:create')" kind="primary" size="small" to="./projects/create" data-nav="create-project"><template v-slot:icon-left><PlusSmIcon /></template>Create Application</ff-button>
         </template>
     </SectionTopMenu>
     <div class="space-y-6">
-        <ff-loading v-if="loading" message="Loading Projects..." />
+        <ff-loading v-if="loading" message="Loading Applications..." />
         <template v-else-if="projects.length > 0">
-            <ff-data-table data-el="projects-table" :columns="columns" :rows="projects" :show-search="true" search-placeholder="Search Projects..."
+            <ff-data-table data-el="projects-table" :columns="columns" :rows="projects" :show-search="true" search-placeholder="Search Applications..."
                            :rows-selectable="true" @row-selected="openProject"/>
         </template>
         <template v-else-if="hasPermission('project:create') && !loading">
@@ -16,13 +16,13 @@
                     <template v-slot:icon-right>
                         <PlusSmIcon />
                     </template>
-                    Create Project
+                    Create Application
                 </ff-button>
             </div>
         </template>
         <template v-else>
             <div class="flex text-gray-500 justify-center italic mb-4 p-8">
-                You don't have any projects yet
+                You don't have any applications yet
             </div>
         </template>
     </div>

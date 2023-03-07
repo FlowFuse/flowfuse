@@ -1,7 +1,8 @@
 <template>
     <div
         v-ff-tooltip:bottom="lastSeenAt ? 'Last seen at ' + lastSeenAt : 'Never seen'"
-        class="forge-badge" :class="'forge-status-' + status">
+        class="forge-badge" :class="'forge-status-' + status"
+    >
         <ExclamationCircleIcon v-if="status === 'error'" class="w-4 h-4" />
         <span class="ml-1">{{ label }}</span>
     </div>

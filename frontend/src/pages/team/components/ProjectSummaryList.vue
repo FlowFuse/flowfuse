@@ -23,7 +23,7 @@
             <div class="forge-button-tertiary text-xs border-dashed">
                 <router-link :to="team?`/team/${team.slug}/projects/create`:'/create'" class="px-1 py-4 flex w-full">
                     <div class="flex-grow">
-                        <div class="text-base flex items-center"><PlusSmIcon class="w-5 h-5 -ml-1 mr-1" /> Create Project</div>
+                        <div class="text-base flex items-center"><PlusSmIcon class="w-5 h-5 -ml-1 mr-1" /> Create Application</div>
                     </div>
                     <div class="flex">
                         <ChevronRightIcon class="w-3" />

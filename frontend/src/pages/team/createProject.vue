@@ -21,16 +21,16 @@
         <div class="max-w-2xl m-auto">
             <ff-loading
                 v-if="loading"
-                message="Creating Project..."
+                message="Creating Instance..."
             />
             <ff-loading
                 v-else-if="sourceProjectId && !sourceProject"
-                message="Loading Project to Copy From..."
+                message="Loading Instance to Copy From..."
             />
-            <ProjectForm
+            <InstanceForm
                 v-else
-                :project="projectDetails"
-                :source-project="sourceProject"
+                :instance="projectDetails"
+                :source-instance="sourceProject"
                 :team="team"
                 :billing-enabled="!!features.billing"
                 :submit-errors="errors"
@@ -45,7 +45,7 @@ import { mapState } from 'vuex'
 
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
 
-import ProjectForm from '../project/components/ProjectForm'
+import InstanceForm from '../instance/components/InstanceForm'
 import TeamTrialBanner from '@/components/banners/TeamTrial.vue'
 
 import projectApi from '@/api/project'
@@ -56,7 +56,7 @@ import Alerts from '@/services/alerts'
 export default {
     name: 'CreateProject',
     components: {
-        ProjectForm,
+        InstanceForm,
         NavItem,
         SideNavigation,
         TeamTrialBanner
@@ -89,7 +89,7 @@ export default {
             projectApi.getProject(this.sourceProjectId).then(project => {
                 this.sourceProject = project
             }).catch(err => {
-                console.log('Failed to load source project', err)
+                console.log('Failed to load source instance', err)
             })
         }
     },

@@ -6,7 +6,7 @@
                 <FormRow v-model="editable.settings.disableEditor" type="checkbox" :disabled="!editTemplate && !editable.policy.disableEditor">
                     Disable editor
                     <template #description>
-                        Disable the editor for this project. The only way to modify the running flows will be to re-enable the editor and restart the project, or use the Admin API.
+                        Disable the editor for this instance. The only way to modify the running flows will be to re-enable the editor and restart the instance, or use the Admin API.
                     </template>
                     <template #append><ChangeIndicator :value="editable.changed.settings.disableEditor"></ChangeIndicator></template>
                 </FormRow>

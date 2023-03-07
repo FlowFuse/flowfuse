@@ -1,5 +1,5 @@
 <template>
-    <SectionTopMenu hero="Devices" help-header="FlowForge - Devices" info="A list of all edge devices registered in your team. Assign them to projects in order to deploy Node-RED remotely.">
+    <SectionTopMenu hero="Devices" help-header="FlowForge - Devices" info="A list of all edge devices registered in your team. Assign them to application instances in order to deploy Node-RED remotely.">
         <template v-slot:helptext>
             <p>FlowForge can be used to manage instances of Node-RED running on remote devices.</p>
             <p>Each device must run the <a href="https://flowforge.com/docs/user/devices/" target="_blank">FlowForge Device Agent</a>, which connects back to the platform to receive updates.</p>
@@ -46,7 +46,7 @@
             <p>Here, you can register a new device to your team. This will provide you with a <b>device.yml</b>
                 to be moved to the respective device. Further details on Devices in FlowForge can be found
                 <a href="https://flowforge.com/docs/user/devices/" target="_blank">here</a>.</p>
-            <p class="mt-4 mb-2">If you want to register devices straight to a particular project you can use provisioning tokens
+            <p class="mt-4 mb-2">If you want to register devices straight to a particular application instance you can use provisioning tokens
                 in your <router-link :to="{'name': 'TeamSettingsDevices', 'params': {team_slug: team.slug}}">Team Settings</router-link></p>
         </template>
     </TeamDeviceCreateDialog>
@@ -201,12 +201,12 @@ export default {
                 Dialog.show({
                     header: 'Remove Device from Project',
                     kind: 'danger',
-                    text: 'Are you sure you want to remove this device from the project? This will stop the project running on the device.',
+                    text: 'Are you sure you want to remove this device from the instance? This will stop the instance running on the device.',
                     confirmLabel: 'Remove'
                 }, async () => {
                     await deviceApi.updateDevice(device.id, { project: null })
                     delete device.project
-                    Alerts.emit('Successfully unassigned the project from this device.', 'confirmation')
+                    Alerts.emit('Successfully unassigned the instance from this device.', 'confirmation')
                 })
             } else if (action === 'assignToProject') {
                 this.$refs.deviceAssignProjectDialog.show(device)

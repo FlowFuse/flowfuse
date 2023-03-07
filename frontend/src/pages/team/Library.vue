@@ -2,7 +2,7 @@
     <SectionTopMenu hero="Team Library" help-header="FlowForge - Team Library" info="Shared repository to store common flows and nodes.">
         <template #helptext>
             <p>In Node-RED you can export and import flows and functions, and save them to your Team Library.</p>
-            <p>The contents of your Team Library are available across any of your projects in FlowForge.</p>
+            <p>The contents of your Team Library are available across any of your application instances in FlowForge.</p>
             <p>You can read more about <a href="https://nodered.org/docs/user-guide/editor/workspace/import-export" target="_blank">Import & Exporting Flows</a> in the Node-RED documentation</p>
         </template>
         <template #tools>

@@ -6,7 +6,7 @@
             <template #nested-menu>
                 <!-- TODO Read instance.application or pass in application details -->
                 <router-link :to="{name: 'Project', id: instance.id}">
-                    <nav-item :icon="icons.chevronLeft" :label="`Back to Project`" data-nav="project-overview" />
+                    <nav-item :icon="icons.chevronLeft" label="Back to Application" data-nav="project-overview" />
                 </router-link>
 
                 <li class="ff-navigation-divider">{{ instance.name }}</li>

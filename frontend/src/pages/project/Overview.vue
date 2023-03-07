@@ -5,9 +5,9 @@
                 <img src="../../images/pictograms/edge_red.png">
             </template>
             <template #helptext>
-                <p>This is a list of all instances of this Project hosted on the same domain as FlowForge.</p>
+                <p>This is a list of all instances of this Application hosted on the same domain as FlowForge.</p>
                 <p>It will always run the latest flow deployed in Node-RED and use the latest credentials and runtime settings defined in the Projects settings.</p>
-                <p>To edit a Projects flow, open the editor of the Instance.</p>
+                <p>To edit an Applications flow, open the editor of the Instance.</p>
             </template>
         </SectionTopMenu>
 
@@ -52,7 +52,7 @@
             </ff-data-table>
         </div>
 
-        <SectionTopMenu hero="Remote Instances" help-header="FlowForge - Instances - Remote" info="Instances of Node-RED running remotely, managed by this Project and the FlowForge Device Agent.">
+        <SectionTopMenu hero="Remote Instances" help-header="FlowForge - Instances - Remote" info="Instances of Node-RED running remotely using the FlowForge Device Agent, connected to a FlowForge instance in this Application">
             <template #pictogram>
                 <img src="../../images/pictograms/edge_red.png">
             </template>
@@ -61,7 +61,7 @@
                     FlowForge enables the deployment and management of remote instances of Node-RED via "Devices".
                 </p>
                 <p>
-                    Here you will see all Devices attached to this project.
+                    Here you will see all Devices attached to instances of this application.
                     When you set a new Target Snapshot, that will get deployed,
                     using the <a href="https://flowforge.com/docs/user/devices/" target="_blank">FlowForge Device Agent</a>, out to all connected devices.
                 </p>
@@ -134,7 +134,7 @@
                                 @click="deviceAction('edit', row.id)"
                             />
                             <ff-list-item
-                                label="Remove from Project"
+                                label="Remove from Instance"
                                 @click="deviceAction('removeFromProject', row.id)"
                             />
                             <ff-list-item
@@ -154,7 +154,7 @@
                 <template v-else>
                     <div class="flex text-gray-500 justify-center italic mb-4 p-8">
                         <div class="text-center">
-                            <p>You have not added any devices to this project yet.</p>
+                            <p>You have not added any devices to this application yet.</p>
                             <p>
                                 To add a device, go to the
                                 <router-link :to="{name: 'TeamDevices', params: {team_slug:team.slug}}">
@@ -214,7 +214,7 @@ import SnapshotAssignDialog from './Snapshots/dialogs/SnapshotAssignDialog'
 import TeamDeviceCreateDialog from '../team/Devices/dialogs/TeamDeviceCreateDialog'
 
 export default {
-    name: 'ProjectInstances',
+    name: 'ProjectOverview',
     components: {
         ClockIcon,
         DeviceCredentialsDialog,
@@ -224,6 +224,7 @@ export default {
         SectionTopMenu
     },
     mixins: [permissionsMixin],
+    inheritAttrs: false,
     props: {
         project: {
             type: Object,
@@ -352,7 +353,7 @@ export default {
                 Dialog.show({
                     header: 'Remove Device from Project',
                     kind: 'danger',
-                    text: 'Are you sure you want to remove this device from the project? This will stop the project running on the device.',
+                    text: 'Are you sure you want to remove this device from the application? This will stop the application running on the device.',
                     confirmLabel: 'Remove'
                 }, async () => {
                     await deviceApi.updateDevice(device.id, { project: null })
@@ -361,7 +362,7 @@ export default {
                     const index = this.devices.indexOf(device)
                     this.devices.splice(index, 1)
 
-                    Alerts.emit('Successfully unassigned the project from this device.', 'confirmation')
+                    Alerts.emit('Successfully unassigned the application from this device.', 'confirmation')
                 })
             }
         },

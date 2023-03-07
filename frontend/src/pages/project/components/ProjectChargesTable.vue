@@ -48,10 +48,10 @@
         </div>
     </div>
     <FormRow
+        v-if="!trialMode"
         id="billing-confirmation"
         v-model="localConfirmed"
         type="checkbox"
-        v-if="!trialMode"
     >
         Confirm additional charges
         <template
