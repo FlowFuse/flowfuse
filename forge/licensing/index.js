@@ -159,7 +159,6 @@ module.exports = fp(async function (app, opts, next) {
 
     async function applyLicense (license) {
         activeLicense = await loader.verifyLicense(license)
-        // activeLicense = await loader.verifyLicense('eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsImV4cCI6OTc4MzA3MjAwLCJzdWIiOiJBY21lIEN1c3RvbWVyIiwidGllciI6InRlYW1zIiwiaWF0IjoxNjI3NTg4MDA5fQ.qHm0I4RWDz_JewabonqJ_i1RJY4rTE1B6BN1A-Sit5CPvqEXg-01ljeHQJIQcNqMavp9wxZQViLei2yIwAP10A')
         app.log.info('License verified:')
         if (activeLicense.dev) {
             app.log.info('  ****************************')
