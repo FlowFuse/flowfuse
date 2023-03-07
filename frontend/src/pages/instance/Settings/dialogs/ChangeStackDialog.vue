@@ -1,7 +1,7 @@
 <template>
     <ff-dialog
         ref="dialog"
-        header="Change Project Stack"
+        header="Change Instance Stack"
         confirm-label="Change Stack"
         class="ff-dialog-fixed-height"
         data-el="change-stack-dialog"

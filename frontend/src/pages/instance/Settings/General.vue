@@ -1,8 +1,8 @@
 <template>
-    <FormHeading class="mb-6">Project Details</FormHeading>
+    <FormHeading class="mb-6">Instance Details</FormHeading>
     <div class="space-y-6">
         <FormRow id="projectId" v-model="input.projectId" type="uneditable" inputClass="font-mono">
-            Project ID
+            Instance ID
         </FormRow>
 
         <FormRow id="projectName" v-model="input.projectName" type="uneditable">
@@ -10,7 +10,7 @@
         </FormRow>
 
         <FormRow v-model="input.projectTypeName" type="uneditable">
-            Project Type
+            Instance Type
         </FormRow>
 
         <FormRow v-model="input.stackDescription" type="uneditable">

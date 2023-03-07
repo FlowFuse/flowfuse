@@ -4,7 +4,7 @@
         class="w-full text-sm text-blue-600 italic"
         data-el="credit-balance-banner"
     >
-        You have a credit balance of {{ formatCurrency(Math.abs(subscription.customer.balance)) }} that will be applied to this project
+        You have a credit balance of {{ formatCurrency(Math.abs(subscription.customer.balance)) }} that will be applied to this instance
     </div>
 </template>
 

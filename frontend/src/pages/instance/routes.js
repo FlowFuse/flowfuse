@@ -1,8 +1,7 @@
 /**
- * WARNING: Instances are currently a naive duplication of projects
- * There is ongoing work to move project functionality not handled by instances up to applications
+ * INFO: Instances were previously called projects, lots of the code still refers to an instance as a project
+ * For all code under src/pages/instance project and instance are synonymous, but instance should be used going forward.
  */
-
 import InstanceAuditLog from './AuditLog.vue'
 import InstanceLogs from './Logs.vue'
 import InstanceOverview from './Overview.vue'

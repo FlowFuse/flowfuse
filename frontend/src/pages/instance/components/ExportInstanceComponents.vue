@@ -16,7 +16,7 @@
             <template #description>Provide a Secret to encrypt the exported Credentials</template>
         </FormRow>
         <FormRow v-if="showSettings" v-model="parts.settings" type="checkbox">
-            Project Settings
+            Instance Settings
         </FormRow>
         <FormRow v-model="envVarOpts.envVars" type="checkbox">
             Environment Variables

@@ -92,12 +92,12 @@ describe('FlowForge - Instances', () => {
                 cy.get('[data-el="delete-project"]').should('not.be.visible')
                 cy.get('button[data-action="delete-project"]').click()
                 cy.get('[data-el="delete-project"]').should('be.visible')
-                cy.get('.ff-dialog-header').contains('Delete Project')
+                cy.get('.ff-dialog-header').contains('Delete Instance')
 
                 // main button should be disabled
                 cy.get('[data-el="delete-project"] button.ff-btn.ff-btn--danger').should('be.disabled')
                 cy.get('[data-el="delete-project"]').should('be.visible')
-                cy.get('.ff-dialog-header').contains('Delete Project')
+                cy.get('.ff-dialog-header').contains('Delete Instance')
 
                 cy.get('[data-el="delete-project"] [data-form="project-name"] input[type="text"]').type(PROJECT_NAME)
 
