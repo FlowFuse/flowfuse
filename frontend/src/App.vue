@@ -18,6 +18,7 @@
         <template v-else-if="user && !user.password_expired && !termsAndConditionsRequired && user.email_verified !== false">
             <template v-if="!isModalPage">
                 <ff-layout-platform>
+                    <LicenseBanner></LicenseBanner>
                     <router-view></router-view>
                 </ff-layout-platform>
             </template>
@@ -59,6 +60,8 @@ import UnverifiedEmail from '@/pages/UnverifiedEmail.vue'
 import TermsAndConditions from '@/pages/TermsAndConditions.vue'
 import FFLayoutPlatform from '@/layouts/Platform.vue'
 import FFLayoutBox from '@/layouts/Box.vue'
+import LicenseBanner from '@/components/banners/LicenseBanner.vue'
+
 export default {
     name: 'App',
     computed: {
@@ -96,6 +99,7 @@ export default {
         PasswordExpired,
         UnverifiedEmail,
         TermsAndConditions,
+        LicenseBanner,
         Loading,
         Offline,
         'ff-layout-platform': FFLayoutPlatform,
