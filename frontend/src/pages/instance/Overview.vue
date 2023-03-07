@@ -87,6 +87,7 @@ export default {
         TrendingUpIcon
     },
     mixins: [permissionsMixin],
+    inheritAttrs: false,
     props: {
         instance: {
             required: true,

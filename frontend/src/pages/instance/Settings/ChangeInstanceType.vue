@@ -1,7 +1,7 @@
 <template>
     <div class="w-full max-w-4xl" data-el="change-project">
-        <ff-loading v-if="saving" message="Updating Project..." />
-        <InstanceForm v-else :project="projectDetails || project" :team="team" :billingEnabled="!!features.billing" @on-submit="changeProjectDefinition" />
+        <ff-loading v-if="saving" message="Updating Instance..." />
+        <InstanceForm v-else :instance="instanceDetails || instance" :team="team" :billingEnabled="!!features.billing" @on-submit="changeInstanceDefinition" />
     </div>
 </template>
 
@@ -15,12 +15,13 @@ import InstanceForm from '../components/InstanceForm'
 import Alerts from '@/services/alerts'
 
 export default {
-    name: 'CreateProject',
+    name: 'ChangeInstanceType',
     components: {
         InstanceForm
     },
+    inheritAttrs: false,
     props: {
-        project: {
+        instance: {
             required: true,
             type: Object
         }
@@ -29,30 +30,30 @@ export default {
     data () {
         return {
             saving: false,
-            projectDetails: null
+            instanceDetails: null
         }
     },
     computed: {
         ...mapState('account', ['team', 'features'])
     },
     methods: {
-        changeProjectDefinition (projectDetails) {
-            if (typeof projectDetails.projectType !== 'string' || projectDetails.projectType === '') {
-                Alerts.emit('No project is selected. Try refreshing your browser and try again', 'warning', 3500)
+        changeInstanceDefinition (instanceDetails) {
+            if (typeof instanceDetails.projectType !== 'string' || instanceDetails.projectType === '') {
+                Alerts.emit('No instance is selected. Try refreshing your browser and try again', 'warning', 3500)
                 return
             }
-            const changePayload = { ...projectDetails, team: this.team.id, changeProjectDefinition: true }
+            const changePayload = { ...instanceDetails, team: this.team.id }
             this.saving = true
-            InstanceApi.updateInstance(this.project.id, changePayload).then(() => {
+            InstanceApi.updateInstance(this.instance.id, changePayload).then(() => {
                 this.$emit('instance-updated')
-                Alerts.emit('Project successfully updated.', 'confirmation')
+                Alerts.emit('Instance successfully updated.', 'confirmation')
                 this.$router.push({
                     name: 'Instance'
                 })
             }).catch(err => {
                 console.warn(err)
-                Alerts.emit('Project update failed.', 'warning')
-                this.projectDetails = { ...projectDetails, id: this.project.id }
+                Alerts.emit('Instance update failed.', 'warning')
+                this.instanceDetails = { ...instanceDetails, id: this.instance.id }
             }).finally(() => {
                 this.saving = false
             })

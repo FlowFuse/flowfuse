@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" header="Delete Project" kind="danger" confirm-label="Delete" :disable-primary="!formValid" @confirm="confirm()">
+    <ff-dialog ref="dialog" header="Delete Project" kind="danger" confirm-label="Delete" :disable-primary="!formValid" @confirm="confirm()" data-el="delete-project-dialog">
         <template v-slot:default>
             <form class="space-y-6" @submit.prevent>
                 <div class="mt-2 space-y-2">

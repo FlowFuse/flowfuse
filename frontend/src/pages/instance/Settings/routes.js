@@ -17,7 +17,7 @@ export default [
     { path: 'danger', component: InstanceSettingsDanger },
     {
         name: 'ChangeInstanceType',
-        path: 'danger',
+        path: 'change-type',
         component: ChangeInstanceTypePage,
         meta: {
             title: 'Instance - Change Type'

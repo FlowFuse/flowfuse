@@ -1,5 +1,5 @@
 const path = require('path')
-describe('FlowForge - Project Snapshots', () => {
+describe('FlowForge - Instance Snapshots', () => {
     beforeEach(() => {
         cy.intercept('GET', '/api/*/projects/*/snapshots').as('getProjectSnapshots')
 
@@ -12,7 +12,7 @@ describe('FlowForge - Project Snapshots', () => {
                 return cy.request('GET', `/api/v1/teams/${team.id}/projects`)
             })
             .then((response) => {
-                cy.visit(`/project/${response.body.projects[0].id}/snapshots`)
+                cy.visit(`/instance/${response.body.projects[0].id}/snapshots`)
                 cy.wait('@getProjectSnapshots')
             })
     })
@@ -84,7 +84,7 @@ describe('FlowForge shows audit logs', () => {
                 const project = response.body.projects.find(
                     (project) => project.name === projectName
                 )
-                cy.visit(`/project/${project.id}/activity`)
+                cy.visit(`/instance/${project.id}/audit-log`)
             })
     }
 

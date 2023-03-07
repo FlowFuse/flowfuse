@@ -1,188 +1,381 @@
 <template>
-    <div class="ff-project-overview space-y-4">
-        <SectionTopMenu>
-            <template #hero>
-                <div class="h-full flex items-center">
-                    <div class="text-gray-800 text-xl font-bold">
-                        {{ project.name }}
-                    </div>
-                </div>
+    <div>
+        <SectionTopMenu hero="FlowForge Hosted Instances" help-header="FlowForge - Instances - Local" info="Instances of Node-RED running in the FlowForge cloud">
+            <template #pictogram>
+                <img src="../../images/pictograms/edge_red.png">
             </template>
-            <template #tools>
-                <div class="space-x-2 flex">
-                    <a v-if="editorAvailable && !isVisitingAdmin" :href="project.url" target="_blank" class="ff-btn ff-btn--secondary" data-action="open-editor">
-                        Open Editor
-                        <span class="ff-btn--icon ff-btn--icon-right">
-                            <ExternalLinkIcon />
-                        </span>
-                    </a>
-                    <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" alt="Open actions menu" :options="options" data-action="open-actions">Actions</DropdownMenu>
-                </div>
+            <template #helptext>
+                <p>This is a list of all instances of this Project hosted on the same domain as FlowForge.</p>
+                <p>It will always run the latest flow deployed in Node-RED and use the latest credentials and runtime settings defined in the Projects settings.</p>
+                <p>To edit a Projects flow, open the editor of the Instance.</p>
             </template>
         </SectionTopMenu>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="border rounded p-4">
-                <FormHeading><TemplateIcon class="w-6 h-6 mr-2 inline text-gray-400" />Overview</FormHeading>
 
-                <table class="table-fixed w-full">
-                    <tr class="border-b">
-                        <td class="w-1/4 font-medium">Editor</td>
-                        <td>
-                            <div v-if="editorAvailable">
-                                <div v-if="isVisitingAdmin" class="my-2">
-                                    {{project.url}}
-                                </div>
-                                <a v-else :href="project.url" target="_blank" class="forge-button-secondary py-1 mb-1" data-el="editor-link">
-                                    <span class="ml-r">{{project.url}}</span>
-                                    <ExternalLinkIcon class="w-4 ml-3" />
-                                </a>
-                            </div>
-                            <div v-else class="my-2">Unavailable</div>
-                        </td>
-                    </tr>
-                    <tr class="border-b">
-                        <td class="font-medium">Status</td>
-                        <td><div class="py-2"><ProjectStatusBadge :status="project.meta?.state" :pendingStateChange="project.pendingStateChange" /></div></td>
-                    </tr>
-                    <tr class="border-b">
-                        <td class="font-medium">Type</td>
-                        <td class="flex items-center">
-                            <div class="py-2 flex-grow">{{project.projectType?.name || 'none'}} / {{project.stack?.label || project.stack?.name || 'none'}}</div>
-                            <div v-if="project.stack?.replacedBy">
-                                <ff-button size="small" to="./settings/danger">Update</ff-button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr v-if="project.template?.name" class="border-b">
-                        <td class="font-medium">Template</td>
-                        <td><div class="py-2">{{project.template?.name}}</div></td>
-                    </tr>
-                    <template v-if="project.meta.versions">
-                        <tr class="border-b">
-                            <td class="font-medium">Node-RED Version</td>
-                            <td><div class="py-2">{{project.meta.versions['node-red']}}</div></td>
-                        </tr>
-                        <tr class="border-b">
-                            <td class="font-medium">Launcher Version</td>
-                            <td><div class="py-2">{{project.meta.versions.launcher}}</div></td>
-                        </tr>
-                        <tr class="border-b">
-                            <td class="font-medium">Node.js Version</td>
-                            <td><div class="py-2">{{project.meta.versions.node}}</div></td>
-                        </tr>
-                    </template>
-                </table>
-            </div>
-            <div class="border rounded p-4">
-                <FormHeading><TrendingUpIcon class="w-6 h-6 mr-2 inline text-gray-400" />Recent Activity</FormHeading>
-                <AuditLog :entries="auditLog" :showLoadMore="false" :disableAccordion="true" />
-                <div class="pb-4">
-                    <router-link to="./activity" class="forge-button-inline">More...</router-link>
-                </div>
-            </div>
+        <div class="space-y-6 mb-12">
+            <ff-data-table
+                data-el="cloud-instances"
+                :columns="cloudColumns"
+                :rows="cloudRows"
+                :rows-selectable="true"
+                @row-selected="selectedCloudRow"
+            >
+                <template
+                    v-if="hasPermission('device:edit')"
+                    #context-menu
+                >
+                    <ff-list-item
+                        :disabled="project.pendingStateChange || projectRunning"
+                        label="Start"
+                        @click.stop="$emit('project-start')"
+                    />
+
+                    <ff-list-item
+                        :disabled="!projectNotSuspended"
+                        label="Restart"
+                        @click.stop="$emit('project-restart')"
+                    />
+
+                    <ff-list-item
+                        :disabled="!projectNotSuspended"
+                        kind="danger"
+                        label="Suspend"
+                        @click.stop="$emit('project-suspend')"
+                    />
+
+                    <ff-list-item
+                        v-if="hasPermission('project:delete')"
+                        kind="danger"
+                        label="Delete"
+                        @click.stop="$emit('project-delete')"
+                    />
+                </template>
+            </ff-data-table>
         </div>
+
+        <SectionTopMenu hero="Remote Instances" help-header="FlowForge - Instances - Remote" info="Instances of Node-RED running remotely, managed by this Project and the FlowForge Device Agent.">
+            <template #pictogram>
+                <img src="../../images/pictograms/edge_red.png">
+            </template>
+            <template #helptext>
+                <p>
+                    FlowForge enables the deployment and management of remote instances of Node-RED via "Devices".
+                </p>
+                <p>
+                    Here you will see all Devices attached to this project.
+                    When you set a new Target Snapshot, that will get deployed,
+                    using the <a href="https://flowforge.com/docs/user/devices/" target="_blank">FlowForge Device Agent</a>, out to all connected devices.
+                </p>
+                <p>
+                    Here, you can see a picture of the last time the device was online, and the status of the Node-RED
+                    flows on those devices at that point in time.
+                </p>
+            </template>
+        </SectionTopMenu>
+        <div
+            class="space-y-6"
+            data-el="devices-section"
+        >
+            <ff-loading
+                v-if="loading"
+                message="Loading Devices..."
+            />
+            <ff-loading
+                v-else-if="creatingDevice"
+                message="Creating Device..."
+            />
+            <ff-loading
+                v-else-if="deletingDevice"
+                message="Deleting Device..."
+            />
+            <template v-else>
+                <template v-if="devices.length > 0">
+                    <ff-data-table
+                        data-el="remote-instances"
+                        :columns="columns"
+                        :rows="devices"
+                        :show-search="true"
+                        search-placeholder="Search Remote Instances..."
+                    >
+                        <template
+                            v-if="hasPermission('project:snapshot:create')"
+                            #actions
+                        >
+                            <ff-button
+                                data-action="change-target-snapshot"
+                                kind="secondary"
+                                @click="showSelectTargetSnapshotDialog"
+                            >
+                                <template #icon-left>
+                                    <ClockIcon />
+                                </template>
+                                <span class="font-normal">
+                                    Target Snapshot: <b>{{ project.targetSnapshot?.name || 'none' }}</b>
+                                </span>
+                            </ff-button>
+                            <ff-button
+                                v-if="hasPermission('device:create')"
+                                class="font-normal"
+                                data-action="register-device"
+                                kind="primary"
+                                @click="showCreateDeviceDialog"
+                            >
+                                <template #icon-right>
+                                    <PlusSmIcon />
+                                </template>
+                                <span class="font-normal">Add Device</span>
+                            </ff-button>
+                        </template>
+                        <template
+                            v-if="hasPermission('device:edit')"
+                            #context-menu="{row}"
+                        >
+                            <ff-list-item
+                                label="Edit Details"
+                                @click="deviceAction('edit', row.id)"
+                            />
+                            <ff-list-item
+                                label="Remove from Project"
+                                @click="deviceAction('removeFromProject', row.id)"
+                            />
+                            <ff-list-item
+                                kind="danger"
+                                label="Regenerate Credentials"
+                                @click="deviceAction('updateCredentials', row.id)"
+                            />
+                            <ff-list-item
+                                v-if="hasPermission('device:delete')"
+                                kind="danger"
+                                label="Delete Device"
+                                @click="deviceAction('delete', row.id)"
+                            />
+                        </template>
+                    </ff-data-table>
+                </template>
+                <template v-else>
+                    <div class="flex text-gray-500 justify-center italic mb-4 p-8">
+                        <div class="text-center">
+                            <p>You have not added any devices to this project yet.</p>
+                            <p>
+                                To add a device, go to the
+                                <router-link :to="{name: 'TeamDevices', params: {team_slug:team.slug}}">
+                                    Team Device
+                                </router-link>
+                                page
+                            </p>
+                        </div>
+                    </div>
+                </template>
+            </template>
+        </div>
+
+        <TeamDeviceCreateDialog
+            ref="teamDeviceCreateDialog"
+            :team="team"
+            @deviceCreating="deviceCreating"
+            @deviceCreated="deviceCreated"
+            @deviceUpdated="deviceUpdated"
+        />
+        <DeviceCredentialsDialog ref="deviceCredentialsDialog" />
+        <SnapshotAssignDialog
+            ref="snapshotAssignDialog"
+            :project="project"
+            @snapshot-assigned="$emit('projectUpdated')"
+        />
     </div>
 </template>
 
 <script>
-import { ExternalLinkIcon, TemplateIcon, TrendingUpIcon } from '@heroicons/vue/outline'
 
+import { Roles } from '@core/lib/roles'
+import { ClockIcon } from '@heroicons/vue/outline'
+import { PlusSmIcon } from '@heroicons/vue/solid'
+
+import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import ProjectStatusBadge from './components/ProjectStatusBadge'
+import Alerts from '@/services/alerts'
+import Dialog from '@/services/dialog'
 
+import deviceApi from '@/api/devices'
 import projectApi from '@/api/project'
-import AuditLog from '@/components/audit-log/AuditLog'
-import DropdownMenu from '@/components/DropdownMenu'
-import FormHeading from '@/components/FormHeading'
-import SectionTopMenu from '@/components/SectionTopMenu'
+
 import permissionsMixin from '@/mixins/Permissions'
 
+import DeviceCredentialsDialog from '../team/Devices/dialogs/DeviceCredentialsDialog'
+import DeviceLastSeenBadge from '@/pages/device/components/DeviceLastSeenBadge'
+import DeploymentName from './components/cells/DeploymentName.vue'
+import DeviceLink from './components/cells/DeviceLink.vue'
+import LastSeen from './components/cells/LastSeen.vue'
+import ProjectEditorLink from './components/cells/ProjectEditorLink.vue'
+import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
+import SectionTopMenu from '@/components/SectionTopMenu'
+import Snapshot from './components/cells/Snapshot.vue'
+import SnapshotAssignDialog from './Snapshots/dialogs/SnapshotAssignDialog'
+import TeamDeviceCreateDialog from '../team/Devices/dialogs/TeamDeviceCreateDialog'
+
 export default {
-    name: 'ProjectOverview',
+    name: 'ProjectInstances',
     components: {
-        AuditLog,
-        DropdownMenu,
-        ExternalLinkIcon,
-        FormHeading,
-        ProjectStatusBadge,
-        SectionTopMenu,
-        TemplateIcon,
-        TrendingUpIcon
+        ClockIcon,
+        DeviceCredentialsDialog,
+        PlusSmIcon,
+        SnapshotAssignDialog,
+        TeamDeviceCreateDialog,
+        SectionTopMenu
     },
     mixins: [permissionsMixin],
     props: {
         project: {
-            required: true,
-            type: Object
-        },
-        isVisitingAdmin: {
-            required: true,
-            type: Boolean
+            type: Object,
+            required: true
         }
     },
-    emits: ['project-start', 'project-delete', 'project-suspend', 'project-restart', 'project-overview-exit', 'project-overview-enter'],
-    watch: {
-        project: function () {
-            this.loadLogs()
+    emits: ['project-delete', 'project-suspend', 'project-restart', 'project-start', 'projectUpdated'],
+    data () {
+        return {
+            loading: true,
+            creatingDevice: false,
+            deletingDevice: false,
+            devices: [],
+            checkInterval: null
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership']),
-        options: function () {
-            const flowActionsDisabled = !(this.project.meta && this.project.meta.state !== 'suspended')
-
-            const result = [
-                {
-                    name: 'Start',
-                    action: () => this.$emit('project-start'),
-                    disabled: this.project.pendingStateChange || this.projectRunning
-                },
-                { name: 'Restart', action: () => this.$emit('project-restart'), disabled: flowActionsDisabled },
-                { name: 'Suspend', class: ['text-red-700'], action: () => this.$emit('project-suspend'), disabled: flowActionsDisabled }
+        ...mapState('account', ['team', 'teamMembership']),
+        columns () {
+            return [
+                { label: 'Device', key: 'name', class: ['w-64'], sortable: true, component: { is: markRaw(DeviceLink) } },
+                { label: 'Last Seen', key: 'lastSeenAt', class: ['w-32'], sortable: true, component: { is: markRaw(DeviceLastSeenBadge) } },
+                { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(ProjectStatusBadge) } },
+                { label: 'Deployed Snapshot', class: ['w-48'], component: { is: markRaw(Snapshot) } }
             ]
-
-            if (this.hasPermission('project:delete')) {
-                result.push(null)
-                result.push({ name: 'Delete', class: ['text-red-700'], action: () => this.$emit('project-delete') })
-            }
-
-            return result
+        },
+        cloudColumns () {
+            return [
+                { label: 'Name', class: ['w-64'], component: { is: markRaw(DeploymentName), extraProps: { disabled: !this.projectRunning || this.isVisitingAdmin } } },
+                { label: 'Last Deployed', class: ['w-48'], component: { is: markRaw(LastSeen), map: { lastSeenSince: 'flowLastUpdatedSince' } } },
+                { label: 'Deployment Status', class: ['w-48'], component: { is: markRaw(ProjectStatusBadge), map: { status: 'meta.state' } } },
+                { label: '', class: ['w-20'], component: { is: markRaw(ProjectEditorLink), extraProps: { disabled: !this.projectRunning || this.isVisitingAdmin } } }
+            ]
+        },
+        cloudRows () {
+            return this.project.id ? [this.project] : []
         },
         projectRunning () {
-            return this.project?.meta?.state === 'running'
+            return this.project.meta?.state === 'running'
         },
-        editorAvailable () {
-            return this.projectRunning
+        projectNotSuspended () {
+            return this.project.meta?.state !== 'suspended'
+        },
+        isVisitingAdmin () {
+            return this.teamMembership.role === Roles.Admin
         }
     },
-    data () {
-        return {
-            auditLog: []
-        }
+    watch: {
+        project: 'fetchData'
     },
     mounted () {
-        this.$emit('project-overview-enter')
-        this.loadLogs()
+        this.pollForData()
     },
     unmounted () {
-        this.$emit('project-overview-exit')
+        clearInterval(this.checkInterval)
     },
     methods: {
-        loadLogs () {
-            if (this.project && this.project.id) {
-                this.loadItems(this.project.id).then((data) => {
-                    this.auditLog = data.log
+        showCreateDeviceDialog () {
+            this.$refs.teamDeviceCreateDialog.show(null, this.project)
+        },
+        showEditDeviceDialog (device) {
+            this.$refs.teamDeviceCreateDialog.show(device)
+        },
+        deviceCreating () {
+            this.creatingDevice = true
+        },
+        deviceCreated (device) {
+            this.creatingDevice = false
+            if (device) {
+                setTimeout(() => {
+                    this.$refs.deviceCredentialsDialog.show(device)
+                }, 500)
+                this.devices.push(device)
+            }
+        },
+        deviceUpdated (device) {
+            const index = this.devices.findIndex(d => d.id === device.id)
+            if (index > -1) {
+                this.devices[index] = device
+            }
+        },
+        async assignDevice (device, projectId) {
+            const updatedDevice = await deviceApi.updateDevice(device.id, { project: projectId })
+            device.project = updatedDevice.project
+        },
+        async pollForData () {
+            try {
+                if (this.project.id) {
+                    await this.fetchData()
+                }
+            } finally {
+                this.checkInterval = setTimeout(this.pollForData, 10000)
+            }
+        },
+        fetchData: async function () {
+            const data = await projectApi.getProjectDevices(this.project.id)
+            this.devices = data.devices
+            this.loading = false
+        },
+        deviceAction (action, deviceId) {
+            const device = this.devices.find(d => d.id === deviceId)
+            if (action === 'edit') {
+                this.showEditDeviceDialog(device)
+            } else if (action === 'delete') {
+                Dialog.show({
+                    header: 'Delete Device',
+                    kind: 'danger',
+                    text: 'Are you sure you want to delete this device? Once deleted, there is no going back.',
+                    confirmLabel: 'Delete'
+                }, async () => {
+                    this.deletingDevice = true
+                    try {
+                        await deviceApi.deleteDevice(device.id)
+                        Alerts.emit('Successfully deleted the device', 'confirmation')
+                        const index = this.devices.indexOf(device)
+                        this.devices.splice(index, 1)
+                    } catch (err) {
+                        Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)
+                    } finally {
+                        this.deletingDevice = false
+                    }
+                })
+            } else if (action === 'updateCredentials') {
+                this.$refs.deviceCredentialsDialog.show(device)
+            } else if (action === 'removeFromProject') {
+                Dialog.show({
+                    header: 'Remove Device from Project',
+                    kind: 'danger',
+                    text: 'Are you sure you want to remove this device from the project? This will stop the project running on the device.',
+                    confirmLabel: 'Remove'
+                }, async () => {
+                    await deviceApi.updateDevice(device.id, { project: null })
+                    delete device.project
+
+                    const index = this.devices.indexOf(device)
+                    this.devices.splice(index, 1)
+
+                    Alerts.emit('Successfully unassigned the project from this device.', 'confirmation')
                 })
             }
         },
-        loadItems: async function (projectId, cursor) {
-            return await projectApi.getProjectAuditLog(projectId, null, cursor, 4)
+        selectedCloudRow (cloudInstance) {
+            this.$router.push({
+                name: 'Instance',
+                params: {
+                    id: cloudInstance.id
+                }
+            })
+        },
+        showSelectTargetSnapshotDialog () {
+            this.$refs.snapshotAssignDialog.show()
         }
     }
 }
 </script>
-
-<style lang="scss">
-@import "@/stylesheets/pages/project.scss";
-</style>

@@ -4,7 +4,12 @@
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigationTeamOptions>
             <template #nested-menu>
-                <div class="ff-nested-title">{{ instance.name }}</div>
+                <!-- TODO Read instance.application or pass in application details -->
+                <router-link :to="{name: 'Project', id: instance.id}">
+                    <nav-item :icon="icons.chevronLeft" :label="`Back to Project`" data-nav="project-overview" />
+                </router-link>
+
+                <li class="ff-navigation-divider">{{ instance.name }}</li>
                 <router-link v-for="route in navigation" :key="route.label" :to="route.path">
                     <nav-item :icon="route.icon" :label="route.label" :data-nav="route.tag" />
                 </router-link>
@@ -17,15 +22,10 @@
     <main v-else data-el="instances-section">
         <SectionTopMenu>
             <template #hero>
-                <div class="flex-grow space-x-6 items-center inline-flex">
-                    <router-link
-                        :to="navigation[0]?.path ?? ''"
-                        class="inline-flex items-center"
-                    >
-                        <div class="text-gray-800 text-xl font-bold">
-                            {{ instance.name }}
-                        </div>
-                    </router-link>
+                <div class="flex-grow space-x-6 items-center inline-flex" data-el="instance-name">
+                    <div class="text-gray-800 text-xl font-bold">
+                        {{ instance.name }}
+                    </div>
                     <InstanceStatusBadge v-if="instance.meta" :status="instance.meta.state" :pendingStateChange="instance.pendingStateChange" />
                 </div>
             </template>
