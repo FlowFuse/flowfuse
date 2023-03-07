@@ -6,6 +6,8 @@
 </template>
 
 <script>
+// TODO This should link to the connected devices page for an instance (once one exists)
+
 export default {
     name: 'InstanceLink',
     inheritAttrs: false,
