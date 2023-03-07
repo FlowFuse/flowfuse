@@ -69,7 +69,7 @@ import SectionTopMenu from '@/components/SectionTopMenu'
 import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
 import DeviceLastSeenBadge from '@/pages/device/components/DeviceLastSeenBadge'
 
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { ChipIcon, PlusSmIcon } from '@heroicons/vue/outline'
 
 import TeamDeviceCreateDialog from './dialogs/TeamDeviceCreateDialog'
 import DeviceCredentialsDialog from './dialogs/DeviceCredentialsDialog'
