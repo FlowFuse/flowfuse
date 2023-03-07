@@ -110,7 +110,7 @@ export default {
                     if (isPasswordField(field)) {
                         // This is a password field - so the handling is a bit more complicated.
                         // getTemplateValue for a password field returns '' if it isn't set. However
-                        // we need to know if the property is explicitly set on the project or not
+                        // we need to know if the property is explicitly set on the instance or not
                         // so that we don't override the template-provided value with ''
 
                         // getObjectValue gets the true value without doing any encode/decoding
@@ -138,7 +138,7 @@ export default {
             })
             await InstanceApi.updateInstance(this.project.id, { settings })
             this.$emit('instance-updated')
-            alerts.emit('Project successfully updated.', 'confirmation')
+            alerts.emit('Instance successfully updated.', 'confirmation')
         }
     }
 }

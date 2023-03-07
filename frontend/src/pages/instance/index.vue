@@ -314,7 +314,7 @@ export default {
         },
         showConfirmSuspendDialog () {
             Dialog.show({
-                header: 'Suspend Project',
+                header: 'Suspend Instance',
                 text: 'Are you sure you want to suspend this instance?',
                 confirmLabel: 'Suspend',
                 kind: 'danger'

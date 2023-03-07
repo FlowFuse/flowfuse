@@ -81,7 +81,7 @@ export default {
                 }
                 snapshotApi.create(this.project.id, opts).then((response) => {
                     this.$emit('snapshot-created', response)
-                    alerts.emit('Successfully created snapshot of project.', 'confirmation')
+                    alerts.emit('Successfully created snapshot of instance.', 'confirmation')
                 }).catch(err => {
                     console.log(err.response?.data)
                     if (err.response?.data) {
@@ -90,7 +90,7 @@ export default {
                             return
                         }
                     }
-                    alerts.emit('Failed to create snapshot of project.', 'error')
+                    alerts.emit('Failed to create snapshot of instance.', 'error')
                 })
             }
         }

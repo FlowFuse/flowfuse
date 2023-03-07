@@ -1,10 +1,10 @@
 <template>
-    <ff-dialog ref="dialog" header="Import Flows" confirm-label="Import Project" kind="danger" :disablePrimary="disabled" @confirm="confirm()" @cancel="cancel()">
+    <ff-dialog ref="dialog" header="Import Flows" confirm-label="Import Instance" kind="danger" :disablePrimary="disabled" @confirm="confirm()" @cancel="cancel()">
         <template #default>
             <form class="space-y-6" @submit.prevent>
                 <div class="mt-2 space-y-2">
                     <p class="text-sm text-gray-500">
-                        Replace current flows by uploading a new flow file. This will restart the project to pick up the new flow or credentials
+                        Replace current flows by uploading a new flow file. This will restart the instance to pick up the new flow or credentials
                     </p>
                 </div>
                 <ImportInstanceComponents id="importSettings" ref="project-components" v-model="parts" />
