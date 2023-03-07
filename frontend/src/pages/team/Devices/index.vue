@@ -32,8 +32,8 @@
                 >
                     <template v-if="hasPermission('device:edit')" v-slot:context-menu="{row}">
                         <ff-list-item label="Edit Details" @click="deviceAction('edit', row.id)"/>
-                        <ff-list-item v-if="!row.project" label="Add to Project" @click="deviceAction('assignToProject', row.id)" />
-                        <ff-list-item v-else label="Remove from Project" @click="deviceAction('removeFromProject', row.id)" />
+                        <ff-list-item v-if="!row.project" label="Add to Application Instance" @click="deviceAction('assignToProject', row.id)" />
+                        <ff-list-item v-else label="Remove from Application Instance" @click="deviceAction('removeFromProject', row.id)" />
                         <ff-list-item kind="danger" label="Regenerate Credentials" @click="deviceAction('updateCredentials', row.id)"/>
                         <ff-list-item v-if="hasPermission('device:delete')" kind="danger" label="Delete Device" @click="deviceAction('delete', row.id)" />
                     </template>
