@@ -1,5 +1,5 @@
-describe('FlowForge - Project Settings - DevOps', () => {
-    function navigateToProjectStaging (teamName, projectName) {
+describe('FlowForge - Instance Settings - DevOps', () => {
+    function navigateToInstanceStaging (teamName, projectName) {
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {
                 const team = response.body.teams.find(
@@ -11,7 +11,7 @@ describe('FlowForge - Project Settings - DevOps', () => {
                 const project = response.body.projects.find(
                     (project) => project.name === projectName
                 )
-                cy.visit(`/project/${project.id}/settings/devops`)
+                cy.visit(`/instance/${project.id}/settings/devops`)
             })
     }
 
@@ -23,7 +23,7 @@ describe('FlowForge - Project Settings - DevOps', () => {
     })
 
     it('allow the selection of a target project from a list of all projects in the team', () => {
-        navigateToProjectStaging('BTeam', 'project2')
+        navigateToInstanceStaging('BTeam', 'project2')
 
         // buttons should be disabled
         cy.get('[data-action="push-stage"]').should('be.disabled')
@@ -46,7 +46,7 @@ describe('FlowForge - Project Settings - DevOps', () => {
     })
 
     it('successfully navigates to the Target Project when the option is selected', () => {
-        navigateToProjectStaging('BTeam', 'project2')
+        navigateToInstanceStaging('BTeam', 'project2')
 
         // buttons should be disabled
         cy.get('[data-action="push-stage"]').should('be.disabled')
@@ -64,7 +64,7 @@ describe('FlowForge - Project Settings - DevOps', () => {
 
         cy.get('[data-action="view-target-project"]').click()
 
-        cy.get('.ff-nested-title').contains('project-with-devices')
+        cy.get('[data-el="instance-name"]').contains('project-with-devices')
     })
 })
 
@@ -81,7 +81,7 @@ describe('FlowForge shows audit logs', () => {
                 const project = response.body.projects.find(
                     (project) => project.name === projectName
                 )
-                cy.visit(`/project/${project.id}/activity`)
+                cy.visit(`/instance/${project.id}/audit-log`)
             })
     }
 

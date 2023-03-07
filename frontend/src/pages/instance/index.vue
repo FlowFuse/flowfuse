@@ -22,15 +22,10 @@
     <main v-else data-el="instances-section">
         <SectionTopMenu>
             <template #hero>
-                <div class="flex-grow space-x-6 items-center inline-flex">
-                    <router-link
-                        :to="navigation[0]?.path ?? ''"
-                        class="inline-flex items-center"
-                    >
-                        <div class="text-gray-800 text-xl font-bold">
-                            {{ instance.name }}
-                        </div>
-                    </router-link>
+                <div class="flex-grow space-x-6 items-center inline-flex" data-el="instance-name">
+                    <div class="text-gray-800 text-xl font-bold">
+                        {{ instance.name }}
+                    </div>
                     <InstanceStatusBadge v-if="instance.meta" :status="instance.meta.state" :pendingStateChange="instance.pendingStateChange" />
                 </div>
             </template>

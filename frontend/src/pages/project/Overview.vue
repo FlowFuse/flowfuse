@@ -1,10 +1,10 @@
 <template>
     <div>
         <SectionTopMenu hero="FlowForge Hosted Instances" help-header="FlowForge - Instances - Local" info="Instances of Node-RED running in the FlowForge cloud">
-            <template v-slot:pictogram>
-                <img src="../../images/pictograms/edge_red.png" />
+            <template #pictogram>
+                <img src="../../images/pictograms/edge_red.png">
             </template>
-            <template v-slot:helptext>
+            <template #helptext>
                 <p>This is a list of all instances of this Project hosted on the same domain as FlowForge.</p>
                 <p>It will always run the latest flow deployed in Node-RED and use the latest credentials and runtime settings defined in the Projects settings.</p>
                 <p>To edit a Projects flow, open the editor of the Instance.</p>
@@ -26,37 +26,37 @@
                     <ff-list-item
                         :disabled="project.pendingStateChange || projectRunning"
                         label="Start"
-                        @click="$emit('project-start')"
+                        @click.stop="$emit('project-start')"
                     />
 
                     <ff-list-item
                         :disabled="!projectNotSuspended"
                         label="Restart"
-                        @click="$emit('project-restart')"
+                        @click.stop="$emit('project-restart')"
                     />
 
                     <ff-list-item
                         :disabled="!projectNotSuspended"
                         kind="danger"
                         label="Suspend"
-                        @click="$emit('project-suspend')"
+                        @click.stop="$emit('project-suspend')"
                     />
 
                     <ff-list-item
                         v-if="hasPermission('project:delete')"
                         kind="danger"
                         label="Delete"
-                        @click="$emit('project-delete')"
+                        @click.stop="$emit('project-delete')"
                     />
                 </template>
             </ff-data-table>
         </div>
 
         <SectionTopMenu hero="Remote Instances" help-header="FlowForge - Instances - Remote" info="Instances of Node-RED running remotely, managed by this Project and the FlowForge Device Agent.">
-            <template v-slot:pictogram>
-                <img src="../../images/pictograms/edge_red.png" />
+            <template #pictogram>
+                <img src="../../images/pictograms/edge_red.png">
             </template>
-            <template v-slot:helptext>
+            <template #helptext>
                 <p>
                     FlowForge enables the deployment and management of remote instances of Node-RED via "Devices".
                 </p>

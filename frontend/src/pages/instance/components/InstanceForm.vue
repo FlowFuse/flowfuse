@@ -4,22 +4,22 @@
         @submit.prevent="$emit('on-submit', input)"
     >
         <SectionTopMenu
-            :hero="creatingNew ? 'Create a new project' : 'Update Project'"
+            :hero="creatingNew ? 'Create a new instance' : 'Update Instance'"
         />
 
         <!-- Form title -->
         <div class="mb-8 text-sm text-gray-500">
             <template v-if="creatingNew">
                 <template v-if="!isCopyProject">
-                    Let's get your new Node-RED project setup in no time.
+                    Let's get your new Node-RED instances setup in no time.
                 </template>
             </template>
             <template v-else>
-                Here you can make changes to the projects settings.
+                Here you can make changes to the instances settings.
             </template>
         </div>
 
-        <!-- Project Name -->
+        <!-- Instance Name -->
         <div>
             <FormRow
                 v-model="input.name"
@@ -28,13 +28,13 @@
                 data-form="project-name"
             >
                 <template #default>
-                    Project Name
+                    Instance Name
                 </template>
                 <template
                     v-if="creatingNew"
                     #description
                 >
-                    Please note, currently, project names cannot be changed once a project is created
+                    Please note, currently, instance names cannot be changed once a instance is created
                 </template>
                 <template
                     v-if="creatingNew"
@@ -52,7 +52,7 @@
             </FormRow>
         </div>
 
-        <!-- Project Type -->
+        <!-- Instance Type -->
         <div
             v-if="errors.projectTypes"
             class="text-red-400 text-xs"
@@ -63,7 +63,7 @@
             v-else
             class="flex flex-wrap items-stretch"
         >
-            <label class="w-full block text-sm font-medium text-gray-700">Choose your Project Type</label>
+            <label class="w-full block text-sm font-medium text-gray-700">Choose your Instance Type</label>
             <InstanceCreditBanner :subscription="subscription" />
             <ff-tile-selection
                 v-model="input.projectType"
@@ -90,7 +90,7 @@
                 v-if="!input.projectType"
                 class="text-sm text-gray-400"
             >
-                Please select a Project Type first.</label>
+                Please select a Instance Type first.</label>
             <label
                 v-if="errors.stack"
                 class="text-sm text-gray-400"
@@ -100,7 +100,7 @@
             <ff-tile-selection
                 v-if="input.projectType"
                 v-model="input.stack"
-                data-form="project-stack"
+                data-form="instance-stack"
             >
                 <ff-tile-selection-option
                     v-for="(stack, index) in stacks"
@@ -120,7 +120,7 @@
             <label
                 v-if="!input.projectType && !input.stack"
                 class="text-sm text-gray-400"
-            >Please select a Project Type &amp; Stack first.</label>
+            >Please select a Instance Type &amp; Stack first.</label>
             <label
                 v-if="errors.template"
                 class="text-sm text-gray-400"
@@ -144,7 +144,7 @@
         <!-- Copying a project -->
         <template v-if="isCopyProject">
             <p class="text-gray-500">
-                Select the components to copy from '{{ sourceProject?.name }}'
+                Select the components to copy from '{{ sourceInstance?.name }}'
             </p>
             <ExportInstanceComponents
                 id="exportSettings"
@@ -178,7 +178,7 @@
                 type="submit"
             >
                 <template v-if="creatingNew">
-                    Create Project
+                    Create Instance
                 </template>
                 <template v-else>
                     Confirm Changes
@@ -222,7 +222,6 @@ export default {
         RefreshIcon,
         SectionTopMenu
     },
-
     props: {
         team: {
             required: true,
@@ -232,11 +231,11 @@ export default {
             default: false,
             type: Boolean
         },
-        project: {
+        instance: {
             default: null,
             type: Object
         },
-        sourceProject: {
+        sourceInstance: {
             default: null,
             type: Object
         },
@@ -247,7 +246,7 @@ export default {
     },
     emits: ['on-submit'],
     data () {
-        const project = this.project || this.sourceProject
+        const instance = this.instance || this.sourceInstance
 
         return {
             stacks: [],
@@ -258,12 +257,12 @@ export default {
                 billingConfirmation: false,
 
                 // Only read name from existing project, never source
-                name: this.project?.name || NameGenerator(),
+                name: this.instance?.name || NameGenerator(),
 
                 // Handle both full project objects and short-form project details
-                projectType: project?.projectType?.id || project?.projectType || '',
-                stack: project?.stack?.id || project?.stack || '',
-                template: project?.template?.id || project?.template || ''
+                projectType: instance?.projectType?.id || instance?.projectType || '',
+                stack: instance?.stack?.id || instance?.stack || '',
+                template: instance?.template?.id || instance?.template || ''
             },
             errors: {
                 name: '',
@@ -283,16 +282,16 @@ export default {
     computed: {
         ...mapState('account', ['settings']),
         creatingNew () {
-            return !this.project?.id
+            return !this.instance?.id
         },
         isCopyProject () {
-            return !!this.sourceProject && this.creatingNew
+            return !!this.sourceInstance && this.creatingNew
         },
         projectTypeChanged () {
-            return this.project?.projectType?.id !== this.input.projectType
+            return this.instance?.projectType?.id !== this.input.projectType
         },
         projectStackChanged () {
-            return ((this.project?.stack?.id || this.stacks?.[0]?.id) !== this.input.stack)
+            return ((this.instance?.stack?.id || this.stacks?.[0]?.id) !== this.input.stack)
         },
         formDirty () {
             return this.creatingNew || this.projectTypeChanged || this.projectStackChanged
@@ -339,7 +338,7 @@ export default {
         }
     },
     async created () {
-        const projectTypesPromise = projectTypesApi.getInstanceTypes()
+        const projectTypesPromise = projectTypesApi.getProjectTypes()
         const templateListPromise = templatesApi.getTemplates()
 
         this.projectTypes = (await projectTypesPromise).types
@@ -449,14 +448,14 @@ export default {
             }
 
             // Read stack from source project
-            if (this.sourceProject?.stack && this.findStackById(this.sourceProject.stack.id)) {
-                this.input.stack = this.sourceProject.stack.id
+            if (this.sourceInstance?.stack && this.findStackById(this.sourceInstance.stack.id)) {
+                this.input.stack = this.sourceInstance.stack.id
                 return
             }
 
             // Read from currently edited project
-            if (this.project?.stack && this.findStackById(this.project.stack.id)) {
-                this.input.stack = this.project.stack.id
+            if (this.instance?.stack && this.findStackById(this.instance.stack.id)) {
+                this.input.stack = this.instance.stack.id
                 return
             }
 

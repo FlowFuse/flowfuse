@@ -66,7 +66,7 @@
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="secondary" data-nav="change-project-settings" @click="showProjectChangeTypePage()">Change Project Type</ff-button>
+                <ff-button kind="secondary" data-nav="change-instance-settings" @click="showProjectChangeTypePage()">Change Project Type</ff-button>
             </div>
         </div>
 
@@ -186,9 +186,7 @@ export default {
         },
         showProjectChangeTypePage () {
             this.$router.push({
-                name: 'ChangeProjectType',
-                params: { team_slug: this.team.slug },
-                query: { projectId: this.project.id }
+                name: 'ChangeInstanceType'
             })
         },
         showChangeStackDialog () {

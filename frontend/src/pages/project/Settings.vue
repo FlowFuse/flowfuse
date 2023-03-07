@@ -38,7 +38,7 @@ export default {
     },
     data () {
         return {
-            sideNavigation: [{ name: 'General', path: './general' }],
+            sideNavigation: [{ name: 'General', path: './settings' }],
             input: {
                 projectName: this.project.name,
                 projectId: this.project.id
