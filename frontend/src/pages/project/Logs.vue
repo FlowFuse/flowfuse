@@ -13,7 +13,9 @@
                         :label="inputInstance.name" :value="inputInstance.id"
                     />
                 </ff-dropdown>
-                <InstanceStatusBadge :status="instance.meta?.state" :pendingStateChange="instance.pendingStateChange" class="ml-2" />
+                <router-link v-if="instance.id" :to="{ name: 'Instance', params: { id: instance.id }}">
+                    <InstanceStatusBadge :status="instance.meta?.state" :pendingStateChange="instance.pendingStateChange" class="ml-2" />
+                </router-link>
             </div>
         </template>
     </SectionTopMenu>
