@@ -1,25 +1,24 @@
 <template>
-    <AuditLogShared ref="AuditLog" :users="users" :logEntries="logEntries" logType="team" @load-entries="loadEntries">
+    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" logType="team" @load-entries="loadEntries">
         <template #title>
             <SectionTopMenu hero="Audit Log" info="Recorded events that have taken place in this Team." />
         </template>
-    </AuditLogShared>
+    </AuditLogBrowser>
 </template>
 
 <script>
+import SectionTopMenu from '../../components/SectionTopMenu'
+import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser'
+
 import TeamAPI from '@/api/team'
 
-import SectionTopMenu from '@/components/SectionTopMenu'
-
 import permissionsMixin from '@/mixins/Permissions'
-
-import AuditLogShared from '@/pages/instance/AuditLogShared'
 
 export default {
     name: 'TeamAuditLog',
     components: {
         SectionTopMenu,
-        AuditLogShared
+        AuditLogBrowser
     },
     mixins: [permissionsMixin],
     props: ['team', 'teamMembership'],

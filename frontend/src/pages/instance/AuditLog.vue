@@ -1,11 +1,11 @@
 <template>
-    <AuditLogShared :users="users" :logEntries="logEntries" logType="project" @load-entries="loadEntries" />
+    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" logType="project" @load-entries="loadEntries" />
 </template>
 
 <script>
 import { mapState } from 'vuex'
 
-import AuditLogShared from './AuditLogShared'
+import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser'
 
 import InstanceApi from '@/api/instances'
 import TeamAPI from '@/api/team'
@@ -13,7 +13,7 @@ import TeamAPI from '@/api/team'
 export default {
     name: 'InstanceAuditLog',
     components: {
-        AuditLogShared
+        AuditLogBrowser
     },
     inheritAttrs: false,
     props: {
@@ -30,6 +30,11 @@ export default {
     },
     computed: {
         ...mapState('account', ['team'])
+    },
+    watch: {
+        instance () {
+            this.$refs.AuditLog?.loadEntries()
+        }
     },
     created () {
         this.loadUsers()

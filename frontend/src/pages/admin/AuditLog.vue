@@ -1,26 +1,25 @@
 <template>
-    <AuditLogShared ref="AuditLog" :users="users" :logEntries="logEntries" logType="project" @load-entries="loadEntries">
+    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" logType="project" @load-entries="loadEntries">
         <template #title>
             <SectionTopMenu hero="Platform Audit Log" info="Recorded events that have taken place at the Platform level." />
         </template>
-    </AuditLogShared>
+    </AuditLogBrowser>
 </template>
 
 <script>
 import { mapState } from 'vuex'
 
+import SectionTopMenu from '../../components/SectionTopMenu'
+import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser'
+
 import AdminAPI from '@/api/admin'
 import UsersAPI from '@/api/users'
-
-import SectionTopMenu from '@/components/SectionTopMenu'
-
-import AuditLogShared from '@/pages/instance/AuditLogShared'
 
 export default {
     name: 'PlatformAuditLog',
     components: {
         SectionTopMenu,
-        AuditLogShared
+        AuditLogBrowser
     },
     data () {
         return {
