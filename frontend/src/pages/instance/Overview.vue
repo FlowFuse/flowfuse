@@ -57,7 +57,7 @@
                 <FormHeading><TrendingUpIcon class="w-6 h-6 mr-2 inline text-gray-400" />Recent Activity</FormHeading>
                 <AuditLog :entries="auditLog" :showLoadMore="false" :disableAccordion="true" />
                 <div class="pb-4">
-                    <router-link to="./activity" class="forge-button-inline">More...</router-link>
+                    <router-link to="./audit-log" class="forge-button-inline">More...</router-link>
                 </div>
             </div>
         </div>

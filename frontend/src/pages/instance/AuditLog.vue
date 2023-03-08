@@ -1,5 +1,5 @@
 <template>
-    <AuditLogShared :team="team" :logEntries="logEntries" logType="project" @load-entries="loadEntries" />
+    <AuditLogShared :users="users" :logEntries="logEntries" logType="project" @load-entries="loadEntries" />
 </template>
 
 <script>
@@ -8,6 +8,7 @@ import { mapState } from 'vuex'
 import AuditLogShared from './AuditLogShared'
 
 import InstanceApi from '@/api/instances'
+import TeamAPI from '@/api/team'
 
 export default {
     name: 'InstanceAuditLog',
@@ -23,14 +24,21 @@ export default {
     },
     data () {
         return {
-            logEntries: []
+            logEntries: [],
+            users: []
         }
     },
     computed: {
         ...mapState('account', ['team'])
     },
+    created () {
+        this.loadUsers()
+    },
     methods: {
-        loadEntries: async function (params = new URLSearchParams(), cursor = undefined) {
+        async loadUsers () {
+            this.users = (await TeamAPI.getTeamMembers(this.team.id)).members
+        },
+        async loadEntries (params = new URLSearchParams(), cursor = undefined) {
             const instanceId = this.instance.id
             this.logEntries = (await InstanceApi.getInstanceAuditLog(instanceId, params, cursor, 200)).log
         }

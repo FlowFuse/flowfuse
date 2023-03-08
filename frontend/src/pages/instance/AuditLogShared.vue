@@ -33,8 +33,6 @@
 <script>
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
-import TeamAPI from '@/api/team'
-
 import FormHeading from '@/components/FormHeading'
 import AuditLog from '@/components/audit-log/AuditLog'
 
@@ -49,8 +47,8 @@ export default {
     },
     inheritAttrs: false,
     props: {
-        team: {
-            type: Object,
+        users: {
+            type: Array,
             required: true
         },
         logEntries: {
@@ -80,10 +78,12 @@ export default {
         },
         'auditFilters.type': function () {
             this.loadEntries()
+        },
+        users: function (users) {
+            this.auditFilters.users = users
         }
     },
     created () {
-        this.loadUsers()
         this.loadEntries()
 
         // convert the audit event labels into an array and alphabetise them
@@ -95,6 +95,8 @@ export default {
             }
             return 0
         })
+
+        this.auditFilters.users = this.users
     },
     methods: {
         loadEntries () {
@@ -109,11 +111,6 @@ export default {
             }
 
             this.$emit('load-entries', params)
-        },
-        loadUsers () {
-            TeamAPI.getTeamMembers(this.team.id).then((data) => {
-                this.auditFilters.users = data.members
-            })
         }
     }
 }
