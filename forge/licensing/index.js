@@ -64,6 +64,9 @@ module.exports = fp(async function (app, opts, next) {
             }
             return defaultLimits[key]
         },
+        status: () => {
+            return status()
+        },
         defaults: defaultLimits
     }
 
@@ -80,6 +83,28 @@ module.exports = fp(async function (app, opts, next) {
     app.decorate('license', licenseApi)
 
     next()
+
+    function status () {
+        const PRE_EXPIRE_WARNING_DAYS = 30 // hard coded
+        const oneDay = 24 * 60 * 60 * 1000 // 24 hours
+        const now = Date.now()
+        const isLicensed = licenseApi.active()
+        const licenseType = isLicensed ? (licenseApi.get('dev') ? 'DEV' : 'EE') : 'CE'
+        const expiresAt = isLicensed
+            ? licenseApi.get('expiresAt') // EE: get from license
+            : new Date(now + (365 * oneDay)) // CE: always valid (always 1 year from now)
+        const expired = expiresAt < now
+        const daysRemaining = expired ? 0 : Math.floor((expiresAt - now) / oneDay)
+        const expiring = !expired && daysRemaining <= PRE_EXPIRE_WARNING_DAYS
+        return {
+            type: licenseType, // 'CE', 'EE', or 'DEV'
+            expiresAt, // Date
+            expiring, // boolean flag
+            expired, // boolean flag
+            daysRemaining, // number of days remaining
+            PRE_EXPIRE_WARNING_DAYS // number of days before expiration to warn
+        }
+    }
 
     /**
      * Get usage and limits information for the license (all, or by resource)
@@ -143,7 +168,11 @@ module.exports = fp(async function (app, opts, next) {
         app.log.info(` License ID : ${activeLicense.id}`)
         app.log.info(` Org        : ${activeLicense.organisation}`)
         app.log.info(` Valid From : ${activeLicense.validFrom.toISOString()}`)
-        app.log.info(` Expires    : ${activeLicense.expiresAt.toISOString()}`)
+        if (activeLicense.expired) {
+            app.log.warn(` Expired    : ${activeLicense.expiresAt.toISOString()}`)
+        } else {
+            app.log.info(` Expires    : ${activeLicense.expiresAt.toISOString()}`)
+        }
         await reportUsage()
     }
 })

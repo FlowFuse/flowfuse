@@ -122,8 +122,9 @@ module.exports = fp(async function (app, _opts, next) {
      * @param context object - object of properties to evaluate the template with
      */
     async function send (user, templateName, context) {
+        const forgeURL = app.config.base_url
         const template = templates[templateName] || loadTemplate(templateName)
-        const templateContext = { user, ...context }
+        const templateContext = { forgeURL, user, ...context }
 
         const mail = {
             to: user.email,
