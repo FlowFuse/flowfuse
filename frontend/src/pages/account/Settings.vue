@@ -19,7 +19,10 @@
             </div>
         </template>
         <template v-else>
-            <ff-button @click="startEdit">Edit</ff-button>
+            <div class="flex space-x-4">
+                <ff-button @click="startEdit">Edit</ff-button>
+                <ff-button class="warning" kind="danger" @click="deleteAccount">Delete Account</ff-button>
+            </div>
         </template>
     </form>
 </template>
@@ -30,6 +33,7 @@ import userApi from '@/api/user'
 import alerts from '@/services/alerts'
 
 import FormRow from '@/components/FormRow'
+import dialog from '@/services/dialog'
 
 export default {
     name: 'AccountSettings',
@@ -162,6 +166,26 @@ export default {
                     this.loading = false
                 })
             }
+        },
+        deleteAccount () {
+            // ask user if they are sure, if so, delete account
+            dialog.show({
+                header: 'Delete Account',
+                kind: 'danger',
+                html: `<p>Are you sure you want to delete your account?</p>
+                       <p>This action cannot be undone.</p>`,
+                confirmLabel: 'Delete'
+            }, async () => {
+                try {
+                    await userApi.deleteUser()
+                    // this.$store.dispatch('account/logout')
+                    this.$store.dispatch('account/checkState')
+                    this.$router.push({ name: 'login' })
+                } catch (error) {
+                    const msg = error.response?.data?.error || 'Error deleting account'
+                    alerts.emit(msg, 'warning')
+                }
+            })
         }
     },
     computed: {
