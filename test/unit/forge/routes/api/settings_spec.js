@@ -1,6 +1,6 @@
+const mockDate = require('mockdate')
 const should = require('should') // eslint-disable-line
 const setup = require('../setup')
-const mockDate = require('mockdate')
 
 describe('Settings API', function () {
     let app
