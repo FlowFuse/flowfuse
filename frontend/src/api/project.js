@@ -81,6 +81,21 @@ const updateProjectDeviceSettings = async (projectId, settings) => {
     return client.post(`/api/v1/projects/${projectId}/devices/settings`, settings).then(res => res.data)
 }
 
+/**
+ * TODO: Until there an application API, this just returns an array containing the requested project
+ * @param {*} projectId
+ * @param {*} cursor
+ * @param {*} limit
+ */
+const getProjectInstances = async (projectId, cursor, limit) => {
+    return [await client.get(`/api/v1/projects/${projectId}`).then(res => {
+        res.data.createdSince = daysSince(res.data.createdAt)
+        res.data.updatedSince = daysSince(res.data.updatedAt)
+        res.data.flowLastUpdatedSince = daysSince(res.data.flowLastUpdatedAt)
+        return res.data
+    })]
+}
+
 export default {
     create,
     getProject,
@@ -97,5 +112,6 @@ export default {
     importProject,
     getProjectDevices,
     getProjectDeviceSettings,
-    updateProjectDeviceSettings
+    updateProjectDeviceSettings,
+    getProjectInstances
 }

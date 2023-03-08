@@ -6,6 +6,7 @@
         </div>
         <div>
             <SectionTopMenu hero="Filters" />
+            <slot name="extraFilters" />
             <FormHeading class="mt-4">Event Type:</FormHeading>
             <div data-el="filter-event-types">
                 <ff-dropdown v-model="auditFilters.type" class="w-full">
