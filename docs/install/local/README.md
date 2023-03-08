@@ -195,7 +195,7 @@ On MacOS you will need to build and install the authentication plugin.
 
 3. This should result in a file called `go-auth.so` being generated
 
-4. ([Optional](#setting-up-mosquitto-optional)) Run mosquitto with the configuration file found in the `broker` directory
+4. Run mosquitto with the configuration file found in the `broker` directory
 
    You will need to customise the values to match your local configuration:
       - `auth_plugin` - set to the path of the `go-auth.so` file built in the previous step
@@ -218,7 +218,7 @@ you can use a pre-built docker image that provides everything needed.
     docker pull iegomez/mosquitto-go-auth
     ```
 
-2. ([Optional](#setting-up-mosquitto-optional)) A default mosquitto.conf file can be found in the `broker` directory.
+2.  A default mosquitto.conf file can be found in the `broker` directory.
 
     You will need to customise the values to match your local configuration:
      - `auth_opt_http_host` value to match the IP address of either the docker0 interface or the external IP address of the machine running the Forge platform
@@ -226,7 +226,7 @@ you can use a pre-built docker image that provides everything needed.
 
 3. Start the container with the following command
     ```bash
-    docker run -d -v /full/path/to/mosquitto.conf:/etc/mosquitto/mosquitto.conf -p 1883:1883 -p 1884:1884 --name flowforge-broker iegomez/mosquitto-go-auth
+    docker run -d -v /opt/flowforge/broker/mosquitto.conf:/etc/mosquitto/mosquitto.conf -p 1883:1883 -p 1884:1884 --name flowforge-broker iegomez/mosquitto-go-auth
     ```
 
     This will map the `1883`/`1884` ports to the host machine so they can be accessed outside of the container. If you already have an MQTT broker running on port 1883, then you'll need to modify the `-p` options to use a different set of ports. For example: `-p 9883:1883 -p 9884:1884`.
