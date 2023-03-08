@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import LogsShared from './LogsShared'
+import LogsShared from './components/InstanceLogs'
 
 export default {
     name: 'InstanceLogs',

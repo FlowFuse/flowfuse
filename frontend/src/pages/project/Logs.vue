@@ -22,7 +22,7 @@
 
 <script>
 import SectionTopMenu from '../../components/SectionTopMenu'
-import LogsShared from '../instance/LogsShared'
+import LogsShared from '../instance/components/InstanceLogs'
 
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge'
 
