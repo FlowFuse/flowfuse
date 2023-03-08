@@ -2,9 +2,11 @@
     <div class="ff-dropdown" :class="'ff-dropdown--' + (isOpen ? 'open' : 'closed')" :disabled="disabled">
         <div v-if="dropdownStyle === 'select'" ref="dropdownLabel" class="ff-dropdown-selected" tabindex="0" @click="open()" @keydown.space.prevent="open()">
             <slot name="placeholder">
-                {{ selected?.label || placeholder }}
+                <div class="ff-dropdown-selected-item">
+                    {{ selected?.label || placeholder }}
+                </div>
             </slot>
-            <ChevronDownIcon class="ff-icon ff-btn--icon-right" />
+            <ChevronDownIcon class="ff-icon ff-btn--icon-right ff-dropdown-icon" />
         </div>
         <ff-button v-else-if="dropdownStyle === 'button'" @click="open()">
             {{ placeholder }}

@@ -277,6 +277,17 @@ li.ff-list-item {
     display: flex;
     justify-content: space-between;
     z-index: 2;
+
+    > .ff-dropdown-selected-item {
+      flex-shrink: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    > .ff-dropdown-icon {
+      flex-shrink: 0;
+    }
   }
   .ff-dropdown-options {
     position: absolute;
