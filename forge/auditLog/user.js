@@ -47,6 +47,11 @@ module.exports = {
             async updatedUser (actionedBy, error, updates) {
                 await log('user.updated-user', actionedBy, generateBody({ error, updates }))
             },
+            async deleted (actionedBy, error, user) {
+                // we include the deleted user in the body because the user being deleted is the one
+                // that triggered the event and we want to be able to see the name of user that was deleted
+                await log('user.deleted', actionedBy, generateBody({ error, user }))
+            },
             invitation: {
                 async accepted (actionedBy, error) {
                     await log('user.invitation.accepted', actionedBy, generateBody({ error }))
