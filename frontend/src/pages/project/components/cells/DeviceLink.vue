@@ -17,6 +17,7 @@ import { ChipIcon } from '@heroicons/vue/solid'
 export default {
     name: 'DeviceLink',
     components: { ChipIcon },
+    inheritAttrs: false,
     props: {
         id: {
             required: true,

@@ -11,7 +11,7 @@
                 <p class="text-sm text-gray-500">
                     Select the instance to add the device to:
                 </p>
-                <FormRow :options="projects" v-model="input.project">Project</FormRow>
+                <FormRow :options="projects" v-model="input.project">Application Instance</FormRow>
             </form>
         </template>
     </ff-dialog>

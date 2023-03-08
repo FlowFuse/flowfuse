@@ -13,6 +13,7 @@
 <script>
 export default {
     name: 'LastSeen',
+    inheritAttrs: false,
     props: {
         lastSeenSince: {
             required: true,

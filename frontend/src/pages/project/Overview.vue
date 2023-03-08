@@ -9,6 +9,9 @@
                 <p>It will always run the latest flow deployed in Node-RED and use the latest credentials and runtime settings defined in the Projects settings.</p>
                 <p>To edit an Applications flow, open the editor of the Instance.</p>
             </template>
+            <template #tools>
+                <ff-button v-if="hasPermission('project:create')" data-action="create-project-1" kind="primary" size="small" :to="`/team/${team.slug}/projects/create`" data-nav="create-instance"><template #icon-left><PlusSmIcon /></template>Create Instance</ff-button>
+            </template>
         </SectionTopMenu>
 
         <div class="space-y-6 mb-12">
@@ -205,6 +208,7 @@ import DeviceCredentialsDialog from '../team/Devices/dialogs/DeviceCredentialsDi
 import DeviceLastSeenBadge from '@/pages/device/components/DeviceLastSeenBadge'
 import DeploymentName from './components/cells/DeploymentName.vue'
 import DeviceLink from './components/cells/DeviceLink.vue'
+import InstanceLink from './components/cells/InstanceLink.vue'
 import LastSeen from './components/cells/LastSeen.vue'
 import ProjectEditorLink from './components/cells/ProjectEditorLink.vue'
 import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
@@ -246,6 +250,19 @@ export default {
         columns () {
             return [
                 { label: 'Device', key: 'name', class: ['w-64'], sortable: true, component: { is: markRaw(DeviceLink) } },
+                {
+                    label: 'Instance',
+                    key: 'project',
+                    class: ['w-64'],
+                    sortable: true,
+                    component: {
+                        is: markRaw(InstanceLink),
+                        map: {
+                            id: 'project.id',
+                            name: 'project.name'
+                        }
+                    }
+                },
                 { label: 'Last Seen', key: 'lastSeenAt', class: ['w-32'], sortable: true, component: { is: markRaw(DeviceLastSeenBadge) } },
                 { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(ProjectStatusBadge) } },
                 { label: 'Deployed Snapshot', class: ['w-48'], component: { is: markRaw(Snapshot) } }

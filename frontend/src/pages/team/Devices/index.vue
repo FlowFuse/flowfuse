@@ -32,8 +32,8 @@
                 >
                     <template v-if="hasPermission('device:edit')" v-slot:context-menu="{row}">
                         <ff-list-item label="Edit Details" @click="deviceAction('edit', row.id)"/>
-                        <ff-list-item v-if="!row.project" label="Add to Project" @click="deviceAction('assignToProject', row.id)" />
-                        <ff-list-item v-else label="Remove from Project" @click="deviceAction('removeFromProject', row.id)" />
+                        <ff-list-item v-if="!row.project" label="Add to Application Instance" @click="deviceAction('assignToProject', row.id)" />
+                        <ff-list-item v-else label="Remove from Application Instance" @click="deviceAction('removeFromProject', row.id)" />
                         <ff-list-item kind="danger" label="Regenerate Credentials" @click="deviceAction('updateCredentials', row.id)"/>
                         <ff-list-item v-if="hasPermission('device:delete')" kind="danger" label="Delete Device" @click="deviceAction('delete', row.id)" />
                     </template>
@@ -75,27 +75,9 @@ import TeamDeviceCreateDialog from './dialogs/TeamDeviceCreateDialog'
 import DeviceCredentialsDialog from './dialogs/DeviceCredentialsDialog'
 import DeviceAssignProjectDialog from './dialogs/DeviceAssignProjectDialog'
 
-const DeviceLink = {
-    template: `
-        <router-link :to="{ name: 'Device', params: { id: id } }" class="flex">
-            <ChipIcon class="w-6 mr-2 text-gray-500" />
-            <div class="flex flex-col space-y-1">
-                <span class="text-lg">{{name}}</span>
-                <span class="text-xs text-gray-500">id: {{id}}</span>
-            </div>
-        </router-link>`,
-    props: ['id', 'name', 'type'],
-    components: { ChipIcon }
-}
-
-const ProjectLink = {
-    template: `
-        <template v-if="project">
-            <router-link :to="{ name: 'ProjectInstances', params: { id: project.id }}">{{ project.name }}</router-link>
-        </template>
-        <template v-else><span class="italic text-gray-500">unassigned</span></template>`,
-    props: ['project']
-}
+import DeviceLink from '../../project/components/cells/DeviceLink'
+import InstanceLink from '../../project/components/cells/InstanceLink'
+import ApplicationLink from '../../project/components/cells/ApplicationLink'
 
 export default {
     name: 'TeamDevices',
@@ -222,7 +204,32 @@ export default {
                 { label: 'Device', class: ['w-64'], key: 'name', sortable: true, component: { is: markRaw(DeviceLink) } },
                 { label: 'Last Seen', class: ['w-32'], key: 'lastSeenAt', sortable: true, component: { is: markRaw(DeviceLastSeenBadge) } },
                 { label: 'Last Known Status', class: ['w-32'], key: 'status', sortable: true, component: { is: markRaw(ProjectStatusBadge) } },
-                { label: 'Project', class: ['w-64'], key: 'project', sortable: true, component: { is: markRaw(ProjectLink) } }
+                {
+                    label: 'Application',
+                    class: ['w-64'],
+                    key: 'project',
+                    sortable: true,
+                    component: {
+                        is: markRaw(ApplicationLink),
+                        map: {
+                            id: 'project.id',
+                            name: 'project.name'
+                        }
+                    }
+                },
+                {
+                    label: 'Instance',
+                    class: ['w-64'],
+                    key: 'project',
+                    sortable: true,
+                    component: {
+                        is: markRaw(InstanceLink),
+                        map: {
+                            id: 'project.id',
+                            name: 'project.name'
+                        }
+                    }
+                }
             ]
         }
     },
