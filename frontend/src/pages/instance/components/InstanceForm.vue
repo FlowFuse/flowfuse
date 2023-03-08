@@ -141,7 +141,7 @@
             </ff-tile-selection>
         </div>
 
-        <!-- Copying a project -->
+        <!-- Copying a instance -->
         <template v-if="isCopyProject">
             <p class="text-gray-500">
                 Select the components to copy from '{{ sourceInstance?.name }}'
@@ -259,7 +259,7 @@ export default {
                 // Only read name from existing project, never source
                 name: this.instance?.name || NameGenerator(),
 
-                // Handle both full project objects and short-form project details
+                // Handle both full instance objects and short-form instance details
                 projectType: instance?.projectType?.id || instance?.projectType || '',
                 stack: instance?.stack?.id || instance?.stack || '',
                 template: instance?.template?.id || instance?.template || ''
@@ -313,7 +313,7 @@ export default {
             //  - Team is in trial mode, and
             //  - Team billing is not configured, or
             //  - team billing is configured, but they still have an available
-            //     trial project to create, and they have selected the trial
+            //     trial instance to create, and they have selected the trial
             //     project type
             return this.team.billing?.trial && (
                 !this.team.billing?.active || (
@@ -413,7 +413,7 @@ export default {
         //   - team is not a trial team, or:
         //   - team is a trial team and:
         //     - has expired, or:
-        //     - already has a project created
+        //     - already has a instance created
         if (this.team.billing?.canceled ||
             !this.team.billing?.trial ||
             (this.team.billing?.trialEnded || this.team.projectCount > 0)
@@ -447,19 +447,19 @@ export default {
                 return
             }
 
-            // Read stack from source project
+            // Read stack from source instance
             if (this.sourceInstance?.stack && this.findStackById(this.sourceInstance.stack.id)) {
                 this.input.stack = this.sourceInstance.stack.id
                 return
             }
 
-            // Read from currently edited project
+            // Read from currently edited instance
             if (this.instance?.stack && this.findStackById(this.instance.stack.id)) {
                 this.input.stack = this.instance.stack.id
                 return
             }
 
-            // Read from project type
+            // Read from instance type
             if (projectType.defaultStack && this.findStackById(projectType.defaultStack)) {
                 this.input.stack = projectType.defaultStack
                 return

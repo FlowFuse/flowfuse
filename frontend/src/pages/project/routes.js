@@ -19,7 +19,7 @@ export default [
         name: 'Project',
         component: Project,
         meta: {
-            title: 'Project - Overview'
+            title: 'Application - Overview'
         },
         children: [
             { path: 'overview', component: ProjectOverview },
@@ -27,21 +27,21 @@ export default [
                 path: 'settings',
                 component: ProjectSettings,
                 meta: {
-                    title: 'Project - Settings'
+                    title: 'Application - Settings'
                 }
             },
             {
                 path: 'logs',
                 component: ProjectLogs,
                 meta: {
-                    title: 'Project - Logs'
+                    title: 'Application - Logs'
                 }
             },
             {
                 path: 'activity',
                 component: ProjectActivity,
                 meta: {
-                    title: 'Project - Activity'
+                    title: 'Application - Activity'
                 }
             }
             // { path: 'debug', component: ProjectDebug }

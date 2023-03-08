@@ -14,9 +14,9 @@
             </div>
         </div>
         <div class="text-gray-400 space-y-1">
-            <p>This is the list of modules that will be installed into the project.</p>
+            <p>This is the list of modules that will be installed into the instance.</p>
             <div v-if="editable.settings.palette_allowInstall" class="space-y-1">
-                <p>Any changes to this list will require restarting the project to apply.</p>
+                <p>Any changes to this list will require restarting the instance to apply.</p>
                 <p>You can also install modules using the palette manager in the editor.</p>
             </div>
         </div>

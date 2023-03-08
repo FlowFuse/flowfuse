@@ -161,7 +161,7 @@ export default {
         showRollbackDialog (snapshot) {
             Dialog.show({
                 header: 'Rollback Snapshot',
-                html: `<p>This rollback will overwrite the current project.</p>
+                html: `<p>This rollback will overwrite the current instance.</p>
             <p>All changes to the flows, settings and environment variables made since
                 the last snapshot will be lost.</p>
             <p>Are you sure you want to rollback to this snapshot?</p>`,

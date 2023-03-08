@@ -30,10 +30,10 @@ describe('FlowForge - Projects', () => {
             cy.get('[data-form="project-type"]').contains('type1').click()
             cy.get('[data-action="create-project"]').should('not.be.disabled') // stack is auto selected
 
-            cy.get('[data-form="project-stack"]').contains('stack1').click() // de-select
+            cy.get('[data-form="instance-stack"]').contains('stack1').click() // de-select
             cy.get('[data-action="create-project"]').should('be.disabled')
 
-            cy.get('[data-form="project-stack"]').contains('stack1').click() // re-select
+            cy.get('[data-form="instance-stack"]').contains('stack1').click() // re-select
 
             cy.get('[data-form="project-template"]').should('exist') // template section visible for create
 
@@ -70,7 +70,6 @@ describe('FlowForge - Projects', () => {
 
         cy.get('[data-action="open-editor"]').should('exist')
     })
-
 
     it('are not permitted to have a duplicate name during creation', () => {
         cy.request('GET', 'api/v1/teams', { failOnStatusCode: false }).then((response) => {

@@ -1,13 +1,13 @@
 <template>
-    <ff-dialog ref="dialog" header="Delete Project" kind="danger" confirm-label="Delete" :disable-primary="!formValid" @confirm="confirm()" data-el="delete-project-dialog">
+    <ff-dialog ref="dialog" header="Delete Application" kind="danger" confirm-label="Delete" :disable-primary="!formValid" @confirm="confirm()" data-el="delete-project-dialog">
         <template v-slot:default>
             <form class="space-y-6" @submit.prevent>
                 <div class="mt-2 space-y-2">
                     <p>
-                        Are you sure you want to delete this project? Once deleted, there is no going back.
+                        Are you sure you want to delete this application? Once deleted, there is no going back.
                     </p>
                     <p>
-                        Enter the project name to continue.
+                        Enter the application name to continue.
                         <code class="block">{{ project?.name }}</code>
                     </p>
                 </div>

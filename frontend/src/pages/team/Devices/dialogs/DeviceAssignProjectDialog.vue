@@ -1,7 +1,7 @@
 <template>
     <ff-dialog
         ref="dialog"
-        header="Add Device to Project"
+        header="Add Device to Instance"
         class="ff-dialog-fixed-height"
         confirm-label="Add"
         @confirm="assignDevice()"
@@ -9,7 +9,7 @@
         <template v-slot:default>
             <form class="space-y-6 mt-2 mb-2">
                 <p class="text-sm text-gray-500">
-                    Select the project to add the device to:
+                    Select the instance to add the device to:
                 </p>
                 <FormRow :options="projects" v-model="input.project">Project</FormRow>
             </form>
@@ -41,7 +41,7 @@ export default {
     methods: {
         assignDevice () {
             this.$emit('assignDevice', this.device, this.input.project)
-            alerts.emit('Device successfully assigned to project.', 'confirmation')
+            alerts.emit('Device successfully assigned to instance.', 'confirmation')
         }
     },
     setup () {

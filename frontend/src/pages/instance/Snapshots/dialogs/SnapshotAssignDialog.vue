@@ -19,7 +19,7 @@
                 class="space-y-6 mt-2"
                 @submit.prevent="confirm()"
             >
-                <p>Please select the Project Snapshot that you wish to deploy to all of your devices.</p>
+                <p>Please select the Instance Snapshot that you wish to deploy to all of your devices.</p>
                 <FormRow
                     data-form="snapshot"
                     containerClass="w-full"
@@ -41,9 +41,9 @@
                             />
                         </ff-dropdown>
                         <div v-else>
-                            There are no snapshots to choose from for this project yet!<br>
+                            There are no snapshots to choose from for this instance yet!<br>
                             Snapshots can be managed on the <router-link :to="`/project/${project.id}/snapshots`">
-                                Project Snapshots
+                                Instance Snapshots
                             </router-link> page.
                         </div>
                     </template>

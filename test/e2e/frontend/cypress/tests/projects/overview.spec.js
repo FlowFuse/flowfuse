@@ -27,7 +27,7 @@ describe('FlowForge - Project - Overview', () => {
     it('shows a placeholder message when no devices have been added to the project', () => {
         navigateToProject('BTeam', 'project2')
 
-        cy.get('[data-el="devices-section"]').contains('You have not added any devices to this project yet.')
+        cy.get('[data-el="devices-section"]').contains('You have not added any devices to this application yet.')
     })
 
     it('provides functionality to assign a snapshot', () => {

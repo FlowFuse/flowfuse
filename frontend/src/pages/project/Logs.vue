@@ -1,8 +1,8 @@
 <template>
-    <SectionTopMenu hero="Node-RED Logs" help-header="FlowForge - Node-RED Logs" info="Live logs from your FlowForge instance of Node-RED">
+    <SectionTopMenu hero="Node-RED Logs" help-header="FlowForge - Node-RED Logs" info="Live logs from your FlowForge instances of Node-RED">
         <template v-slot:helptext>
             <p>This is a raw feed from the running instance of Node-RED on this domain.</p>
-            <p>Use this to debug issues if your project will not start correctly.</p>
+            <p>Use this to debug issues if your application will not start correctly.</p>
         </template>
     </SectionTopMenu>
     <ff-loading v-if="loading" message="Loading Logs..." />
@@ -28,6 +28,7 @@ import SectionTopMenu from '@/components/SectionTopMenu'
 
 export default {
     name: 'ProjectLogs',
+    inheritAttrs: false,
     props: ['project'],
     data () {
         return {

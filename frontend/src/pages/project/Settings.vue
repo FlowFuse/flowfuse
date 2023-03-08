@@ -2,10 +2,10 @@
     <div class="flex flex-col sm:flex-row">
         <SectionSideMenu :options="sideNavigation" />
         <div class="flex-grow">
-            <FormHeading class="mb-6">Project Details</FormHeading>
+            <FormHeading class="mb-6">Application Details</FormHeading>
             <div class="space-y-6">
                 <FormRow id="projectId" v-model="input.projectId" type="uneditable" inputClass="font-mono">
-                    Project ID
+                    Application ID
                 </FormRow>
 
                 <FormRow id="projectName" v-model="input.projectName" type="uneditable">
@@ -30,6 +30,7 @@ export default {
         FormRow
     },
     mixins: [permissionsMixin],
+    inheritAttrs: false,
     props: {
         project: {
             type: Object,

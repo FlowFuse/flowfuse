@@ -57,7 +57,7 @@ export default {
                     label: 'None',
                     value: 'none',
                     disabled: !this.editTemplate && !this.editable.policy.httpNodeAuth_type,
-                    description: 'Anyone is able to access the http routes of the project'
+                    description: 'Anyone is able to access the http routes of the application instance'
                 },
                 {
                     label: 'Basic Authentication',
@@ -73,7 +73,7 @@ export default {
                     label: 'FlowForge User Authentication',
                     value: 'flowforge-user',
                     disabled: !this.editTemplate && !this.editable.policy.httpNodeAuth_type,
-                    description: 'Only members of the project\'s team will be able to access the routes'
+                    description: 'Only members of the application instance\'s team will be able to access the routes'
                 }
             ]
         }
