@@ -112,7 +112,7 @@
                     </div>
                     <div class="example">
                         <h5>Right-Aligned Options</h5>
-                        <ff-kebab-menu style="margin-left: 150px;" menu-align="right">
+                        <ff-kebab-menu style="margin-left: 250px;" menu-align="right">
                             <ff-list-item label="Option 1" />
                             <ff-list-item label="Option 2" />
                         </ff-kebab-menu>
@@ -426,16 +426,23 @@
                             <ff-dropdown-option label="Option 3" :value="3"></ff-dropdown-option>
                         </ff-dropdown>
                         {{ models.dropdown0 }}
+
+                        <ff-dropdown v-model="models.dropdown1" ref="dropbox-input" style="width: 100px">
+                            <ff-dropdown-option label="Very long options" :value="1"></ff-dropdown-option>
+                            <ff-dropdown-option label="They're so long I don't know what to choose" :value="2"></ff-dropdown-option>
+                            <ff-dropdown-option label="This on is also long" :value="3"></ff-dropdown-option>
+                        </ff-dropdown>
+                        {{ models.dropdown1 }}
                         <code>{{ cGroups['input'].components[1].examples[0].code }}</code>
                     </div>
                     <div class="example">
                         <h5>Button Style</h5>
-                        <ff-dropdown v-model="models.dropdown1" placeholder="Dropdown Button" dropdown-style="button">
+                        <ff-dropdown v-model="models.dropdown2" placeholder="Dropdown Button" dropdown-style="button">
                             <ff-dropdown-option label="Option 1" :value="1"></ff-dropdown-option>
                             <ff-dropdown-option label="Option 2" :value="2"></ff-dropdown-option>
                             <ff-dropdown-option label="Option 3" :value="3"></ff-dropdown-option>
                         </ff-dropdown>
-                        {{ models.dropdown1 }}
+                        {{ models.dropdown2 }}
                         <code>{{ cGroups['input'].components[1].examples[1].code }}</code>
                     </div>
                     <div class="example">
@@ -736,7 +743,8 @@ export default {
                 dialog0: '',
                 textInput0: '',
                 dropdown0: 1,
-                dropdown1: null,
+                dropdown1: 2,
+                dropdown2: null,
                 checkbox0: false,
                 checkbox1: false,
                 checkbox2: false,
