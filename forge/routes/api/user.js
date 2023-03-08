@@ -97,4 +97,36 @@ module.exports = async function (app) {
         sharedUser.updateUser(app, request.session.User, request, reply, 'user')
         return reply // fix errors in tests "Promise may not be fulfilled with 'undefined' when statusCode is not 204" https://github.com/fastify/help/issues/627
     })
+
+    /**
+     * Delete user
+     * @name /api/v1/user/
+     * @static
+     * @memberof forge.routes.api.user
+     */
+    app.delete('/', {
+        preHandler: app.needsPermission('user:delete')
+    }, async (request, reply) => {
+        try {
+            const user = request.session.User
+            const deletedUser = {
+                id: user.id,
+                hashid: user.hashid,
+                username: user.username,
+                email: user.email
+            }
+            await user.destroy()
+            // Create an audit log entry for the deleted user
+            // NOTE: it is called as the system user (0) because the user
+            // is already deleted at this point
+            await app.auditLog.User.user.deleted(0, null, deletedUser)
+            reply.clearCookie('sid')
+            reply.send({ status: 'okay' })
+        } catch (err) {
+            const resp = { code: 'unexpected_error', error: err.toString() }
+            await app.auditLog.User.user.deleted(request.session.User, resp, request.session.User)
+            reply.code(400).send(resp)
+        }
+        return reply // avoid "Promise may not be fulfilled with 'undefined' when statusCode is not 204" https://github.com/fastify/help/issues/627
+    })
 }

@@ -3,6 +3,7 @@ const Permissions = {
     // User Actions
     'user:read': { description: 'View user Information', self: true },
     'user:edit': { description: 'Edit User Information', self: true },
+    'user:delete': { description: 'Delete User', self: true },
     // Team Scoped Actions
     'team:create': { description: 'Create Team' },
     'team:read': { description: 'View a Team', role: Roles.Viewer },
