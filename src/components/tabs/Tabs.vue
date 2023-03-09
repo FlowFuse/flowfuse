@@ -1,8 +1,8 @@
 <template>
     <div ref="ff-tabs">
         <ul class="ff-tabs" :class="'ff-tabs--' + orientation">
-            <li v-for="(tab, $index) in tabs" :key="tab.label" @click="selectTab($index)"
-                class="ff-tab-option transition-fade--color" :class="{'ff-tab-option--active': tab.isActive}"
+            <li v-for="(tab, $index) in tabs" :key="tab.label" class="ff-tab-option transition-fade--color"
+                :class="{'ff-tab-option--active': tab.isActive}" @click="selectTab($index)"
             >
                 {{ tab.label }}
             </li>

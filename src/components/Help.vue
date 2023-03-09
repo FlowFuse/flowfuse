@@ -1,5 +1,5 @@
 <template>
-    <span class="ff-help-tooltip ff-icon" v-ff-tooltip:[position]="text">
+    <span v-ff-tooltip:[position]="text" class="ff-help-tooltip ff-icon">
         <QuestionMarkCircleIcon />
     </span>
 </template>
@@ -10,6 +10,9 @@ import { QuestionMarkCircleIcon } from '@heroicons/vue/solid'
 
 export default {
     name: 'ff-help',
+    components: {
+        QuestionMarkCircleIcon
+    },
     props: {
         text: {
             required: true,
@@ -19,9 +22,6 @@ export default {
             default: 'right',
             type: String
         }
-    },
-    components: {
-        QuestionMarkCircleIcon
     }
 }
 </script>
