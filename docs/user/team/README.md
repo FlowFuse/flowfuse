@@ -60,6 +60,10 @@ table summaries what actions are available to the different roles.
 | • Invite User                        | ✓     | -      | -      |
 | • Change Role                        | ✓     | -      | -      |
 | • Remove User from Team              | ✓     | - §1   | - §1   |
+| **Team Library**                     |       |        |        |
+| • Add an item                        | ✓     | ✓      | -      |
+| • Modify an item                     | ✓     | ✓      | -      |
+| • Delete an item                     | ✓     | ✓      | -      |
 
 Notes:
  - **§1** A user in any role can remove themselves from a team

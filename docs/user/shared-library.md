@@ -11,6 +11,8 @@ For example, you may have a standard set of flows that you want each project to
 include. By exporting them to the Team Library, you can quickly import them into
 new projects.
 
+A short video is available on [how to use this feature](https://www.youtube.com/watch?v=B7XK3TUklUU).
+
 ### Exporting flows
 
 To export flows to the library within the Node-RED editor:
@@ -20,7 +22,6 @@ To export flows to the library within the Node-RED editor:
 3. Select the `Team Library` tab
 4. Enter a name for the library entry
 5. Click Export
-
 
 ### Importing flows
 
