@@ -1,12 +1,12 @@
 <template>
     <div class="ff-data-table">
         <div v-if="showOptions" class="ff-data-table--options">
-            <ff-text-input v-if="showSearch" class="ff-data-table--search" data-form="search"
-                :placeholder="searchPlaceholder" v-model="filterTerm"
+            <ff-text-input v-if="showSearch" v-model="filterTerm" class="ff-data-table--search"
+                data-form="search" :placeholder="searchPlaceholder"
             >
                 <template #icon><SearchIcon /></template>
             </ff-text-input>
-            <div class="ff-data-table--actions" v-if="$slots.actions">
+            <div v-if="$slots.actions" class="ff-data-table--actions">
                 <slot name="actions"></slot>
             </div>
         </div>
@@ -24,9 +24,9 @@
                                 <!-- Internal div required to have flex w/sorting icons -->
                                 <div>
                                     {{ col.label }}
-                                    <SwitchVerticalIcon class="ff-icon ff-icon-sm" v-if="col.sortable && col.key !== sort.key" />
-                                    <SortAscendingIcon class="ff-icon ff-icon-sm icon-sorted" v-if="col.sortable && col.key === sort.key && sort.order === 'asc'" />
-                                    <SortDescendingIcon class="ff-icon ff-icon-sm icon-sorted" v-if="col.sortable && col.key === sort.key && sort.order === 'desc'" />
+                                    <SwitchVerticalIcon v-if="col.sortable && col.key !== sort.key" class="ff-icon ff-icon-sm" />
+                                    <SortAscendingIcon v-if="col.sortable && col.key === sort.key && sort.order === 'asc'" class="ff-icon ff-icon-sm icon-sorted" />
+                                    <SortDescendingIcon v-if="col.sortable && col.key === sort.key && sort.order === 'desc'" class="ff-icon ff-icon-sm icon-sorted" />
                                 </div>
                             </ff-data-table-cell>
                             <ff-data-table-cell v-if="hasContextMenu"></ff-data-table-cell>
@@ -59,7 +59,7 @@
             </slot>
         </table>
         <div v-if="showLoadMore" class="ff-loadmore">
-            <span @click="$emit('load-more')" data-action="load-more">Load More...</span>
+            <span data-action="load-more" @click="$emit('load-more')">Load More...</span>
         </div>
     </div>
 </template>
@@ -116,7 +116,12 @@ function searchObjectProps (object, searchTerm, searchProps = []) {
 
 export default {
     name: 'ff-data-table',
-    emits: ['update:search', 'load-more', 'row-selected'],
+    components: {
+        SearchIcon,
+        SwitchVerticalIcon,
+        SortAscendingIcon,
+        SortDescendingIcon
+    },
     props: {
         columns: {
             type: Array,
@@ -161,6 +166,22 @@ export default {
         noDataMessage: {
             type: String,
             default: 'No Data Found'
+        }
+    },
+    emits: ['update:search', 'load-more', 'row-selected'],
+    data () {
+        return {
+            internalSearch: '',
+            sort: {
+                highlightColumn: null,
+                key: '',
+                order: 'desc'
+            },
+            pagination: {
+                active: -1,
+                max: -1
+            },
+            orders: ['desc', 'asc']
         }
     },
     computed: {
@@ -221,21 +242,6 @@ export default {
             }
         }
     },
-    data () {
-        return {
-            internalSearch: '',
-            sort: {
-                highlightColumn: null,
-                key: '',
-                order: 'desc'
-            },
-            pagination: {
-                active: -1,
-                max: -1
-            },
-            orders: ['desc', 'asc']
-        }
-    },
     methods: {
         filterRows (rows) {
             const search = this.internalSearch
@@ -294,12 +300,6 @@ export default {
             }
             return obj
         }
-    },
-    components: {
-        SearchIcon,
-        SwitchVerticalIcon,
-        SortAscendingIcon,
-        SortDescendingIcon
     }
 }
 </script>

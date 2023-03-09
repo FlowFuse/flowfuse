@@ -17,6 +17,12 @@ export default {
             type: String
         }
     },
+    mounted () {
+        this.registerOption({
+            value: this.value,
+            label: this.label
+        })
+    },
     methods: {
         select () {
             this.$parent.value = {
@@ -27,12 +33,6 @@ export default {
         registerOption (option) {
             this.$parent.registerOption(option)
         }
-    },
-    mounted () {
-        this.registerOption({
-            value: this.value,
-            label: this.label
-        })
     }
 }
 </script>

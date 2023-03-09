@@ -10,14 +10,14 @@ import { CheckIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'ff-check',
+    components: {
+        CheckIcon
+    },
     props: {
         value: {
             default: false,
             type: Boolean
         }
-    },
-    components: {
-        CheckIcon
     }
 }
 </script>

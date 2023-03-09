@@ -2,13 +2,13 @@
     <div class="ff-dialog-container" :class="'ff-dialog-container--' + (open ? 'open' : 'closed')">
         <div class="ff-dialog-box">
             <div class="ff-dialog-header">{{ header }}</div>
-            <div class="ff-dialog-content" ref="content">
+            <div ref="content" class="ff-dialog-content">
                 <slot></slot>
             </div>
             <div class="ff-dialog-actions">
                 <slot name="actions">
-                    <ff-button @click="cancel()" kind="secondary">Cancel</ff-button>
-                    <ff-button @click="confirm()" :kind="kind" :disabled="disablePrimary">{{ confirmLabel }}</ff-button>
+                    <ff-button kind="secondary" @click="cancel()">Cancel</ff-button>
+                    <ff-button :kind="kind" :disabled="disablePrimary" @click="confirm()">{{ confirmLabel }}</ff-button>
                 </slot>
             </div>
         </div>
@@ -18,7 +18,6 @@
 <script>
 export default {
     name: 'ff-dialog',
-    emits: ['cancel', 'confirm'],
     props: {
         header: {
             type: String,
@@ -41,14 +40,15 @@ export default {
             default: true
         }
     },
-    watch: {
-        open: function () {
-            this.$refs.content.scrollTop = 0
-        }
-    },
+    emits: ['cancel', 'confirm'],
     data () {
         return {
             open: false
+        }
+    },
+    watch: {
+        open: function () {
+            this.$refs.content.scrollTop = 0
         }
     },
     methods: {

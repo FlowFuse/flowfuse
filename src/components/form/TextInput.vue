@@ -2,11 +2,11 @@
     <div class="ff-input ff-text-input" :class="{'ff-input--error': error}">
         <slot name="icon"></slot>
         <input
+            ref="input"
             :type="type"
             :placeholder="placeholder"
             :disabled="disabled"
             :value="modelValue"
-            ref="input"
             @change="$emit('update:modelValue', $event.target.value)"
             @input="$emit('update:modelValue', $event.target.value)"
             @blur="$emit('blur')" @keyup.enter="$emit('enter', $evt)"
@@ -17,7 +17,6 @@
 <script>
 export default {
     name: 'ff-text-input',
-    emits: ['update:modelValue', 'input', 'blur', 'keyup', 'enter'],
     props: {
         // broker standard text-input props
         disabled: {
@@ -47,6 +46,7 @@ export default {
             default: ''
         }
     },
+    emits: ['update:modelValue', 'input', 'blur', 'keyup', 'enter'],
     methods: {
         focus () {
             this.$refs.input?.focus()

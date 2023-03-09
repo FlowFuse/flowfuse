@@ -9,7 +9,7 @@
             </div>
             <span class="ff-notification-toast--close">
                 <XIcon v-if="showClose" @click="close()" />
-                <div class="countdown-wrapper" v-if="countdown">
+                <div v-if="countdown" class="countdown-wrapper">
                     <div class="countdown-pie countdown-spinner" :style="'animation: rota ' + (countdown/1000) + 's linear infinite;'"></div>
                     <div class="countdown-pie countdown-filler" :style="'animation: fill ' + (countdown/1000) + 's steps(1, end) infinite;'"></div>
                     <div class="countdown-mask" :style="'animation: mask ' + (countdown/1000) + 's steps(1, end) infinite;'"></div>
@@ -28,7 +28,9 @@ import { XIcon } from '@heroicons/vue/solid'
 
 export default {
     name: 'ff-notification-toast',
-    emits: ['close'],
+    components: {
+        XIcon
+    },
     props: {
         message: {
             default: null,
@@ -47,9 +49,7 @@ export default {
             type: Boolean
         }
     },
-    components: {
-        XIcon
-    },
+    emits: ['close'],
     computed: {
         showActions: function () {
             return this.$slots.actions
