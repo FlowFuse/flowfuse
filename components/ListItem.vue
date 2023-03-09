@@ -1,5 +1,5 @@
 <template>
-    <li class="ff-list-item" :class="[className, this.disabled ? 'disabled' : ''] ">
+    <li class="ff-list-item" :class="[className, disabled ? 'disabled' : ''] ">
         <component :is="icon" />
         <label>{{ label }}</label>
     </li>
