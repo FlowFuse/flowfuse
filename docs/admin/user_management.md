@@ -20,4 +20,10 @@ Users can only be removed if they don't own any teams and projects. As such the
 user should delete any projects and ensure their teams have alternative owners. They
 can either do this themselves or an Admin user can do it for them.
 
-Once all teams and projects are removed, the user can be removed using the option in the "Edit User" dialog.
+### Deleting your own account
+If you are not the sole owner of a team and you are not the only admin, you can 
+delete your own account from "User Settings"
+
+### Deleting a user account
+If the user is not the sole owner of a team and is not the last platform admin user,
+an administrator can use the option in the "Edit User" dialog to delete the users account
