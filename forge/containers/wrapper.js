@@ -13,6 +13,13 @@ class SubscriptionHandler {
         return subscription
     }
 
+    async requireTrialProjectOrActiveSubscription (project) {
+        const billingState = await this._app.billing.getProjectBillingState(project)
+        if (billingState !== this.BILLING_STATES.TRIAL) {
+            await this.requireActiveSubscription(project.Team)
+        }
+    }
+
     async requireActiveSubscription (team) {
         const subscription = await this.requireSubscription(team)
 
@@ -218,20 +225,21 @@ module.exports = {
     },
     startFlows: async (project, options) => {
         if (this._isBillingEnabled()) {
-            await this._subscriptionHandler.requireActiveSubscription(project.Team)
+            await this._subscriptionHandler.requireTrialProjectOrActiveSubscription(project)
         }
         if (this._driver.startFlows) {
             await this._driver.startFlows(project, options)
         }
     },
     stopFlows: async (project) => {
+        // Always allows flows to be stopped regardless of billing state
         if (this._driver.stopFlows) {
             await this._driver.stopFlows(project)
         }
     },
     restartFlows: async (project, options) => {
         if (this._isBillingEnabled()) {
-            await this._subscriptionHandler.requireActiveSubscription(project.Team)
+            await this._subscriptionHandler.requireTrialProjectOrActiveSubscription(project)
         }
         if (this._driver.restartFlows) {
             this._driver.restartFlows(project, options)
