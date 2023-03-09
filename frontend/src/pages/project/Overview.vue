@@ -55,7 +55,7 @@
             </ff-data-table>
         </div>
 
-        <SectionTopMenu hero="Remote Instances" help-header="FlowForge - Instances - Remote" info="Instances of Node-RED running remotely using the FlowForge Device Agent, connected to a FlowForge instance in this Application">
+        <SectionTopMenu hero="Remote Instances" help-header="FlowForge - Instances - Remote" info="Remote Node-RED running the Device Agent connected to an instance in this Application">
             <template #pictogram>
                 <img src="../../images/pictograms/edge_red.png">
             </template>
