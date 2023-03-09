@@ -155,6 +155,8 @@ describe('Container Wrapper', function () {
             app.billing.removeProject.callsFake(async (team, project) => {
                 billingProjects[team.id][project.id] = null
             })
+            app.billing.getProjectBillingState.restore()
+            app.billing.setProjectBillingState.restore()
         })
 
         afterEach(function () {
@@ -215,6 +217,17 @@ describe('Container Wrapper', function () {
                 await promise.started
                 billingProjects.should.have.property(1)
                 billingProjects[1].should.have.property(project.id, null)
+            })
+
+            it('starts project if in trial mode without adding to billing', async function () {
+                const project = await setupProject()
+                const team = await app.db.models.Team.byName('ATeam')
+                await app.db.controllers.Subscription.createTrialSubscription(team, Date.now() + (5 * 86400000))
+                await app.billing.setProjectBillingState(project, app.db.models.ProjectSettings.BILLING_STATES.TRIAL)
+                const result = await app.containers.start(project)
+                await result.started
+                billingProjects.should.not.have.property(team.id)
+                app.billing.addProject.callCount.should.equal(0)
             })
         })
 
@@ -278,6 +291,20 @@ describe('Container Wrapper', function () {
 
                 await app.containers.stop(project)
                 project.state.should.equal('suspended')
+            })
+            it('stops project if in trial mode without touching billing', async function () {
+                const project = await setupProject()
+                const team = await app.db.models.Team.byName('ATeam')
+                await app.db.controllers.Subscription.createTrialSubscription(team, Date.now() + (5 * 86400000))
+                await app.billing.setProjectBillingState(project, app.db.models.ProjectSettings.BILLING_STATES.TRIAL)
+                const result = await app.containers.start(project)
+                await result.started
+
+                await app.containers.stop(project)
+                project.state.should.equal('suspended')
+
+                app.billing.addProject.callCount.should.equal(0)
+                app.billing.removeProject.callCount.should.equal(0)
             })
         })
 
@@ -382,6 +409,22 @@ describe('Container Wrapper', function () {
 
                     mockDriver.startFlows.callCount.should.equal(1)
                 })
+                it('does not start the flows if the team has no subscription', async function () {
+                    const project = await setupProject()
+                    const promise = app.containers.startFlows(project, {})
+                    await promise.should.be.rejectedWith(/No Subscription for this team/)
+                    mockDriver.startFlows.callCount.should.equal(0)
+                })
+                it('starts if the project is in trial mode', async function () {
+                    const project = await setupProject()
+                    const team = await app.db.models.Team.byName('ATeam')
+                    await app.db.controllers.Subscription.createTrialSubscription(team, Date.now() + (5 * 86400000))
+                    await app.billing.setProjectBillingState(project, app.db.models.ProjectSettings.BILLING_STATES.TRIAL)
+
+                    await app.containers.startFlows(project, {})
+
+                    mockDriver.startFlows.callCount.should.equal(1)
+                })
 
                 it('does not start the flows if the teams subscription is cancelled', async function () {
                     const project = await setupProject()
@@ -425,7 +468,22 @@ describe('Container Wrapper', function () {
 
                     mockDriver.restartFlows.callCount.should.equal(1)
                 })
+                it('does not restart the flows if the team has no subscription', async function () {
+                    const project = await setupProject()
+                    const promise = app.containers.restartFlows(project, {})
+                    await promise.should.be.rejectedWith(/No Subscription for this team/)
+                    mockDriver.startFlows.callCount.should.equal(0)
+                })
+                it('restarts if the project is in trial mode', async function () {
+                    const project = await setupProject()
+                    const team = await app.db.models.Team.byName('ATeam')
+                    await app.db.controllers.Subscription.createTrialSubscription(team, Date.now() + (5 * 86400000))
+                    await app.billing.setProjectBillingState(project, app.db.models.ProjectSettings.BILLING_STATES.TRIAL)
 
+                    await app.containers.restartFlows(project, {})
+
+                    mockDriver.restartFlows.callCount.should.equal(1)
+                })
                 it('does not restart the flows if the teams subscription is cancelled', async function () {
                     const project = await setupProject()
                     const team = await app.db.models.Team.byName('ATeam')
