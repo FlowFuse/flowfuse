@@ -1,3 +1,13 @@
+#### 1.4.1: Release
+
+ - Ensure a trial project can be restarted (backport #1784) (#1786) @github-actions
+ - Make mosquitto.conf path clearer (backport #1780) (#1781) @knolleary
+ - Add SMTP to Digital Ocean Docs (backport #1746) (#1749) @github-actions
+ - docs: Simplify migration documentation with NR Tools (backport #1738) (#1742) @github-actions
+ - docs: Remove broken image (backport #1725) (#1726) @github-actions
+ - Spellcheck of all user facing strings (backport #1727) (#1729) @github-actions
+ - Add 1.4.0 upgrade docs (#1717) @hardillb
+
 #### 1.4.0: Release
 
  - Revert "Ensure a suspended trial project is not added to billing at trial end"
