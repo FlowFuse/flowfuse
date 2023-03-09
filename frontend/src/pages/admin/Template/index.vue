@@ -227,7 +227,7 @@ export default {
         showSaveTemplateDialog () {
             Dialog.show({
                 header: 'Update Template',
-                html: '<p>Are you sure you want to save this template?</p><p>Any projects using this template will need to be manually restarted to pick up any changes.</p>',
+                html: '<p>Are you sure you want to save this template?</p><p>Any application instances using this template will need to be manually restarted to pick up any changes.</p>',
                 confirmLabel: 'Save Template'
             }, this.saveTemplate)
         },

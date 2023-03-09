@@ -1,17 +1,17 @@
 <template>
-    <ff-loading v-if="loading.deleting" message="Deleting Project..." />
-    <ff-loading v-if="loading.duplicating" message="Copying Project..." />
+    <ff-loading v-if="loading.deleting" message="Deleting Instance..." />
+    <ff-loading v-if="loading.duplicating" message="Copying Instance..." />
     <ff-loading v-if="loading.changingStack" message="Changing Stack..." />
     <ff-loading v-if="loading.settingType" message="Setting Type..." />
-    <ff-loading v-if="loading.suspend" message="Suspending Project..." />
-    <ff-loading v-if="loading.importing" message="Importing Project..." />
+    <ff-loading v-if="loading.suspend" message="Suspending Instance..." />
+    <ff-loading v-if="loading.importing" message="Importing Instance..." />
     <form v-if="!isLoading" class="space-y-6">
-        <FormHeading>Change Project Stack</FormHeading>
+        <FormHeading>Change Instance Stack</FormHeading>
         <div v-if="project.stack && project.stack.replacedBy" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
                 <div class="max-w-sm">
                     There is a new version of the current stack available.
-                    Updating the stack will restart the project.
+                    Updating the stack will restart the instance.
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
@@ -21,111 +21,120 @@
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
                 <div class="max-w-sm">
-                    Changing the Project Stack requires the project to be restarted.
+                    Changing the Instance Stack requires the instance to be restarted.
                     The flows will not be running while this happens.
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
                 <ff-button :disabled="!project.projectType" kind="secondary" @click="showChangeStackDialog()">Change Stack</ff-button>
-                <ChangeStackDialog @confirm="changeStack" ref="changeStackDialog"/>
+                <ChangeStackDialog ref="changeStackDialog" @confirm="changeStack" />
             </div>
         </div>
 
-        <FormHeading>Copy Project</FormHeading>
+        <FormHeading>Copy Instance</FormHeading>
 
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
                 <div class="max-w-sm">
-                    Add a new project to your team, that is a copy of this project.
+                    Add a new instance to your team, that is a copy of this instance.
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="secondary" @click="showDuplicateProjectDialog()" data-nav="copy-project">Duplicate Project</ff-button>
+                <ff-button kind="secondary" data-nav="copy-project" @click="showDuplicateProjectDialog()">Duplicate Instance</ff-button>
             </div>
         </div>
 
-        <FormHeading>Import Project</FormHeading>
+        <FormHeading>Import Instance</FormHeading>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
                 <div class="max-w-sm">
-                    Import an existing Node-RED project.
+                    Import an existing Node-RED instance.
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="secondary" @click="showImportProjectDialog()">Import Project</ff-button>
-                <ImportProjectDialog @confirm="importProject" ref="importProjectDialog"/>
+                <ff-button kind="secondary" @click="showImportInstanceDialog()">Import Instance</ff-button>
+                <ImportInstanceDialog ref="importProjectDialog" @confirm="importProject" />
             </div>
         </div>
 
-        <FormHeading>Change Project Type</FormHeading>
+        <FormHeading>Change Instance Type</FormHeading>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
                 <div class="max-w-sm">
-                    Changing the Project Type will restart the project.
+                    Changing the Instance Type will restart the instance.
                     The flows will not be running while this happens.
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="secondary" @click="showProjectChangeTypePage()" data-nav="change-project-settings">Change Project Type</ff-button>
+                <ff-button kind="secondary" data-nav="change-instance-settings" @click="showProjectChangeTypePage()">Change Instance Type</ff-button>
             </div>
         </div>
 
-        <FormHeading class="text-red-700">Suspend Project</FormHeading>
+        <FormHeading class="text-red-700">Suspend Instance</FormHeading>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
-                <div class="max-w-sm" v-if="project?.meta?.state === 'suspended'">
-                    Your project is already suspended. To restart the project, select "Start" from the Project actions.
+                <div v-if="project?.meta?.state === 'suspended'" class="max-w-sm">
+                    Your instance is already suspended. To restart the instance, select "Start" from the Instance actions.
                 </div>
-                <div class="max-w-sm" v-else>
-                    Once suspended, your project will not be available until restarted.
-                    While suspended, the project will consume no <span v-if="features.billing">billable</span> resources.
+                <div v-else class="max-w-sm">
+                    Once suspended, your instance will not be available until restarted.
+                    While suspended, the instance will consume no <span v-if="features.billing">billable</span> resources.
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="danger" :disabled="project?.meta?.state === 'suspended'" @click="showConfirmSuspendDialog()">Suspend Project</ff-button>
+                <ff-button kind="danger" :disabled="project?.meta?.state === 'suspended'" @click="showConfirmSuspendDialog()">Suspend Instance</ff-button>
             </div>
         </div>
 
-        <FormHeading class="text-red-700">Delete Project</FormHeading>
+        <FormHeading class="text-red-700">Delete Instance</FormHeading>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
                 <div class="max-w-sm">
-                    Once deleted, your project is gone. This cannot be undone.
+                    Once deleted, your instance is gone. This cannot be undone.
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button data-action="delete-project" kind="danger" @click="showConfirmDeleteDialog()">Delete Project</ff-button>
-                <ConfirmProjectDeleteDialog data-el="delete-project" @confirm="deleteProject" ref="confirmProjectDeleteDialog"/>
+                <ff-button data-action="delete-project" kind="danger" @click="showConfirmDeleteDialog()">Delete Instance</ff-button>
+                <ConfirmInstanceDeleteDialog ref="confirmProjectDeleteDialog" data-el="delete-project" @confirm="deleteProject" />
             </div>
         </div>
     </form>
 </template>
 
 <script>
-import projectApi from '@/api/project'
-
-import Dialog from '@/services/dialog'
-import alerts from '@/services/alerts'
-import permissionsMixin from '@/mixins/Permissions'
-
-import FormHeading from '@/components/FormHeading'
-import ConfirmProjectDeleteDialog from './dialogs/ConfirmProjectDeleteDialog'
-import ChangeStackDialog from './dialogs/ChangeStackDialog'
-import ImportProjectDialog from './dialogs/ImportProjectDialog'
 import { useRouter } from 'vue-router'
+
 import { mapState } from 'vuex'
 
+import ChangeStackDialog from './dialogs/ChangeStackDialog'
+import ConfirmInstanceDeleteDialog from './dialogs/ConfirmInstanceDeleteDialog'
+
+import ImportInstanceDialog from './dialogs/ImportInstanceDialog'
+
+import InstanceApi from '@/api/instances'
+
+import FormHeading from '@/components/FormHeading'
+import permissionsMixin from '@/mixins/Permissions'
+import alerts from '@/services/alerts'
+import Dialog from '@/services/dialog'
+
 export default {
-    name: 'ProjectSettingsDanger',
-    props: ['project'],
-    emits: ['projectUpdated'],
+    name: 'InstanceSettingsDanger',
+    components: {
+        FormHeading,
+        ConfirmInstanceDeleteDialog,
+        ChangeStackDialog,
+        ImportInstanceDialog
+    },
     mixins: [permissionsMixin],
-    computed: {
-        ...mapState('account', ['team', 'features', 'teamMembership']),
-        isLoading () {
-            return this.loading.deleting || this.loading.suspend || this.loading.changingStack || this.loading.duplicating || this.loading.settingType
+    inheritAttrs: false,
+    props: {
+        project: {
+            type: Object,
+            required: true
         }
     },
+    emits: ['instance-updated'],
     data () {
         return {
             loading: {
@@ -136,6 +145,12 @@ export default {
                 suspend: false,
                 importing: false
             }
+        }
+    },
+    computed: {
+        ...mapState('account', ['team', 'features', 'teamMembership']),
+        isLoading () {
+            return this.loading.deleting || this.loading.suspend || this.loading.changingStack || this.loading.duplicating || this.loading.settingType
         }
     },
     mounted () {
@@ -152,18 +167,18 @@ export default {
         },
         showConfirmSuspendDialog () {
             Dialog.show({
-                header: 'Suspend Project',
-                text: 'Are you sure you want to suspend this project?',
+                header: 'Suspend Instance',
+                text: 'Are you sure you want to suspend this instance?',
                 confirmLabel: 'Suspend',
                 kind: 'danger'
             }, () => {
                 this.loading.suspend = true
-                projectApi.suspendProject(this.project.id).then(() => {
+                InstanceApi.suspendInstance(this.project.id).then(() => {
                     this.$router.push({ name: 'Home' })
-                    alerts.emit('Project successfully suspended.', 'confirmation')
+                    alerts.emit('Instance successfully suspended.', 'confirmation')
                 }).catch(err => {
                     console.warn(err)
-                    alerts.emit('Project failed to suspend.', 'warning')
+                    alerts.emit('Instance failed to suspend.', 'warning')
                 }).finally(() => {
                     this.loading.suspend = false
                 })
@@ -171,9 +186,7 @@ export default {
         },
         showProjectChangeTypePage () {
             this.$router.push({
-                name: 'ChangeProjectType',
-                params: { team_slug: this.team.slug },
-                query: { projectId: this.project.id }
+                name: 'ChangeInstanceType'
             })
         },
         showChangeStackDialog () {
@@ -186,7 +199,7 @@ export default {
                 query: { sourceProject: this.project.id }
             })
         },
-        showImportProjectDialog () {
+        showImportInstanceDialog () {
             this.$refs.importProjectDialog.show(this.project)
         },
         upgradeStack () {
@@ -194,21 +207,21 @@ export default {
         },
         duplicateProject (parts) {
             this.loading.duplicating = true
-            projectApi.create(parts).then(result => {
-                this.$router.push({ name: 'Project', params: { id: result.id } })
-                alerts.emit('Project successfully duplicated.', 'confirmation')
+            InstanceApi.create(parts).then(result => {
+                this.$router.push({ name: 'Instance', params: { id: result.id } })
+                alerts.emit('Instance successfully duplicated.', 'confirmation')
             }).catch(err => {
                 console.log(err)
-                alerts.emit('Project failed to duplicate.', 'warning')
+                alerts.emit('Instance failed to duplicate.', 'warning')
             }).finally(() => {
                 this.loading.duplicating = false
             })
         },
         importProject (parts) {
             this.loading.importing = true
-            projectApi.importProject(this.project.id, parts).then(result => {
-                this.$router.push({ name: 'Project', params: { id: this.project.id } })
-                alerts.emit('Project flows imported.', 'confirmation')
+            InstanceApi.importProject(this.project.id, parts).then(result => {
+                this.$router.push({ name: 'Instance', params: { id: this.project.id } })
+                alerts.emit('Instance flows imported.', 'confirmation')
             }).catch(err => {
                 console.log(err)
                 alerts.emit('Failed to import flows.', 'warning')
@@ -218,13 +231,13 @@ export default {
         },
         deleteProject () {
             this.loading.deleting = true
-            projectApi.deleteProject(this.project.id).then(async () => {
+            InstanceApi.deleteInstance(this.project.id).then(async () => {
                 await this.$store.dispatch('account/refreshTeam')
                 this.$router.push({ name: 'Home' })
-                alerts.emit('Project successfully deleted.', 'confirmation')
+                alerts.emit('Instance successfully deleted.', 'confirmation')
             }).catch(err => {
                 console.warn(err)
-                alerts.emit('Project failed to delete.', 'warning')
+                alerts.emit('Instance failed to delete.', 'warning')
             }).finally(() => {
                 this.loading.deleting = false
             })
@@ -232,24 +245,18 @@ export default {
         changeStack (selectedStack) {
             if (this.project.stack?.id !== selectedStack) {
                 this.loading.changingStack = true
-                projectApi.changeStack(this.project.id, selectedStack).then(() => {
-                    this.$router.push({ name: 'Project', params: { id: this.project.id } })
-                    this.$emit('projectUpdated')
-                    alerts.emit('Project stack successfully updated.', 'confirmation')
+                InstanceApi.changeStack(this.project.id, selectedStack).then(() => {
+                    this.$router.push({ name: 'Instance', params: { id: this.project.id } })
+                    this.$emit('instance-updated')
+                    alerts.emit('Instance stack successfully updated.', 'confirmation')
                 }).catch(err => {
                     console.warn(err)
-                    alerts.emit('Project stack was not updated due to an error.', 'warning')
+                    alerts.emit('Instance stack was not updated due to an error.', 'warning')
                 }).finally(() => {
                     this.loading.changingStack = false
                 })
             }
         }
-    },
-    components: {
-        FormHeading,
-        ConfirmProjectDeleteDialog,
-        ChangeStackDialog,
-        ImportProjectDialog
     }
 }
 </script>

@@ -863,7 +863,7 @@ module.exports = async function (app) {
     })
 
     /**
-     *
+     * TODO: Add support for filtering by instance param when this is migrated to application API
      * @name /api/v1/project/:id/audit-log
      * @memberof forge.routes.api.project
      */

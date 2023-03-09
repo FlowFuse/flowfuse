@@ -15,10 +15,10 @@
             <span v-if="!team.billing?.trialEnded">
                 You have <span class="font-bold">{{ trialEndsIn }} left</span> of your free trial.
                 <span v-if="team.billing?.active">
-                    You trial projects will be added to your billing subscription at the end of your trial.
+                    You trial instances will be added to your billing subscription at the end of your trial.
                 </span>
                 <span v-else>
-                    Click here to setup billing at any time to keep your project running after the trial the ends.
+                    Click here to setup billing at any time to keep your instances running after the trial the ends.
                 </span>
             </span>
             <span v-else>

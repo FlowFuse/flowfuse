@@ -1,6 +1,6 @@
 <template>
     <form class="space-y-6">
-        <TemplateSettingsEnvironment :readOnly="!hasPermission('device:edit-env')" v-model="editable" :editTemplate="false" />
+        <TemplateSettingsEnvironment v-model="editable" :readOnly="!hasPermission('device:edit-env')" :editTemplate="false" />
         <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
             <ff-button size="small" :disabled="!unsavedChanges" @click="saveSettings()">Save settings</ff-button>
         </div>
@@ -10,18 +10,29 @@
 <script>
 import { mapState } from 'vuex'
 
-import alerts from '@/services/alerts'
-import permissionsMixin from '@/mixins/Permissions'
-
-import projectApi from '@/api/project'
 import TemplateSettingsEnvironment from '../../admin/Template/sections/Environment'
 import {
     prepareTemplateForEdit
 } from '../../admin/Template/utils'
 
+import InstanceApi from '@/api/instances'
+import permissionsMixin from '@/mixins/Permissions'
+import alerts from '@/services/alerts'
+
 export default {
-    name: 'ProjectSettingsEnvironment',
+    name: 'InstanceSettingsEnvironment',
+    components: {
+        TemplateSettingsEnvironment
+    },
     mixins: [permissionsMixin],
+    inheritAttrs: false,
+    props: {
+        project: {
+            type: Object,
+            required: true
+        }
+    },
+    emits: ['instance-updated'],
     data () {
         return {
             unsavedChanges: false,
@@ -41,7 +52,6 @@ export default {
             templateEnvValues: {}
         }
     },
-    props: ['project'],
     computed: {
         ...mapState('account', ['teamMembership'])
     },
@@ -139,13 +149,10 @@ export default {
                     value: field.value
                 })
             })
-            await projectApi.updateProject(this.project.id, { settings })
-            this.$emit('projectUpdated')
-            alerts.emit('Project successfully updated.', 'confirmation')
+            await InstanceApi.updateInstance(this.project.id, { settings })
+            this.$emit('instance-updated')
+            alerts.emit('Instance successfully updated.', 'confirmation')
         }
-    },
-    components: {
-        TemplateSettingsEnvironment
     }
 }
 </script>

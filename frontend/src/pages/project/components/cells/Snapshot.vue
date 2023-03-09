@@ -28,6 +28,7 @@ export default {
         ExclamationIcon,
         CheckCircleIcon
     },
+    inheritAttrs: false,
     props: {
         activeSnapshot: {
             default: null,

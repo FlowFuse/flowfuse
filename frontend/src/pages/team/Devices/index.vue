@@ -1,5 +1,5 @@
 <template>
-    <SectionTopMenu hero="Devices" help-header="FlowForge - Devices" info="A list of all edge devices registered in your team. Assign them to projects in order to deploy Node-RED remotely.">
+    <SectionTopMenu hero="Devices" help-header="FlowForge - Devices" info="A list of all edge devices registered in your team. Assign them to application instances in order to deploy Node-RED remotely.">
         <template v-slot:helptext>
             <p>FlowForge can be used to manage instances of Node-RED running on remote devices.</p>
             <p>Each device must run the <a href="https://flowforge.com/docs/user/devices/" target="_blank">FlowForge Device Agent</a>, which connects back to the platform to receive updates.</p>
@@ -32,8 +32,8 @@
                 >
                     <template v-if="hasPermission('device:edit')" v-slot:context-menu="{row}">
                         <ff-list-item label="Edit Details" @click="deviceAction('edit', row.id)"/>
-                        <ff-list-item v-if="!row.project" label="Add to Project" @click="deviceAction('assignToProject', row.id)" />
-                        <ff-list-item v-else label="Remove from Project" @click="deviceAction('removeFromProject', row.id)" />
+                        <ff-list-item v-if="!row.project" label="Add to Application Instance" @click="deviceAction('assignToProject', row.id)" />
+                        <ff-list-item v-else label="Remove from Application Instance" @click="deviceAction('removeFromProject', row.id)" />
                         <ff-list-item kind="danger" label="Regenerate Credentials" @click="deviceAction('updateCredentials', row.id)"/>
                         <ff-list-item v-if="hasPermission('device:delete')" kind="danger" label="Delete Device" @click="deviceAction('delete', row.id)" />
                     </template>
@@ -46,7 +46,7 @@
             <p>Here, you can register a new device to your team. This will provide you with a <b>device.yml</b>
                 to be moved to the respective device. Further details on Devices in FlowForge can be found
                 <a href="https://flowforge.com/docs/user/devices/" target="_blank">here</a>.</p>
-            <p class="mt-4 mb-2">If you want to register devices straight to a particular project you can use provisioning tokens
+            <p class="mt-4 mb-2">If you want to register devices straight to a particular application instance you can use provisioning tokens
                 in your <router-link :to="{'name': 'TeamSettingsDevices', 'params': {team_slug: team.slug}}">Team Settings</router-link></p>
         </template>
     </TeamDeviceCreateDialog>
@@ -69,33 +69,15 @@ import SectionTopMenu from '@/components/SectionTopMenu'
 import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
 import DeviceLastSeenBadge from '@/pages/device/components/DeviceLastSeenBadge'
 
-import { ChipIcon, PlusSmIcon } from '@heroicons/vue/outline'
+import { PlusSmIcon } from '@heroicons/vue/outline'
 
 import TeamDeviceCreateDialog from './dialogs/TeamDeviceCreateDialog'
 import DeviceCredentialsDialog from './dialogs/DeviceCredentialsDialog'
 import DeviceAssignProjectDialog from './dialogs/DeviceAssignProjectDialog'
 
-const DeviceLink = {
-    template: `
-        <router-link :to="{ name: 'Device', params: { id: id } }" class="flex">
-            <ChipIcon class="w-6 mr-2 text-gray-500" />
-            <div class="flex flex-col space-y-1">
-                <span class="text-lg">{{name}}</span>
-                <span class="text-xs text-gray-500">id: {{id}}</span>
-            </div>
-        </router-link>`,
-    props: ['id', 'name', 'type'],
-    components: { ChipIcon }
-}
-
-const ProjectLink = {
-    template: `
-        <template v-if="project">
-            <router-link :to="{ name: 'ProjectInstances', params: { id: project.id }}">{{ project.name }}</router-link>
-        </template>
-        <template v-else><span class="italic text-gray-500">unassigned</span></template>`,
-    props: ['project']
-}
+import DeviceLink from '../../project/components/cells/DeviceLink'
+import InstanceLink from '../../project/components/cells/InstanceLink'
+import ApplicationLink from '../../project/components/cells/ApplicationLink'
 
 export default {
     name: 'TeamDevices',
@@ -201,12 +183,12 @@ export default {
                 Dialog.show({
                     header: 'Remove Device from Project',
                     kind: 'danger',
-                    text: 'Are you sure you want to remove this device from the project? This will stop the project running on the device.',
+                    text: 'Are you sure you want to remove this device from the instance? This will stop the instance running on the device.',
                     confirmLabel: 'Remove'
                 }, async () => {
                     await deviceApi.updateDevice(device.id, { project: null })
                     delete device.project
-                    Alerts.emit('Successfully unassigned the project from this device.', 'confirmation')
+                    Alerts.emit('Successfully unassigned the instance from this device.', 'confirmation')
                 })
             } else if (action === 'assignToProject') {
                 this.$refs.deviceAssignProjectDialog.show(device)
@@ -222,7 +204,32 @@ export default {
                 { label: 'Device', class: ['w-64'], key: 'name', sortable: true, component: { is: markRaw(DeviceLink) } },
                 { label: 'Last Seen', class: ['w-32'], key: 'lastSeenAt', sortable: true, component: { is: markRaw(DeviceLastSeenBadge) } },
                 { label: 'Last Known Status', class: ['w-32'], key: 'status', sortable: true, component: { is: markRaw(ProjectStatusBadge) } },
-                { label: 'Project', class: ['w-64'], key: 'project', sortable: true, component: { is: markRaw(ProjectLink) } }
+                {
+                    label: 'Application',
+                    class: ['w-64'],
+                    key: 'project',
+                    sortable: true,
+                    component: {
+                        is: markRaw(ApplicationLink),
+                        map: {
+                            id: 'project.id',
+                            name: 'project.name'
+                        }
+                    }
+                },
+                {
+                    label: 'Instance',
+                    class: ['w-64'],
+                    key: 'project',
+                    sortable: true,
+                    component: {
+                        is: markRaw(InstanceLink),
+                        map: {
+                            id: 'project.id',
+                            name: 'project.name'
+                        }
+                    }
+                }
             ]
         }
     },

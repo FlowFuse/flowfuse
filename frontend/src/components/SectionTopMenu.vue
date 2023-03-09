@@ -10,7 +10,7 @@
                 <InformationCircleIcon v-if="hasInfoDialog" class="min-w-[20px] ff-icon text-gray-800 cursor-pointer hover:text-blue-700" @click="openInfoDialog()" />
                 <span v-if="info" class="text-gray-400">{{ info }}</span>
             </div>
-            <ul class="flex">
+            <ul class="flex" v-if="options.length > 0">
                 <li class="mr-8 pt-1 flex" v-for="item in options" :key="item.name">
                     <router-link :to="item.path" class="forge-nav-item" active-class="forge-nav-item-active" :data-nav="`section-${item.name.toLowerCase()}`">{{ item.name }}</router-link>
                 </li>
@@ -43,7 +43,7 @@ export default {
     props: {
         hero: {
             type: String,
-            required: true
+            default: null
         },
         info: {
             type: String,
@@ -56,7 +56,7 @@ export default {
         },
         options: {
             type: Array,
-            default: null
+            default: () => []
         }
     },
     computed: {

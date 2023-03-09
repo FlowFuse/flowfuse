@@ -59,7 +59,7 @@ export default {
                 tag: 'team-overview',
                 icon: TemplateIcon
             }, {
-                label: 'Projects',
+                label: 'Applications',
                 to: '/projects',
                 tag: 'team-projects',
                 icon: ProjectsIcon

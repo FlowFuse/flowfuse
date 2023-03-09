@@ -4,22 +4,22 @@
         @submit.prevent="$emit('on-submit', input)"
     >
         <SectionTopMenu
-            :hero="creatingNew ? 'Create a new project' : 'Update Project'"
+            :hero="creatingNew ? 'Create a new instance' : 'Update Instance'"
         />
 
         <!-- Form title -->
         <div class="mb-8 text-sm text-gray-500">
             <template v-if="creatingNew">
                 <template v-if="!isCopyProject">
-                    Let's get your new Node-RED project setup in no time.
+                    Let's get your new Node-RED instances setup in no time.
                 </template>
             </template>
             <template v-else>
-                Here you can make changes to the projects settings.
+                Here you can make changes to the instances settings.
             </template>
         </div>
 
-        <!-- Project Name -->
+        <!-- Instance Name -->
         <div>
             <FormRow
                 v-model="input.name"
@@ -28,13 +28,13 @@
                 data-form="project-name"
             >
                 <template #default>
-                    Project Name
+                    Instance Name
                 </template>
                 <template
                     v-if="creatingNew"
                     #description
                 >
-                    Please note, currently, project names cannot be changed once a project is created
+                    Please note, currently, instance names cannot be changed once a instance is created
                 </template>
                 <template
                     v-if="creatingNew"
@@ -52,7 +52,7 @@
             </FormRow>
         </div>
 
-        <!-- Project Type -->
+        <!-- Instance Type -->
         <div
             v-if="errors.projectTypes"
             class="text-red-400 text-xs"
@@ -63,8 +63,8 @@
             v-else
             class="flex flex-wrap items-stretch"
         >
-            <label class="w-full block text-sm font-medium text-gray-700">Choose your Project Type</label>
-            <ProjectCreditBanner :subscription="subscription" />
+            <label class="w-full block text-sm font-medium text-gray-700">Choose your Instance Type</label>
+            <InstanceCreditBanner :subscription="subscription" />
             <ff-tile-selection
                 v-model="input.projectType"
                 class="mt-5"
@@ -90,7 +90,7 @@
                 v-if="!input.projectType"
                 class="text-sm text-gray-400"
             >
-                Please select a Project Type first.</label>
+                Please select a Instance Type first.</label>
             <label
                 v-if="errors.stack"
                 class="text-sm text-gray-400"
@@ -100,7 +100,7 @@
             <ff-tile-selection
                 v-if="input.projectType"
                 v-model="input.stack"
-                data-form="project-stack"
+                data-form="instance-stack"
             >
                 <ff-tile-selection-option
                     v-for="(stack, index) in stacks"
@@ -120,7 +120,7 @@
             <label
                 v-if="!input.projectType && !input.stack"
                 class="text-sm text-gray-400"
-            >Please select a Project Type &amp; Stack first.</label>
+            >Please select a Instance Type &amp; Stack first.</label>
             <label
                 v-if="errors.template"
                 class="text-sm text-gray-400"
@@ -141,12 +141,12 @@
             </ff-tile-selection>
         </div>
 
-        <!-- Copying a project -->
+        <!-- Copying a instance -->
         <template v-if="isCopyProject">
             <p class="text-gray-500">
-                Select the components to copy from '{{ sourceProject?.name }}'
+                Select the components to copy from '{{ sourceInstance?.name }}'
             </p>
-            <ExportProjectComponents
+            <ExportInstanceComponents
                 id="exportSettings"
                 v-model="copyParts"
             />
@@ -154,7 +154,7 @@
 
         <!-- Billing details -->
         <div v-if="showBilling">
-            <ProjectChargesTable
+            <InstanceChargesTable
                 v-model:confirmed="input.billingConfirmation"
                 :project-type="selectedProjectType"
                 :subscription="subscription"
@@ -178,12 +178,11 @@
                 type="submit"
             >
                 <template v-if="creatingNew">
-                    Create Project
+                    Create Instance
                 </template>
                 <template v-else>
                     Confirm Changes
                 </template>
-
             </ff-button>
             <label
                 v-if="!creatingNew && !formDirty"
@@ -192,18 +191,16 @@
                 No changes have been made
             </label>
         </div>
-
     </form>
 </template>
 
 <script>
+import { RefreshIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
-import { RefreshIcon } from '@heroicons/vue/outline'
-
-import ExportProjectComponents from './ExportProjectComponents'
-import ProjectChargesTable from './ProjectChargesTable'
-import ProjectCreditBanner from './ProjectCreditBanner'
+import ExportInstanceComponents from './ExportInstanceComponents'
+import InstanceChargesTable from './InstanceChargesTable'
+import InstanceCreditBanner from './InstanceCreditBanner'
 
 import billingApi from '@/api/billing'
 import projectTypesApi from '@/api/projectTypes'
@@ -216,16 +213,15 @@ import SectionTopMenu from '@/components/SectionTopMenu'
 import NameGenerator from '@/utils/name-generator'
 
 export default {
-    name: 'ProjectForm',
+    name: 'InstanceForm',
     components: {
-        ExportProjectComponents,
+        ExportInstanceComponents,
         FormRow,
-        ProjectChargesTable,
-        ProjectCreditBanner,
+        InstanceChargesTable,
+        InstanceCreditBanner,
         RefreshIcon,
         SectionTopMenu
     },
-
     props: {
         team: {
             required: true,
@@ -235,11 +231,11 @@ export default {
             default: false,
             type: Boolean
         },
-        project: {
+        instance: {
             default: null,
             type: Object
         },
-        sourceProject: {
+        sourceInstance: {
             default: null,
             type: Object
         },
@@ -250,7 +246,7 @@ export default {
     },
     emits: ['on-submit'],
     data () {
-        const project = this.project || this.sourceProject
+        const instance = this.instance || this.sourceInstance
 
         return {
             stacks: [],
@@ -261,12 +257,12 @@ export default {
                 billingConfirmation: false,
 
                 // Only read name from existing project, never source
-                name: this.project?.name || NameGenerator(),
+                name: this.instance?.name || NameGenerator(),
 
-                // Handle both full project objects and short-form project details
-                projectType: project?.projectType?.id || project?.projectType || '',
-                stack: project?.stack?.id || project?.stack || '',
-                template: project?.template?.id || project?.template || ''
+                // Handle both full instance objects and short-form instance details
+                projectType: instance?.projectType?.id || instance?.projectType || '',
+                stack: instance?.stack?.id || instance?.stack || '',
+                template: instance?.template?.id || instance?.template || ''
             },
             errors: {
                 name: '',
@@ -286,16 +282,16 @@ export default {
     computed: {
         ...mapState('account', ['settings']),
         creatingNew () {
-            return !this.project?.id
+            return !this.instance?.id
         },
         isCopyProject () {
-            return !!this.sourceProject && this.creatingNew
+            return !!this.sourceInstance && this.creatingNew
         },
         projectTypeChanged () {
-            return this.project?.projectType?.id !== this.input.projectType
+            return this.instance?.projectType?.id !== this.input.projectType
         },
         projectStackChanged () {
-            return ((this.project?.stack?.id || this.stacks?.[0]?.id) !== this.input.stack)
+            return ((this.instance?.stack?.id || this.stacks?.[0]?.id) !== this.input.stack)
         },
         formDirty () {
             return this.creatingNew || this.projectTypeChanged || this.projectStackChanged
@@ -317,7 +313,7 @@ export default {
             //  - Team is in trial mode, and
             //  - Team billing is not configured, or
             //  - team billing is configured, but they still have an available
-            //     trial project to create, and they have selected the trial
+            //     trial instance to create, and they have selected the trial
             //     project type
             return this.team.billing?.trial && (
                 !this.team.billing?.active || (
@@ -337,7 +333,7 @@ export default {
         },
         'input.projectType': async function (value, oldValue) {
             if (value) {
-                await this.updateProjectType(value)
+                await this.updateInstanceType(value)
             }
         }
     },
@@ -398,7 +394,7 @@ export default {
 
         // Callback loads in related stacks
         if (this.input.projectType) {
-            this.updateProjectType(this.input.projectType)
+            this.updateInstanceType(this.input.projectType)
         }
     },
     async beforeMount () {
@@ -417,7 +413,7 @@ export default {
         //   - team is not a trial team, or:
         //   - team is a trial team and:
         //     - has expired, or:
-        //     - already has a project created
+        //     - already has a instance created
         if (this.team.billing?.canceled ||
             !this.team.billing?.trial ||
             (this.team.billing?.trialEnded || this.team.projectCount > 0)
@@ -434,7 +430,7 @@ export default {
         findStackById (stackId) {
             return this.stacks.find(stack => stack.id === stackId)
         },
-        async updateProjectType (projectTypeId) {
+        async updateInstanceType (projectTypeId) {
             const projectType = this.projectTypes.find(pt => pt.id === projectTypeId)
             this.selectedProjectType = projectType
             await this.updateStacks(projectType)
@@ -451,19 +447,19 @@ export default {
                 return
             }
 
-            // Read stack from source project
-            if (this.sourceProject?.stack && this.findStackById(this.sourceProject.stack.id)) {
-                this.input.stack = this.sourceProject.stack.id
+            // Read stack from source instance
+            if (this.sourceInstance?.stack && this.findStackById(this.sourceInstance.stack.id)) {
+                this.input.stack = this.sourceInstance.stack.id
                 return
             }
 
-            // Read from currently edited project
-            if (this.project?.stack && this.findStackById(this.project.stack.id)) {
-                this.input.stack = this.project.stack.id
+            // Read from currently edited instance
+            if (this.instance?.stack && this.findStackById(this.instance.stack.id)) {
+                this.input.stack = this.instance.stack.id
                 return
             }
 
-            // Read from project type
+            // Read from instance type
             if (projectType.defaultStack && this.findStackById(projectType.defaultStack)) {
                 this.input.stack = projectType.defaultStack
                 return

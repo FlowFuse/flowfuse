@@ -2,30 +2,38 @@
     <div class="flex flex-col sm:flex-row">
         <SectionSideMenu :options="sideNavigation" />
         <div class="flex-grow">
-            <router-view :project="project" @projectUpdated="this.$emit('projectUpdated')"></router-view>
+            <router-view :project="instance" :instance="instance" @instance-updated="$emit('instance-updated')" />
         </div>
     </div>
 </template>
 
 <script>
-import SectionSideMenu from '@/components/SectionSideMenu'
 import { mapState } from 'vuex'
+
+import SectionSideMenu from '@/components/SectionSideMenu'
 import permissionsMixin from '@/mixins/Permissions'
 
 export default {
-    name: 'ProjectSettings',
-    props: ['project'],
-    mixins: [permissionsMixin],
-    computed: {
-        ...mapState('account', ['team', 'teamMembership'])
+    name: 'InstanceSettings',
+    components: {
+        SectionSideMenu
     },
+    mixins: [permissionsMixin],
+    props: {
+        instance: {
+            type: Object,
+            required: true
+        }
+    },
+
+    emits: ['instance-updated'],
     data () {
         return {
             sideNavigation: []
         }
     },
-    components: {
-        SectionSideMenu
+    computed: {
+        ...mapState('account', ['team', 'teamMembership'])
     },
     watch: {
         teamMembership: 'checkAccess'

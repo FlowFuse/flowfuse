@@ -1,6 +1,6 @@
 <template>
     <form class="space-y-6">
-        <TemplateSettingsSecurity v-model="editable" :editTemplate="false" />
+        <TemplateSettingsEditor v-model="editable" :editTemplate="false" />
         <div class="space-x-4 whitespace-nowrap">
             <ff-button size="small" :disabled="!unsavedChanges" @click="saveSettings()">Save settings</ff-button>
         </div>
@@ -8,26 +8,39 @@
 </template>
 
 <script>
-import alerts from '@/services/alerts'
 
 import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
-import permissionsMixin from '@/mixins/Permissions'
 
-import projectApi from '@/api/project'
-import TemplateSettingsSecurity from '../../admin/Template/sections/Security'
+import TemplateSettingsEditor from '../../admin/Template/sections/Editor'
 import {
-    isPasswordField,
-    getTemplateValue,
     getObjectValue,
+    getTemplateValue,
+    isPasswordField,
+    prepareTemplateForEdit,
     setTemplateValue,
     templateFields,
-    prepareTemplateForEdit,
     templateValidators
 } from '../../admin/Template/utils'
 
+import InstanceApi from '@/api/instances'
+import permissionsMixin from '@/mixins/Permissions'
+import alerts from '@/services/alerts'
+
 export default {
-    name: 'ProjectSettingsSecurity',
+    name: 'InstanceSettingsEditor',
+    components: {
+        TemplateSettingsEditor
+    },
+    mixins: [permissionsMixin],
+    inheritAttrs: false,
+    props: {
+        project: {
+            type: Object,
+            required: true
+        }
+    },
+    emits: ['instance-updated'],
     data () {
         return {
             unsavedChanges: false,
@@ -46,8 +59,6 @@ export default {
             original: {}
         }
     },
-    props: ['project'],
-    mixins: [permissionsMixin],
     computed: {
         ...mapState('account', ['team', 'teamMembership'])
     },
@@ -99,7 +110,7 @@ export default {
                     if (isPasswordField(field)) {
                         // This is a password field - so the handling is a bit more complicated.
                         // getTemplateValue for a password field returns '' if it isn't set. However
-                        // we need to know if the property is explicitly set on the project or not
+                        // we need to know if the property is explicitly set on the instance or not
                         // so that we don't override the template-provided value with ''
 
                         // getObjectValue gets the true value without doing any encode/decoding
@@ -125,17 +136,10 @@ export default {
                     setTemplateValue(settings, field, this.editable.settings[field])
                 }
             })
-            if (this.editable.settings.httpNodeAuth_type !== 'basic') {
-                setTemplateValue(settings, 'httpNodeAuth_user', '')
-                setTemplateValue(settings, 'httpNodeAuth_pass', '')
-            }
-            await projectApi.updateProject(this.project.id, { settings })
-            this.$emit('projectUpdated')
-            alerts.emit('Project successfully updated.', 'confirmation')
+            await InstanceApi.updateInstance(this.project.id, { settings })
+            this.$emit('instance-updated')
+            alerts.emit('Instance successfully updated.', 'confirmation')
         }
-    },
-    components: {
-        TemplateSettingsSecurity
     }
 }
 </script>

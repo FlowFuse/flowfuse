@@ -1,7 +1,7 @@
 <template>
     <form class="space-y-6">
         <TemplateSettingsPalette v-model="editable" :editTemplate="false" />
-        <TemplatePaletteModulesEditor v-model="editable" :editTemplate="false" :readOnly="!paletteEditable" :project="project"/>
+        <TemplatePaletteModulesEditor v-model="editable" :editTemplate="false" :readOnly="!paletteEditable" :project="project" />
         <div class="space-x-4 whitespace-nowrap">
             <ff-button size="small" :disabled="!unsavedChanges && !modulesChanged" @click="saveSettings()">Save settings</ff-button>
         </div>
@@ -9,25 +9,40 @@
 </template>
 
 <script>
-import alerts from '@/services/alerts'
 
-import projectApi from '@/api/project'
+import { useRouter } from 'vue-router'
+
+import { mapState } from 'vuex'
+
 import TemplateSettingsPalette from '../../admin/Template/sections/Palette'
 import TemplatePaletteModulesEditor from '../../admin/Template/sections/PaletteModules'
 
 import {
     getTemplateValue,
+    prepareTemplateForEdit,
     setTemplateValue,
-    templateFields,
-    prepareTemplateForEdit
+    templateFields
 } from '../../admin/Template/utils'
 
-import { useRouter } from 'vue-router'
-import { mapState } from 'vuex'
+import InstanceApi from '@/api/instances'
 import permissionsMixin from '@/mixins/Permissions'
+import alerts from '@/services/alerts'
 
 export default {
-    name: 'ProjectSettingsPalette',
+    name: 'InstanceSettingsPalette',
+    components: {
+        TemplateSettingsPalette,
+        TemplatePaletteModulesEditor
+    },
+    mixins: [permissionsMixin],
+    inheritAttrs: false,
+    props: {
+        project: {
+            type: Object,
+            required: true
+        }
+    },
+    emits: ['instance-updated'],
     data () {
         return {
             unsavedChanges: false,
@@ -49,8 +64,6 @@ export default {
 
         }
     },
-    props: ['project'],
-    mixins: [permissionsMixin],
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
         paletteEditable () {
@@ -148,14 +161,10 @@ export default {
                     setTemplateValue(settings, field, this.editable.settings[field])
                 }
             })
-            await projectApi.updateProject(this.project.id, { settings })
-            this.$emit('projectUpdated')
-            alerts.emit('Project successfully updated.', 'confirmation')
+            await InstanceApi.updateInstance(this.project.id, { settings })
+            this.$emit('instance-updated')
+            alerts.emit('Instance successfully updated.', 'confirmation')
         }
-    },
-    components: {
-        TemplateSettingsPalette,
-        TemplatePaletteModulesEditor
     }
 }
 </script>

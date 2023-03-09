@@ -48,10 +48,10 @@
         </div>
     </div>
     <FormRow
+        v-if="!trialMode"
         id="billing-confirmation"
         v-model="localConfirmed"
         type="checkbox"
-        v-if="!trialMode"
     >
         Confirm additional charges
         <template
@@ -73,7 +73,7 @@ import FormRow from '@/components/FormRow'
 import formatCurrency from '@/mixins/Currency.js'
 
 export default {
-    name: 'ProjectChargesTable',
+    name: 'InstanceChargesTable',
     components: {
         FormRow
     },

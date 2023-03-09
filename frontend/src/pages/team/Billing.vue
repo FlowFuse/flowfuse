@@ -25,7 +25,7 @@
             </div>
             <div v-else-if="subscription">
                 <ff-data-table :columns="columns" :rows="subscription.items" />
-                <div v-if="hasTrialProject" class="text-gray-400 mt-1 pl-2 text-sm">Your trial project will be automatically added to your subscription when the trial ends</div>
+                <div v-if="hasTrialProject" class="text-gray-400 mt-1 pl-2 text-sm">Your trial instance will be automatically added to your subscription when the trial ends</div>
             </div>
             <div v-else class="ff-no-data ff-no-data-large">
                 Something went wrong loading your subscription information, please try again.
@@ -33,8 +33,8 @@
         </div>
         <div v-else class="ff-no-data ff-no-data-large">
             <div v-if="trialMode">
-                You are currently in a free trial. During the trial you can only create one project in the team. To unlock other features you will need
-                to configure your billing details.
+                You are currently in a free trial. During the trial you can only create one application instance in the team.
+                To unlock other features you will need to configure your billing details.
             </div>
             <div v-else>
                 Billing has not yet been configured for this team. Before proceeding further, you must continue to Stripe and complete this.

@@ -1,21 +1,21 @@
 <template>
-    <FormHeading class="mb-6">Project Details</FormHeading>
+    <FormHeading class="mb-6">Instance Details</FormHeading>
     <div class="space-y-6">
-        <FormRow v-model="input.projectId" type="uneditable" id="projectId" inputClass="font-mono">
-            Project ID
+        <FormRow id="projectId" v-model="input.projectId" type="uneditable" inputClass="font-mono">
+            Instance ID
         </FormRow>
 
-        <FormRow v-model="input.projectName" type="uneditable" id="projectName">
+        <FormRow id="projectName" v-model="input.projectName" type="uneditable">
             Name
         </FormRow>
 
         <FormRow v-model="input.projectTypeName" type="uneditable">
-            Project Type
+            Instance Type
         </FormRow>
 
         <FormRow v-model="input.stackDescription" type="uneditable">
             Stack
-            <template v-slot:append>
+            <template #append>
                 <div v-if="project.stack && project.stack.replacedBy">
                     <ff-button size="small" to="./danger">Update</ff-button>
                 </div>
@@ -24,18 +24,30 @@
         <FormRow v-model="input.templateName" type="uneditable">
             Template
         </FormRow>
-        <DangerSettings :project="project"/>
+        <DangerSettings :project="project" />
     </div>
 </template>
 
 <script>
-import FormRow from '@/components/FormRow'
-import FormHeading from '@/components/FormHeading'
 import DangerSettings from './Danger.vue'
 
+import FormHeading from '@/components/FormHeading'
+import FormRow from '@/components/FormRow'
+
 export default {
-    name: 'ProjectSettings',
-    props: ['project'],
+    name: 'InstanceSettings',
+    components: {
+        FormRow,
+        FormHeading,
+        DangerSettings
+    },
+    inheritAttrs: false,
+    props: {
+        project: {
+            type: Object,
+            required: true
+        }
+    },
     data () {
         return {
             editing: {
@@ -81,11 +93,6 @@ export default {
 
             this.input.projectName = this.project.name
         }
-    },
-    components: {
-        FormRow,
-        FormHeading,
-        DangerSettings
     }
 }
 </script>

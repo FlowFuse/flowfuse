@@ -3,29 +3,29 @@
     <FormRow>
         <template #description>
             <p class="mb-3">Here, you can configure the next stage in your DevOps Pipeline. You can deploy changes made to this project, directly onto the next stage in your DevOps Pipeline.</p>
-            <p class="">This feature is often used to create a Dev > Staging > Production pipeline, where each stage of your pipeline is a standalone FlowForge Project.</p>
+            <p class="">This feature is often used to create a Dev > Staging > Production pipeline, where each stage of your pipeline is a standalone FlowForge Instance.</p>
             <p class="">Changes are only pushed to the next stage upon manual actioning of the "Push" button below.</p>
         </template>
         <template #input>&nbsp;</template>
     </FormRow>
 
     <FormRow v-model="input.target" :options="projects" data-el="target-project">
-        <template #default>Target Project</template>
+        <template #default>Target Instance</template>
     </FormRow>
 
     <div class="mt-6 flex gap-4">
         <ff-button :disabled="!input.target || loading" data-action="push-stage" @click="deploy()">
             {{ deploying ? `Pushing to "${input.target.name}"...` : 'Push to Stage' }}
         </ff-button>
-        <ff-button kind="secondary" :to="{name: 'Project', params: { 'id': input.target?.id }}" :disabled="!input.target" data-action="view-target-project">
-            View Target Project
+        <ff-button kind="secondary" :to="{name: 'Instance', params: { 'id': input.target?.id }}" :disabled="!input.target" data-action="view-target-project">
+            View Target Instance
         </ff-button>
     </div>
 </template>
 
 <script>
 
-import ProjectAPI from '@/api/project'
+import InstanceApi from '@/api/instances'
 import TeamAPI from '@/api/team'
 
 import FormHeading from '@/components/FormHeading'
@@ -34,12 +34,18 @@ import Alerts from '@/services/alerts'
 import Dialog from '@/services/dialog'
 
 export default {
-    name: 'ProjectSettingsStages',
+    name: 'InstanceSettingsStages',
     components: {
         FormHeading,
         FormRow
     },
-    props: ['project'],
+    inheritAttrs: false,
+    props: {
+        project: {
+            type: Object,
+            required: true
+        }
+    },
     data: function () {
         return {
             projects: [],
@@ -62,7 +68,7 @@ export default {
             const target = this.input.target
             const msg = {
                 header: `Push to "${target.name}"`,
-                html: `<p>Are you sure you want to push to "${target.name}"?</p><p>This will copy over all flows, nodes and credentials from "${this.project.name}".</p><p>It will also transfer the keys of any newly created Environment Variables that your target project does not currently have.</p>`
+                html: `<p>Are you sure you want to push to "${target.name}"?</p><p>This will copy over all flows, nodes and credentials from "${this.project.name}".</p><p>It will also transfer the keys of any newly created Environment Variables that your target instance does not currently have.</p>`
             }
 
             Dialog.show(msg, async () => {
@@ -82,10 +88,10 @@ export default {
                     options: { ...this.parts }
                 }
 
-                await ProjectAPI.updateProject(target.id, { sourceProject: source })
+                await InstanceApi.updateInstance(target.id, { sourceProject: source })
 
                 this.deploying = false
-                Alerts.emit(`Project successfully pushed "${this.project.name}" to "${target.name}".`, 'confirmation')
+                Alerts.emit(`Instance successfully pushed "${this.project.name}" to "${target.name}".`, 'confirmation')
             })
         },
         async loadProjects () {

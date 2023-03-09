@@ -1,16 +1,17 @@
 <template>
     <ff-dialog ref="dialog" header="Create Snapshot" confirm-label="Create" :disable-primary="!formValid" @confirm="confirm()">
-        <template v-slot:default>
+        <template #default>
             <form class="space-y-6 mt-2" @submit.prevent>
                 <FormRow v-model="input.name" :error="errors.name" data-form="snapshot-name">Name</FormRow>
-                <FormRow data-form="snapshot-description">Description
+                <FormRow data-form="snapshot-description">
+                    Description
                     <template #input>
-                        <textarea v-model="input.description" rows="8" class="ff-input ff-text-input" style="height: auto"></textarea>
+                        <textarea v-model="input.description" rows="8" class="ff-input ff-text-input" style="height: auto" />
                     </template>
                 </FormRow>
                 <FormRow v-model="input.setAsTarget" type="checkbox" data-form="snapshot-name">
-                    <span class="" v-ff-tooltip:right="'If checked, all devices in this team will be restarted on this snapshot.'">
-                        Set as Target <QuestionMarkCircleIcon class="ff-icon" style="margin: 0px 0px 0px 4px; height: 18px;"></QuestionMarkCircleIcon>
+                    <span v-ff-tooltip:right="'If checked, all devices in this team will be restarted on this snapshot.'" class="">
+                        Set as Target <QuestionMarkCircleIcon class="ff-icon" style="margin: 0px 0px 0px 4px; height: 18px;" />
                     </span>
                 </FormRow>
             </form>
@@ -19,12 +20,12 @@
 </template>
 <script>
 
+import { QuestionMarkCircleIcon } from '@heroicons/vue/solid'
+
 import snapshotApi from '@/api/projectSnapshots'
 
-import alerts from '@/services/alerts'
-
 import FormRow from '@/components/FormRow.vue'
-import { QuestionMarkCircleIcon } from '@heroicons/vue/solid'
+import alerts from '@/services/alerts'
 
 export default {
     name: 'SnapshotCreateDialog',
@@ -32,8 +33,25 @@ export default {
         FormRow,
         QuestionMarkCircleIcon
     },
-    props: ['project'],
-    emits: ['snapshotCreated'],
+    props: {
+        project: {
+            type: Object,
+            required: true
+        }
+    },
+    emits: ['snapshot-created'],
+    setup () {
+        return {
+            show () {
+                this.$refs.dialog.show()
+                this.input.name = ''
+                this.input.description = ''
+                this.input.setAsTarget = false
+                this.submitted = false
+                this.errors = {}
+            }
+        }
+    },
     data () {
         return {
             submitted: false,
@@ -62,8 +80,8 @@ export default {
                     setAsTarget: this.input.setAsTarget
                 }
                 snapshotApi.create(this.project.id, opts).then((response) => {
-                    this.$emit('snapshotCreated', response)
-                    alerts.emit('Successfully created snapshot of project.', 'confirmation')
+                    this.$emit('snapshot-created', response)
+                    alerts.emit('Successfully created snapshot of instance.', 'confirmation')
                 }).catch(err => {
                     console.log(err.response?.data)
                     if (err.response?.data) {
@@ -72,20 +90,8 @@ export default {
                             return
                         }
                     }
-                    alerts.emit('Failed to create snapshot of project.', 'error')
+                    alerts.emit('Failed to create snapshot of instance.', 'error')
                 })
-            }
-        }
-    },
-    setup () {
-        return {
-            show () {
-                this.$refs.dialog.show()
-                this.input.name = ''
-                this.input.description = ''
-                this.input.setAsTarget = false
-                this.submitted = false
-                this.errors = {}
             }
         }
     }
