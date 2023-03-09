@@ -251,7 +251,7 @@ module.exports = {
                     return M.TeamMember.getTeamMembership(this.id, teamId, includeTeam)
                 },
                 getTeamsOwned: async function () {
-                    return await M.TeamMember.getTeamsOwnedBy(this.id)
+                    return M.TeamMember.getTeamsOwnedBy(this.id)
                 },
                 teamCount: async function () {
                     return M.TeamMember.count({
