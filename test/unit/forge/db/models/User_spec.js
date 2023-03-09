@@ -194,7 +194,7 @@ describe('User model', function () {
                 await alice.destroy()
                 throw new Error('expected deletion of an admin user to throw an error')
             } catch (error) {
-                /cannot delete admin/i.test(error.toString()).should.be.true('expected error to include "cannot delete admin"')
+                should(error.toString()).containEql('Cannot delete the last platform administrator')
             }
         })
     })
