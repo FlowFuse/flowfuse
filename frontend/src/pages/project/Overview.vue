@@ -55,7 +55,7 @@
             </ff-data-table>
         </div>
 
-        <SectionTopMenu hero="Remote Instances" help-header="FlowForge - Instances - Remote" info="Remote Node-RED running the Device Agent connected to an instance in this Application">
+        <SectionTopMenu hero="Remote Instances" help-header="FlowForge - Instances - Remote" info="Remote Node-RED instance running the Device Agent connected to an instance in this Application">
             <template #pictogram>
                 <img src="../../images/pictograms/edge_red.png">
             </template>
@@ -74,115 +74,12 @@
                 </p>
             </template>
         </SectionTopMenu>
-        <div
-            class="space-y-6"
-            data-el="devices-section"
-        >
-            <ff-loading
-                v-if="loading"
-                message="Loading Devices..."
-            />
-            <ff-loading
-                v-else-if="creatingDevice"
-                message="Creating Device..."
-            />
-            <ff-loading
-                v-else-if="deletingDevice"
-                message="Deleting Device..."
-            />
-            <template v-else>
-                <template v-if="devices.length > 0">
-                    <ff-data-table
-                        data-el="remote-instances"
-                        :columns="columns"
-                        :rows="devices"
-                        :show-search="true"
-                        search-placeholder="Search Remote Instances..."
-                    >
-                        <template
-                            v-if="hasPermission('project:snapshot:create')"
-                            #actions
-                        >
-                            <ff-button
-                                data-action="change-target-snapshot"
-                                kind="secondary"
-                                @click="showSelectTargetSnapshotDialog"
-                            >
-                                <template #icon-left>
-                                    <ClockIcon />
-                                </template>
-                                <span class="font-normal">
-                                    Target Snapshot: <b>{{ project.targetSnapshot?.name || 'none' }}</b>
-                                </span>
-                            </ff-button>
-                            <ff-button
-                                v-if="hasPermission('device:create')"
-                                class="font-normal"
-                                data-action="register-device"
-                                kind="primary"
-                                @click="showCreateDeviceDialog"
-                            >
-                                <template #icon-right>
-                                    <PlusSmIcon />
-                                </template>
-                                <span class="font-normal">Add Device</span>
-                            </ff-button>
-                        </template>
-                        <template
-                            v-if="hasPermission('device:edit')"
-                            #context-menu="{row}"
-                        >
-                            <ff-list-item
-                                label="Edit Details"
-                                @click="deviceAction('edit', row.id)"
-                            />
-                            <ff-list-item
-                                label="Remove from Instance"
-                                @click="deviceAction('removeFromProject', row.id)"
-                            />
-                            <ff-list-item
-                                kind="danger"
-                                label="Regenerate Credentials"
-                                @click="deviceAction('updateCredentials', row.id)"
-                            />
-                            <ff-list-item
-                                v-if="hasPermission('device:delete')"
-                                kind="danger"
-                                label="Delete Device"
-                                @click="deviceAction('delete', row.id)"
-                            />
-                        </template>
-                    </ff-data-table>
-                </template>
-                <template v-else>
-                    <div class="flex text-gray-500 justify-center italic mb-4 p-8">
-                        <div class="text-center">
-                            <p>You have not added any devices to this application yet.</p>
-                            <p>
-                                To add a device, go to the
-                                <router-link :to="{name: 'TeamDevices', params: {team_slug:team.slug}}">
-                                    Team Device
-                                </router-link>
-                                page
-                            </p>
-                        </div>
-                    </div>
-                </template>
-            </template>
-        </div>
 
-        <TeamDeviceCreateDialog
-            ref="teamDeviceCreateDialog"
+        <DevicesBrowser
+            :application="project"
             :team="team"
-            @deviceCreating="deviceCreating"
-            @deviceCreated="deviceCreated"
-            @deviceUpdated="deviceUpdated"
-        />
-        <DeviceCredentialsDialog ref="deviceCredentialsDialog" />
-        <SnapshotAssignDialog
-            ref="snapshotAssignDialog"
-            :project="project"
-            @snapshot-assigned="$emit('projectUpdated')"
+            :teamMembership="teamMembership"
+            @project-updated="$emit('projectUpdated', ...arguments)"
         />
     </div>
 </template>
@@ -190,41 +87,27 @@
 <script>
 
 import { Roles } from '@core/lib/roles'
-import { ClockIcon } from '@heroicons/vue/outline'
 import { PlusSmIcon } from '@heroicons/vue/solid'
 
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import Alerts from '@/services/alerts'
-import Dialog from '@/services/dialog'
+import SectionTopMenu from '../../components/SectionTopMenu'
 
-import deviceApi from '@/api/devices'
-import projectApi from '@/api/project'
-
-import permissionsMixin from '@/mixins/Permissions'
-
-import DeviceCredentialsDialog from '../team/Devices/dialogs/DeviceCredentialsDialog'
-import DeviceLastSeenBadge from '@/pages/device/components/DeviceLastSeenBadge'
+import DevicesBrowser from './DevicesBrowser'
+import ProjectStatusBadge from './components/ProjectStatusBadge'
 import DeploymentName from './components/cells/DeploymentName.vue'
-import DeviceLink from './components/cells/DeviceLink.vue'
-import InstanceLink from './components/cells/InstanceLink.vue'
+
 import LastSeen from './components/cells/LastSeen.vue'
 import ProjectEditorLink from './components/cells/ProjectEditorLink.vue'
-import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
-import SectionTopMenu from '@/components/SectionTopMenu'
-import Snapshot from './components/cells/Snapshot.vue'
-import SnapshotAssignDialog from './Snapshots/dialogs/SnapshotAssignDialog'
-import TeamDeviceCreateDialog from '../team/Devices/dialogs/TeamDeviceCreateDialog'
+
+import permissionsMixin from '@/mixins/Permissions'
 
 export default {
     name: 'ProjectOverview',
     components: {
-        ClockIcon,
-        DeviceCredentialsDialog,
+        DevicesBrowser,
         PlusSmIcon,
-        SnapshotAssignDialog,
-        TeamDeviceCreateDialog,
         SectionTopMenu
     },
     mixins: [permissionsMixin],
@@ -236,38 +119,8 @@ export default {
         }
     },
     emits: ['project-delete', 'project-suspend', 'project-restart', 'project-start', 'projectUpdated'],
-    data () {
-        return {
-            loading: true,
-            creatingDevice: false,
-            deletingDevice: false,
-            devices: [],
-            checkInterval: null
-        }
-    },
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
-        columns () {
-            return [
-                { label: 'Device', key: 'name', class: ['w-64'], sortable: true, component: { is: markRaw(DeviceLink) } },
-                {
-                    label: 'Instance',
-                    key: 'project',
-                    class: ['w-64'],
-                    sortable: true,
-                    component: {
-                        is: markRaw(InstanceLink),
-                        map: {
-                            id: 'project.id',
-                            name: 'project.name'
-                        }
-                    }
-                },
-                { label: 'Last Seen', key: 'lastSeenAt', class: ['w-32'], sortable: true, component: { is: markRaw(DeviceLastSeenBadge) } },
-                { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(ProjectStatusBadge) } },
-                { label: 'Deployed Snapshot', class: ['w-48'], component: { is: markRaw(Snapshot) } }
-            ]
-        },
         cloudColumns () {
             return [
                 { label: 'Name', class: ['w-64'], component: { is: markRaw(DeploymentName), extraProps: { disabled: !this.projectRunning || this.isVisitingAdmin } } },
@@ -289,100 +142,7 @@ export default {
             return this.teamMembership.role === Roles.Admin
         }
     },
-    watch: {
-        project: 'fetchData'
-    },
-    mounted () {
-        this.pollForData()
-    },
-    unmounted () {
-        clearInterval(this.checkInterval)
-    },
     methods: {
-        showCreateDeviceDialog () {
-            this.$refs.teamDeviceCreateDialog.show(null, this.project)
-        },
-        showEditDeviceDialog (device) {
-            this.$refs.teamDeviceCreateDialog.show(device)
-        },
-        deviceCreating () {
-            this.creatingDevice = true
-        },
-        deviceCreated (device) {
-            this.creatingDevice = false
-            if (device) {
-                setTimeout(() => {
-                    this.$refs.deviceCredentialsDialog.show(device)
-                }, 500)
-                this.devices.push(device)
-            }
-        },
-        deviceUpdated (device) {
-            const index = this.devices.findIndex(d => d.id === device.id)
-            if (index > -1) {
-                this.devices[index] = device
-            }
-        },
-        async assignDevice (device, projectId) {
-            const updatedDevice = await deviceApi.updateDevice(device.id, { project: projectId })
-            device.project = updatedDevice.project
-        },
-        async pollForData () {
-            try {
-                if (this.project.id) {
-                    await this.fetchData()
-                }
-            } finally {
-                this.checkInterval = setTimeout(this.pollForData, 10000)
-            }
-        },
-        fetchData: async function () {
-            const data = await projectApi.getProjectDevices(this.project.id)
-            this.devices = data.devices
-            this.loading = false
-        },
-        deviceAction (action, deviceId) {
-            const device = this.devices.find(d => d.id === deviceId)
-            if (action === 'edit') {
-                this.showEditDeviceDialog(device)
-            } else if (action === 'delete') {
-                Dialog.show({
-                    header: 'Delete Device',
-                    kind: 'danger',
-                    text: 'Are you sure you want to delete this device? Once deleted, there is no going back.',
-                    confirmLabel: 'Delete'
-                }, async () => {
-                    this.deletingDevice = true
-                    try {
-                        await deviceApi.deleteDevice(device.id)
-                        Alerts.emit('Successfully deleted the device', 'confirmation')
-                        const index = this.devices.indexOf(device)
-                        this.devices.splice(index, 1)
-                    } catch (err) {
-                        Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)
-                    } finally {
-                        this.deletingDevice = false
-                    }
-                })
-            } else if (action === 'updateCredentials') {
-                this.$refs.deviceCredentialsDialog.show(device)
-            } else if (action === 'removeFromProject') {
-                Dialog.show({
-                    header: 'Remove Device from Project',
-                    kind: 'danger',
-                    text: 'Are you sure you want to remove this device from the application? This will stop the application running on the device.',
-                    confirmLabel: 'Remove'
-                }, async () => {
-                    await deviceApi.updateDevice(device.id, { project: null })
-                    delete device.project
-
-                    const index = this.devices.indexOf(device)
-                    this.devices.splice(index, 1)
-
-                    Alerts.emit('Successfully unassigned the application from this device.', 'confirmation')
-                })
-            }
-        },
         selectedCloudRow (cloudInstance) {
             this.$router.push({
                 name: 'Instance',
@@ -390,9 +150,6 @@ export default {
                     id: cloudInstance.id
                 }
             })
-        },
-        showSelectTargetSnapshotDialog () {
-            this.$refs.snapshotAssignDialog.show()
         }
     }
 }
