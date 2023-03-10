@@ -27,12 +27,22 @@
 
             <table class="table-fixed w-full" v-if="device">
                 <tr class="border-b">
-                    <td class="w-1/4 font-medium">Project</td>
+                    <td class="w-1/4 font-medium">Application</td>
                     <td class="py-2">
                         <router-link v-if="device?.project" :to="{name: 'Project', params: { id: device.project.id }}">
                             {{ device.project?.name }}
                         </router-link>
-                        <span v-else>No Project Assigned</span>
+                        <span v-else>Not associated with an Application</span>
+                    </td>
+                </tr>
+                <!-- TODO: Currently links to same object as project -->
+                <tr class="border-b">
+                    <td class="w-1/4 font-medium">Instance</td>
+                    <td class="py-2">
+                        <router-link v-if="device?.project" :to="{name: 'Instance', params: { id: device.project.id }}">
+                            {{ device.project?.name }}
+                        </router-link>
+                        <span v-else>No Instance Assigned</span>
                     </td>
                 </tr>
                 <tr class="border-b">
