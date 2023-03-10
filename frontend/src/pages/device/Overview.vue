@@ -32,7 +32,7 @@
                         <router-link v-if="device?.project" :to="{name: 'Project', params: { id: device.project.id }}">
                             {{ device.project?.name }}
                         </router-link>
-                        <span v-else>Not associated with an Application</span>
+                        <span v-else>None</span>
                     </td>
                 </tr>
                 <!-- TODO: Currently links to same object as project -->
@@ -42,7 +42,7 @@
                         <router-link v-if="device?.project" :to="{name: 'Instance', params: { id: device.project.id }}">
                             {{ device.project?.name }}
                         </router-link>
-                        <span v-else>No Instance Assigned</span>
+                        <span v-else>None</span>
                     </td>
                 </tr>
                 <tr class="border-b">

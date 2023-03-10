@@ -19,7 +19,7 @@
                 class="space-y-6 mt-2"
                 @submit.prevent="confirm()"
             >
-                <p>Please select the Snapshot that you wish to deploy to all of your devices in this instance.</p>
+                <p>Please select the Snapshot that you wish to deploy to all of your devices assigned to this instance.</p>
                 <FormRow
                     data-form="snapshot"
                     containerClass="w-full"

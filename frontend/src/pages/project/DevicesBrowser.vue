@@ -63,7 +63,7 @@
                             <br><br>
                             To add a device, go to the
                             <router-link :to="{name: 'TeamDevices', params: {team_slug:team.slug}}">
-                                Team Device
+                                Team Devices
                             </router-link>
                             page and assign it to an instance in this application.
                         </template>
@@ -350,9 +350,9 @@ export default {
                 this.$refs.deviceCredentialsDialog.show(device)
             } else if (action === 'removeFromProject') {
                 Dialog.show({
-                    header: 'Remove Device from Project',
+                    header: 'Remove Device from Instance',
                     kind: 'danger',
-                    text: `Are you sure you want to remove this device from the application${this.displayingInstance ? ' instance' : ''}? This will stop the application running on the device.`,
+                    text: 'Are you sure you want to remove this device from the instance? This will stop the flows running on the device.',
                     confirmLabel: 'Remove'
                 }, async () => {
                     await deviceApi.updateDevice(device.id, { project: null })
@@ -360,7 +360,7 @@ export default {
 
                     this.devices.delete(device.id)
 
-                    Alerts.emit(`Successfully unassigned the application${this.displayingInstance ? ' instance' : ''} from this device.`, 'confirmation')
+                    Alerts.emit('Successfully removed the device from the instance.', 'confirmation')
                 })
             }
         }

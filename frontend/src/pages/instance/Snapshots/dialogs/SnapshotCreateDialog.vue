@@ -10,7 +10,7 @@
                     </template>
                 </FormRow>
                 <FormRow v-model="input.setAsTarget" type="checkbox" data-form="snapshot-name">
-                    <span v-ff-tooltip:right="'If checked, all devices in this instance will be restarted on this snapshot.'" class="">
+                    <span v-ff-tooltip:right="'If checked, all devices assigned to this instance will be restarted on this snapshot.'" class="">
                         Set as Target <QuestionMarkCircleIcon class="ff-icon" style="margin: 0px 0px 0px 4px; height: 18px;" />
                     </span>
                 </FormRow>
