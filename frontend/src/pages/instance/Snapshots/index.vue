@@ -176,7 +176,7 @@ export default {
             Dialog.show({
                 header: 'Set Device Target Snapshot',
                 html: `<p>Are you sure you want to set this snapshot as the device target?</p>
-            <p>All devices in this team will be restarted on this snapshot.</p>`,
+            <p>All devices in this instance will be restarted on this snapshot.</p>`,
                 confirmLabel: 'Set Target'
             }, async () => {
                 await InstanceApi.updateInstanceDeviceSettings(this.instance.id, {
