@@ -248,7 +248,7 @@ export default {
     },
     methods: {
         showCreateDeviceDialog () {
-            this.$refs.teamDeviceCreateDialog.show(null, this.application)
+            this.$refs.teamDeviceCreateDialog.show(null, this.instance, this.application)
         },
 
         showEditDeviceDialog (device) {
