@@ -152,7 +152,7 @@ Or to run as a service:
 
 Once FlowForge is started, you will be ready to perform the first run setup.
 
-Please, follow [this guide](../first-run.md) to continue.
+Follow [this guide](../first-run.md) to continue.
 
 ## Setting up Mosquitto (optional)
 
