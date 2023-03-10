@@ -8,6 +8,27 @@ navTitle: FlowForge Cloud
 FlowForge Cloud is a hosted service allowing users to sign-up and start creating teams and projects without having to install and manage their own instance of FlowForge.
 The [Concepts](../user/concepts.md) remain the same, however FlowForge Inc. is the administrator of the platform.
 
+## 30-day Free Trial
+
+When users sign-up to FlowForge Cloud then get a 30-day free trial of the platform.
+During that trial they are able to create one Small Node-RED Project. This is a great
+way to start using FlowForge and discover a lot of the value it provides.
+
+Users can setup their billing details at any time during the trial - for example
+if they want to create additional projects. Those projects will get charged for,
+but the trial project will remain free until the end of the trial period.
+
+At the end of the 30-day trial period, if billing has not been setup on the team,
+the trial project will be suspended. This means it will no longer be running and the
+editor will not be accessible. Once billing has been setup on the team, the project
+can be resumed by the team owner.
+
+If billing has been setup with the trial period ends, the trial project will be
+added to the team's monthly subscription.
+
+The platform will email users about their trial when it is nearing the end to ensure
+they know what is happening and whether they still need to setup billing.
+
 ## Billing
 
 Customers are billed at the team level for each project they create. This is a recurring monthly charge.
