@@ -136,7 +136,7 @@ import TeamDeviceCreateDialog from '../team/Devices/dialogs/TeamDeviceCreateDial
 
 import ProjectStatusBadge from './components/ProjectStatusBadge'
 import DeviceLink from './components/cells/DeviceLink.vue'
-import InstanceLink from './components/cells/InstanceLink.vue'
+import InstanceInstancesLink from './components/cells/InstanceInstancesLink.vue'
 import Snapshot from './components/cells/Snapshot.vue'
 
 import deviceApi from '@/api/devices'
@@ -205,7 +205,7 @@ export default {
                     class: ['w-64'],
                     sortable: true,
                     component: {
-                        is: markRaw(InstanceLink),
+                        is: markRaw(InstanceInstancesLink),
                         map: {
                             id: 'project.id',
                             name: 'project.name'

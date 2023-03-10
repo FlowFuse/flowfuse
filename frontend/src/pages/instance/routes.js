@@ -40,6 +40,7 @@ export default [
             },
             {
                 path: 'remote-instances',
+                name: 'InstanceRemoteInstances',
                 component: InstanceRemoteInstances,
                 meta: {
                     title: 'Instance - Remote Instances'
