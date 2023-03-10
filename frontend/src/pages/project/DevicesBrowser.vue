@@ -325,7 +325,7 @@ export default {
         },
 
         deviceAction (action, deviceId) {
-            const device = this.devices.find(d => d.id === deviceId)
+            const device = this.devices.get(deviceId)
             if (action === 'edit') {
                 this.showEditDeviceDialog(device)
             } else if (action === 'delete') {
@@ -339,8 +339,7 @@ export default {
                     try {
                         await deviceApi.deleteDevice(device.id)
                         Alerts.emit('Successfully deleted the device', 'confirmation')
-                        const index = this.devices.indexOf(device)
-                        this.devices.splice(index, 1)
+                        this.devices.delete(device.id)
                     } catch (err) {
                         Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)
                     } finally {
@@ -353,16 +352,15 @@ export default {
                 Dialog.show({
                     header: 'Remove Device from Project',
                     kind: 'danger',
-                    text: 'Are you sure you want to remove this device from the application? This will stop the application running on the device.',
+                    text: `Are you sure you want to remove this device from the application${this.displayingInstance ? ' instance' : ''}? This will stop the application running on the device.`,
                     confirmLabel: 'Remove'
                 }, async () => {
                     await deviceApi.updateDevice(device.id, { project: null })
                     delete device.project
 
-                    const index = this.devices.indexOf(device)
-                    this.devices.splice(index, 1)
+                    this.devices.delete(device.id)
 
-                    Alerts.emit('Successfully unassigned the application from this device.', 'confirmation')
+                    Alerts.emit(`Successfully unassigned the application${this.displayingInstance ? ' instance' : ''} from this device.`, 'confirmation')
                 })
             }
         }
