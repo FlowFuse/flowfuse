@@ -120,7 +120,7 @@ export default {
             if (this.instance.id) {
                 this.loading = true
                 const deviceCounts = await this.countDevices()
-                const data = await SnapshotApi.getProjectSnapshots(this.instance.id) // TODO Move to instances?
+                const data = await SnapshotApi.getInstanceSnapshots(this.instance.id) // TODO Move to instances?
                 this.snapshots = data.snapshots.map((s) => {
                     s.deviceCount = deviceCounts[s.id]
                     return s

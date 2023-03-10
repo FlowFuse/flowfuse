@@ -5,6 +5,7 @@
 import InstanceAuditLog from './AuditLog.vue'
 import InstanceLogs from './Logs.vue'
 import InstanceOverview from './Overview.vue'
+import InstanceRemoteInstances from './RemoteInstances.vue'
 import InstanceSettings from './Settings/index.vue'
 import InstanceSettingsRoutes from './Settings/routes'
 import InstanceSnapshots from './Snapshots/index.vue'
@@ -24,6 +25,27 @@ export default [
         children: [
             { path: 'overview', component: InstanceOverview },
             {
+                path: 'audit-log',
+                component: InstanceAuditLog,
+                meta: {
+                    title: 'Instance - Activity'
+                }
+            },
+            {
+                path: 'logs',
+                component: InstanceLogs,
+                meta: {
+                    title: 'Instance - Logs'
+                }
+            },
+            {
+                path: 'remote-instances',
+                component: InstanceRemoteInstances,
+                meta: {
+                    title: 'Instance - Remote Instances'
+                }
+            },
+            {
                 path: 'settings',
                 component: InstanceSettings,
                 meta: {
@@ -35,24 +57,11 @@ export default [
                 children: [...InstanceSettingsRoutes]
             },
             {
-                path: 'logs',
-                component: InstanceLogs,
-                meta: {
-                    title: 'Instance - Logs'
-                }
-            },
-            {
                 path: 'snapshots',
+                name: 'InstanceSnapshots',
                 component: InstanceSnapshots,
                 meta: {
                     title: 'Instance - Snapshots'
-                }
-            },
-            {
-                path: 'audit-log',
-                component: InstanceAuditLog,
-                meta: {
-                    title: 'Instance - Activity'
                 }
             }
         ]

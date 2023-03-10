@@ -118,8 +118,8 @@
     <SnapshotAssignDialog
         v-if="displayingInstance"
         ref="snapshotAssignDialog"
-        :project="instance"
-        @snapshot-assigned="$emit('project-updated')"
+        :instance="instance"
+        @snapshot-assigned="$emit('instance-updated')"
     />
 </template>
 
@@ -130,10 +130,10 @@ import { PlusSmIcon } from '@heroicons/vue/solid'
 import { markRaw } from 'vue'
 
 import DeviceLastSeenBadge from '../device/components/DeviceLastSeenBadge'
+import SnapshotAssignDialog from '../instance/Snapshots/dialogs/SnapshotAssignDialog'
 import DeviceCredentialsDialog from '../team/Devices/dialogs/DeviceCredentialsDialog'
 import TeamDeviceCreateDialog from '../team/Devices/dialogs/TeamDeviceCreateDialog'
 
-import SnapshotAssignDialog from './Snapshots/dialogs/SnapshotAssignDialog'
 import ProjectStatusBadge from './components/ProjectStatusBadge'
 import DeviceLink from './components/cells/DeviceLink.vue'
 import InstanceLink from './components/cells/InstanceLink.vue'
@@ -181,7 +181,7 @@ export default {
             required: true
         }
     },
-    emits: ['project-updated'],
+    emits: ['instance-updated'],
     data () {
         return {
             loading: true,
@@ -194,9 +194,12 @@ export default {
     },
     computed: {
         columns () {
-            return [
-                { label: 'Device', key: 'name', class: ['w-64'], sortable: true, component: { is: markRaw(DeviceLink) } },
-                {
+            const columns = [
+                { label: 'Device', key: 'name', class: ['w-64'], sortable: true, component: { is: markRaw(DeviceLink) } }
+            ]
+
+            if (!this.displayingInstance) {
+                columns.push({
                     label: 'Instance',
                     key: 'project',
                     class: ['w-64'],
@@ -208,11 +211,16 @@ export default {
                             name: 'project.name'
                         }
                     }
-                },
+                })
+            }
+
+            columns.push(
                 { label: 'Last Seen', key: 'lastSeenAt', class: ['w-32'], sortable: true, component: { is: markRaw(DeviceLastSeenBadge) } },
                 { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(ProjectStatusBadge) } },
                 { label: 'Deployed Snapshot', class: ['w-48'], component: { is: markRaw(Snapshot) } }
-            ]
+            )
+
+            return columns
         },
         hasLoadedModel () {
             return this.instance?.id || this.application?.id || this.team?.id
@@ -261,15 +269,12 @@ export default {
                 setTimeout(() => {
                     this.$refs.deviceCredentialsDialog.show(device)
                 }, 500)
-                this.devices.push(device)
+                this.devices.set(device.id, device)
             }
         },
 
         deviceUpdated (device) {
-            const index = this.devices.findIndex(d => d.id === device.id)
-            if (index > -1) {
-                this.devices[index] = device
-            }
+            this.devices.set(device.id, device)
         },
 
         async assignDevice (device, projectId) {
@@ -294,7 +299,7 @@ export default {
         async fetchData (nextCursor = null, polled = false) {
             let data
             if (this.displayingInstance) {
-                data = await instanceApi.getProjectDevices(this.instance.id, nextCursor)
+                data = await instanceApi.getInstanceDevices(this.instance.id, nextCursor)
             } else if (this.displayingApplication) {
                 data = await projectApi.getProjectDevices(this.application.id, nextCursor)
             } else if (this.displayingTea) {
