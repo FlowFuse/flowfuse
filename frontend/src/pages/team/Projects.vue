@@ -1,14 +1,30 @@
 <template>
     <SectionTopMenu hero="Applications">
-        <template v-slot:tools>
-            <ff-button data-action="create-project-1" v-if="hasPermission('project:create')" kind="primary" size="small" to="./projects/create" data-nav="create-project"><template v-slot:icon-left><PlusSmIcon /></template>Create Application</ff-button>
-        </template>
     </SectionTopMenu>
     <div class="space-y-6">
         <ff-loading v-if="loading" message="Loading Applications..." />
         <template v-else-if="projects.length > 0">
             <ff-data-table data-el="projects-table" :columns="columns" :rows="projects" :show-search="true" search-placeholder="Search Applications..."
-                           :rows-selectable="true" @row-selected="openProject"/>
+                           :rows-selectable="true" @row-selected="openProject"
+            >
+                <template #actions>
+                    <ff-button data-action="create-project-1"
+                               v-if="hasPermission('project:create')"
+                               kind="primary"
+                               to="./projects/create" data-nav="create-project">
+                        <template v-slot:icon-left>
+                            <PlusSmIcon />
+                        </template>
+                        Create Application
+                    </ff-button>
+                    <!-- <ff-button data-action="create-project" to="./projects/create">
+                                <template v-slot:icon-right>
+                                    <PlusSmIcon />
+                                </template>
+                                Create Application
+                            </ff-button> -->
+                </template>
+            </ff-data-table>
         </template>
         <template v-else-if="hasPermission('project:create') && !loading">
             <div class="flex justify-center mb-4 p-8">

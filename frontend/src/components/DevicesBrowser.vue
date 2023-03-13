@@ -46,7 +46,7 @@
                         kind="primary"
                         @click="showCreateDeviceDialog"
                     >
-                        <template #icon-right>
+                        <template #icon-left>
                             <PlusSmIcon />
                         </template>
                         Add Device

@@ -35,7 +35,7 @@
                             kind="primary"
                             @click="showCreateTokenDialog"
                         >
-                            <template #icon-right>
+                            <template #icon-left>
                                 <PlusSmIcon />
                             </template>
                             Add Token
