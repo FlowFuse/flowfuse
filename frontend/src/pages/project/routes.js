@@ -14,7 +14,7 @@ export default [
     {
         path: '/project/:id',
         redirect: to => {
-            return `/project/${to.params.id}/overview`
+            return `/project/${to.params.id}/instances`
         },
         name: 'Project',
         component: Project,
@@ -22,7 +22,13 @@ export default [
             title: 'Application - Overview'
         },
         children: [
-            { path: 'overview', component: ProjectOverview },
+            {
+                path: 'instances',
+                component: ProjectOverview,
+                meta: {
+                    title: 'Application - Instances'
+                }
+            },
             {
                 path: 'settings',
                 component: ProjectSettings,

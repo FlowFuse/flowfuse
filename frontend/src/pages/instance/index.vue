@@ -45,7 +45,7 @@
                             </span>
                         </button>
                     </div>
-                    <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" alt="Open actions menu" :options="actionsDropdownOptions" data-action="open-actions">Actions</DropdownMenu>
+                    <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
                 </div>
             </template>
         </SectionTopMenu>
@@ -143,7 +143,7 @@ export default {
         editorAvailable () {
             return this.instanceRunning
         },
-        actionsDropdownOptions: function () {
+        actionsDropdownOptions () {
             const flowActionsDisabled = !(this.instance.meta && this.instance.meta.state !== 'suspended')
 
             const result = [

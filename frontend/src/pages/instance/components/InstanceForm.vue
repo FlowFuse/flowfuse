@@ -4,14 +4,14 @@
         @submit.prevent="$emit('on-submit', input)"
     >
         <SectionTopMenu
-            :hero="creatingNew ? 'Create a new instance' : 'Update Instance'"
+            :hero="creatingNew ? 'Create a new Application' : 'Update Instance'"
         />
 
         <!-- Form title -->
         <div class="mb-8 text-sm text-gray-500">
             <template v-if="creatingNew">
                 <template v-if="!isCopyProject">
-                    Let's get your new Node-RED instances setup in no time.
+                    Let's get your new Node-RED application and first instance setup in no time.
                 </template>
             </template>
             <template v-else>
@@ -19,7 +19,7 @@
             </template>
         </div>
 
-        <!-- Instance Name -->
+        <!-- Application Name -->
         <div>
             <FormRow
                 v-model="input.name"
@@ -28,13 +28,14 @@
                 data-form="project-name"
             >
                 <template #default>
-                    Instance Name
+                    Application Name
                 </template>
                 <template
                     v-if="creatingNew"
                     #description
                 >
-                    Please note, currently, instance names cannot be changed once a instance is created
+                    This will be shared by the application and it's first instance<br>
+                    Please note, currently, names cannot be changed once created
                 </template>
                 <template
                     v-if="creatingNew"
@@ -178,7 +179,7 @@
                 type="submit"
             >
                 <template v-if="creatingNew">
-                    Create Instance
+                    Create Application
                 </template>
                 <template v-else>
                     Confirm Changes
@@ -379,7 +380,7 @@ export default {
         }
 
         if (this.projectTypes.length === 0) {
-            this.errors.projectType = 'No project types available. Ask an Administrator to create a new project type'
+            this.errors.projectType = 'No instance types available. Ask an Administrator to create a new instance type'
         } else if (activeProjectTypeCount === 1) {
             this.input.projectType = this.projectTypes.find(pt => !pt.disabled).id
         }
@@ -443,7 +444,7 @@ export default {
 
             if (this.stacks.length === 0) {
                 this.input.stack = null
-                this.errors.stack = 'No stacks available for this project type. Ask an Administrator to create a new stack definition'
+                this.errors.stack = 'No stacks available for this instance type. Ask an Administrator to create a new stack definition'
                 return
             }
 

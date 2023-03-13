@@ -49,7 +49,7 @@
                         <template #icon-right>
                             <PlusSmIcon />
                         </template>
-                        <span class="font-normal">Add Device</span>
+                        Add Device
                     </ff-button>
                 </template>
                 <template v-if="devices.size === 0" #table>
@@ -131,13 +131,13 @@ import { markRaw } from 'vue'
 
 import DeviceLastSeenBadge from '../pages/device/components/DeviceLastSeenBadge'
 import SnapshotAssignDialog from '../pages/instance/Snapshots/dialogs/SnapshotAssignDialog'
-import DeviceCredentialsDialog from '../pages/team/Devices/dialogs/DeviceCredentialsDialog'
-import TeamDeviceCreateDialog from '../pages/team/Devices/dialogs/TeamDeviceCreateDialog'
 
 import ProjectStatusBadge from '../pages/project/components/ProjectStatusBadge'
 import DeviceLink from '../pages/project/components/cells/DeviceLink.vue'
 import InstanceInstancesLink from '../pages/project/components/cells/InstanceInstancesLink.vue'
 import Snapshot from '../pages/project/components/cells/Snapshot.vue'
+import DeviceCredentialsDialog from '../pages/team/Devices/dialogs/DeviceCredentialsDialog'
+import TeamDeviceCreateDialog from '../pages/team/Devices/dialogs/TeamDeviceCreateDialog'
 
 import deviceApi from '@/api/devices'
 import instanceApi from '@/api/instances'

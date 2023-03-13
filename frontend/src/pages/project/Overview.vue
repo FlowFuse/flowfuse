@@ -9,9 +9,6 @@
                 <p>It will always run the latest flow deployed in Node-RED and use the latest credentials and runtime settings defined in the Projects settings.</p>
                 <p>To edit an Applications flow, open the editor of the Instance.</p>
             </template>
-            <template #tools>
-                <ff-button v-if="hasPermission('project:create')" data-action="create-project-1" kind="primary" size="small" :to="`/team/${team.slug}/projects/create`" data-nav="create-instance"><template #icon-left><PlusSmIcon /></template>Create Instance</ff-button>
-            </template>
         </SectionTopMenu>
 
         <div class="space-y-6 mb-12">
@@ -92,8 +89,8 @@ import { PlusSmIcon } from '@heroicons/vue/solid'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import SectionTopMenu from '../../components/SectionTopMenu'
 import DevicesBrowser from '../../components/DevicesBrowser'
+import SectionTopMenu from '../../components/SectionTopMenu'
 
 import ProjectStatusBadge from './components/ProjectStatusBadge'
 import DeploymentName from './components/cells/DeploymentName.vue'
