@@ -1,10 +1,8 @@
 <template>
-    <ff-loading v-if="loading.deleting" message="Deleting Instance..." />
-    <ff-loading v-if="loading.suspend" message="Suspending Instance..." />
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigationTeamOptions>
             <template #nested-menu>
-                <!-- TODO Read instance.application or pass in application details -->
+                <!-- TODO Read instance.application or pass in application details as a prop -->
                 <router-link :to="{name: 'Project', id: instance.id}">
                     <nav-item :icon="icons.chevronLeft" label="Back to Application" data-nav="project-overview" />
                 </router-link>
@@ -16,7 +14,9 @@
             </template>
         </SideNavigationTeamOptions>
     </Teleport>
-    <main v-if="!instance?.id">
+    <ff-loading v-if="loading.deleting" message="Deleting Instance..." />
+    <ff-loading v-else-if="loading.suspend" message="Suspending Instance..." />
+    <main v-else-if="!instance?.id">
         <ff-loading message="Loading Instance..." />
     </main>
     <main v-else data-el="instances-section">
