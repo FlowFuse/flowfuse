@@ -54,11 +54,11 @@
                 </template>
                 <template v-if="devices.size === 0" #table>
                     <div class="ff-no-data ff-no-data-large">
-                        <template v-if="displayingTeam">
+                        <span v-if="displayingTeam" data-el="team-no-devices">
                             You don't have any devices yet
-                        </template>
+                        </span>
 
-                        <template v-else-if="displayingApplication">
+                        <span v-else-if="displayingApplication" data-el="application-no-devices">
                             You have not added any devices to this application yet.
                             <br><br>
                             To add a device, go to the
@@ -66,15 +66,15 @@
                                 Team Devices
                             </router-link>
                             page and assign it to an instance in this application.
-                        </template>
+                        </span>
 
-                        <template v-else-if="displayingInstance">
+                        <span v-else-if="displayingInstance" data-el="instance-no-devices">
                             You have not assigned any devices to this instance yet.
-                        </template>
+                        </span>
 
-                        <template v-else>
+                        <span v-else data-el="no-devices">
                             No devices found.
-                        </template>
+                        </span>
                     </div>
                 </template>
                 <template
@@ -223,16 +223,16 @@ export default {
             return columns
         },
         hasLoadedModel () {
-            return this.instance?.id || this.application?.id || this.team?.id
+            return !!this.instance?.id || !!this.application?.id || !!this.team?.id
         },
         displayingInstance () {
-            return this.instance?.id
+            return !!this.instance?.id
         },
         displayingApplication () {
-            return this.application?.id && !this.displayingInstance
+            return !!this.application?.id && !this.displayingInstance
         },
         displayingTeam () {
-            return this.team?.id && !this.displayingApplication
+            return !!this.team?.id && !this.displayingInstance && !this.displayingApplication
         }
     },
     watch: {
