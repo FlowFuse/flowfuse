@@ -19,19 +19,29 @@
             </div>
         </template>
         <template v-else>
-            <div class="flex space-x-4">
-                <ff-button @click="startEdit">Edit</ff-button>
-                <ff-button class="warning" kind="danger" @click="deleteAccount">Delete Account</ff-button>
-            </div>
+            <ff-button @click="startEdit">Edit</ff-button>
         </template>
     </form>
+
+    <FormHeading class="text-red-700 mt-6">Delete Account</FormHeading>
+    <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+        <div class="flex-grow">
+            <div class="max-w-sm">
+                Before you can delete your account, teams you own must be deleted or have at least 1 other owner.
+            </div>
+        </div>
+        <div class="min-w-fit flex-shrink-0">
+            <ff-button class="warning" kind="danger" @click="deleteAccount">Delete Account</ff-button>
+        </div>
+    </div>
+
 </template>
 
 <script>
 import userApi from '@/api/user'
 
 import alerts from '@/services/alerts'
-
+import FormHeading from '@/components/FormHeading'
 import FormRow from '@/components/FormRow'
 import dialog from '@/services/dialog'
 
@@ -200,7 +210,8 @@ export default {
         }
     },
     components: {
-        FormRow
+        FormRow,
+        FormHeading
     }
 }
 </script>
