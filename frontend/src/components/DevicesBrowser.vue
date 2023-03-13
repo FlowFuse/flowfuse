@@ -343,7 +343,8 @@ export default {
         async pollForData () {
             try {
                 if (this.hasLoadedModel) {
-                    await this.fetchData(null, true) // to-do: For now, this only polls the first page...
+                    const firstRequest = !this.checkInterval
+                    await this.fetchData(null, !firstRequest) // to-do: For now, this only polls the first page...
                 }
             } finally {
                 this.checkInterval = setTimeout(this.pollForData, 10000)
