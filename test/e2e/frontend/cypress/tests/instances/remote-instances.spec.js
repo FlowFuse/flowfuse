@@ -40,7 +40,7 @@ describe('FlowForge - Project - Overview', () => {
         cy.get('[data-el="snapshot-assign-dialog"] .ff-btn--primary').should('be.disabled')
 
         cy.get('[data-form="snapshot-select"]').click()
-        cy.get('[data-form="snapshot-select"] .ff-dropdown-option:last').click()
+        cy.get('[data-form="snapshot-select"] .ff-dropdown-option:first').click()
 
         // Button enabled
         cy.get('[data-el="snapshot-assign-dialog"] .ff-btn--primary').should('not.be.disabled')
@@ -56,7 +56,7 @@ describe('FlowForge - Project - Overview', () => {
         cy.get('[data-form="snapshot-select"] .ff-dropdown-options').contains('snapshot 3 (active)')
 
         // Reset
-        cy.get('[data-form="snapshot-select"] .ff-dropdown-option:first').click()
+        cy.get('[data-form="snapshot-select"] .ff-dropdown-option:last').click()
         cy.get('[data-el="snapshot-assign-dialog"] .ff-btn--primary').click()
         cy.get('[data-action="change-target-snapshot"]').contains('snapshot 1')
     })

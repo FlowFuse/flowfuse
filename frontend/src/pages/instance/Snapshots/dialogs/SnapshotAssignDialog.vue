@@ -106,7 +106,7 @@ export default {
         },
         fetchData: async function () {
             const data = await snapshotApi.getInstanceSnapshots(this.instance.id)
-            this.snapshots = (data.snapshots || []).sort((a, b) => a.name.localeCompare(b.name))
+            this.snapshots = data.snapshots
 
             this.loading = false
         },
