@@ -60,12 +60,6 @@
 
                         <span v-else-if="displayingApplication" data-el="application-no-devices">
                             You have not added any devices to this application yet.
-                            <br><br>
-                            To add a device, go to the
-                            <router-link :to="{name: 'TeamDevices', params: {team_slug:team.slug}}">
-                                Team Devices
-                            </router-link>
-                            page and assign it to an instance in this application.
                         </span>
 
                         <span v-else-if="displayingInstance" data-el="instance-no-devices">
