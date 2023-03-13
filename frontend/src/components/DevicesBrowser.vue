@@ -17,7 +17,7 @@
         />
         <template v-else>
             <ff-data-table
-                :data-el="`${displayingTeam ? 'devices' : 'remote-instances'}`"
+                data-el="devices-browser"
                 :columns="columns"
                 :rows="Array.from(devices.values())"
                 :show-search="true"
