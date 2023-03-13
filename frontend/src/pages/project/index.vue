@@ -1,6 +1,4 @@
 <template>
-    <ff-loading v-if="loading.deleting" message="Deleting Project..." />
-    <ff-loading v-if="loading.suspend" message="Suspending Project..." />
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigationTeamOptions>
             <template v-slot:nested-menu>
@@ -11,7 +9,10 @@
             </template>
         </SideNavigationTeamOptions>
     </Teleport>
-    <main>
+
+    <ff-loading v-if="loading.deleting" message="Deleting Application..." />
+    <ff-loading v-else-if="loading.suspend" message="Suspending Application..." />
+    <main v-else>
         <ConfirmInstanceDeleteDialog @confirm="deleteInstance" ref="confirmInstanceDeleteDialog"/>
         <ConfirmApplicationDeleteDialog @confirm="deleteApplication" ref="confirmApplicationDeleteDialog"/>
         <Teleport v-if="mounted" to="#platform-banner">
