@@ -61,6 +61,7 @@
             @instance-overview-exit="onOverviewExit"
             @instance-overview-enter="onOverviewEnter"
             @instance-updated="updateInstance"
+            @instance-confirm-delete="showConfirmDeleteDialog"
         />
     </main>
 </template>

@@ -2,7 +2,12 @@
     <div class="flex flex-col sm:flex-row">
         <SectionSideMenu :options="sideNavigation" />
         <div class="flex-grow">
-            <router-view :project="instance" :instance="instance" @instance-updated="$emit('instance-updated')" />
+            <router-view
+                :project="instance"
+                :instance="instance"
+                @instance-updated="$emit('instance-updated')"
+                @instance-confirm-delete="$emit('instance-confirm-delete')"
+            />
         </div>
     </div>
 </template>
@@ -26,7 +31,7 @@ export default {
         }
     },
 
-    emits: ['instance-updated'],
+    emits: ['instance-updated', 'instance-confirm-delete'],
     data () {
         return {
             sideNavigation: []
