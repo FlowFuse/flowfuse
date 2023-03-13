@@ -113,17 +113,20 @@
     >
         <template #description>
             <p>
-                Here, you can register a new device to your
+                Here, you can add a new device to your
                 <template v-if="displayingTeam">team.</template>
                 <template v-else-if="displayingApplication">application.</template>
                 <template v-else-if="displayingInstance">application instance.</template>
-                This will provide you with a <b>device.yml</b>
-                to be moved to the respective device. Further details on Devices in FlowForge can be found
-                <a href="https://flowforge.com/docs/user/devices/" target="_blank">here</a>.
+                This will generate a <b>device.yml</b> file that should be
+                placed on the target device. 
             </p>
-            <p class="mt-4 mb-2">
-                If you want to register devices straight to a particular application instance you can use provisioning tokens
+            <p class="my-4">
+                If you want to devices to be automatically registered, you can use provisioning tokens
                 in your <router-link :to="{'name': 'TeamSettingsDevices', 'params': {team_slug: team.slug}}">Team Settings</router-link>
+            </p>
+            <p class="my-4">
+                Further info on Devices can be found
+                <a href="https://flowforge.com/docs/user/devices/" target="_blank">here</a>.
             </p>
         </template>
     </TeamDeviceCreateDialog>
