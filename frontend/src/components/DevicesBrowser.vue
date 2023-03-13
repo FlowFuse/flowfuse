@@ -336,8 +336,10 @@ export default {
             const updatedDevice = await deviceApi.updateDevice(device.id, { project: projectId })
 
             // TODO Remove temporary duplication
-            device.project = updatedDevice.project
-            device.instance = updatedDevice.project
+            if (updatedDevice.project) {
+                device.project = updatedDevice.project
+                device.instance = updatedDevice.project
+            }
         },
 
         async pollForData () {
