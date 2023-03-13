@@ -236,9 +236,9 @@ export default {
         }
     },
     watch: {
-        instance: 'fetchData',
-        application: 'fetchData',
-        team: 'fetchData'
+        instance: 'refreshData',
+        application: 'refreshData',
+        team: 'refreshData'
     },
     mounted () {
         this.pollForData()
@@ -290,6 +290,11 @@ export default {
             } finally {
                 this.checkInterval = setTimeout(this.pollForData, 10000)
             }
+        },
+
+        async refreshData () {
+            this.nextCursor = null
+            this.loadMore()
         },
 
         async loadMore () {
