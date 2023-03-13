@@ -218,7 +218,12 @@
         <span v-if="!error && entry.body?.license">A license was inspected with the following details: {{ entry.body.license }}</span>
         <span v-else-if="!error">License data not found in audit entry.</span>
     </template>
-    <!-- Platform License Events -->
+    <template v-else-if="entry.event === 'platform.license.overage'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && typeof entry.body?.info === 'object'">Type: '{{entry.body.info.resource }}', Limit: {{ entry.body.info.limit }}, Count: {{ entry.body.info.count }}</span>
+        <span v-else-if="!error">License data not found in audit entry.</span>
+    </template>
+    <!-- Platform project type Events -->
     <template v-else-if="entry.event === 'platform.project-type.created'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.projectType">A new project type '{{ entry.body.projectType }}' has been created.</span>
@@ -360,11 +365,11 @@
     <!-- Node-RED Events -->
     <template v-else-if="entry.event === 'crashed'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span>Something has gone wrong. Check the project logs to investigate further.</span>
+        <span>Something has gone wrong. Check the instance logs to investigate further.</span>
     </template>
     <template v-else-if="entry.event === 'stopped'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span>Something has gone wrong. Check the project logs to investigate further.</span>
+        <span>Something has gone wrong. Check the instance logs to investigate further.</span>
     </template>
     <template v-else-if="entry.event === 'settings.update'">
         <label>{{ AuditEvents[entry.event] }}</label>

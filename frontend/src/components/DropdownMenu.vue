@@ -4,7 +4,7 @@
             <MenuButton :class="[buttonClass ? buttonClass : 'forge-button', !hasLabel?'px-1':'']">
                 <slot></slot>
                 <span class="sr-only">{{ alt }}</span>
-                <ChevronDownIcon :class="[hasLabel?'ml-2 -mr-1 ':'','w-5 h-5 my-1 text-gray-400']" aria-hidden="true" />
+                <ChevronDownIcon class="ff-btn--icon ff-btn--icon-right" aria-hidden="true" />
             </MenuButton>
         </div>
         <transition
@@ -24,20 +24,6 @@
                         <template v-else-if="item.disabled">
                             <div :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm',...(item.class||[]),'opacity-20']">{{ item.name }}</div>
                         </template>
-                        <template v-else-if="item.external">
-                            <a :href="item.link" target="_blank" :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm text-gray-700',...(item.class||[])]">
-                                <component v-if="item.icon" class="w-4 inline" :is="item.icon"></component>
-                                <img v-if="item.imgUrl" :src="item.imgUrl" class="h-4 v-4 inline rounded mr-1"/>
-                                {{ item.name }}
-                            </a>
-                        </template>
-                        <template v-else-if="item.link || item.path">
-                            <router-link :to="item.link || item" :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm text-gray-700',...(item.class||[])]">
-                                <component v-if="item.icon" class="w-4 inline" :is="item.icon"></component>
-                                <img v-if="item.imgUrl" :src="item.imgUrl" class="h-4 v-4 inline rounded mr-1"/>
-                                {{ item.name }}
-                            </router-link>
-                        </template>
                         <template v-else>
                             <a @click="item.action" :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm text-gray-700',...(item.class||[])]" :data-action="`menu-${item.name.toLowerCase()}`">
                                 <component v-if="item.icon" class="w-4 inline" :is="item.icon"></component>
@@ -45,15 +31,18 @@
                                 {{ item.name }}
                             </a>
                         </template>
-
                     </MenuItem>
                 </div>
             </MenuItems>
         </transition>
     </HeadlessUIMenu>
 </template>
-<script>
 
+<script>
+/**
+ * This component is deprecated and should not be used
+ * ff-dropdown from forge-ui-components is the intended replacement
+ */
 import { ref } from 'vue'
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 import { ChevronDownIcon } from '@heroicons/vue/solid'

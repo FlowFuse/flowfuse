@@ -222,7 +222,35 @@ module.exports = {
      * @return {array} logs
      */
     logs: async (project) => {
-        return []
+        const oneHour = 360000
+
+        return [
+            {
+                level: 'system',
+                msg: 'Fake Log Entry',
+                ts: `${Date.now() - oneHour}`
+            },
+            {
+                level: 'system',
+                msg: 'Starting Node-RED',
+                ts: `${Date.now() - oneHour / 2}`
+            },
+            {
+                level: 'info',
+                msg: '\n\nMulti Line Message\n===================\n',
+                ts: `${Date.now() - oneHour / 4}`
+            },
+            {
+                level: 'warn',
+                msg: 'This is the voice of the Mysterons. We know that you can hear us Earthmen.',
+                ts: `${Date.now() - oneHour / 5}`
+            },
+            {
+                level: 'error',
+                msg: 'Captain Scarlet is indestructible',
+                ts: `${Date.now()}`
+            }
+        ]
     },
     /**
      * Shutdown Driver

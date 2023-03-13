@@ -27,12 +27,22 @@
 
             <table class="table-fixed w-full" v-if="device">
                 <tr class="border-b">
-                    <td class="w-1/4 font-medium">Project</td>
+                    <td class="w-1/4 font-medium">Application</td>
                     <td class="py-2">
                         <router-link v-if="device?.project" :to="{name: 'Project', params: { id: device.project.id }}">
                             {{ device.project?.name }}
                         </router-link>
-                        <span v-else>No Project Assigned</span>
+                        <span v-else>None</span>
+                    </td>
+                </tr>
+                <!-- TODO: Currently links to same object as project -->
+                <tr class="border-b">
+                    <td class="w-1/4 font-medium">Instance</td>
+                    <td class="py-2">
+                        <router-link v-if="device?.project" :to="{name: 'Instance', params: { id: device.project.id }}">
+                            {{ device.project?.name }}
+                        </router-link>
+                        <span v-else>None</span>
                     </td>
                 </tr>
                 <tr class="border-b">
@@ -83,7 +93,7 @@
 <script>
 
 // utilities
-import daysSince from '@/utils/daysSince'
+import elapsedTime from '@/utils/elapsedTime'
 
 // components
 import FormHeading from '@/components/FormHeading'
@@ -108,8 +118,8 @@ export default {
             return this.device.activeSnapshot?.id === this.device.targetSnapshot?.id
         },
         lastSeen: function () {
-            if (this.device?.lastSeenAt) {
-                return daysSince(this.device.lastSeenAt)
+            if (this.device?.lastSeenAt && typeof this.device?.lastSeenMs === 'number') {
+                return elapsedTime(0, this.device.lastSeenMs) + ' ago'
             } else {
                 return 'Not Available'
             }

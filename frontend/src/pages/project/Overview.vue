@@ -1,188 +1,153 @@
 <template>
-    <div class="ff-project-overview space-y-4">
-        <SectionTopMenu>
-            <template #hero>
-                <div class="h-full flex items-center">
-                    <div class="text-gray-800 text-xl font-bold">
-                        {{ project.name }}
-                    </div>
-                </div>
+    <div>
+        <SectionTopMenu hero="FlowForge Hosted Instances" help-header="FlowForge - Instances - Local" info="Instances of Node-RED running in the FlowForge cloud">
+            <template #pictogram>
+                <img src="../../images/pictograms/edge_red.png">
             </template>
-            <template #tools>
-                <div class="space-x-2 flex">
-                    <a v-if="editorAvailable && !isVisitingAdmin" :href="project.url" target="_blank" class="ff-btn ff-btn--secondary" data-action="open-editor">
-                        Open Editor
-                        <span class="ff-btn--icon ff-btn--icon-right">
-                            <ExternalLinkIcon />
-                        </span>
-                    </a>
-                    <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" alt="Open actions menu" :options="options" data-action="open-actions">Actions</DropdownMenu>
-                </div>
+            <template #helptext>
+                <p>This is a list of all instances of this Application hosted on the same domain as FlowForge.</p>
+                <p>It will always run the latest flow deployed in Node-RED and use the latest credentials and runtime settings defined in the Projects settings.</p>
+                <p>To edit an Applications flow, open the editor of the Instance.</p>
             </template>
         </SectionTopMenu>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="border rounded p-4">
-                <FormHeading><TemplateIcon class="w-6 h-6 mr-2 inline text-gray-400" />Overview</FormHeading>
 
-                <table class="table-fixed w-full">
-                    <tr class="border-b">
-                        <td class="w-1/4 font-medium">Editor</td>
-                        <td>
-                            <div v-if="editorAvailable">
-                                <div v-if="isVisitingAdmin" class="my-2">
-                                    {{project.url}}
-                                </div>
-                                <a v-else :href="project.url" target="_blank" class="forge-button-secondary py-1 mb-1" data-el="editor-link">
-                                    <span class="ml-r">{{project.url}}</span>
-                                    <ExternalLinkIcon class="w-4 ml-3" />
-                                </a>
-                            </div>
-                            <div v-else class="my-2">Unavailable</div>
-                        </td>
-                    </tr>
-                    <tr class="border-b">
-                        <td class="font-medium">Status</td>
-                        <td><div class="py-2"><ProjectStatusBadge :status="project.meta?.state" :pendingStateChange="project.pendingStateChange" /></div></td>
-                    </tr>
-                    <tr class="border-b">
-                        <td class="font-medium">Type</td>
-                        <td class="flex items-center">
-                            <div class="py-2 flex-grow">{{project.projectType?.name || 'none'}} / {{project.stack?.label || project.stack?.name || 'none'}}</div>
-                            <div v-if="project.stack?.replacedBy">
-                                <ff-button size="small" to="./settings/danger">Update</ff-button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr v-if="project.template?.name" class="border-b">
-                        <td class="font-medium">Template</td>
-                        <td><div class="py-2">{{project.template?.name}}</div></td>
-                    </tr>
-                    <template v-if="project.meta.versions">
-                        <tr class="border-b">
-                            <td class="font-medium">Node-RED Version</td>
-                            <td><div class="py-2">{{project.meta.versions['node-red']}}</div></td>
-                        </tr>
-                        <tr class="border-b">
-                            <td class="font-medium">Launcher Version</td>
-                            <td><div class="py-2">{{project.meta.versions.launcher}}</div></td>
-                        </tr>
-                        <tr class="border-b">
-                            <td class="font-medium">Node.js Version</td>
-                            <td><div class="py-2">{{project.meta.versions.node}}</div></td>
-                        </tr>
-                    </template>
-                </table>
-            </div>
-            <div class="border rounded p-4">
-                <FormHeading><TrendingUpIcon class="w-6 h-6 mr-2 inline text-gray-400" />Recent Activity</FormHeading>
-                <AuditLog :entries="auditLog" :showLoadMore="false" :disableAccordion="true" />
-                <div class="pb-4">
-                    <router-link to="./activity" class="forge-button-inline">More...</router-link>
-                </div>
-            </div>
+        <div class="space-y-6 mb-12">
+            <ff-data-table
+                data-el="cloud-instances"
+                :columns="cloudColumns"
+                :rows="cloudRows"
+                :rows-selectable="true"
+                @row-selected="selectedCloudRow"
+            >
+                <template
+                    v-if="hasPermission('device:edit')"
+                    #context-menu
+                >
+                    <ff-list-item
+                        :disabled="project.pendingStateChange || projectRunning"
+                        label="Start"
+                        @click.stop="$emit('project-start')"
+                    />
+
+                    <ff-list-item
+                        :disabled="!projectNotSuspended"
+                        label="Restart"
+                        @click.stop="$emit('project-restart')"
+                    />
+
+                    <ff-list-item
+                        :disabled="!projectNotSuspended"
+                        kind="danger"
+                        label="Suspend"
+                        @click.stop="$emit('project-suspend')"
+                    />
+
+                    <ff-list-item
+                        v-if="hasPermission('project:delete')"
+                        kind="danger"
+                        label="Delete"
+                        @click.stop="$emit('project-delete')"
+                    />
+                </template>
+            </ff-data-table>
         </div>
+
+        <SectionTopMenu hero="Remote Instances" help-header="FlowForge - Instances - Remote" info="Devices running the FlowForge Device Agent assigned to instances in this Application">
+            <template #pictogram>
+                <img src="../../images/pictograms/edge_red.png">
+            </template>
+            <template #helptext>
+                <p>
+                    FlowForge enables the deployment and management of remote instances of Node-RED via "Devices".
+                </p>
+                <p>
+                    Here you will see all Devices attached to instances of this application.
+                    When you set a new Target Snapshot, that will get deployed,
+                    using the <a href="https://flowforge.com/docs/user/devices/" target="_blank">FlowForge Device Agent</a>, out to all connected devices.
+                </p>
+                <p>
+                    Here, you can see a picture of the last time the device was online, and the status of the Node-RED
+                    flows on those devices at that point in time.
+                </p>
+            </template>
+        </SectionTopMenu>
+
+        <DevicesBrowser
+            :application="project"
+            :team="team"
+            :teamMembership="teamMembership"
+            @project-updated="$emit('projectUpdated', ...arguments)"
+        />
     </div>
 </template>
 
 <script>
-import { ExternalLinkIcon, TemplateIcon, TrendingUpIcon } from '@heroicons/vue/outline'
 
+import { Roles } from '@core/lib/roles'
+import { PlusSmIcon } from '@heroicons/vue/solid'
+
+import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import ProjectStatusBadge from './components/ProjectStatusBadge'
+import DevicesBrowser from '../../components/DevicesBrowser'
+import SectionTopMenu from '../../components/SectionTopMenu'
 
-import projectApi from '@/api/project'
-import AuditLog from '@/components/audit-log/AuditLog'
-import DropdownMenu from '@/components/DropdownMenu'
-import FormHeading from '@/components/FormHeading'
-import SectionTopMenu from '@/components/SectionTopMenu'
+import ProjectStatusBadge from './components/ProjectStatusBadge'
+import DeploymentName from './components/cells/DeploymentName.vue'
+
+import LastSeen from './components/cells/LastSeen.vue'
+import ProjectEditorLink from './components/cells/ProjectEditorLink.vue'
+
 import permissionsMixin from '@/mixins/Permissions'
 
 export default {
     name: 'ProjectOverview',
     components: {
-        AuditLog,
-        DropdownMenu,
-        ExternalLinkIcon,
-        FormHeading,
-        ProjectStatusBadge,
-        SectionTopMenu,
-        TemplateIcon,
-        TrendingUpIcon
+        DevicesBrowser,
+        PlusSmIcon,
+        SectionTopMenu
     },
     mixins: [permissionsMixin],
+    inheritAttrs: false,
     props: {
         project: {
-            required: true,
-            type: Object
-        },
-        isVisitingAdmin: {
-            required: true,
-            type: Boolean
+            type: Object,
+            required: true
         }
     },
-    emits: ['project-start', 'project-delete', 'project-suspend', 'project-restart', 'project-overview-exit', 'project-overview-enter'],
-    watch: {
-        project: function () {
-            this.loadLogs()
-        }
-    },
+    emits: ['project-delete', 'project-suspend', 'project-restart', 'project-start', 'projectUpdated'],
     computed: {
-        ...mapState('account', ['teamMembership']),
-        options: function () {
-            const flowActionsDisabled = !(this.project.meta && this.project.meta.state !== 'suspended')
-
-            const result = [
-                {
-                    name: 'Start',
-                    action: () => this.$emit('project-start'),
-                    disabled: this.project.pendingStateChange || this.projectRunning
-                },
-                { name: 'Restart', action: () => this.$emit('project-restart'), disabled: flowActionsDisabled },
-                { name: 'Suspend', class: ['text-red-700'], action: () => this.$emit('project-suspend'), disabled: flowActionsDisabled }
+        ...mapState('account', ['team', 'teamMembership']),
+        cloudColumns () {
+            return [
+                { label: 'Name', class: ['w-64'], component: { is: markRaw(DeploymentName), extraProps: { disabled: !this.projectRunning || this.isVisitingAdmin } } },
+                { label: 'Last Deployed', class: ['w-48'], component: { is: markRaw(LastSeen), map: { lastSeenSince: 'flowLastUpdatedSince' } } },
+                { label: 'Deployment Status', class: ['w-48'], component: { is: markRaw(ProjectStatusBadge), map: { status: 'meta.state' } } },
+                { label: '', class: ['w-20'], component: { is: markRaw(ProjectEditorLink), extraProps: { disabled: !this.projectRunning || this.isVisitingAdmin } } }
             ]
-
-            if (this.hasPermission('project:delete')) {
-                result.push(null)
-                result.push({ name: 'Delete', class: ['text-red-700'], action: () => this.$emit('project-delete') })
-            }
-
-            return result
+        },
+        cloudRows () {
+            return this.project.id ? [this.project] : []
         },
         projectRunning () {
-            return this.project?.meta?.state === 'running'
+            return this.project.meta?.state === 'running'
         },
-        editorAvailable () {
-            return this.projectRunning
+        projectNotSuspended () {
+            return this.project.meta?.state !== 'suspended'
+        },
+        isVisitingAdmin () {
+            return this.teamMembership.role === Roles.Admin
         }
-    },
-    data () {
-        return {
-            auditLog: []
-        }
-    },
-    mounted () {
-        this.$emit('project-overview-enter')
-        this.loadLogs()
-    },
-    unmounted () {
-        this.$emit('project-overview-exit')
     },
     methods: {
-        loadLogs () {
-            if (this.project && this.project.id) {
-                this.loadItems(this.project.id).then((data) => {
-                    this.auditLog = data.log
-                })
-            }
-        },
-        loadItems: async function (projectId, cursor) {
-            return await projectApi.getProjectAuditLog(projectId, null, cursor, 4)
+        selectedCloudRow (cloudInstance) {
+            this.$router.push({
+                name: 'Instance',
+                params: {
+                    id: cloudInstance.id
+                }
+            })
         }
     }
 }
 </script>
-
-<style lang="scss">
-@import "@/stylesheets/pages/project.scss";
-</style>

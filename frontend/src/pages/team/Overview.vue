@@ -2,9 +2,9 @@
     <ff-loading v-if="loading" />
     <div v-else class="block md:flex">
         <div class="flex-grow">
-            <SectionTopMenu hero="Projects">
+            <SectionTopMenu hero="Applications">
                 <template v-if="hasPermission('project:create')" v-slot:tools>
-                    <ff-button kind="primary" size="small" to="./projects/create" data-nav="create-project"><template v-slot:icon-left><PlusSmIcon /></template>Create Project</ff-button>
+                    <ff-button kind="primary" size="small" to="./projects/create" data-nav="create-project"><template v-slot:icon-left><PlusSmIcon /></template>Create Application</ff-button>
                 </template>
             </SectionTopMenu>
             <template v-if="projectCount > 0">
@@ -12,10 +12,10 @@
             </template>
             <template v-else>
                 <div v-if="!showingMessage" class="flex text-gray-500 justify-center italic mb-4 p-8">
-                    You don't have any projects yet
+                    You don't have any applications yet
                 </div>
                 <div v-else class="mb-4 p-8 mx-auto text-center">
-                    <strong class="mb-2 block">Thank you for signing up to FlowForge!</strong>You are now able to create projects and use the platform.
+                    <strong class="mb-2 block">Thank you for signing up to FlowForge!</strong>You are now able to create applications and use the platform.
                 </div>
             </template>
         </div>

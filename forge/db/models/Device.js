@@ -48,6 +48,12 @@ module.exports = {
                     }
                 }
             },
+            afterCreate: async (device, options) => {
+                const { devices } = await app.license.usage('devices')
+                if (devices.count > devices.limit) {
+                    await app.auditLog.Platform.platform.license.overage('system', null, devices)
+                }
+            },
             beforeSave: async (device, options) => {
                 // since `id`, `name` and `type` are added as FF_DEVICE_xx env vars, we
                 // should update the settings checksum if they are modified

@@ -29,6 +29,12 @@ module.exports = {
                     }
                 }
             },
+            afterCreate: async (team, options) => {
+                const { teams } = await app.license.usage('teams')
+                if (teams.count > teams.limit) {
+                    await app.auditLog.Platform.platform.license.overage('system', null, teams)
+                }
+            },
             beforeSave: (team, options) => {
                 if (!team.avatar) {
                     team.avatar = generateTeamAvatar(team.name)

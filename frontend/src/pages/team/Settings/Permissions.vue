@@ -1,8 +1,8 @@
 <template>
     <form class="space-y-6">
-        <FormHeading>Project Creation</FormHeading>
+        <FormHeading>Application Creation</FormHeading>
         <FormRow v-model="input.teamName" id="teamName" type="checkbox">
-            Limit project creation
+            Limit application creation
             <template v-slot:description>
             </template>
         </FormRow>

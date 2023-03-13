@@ -73,7 +73,6 @@ describe('FlowForge platform admin users', () => {
         cy.get('[data-el="banner-project-as-admin"]').should('exist')
 
         cy.get('[data-action="open-editor"]').should('not.exist')
-        cy.get('[data-el="editor-link"]').should('not.exist')
     })
 
     it('can view devices from teams they\'re not a member of', () => {

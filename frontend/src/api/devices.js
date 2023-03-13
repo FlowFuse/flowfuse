@@ -1,12 +1,12 @@
 import client from './client'
 import paginateUrl from '@/utils/paginateUrl'
-import daysSince from '@/utils/daysSince'
+import elapsedTime from '@/utils/elapsedTime'
 
 const getDevices = async (cursor, limit) => {
     const url = paginateUrl('/api/v1/devices', cursor, limit)
     return client.get(url).then(res => {
         res.data.devices.forEach(device => {
-            device.lastSeenSince = device.lastSeenAt ? daysSince(device.lastSeenAt) : ''
+            device.lastSeenSince = device.lastSeenAt ? elapsedTime(0, device.lastSeenMs) + ' ago' : ''
         })
         return res.data
     })
