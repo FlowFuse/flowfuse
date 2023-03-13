@@ -3,7 +3,7 @@
 .ff-audit-entry {
     align-items: center;
     display: grid;
-    grid-template-columns: 75px 50px 1fr 200px;
+    grid-template-columns: minmax(50px, 60px) minmax(20px, 70px) minmax(240px, 5fr) 1fr;
     label {
         font-weight: 500;
     }

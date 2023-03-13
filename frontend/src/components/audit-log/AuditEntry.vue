@@ -1,9 +1,10 @@
 <template>
     <div class="ff-audit-entry py-3 border-b text-base">
         <!-- Time -->
-        <div class="ff-audit-entry-time w-20 text-gray-500">{{ entry.time }}</div>
+        <div class="ff-audit-entry-time">{{ entry.time }}</div>
+
         <!-- Icon -->
-        <div class="ff-audit-entry-icon w-12 flex justify-center">
+        <div class="ff-audit-entry-icon text-center">
             <AuditEntryIcon v-if="entry.body?.error" event="error"></AuditEntryIcon>
             <AuditEntryIcon v-else :event="entry.event"></AuditEntryIcon>
         </div>
