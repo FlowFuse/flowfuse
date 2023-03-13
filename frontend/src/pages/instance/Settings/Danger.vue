@@ -94,8 +94,7 @@
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button data-action="delete-project" kind="danger" @click="showConfirmDeleteDialog()">Delete Instance</ff-button>
-                <ConfirmInstanceDeleteDialog ref="confirmProjectDeleteDialog" data-el="delete-project" @confirm="deleteProject" />
+                <ff-button data-action="delete-project" kind="danger" @click="debugger;$emit('instance-confirm-delete')">Delete Instance</ff-button>
             </div>
         </div>
     </form>
@@ -107,7 +106,6 @@ import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
 
 import ChangeStackDialog from './dialogs/ChangeStackDialog'
-import ConfirmInstanceDeleteDialog from './dialogs/ConfirmInstanceDeleteDialog'
 
 import ImportInstanceDialog from './dialogs/ImportInstanceDialog'
 
@@ -122,7 +120,6 @@ export default {
     name: 'InstanceSettingsDanger',
     components: {
         FormHeading,
-        ConfirmInstanceDeleteDialog,
         ChangeStackDialog,
         ImportInstanceDialog
     },
@@ -134,7 +131,7 @@ export default {
             required: true
         }
     },
-    emits: ['instance-updated'],
+    emits: ['instance-updated', 'instance-confirm-delete'],
     data () {
         return {
             loading: {
@@ -161,9 +158,6 @@ export default {
             if (!this.hasPermission('project:edit')) {
                 useRouter().push({ replace: true, path: 'general' })
             }
-        },
-        showConfirmDeleteDialog () {
-            this.$refs.confirmProjectDeleteDialog.show(this.project)
         },
         showConfirmSuspendDialog () {
             Dialog.show({
