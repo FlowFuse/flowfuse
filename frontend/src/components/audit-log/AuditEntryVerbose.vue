@@ -176,7 +176,7 @@
     </template>
     <template v-else-if="entry.event === 'user.deleted'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.user">User '{{ entry.body?.user?.name }}' has deleted deleted their account.</span>
+        <span v-if="!error && entry.body?.user">User '{{ entry.body?.user?.name }}' has deleted their account.</span>
         <span v-else-if="!error">User data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'users.deleted-user'">
