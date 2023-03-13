@@ -41,7 +41,7 @@ export default {
                 { label: 'Name', class: ['w-full'], component: { is: markRaw(TeamCell) }, sortable: true },
                 { label: 'Type', key: 'type', component: { is: markRaw(TeamTypeCell) }, sortable: true },
                 { label: 'Members', class: ['w-54', 'text-center'], key: 'memberCount', sortable: true },
-                { label: 'Projects', class: ['w-54', 'text-center'], key: 'projectCount', sortable: true }
+                { label: 'Application Instances', class: ['w-54', 'text-center'], key: 'projectCount', sortable: true }
             ]
         }
     },

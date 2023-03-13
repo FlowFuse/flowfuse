@@ -76,7 +76,7 @@ import DeviceCredentialsDialog from './dialogs/DeviceCredentialsDialog'
 import DeviceAssignProjectDialog from './dialogs/DeviceAssignProjectDialog'
 
 import DeviceLink from '../../project/components/cells/DeviceLink'
-import InstanceLink from '../../project/components/cells/InstanceLink'
+import InstanceInstancesLink from '../../project/components/cells/InstanceInstancesLink'
 import ApplicationLink from '../../project/components/cells/ApplicationLink'
 
 export default {
@@ -223,7 +223,7 @@ export default {
                     key: 'project',
                     sortable: true,
                     component: {
-                        is: markRaw(InstanceLink),
+                        is: markRaw(InstanceInstancesLink),
                         map: {
                             id: 'project.id',
                             name: 'project.name'

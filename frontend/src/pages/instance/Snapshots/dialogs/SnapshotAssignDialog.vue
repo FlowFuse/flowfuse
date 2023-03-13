@@ -19,7 +19,7 @@
                 class="space-y-6 mt-2"
                 @submit.prevent="confirm()"
             >
-                <p>Please select the Instance Snapshot that you wish to deploy to all of your devices.</p>
+                <p>Please select the Snapshot that you wish to deploy to all of your devices assigned to this instance.</p>
                 <FormRow
                     data-form="snapshot"
                     containerClass="w-full"
@@ -42,7 +42,8 @@
                         </ff-dropdown>
                         <div v-else>
                             There are no snapshots to choose from for this instance yet!<br>
-                            Snapshots can be managed on the <router-link :to="`/project/${project.id}/snapshots`">
+                            Snapshots can be managed on the
+                            <router-link :to="{ name: 'InstanceSnapshots', params: { id: instance.id }}">
                                 Instance Snapshots
                             </router-link> page.
                         </div>
@@ -66,7 +67,7 @@ export default {
         FormRow
     },
     props: {
-        project: {
+        instance: {
             required: true,
             type: Object
         }
@@ -82,13 +83,13 @@ export default {
     },
     computed: {
         formValid () {
-            return !this.submitted && this.selectedSnapshotId && this.project.targetSnapshot?.id !== this.selectedSnapshotId
+            return !this.submitted && this.selectedSnapshotId && this.instance.targetSnapshot?.id !== this.selectedSnapshotId
         },
         snapshotOptions () {
             return this.snapshots.map((snapshot) => {
                 return {
                     value: snapshot.id,
-                    label: `${snapshot.name}${this.project.targetSnapshot?.id === snapshot.id ? ' (active)' : ''}`
+                    label: `${snapshot.name}${this.instance.targetSnapshot?.id === snapshot.id ? ' (active)' : ''}`
                 }
             })
         }
@@ -104,7 +105,7 @@ export default {
             this.submitted = false
         },
         fetchData: async function () {
-            const data = await snapshotApi.getInstanceSnapshots(this.project.id)
+            const data = await snapshotApi.getInstanceSnapshots(this.instance.id)
             this.snapshots = data.snapshots
 
             this.loading = false
@@ -113,7 +114,7 @@ export default {
             if (this.formValid) {
                 this.submitted = true
 
-                await InstanceApi.updateInstanceDeviceSettings(this.project.id, {
+                await InstanceApi.updateInstanceDeviceSettings(this.instance.id, {
                     targetSnapshot: this.selectedSnapshotId
                 })
 

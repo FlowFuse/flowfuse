@@ -60,7 +60,7 @@ export default {
                 { label: 'Type', key: 'name', sortable: true },
                 { label: 'Description', key: 'description', sortable: true, component: { is: markRaw(ProjectTypeDescriptionCell) } },
                 { label: 'Default Stack', class: ['w-48'], key: 'defaultStack', sortable: true },
-                { label: 'Projects', class: ['w-32', 'text-center'], key: 'projectCount', sortable: true },
+                { label: 'Application Instances', class: ['w-32', 'text-center'], key: 'projectCount', sortable: true },
                 { label: 'Stacks', class: ['w-32', 'text-center'], key: 'stackCount', sortable: true }
             ]
         }

@@ -68,7 +68,7 @@
 <script>
 import { Roles } from '@core/lib/roles'
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
-import { ChevronLeftIcon, ClockIcon, CogIcon, TemplateIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
+import { ChevronLeftIcon, ChipIcon, ClockIcon, CogIcon, TemplateIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
 import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDeleteDialog'
@@ -246,6 +246,7 @@ export default {
         checkAccess () {
             this.navigation = [
                 { label: 'Overview', path: `/instance/${this.instance.id}/overview`, tag: 'instance-overview', icon: TemplateIcon },
+                { label: 'Remote Instances', path: `/instance/${this.instance.id}/remote-instances`, tag: 'instance-remote', icon: ChipIcon },
                 { label: 'Snapshots', path: `/instance/${this.instance.id}/snapshots`, tag: 'instance-snapshots', icon: ClockIcon },
                 { label: 'Audit Log', path: `/instance/${this.instance.id}/audit-log`, tag: 'instance-activity', icon: ViewListIcon },
                 { label: 'Node-RED Logs', path: `/instance/${this.instance.id}/logs`, tag: 'instance-logs', icon: TerminalIcon },

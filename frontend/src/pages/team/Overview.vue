@@ -2,7 +2,7 @@
     <ff-loading v-if="loading" />
     <div v-else class="block md:flex">
         <div class="flex-grow">
-            <SectionTopMenu hero="Projects">
+            <SectionTopMenu hero="Applications">
                 <template v-if="hasPermission('project:create')" v-slot:tools>
                     <ff-button kind="primary" size="small" to="./projects/create" data-nav="create-project"><template v-slot:icon-left><PlusSmIcon /></template>Create Application</ff-button>
                 </template>
