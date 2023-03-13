@@ -5,9 +5,6 @@
             <p>Each device must run the <a href="https://flowforge.com/docs/user/devices/" target="_blank">FlowForge Device Agent</a>, which connects back to the platform to receive updates.</p>
             <p>Provisioning tokens can be created to allow devices to automatically connect to a team, application and instance without having to register them first.</p>
         </template>
-        <template v-slot:tools>
-            <ff-button v-if="addEnabled" data-action="create-provisioning-token" kind="primary" size="small" @click="showCreateDeviceDialog"><template v-slot:icon-left><PlusSmIcon /></template>Create Provisioning Token</ff-button>
-        </template>
     </SectionTopMenu>
 
     <div class="space-y-6">
@@ -30,6 +27,20 @@
                     :show-load-more="!!nextCursor"
                     @load-more="loadMore"
                 >
+                    <template #actions>
+                        <ff-button
+                            v-if="addEnabled"
+                            class="font-normal"
+                            data-action="register-device"
+                            kind="primary"
+                            @click="showCreateTokenDialog"
+                        >
+                            <template #icon-right>
+                                <PlusSmIcon />
+                            </template>
+                            Add Token
+                        </ff-button>
+                    </template>
                     <template v-if="editEnabled || deleteEnabled" v-slot:context-menu="{row}">
                         <ff-list-item :disabled="!editEnabled" label="Edit Details" @click="menuAction('edit', row.id)"/>
                         <ff-list-item :disabled="!deleteEnabled" kind="danger" label="Delete Token" @click="menuAction('delete', row.id)" />
@@ -128,7 +139,7 @@ export default {
         async loadMore () {
             await this.fetchData(this.nextCursor)
         },
-        showCreateDeviceDialog () {
+        showCreateTokenDialog () {
             this.$refs.CreateProvisioningTokenDialog.show(null, this.project)
         },
         showEditDialog (token) {
