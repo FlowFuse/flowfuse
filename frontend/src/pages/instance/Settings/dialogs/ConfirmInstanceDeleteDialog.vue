@@ -4,7 +4,7 @@
             <form class="space-y-6" @submit.prevent>
                 <div class="mt-2 space-y-2">
                     <p>
-                        Are you sure you want to delete this instance? Once deleted, there is no going back.
+                        Are you sure you want to delete this instance and the application that contains it? Once deleted, there is no going back.
                     </p>
                     <p>
                         Enter the instance name to continue.
