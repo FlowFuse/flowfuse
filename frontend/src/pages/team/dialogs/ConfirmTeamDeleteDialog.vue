@@ -23,7 +23,7 @@ import alerts from '@/services/alerts.js'
 import FormRow from '@/components/FormRow'
 
 export default {
-    name: 'ConfirmProjectDeleteDialog',
+    name: 'ConfirmTeamDeleteDialog',
     components: {
         FormRow
     },
