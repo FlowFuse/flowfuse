@@ -128,4 +128,32 @@ module.exports = async function (app) {
             reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
+
+    /**
+     * List Application instances
+     * @name /api/v1/application/:id/instances
+     * @memberof forge.routes.api.application
+     */
+    app.get('/:applicationId/instances', {
+        // TODO: tidy up permissions
+        preHandler: app.needsPermission('team:projects:list')
+    }, async (request, reply) => {
+        const instances = await app.db.models.Project.byApplication(request.params.applicationId)
+        if (instances) {
+            let result = await app.db.views.Project.teamProjectList(instances)
+            if (request.session.ownerType === 'project') {
+                // This request is from a project token. Filter the list to return
+                // the minimal information needed
+                result = result.map(e => {
+                    return { id: e.id, name: e.name }
+                })
+            }
+            reply.send({
+                count: result.length,
+                instances: result
+            })
+        } else {
+            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+    })
 }

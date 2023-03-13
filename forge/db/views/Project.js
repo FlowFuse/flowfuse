@@ -1,7 +1,7 @@
 const { KEY_HOSTNAME, KEY_SETTINGS } = require('../models/ProjectSettings')
 
 module.exports = {
-    project: async function (app, project) {
+    project: async function (app, project, includeSettings = true) {
         const proj = project.toJSON()
         const result = {
             id: proj.id,
@@ -12,23 +12,25 @@ module.exports = {
             updatedAt: proj.updatedAt
         }
 
-        // proj.ProjectSettings
-        const settingsSettingsRow = proj.ProjectSettings?.find((projectSettingsRow) => projectSettingsRow.key === KEY_SETTINGS)
-        if (settingsSettingsRow) {
-            result.settings = settingsSettingsRow?.value || {}
-            if (result.settings.httpNodeAuth) {
-                // Only return whether a password is set or not
-                result.settings.httpNodeAuth.pass = !!result.settings.httpNodeAuth.pass
+        if (includeSettings) {
+            // proj.ProjectSettings
+            const settingsSettingsRow = proj.ProjectSettings?.find((projectSettingsRow) => projectSettingsRow.key === KEY_SETTINGS)
+            if (settingsSettingsRow) {
+                result.settings = settingsSettingsRow?.value || {}
+                if (result.settings.httpNodeAuth) {
+                    // Only return whether a password is set or not
+                    result.settings.httpNodeAuth.pass = !!result.settings.httpNodeAuth.pass
+                }
+            } else {
+                result.settings = {}
             }
-        } else {
-            result.settings = {}
-        }
-        result.settings.env = app.db.controllers.Project.insertPlatformSpecificEnvVars(proj, result.settings.env)
-        if (!result.settings.palette?.modules) {
-            // If there are no modules listed in settings, check the StorageSettings
-            // for the project to see what Node-RED may already think is installed
-            result.settings.palette = result.settings.palette || {}
-            result.settings.palette.modules = await app.db.controllers.StorageSettings.getProjectModules(project)
+            result.settings.env = app.db.controllers.Project.insertPlatformSpecificEnvVars(proj, result.settings.env)
+            if (!result.settings.palette?.modules) {
+                // If there are no modules listed in settings, check the StorageSettings
+                // for the project to see what Node-RED may already think is installed
+                result.settings.palette = result.settings.palette || {}
+                result.settings.palette.modules = await app.db.controllers.StorageSettings.getProjectModules(project)
+            }
         }
 
         const settingsHostnameRow = proj.ProjectSettings?.find((projectSettingsRow) => projectSettingsRow.key === KEY_HOSTNAME)
@@ -86,7 +88,7 @@ module.exports = {
         const result = new Array(projectList.length)
         for (let i = 0; i < projectList.length; i++) {
             const p = projectList[i]
-            const r = await app.db.views.Project.project(p)
+            const r = await app.db.views.Project.project(p, false)
             // A limitation of how httpAdminRoot is applied to the url property
             // means we can't return the raw url from a projectList that won't
             // include the Template/Settings values with additional db lookups
