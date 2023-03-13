@@ -201,24 +201,25 @@ export default {
             if (!this.displayingInstance) {
                 columns.push({
                     label: 'Instance',
-                    key: 'project',
+                    key: 'instance',
                     class: ['w-64'],
                     sortable: true,
                     component: {
                         is: markRaw(InstanceInstancesLink),
                         map: {
-                            id: 'project.id',
-                            name: 'project.name'
+                            id: 'instance.id',
+                            name: 'instance.name'
                         }
                     }
                 })
             }
 
-            columns.push(
-                { label: 'Last Seen', key: 'lastSeenAt', class: ['w-32'], sortable: true, component: { is: markRaw(DeviceLastSeenBadge) } },
-                { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(ProjectStatusBadge) } },
-                { label: 'Deployed Snapshot', class: ['w-48'], component: { is: markRaw(Snapshot) } }
-            )
+            if (!this.displayingTeam) {
+                columns.push(
+                    ...statusColumns,
+                    { label: 'Deployed Snapshot', class: ['w-48'], component: { is: markRaw(Snapshot) } }
+                )
+            }
 
             return columns
         },

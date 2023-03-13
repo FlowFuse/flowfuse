@@ -70,6 +70,11 @@ const getProjectDevices = async (projectId, cursor, limit) => {
     const res = await client.get(url)
     res.data.devices.forEach(device => {
         device.lastSeenSince = device.lastSeenAt ? daysSince(device.lastSeenAt) : ''
+
+        // TODO: Remove this temporary copy of application over instance
+        if (device.project) {
+            device.instance = device.project
+        }
     })
     return res.data
 }
