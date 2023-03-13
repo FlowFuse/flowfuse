@@ -10,7 +10,7 @@
 <script>
 import { mapState } from 'vuex'
 
-import DevicesBrowser from '../project/DevicesBrowser.vue'
+import DevicesBrowser from '../../components/DevicesBrowser.vue'
 
 import permissionsMixin from '@/mixins/Permissions'
 

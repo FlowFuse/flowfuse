@@ -93,8 +93,8 @@ import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
 import SectionTopMenu from '../../components/SectionTopMenu'
+import DevicesBrowser from '../../components/DevicesBrowser'
 
-import DevicesBrowser from './DevicesBrowser'
 import ProjectStatusBadge from './components/ProjectStatusBadge'
 import DeploymentName from './components/cells/DeploymentName.vue'
 

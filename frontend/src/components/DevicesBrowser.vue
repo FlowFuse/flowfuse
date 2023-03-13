@@ -129,15 +129,15 @@ import { PlusSmIcon } from '@heroicons/vue/solid'
 
 import { markRaw } from 'vue'
 
-import DeviceLastSeenBadge from '../device/components/DeviceLastSeenBadge'
-import SnapshotAssignDialog from '../instance/Snapshots/dialogs/SnapshotAssignDialog'
-import DeviceCredentialsDialog from '../team/Devices/dialogs/DeviceCredentialsDialog'
-import TeamDeviceCreateDialog from '../team/Devices/dialogs/TeamDeviceCreateDialog'
+import DeviceLastSeenBadge from '../pages/device/components/DeviceLastSeenBadge'
+import SnapshotAssignDialog from '../pages/instance/Snapshots/dialogs/SnapshotAssignDialog'
+import DeviceCredentialsDialog from '../pages/team/Devices/dialogs/DeviceCredentialsDialog'
+import TeamDeviceCreateDialog from '../pages/team/Devices/dialogs/TeamDeviceCreateDialog'
 
-import ProjectStatusBadge from './components/ProjectStatusBadge'
-import DeviceLink from './components/cells/DeviceLink.vue'
-import InstanceInstancesLink from './components/cells/InstanceInstancesLink.vue'
-import Snapshot from './components/cells/Snapshot.vue'
+import ProjectStatusBadge from '../pages/project/components/ProjectStatusBadge'
+import DeviceLink from '../pages/project/components/cells/DeviceLink.vue'
+import InstanceInstancesLink from '../pages/project/components/cells/InstanceInstancesLink.vue'
+import Snapshot from '../pages/project/components/cells/Snapshot.vue'
 
 import deviceApi from '@/api/devices'
 import instanceApi from '@/api/instances'
