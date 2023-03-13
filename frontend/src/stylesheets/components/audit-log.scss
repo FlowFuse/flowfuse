@@ -51,10 +51,13 @@
     }
 }
 
-.ff-audit-entry-trigger {
-    color: $ff-grey-400;
-    text-align: right;
+.ff-audit-entry-trigger, .ff-audit-entry-time {
+    color: $ff-grey-500;
     overflow-x: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+}
+
+.ff-audit-entry-trigger {
+    text-align: right;
 }
