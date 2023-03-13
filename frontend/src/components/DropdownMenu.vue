@@ -4,7 +4,7 @@
             <MenuButton :class="[buttonClass ? buttonClass : 'forge-button', !hasLabel?'px-1':'']">
                 <slot></slot>
                 <span class="sr-only">{{ alt }}</span>
-                <ChevronDownIcon :class="[hasLabel?'ml-2 -mr-1 ':'','w-5 h-5 my-1 text-gray-400']" aria-hidden="true" />
+                <ChevronDownIcon class="ff-btn--icon ff-btn--icon-right" aria-hidden="true" />
             </MenuButton>
         </div>
         <transition
@@ -52,8 +52,11 @@
         </transition>
     </HeadlessUIMenu>
 </template>
-<script>
 
+<script>
+/**
+ * This component is deprecated and should not be used
+ */
 import { ref } from 'vue'
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 import { ChevronDownIcon } from '@heroicons/vue/solid'
