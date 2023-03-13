@@ -12,41 +12,39 @@
         <ff-loading v-else-if="creatingDevice" message="Creating Token..." />
         <ff-loading v-else-if="deletingItem" message="Deleting Token..." />
         <template v-else>
-            <template v-if="this.tokens.size === 0">
-                <div class="ff-no-data ff-no-data-large">
-                    You don't have any tokens yet
-                </div>
-            </template>
-            <template v-if="this.tokens.size > 0">
-                <ff-data-table
-                    data-el="provisioning-tokens"
-                    :columns="columns"
-                    :rows="Array.from(this.tokens.values())"
-                    :show-search="true"
-                    search-placeholder="Search Tokens..."
-                    :show-load-more="!!nextCursor"
-                    @load-more="loadMore"
-                >
-                    <template #actions>
-                        <ff-button
-                            v-if="addEnabled"
-                            class="font-normal"
-                            data-action="register-device"
-                            kind="primary"
-                            @click="showCreateTokenDialog"
-                        >
-                            <template #icon-left>
-                                <PlusSmIcon />
-                            </template>
-                            Add Token
-                        </ff-button>
-                    </template>
-                    <template v-if="editEnabled || deleteEnabled" v-slot:context-menu="{row}">
-                        <ff-list-item :disabled="!editEnabled" label="Edit Details" @click="menuAction('edit', row.id)"/>
-                        <ff-list-item :disabled="!deleteEnabled" kind="danger" label="Delete Token" @click="menuAction('delete', row.id)" />
-                    </template>
-                </ff-data-table>
-            </template>
+            <ff-data-table
+                data-el="provisioning-tokens"
+                :columns="columns"
+                :rows="Array.from(this.tokens?.values())"
+                :show-search="true"
+                search-placeholder="Search Tokens..."
+                :show-load-more="!!nextCursor"
+                @load-more="loadMore"
+            >
+                <template #actions>
+                    <ff-button
+                        v-if="addEnabled"
+                        class="font-normal"
+                        data-action="add-provisioning-token"
+                        kind="primary"
+                        @click="showCreateTokenDialog"
+                    >
+                        <template #icon-left>
+                            <PlusSmIcon />
+                        </template>
+                        Add Token
+                    </ff-button>
+                </template>
+                <template v-if="editEnabled || deleteEnabled" v-slot:context-menu="{row}">
+                    <ff-list-item :disabled="!editEnabled" label="Edit Details" @click="menuAction('edit', row.id)"/>
+                    <ff-list-item :disabled="!deleteEnabled" kind="danger" label="Delete Token" @click="menuAction('delete', row.id)" />
+                </template>
+                <template v-if="this.tokens.size === 0" #table>
+                    <div class="ff-no-data ff-no-data-large">
+                        You don't have any tokens yet
+                    </div>
+                </template>
+            </ff-data-table>
         </template>
     </div>
     <CreateProvisioningTokenDialog :team="team" @tokenCreating="tokenCreating" @tokenCreated="tokenCreated" @tokenUpdated="tokenUpdated" ref="CreateProvisioningTokenDialog"/>

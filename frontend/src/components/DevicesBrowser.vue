@@ -118,7 +118,7 @@
                 <template v-else-if="displayingApplication">application.</template>
                 <template v-else-if="displayingInstance">application instance.</template>
                 This will generate a <b>device.yml</b> file that should be
-                placed on the target device. 
+                placed on the target device.
             </p>
             <p class="my-4">
                 If you want to devices to be automatically registered, you can use provisioning tokens
