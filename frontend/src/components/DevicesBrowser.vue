@@ -86,7 +86,12 @@
                         @click="deviceAction('edit', row.id)"
                     />
                     <ff-list-item
-                        label="Remove from Instance"
+                        v-if="!row.instance && displayingTeam"
+                        label="Add to Application Instance" @click="deviceAction('assignToProject', row.id)"
+                    />
+                    <ff-list-item
+                        v-else
+                        label="Remove from Application Instance"
                         @click="deviceAction('removeFromProject', row.id)"
                     />
                     <ff-list-item
@@ -111,7 +116,23 @@
         @device-creating="deviceCreating"
         @device-created="deviceCreated"
         @device-updated="deviceUpdated"
-    />
+    >
+        <template #description>
+            <p>
+                Here, you can register a new device to your
+                <template v-if="displayingTeam">team.</template>
+                <template v-else-if="displayingApplication">application.</template>
+                <template v-else-if="displayingInstance">application instance.</template>
+                This will provide you with a <b>device.yml</b>
+                to be moved to the respective device. Further details on Devices in FlowForge can be found
+                <a href="https://flowforge.com/docs/user/devices/" target="_blank">here</a>.
+            </p>
+            <p class="mt-4 mb-2">
+                If you want to register devices straight to a particular application instance you can use provisioning tokens
+                in your <router-link :to="{'name': 'TeamSettingsDevices', 'params': {team_slug: team.slug}}">Team Settings</router-link>
+            </p>
+        </template>
+    </TeamDeviceCreateDialog>
 
     <DeviceCredentialsDialog ref="deviceCredentialsDialog" />
 
@@ -120,6 +141,13 @@
         ref="snapshotAssignDialog"
         :instance="instance"
         @snapshot-assigned="$emit('instance-updated')"
+    />
+
+    <DeviceAssignProjectDialog
+        v-if="displayingTeam"
+        ref="deviceAssignProjectDialog"
+        :team="team"
+        @assign-device="assignDevice"
     />
 </template>
 
@@ -133,9 +161,11 @@ import DeviceLastSeenBadge from '../pages/device/components/DeviceLastSeenBadge'
 import SnapshotAssignDialog from '../pages/instance/Snapshots/dialogs/SnapshotAssignDialog'
 
 import ProjectStatusBadge from '../pages/project/components/ProjectStatusBadge'
+import ApplicationLink from '../pages/project/components/cells/ApplicationLink'
 import DeviceLink from '../pages/project/components/cells/DeviceLink.vue'
 import InstanceInstancesLink from '../pages/project/components/cells/InstanceInstancesLink.vue'
 import Snapshot from '../pages/project/components/cells/Snapshot.vue'
+import DeviceAssignProjectDialog from '../pages/team/Devices/dialogs/DeviceAssignProjectDialog'
 import DeviceCredentialsDialog from '../pages/team/Devices/dialogs/DeviceCredentialsDialog'
 import TeamDeviceCreateDialog from '../pages/team/Devices/dialogs/TeamDeviceCreateDialog'
 
@@ -153,6 +183,7 @@ export default {
     name: 'ProjectOverview',
     components: {
         ClockIcon,
+        DeviceAssignProjectDialog,
         DeviceCredentialsDialog,
         PlusSmIcon,
         SnapshotAssignDialog,
@@ -197,6 +228,29 @@ export default {
             const columns = [
                 { label: 'Device', key: 'name', class: ['w-64'], sortable: true, component: { is: markRaw(DeviceLink) } }
             ]
+
+            const statusColumns = [
+                { label: 'Last Seen', key: 'lastSeenAt', class: ['w-32'], sortable: true, component: { is: markRaw(DeviceLastSeenBadge) } },
+                { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(ProjectStatusBadge) } }
+            ]
+
+            if (this.displayingTeam) {
+                columns.push(
+                    ...statusColumns,
+                    {
+                        label: 'Application',
+                        class: ['w-64'],
+                        key: 'project',
+                        sortable: true,
+                        component: {
+                            is: markRaw(ApplicationLink),
+                            map: {
+                                id: 'project.id',
+                                name: 'project.name'
+                            }
+                        }
+                    })
+            }
 
             if (!this.displayingInstance) {
                 columns.push({
@@ -280,7 +334,10 @@ export default {
 
         async assignDevice (device, projectId) {
             const updatedDevice = await deviceApi.updateDevice(device.id, { project: projectId })
+
+            // TODO Remove temporary duplication
             device.project = updatedDevice.project
+            device.instance = updatedDevice.project
         },
 
         async pollForData () {
@@ -308,7 +365,7 @@ export default {
                 data = await instanceApi.getInstanceDevices(this.instance.id, nextCursor)
             } else if (this.displayingApplication) {
                 data = await projectApi.getProjectDevices(this.application.id, nextCursor)
-            } else if (this.displayingTea) {
+            } else if (this.displayingTeam) {
                 data = await teamApi.getTeamDevices(this.team.id, nextCursor)
             } else {
                 return console.warn('Trying to fetch data without a loaded model.')
@@ -368,6 +425,8 @@ export default {
 
                     Alerts.emit('Successfully removed the device from the instance.', 'confirmation')
                 })
+            } else if (action === 'assignToProject') {
+                this.$refs.deviceAssignProjectDialog.show(device)
             }
         }
     }
