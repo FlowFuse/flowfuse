@@ -258,6 +258,10 @@ module.exports = {
                             model: M.Team,
                             include: [
                                 {
+                                    model: M.Application,
+                                    attributes: ['hashid', 'id', 'name', 'links']
+                                },
+                                {
                                     model: M.TeamMember,
                                     where: {
                                         UserId: user.id
@@ -286,6 +290,10 @@ module.exports = {
                             {
                                 model: M.Team,
                                 attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                            },
+                            {
+                                model: M.Application,
+                                attributes: ['hashid', 'id', 'name', 'links']
                             },
                             {
                                 model: M.ProjectType,
@@ -320,6 +328,10 @@ module.exports = {
                                 model: M.Team,
                                 where: { id: teamId },
                                 attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                            },
+                            {
+                                model: M.Application,
+                                attributes: ['hashid', 'id', 'name', 'links']
                             },
                             {
                                 model: M.ProjectType,

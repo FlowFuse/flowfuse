@@ -33,7 +33,14 @@ module.exports = {
 
         const settingsHostnameRow = proj.ProjectSettings?.find((projectSettingsRow) => projectSettingsRow.key === KEY_HOSTNAME)
         result.hostname = settingsHostnameRow?.value || ''
-
+        if (proj.Application) {
+            result.application = {
+                id: proj.Application.hashid,
+                name: proj.Application.name,
+                fred: true,
+                links: proj.Application.links
+            }
+        }
         if (proj.Team) {
             result.team = {
                 id: proj.Team.hashid,
@@ -106,6 +113,7 @@ module.exports = {
                 createdAt: t.createdAt,
                 updatedAt: t.updatedAt,
                 links: t.links,
+                application: app.db.views.Application.application(t.Application),
                 team: app.db.views.Team.team(t.Team)
             }
         })

@@ -7,11 +7,6 @@ const { DataTypes } = require('sequelize')
 module.exports = {
     name: 'Application',
     schema: {
-        id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true
-        },
         name: { type: DataTypes.STRING, allowNull: false }
     },
     associations: function (M) {
