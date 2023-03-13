@@ -127,6 +127,5 @@ module.exports = async function (app) {
             await app.auditLog.User.user.deleted(request.session.User, resp, request.session.User)
             reply.code(400).send(resp)
         }
-        return reply // avoid "Promise may not be fulfilled with 'undefined' when statusCode is not 204" https://github.com/fastify/help/issues/627
     })
 }
