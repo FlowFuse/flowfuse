@@ -32,6 +32,9 @@ describe('User API', async function () {
         // bob: (sso_enabled)
         // chris : (unverified_email)
         // dave : (password_expired)
+        // elvis: (no teams)
+        // frank: (B team owner)
+        // grace: (B team member only)
 
         // ATeam ( alice  (owner), bob (owner), chris, dave)
         // BTeam ( bob (owner), chris, dave)
@@ -42,6 +45,8 @@ describe('User API', async function () {
         TestObjects.chris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', password: 'ccPassword' })
         TestObjects.dave = await app.db.models.User.create({ username: 'dave', name: 'Dave Vader', email: 'dave@example.com', password: 'ddPassword', email_verified: true, password_expired: true })
         TestObjects.elvis = await app.db.models.User.create({ username: 'elvis', name: 'Elvis Dooku', email: 'elvis@example.com', email_verified: true, password: 'eePassword' })
+        TestObjects.frank = await app.db.models.User.create({ username: 'frank', name: 'Frank Stein', email: 'frank@example.com', email_verified: true, password: 'ffPassword' })
+        TestObjects.grace = await app.db.models.User.create({ username: 'grace', name: 'Grace Hut', email: 'grace@example.com', email_verified: true, password: 'ggPassword' })
 
         // ATeam create in setup()
         TestObjects.ATeam = await app.db.models.Team.byName('ATeam')
@@ -54,6 +59,8 @@ describe('User API', async function () {
         await TestObjects.BTeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
         await TestObjects.BTeam.addUser(TestObjects.chris, { through: { role: Roles.Member } })
         await TestObjects.BTeam.addUser(TestObjects.dave, { through: { role: Roles.Member } })
+        await TestObjects.BTeam.addUser(TestObjects.frank, { through: { role: Roles.Owner } })
+        await TestObjects.BTeam.addUser(TestObjects.grace, { through: { role: Roles.Member } })
 
         TestObjects.Project1 = app.project
 
@@ -468,6 +475,86 @@ describe('User API', async function () {
                 })
                 response2.statusCode.should.equal(401)
             })
+        })
+    })
+    describe('User deletes own account', async function () {
+        // alice : admin, team owner
+        // bob: (sso_enabled)
+        // chris : (unverified_email)
+        // dave : (password_expired)
+        // elvis: (no teams)
+        // frank: (B team owner)
+        // grace: (B team member only)
+        it('Can not delete own account if cookie not present', async function () {
+            const response = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/user'
+            })
+            response.statusCode.should.equal(401)
+        })
+        it('Admin can delete own account if another admin exists', async function () {
+            await login('bob', 'bbPassword')
+            const response = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+            const json = response.json()
+            json.should.have.property('status', 'okay')
+        })
+        it('Last admin cannot delete own account', async function () {
+            await login('alice', 'aaPassword')
+
+            // add elvis to teams A & B as owner (so that all teams have 2 owners)
+            await TestObjects.ATeam.addUser(TestObjects.elvis, { through: { role: Roles.Owner } })
+            await TestObjects.BTeam.addUser(TestObjects.elvis, { through: { role: Roles.Owner } })
+
+            // delete bob so that alice becomes the last admin
+            await TestObjects.bob.destroy()
+
+            // now attempt to delete alice, should fail as alice is the last admin
+            const response = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(400)
+            const json = response.json()
+            json.should.have.property('error', 'Error: Cannot delete the last platform administrator')
+        })
+        it('Last owner of a team cannot delete own account', async function () {
+            await login('frank', 'ffPassword')
+            // delete bob so that grace becomes the remaining owner of team B
+            await TestObjects.bob.destroy()
+
+            // frank now attempts to delete own account: should fail as frank is the last owner of team B
+            const response = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.frank }
+            })
+            response.statusCode.should.equal(400)
+            const json = response.json()
+            json.should.have.property('error', 'Error: Cannot delete the last owner of a team')
+        })
+        it('Non admin user who is a team member can delete own account', async function () {
+            await login('grace', 'ggPassword')
+            const response = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.grace }
+            })
+            response.statusCode.should.equal(200)
+        })
+        it('Team owner can delete own account if another team owner exists', async function () {
+            await login('grace', 'ggPassword')
+            const response = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.grace }
+            })
+            response.statusCode.should.equal(200)
         })
     })
 })

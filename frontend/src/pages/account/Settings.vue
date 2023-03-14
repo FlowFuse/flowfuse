@@ -22,14 +22,28 @@
             <ff-button @click="startEdit">Edit</ff-button>
         </template>
     </form>
+
+    <FormHeading class="text-red-700 mt-6">Delete Account</FormHeading>
+    <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+        <div class="flex-grow">
+            <div class="max-w-sm">
+                Before you can delete your account, teams you own must be deleted or have at least 1 other owner.
+            </div>
+        </div>
+        <div class="min-w-fit flex-shrink-0">
+            <ff-button class="warning" kind="danger" @click="deleteAccount">Delete Account</ff-button>
+        </div>
+    </div>
+
 </template>
 
 <script>
 import userApi from '@/api/user'
 
 import alerts from '@/services/alerts'
-
+import FormHeading from '@/components/FormHeading'
 import FormRow from '@/components/FormRow'
+import dialog from '@/services/dialog'
 
 export default {
     name: 'AccountSettings',
@@ -162,6 +176,26 @@ export default {
                     this.loading = false
                 })
             }
+        },
+        deleteAccount () {
+            // ask user if they are sure, if so, delete account
+            dialog.show({
+                header: 'Delete Account',
+                kind: 'danger',
+                html: `<p>Are you sure you want to delete your account?</p>
+                       <p>This action cannot be undone.</p>`,
+                confirmLabel: 'Delete'
+            }, async () => {
+                try {
+                    await userApi.deleteUser()
+                    // this.$store.dispatch('account/logout')
+                    this.$store.dispatch('account/checkState')
+                    this.$router.push({ name: 'login' })
+                } catch (error) {
+                    const msg = error.response?.data?.error || 'Error deleting account'
+                    alerts.emit(msg, 'warning')
+                }
+            })
         }
     },
     computed: {
@@ -176,7 +210,8 @@ export default {
         }
     },
     components: {
-        FormRow
+        FormRow,
+        FormHeading
     }
 }
 </script>

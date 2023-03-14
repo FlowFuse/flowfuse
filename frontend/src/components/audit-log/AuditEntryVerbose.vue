@@ -174,7 +174,12 @@
         <span v-if="!error && entry.trigger.user && entry.body.user">User '{{ entry.trigger.user?.name }}' has created a new user, '{{ entry.body.user?.name }}'.</span>
         <span v-else-if="!error">User data not found in audit entry.</span>
     </template>
-    <template v-else-if="entry.event === 'user.deleted-user'">
+    <template v-else-if="entry.event === 'user.deleted'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.user">User '{{ entry.body?.user?.name }}' has deleted their account.</span>
+        <span v-else-if="!error">User data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'users.deleted-user'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.trigger.user && entry.body.user">User '{{ entry.trigger.user?.name }}' has deleted the user, '{{ entry.body.user?.name }}'.</span>
         <span v-else-if="!error">User data not found in audit entry.</span>

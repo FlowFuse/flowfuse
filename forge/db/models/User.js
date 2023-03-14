@@ -84,13 +84,28 @@ module.exports = {
                 }
             },
             beforeDestroy: async (user, opts) => {
+                // determine if this user is an admin whether they are the only admin
+                // throw an error if they are the only admin as we dont want to orphan platform
                 if (user.admin) {
-                    throw new Error('Cannot delete Admin user')
+                    const adminCount = await app.db.models.User.scope('admins').count()
+                    // const adminCount = (await app.forge.db.models.User.admins()).length
+                    if (adminCount <= 1) {
+                        throw new Error('Cannot delete the last platform administrator')
+                    }
                 }
-                const teamsOwned = await user.getTeamsOwned()
-                if (teamsOwned.length > 0) {
-                    throw new Error('Cannot delete user that owns teams')
+
+                // determine if this user owns any teams
+                // throw an error if we would orphan any teams
+                const teams = await app.db.models.Team.forUser(user)
+                for (const team of teams) {
+                    const owners = await team.Team.getOwners()
+                    const isOwner = owners.find((owner) => owner.id === user.id)
+                    // if this user is the only owner of this team, throw an error
+                    if (isOwner && owners.length <= 1) {
+                        throw new Error('Cannot delete the last owner of a team')
+                    }
                 }
+
                 // Need to do this in beforeDestroy as the Session.UserId field
                 // is set to NULL when user is deleted.
                 // TODO: modify cascade delete relationship between the tables

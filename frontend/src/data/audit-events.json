@@ -91,7 +91,8 @@
         "user.invite.delete": "User Invite Deleted",
         "user.invitations.delete-invite": "User Invite Deleted",
         "user.created-user": "User Created",
-        "user.deleted-user": "User Deleted",
+        "user.deleted": "User Deleted Account",
+        "users.deleted-user": "User Deleted",
         "users.updated-user": "User Updated",
         "users.auto-created-team": "Team Created"
     }
