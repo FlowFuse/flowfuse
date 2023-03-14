@@ -1,5 +1,13 @@
 <template>
-    <ff-dialog ref="dialog" header="Delete Application" kind="danger" confirm-label="Delete" :disable-primary="!formValid" data-el="delete-project-dialog" @confirm="confirm()">
+    <ff-dialog
+        ref="dialog"
+        :disable-primary="!formValid"
+        confirm-label="Delete"
+        data-el="delete-application-dialog"
+        header="Delete Application"
+        kind="danger"
+        @confirm="confirm()"
+    >
         <template #default>
             <form class="space-y-6" @submit.prevent>
                 <div class="mt-2 space-y-2">
@@ -11,7 +19,7 @@
                         <code class="block">{{ project?.name }}</code>
                     </p>
                 </div>
-                <FormRow id="projectName" v-model="input.projectName" data-form="project-name">Name</FormRow>
+                <FormRow id="projectName" v-model="input.projectName" data-form="application-name">Name</FormRow>
             </form>
         </template>
     </ff-dialog>

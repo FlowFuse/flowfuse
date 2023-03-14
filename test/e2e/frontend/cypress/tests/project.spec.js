@@ -9,6 +9,8 @@ describe('FlowForge - Projects', () => {
     })
 
     it('can be created', () => {
+        const APPLICATION_NAME = `new-application-${Math.random().toString(36).substring(2, 7)}`
+
         cy.request('GET', 'api/v1/teams').then((response) => {
             const team = response.body.teams[0]
 
@@ -24,7 +26,7 @@ describe('FlowForge - Projects', () => {
                 expect(projectName.length).to.be.above(0)
             })
 
-            cy.get('[data-form="project-name"] input').clear().type('my-project-name')
+            cy.get('[data-form="project-name"] input').clear().type(APPLICATION_NAME)
             cy.get('[data-action="create-project"]').should('be.disabled')
 
             cy.get('[data-form="project-type"]').contains('type1').click()
@@ -41,15 +43,7 @@ describe('FlowForge - Projects', () => {
 
             cy.wait('@createProject')
 
-            cy.contains('my-project-name')
-
-            // Tidy-up
-            cy.get('[data-el="cloud-instances"] .ff-kebab-menu').click()
-            cy.get('[data-el="cloud-instances"] .ff-kebab-menu').find('.ff-list-item').contains('Delete').click()
-            cy.get('[data-el="delete-project-dialog"]').within(() => {
-                cy.get('[data-form="project-name"] input[type="text"]').type('my-project-name')
-                cy.get('button.ff-btn.ff-btn--danger').click()
-            })
+            cy.contains(APPLICATION_NAME)
         })
     })
 

@@ -21,7 +21,7 @@
                     </div>
                 </div>
                 <div class="min-w-fit flex-shrink-0">
-                    <ff-button data-action="delete-project" kind="danger" @click="$emit('application-delete')">Delete Application</ff-button>
+                    <ff-button data-action="delete-application" kind="danger" @click="$emit('application-delete')">Delete Application</ff-button>
                 </div>
             </div>
         </div>

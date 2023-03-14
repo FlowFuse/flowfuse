@@ -94,7 +94,7 @@
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button data-action="delete-project" kind="danger" @click="$emit('instance-confirm-delete')">Delete Instance</ff-button>
+                <ff-button data-action="delete-instance" kind="danger" @click="$emit('instance-confirm-delete')">Delete Instance</ff-button>
             </div>
         </div>
     </form>
