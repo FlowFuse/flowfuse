@@ -79,6 +79,67 @@ describe('FlowForge - Projects', () => {
             cy.get('[data-form="project-name"] [data-el="form-row-error"]').contains('name in use')
         })
     })
+
+    it('can be deleted', () => {
+        const APPLICATION_NAME = `new-application-${Math.random().toString(36).substring(2, 7)}`
+
+        cy.intercept('DELETE', '/api/*/projects/*').as('deleteProject')
+
+        let team, template, stack, type
+
+        cy.request('GET', 'api/v1/teams')
+            .then((response) => {
+                team = response.body.teams[0]
+                return cy.request('GET', 'api/v1/templates')
+            })
+            .then((response) => {
+                template = response.body.templates[0]
+                return cy.request('GET', 'api/v1/project-types')
+            })
+            .then((response) => {
+                type = response.body.types[0]
+                return cy.request('GET', `api/v1/stacks?projectType=${type.id}`)
+            })
+            .then((response) => {
+                stack = response.body.stacks[0]
+                return cy.request('POST', '/api/v1/projects', {
+                    name: APPLICATION_NAME,
+                    stack: stack.id,
+                    template: template.id,
+                    billingConfirmation: false,
+                    projectType: type.id,
+                    team: team.id
+                })
+            })
+            .then((response) => {
+                cy.intercept('GET', '/api/*/projects/*').as('getProject')
+
+                const project = response.body
+                cy.visit(`/project/${project.id}/settings`)
+                cy.wait('@getProject')
+
+                cy.get('[data-el="delete-application-dialog"]').should('not.be.visible')
+                cy.get('button[data-action="delete-application"]').click()
+
+                cy.get('[data-el="delete-application-dialog"]')
+                    .should('be.visible')
+                    .within(() => {
+                        // Dialog is open
+                        cy.get('.ff-dialog-header').contains('Delete Application')
+
+                        // Main button should be disabled
+                        cy.get('button.ff-btn.ff-btn--danger').should('be.disabled')
+                        cy.get('[data-form="application-name"] input[type="text"]').type(APPLICATION_NAME)
+
+                        // Should now be enabled again
+                        cy.get('button.ff-btn.ff-btn--danger').click()
+                    })
+
+                cy.wait('@deleteProject')
+
+                cy.url().should('include', `/team/${team.slug}/overview`)
+            })
+    })
 })
 
 describe('FlowForge - Projects - With Billing', () => {
