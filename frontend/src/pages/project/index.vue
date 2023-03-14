@@ -189,9 +189,9 @@ export default {
         },
         checkAccess () {
             this.navigation = [
-                { label: 'Instances', path: `/project/${this.project.id}/instances`, tag: 'project-overview', icon: ProjectsIcon },
-                { label: 'Audit Log', path: `/project/${this.project.id}/activity`, tag: 'project-activity', icon: ViewListIcon },
+                { label: 'Node-RED Instances', path: `/project/${this.project.id}/instances`, tag: 'project-overview', icon: ProjectsIcon },
                 { label: 'Node-RED Logs', path: `/project/${this.project.id}/logs`, tag: 'project-logs', icon: TerminalIcon },
+                { label: 'Audit Log', path: `/project/${this.project.id}/activity`, tag: 'project-activity', icon: ViewListIcon },
                 { label: 'Settings', path: `/project/${this.project.id}/settings`, tag: 'project-settings', icon: CogIcon }
             ]
             if (this.mounted && this.project.meta) {

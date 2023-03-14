@@ -1,10 +1,14 @@
 <template>
+    <div class="mb-3">
+        <SectionTopMenu hero="Audit Log" info=""></SectionTopMenu>
+    </div>
     <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" logType="project" @load-entries="loadEntries" />
 </template>
 
 <script>
 import { mapState } from 'vuex'
 
+import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser'
 
 import InstanceApi from '@/api/instances'
@@ -13,6 +17,7 @@ import TeamAPI from '@/api/team'
 export default {
     name: 'InstanceAuditLog',
     components: {
+        SectionTopMenu,
         AuditLogBrowser
     },
     inheritAttrs: false,

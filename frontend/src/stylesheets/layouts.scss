@@ -176,6 +176,14 @@ $nav_height: 60px;
         padding: 12px;
         background-color: $ff-grey-50;
     }
+    main.ff-with-status-header {
+        margin: 9px;
+        padding: 0px;
+        .ff-instance-header {
+            padding: 0px;
+            background-color: $ff-white;
+        }
+    }
 }
 
 .ff-notifications {
@@ -645,6 +653,14 @@ $nav_height: 60px;
         main {
             margin: 24px;
             padding: 32px;
+        }
+        main.ff-with-status-header {
+            margin: 24px;
+            padding: 0px;
+            .ff-instance-header {
+                padding: 0px;
+                background-color: $ff-white;
+            }
         }
     }
     .ff-navigation {

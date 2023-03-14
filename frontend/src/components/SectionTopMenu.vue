@@ -1,10 +1,10 @@
 <template>
-    <div class="flex flex-wrap border-b border-gray-700 mb-4 sm:mb-2 text-gray-500 justify-between">
+    <div class="ff-section-header flex flex-wrap border-b border-gray-400 mb-4 sm:mb-2 text-gray-500 justify-between">
         <div class="flex">
             <div class="w-full flex items-center md:w-auto mb-2 mr-8 gap-x-2">
                 <slot name="hero">
                     <div class="flex">
-                        <div class="text-gray-800 text-xl font-bold">{{ hero }}</div>
+                        <div class="text-gray-800 text-xl font-medium">{{ hero }}</div>
                     </div>
                 </slot>
                 <InformationCircleIcon v-if="hasInfoDialog" class="min-w-[20px] ff-icon text-gray-800 cursor-pointer hover:text-blue-700" @click="openInfoDialog()" />

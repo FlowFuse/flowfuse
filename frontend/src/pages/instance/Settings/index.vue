@@ -1,5 +1,8 @@
 <template>
-    <div class="flex flex-col sm:flex-row">
+    <div class="mb-3">
+        <SectionTopMenu hero="Settings" info=""></SectionTopMenu>
+    </div>
+    <div class="flex flex-col sm:flex-row ml-6">
         <SectionSideMenu :options="sideNavigation" />
         <div class="flex-grow">
             <router-view
@@ -15,12 +18,14 @@
 <script>
 import { mapState } from 'vuex'
 
+import SectionTopMenu from '@/components/SectionTopMenu'
 import SectionSideMenu from '@/components/SectionSideMenu'
 import permissionsMixin from '@/mixins/Permissions'
 
 export default {
     name: 'InstanceSettings',
     components: {
+        SectionTopMenu,
         SectionSideMenu
     },
     mixins: [permissionsMixin],

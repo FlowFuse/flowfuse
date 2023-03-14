@@ -1,13 +1,13 @@
 <template>
     <div>
-        <SectionTopMenu hero="FlowForge Hosted Instances" help-header="FlowForge - Instances - Local" info="Instances of Node-RED running in the FlowForge cloud">
+        <SectionTopMenu hero="Node-RED Instances" help-header="Node-RED Instances - Running in FlowForge" info="Instances of Node-RED, in this application, that are running in the FlowForge cloud.">
             <template #pictogram>
                 <img src="../../images/pictograms/edge_red.png">
             </template>
             <template #helptext>
                 <p>This is a list of all instances of this Application hosted on the same domain as FlowForge.</p>
                 <p>It will always run the latest flow deployed in Node-RED and use the latest credentials and runtime settings defined in the Projects settings.</p>
-                <p>To edit an Applications flow, open the editor of the Instance.</p>
+                <p>To edit an Application's flow, open the editor of the Instance.</p>
             </template>
         </SectionTopMenu>
 
