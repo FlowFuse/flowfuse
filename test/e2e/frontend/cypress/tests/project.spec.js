@@ -1,11 +1,11 @@
 describe('FlowForge - Projects', () => {
     beforeEach(() => {
-        cy.intercept('GET', '/api/*/project-types*').as('getProjectTypes')
+        cy.intercept('GET', '/api/*/project-types*').as('getInstanceTypes')
 
         cy.login('alice', 'aaPassword')
         cy.home()
         cy.visit('/admin/project-types')
-        cy.wait('@getProjectTypes')
+        cy.wait('@getInstanceTypes')
     })
 
     it('can be created', () => {
