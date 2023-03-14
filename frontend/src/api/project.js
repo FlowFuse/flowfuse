@@ -65,20 +65,6 @@ const importProject = async (projectId, components) => {
     })
 }
 
-const getProjectDevices = async (projectId, cursor, limit) => {
-    const url = paginateUrl(`/api/v1/projects/${projectId}/devices`, cursor, limit)
-    const res = await client.get(url)
-    res.data.devices.forEach(device => {
-        device.lastSeenSince = device.lastSeenAt ? daysSince(device.lastSeenAt) : ''
-
-        // TODO: Remove this temporary copy of application over instance
-        if (device.project) {
-            device.instance = device.project
-        }
-    })
-    return res.data
-}
-
 const getProjectDeviceSettings = async (projectId) => {
     return client.get(`/api/v1/projects/${projectId}/devices/settings`).then(res => res.data)
 }
@@ -115,7 +101,6 @@ export default {
     rollbackProject,
     changeStack,
     importProject,
-    getProjectDevices,
     getProjectDeviceSettings,
     updateProjectDeviceSettings,
     getProjectInstances

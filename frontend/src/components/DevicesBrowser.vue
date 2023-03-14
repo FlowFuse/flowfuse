@@ -57,11 +57,6 @@
                         <span v-if="displayingTeam" data-el="team-no-devices">
                             You don't have any devices yet
                         </span>
-
-                        <span v-else-if="displayingApplication" data-el="application-no-devices">
-                            You have not added any devices to this application yet.
-                        </span>
-
                         <span v-else-if="displayingInstance" data-el="instance-no-devices">
                             You have not assigned any devices to this instance yet.
                         </span>
@@ -115,7 +110,6 @@
             <p>
                 Here, you can add a new device to your
                 <template v-if="displayingTeam">team.</template>
-                <template v-else-if="displayingApplication">application.</template>
                 <template v-else-if="displayingInstance">application instance.</template>
                 This will generate a <b>device.yml</b> file that should be
                 placed on the target device.
@@ -168,7 +162,6 @@ import TeamDeviceCreateDialog from '../pages/team/Devices/dialogs/TeamDeviceCrea
 
 import deviceApi from '@/api/devices'
 import instanceApi from '@/api/instances'
-import projectApi from '@/api/project'
 import teamApi from '@/api/team'
 
 import permissionsMixin from '@/mixins/Permissions'
@@ -189,13 +182,8 @@ export default {
     mixins: [permissionsMixin],
     inheritAttrs: false,
     props: {
-        // One of the three must be provided
+        // One of the two must be provided
         instance: {
-            type: Object,
-            required: false,
-            default: null
-        },
-        application: {
             type: Object,
             required: false,
             default: null
@@ -204,6 +192,8 @@ export default {
             type: Object,
             required: true
         },
+
+        // Used for hasPermission
         teamMembership: {
             type: Object,
             required: true
@@ -274,17 +264,17 @@ export default {
 
             return columns
         },
-        hasLoadedModel () {
-            return !!this.instance?.id || !!this.application?.id || !!this.team?.id
-        },
         displayingInstance () {
-            return !!this.instance?.id
-        },
-        displayingApplication () {
-            return !!this.application?.id && !this.displayingInstance
+            return this.instance !== null
         },
         displayingTeam () {
-            return !!this.team?.id && !this.displayingInstance && !this.displayingApplication
+            return this.team !== null && !this.displayingInstance
+        },
+        hasLoadedModel () {
+            return (
+                (this.displayingInstance && !!this.instance?.id) ||
+                (this.displayingTeam && !!this.team?.id)
+            )
         }
     },
     watch: {
@@ -356,15 +346,15 @@ export default {
         },
 
         async loadMore () {
-            await this.fetchData(this.nextCursor)
+            if (this.hasLoadedModel) {
+                await this.fetchData(this.nextCursor)
+            }
         },
 
         async fetchData (nextCursor = null, polled = false) {
             let data
             if (this.displayingInstance) {
                 data = await instanceApi.getInstanceDevices(this.instance.id, nextCursor)
-            } else if (this.displayingApplication) {
-                data = await projectApi.getProjectDevices(this.application.id, nextCursor)
             } else if (this.displayingTeam) {
                 data = await teamApi.getTeamDevices(this.team.id, nextCursor)
             } else {
