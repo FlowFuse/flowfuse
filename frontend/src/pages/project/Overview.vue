@@ -84,7 +84,6 @@
 <script>
 
 import { Roles } from '@core/lib/roles'
-import { PlusSmIcon } from '@heroicons/vue/solid'
 
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
@@ -104,7 +103,6 @@ export default {
     name: 'ProjectOverview',
     components: {
         DevicesBrowser,
-        PlusSmIcon,
         SectionTopMenu
     },
     mixins: [permissionsMixin],
