@@ -71,13 +71,6 @@
                 </p>
             </template>
         </SectionTopMenu>
-
-        <DevicesBrowser
-            :application="project"
-            :team="team"
-            :teamMembership="teamMembership"
-            @project-updated="$emit('projectUpdated', ...arguments)"
-        />
     </div>
 </template>
 
@@ -88,7 +81,6 @@ import { Roles } from '@core/lib/roles'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import DevicesBrowser from '../../components/DevicesBrowser'
 import SectionTopMenu from '../../components/SectionTopMenu'
 
 import ProjectStatusBadge from './components/ProjectStatusBadge'
@@ -102,7 +94,6 @@ import permissionsMixin from '@/mixins/Permissions'
 export default {
     name: 'ProjectOverview',
     components: {
-        DevicesBrowser,
         SectionTopMenu
     },
     mixins: [permissionsMixin],
