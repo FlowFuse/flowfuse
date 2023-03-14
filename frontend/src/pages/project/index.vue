@@ -43,7 +43,7 @@ import { mapState } from 'vuex'
 
 import ConfirmInstanceDeleteDialog from '../instance/Settings/dialogs/ConfirmInstanceDeleteDialog'
 
-import ConfirmApplicationDeleteDialog from './settings/dialogs/ConfirmApplicationDeleteDialog'
+import ConfirmApplicationDeleteDialog from './Settings/dialogs/ConfirmApplicationDeleteDialog'
 
 import instanceApi from '@/api/instances'
 import projectApi from '@/api/project'
