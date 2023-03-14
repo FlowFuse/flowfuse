@@ -277,17 +277,21 @@ export default {
 
             return columns
         },
-        hasLoadedModel () {
-            return !!this.instance?.id || !!this.application?.id || !!this.team?.id
-        },
         displayingInstance () {
-            return !!this.instance?.id
+            return this.instance !== null
         },
         displayingApplication () {
-            return !!this.application?.id && !this.displayingInstance
+            return this.application !== null && !this.displayingInstance
         },
         displayingTeam () {
-            return !!this.team?.id && !this.displayingInstance && !this.displayingApplication
+            return this.team !== null && !this.displayingInstance && !this.displayingApplication
+        },
+        hasLoadedModel () {
+            return (
+                (this.displayingInstance && !!this.instance?.id) ||
+                (this.displayingApplication && !!this.application?.id) ||
+                (this.displayingTeam && !!this.team?.id)
+            )
         }
     },
     watch: {
@@ -359,7 +363,9 @@ export default {
         },
 
         async loadMore () {
-            await this.fetchData(this.nextCursor)
+            if (this.hasLoadedModel) {
+                await this.fetchData(this.nextCursor)
+            }
         },
 
         async fetchData (nextCursor = null, polled = false) {
