@@ -634,6 +634,18 @@ $nav_height: 60px;
     }
 }
 
+/* MOBILE LAYOUT */
+@media screen and (min-width: $ff-screen-sm) {
+    /* Platform */
+    .ff-layout--platform--wrapper {
+        main {
+            margin: 12px;
+            padding: 24px;
+        }
+    }
+}
+
+/* MOBILE LAYOUT */
 @media screen and (min-width: $ff-screen-lg) {
     /* Box */
     .ff-layout--box--wrapper {
