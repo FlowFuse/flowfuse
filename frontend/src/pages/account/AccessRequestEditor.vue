@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col items-center">
-        <h2>Redirecting back to your project editor</h2>
+        <h2>Redirecting back to your instance editor</h2>
         <div v-if="user" class="flex flex-row justify-center">
             <div class="flex" >
                 <div class="ff-user">

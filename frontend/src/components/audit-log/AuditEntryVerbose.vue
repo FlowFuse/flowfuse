@@ -370,11 +370,11 @@
     <!-- Node-RED Events -->
     <template v-else-if="entry.event === 'crashed'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span>Something has gone wrong. Check the project logs to investigate further.</span>
+        <span>Something has gone wrong. Check the instance logs to investigate further.</span>
     </template>
     <template v-else-if="entry.event === 'stopped'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span>Something has gone wrong. Check the project logs to investigate further.</span>
+        <span>Something has gone wrong. Check the instance logs to investigate further.</span>
     </template>
     <template v-else-if="entry.event === 'settings.update'">
         <label>{{ AuditEvents[entry.event] }}</label>

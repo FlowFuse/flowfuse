@@ -73,7 +73,6 @@ describe('FlowForge platform admin users', () => {
         cy.get('[data-el="banner-project-as-admin"]').should('exist')
 
         cy.get('[data-action="open-editor"]').should('not.exist')
-        cy.get('[data-el="editor-link"]').should('not.exist')
     })
 
     it('can view devices from teams they\'re not a member of', () => {
@@ -93,7 +92,7 @@ describe('FlowForge platform admin users', () => {
         cy.get('[data-nav="team-devices"]').click()
         cy.wait('@getDevices')
 
-        cy.get('[data-el="devices"]').contains('team2-unassigned-device').click()
+        cy.get('[data-el="devices-browser"]').contains('team2-unassigned-device').click()
         cy.wait('@getDevice')
 
         cy.get('[data-el="banner-device-as-admin"]').should('exist')

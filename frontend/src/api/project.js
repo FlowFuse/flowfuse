@@ -70,6 +70,11 @@ const getProjectDevices = async (projectId, cursor, limit) => {
     const res = await client.get(url)
     res.data.devices.forEach(device => {
         device.lastSeenSince = device.lastSeenAt ? daysSince(device.lastSeenAt) : ''
+
+        // TODO: Remove this temporary copy of application over instance
+        if (device.project) {
+            device.instance = device.project
+        }
     })
     return res.data
 }
@@ -79,6 +84,21 @@ const getProjectDeviceSettings = async (projectId) => {
 }
 const updateProjectDeviceSettings = async (projectId, settings) => {
     return client.post(`/api/v1/projects/${projectId}/devices/settings`, settings).then(res => res.data)
+}
+
+/**
+ * TODO: Until there an application API, this just returns an array containing the requested project
+ * @param {*} projectId
+ * @param {*} cursor
+ * @param {*} limit
+ */
+const getProjectInstances = async (projectId, cursor, limit) => {
+    return [await client.get(`/api/v1/projects/${projectId}`).then(res => {
+        res.data.createdSince = daysSince(res.data.createdAt)
+        res.data.updatedSince = daysSince(res.data.updatedAt)
+        res.data.flowLastUpdatedSince = daysSince(res.data.flowLastUpdatedAt)
+        return res.data
+    })]
 }
 
 export default {
@@ -97,5 +117,6 @@ export default {
     importProject,
     getProjectDevices,
     getProjectDeviceSettings,
-    updateProjectDeviceSettings
+    updateProjectDeviceSettings,
+    getProjectInstances
 }

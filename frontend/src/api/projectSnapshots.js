@@ -1,8 +1,11 @@
 import client from './client'
 import daysSince from '@/utils/daysSince'
 import paginateUrl from '@/utils/paginateUrl'
-import projectApi from '@/api/project'
+import instanceApi from '@/api/instances'
 
+/**
+ * TODO: Currently hits project API
+ */
 const create = async (projectId, options) => {
     return client.post(`/api/v1/projects/${projectId}/snapshots`, options).then(res => {
         res.data.createdSince = daysSince(res.data.createdAt)
@@ -12,25 +15,34 @@ const create = async (projectId, options) => {
 }
 
 const rollbackSnapshot = async (projectId, snapshotId) => {
-    return projectApi.rollbackProject(projectId, snapshotId)
+    return instanceApi.rollbackProject(projectId, snapshotId)
 }
 
-const deleteSnapshot = async (projectId, snapshotId) => {
-    return client.delete(`/api/v1/projects/${projectId}/snapshots/${snapshotId}`).then(res => {
+/**
+ * TODO: Currently hits project API
+ */
+const deleteSnapshot = async (instanceId, snapshotId) => {
+    return client.delete(`/api/v1/projects/${instanceId}/snapshots/${snapshotId}`).then(res => {
         return res.data
     })
 }
 
-const getSnapshot = (projectId, snapshotId) => {
-    return client.get(`/api/v1/projects/${projectId}/snapshots/${snapshotId}`).then(res => {
+/**
+ * TODO: Currently hits project API
+ */
+const getSnapshot = (instanceId, snapshotId) => {
+    return client.get(`/api/v1/projects/${instanceId}/snapshots/${snapshotId}`).then(res => {
         res.data.createdSince = daysSince(res.data.createdAt)
         res.data.updatedSince = daysSince(res.data.updatedAt)
         return res.data
     })
 }
 
-const getProjectSnapshots = (projectId, cursor, limit) => {
-    const url = paginateUrl(`/api/v1/projects/${projectId}/snapshots`, cursor, limit)
+/**
+ * TODO: Currently hits project API
+ */
+const getInstanceSnapshots = (instanceId, cursor, limit) => {
+    const url = paginateUrl(`/api/v1/projects/${instanceId}/snapshots`, cursor, limit)
     return client.get(url).then(res => {
         res.data.snapshots = res.data.snapshots.map(ss => {
             ss.createdSince = daysSince(ss.createdAt)
@@ -40,10 +52,11 @@ const getProjectSnapshots = (projectId, cursor, limit) => {
         return res.data
     })
 }
+
 export default {
     create,
     deleteSnapshot,
     rollbackSnapshot,
     getSnapshot,
-    getProjectSnapshots
+    getInstanceSnapshots
 }

@@ -1,14 +1,16 @@
 <template>
-    <ff-dialog ref="dialog" :header="device ? 'Update Device' : 'Register Device'"
-               :confirm-label="device ? 'Update' : 'Register'" @confirm="confirm()" :disable-primary="!formValid">
-        <template v-slot:default>
-            <slot name="description"></slot>
+    <ff-dialog
+        ref="dialog" :header="device ? 'Update Device' : 'Register Device'"
+        :confirm-label="device ? 'Update' : 'Register'" :disable-primary="!formValid" @confirm="confirm()"
+    >
+        <template #default>
+            <slot name="description" />
             <form class="space-y-6 mt-2">
-                <FormRow data-form="device-name" v-model="input.name" :error="errors.name" :disabled="editDisabled">Name</FormRow>
-                <FormRow data-form="device-type" v-model="input.type" :error="errors.type" :disabled="editDisabled">Type</FormRow>
-                <FormRow v-if="deviceIsBillable" type="checkbox" v-model="input.billingConfirmation" id="billing-confirmation">
+                <FormRow v-model="input.name" data-form="device-name" :error="errors.name" :disabled="editDisabled">Name</FormRow>
+                <FormRow v-model="input.type" data-form="device-type" :error="errors.type" :disabled="editDisabled">Type</FormRow>
+                <FormRow v-if="deviceIsBillable" id="billing-confirmation" v-model="input.billingConfirmation" type="checkbox">
                     Confirm additional charges
-                    <template v-slot:description>
+                    <template #description>
                         {{ billingDescription }}
                     </template>
                 </FormRow>
@@ -23,21 +25,44 @@ import { mapState } from 'vuex'
 import devicesApi from '@/api/devices'
 import teamApi from '@/api/team'
 
-import alerts from '@/services/alerts'
-
 import FormRow from '@/components/FormRow'
+import alerts from '@/services/alerts'
 
 export default {
     name: 'TeamDeviceCreateDialog',
     components: {
         FormRow
     },
-    props: ['team'],
+    props: {
+        team: {
+            type: Object,
+            required: true
+        }
+    },
     emits: ['deviceUpdated', 'deviceCreating', 'deviceCreated'],
+    setup () {
+        return {
+            show (device, instance, application) {
+                this.$refs.dialog.show()
+                this.instance = instance || application // TODO: This currently treats applications and instances the same
+                this.device = device
+                if (device) {
+                    this.input = {
+                        name: device.name,
+                        type: device.type
+                    }
+                } else {
+                    this.editDisabled = false
+                    this.input = { name: '', type: '' }
+                }
+                this.errors = {}
+            }
+        }
+    },
     data () {
         return {
             device: null,
-            project: null,
+            instance: null,
             totalDeviceCount: 0,
             input: {
                 name: '',
@@ -99,7 +124,7 @@ export default {
                 opts.team = this.team.id
                 this.$emit('deviceCreating')
                 devicesApi.create(opts).then((response) => {
-                    if (!this.project) {
+                    if (!this.instance) {
                         this.$emit('deviceCreated', response)
                         alerts.emit('Device successfully created.', 'confirmation')
                     } else {
@@ -107,7 +132,7 @@ export default {
                         // TODO: should the create allow a device to be created
                         //       in the project directly? Currently done as a two
                         //       step process
-                        return devicesApi.updateDevice(response.id, { project: this.project.id }).then((response) => {
+                        return devicesApi.updateDevice(response.id, { project: this.instance.id }).then((response) => {
                             // Reattach the credentials from the create request
                             // so they can be displayed to the user
                             response.credentials = creds
@@ -126,25 +151,6 @@ export default {
                         }
                     }
                 })
-            }
-        }
-    },
-    setup () {
-        return {
-            show (device, project) {
-                this.$refs.dialog.show()
-                this.project = project
-                this.device = device
-                if (device) {
-                    this.input = {
-                        name: device.name,
-                        type: device.type
-                    }
-                } else {
-                    this.editDisabled = false
-                    this.input = { name: '', type: '' }
-                }
-                this.errors = {}
             }
         }
     }

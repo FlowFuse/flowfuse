@@ -1,7 +1,7 @@
 module.exports = async (app) => {
     let sharedLibraryEntries = 0
     if (app.license.active()) {
-        sharedLibraryEntries = await app.db.models.StorageSharedLibrary.count()
+        sharedLibraryEntries = await app.db.models.StorageSharedLibrary?.count()
     }
     const licenseType = () => {
         if (app.license.active()) {
