@@ -51,33 +51,6 @@
                 </template>
             </ff-data-table>
         </div>
-
-        <SectionTopMenu hero="Remote Instances" help-header="FlowForge - Instances - Remote" info="Devices running the FlowForge Device Agent assigned to instances in this Application">
-            <template #pictogram>
-                <img src="../../images/pictograms/edge_red.png">
-            </template>
-            <template #helptext>
-                <p>
-                    FlowForge enables the deployment and management of remote instances of Node-RED via "Devices".
-                </p>
-                <p>
-                    Here you will see all Devices attached to instances of this application.
-                    When you set a new Target Snapshot, that will get deployed,
-                    using the <a href="https://flowforge.com/docs/user/devices/" target="_blank">FlowForge Device Agent</a>, out to all connected devices.
-                </p>
-                <p>
-                    Here, you can see a picture of the last time the device was online, and the status of the Node-RED
-                    flows on those devices at that point in time.
-                </p>
-            </template>
-        </SectionTopMenu>
-
-        <DevicesBrowser
-            :application="project"
-            :team="team"
-            :teamMembership="teamMembership"
-            @project-updated="$emit('projectUpdated', ...arguments)"
-        />
     </div>
 </template>
 
@@ -88,7 +61,6 @@ import { Roles } from '@core/lib/roles'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import DevicesBrowser from '../../components/DevicesBrowser'
 import SectionTopMenu from '../../components/SectionTopMenu'
 
 import ProjectStatusBadge from './components/ProjectStatusBadge'
@@ -102,7 +74,6 @@ import permissionsMixin from '@/mixins/Permissions'
 export default {
     name: 'ProjectOverview',
     components: {
-        DevicesBrowser,
         SectionTopMenu
     },
     mixins: [permissionsMixin],

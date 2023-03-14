@@ -2,7 +2,7 @@
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigationTeamOptions>
             <template v-slot:nested-menu>
-                <div class="ff-nested-title">{{ project.name }}</div>
+                <div class="ff-nested-title">{{ project.name ?? 'Application' }}</div>
                 <router-link v-for="route in navigation" :key="route.label" :to="route.path">
                     <nav-item :icon="route.icon" :label="route.label" :data-nav="route.tag"></nav-item>
                 </router-link>
@@ -12,6 +12,9 @@
 
     <ff-loading v-if="loading.deleting" message="Deleting Application..." />
     <ff-loading v-else-if="loading.suspend" message="Suspending Application..." />
+    <main v-else-if="!project?.id">
+        <ff-loading message="Loading Application..." />
+    </main>
     <main v-else>
         <ConfirmInstanceDeleteDialog @confirm="deleteInstance" ref="confirmInstanceDeleteDialog"/>
         <ConfirmApplicationDeleteDialog @confirm="deleteApplication" ref="confirmApplicationDeleteDialog"/>
