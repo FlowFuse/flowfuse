@@ -315,7 +315,7 @@ export default {
             //  - Team billing is not configured, or
             //  - team billing is configured, but they still have an available
             //     trial instance to create, and they have selected the trial
-            //     project type
+            //     instance type
             return this.team.billing?.trial && (
                 !this.team.billing?.active || (
                     this.team.billing.trialProjectAllowed &&
@@ -365,7 +365,7 @@ export default {
                 if (this.team.billing?.trial) {
                     const isTrialProjectType = pt.id === this.settings['user:team:trial-mode:projectType']
                     if (!this.team.billing?.active) {
-                        // No active billing - only allow the trial project type
+                        // No active billing - only allow the trial instance type
                         pt.disabled = !isTrialProjectType
                     }
                     if (isTrialProjectType && this.team.billing?.trialProjectAllowed) {

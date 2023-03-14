@@ -109,7 +109,7 @@ export default {
                 confirmLabel: 'Delete',
                 disablePrimary: instanceType.projectCount > 0
             }, async () => {
-                // on confirm - delete the project type
+                // on confirm - delete the instance type
                 await instanceTypesApi.deleteInstanceType(instanceType.id)
                 const index = this.instanceTypes.findIndex(pt => pt.id === instanceType.id)
                 this.instanceTypes.splice(index, 1)

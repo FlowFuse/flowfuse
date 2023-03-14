@@ -218,7 +218,7 @@ export default {
                 this.input = { active: true, name: '', properties: {}, replaces: null }
                 this.errors = {}
                 if (this.instanceTypes.length === 0) {
-                    this.errors.projectType = 'No project types available. Ask an Administrator to create a new project type definition'
+                    this.errors.projectType = 'No instance types available. Ask an Administrator to create a new instance type definition'
                 }
             },
             showEdit (stack) {
