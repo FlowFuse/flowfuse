@@ -1,7 +1,7 @@
 <template>
     <ff-dialog
-        ref="dialog" :header="device ? 'Update Device' : 'Register Device'"
-        :confirm-label="device ? 'Update' : 'Register'" :disable-primary="!formValid" @confirm="confirm()"
+        ref="dialog" :header="device ? 'Update Device' : 'Add Device'"
+        :confirm-label="device ? 'Update' : 'Add'" :disable-primary="!formValid" @confirm="confirm()"
     >
         <template #default>
             <slot name="description" />

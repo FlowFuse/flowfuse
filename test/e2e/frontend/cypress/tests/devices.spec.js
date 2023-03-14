@@ -24,9 +24,9 @@ describe('FlowForge - Devices', () => {
         cy.get('button[data-action="register-device"]').click()
 
         cy.get('.ff-dialog-box').should('be.visible')
-        cy.get('.ff-dialog-header').contains('Register Device')
+        cy.get('.ff-dialog-header').contains('Add Device')
         // disabled primary button by default
-        cy.get('.ff-dialog-box button.ff-btn.ff-btn--primary').contains('Register').should('be.disabled')
+        cy.get('.ff-dialog-box button.ff-btn.ff-btn--primary').contains('Add').should('be.disabled')
 
         cy.get('[data-form="device-name"] input[type="text"]').type('device1')
         // inserting device name is enough to enable button
@@ -34,7 +34,7 @@ describe('FlowForge - Devices', () => {
         cy.get('[data-form="device-type"] input[type="text"]').type('typeA')
 
         // click "Register"
-        cy.get('.ff-dialog-box button.ff-btn.ff-btn--primary').contains('Register').click()
+        cy.get('.ff-dialog-box button.ff-btn.ff-btn--primary').contains('Add').click()
 
         cy.wait('@registerDevice')
 
