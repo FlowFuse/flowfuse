@@ -10,7 +10,7 @@
             <FormHeading class="mt-4">Event Type:</FormHeading>
             <div data-el="filter-event-types">
                 <ff-dropdown v-model="auditFilters.type" class="w-full">
-                    <ff-dropdown-option label="Not Specified" :value="undefined" />
+                    <ff-dropdown-option label="Show All" :value="undefined" />
                     <ff-dropdown-option
                         v-for="eType in auditFilters.types" :key="eType[1]"
                         :label="`${eType[0]}`" :value="eType[1]"
@@ -20,7 +20,7 @@
             <FormHeading class="mt-4">User:</FormHeading>
             <div data-el="filter-users">
                 <ff-dropdown v-model="auditFilters.user" class="w-full">
-                    <ff-dropdown-option label="Not Specified" :value="undefined" />
+                    <ff-dropdown-option label="Show All" :value="undefined" />
                     <ff-dropdown-option
                         v-for="user in auditFilters.users" :key="user.username"
                         :label="`${user.name} (${user.username})`" :value="user.username"
