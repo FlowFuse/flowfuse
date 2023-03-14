@@ -1,6 +1,4 @@
 <template>
-    <ff-loading v-if="loading.deleting" message="Deleting Project..." />
-    <ff-loading v-if="loading.suspend" message="Suspending Project..." />
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigationTeamOptions>
             <template v-slot:nested-menu>
@@ -11,8 +9,12 @@
             </template>
         </SideNavigationTeamOptions>
     </Teleport>
-    <main>
-        <ConfirmProjectDeleteDialog @confirm="deleteProject" ref="confirmProjectDeleteDialog"/>
+
+    <ff-loading v-if="loading.deleting" message="Deleting Application..." />
+    <ff-loading v-else-if="loading.suspend" message="Suspending Application..." />
+    <main v-else>
+        <ConfirmInstanceDeleteDialog @confirm="deleteInstance" ref="confirmInstanceDeleteDialog"/>
+        <ConfirmApplicationDeleteDialog @confirm="deleteApplication" ref="confirmApplicationDeleteDialog"/>
         <Teleport v-if="mounted" to="#platform-banner">
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">You are viewing this application as an Administrator</div>
             <SubscriptionExpiredBanner :team="team" />
@@ -27,7 +29,8 @@
             @project-start="startProject"
             @project-restart="restartProject"
             @project-suspend="showConfirmSuspendDialog"
-            @project-delete="showConfirmDeleteDialog"
+            @project-delete="showConfirmDeleteInstanceDialog"
+            @application-delete="showConfirmDeleteApplicationDialog"
         />
     </main>
 </template>
@@ -35,18 +38,21 @@
 <script>
 import { Roles } from '@core/lib/roles'
 import { ChevronLeftIcon, CogIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
+
 import { mapState } from 'vuex'
 
-import ConfirmProjectDeleteDialog from './Settings/dialogs/ConfirmProjectDeleteDialog'
+import ConfirmInstanceDeleteDialog from '../instance/Settings/dialogs/ConfirmInstanceDeleteDialog'
 
+import ConfirmApplicationDeleteDialog from './Settings/dialogs/ConfirmApplicationDeleteDialog'
+
+import instanceApi from '@/api/instances'
 import projectApi from '@/api/project'
 import snapshotApi from '@/api/projectSnapshots'
 
 import NavItem from '@/components/NavItem'
+import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '@/components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '@/components/banners/TeamTrial.vue'
-
-import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vue'
 
 import ProjectsIcon from '@/components/icons/Projects'
 import permissionsMixin from '@/mixins/Permissions'
@@ -66,6 +72,15 @@ const projectTransitionStates = [
 
 export default {
     name: 'ProjectPage',
+    components: {
+        ConfirmApplicationDeleteDialog,
+        ConfirmInstanceDeleteDialog,
+        NavItem,
+        SideNavigationTeamOptions,
+        SubscriptionExpiredBanner,
+        TeamTrialBanner
+    },
+    mixins: [permissionsMixin],
     data: function () {
         return {
             mounted: false,
@@ -81,7 +96,6 @@ export default {
             }
         }
     },
-    mixins: [permissionsMixin],
     async created () {
         await this.updateProject()
     },
@@ -222,18 +236,35 @@ export default {
                 this.project.pendingStateChange = true
             }
         },
-        showConfirmDeleteDialog () {
-            this.$refs.confirmProjectDeleteDialog.show(this.project)
+        showConfirmDeleteInstanceDialog () {
+            this.$refs.confirmInstanceDeleteDialog.show(this.project)
         },
-        deleteProject () {
+        showConfirmDeleteApplicationDialog () {
+            this.$refs.confirmApplicationDeleteDialog.show(this.project)
+        },
+        // TODO: Currently assumes 1:1 application to instance mapping
+        deleteInstance () {
+            this.loading.deleting = true
+            instanceApi.deleteProject(this.project.id).then(async () => {
+                await this.$store.dispatch('account/refreshTeam')
+                this.$router.push({ name: 'Home' })
+                alerts.emit('Instance successfully deleted.', 'confirmation')
+            }).catch(err => {
+                console.warn(err)
+                alerts.emit('Instance failed to delete.', 'warning')
+            }).finally(() => {
+                this.loading.deleting = false
+            })
+        },
+        deleteApplication () {
             this.loading.deleting = true
             projectApi.deleteProject(this.project.id).then(async () => {
                 await this.$store.dispatch('account/refreshTeam')
                 this.$router.push({ name: 'Home' })
-                alerts.emit('Project successfully deleted.', 'confirmation')
+                alerts.emit('Application successfully deleted.', 'confirmation')
             }).catch(err => {
                 console.warn(err)
-                alerts.emit('Project failed to delete.', 'warning')
+                alerts.emit('Application failed to delete.', 'warning')
             }).finally(() => {
                 this.loading.deleting = false
             })
@@ -257,13 +288,6 @@ export default {
                 })
             })
         }
-    },
-    components: {
-        NavItem,
-        SideNavigationTeamOptions,
-        ConfirmProjectDeleteDialog,
-        SubscriptionExpiredBanner,
-        TeamTrialBanner
     }
 }
 </script>

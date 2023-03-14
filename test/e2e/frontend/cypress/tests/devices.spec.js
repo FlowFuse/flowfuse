@@ -42,17 +42,17 @@ describe('FlowForge - Devices', () => {
         cy.get('.ff-dialog-box').should('be.visible')
         cy.get('.ff-dialog-header').contains('Device Credentials')
 
-        cy.get('[data-el="devices"] tbody').find('tr').should('have.length', 1)
-        cy.get('[data-el="devices"] tbody').find('tr').contains('device1')
+        cy.get('[data-el="devices-browser"] tbody').find('tr').should('have.length', 1)
+        cy.get('[data-el="devices-browser"] tbody').find('tr').contains('device1')
     })
 
     it('can delete a device', () => {
         cy.intercept('DELETE', '/api/*/devices/*').as('deleteDevice')
 
         // click kebab menu in row 1
-        cy.get('[data-el="devices"] tbody').find('.ff-kebab-menu').eq(0).click()
+        cy.get('[data-el="devices-browser"] tbody').find('.ff-kebab-menu').eq(0).click()
         // click the 4th option (Delete Device)
-        cy.get('[data-el="devices"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').contains('Delete Device').click()
+        cy.get('[data-el="devices-browser"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').contains('Delete Device').click()
 
         cy.get('.ff-dialog-box').should('be.visible')
         cy.get('.ff-dialog-header').contains('Delete Device')
@@ -81,7 +81,7 @@ describe('FlowForge - Devices', () => {
             })
 
         // Load more active
-        cy.get('[data-el="devices"] tbody').find('tr').should('have.length', 1)
+        cy.get('[data-el="devices-browser"] tbody').find('tr').should('have.length', 1)
 
         cy.intercept('GET', '/api/v1/teams/*/devices?cursor=next', {
             count: 2,
@@ -93,8 +93,8 @@ describe('FlowForge - Devices', () => {
 
         cy.wait('@getDevicesNextPage')
 
-        cy.get('[data-el="devices"] tbody').find('tr').should('have.length', 2)
-        cy.get('[data-el="devices"] tbody').contains('td', 'device-2')
+        cy.get('[data-el="devices-browser"] tbody').find('tr').should('have.length', 2)
+        cy.get('[data-el="devices-browser"] tbody').contains('td', 'device-2')
 
         cy.get('[data-action="load-more"]').should('not.exist')
     })

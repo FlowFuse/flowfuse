@@ -7,7 +7,7 @@
             <FormHeading class="mt-4">Application Instance:</FormHeading>
             <div data-el="filter-event-types">
                 <ff-dropdown v-model="auditFilters.instance" class="w-full">
-                    <ff-dropdown-option label="Not Specified" :value="undefined" />
+                    <ff-dropdown-option label="Show All" :value="undefined" />
                     <ff-dropdown-option
                         v-for="instance in auditFilters.instances" :key="instance.id"
                         :label="instance.name" :value="instance.id"
