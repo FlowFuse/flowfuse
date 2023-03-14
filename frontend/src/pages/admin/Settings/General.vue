@@ -37,8 +37,8 @@
             <FormRow v-if="input['user:team:trial-mode']" v-model="input['user:team:trial-mode:duration']" type="input" containerClass="max-w-sm ml-16">
                 Duration, in days, for the trial
             </FormRow>
-            <FormRow v-if="input['user:team:trial-mode']" v-model="input['user:team:trial-mode:projectType']" :options="projectTypes" containerClass="max-w-sm ml-16">
-                Trial ProjectType
+            <FormRow v-if="input['user:team:trial-mode']" v-model="input['user:team:trial-mode:projectType']" :options="instanceTypes" containerClass="max-w-sm ml-16">
+                Trial InstanceType
                 <template #description>
                     Users will only be able to create one of them before being prompted to setup
                     billing to create anything else.
@@ -111,7 +111,7 @@
 
 <script>
 import settingsApi from '@/api/settings'
-import projectTypesApi from '@/api/projectTypes'
+import instanceTypesApi from '@/api/instanceTypes'
 import Dialog from '@/services/dialog'
 import Alerts from '@/services/alerts'
 import FormRow from '@/components/FormRow'
@@ -146,7 +146,7 @@ export default {
                 requiresEmail: null,
                 termsAndConditions: null
             },
-            projectTypes: []
+            instanceTypes: []
         }
     },
     computed: {
@@ -187,8 +187,8 @@ export default {
         validSettings.forEach(s => {
             this.input[s] = this.settings[s]
         })
-        const projectTypes = await projectTypesApi.getProjectTypes()
-        this.projectTypes = projectTypes.types.map(pt => {
+        const instanceTypes = await instanceTypesApi.getInstanceTypes()
+        this.instanceTypes = instanceTypes.types.map(pt => {
             return {
                 value: pt.id,
                 label: pt.name

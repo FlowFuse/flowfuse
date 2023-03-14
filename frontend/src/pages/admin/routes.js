@@ -12,7 +12,7 @@ import AdminUsersGeneral from '@/pages/admin/Users/General.vue'
 import AdminUsersInvitations from '@/pages/admin/Users/Invitations.vue'
 import AdminUserDetails from '@/pages/admin/Users/UserDetails.vue'
 import AdminTeams from '@/pages/admin/Teams.vue'
-import AdminProjectTypes from '@/pages/admin/ProjectTypes/index.vue'
+import AdminInstanceTypes from '@/pages/admin/InstanceTypes/index.vue'
 import AdminStacks from '@/pages/admin/Stacks/index.vue'
 import AdminTemplates from '@/pages/admin/Templates/index.vue'
 import AdminTemplate from '@/pages/admin/Template/index.vue'
@@ -103,10 +103,10 @@ export default [
                 }
             },
             {
-                path: 'project-types',
-                component: AdminProjectTypes,
+                path: 'instance-types',
+                component: AdminInstanceTypes,
                 meta: {
-                    title: 'Admin - Project Types'
+                    title: 'Admin - Instance Types'
                 }
             },
             {

@@ -6,7 +6,7 @@
                 <div v-if="this.input.replaces">
                     This will create a new stack to replace '{{input.replaces.name}}'.
                     The existing stack will be marked inactive and will not be
-                    available for use by new projects.
+                    available for use by new instances.
                 </div>
                 <FormRow v-model="input.name" :error="errors.name" :disabled="editDisabled">
                     Name
@@ -18,10 +18,10 @@
                 </FormRow>
                 <FormRow v-model="input.active" type="checkbox">Active</FormRow>
                 <template v-if="!this.editDisabled">
-                    <FormRow :options="projectTypes" :disabled="editTypeDisabled" :error="errors.projectType" v-model="input.projectType" id="projectType">Project Type
+                    <FormRow :options="instanceTypes" :disabled="editTypeDisabled" :error="errors.projectType" v-model="input.projectType" id="projectType">Instance Type
                         <template v-slot:description>
-                            <div v-if="editTypeDisabled">Stacks cannot be moved to a different project type</div>
-                            <div v-else-if="stack && !stack.projectType">You can assign this stack to a project type as a one-time action. Once assigned you cannot move it.</div>
+                            <div v-if="editTypeDisabled">Stacks cannot be moved to a different instance type</div>
+                            <div v-else-if="stack && !stack.projectType">You can assign this stack to an instance type as a one-time action. Once assigned you cannot move it.</div>
                         </template>
                     </FormRow>
                     <template v-for="(prop) in stackProperties" :key="prop.name">
@@ -32,7 +32,7 @@
                     </template>
                 </template>
                 <div v-else>
-                    This stack is being used by projects. Its properties cannot
+                    This stack is being used by instances. Its properties cannot
                     be modified, other than to change its active state and label
                 </div>
             </form>
@@ -42,7 +42,7 @@
 
 <script>
 import stacksApi from '@/api/stacks'
-import projectTypesApi from '@/api/projectTypes'
+import instanceTypesApi from '@/api/instanceTypes'
 
 import FormRow from '@/components/FormRow'
 import { mapState } from 'vuex'
@@ -57,7 +57,7 @@ export default {
         return {
             stack: null,
             stacks: [],
-            projectTypes: [],
+            instanceTypes: [],
             loading: false,
             input: {
                 name: '',
@@ -130,14 +130,14 @@ export default {
     },
     methods: {
         async loadTypes () {
-            const result = await projectTypesApi.getProjectTypes(null, 100, 'all')
-            this.projectTypes = result.types.map(pt => {
+            const result = await instanceTypesApi.getInstanceTypes(null, 100, 'all')
+            this.instanceTypes = result.types.map(pt => {
                 if (!pt.active) {
                     pt.label = pt.label + ' (inactive)'
                 }
                 return pt
             })
-            this.projectTypes.sort(function (A, B) {
+            this.instanceTypes.sort(function (A, B) {
                 if (A.active !== B.active) {
                     return A.active ? -1 : 1
                 } else if (A.order !== B.order) {
@@ -217,7 +217,7 @@ export default {
                 this.editTypeDisabled = false
                 this.input = { active: true, name: '', properties: {}, replaces: null }
                 this.errors = {}
-                if (this.projectTypes.length === 0) {
+                if (this.instanceTypes.length === 0) {
                     this.errors.projectType = 'No project types available. Ask an Administrator to create a new project type definition'
                 }
             },

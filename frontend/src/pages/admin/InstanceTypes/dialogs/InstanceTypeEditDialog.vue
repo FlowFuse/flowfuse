@@ -10,7 +10,7 @@
                 </FormRow>
                 <FormRow :options="stacks" v-model="input.defaultStack" :disabled="stacks.length === 0" id="stack" data-form="stack">
                     Default Stack
-                    <template #description><div v-if="stacks.length === 0">There no stacks defined for this Project Type yet.</div></template>
+                    <template #description><div v-if="stacks.length === 0">There are no stacks defined for this Instance Type yet.</div></template>
                 </FormRow>
                 <template v-if="this.features.billing">
                     <FormHeading>Billing</FormHeading>
@@ -35,11 +35,11 @@
         <template v-slot:actions>
             <div class="w-full grow flex justify-between">
                 <div>
-                    <ff-button v-if="projectType" kind="danger" style="margin: 0;" @click="$emit('showDeleteDialog', projectType); $refs.dialog.close()">Delete Project Type</ff-button>
+                    <ff-button v-if="instanceType" kind="danger" style="margin: 0;" @click="$emit('showDeleteDialog', instanceType); $refs.dialog.close()">Delete Instance Type</ff-button>
                 </div>
                 <div class="flex">
                     <ff-button kind="secondary" @click="$refs['dialog'].close()">Cancel</ff-button>
-                    <ff-button @click="confirm(); $refs.dialog.close()" :disabled="!formValid">{{ projectType ? 'Update' : 'Create' }}</ff-button>
+                    <ff-button @click="confirm(); $refs.dialog.close()" :disabled="!formValid">{{ instanceType ? 'Update' : 'Create' }}</ff-button>
                 </div>
             </div>
         </template>
@@ -47,7 +47,7 @@
 </template>
 
 <script>
-import projectTypesApi from '@/api/projectTypes'
+import instanceTypesApi from '@/api/instanceTypes'
 import stacksApi from '@/api/stacks'
 
 import FormRow from '@/components/FormRow'
@@ -56,15 +56,15 @@ import FormHeading from '@/components/FormHeading'
 import { mapState } from 'vuex'
 
 export default {
-    name: 'AdminProjectTypeCreateDialog',
-    emits: ['projectTypeUpdated', 'projectTypeCreated', 'showDeleteDialog'],
+    name: 'AdminInstanceTypeCreateDialog',
+    emits: ['instanceTypeUpdated', 'instanceTypeCreated', 'showDeleteDialog'],
     components: {
         FormRow,
         FormHeading
     },
     data () {
         return {
-            projectType: null,
+            instanceType: null,
             stacks: [],
             input: {
                 name: '',
@@ -83,10 +83,10 @@ export default {
             return (this.input.name)
         },
         dialogTitle () {
-            if (this.projectType) {
-                return 'Edit project type'
+            if (this.instanceType) {
+                return 'Edit instance type'
             } else {
-                return 'Create project type'
+                return 'Create instance type'
             }
         }
     },
@@ -107,12 +107,12 @@ export default {
                     opts.properties.billingDescription = this.input.properties.billingDescription
                 }
 
-                if (this.projectType) {
+                if (this.instanceType) {
                     // For edits, we cannot touch the properties
                     delete opts.properties
                     // Update
-                    projectTypesApi.updateProjectType(this.projectType.id, opts).then((response) => {
-                        this.$emit('projectTypeUpdated', response)
+                    instanceTypesApi.updateInstanceType(this.instanceType.id, opts).then((response) => {
+                        this.$emit('instanceTypeUpdated', response)
                     }).catch(err => {
                         console.log(err.response.data)
                         if (err.response.data) {
@@ -122,8 +122,8 @@ export default {
                         }
                     })
                 } else {
-                    projectTypesApi.create(opts).then((response) => {
-                        this.$emit('projectTypeCreated', response)
+                    instanceTypesApi.create(opts).then((response) => {
+                        this.$emit('instanceTypeCreated', response)
                     }).catch(err => {
                         console.log(err.response.data)
                         if (err.response.data) {
@@ -138,26 +138,26 @@ export default {
     },
     setup () {
         return {
-            show (projectType) {
+            show (instanceType) {
                 this.$refs.dialog.show()
-                this.projectType = projectType
+                this.instanceType = instanceType
                 this.stacks = []
-                if (projectType) {
-                    this.editDisabled = projectType.projectCount > 0
+                if (instanceType) {
+                    this.editDisabled = instanceType.projectCount > 0
                     this.input = {
-                        name: projectType.name,
-                        active: projectType.active,
-                        properties: projectType.properties,
-                        description: projectType.description,
+                        name: instanceType.name,
+                        active: instanceType.active,
+                        properties: instanceType.properties,
+                        description: instanceType.description,
                         // Cast to string so the v-model into FormRow works
                         // Normally you'd use v-model.number to handle this
                         // but we don't have that inside FormRow currently and
                         // this is good enough for now
-                        order: '' + projectType.order
+                        order: '' + instanceType.order
                     }
-                    stacksApi.getStacks(null, null, null, projectType.id).then(stackList => {
+                    stacksApi.getStacks(null, null, null, instanceType.id).then(stackList => {
                         this.stacks = stackList.stacks.filter(stack => stack.active).map(stack => { return { value: stack.id, label: stack.name } })
-                        this.input.defaultStack = projectType.defaultStack
+                        this.input.defaultStack = instanceType.defaultStack
                     })
                 } else {
                     this.editDisabled = false

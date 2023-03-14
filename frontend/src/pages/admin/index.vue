@@ -37,7 +37,7 @@ const navigation = [
     { name: 'Overview', path: '/admin/overview', tag: 'admin-overview', icon: CollectionIcon },
     { name: 'Users', path: '/admin/users', tag: 'admin-users', icon: UsersIcon },
     { name: 'Teams', path: '/admin/teams', tag: 'admin-teams', icon: UserGroupIcon },
-    { name: 'Project Types', path: '/admin/project-types', tag: 'admin-projecttypes', icon: ColorSwatchIcon },
+    { name: 'Instance Types', path: '/admin/instance-types', tag: 'admin-instancetypes', icon: ColorSwatchIcon },
     { name: 'Stacks', path: '/admin/stacks', tag: 'admin-stacks', icon: DesktopComputerIcon },
     { name: 'Templates', path: '/admin/templates', tag: 'admin-templates', icon: TemplateIcon },
     { name: 'Activity', path: '/admin/audit-log', tag: 'admin-auditlog', icon: DatabaseIcon },

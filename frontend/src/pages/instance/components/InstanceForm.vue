@@ -204,7 +204,7 @@ import InstanceChargesTable from './InstanceChargesTable'
 import InstanceCreditBanner from './InstanceCreditBanner'
 
 import billingApi from '@/api/billing'
-import projectTypesApi from '@/api/projectTypes'
+import instanceTypesApi from '@/api/instanceTypes'
 import stacksApi from '@/api/stacks'
 import templatesApi from '@/api/templates'
 
@@ -339,7 +339,7 @@ export default {
         }
     },
     async created () {
-        const projectTypesPromise = projectTypesApi.getProjectTypes()
+        const projectTypesPromise = instanceTypesApi.getInstanceTypes()
         const templateListPromise = templatesApi.getTemplates()
 
         this.projectTypes = (await projectTypesPromise).types
