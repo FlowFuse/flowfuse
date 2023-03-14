@@ -10,7 +10,6 @@
 <script>
 import { mapState } from 'vuex'
 
-import SectionTopMenu from '@/components/SectionTopMenu.vue'
 import DevicesBrowser from '../../components/DevicesBrowser.vue'
 
 import permissionsMixin from '@/mixins/Permissions'
@@ -18,8 +17,7 @@ import permissionsMixin from '@/mixins/Permissions'
 export default {
     name: 'InstanceRemoteInstances',
     components: {
-        DevicesBrowser,
-        SectionTopMenu
+        DevicesBrowser
     },
     mixins: [permissionsMixin],
     inheritAttrs: false,
