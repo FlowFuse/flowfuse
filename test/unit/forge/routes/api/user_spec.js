@@ -499,7 +499,7 @@ describe('User API', async function () {
                 url: '/api/v1/user',
                 cookies: { sid: TestObjects.tokens.bob }
             })
-            // response.statusCode.should.equal(200)
+            response.statusCode.should.equal(200)
             const json = response.json()
             json.should.have.property('status', 'okay')
         })
