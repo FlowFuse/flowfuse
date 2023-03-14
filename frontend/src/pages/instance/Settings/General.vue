@@ -24,7 +24,10 @@
         <FormRow v-model="input.templateName" type="uneditable">
             Template
         </FormRow>
-        <DangerSettings :project="project" />
+        <DangerSettings
+            :project="project"
+            @instance-confirm-delete="$emit('instance-confirm-delete')"
+        />
     </div>
 </template>
 
@@ -48,6 +51,7 @@ export default {
             required: true
         }
     },
+    emits: ['instance-confirm-delete'],
     data () {
         return {
             editing: {

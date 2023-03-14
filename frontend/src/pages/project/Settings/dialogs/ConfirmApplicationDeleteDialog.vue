@@ -1,6 +1,14 @@
 <template>
-    <ff-dialog ref="dialog" header="Delete Application" kind="danger" confirm-label="Delete" :disable-primary="!formValid" @confirm="confirm()" data-el="delete-project-dialog">
-        <template v-slot:default>
+    <ff-dialog
+        ref="dialog"
+        :disable-primary="!formValid"
+        confirm-label="Delete"
+        data-el="delete-application-dialog"
+        header="Delete Application"
+        kind="danger"
+        @confirm="confirm()"
+    >
+        <template #default>
             <form class="space-y-6" @submit.prevent>
                 <div class="mt-2 space-y-2">
                     <p>
@@ -11,7 +19,7 @@
                         <code class="block">{{ project?.name }}</code>
                     </p>
                 </div>
-                <FormRow v-model="input.projectName" id="projectName" data-form="project-name">Name</FormRow>
+                <FormRow id="projectName" v-model="input.projectName" data-form="application-name">Name</FormRow>
             </form>
         </template>
     </ff-dialog>
@@ -22,10 +30,18 @@
 import FormRow from '@/components/FormRow'
 
 export default {
-    name: 'ConfirmProjectDeleteDialog',
-    emits: ['confirm'],
+    name: 'ConfirmApplicationDeleteDialog',
     components: {
         FormRow
+    },
+    emits: ['confirm'],
+    setup () {
+        return {
+            show (project) {
+                this.$refs.dialog.show()
+                this.project = project
+            }
+        }
     },
     data () {
         return {
@@ -48,14 +64,6 @@ export default {
         confirm () {
             if (this.formValid) {
                 this.$emit('confirm')
-            }
-        }
-    },
-    setup () {
-        return {
-            show (project) {
-                this.$refs.dialog.show()
-                this.project = project
             }
         }
     }
