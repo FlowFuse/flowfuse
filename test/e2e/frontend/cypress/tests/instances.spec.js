@@ -24,7 +24,7 @@ describe('FlowForge - Instances', () => {
 
         cy.login('alice', 'aaPassword')
         cy.home()
-        cy.visit('/admin/project-types')
+        cy.visit('/admin/instance-types')
         cy.wait('@getInstanceTypes')
     })
 

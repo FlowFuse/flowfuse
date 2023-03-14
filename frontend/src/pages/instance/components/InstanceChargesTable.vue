@@ -12,11 +12,11 @@
             style="grid-template-columns: 1fr 200px auto"
         >
             <template v-if="pricingDetails?.cost">
-                <div data-el="selected-project-type-name">
+                <div data-el="selected-instance-type-name">
                     1 x {{ pricingDetails.name }}
                 </div>
                 <div
-                    data-el="selected-project-type-cost"
+                    data-el="selected-instance-type-cost"
                     class="text-right"
                 >
                     <template v-if="trialMode">
@@ -26,7 +26,7 @@
                 </div>
                 <div
                     v-if="pricingDetails?.interval"
-                    data-el="selected-project-type-interval"
+                    data-el="selected-instance-type-interval"
                     class="text-left"
                 >
                     /{{ pricingDetails.interval }}

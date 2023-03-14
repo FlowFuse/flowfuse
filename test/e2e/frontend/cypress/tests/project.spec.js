@@ -4,7 +4,7 @@ describe('FlowForge - Projects', () => {
 
         cy.login('alice', 'aaPassword')
         cy.home()
-        cy.visit('/admin/project-types')
+        cy.visit('/admin/instance-types')
         cy.wait('@getInstanceTypes')
     })
 
@@ -162,9 +162,9 @@ describe('FlowForge - Projects - With Billing', () => {
 
             cy.get('[data-el="charges-table"]').should('exist')
 
-            cy.get('[data-el="selected-project-type-name"]').contains('type1')
-            cy.get('[data-el="selected-project-type-cost"]').contains('$15.00')
-            cy.get('[data-el="selected-project-type-interval"]').contains('/mo')
+            cy.get('[data-el="selected-instance-type-name"]').contains('type1')
+            cy.get('[data-el="selected-instance-type-cost"]').contains('$15.00')
+            cy.get('[data-el="selected-instance-type-interval"]').contains('/mo')
 
             cy.get('[data-el="form-row-description"]').contains('$15.00 now').contains('$15.00/month')
 
@@ -196,9 +196,9 @@ describe('FlowForge - Projects - With Billing', () => {
 
             cy.get('[data-el="credit-balance-banner"]').should('exist').contains('$10.01')
 
-            cy.get('[data-el="selected-project-type-name"]').contains('type1')
-            cy.get('[data-el="selected-project-type-cost"]').contains('$15.00')
-            cy.get('[data-el="selected-project-type-interval"]').contains('/mo')
+            cy.get('[data-el="selected-instance-type-name"]').contains('type1')
+            cy.get('[data-el="selected-instance-type-cost"]').contains('$15.00')
+            cy.get('[data-el="selected-instance-type-interval"]').contains('/mo')
 
             cy.get('[data-el="credit-balance-row"]').should('exist')
             cy.get('[data-el="credit-balance-amount"]').contains('$10.01')
