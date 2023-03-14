@@ -7,7 +7,7 @@
                     <nav-item :icon="icons.chevronLeft" label="Back to Application" data-nav="project-overview" />
                 </router-link>
 
-                <li class="ff-navigation-divider">{{ instance.name }}</li>
+                <li class="ff-navigation-divider">{{ instance.name ?? 'Instance' }}</li>
                 <router-link v-for="route in navigation" :key="route.label" :to="route.path">
                     <nav-item :icon="route.icon" :label="route.label" :data-nav="route.tag" />
                 </router-link>
