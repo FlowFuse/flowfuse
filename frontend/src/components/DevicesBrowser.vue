@@ -76,11 +76,14 @@
                     />
                     <ff-list-item
                         v-if="!row.instance && displayingTeam"
-                        label="Add to Application Instance" @click="deviceAction('assignToProject', row.id)"
+                        label="Add to Application Instance"
+                        data-action="device-assign"
+                        @click="deviceAction('assignToProject', row.id)"
                     />
                     <ff-list-item
                         v-else
                         label="Remove from Application Instance"
+                        data-action="device-remove"
                         @click="deviceAction('removeFromProject', row.id)"
                     />
                     <ff-list-item

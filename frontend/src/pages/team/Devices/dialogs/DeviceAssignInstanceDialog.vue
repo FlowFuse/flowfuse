@@ -4,6 +4,7 @@
         header="Add Device to Instance"
         class="ff-dialog-fixed-height"
         confirm-label="Add"
+        data-el="assign-device-dialog"
         @confirm="assignDevice()"
     >
         <template #default>
@@ -16,6 +17,7 @@
                     :options="options"
                     :disabled="disabled"
                     :placeholder="placeholder"
+                    data-form="instance"
                 >
                     Application Instance
                 </FormRow>
