@@ -1,15 +1,15 @@
 <template>
     <div class="space-y-6">
-        <FormHeading>Instance Types
+        <SectionTopMenu hero="Instance Types">
             <template v-slot:tools>
-                <ff-button size="small" @click="showCreateInstanceTypeDialog" data-action="create-type">
+                <ff-button @click="showCreateInstanceTypeDialog" data-action="create-type">
                     <template v-slot:icon-right>
                         <PlusSmIcon />
                     </template>
                     Create instance type
                 </ff-button>
             </template>
-        </FormHeading>
+        </SectionTopMenu>
         <ff-tile-selection data-el="active-types">
             <ff-tile-selection-option v-for="(instanceType, index) in activeInstanceTypes" :key="index"
                                       :editable="true" @edit="showEditInstanceTypeDialog(instanceType)" :price="instanceType.properties?.billingDescription?.split('/')[0]"
@@ -20,7 +20,7 @@
         <div v-if="nextCursor">
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
         </div>
-        <FormHeading>Inactive Types</FormHeading>
+        <SectionTopMenu hero="Inactive Types"></SectionTopMenu>
         <ff-data-table :columns="columns" :rows="inactiveInstanceTypes" data-el="inactive-types">
             <template v-slot:context-menu="{row}">
                 <ff-list-item label="Edit Instance Type" @click="instanceTypeAction('edit', row.id)"/>
@@ -37,7 +37,7 @@
 
 <script>
 import instanceTypesApi from '@/api/instanceTypes'
-import FormHeading from '@/components/FormHeading'
+import SectionTopMenu from '@/components/SectionTopMenu'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
@@ -151,7 +151,7 @@ export default {
         }
     },
     components: {
-        FormHeading,
+        SectionTopMenu,
         PlusSmIcon,
         InstanceTypeEditDialog
     }
