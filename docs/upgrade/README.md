@@ -28,17 +28,6 @@ Details of how to upgrade can be found for each deployment model:
 - [Docker](../install/docker/README.md#upgrade)
 - [Kubernetes](../install/kubernetes/README.md#upgrade)
 
-
- __________________
-< TODO: write more >
- ------------------
-        \   ^__^
-         \  (oo)\_______
-            (__)\       )\/\
-                ||----w |
-                ||     ||
-
-
 ### Upgrading to 1.4
 
 Details of how to upgrade can be found for each deployment model:
