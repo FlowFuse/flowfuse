@@ -1,6 +1,6 @@
 <template>
     <div class="mb-3">
-        <SectionTopMenu hero="Settings" info=""></SectionTopMenu>
+        <SectionTopMenu hero="Settings" info="" />
     </div>
     <div class="flex flex-col sm:flex-row ml-6">
         <SectionSideMenu :options="sideNavigation" />
@@ -18,8 +18,8 @@
 <script>
 import { mapState } from 'vuex'
 
-import SectionTopMenu from '@/components/SectionTopMenu'
 import SectionSideMenu from '@/components/SectionSideMenu'
+import SectionTopMenu from '@/components/SectionTopMenu'
 import permissionsMixin from '@/mixins/Permissions'
 
 export default {
@@ -29,13 +29,13 @@ export default {
         SectionSideMenu
     },
     mixins: [permissionsMixin],
+    inheritAttrs: false,
     props: {
         instance: {
             type: Object,
             required: true
         }
     },
-
     emits: ['instance-updated', 'instance-confirm-delete'],
     data () {
         return {

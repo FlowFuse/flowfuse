@@ -61,8 +61,6 @@
             <router-view
                 :instance="instance"
                 :is-visiting-admin="isVisitingAdmin"
-                @instance-overview-exit="onOverviewExit"
-                @instance-overview-enter="onOverviewEnter"
                 @instance-updated="updateInstance"
                 @instance-confirm-delete="showConfirmDeleteDialog"
             />
@@ -84,8 +82,8 @@ import InstanceApi from '@/api/instances'
 import SnapshotApi from '@/api/projectSnapshots'
 
 import DropdownMenu from '@/components/DropdownMenu'
-import NavItem from '@/components/NavItem'
 import InstanceStatusHeader from '@/components/InstanceStatusHeader'
+import NavItem from '@/components/NavItem'
 import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '@/components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '@/components/banners/TeamTrial.vue'
@@ -180,29 +178,27 @@ export default {
     mounted () {
         this.checkAccess()
         this.mounted = true
+
+        this.startPolling()
     },
     beforeUnmount () {
-        this.onOverviewExit(true)
+        this.stopPolling()
     },
     methods: {
-        async onOverviewEnter () {
+        async startPolling () {
             await this.updateInstance()
-            this.overviewActive = true
             if (this.instance.pendingRestart && !this.instanceTransitionStates.includes(this.instance.state)) {
                 this.instance.pendingRestart = false
             }
             this.checkAccess()
         },
-        onOverviewExit (unmounting) {
-            this.overviewActive = false
-            if (unmounting) {
-                // ensure timer and flags are cleared when navigating away from page
-                if (this.instance?.pendingStateChange || this.instance?.pendingRestart) {
-                    this.instance.pendingStateChange = false
-                    this.instance.pendingRestart = false
-                }
-                clearTimeout(this.checkInterval)
+        stopPolling () {
+            // ensure timer and flags are cleared when navigating away from page
+            if (this.instance?.pendingStateChange || this.instance?.pendingRestart) {
+                this.instance.pendingStateChange = false
+                this.instance.pendingRestart = false
             }
+            clearTimeout(this.checkInterval)
         },
         async updateInstance () {
             const instanceId = this.$route.params.id
@@ -227,9 +223,6 @@ export default {
             }
         },
         async refreshInstance () {
-            if (!this.overviewActive) {
-                return // dont refresh if not on overview page
-            }
             if (this.instance.pendingStateChange) {
                 clearTimeout(this.checkInterval)
                 this.checkInterval = setTimeout(async () => {
