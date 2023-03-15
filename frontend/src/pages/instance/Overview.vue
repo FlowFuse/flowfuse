@@ -113,7 +113,7 @@ export default {
         }
     },
     watch: {
-        instance: function () {
+        'instance.id': function (old, news) {
             this.loadLogs()
         }
     },
