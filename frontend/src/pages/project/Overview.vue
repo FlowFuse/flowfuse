@@ -84,7 +84,7 @@ export default {
             required: true
         }
     },
-    emits: ['project-delete', 'project-suspend', 'project-restart', 'project-start', 'projectUpdated'],
+    emits: ['project-delete', 'project-suspend', 'project-restart', 'project-start', 'projectUpdated', 'project-enable-polling', 'project-disable-polling'],
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
         cloudColumns () {
@@ -107,6 +107,12 @@ export default {
         isVisitingAdmin () {
             return this.teamMembership.role === Roles.Admin
         }
+    },
+    mounted () {
+        this.$emit('project-enable-polling')
+    },
+    unmounted () {
+        this.$emit('project-disable-polling')
     },
     methods: {
         selectedCloudRow (cloudInstance) {
