@@ -29,16 +29,14 @@ import FormRow from '@/components/FormRow'
 import alerts from '@/services/alerts'
 
 export default {
-    name: 'DeviceAssignProjectDialog',
+    name: 'DeviceAssignInstanceDialog',
     components: {
         FormRow
     },
     props: {
         instances: {
             type: Array,
-            default () {
-                return []
-            }
+            default: null
         }
     },
     setup () {

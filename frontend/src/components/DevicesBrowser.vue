@@ -134,9 +134,9 @@
         @snapshot-assigned="$emit('instance-updated')"
     />
 
-    <DeviceAssignProjectDialog
+    <DeviceAssignInstanceDialog
         v-if="displayingTeam"
-        ref="deviceAssignProjectDialog"
+        ref="deviceAssignInstanceDialog"
         :instances="teamInstances"
         @assign-device="assignDevice"
     />
@@ -156,7 +156,7 @@ import ApplicationLink from '../pages/project/components/cells/ApplicationLink'
 import DeviceLink from '../pages/project/components/cells/DeviceLink.vue'
 import InstanceInstancesLink from '../pages/project/components/cells/InstanceInstancesLink.vue'
 import Snapshot from '../pages/project/components/cells/Snapshot.vue'
-import DeviceAssignProjectDialog from '../pages/team/Devices/dialogs/DeviceAssignProjectDialog'
+import DeviceAssignInstanceDialog from '../pages/team/Devices/dialogs/DeviceAssignInstanceDialog'
 import DeviceCredentialsDialog from '../pages/team/Devices/dialogs/DeviceCredentialsDialog'
 import TeamDeviceCreateDialog from '../pages/team/Devices/dialogs/TeamDeviceCreateDialog'
 
@@ -173,7 +173,7 @@ export default {
     name: 'ProjectOverview',
     components: {
         ClockIcon,
-        DeviceAssignProjectDialog,
+        DeviceAssignInstanceDialog,
         DeviceCredentialsDialog,
         PlusSmIcon,
         SnapshotAssignDialog,
@@ -422,7 +422,7 @@ export default {
                 })
             } else if (action === 'assignToProject') {
                 this.updateTeamInstances()
-                this.$refs.deviceAssignProjectDialog.show(device)
+                this.$refs.deviceAssignInstanceDialog.show(device)
             }
         }
     }
