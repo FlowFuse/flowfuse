@@ -175,6 +175,13 @@ export default {
     },
     async created () {
         await this.updateInstance()
+
+        this.$watch(
+            () => this.$route.params.id,
+            async () => {
+                await this.updateInstance()
+            }
+        )
     },
     mounted () {
         this.checkAccess()
