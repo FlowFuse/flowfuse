@@ -38,7 +38,7 @@ following settings are available:
  - **Create a personal team for users when they register** (default: `false`)
 
     With this option enabled, the platform will automatically create a Team
-    for the user. This allows them to start creating projects straight-away.
+    for the user. This allows them to start creating Node-RED instances straight-away.
 
     By default, this doesn't happen, which means the user must either manually
     create the Team (if that option is enabled), or be invited to an existing
@@ -91,30 +91,30 @@ With the 0.1.0 release, the Teams page just lists the teams on the platform.
 
 Further team management options will come in later releases.
 
-### Managing Project Types
+### Managing Instance Types
 
-The Project Types page can be used to manage the Project Types on the platform.
+The Instance Types page can be used to manage the Instance Types on the platform.
 
-When billing is enabled, a project type can be associated with a particular
+When billing is enabled, an instance type can be associated with a particular
 Stripe Product/Price - allowing each type to have a different monthly price
 associated with it.
 
-The Project Types page shows what types are current active, how many stacks
-each type has assigned to it, and how many projects have been created of that
+The Instance Types page shows what types are current active, how many stacks
+each type has assigned to it, and how many instances have been created of that
 type.
 
 ### Managing Stacks
 
-The Stacks page can be used to manage the Project Stacks on the platform.
+The Stacks page can be used to manage the Stacks on the platform.
 
 It can be used to create and edit the stacks on the platform.
 
 You can create a new version of an existing stack via the
 drop-down menu in the stack table. This allows the platform to notify users
-that an update is available for their project, allowing them to upgrade the stack
+that an update is available for their instance, allowing them to upgrade the stack
 at their convenience.
 
-It is *not* possible to edit a stack that is being used by Projects.
+It is *not* possible to edit a stack that is being used by Instances.
 
 For Deployment specific information about working with stacks, refer to the
 documentation of your chosen deployment model:
@@ -125,9 +125,7 @@ documentation of your chosen deployment model:
 
 ### Managing Templates
 
-The Templates page can be used to manage the Project Templates on the platform.
+The Templates page can be used to create and edit the template on the platform.
 
-It can be used to create and edit the templates on the platform.
-
-If you edit a template that is being used by a Project, those changes will get
-applied the next time the project is restarted.
+If you edit a template that is being used by an Application Instance, those changes will get
+applied the next time the instance is restarted.

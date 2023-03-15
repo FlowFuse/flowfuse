@@ -2,27 +2,40 @@
 
 FlowForge presents log information in several different places depending on what you are interested in.
 
-## Project Logs
+## Node-RED Logs
 
-Within the project view the logs tab displays the Node-RED log. This will contain information such as nodes being added and errors relating to your flows.
+The Node-RED logs are available for all instances running within the platform.
 
-The log information is kept back to the last time the container was restarted, you can view older information on the `Load earlier...` link at the top of the log.
+They will contain information such as nodes being added and errors relating to your flows.
+
+The log information is kept back to the last time the instance container was restarted, you can view older information on the `Load earlier...` link at the top of the log.
 
 <img src="images/projectlog.png" width="500" />
 
-## Project Activity
+## Audit Log
 
-The activity tab on the project view shows key actions relating to the project, specifically when a user logs in to the editor, when they update the flows, when nodes are installed, and also when the project is restarted.
+The Audit Log tab on the application and instance views shows key events that have happened.
 
-This log will contain all data since the project was created, you can view older data using the `Load More...` link at the bottom of the log.
+The events include:
+ 
+ - User logging into the editor
+ - Flows being updated
+ - Nodes installed
+ - Snapshots being created
+
+This log contains all events since the instance was created. You can view older data using the `Load More...` link at the bottom of the log.
 
 <img src="images/projectactivity.png" width="500" />
 
 ## Team Audit Log
 
-From the Team page the Audit Log shows events relating to the management of the team and projects being created or deleted.
-Users being invited to the team, accepting the invite, along with user's being given owner level access.
+From the Team page the Audit Log shows events relating to the management of the team.
 
-This log will contain all data since the team was created, you can view older data using the `Load More...` link at the bottom of the log.
+This includes:
+
+ - Applications/Instances being created or deleted
+ - Users being added/removed from the team
+
+This log contains all events since the team was created. Tou can view older data using the `Load More...` link at the bottom of the log.
 
 <img src="images/teamauditlog.png" width="500" />

@@ -1,6 +1,6 @@
 # Devices
 
-The FlowForge platform can be used to manage projects running on remote Devices.
+The FlowForge platform can be used to manage Node-RED instances running on remote Devices.
 A Device runs a software agent that connects back to the platform to receive updates.
 
 This guide explains how to get starting with the Devices feature.
@@ -75,13 +75,13 @@ Repeat these steps for each device you want to connect to the platform.
 
 
 ### Generating "Provisioning Credentials" 
+
 _for automatic registration of one or more devices_
 
 1. Go to your teams's **Settings** page.
 2. Open the **Device** tab.
 2. Click the **Create Provisioning Token** tab.
-3. You will be prompted to give the token a **name** and optionally, chose an auto assigned **project**.
-   Setting the "Auto assign project" will automatically assign the project for any devices that subsequently auto register using this token.
+3. You will be prompted to give the token a **name** and to chose what **instance**, if any, the device should be assigned to.
 4. Click **Create**
 
 Once the Provisioning Token has been created, you will be shown the 
@@ -123,50 +123,48 @@ the real **Device Credentials** are generated and downloaded to the device.
 The original **Provisioning Credentials** will be overwritten meaning subsequent 
 runs will not need to perform the auto registration again.
 
-## Assign the device to a project
+## Assign the device to a Node-RED instance
 
-The next step is to assign the device to a project.
+The next step is to assign the device to a Node-RED instance.
 
 1. Go to your teams's **Devices** page.
 2. Open the dropdown menu to the right of the device you want to assign and
-   select the **Add to project** option.
-3. Select the project to add the project to in the dialog - click **Add** to continue.
+   select the **Add to Application Instance** option.
+3. Select the instance in the dialog and click **Add** to continue.
 
-NOTE: Auto registered devices may already be assigned to a project. 
+## Deploying a Node-RED instance to the device
 
-## Deploying a project to the device
-
-To deploy a project to the device:
+To deploy a Node-RED instance to the device:
 
 1. [Create a snapshot](snapshots.md#create-a-snapshot) - a point-in-time
-backup of the project
+backup of the Node-RED flows and configuration.
 2. [Mark that snapshot](snapshots.md#setting-a-device-target-snapshot) as the **Device Target** snapshot.
 
-This model allows you to develop your project in FlowForge and only push it out
+This model allows you to develop your flows in FlowForge and only push it out
 to the registered devices when you're happy with what you've created.
 
-## Remove a device from a project
+## Remove a device from a Node-RED instance
 
-To remove the device from the project:
+To remove the device from a Node-RED instance:
 
 1. Go to your teams's **Devices** page.
 2. Open the dropdown menu to the right of the device you want to remove and
-   select the **Remove from project** option.
+   select the **Remove from application instance** option.
 3. Confirm the action by clicking the **Remove** option.
 
-The device will stop running the current project and wait to be added back to
-a project.
+The device will stop running the current Node-RED flows. It will then wait
+until it is assigned to another instance.
 
 ## Regenerating credentials
 
 To regenerate device credentials:
 
-1. Go to your teams or project's **Devices** page.
+1. Go to your team's or instance's **Devices** page.
 2. Open the dropdown menu to the right of the device and select the
    **Regenerate credentials** option.
 3. You will need to confirm this action as the existing credentials will be
    immediately revoked. If the device tries to use the old credentials it will
-   fail to connect and will delete its local copy of the project snapshot it was
+   fail to connect and will delete its local copy of the snapshot it was
    running. Click **Regenerate credentials** to continue.
 
 You will then be shown the **Device Credentials** dialog again with a new set of
@@ -176,18 +174,18 @@ credentials to copy or download.
 
 To delete a device:
 
-1. Go to your teams or project's **Devices** page.
+1. Go to your team's or instance's **Devices** page.
 2. Open the dropdown menu to the right of the device and select the
    **Delete device** option.
 3. Confirm the action by clicking the **Delete** option.
 
-The next time the device calls home it will find it is no longer authorised and
-will stop and delete its local copy of the project it was running.
+The next time the device attempts to connect to the platform it will find it is
+no longer authorised and will stop and delete its local copy of the flows it was running.
 
 ## Running with no access to npmjs.org
 
 By default the Device Agent will try and download the correct version of Node-RED and 
-any nodes required to run the Project Snapshot that is assigned to run on the device.
+any nodes required to run the Snapshot that is assigned to run on the device.
 
 If the device is being run on an offline network or security policies prevent the 
 Device Agent from connecting to npmjs.org then it can be configured to use a pre-cached 
@@ -204,7 +202,7 @@ To create a suitable module cache, you will need to install the modules on a loc
 access to npmjs.org, ensuring you use the same OS and Architecture as your target
 device, and then copy the modules on to your device.
 
-1. From the Project Snapshot page, select the snapshot you want to deploy and select the option to download its `package.json` file.
+1. From the Snapshot page, select the snapshot you want to deploy and select the option to download its `package.json` file.
 2. Place this file in an empty directory on your local device.
 3. Run `npm install` to install the modules. This will create a `node_modules` directory.
 4. On your target device, create a directory called `module_cache` inside the Device Agent Configuration directory.

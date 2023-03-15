@@ -1,8 +1,8 @@
 # FlowForge File Nodes
 
-Projects running within FlowForge include a set of nodes that make it possible
+Node-RED instances running within FlowForge include a set of nodes that make it possible
 to store files safely regardless of the environment. 
-Cloud based projects can read and write to persistent storage using these nodes.
+Cloud based instances can read and write to persistent storage using these nodes.
 Edge devices will store files on its local filesystem.
 
 ## Enabling Persistent File Storage
@@ -15,10 +15,10 @@ nodes, the FlowForge platform Administrator must ensure the core file nodes are
 not loaded.
 
 This is done by adding `10-file-js` in the **Exclude nodes by filename** 
-section of your FlowForge projects settings under  the **Palette** section.
+section of your instance settings under the **Palette** section.
 
-This setting is modifiable only by a project owner and only if it has not been
-locked in the [project template](concepts.md#project-template) by the platform Administrator.
+This setting is modifiable only by a Team owner and only if it has not been
+locked in the [template](concepts.md#template) by the platform Administrator.
 
 ## Nodes
 
@@ -34,5 +34,6 @@ There are some helpful built-in examples on the **Import Examples** dialog in No
 
 ## Deployment Considerations
 
-When a project is deployed to a device, the original Node-RED file be used and storage will be
-made against the devices local filesystem.
+When a snapshot is deployed to a device, the original Node-RED file nodes are used and 
+any files will be stored on the device's local filesystem.
+

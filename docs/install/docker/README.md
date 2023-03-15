@@ -28,13 +28,13 @@ FlowForge uses Docker Compose to install and manage the required components. Ins
 
 ### DNS
 
-The orchestration uses an instance of Nginx to route requests to each Node-RED Project. To do this it needs each instance to have a unique hostname, to generate this the project name is prepended to a supplied domain.
+The orchestration uses an instance of Nginx to route requests to each Node-RED instance. To do this it needs each instance to have a unique hostname, to generate this the instance name is prepended to a supplied domain.
 
 To make this work you will need to configure a DNS server to map a wildcard domain entry to the IP address of the host running Docker. e.g `*.example.com`.
 
 The FlowForge Application will be hosted on `http://forge.example.com`
 
-**Note** When testing locally you can add entries for each project to your `/etc/hosts` file but you must use the external IP address of the host machine, not the loopback address (`127.0.0.1`).
+**Note** When testing locally you can add entries for each Node-RED instance to your `/etc/hosts` file but you must use the external IP address of the host machine, not the loopback address (`127.0.0.1`).
 
 Notes on how to setup DNS can be found [here](../dns-setup.md).
 
@@ -65,7 +65,7 @@ Before starting you will need to edit this file to update the the following fiel
 
 These will need to be updated to replace `.example.com` with the domain you chose earlier. 
 
-Please note that once set, the `domain` and `base_url` values should not be changed as these values are used as part of the configuration stored in the database of each project. The ability to migrate `domains` is on the feature backlog.
+Please note that once set, the `domain` and `base_url` values should not be changed as these values are used as part of the configuration stored in the database of each Node-RED instance. The ability to migrate `domains` is on the feature backlog.
 
 You also need to update all the `VIRTUAL_HOST` entries in the `docker-compose.yml` file to replace `.example.com`  with the same domain.
 
@@ -73,7 +73,7 @@ For more details on the options available, see the [configuration guide](../conf
 
 
 ### HTTPS (optional)
-If you want to serve the forge app and projects via SSL you will need to obtain a wildcard TLS certificate for the domain you are using eg `*.example.com`. If you are running on an Internet facing machine you can use the LetsEncrypt acme-companion.
+If you want to serve the forge app and Node-RED via SSL you will need to obtain a wildcard TLS certificate for the domain you are using eg `*.example.com`. If you are running on an Internet facing machine you can use the LetsEncrypt acme-companion.
 
 Otherwise you will need to contact a SSL Certificate vendor and configure Nginx manually.
 
@@ -165,7 +165,7 @@ Or using the docker-compose command
 docker-compose -p flowforge up -d
 ```
 
-This will also create a directory called `db` to hold the database files used to store project instance and user information.
+This will also create a directory called `db` to hold the database files used to store Node-RED instance and user information.
 
 ## First Run Setup
 
@@ -179,7 +179,7 @@ Once you have finished setting up the admin user there are some Docker specific 
 
 ### Using FlowForge File Storage
 
-FlowForge projects running in Docker do not have direct access to a persistent
+Node-RED instances running in Docker do not have direct access to a persistent
 file system to store files or use for storing context data.
 
 FlowForge includes a File Storage service that can be enabled to provide persistent
@@ -189,7 +189,7 @@ storage.
 
 To remove the default Node-RED file nodes from the palette:
 
-1. Edit the Project Template to add `10-file.js,23-watch.js` to the "Exclude nodes by filename" section
+1. Edit the Template to add `10-file.js,23-watch.js` to the "Exclude nodes by filename" section
 
 <img src="../images/file-node-template.png" width=500 />
 

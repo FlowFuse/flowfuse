@@ -54,7 +54,7 @@ The Administrator can opt-out of this feature.
 
 Once you complete the setup, you will be able to log in as the Administrator
 user you created and start using the platform. You can setup your Team and
-create your first Node-RED project.
+create your first Node-RED instance.
 
 More information about using the FlowForge platform is available in the
 main [user guide](../user/).
