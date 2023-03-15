@@ -9,6 +9,12 @@
                 <p>It will always run the latest flow deployed in Node-RED and use the latest credentials and runtime settings defined in the Projects settings.</p>
                 <p>To edit an Application's flow, open the editor of the Instance.</p>
             </template>
+            <template #tools>
+                <ff-button>
+                    <template v-slot:icon-left><PlusSmIcon /></template>
+                    Add Instance
+                </ff-button>
+            </template>
         </SectionTopMenu>
 
         <div class="space-y-6 mb-12">
@@ -61,6 +67,8 @@ import { Roles } from '@core/lib/roles'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
+import { PlusSmIcon } from '@heroicons/vue/outline'
+
 import SectionTopMenu from '../../components/SectionTopMenu'
 
 import ProjectStatusBadge from './components/ProjectStatusBadge'
@@ -74,6 +82,7 @@ import permissionsMixin from '@/mixins/Permissions'
 export default {
     name: 'ProjectOverview',
     components: {
+        PlusSmIcon,
         SectionTopMenu
     },
     mixins: [permissionsMixin],
