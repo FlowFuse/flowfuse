@@ -2,7 +2,7 @@ import client from './client'
 import paginateUrl from '@/utils/paginateUrl'
 const marked = require('marked')
 
-const getProjectTypes = async (cursor, limit, filter) => {
+const getInstanceTypes = async (cursor, limit, filter) => {
     let url = paginateUrl('/api/v1/project-types', cursor, limit)
     if (filter) {
         const queryString = new URLSearchParams()
@@ -38,24 +38,24 @@ const create = async (options) => {
         return res.data
     })
 }
-const deleteProjectType = async (projectTypeId) => {
-    return await client.delete(`/api/v1/project-types/${projectTypeId}`)
+const deleteInstanceType = async (instanceTypeId) => {
+    return await client.delete(`/api/v1/project-types/${instanceTypeId}`)
 }
-const getProjectType = async (projectTypeId) => {
-    return await client.get(`/api/v1/project-types/${projectTypeId}`).then(res => {
+const getInstanceType = async (instanceTypeId) => {
+    return await client.get(`/api/v1/project-types/${instanceTypeId}`).then(res => {
         return res.data
     })
 }
-const updateProjectType = async (projectTypeId, options) => {
-    return client.put(`/api/v1/project-types/${projectTypeId}`, options).then(res => {
+const updateInstanceType = async (instanceTypeId, options) => {
+    return client.put(`/api/v1/project-types/${instanceTypeId}`, options).then(res => {
         return res.data
     })
 }
 
 export default {
     create,
-    getProjectType,
-    deleteProjectType,
-    getProjectTypes,
-    updateProjectType
+    getInstanceType,
+    deleteInstanceType,
+    getInstanceTypes,
+    updateInstanceType
 }

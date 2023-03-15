@@ -228,21 +228,21 @@
         <span v-if="!error && typeof entry.body?.info === 'object'">Type: '{{entry.body.info.resource }}', Limit: {{ entry.body.info.limit }}, Count: {{ entry.body.info.count }}</span>
         <span v-else-if="!error">License data not found in audit entry.</span>
     </template>
-    <!-- Platform project type Events -->
+    <!-- Platform instance type Events -->
     <template v-else-if="entry.event === 'platform.project-type.created'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.projectType">A new project type '{{ entry.body.projectType }}' has been created.</span>
-        <span v-else-if="!error">Project Type data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.projectType">A new instance type '{{ entry.body.projectType }}' has been created.</span>
+        <span v-else-if="!error">Instance Type data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'platform.project-type.deleted'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.projectType">Project type '{{ entry.body.projectType }}' has been deleted.</span>
-        <span v-else-if="!error">Project Type data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.projectType">Instance type '{{ entry.body.projectType }}' has been deleted.</span>
+        <span v-else-if="!error">Instance Type data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'platform.project-type.updated'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.projectType">Project type '{{ entry.body.projectType }}' has been updated with the following changes: <AuditEntryUpdates :updates="entry.body.updates" /></span>
-        <span v-else-if="!error">Project Type data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.projectType">Instance type '{{ entry.body.projectType }}' has been updated with the following changes: <AuditEntryUpdates :updates="entry.body.updates" /></span>
+        <span v-else-if="!error">Instance Type data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'platform.stack.created'">
         <label>{{ AuditEvents[entry.event] }}</label>
@@ -327,7 +327,7 @@
         <span v-else-if="!error">Project data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.type.changed'">
-        <label>Project Type Changed</label>
+        <label>Instance Type Changed</label>
         <span v-if="!error && entry.body?.project">The type for Project '{{ entry.body.project?.name }}' has been changed to Type '{{ entry.body.projectType?.name }}'</span>
         <span v-else-if="!error">Project data not found in audit entry.</span>
     </template>

@@ -204,7 +204,7 @@ import InstanceChargesTable from './InstanceChargesTable'
 import InstanceCreditBanner from './InstanceCreditBanner'
 
 import billingApi from '@/api/billing'
-import projectTypesApi from '@/api/projectTypes'
+import instanceTypesApi from '@/api/instanceTypes'
 import stacksApi from '@/api/stacks'
 import templatesApi from '@/api/templates'
 
@@ -315,7 +315,7 @@ export default {
             //  - Team billing is not configured, or
             //  - team billing is configured, but they still have an available
             //     trial instance to create, and they have selected the trial
-            //     project type
+            //     instance type
             return this.team.billing?.trial && (
                 !this.team.billing?.active || (
                     this.team.billing.trialProjectAllowed &&
@@ -339,7 +339,7 @@ export default {
         }
     },
     async created () {
-        const projectTypesPromise = projectTypesApi.getProjectTypes()
+        const projectTypesPromise = instanceTypesApi.getInstanceTypes()
         const templateListPromise = templatesApi.getTemplates()
 
         this.projectTypes = (await projectTypesPromise).types
@@ -365,7 +365,7 @@ export default {
                 if (this.team.billing?.trial) {
                     const isTrialProjectType = pt.id === this.settings['user:team:trial-mode:projectType']
                     if (!this.team.billing?.active) {
-                        // No active billing - only allow the trial project type
+                        // No active billing - only allow the trial instance type
                         pt.disabled = !isTrialProjectType
                     }
                     if (isTrialProjectType && this.team.billing?.trialProjectAllowed) {
