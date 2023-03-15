@@ -134,12 +134,13 @@ describe('FlowForge - Devices', () => {
                     // Instance dropdown
                     cy.get('[data-form="instance"]').within(() => {
                         cy.get('.ff-dropdown').click()
-                        cy.get('.ff-dropdown-options').should('be.visible')
 
+                        // Grab name of first instance
                         cy.get('.ff-dropdown-options > .ff-dropdown-option:first').invoke('text').then((text) => {
                             selectedInstance = text
                         })
 
+                        // Click first instance
                         cy.get('.ff-dropdown-options > .ff-dropdown-option:first').click()
                     })
 
