@@ -63,6 +63,7 @@ export default {
         PlusSmIcon
     },
     mixins: [permissionsMixin],
+    inheritAttrs: false,
     props: {
         instance: {
             type: Object,

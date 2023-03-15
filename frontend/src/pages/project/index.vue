@@ -26,8 +26,8 @@
         <router-view
             :project="project"
             :is-visiting-admin="isVisitingAdmin"
-            @project-overview-exit="onOverviewExit"
-            @project-overview-enter="onOverviewEnter"
+            @project-enable-polling="onEnablePolling"
+            @project-disable-polling="onDisablePolling"
             @projectUpdated="updateProject"
             @project-start="startProject"
             @project-restart="restartProject"
@@ -93,14 +93,12 @@ export default {
             project: {},
             navigation: [],
             checkInterval: null,
+            checkWaitTime: 1000,
             loading: {
                 deleting: false,
                 suspend: false
             }
         }
-    },
-    async created () {
-        await this.updateProject()
     },
     computed: {
         ...mapState('account', ['teamMembership', 'team']),
@@ -116,24 +114,26 @@ export default {
         teamMembership: 'checkAccess',
         'project.pendingStateChange': 'refreshProject'
     },
+    async created () {
+        await this.updateProject()
+    },
     mounted () {
         this.checkAccess()
         this.mounted = true
     },
     beforeUnmount () {
-        this.onOverviewExit(true)
+        this.onDisablePolling(true)
     },
     methods: {
-        async onOverviewEnter () {
+        async onEnablePolling () {
             await this.updateProject()
-            this.overviewActive = true
+            this.checkWaitTime = 1000
             if (this.project.pendingRestart && !this.projectTransitionStates.includes(this.project.state)) {
                 this.project.pendingRestart = false
             }
             this.checkAccess()
         },
-        onOverviewExit (unmounting) {
-            this.overviewActive = false
+        onDisablePolling (unmounting) {
             if (unmounting) {
                 // ensure timer and flags are cleared when navigating away from page
                 if (this.project?.pendingStateChange || this.project?.pendingRestart) {
@@ -166,12 +166,11 @@ export default {
             }
         },
         async refreshProject () {
-            if (!this.overviewActive) {
-                return // dont refresh if not on overview page
-            }
             if (this.project.pendingStateChange) {
                 clearTimeout(this.checkInterval)
                 this.checkInterval = setTimeout(async () => {
+                    this.checkWaitTime *= 1.1
+
                     if (this.project.id) {
                         const data = await projectApi.getProject(this.project.id)
                         const wasPendingRestart = this.project.pendingRestart
@@ -184,7 +183,7 @@ export default {
                         this.project.pendingStatePrevious = wasPendingStatePrevious
                         this.project.pendingStateChange = wasPendingStateChange
                     }
-                }, 1000)
+                }, this.checkWaitTime)
             }
         },
         checkAccess () {

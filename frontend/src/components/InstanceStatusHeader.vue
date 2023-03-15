@@ -2,12 +2,12 @@
     <div class="ff-section-header flex flex-wrap border-b border-gray-300 text-gray-500 justify-between px-6 py-4">
         <div class="flex">
             <div class="w-full flex items-center md:w-auto mr-8 gap-x-2">
-                <slot name="hero"></slot>
+                <slot name="hero" />
             </div>
         </div>
         <ul v-if="hasTools">
             <li class="w-full md:w-auto flex-grow text-right">
-                <slot name="tools"></slot>
+                <slot name="tools" />
             </li>
         </ul>
     </div>
@@ -24,11 +24,6 @@ export default {
             default: null
         }
     },
-    computed: {
-        hasInfoDialog () {
-            return !!this.$slots.helptext
-        }
-    },
     setup (props, { slots }) {
         const hasTools = ref(false)
         if (slots.tools && slots.tools().length) {
@@ -36,6 +31,11 @@ export default {
         }
         return {
             hasTools
+        }
+    },
+    computed: {
+        hasInfoDialog () {
+            return !!this.$slots.helptext
         }
     },
     methods: {

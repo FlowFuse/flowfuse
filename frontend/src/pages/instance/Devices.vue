@@ -18,8 +18,8 @@
 <script>
 import { mapState } from 'vuex'
 
-import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import DevicesBrowser from '../../components/DevicesBrowser.vue'
+import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
 import permissionsMixin from '@/mixins/Permissions'
 
