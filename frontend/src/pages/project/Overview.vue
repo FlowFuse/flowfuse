@@ -55,7 +55,6 @@
 </template>
 
 <script>
-
 import { Roles } from '@core/lib/roles'
 
 import { markRaw } from 'vue'

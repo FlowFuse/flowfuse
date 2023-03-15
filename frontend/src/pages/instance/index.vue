@@ -184,7 +184,6 @@ export default {
         )
     },
     mounted () {
-        this.checkAccess()
         this.mounted = true
 
         this.startPolling()
@@ -193,8 +192,7 @@ export default {
         this.stopPolling()
     },
     methods: {
-        async startPolling () {
-            await this.updateInstance()
+        startPolling () {
             this.checkWaitTime = 1000
             if (this.instance.pendingRestart && !this.instanceTransitionStates.includes(this.instance.state)) {
                 this.instance.pendingRestart = false
