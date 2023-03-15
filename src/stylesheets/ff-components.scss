@@ -165,6 +165,7 @@
 }
 
 .ff-kebab-options {
+  color: $ff-grey-800;
   position: absolute;
   top: 24px;
   border: 1px solid $ff-grey-300;
@@ -647,6 +648,7 @@ li.ff-list-item {
       }
       .selectable:hover .ff-data-table--cell {
         cursor: pointer;
+        color: $ff-blue-600;
         background-color: $ff-grey-50;
       }
     }

@@ -167,7 +167,7 @@
                             <pre style="display:inline;">.stop</pre> event modifier on the event handlers. This is important if
                             <pre style="display:inline;">:rows-selectable="true"</pre> to prevent the click event bubbling up to the row.
                         </p>
-                        <ff-data-table :columns="data.table0.columns" :rows="data.table0.rows">
+                        <ff-data-table :columns="data.table0.columns" :rows="data.table0.rows" :rows-selectable="true" @row-selected="doSomething">
                             <template v-slot:context-menu>
                                 <ff-list-item label="Option 1" @click.stop=""/>
                                 <ff-list-item label="Option 2" @click.stop=""/>
