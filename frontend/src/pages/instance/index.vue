@@ -19,50 +19,54 @@
     <main v-else-if="!instance?.id">
         <ff-loading message="Loading Instance..." />
     </main>
-    <main v-else data-el="instances-section">
-        <SectionTopMenu>
-            <template #hero>
-                <div class="flex-grow space-x-6 items-center inline-flex" data-el="instance-name">
-                    <div class="text-gray-800 text-xl font-bold">
-                        {{ instance.name }}
+    <main v-else data-el="instances-section" class="ff-with-status-header">
+        <div class="ff-instance-header">
+            <InstanceStatusHeader>
+                <template #hero>
+                    <div class="flex-grow space-x-6 items-center inline-flex" data-el="instance-name">
+                        <div class="text-gray-800 text-xl font-bold">
+                            {{ instance.name }}
+                        </div>
+                        <InstanceStatusBadge v-if="instance.meta" :status="instance.meta.state" :pendingStateChange="instance.pendingStateChange" />
                     </div>
-                    <InstanceStatusBadge v-if="instance.meta" :status="instance.meta.state" :pendingStateChange="instance.pendingStateChange" />
-                </div>
-            </template>
-            <template #tools>
-                <div class="space-x-2 flex">
-                    <div v-if="editorAvailable">
-                        <a v-if="!isVisitingAdmin" :href="instance.url" target="_blank" class="ff-btn ff-btn--secondary" data-action="open-editor">
-                            Open Editor
-                            <span class="ff-btn--icon ff-btn--icon-right">
-                                <ExternalLinkIcon />
-                            </span>
-                        </a>
-                        <button v-else title="Unable to open editor when visiting as an admin" class="ff-btn ff-btn--secondary" disabled>
-                            Open Editor
-                            <span class="ff-btn--icon ff-btn--icon-right">
-                                <ExternalLinkIcon />
-                            </span>
-                        </button>
+                </template>
+                <template #tools>
+                    <div class="space-x-2 flex align-center">
+                        <div v-if="editorAvailable">
+                            <a v-if="!isVisitingAdmin" :href="instance.url" target="_blank" class="ff-btn ff-btn--secondary" data-action="open-editor">
+                                Open Editor
+                                <span class="ff-btn--icon ff-btn--icon-right">
+                                    <ExternalLinkIcon />
+                                </span>
+                            </a>
+                            <button v-else title="Unable to open editor when visiting as an admin" class="ff-btn ff-btn--secondary" disabled>
+                                Open Editor
+                                <span class="ff-btn--icon ff-btn--icon-right">
+                                    <ExternalLinkIcon />
+                                </span>
+                            </button>
+                        </div>
+                        <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
                     </div>
-                    <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
-                </div>
-            </template>
-        </SectionTopMenu>
+                </template>
+            </InstanceStatusHeader>
+        </div>
         <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="deleteInstance" />
         <Teleport v-if="mounted" to="#platform-banner">
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">You are viewing this instance as an Administrator</div>
             <SubscriptionExpiredBanner :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
         </Teleport>
-        <router-view
-            :instance="instance"
-            :is-visiting-admin="isVisitingAdmin"
-            @instance-overview-exit="onOverviewExit"
-            @instance-overview-enter="onOverviewEnter"
-            @instance-updated="updateInstance"
-            @instance-confirm-delete="showConfirmDeleteDialog"
-        />
+        <div class="px-3 py-3 md:px-6 md:py-6">
+            <router-view
+                :instance="instance"
+                :is-visiting-admin="isVisitingAdmin"
+                @instance-overview-exit="onOverviewExit"
+                @instance-overview-enter="onOverviewEnter"
+                @instance-updated="updateInstance"
+                @instance-confirm-delete="showConfirmDeleteDialog"
+            />
+        </div>
     </main>
 </template>
 
@@ -81,7 +85,7 @@ import SnapshotApi from '@/api/projectSnapshots'
 
 import DropdownMenu from '@/components/DropdownMenu'
 import NavItem from '@/components/NavItem'
-import SectionTopMenu from '@/components/SectionTopMenu'
+import InstanceStatusHeader from '@/components/InstanceStatusHeader'
 import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '@/components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '@/components/banners/TeamTrial.vue'
@@ -109,7 +113,7 @@ export default {
         ExternalLinkIcon,
         NavItem,
         InstanceStatusBadge,
-        SectionTopMenu,
+        InstanceStatusHeader,
         SideNavigationTeamOptions,
         SubscriptionExpiredBanner,
         TeamTrialBanner
@@ -247,7 +251,7 @@ export default {
         checkAccess () {
             this.navigation = [
                 { label: 'Overview', path: `/instance/${this.instance.id}/overview`, tag: 'instance-overview', icon: TemplateIcon },
-                { label: 'Remote Instances', path: `/instance/${this.instance.id}/remote-instances`, tag: 'instance-remote', icon: ChipIcon },
+                { label: 'Devices', path: `/instance/${this.instance.id}/devices`, tag: 'instance-remote', icon: ChipIcon },
                 { label: 'Snapshots', path: `/instance/${this.instance.id}/snapshots`, tag: 'instance-snapshots', icon: ClockIcon },
                 { label: 'Audit Log', path: `/instance/${this.instance.id}/audit-log`, tag: 'instance-activity', icon: ViewListIcon },
                 { label: 'Node-RED Logs', path: `/instance/${this.instance.id}/logs`, tag: 'instance-logs', icon: TerminalIcon },
