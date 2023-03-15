@@ -1,8 +1,8 @@
-# Project Settings
+# Instance Settings
 
-The Project Settings allow you to customize many aspects of your Node-RED runtime.
+The Instance Settings allow you to customize many aspects of your Node-RED runtime.
 
-Project Settings are split into a number of sections:
+Instance Settings are split into a number of sections:
 
  - [General](#general)
  - [Environment](#environment)
@@ -12,40 +12,34 @@ Project Settings are split into a number of sections:
 
 ## General
 
-This section includes a number of actions you can take on the project:
+This section includes a number of actions you can take on the instance:
 
 ### Change Stack
 
-The Project Stack determines the version of Node-RED being used. If a new stack
-is available, you can use this option to updated your project.
+The Stack determines the version of Node-RED being used. If a new stack
+is available, you can use this option to update you stack.
 
-### Copy Project
+### Copy Instance
 
-This allows you to create a copy of the project in your team. Alternatively, you
-can use it to export certain parts of your project into an existing project.
+This allows you to create a copy of the instance in your team. 
 
-For example, you may want to have separate 'Development' and 'Production' projects
-using different Environment Variables to point the flows at different external
-resources. You can then use the 'Export into existing project' to copy over just the
-flows when you want to update your Production instance.
-
-### Import Project
+### Import Instance
 
 This allows you to take existing Node-RED flow and credential files and import them
-into your project.
+into your instance.
 
-### Suspend Project
+### Suspend Instance
 
-This stops the project entirely.
+This stops the instance entirely.
 
-### Delete Project
+### Delete Instance
 
-If you're really sure you don't want the project anymore, this allows you to delete
-it. You cannot undo deleting a project.
+If you're really sure you don't want the instance anymore, this allows you to delete
+it. You cannot undo deleting an instance.
 
 ## Environment
 
-This allows you to manage the project's environment variables. More information
+This allows you to manage the environment variables. More information
 on working with environment variables is available [here](./envvar.md).
 
 ## Editor

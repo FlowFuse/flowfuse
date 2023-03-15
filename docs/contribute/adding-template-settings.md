@@ -1,14 +1,13 @@
 # Adding Template Settings
 
-Within FlowForge, each Project is created from a Template. The Template defines
-a set of preconfigured options for the Project. This includes runtime settings - 
+Within FlowForge, each Node-RED instance is created from a Template. The Template defines
+a set of preconfigured options for the instance. This includes runtime settings - 
 values that you would normally expect to set in your Node-RED settings.js file.
 
-The Template also defines which of those options can be customised by a Project.
+The Template also defines which of those options can be customised by individual instances.
 
 This guide explains how to add a new Node-RED runtime option to the Template object
-so that it can be customised for individual Projects and passed through to the
-underlying Node-RED settings.js file.
+so that it can be customised and passed through to the underlying Node-RED settings.js file.
 
 This is reasonably straight-forward for simple boolean/string/numeric types.
 For other types (objects/arrays) it gets more complicated and we don't currently
@@ -33,9 +32,9 @@ get used in two different ways:
 
  1. When creating/editing a template. 
     All options are available and there is a dropdown that lets the user set the
-    policy on the setting (which controls whether a project is allowed to override
+    policy on the setting (which controls whether an instance is allowed to override
     the setting)
- 2. When editing project settings.
+ 2. When editing instance settings.
     All options are shown, but only lets the user modify those that the template
     policy allows to be changed.
 

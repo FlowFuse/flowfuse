@@ -1,6 +1,6 @@
 # Teams
 
-Teams are groups of users that collaborate on their projects.
+Teams are groups of users that collaborate on their Node-RED applications.
 
 ## Managing teams
 
@@ -33,18 +33,22 @@ table summaries what actions are available to the different roles.
 |:-------------------------------------|:-----:|:------:|:------:|
 | Manage Team Settings                 | ✓     | -      | -      |
 | View Team Audit Log                  | ✓     | -      | -      |
-| **Projects**                         |       |        |        |
-| • Create Project                     | ✓     | -      | -      |
-| • Delete Project                     | ✓     | -      | -      |
-| • Copy Project                       | ✓     | -      | -      |
-| • View Project Details               | ✓     | ✓      | ✓      |
-| • Start, Stop, Suspend Project       | ✓     | -      | -      |
-| • Modify Project Settings            | ✓     | -      | -      |
+| **Applications**                     |       |        |        |
+| • Create Application                 | ✓     | -      | -      |
+| • Delete Application                 | ✓     | -      | -      |
+| • Modify Application Settings        | ✓     | -      | -      |
+| **Instances**                        |       |        |        |
+| • Create Instance                    | ✓     | -      | -      |
+| • Delete Instance                    | ✓     | -      | -      |
+| • Copy Instance                      | ✓     | -      | -      |
+| • View Instance Details              | ✓     | ✓      | ✓      |
+| • Start, Stop, Suspend Instance      | ✓     | -      | -      |
+| • Modify Instance Settings           | ✓     | -      | -      |
 | • Modify Environment Variables       | ✓     | ✓      | -      |
 | **Flows**                            |       |        |        |
 | • Access Flow Editor                 | ✓     | ✓      | ✓      |
 | • Modify Flows                       | ✓     | ✓      | -      |
-| **Project Snapshots**                |       |        |        |
+| **Snapshots**                        |       |        |        |
 | • View Snapshots                     | ✓     | ✓      | ✓      |
 | • Create Snapshot                    | ✓     | ✓      | -      |
 | • Rollback                           | ✓     | ✓      | -      |
@@ -54,7 +58,7 @@ table summaries what actions are available to the different roles.
 | • View Devices                       | ✓     | ✓      | ✓      |
 | • Modify Device Settings             | ✓     | -      | -      |
 | • Modify Environment Variables       | ✓     | ✓      | -      |
-| • Assign to/Remove from Project      | ✓     | -      | -      |
+| • Assign to/Remove from Instance     | ✓     | -      | -      |
 | • Delete Device                      | ✓     | -      | -      |
 | **Team Members**                     |       |        |        |
 | • Invite User                        | ✓     | -      | -      |

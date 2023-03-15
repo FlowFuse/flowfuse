@@ -1,7 +1,7 @@
-# Kubernetes Project Stacks
+# Kubernetes Stacks
 
-A Project Stack defines a set of platform configuration options that will get
-applied to each project when created.
+A Stack defines a set of platform configuration options that will get
+applied to each Node-RED instance when created.
 
 For container based deployment models, this covers three things:
 
@@ -57,5 +57,5 @@ docker push [your.container.registry]/flowforge/node-red-dashboard:3.0.2
 You would then enter `[your.container.registry]/flowforge/node-red-dashboard:3.0.2` in the `container` section
 of the Stack configuration.
 
-Stacks can be changed on a per project basis, see also the
+Stacks can be changed on a per Node-RED instance basis, see also the
 [user stack documentation](../../user/changestack.md).

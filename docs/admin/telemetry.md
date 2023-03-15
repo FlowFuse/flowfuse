@@ -75,7 +75,7 @@ Property | Description
 `instanceId` | A unique identifier for the FlowForge instance.
 `os` | Information about the operating system
 `env` | Node.js and FlowForge versions
-`platform.counts` | A snapshot of the number of users, teams, projects, etc, in use on the platform.
+`platform.counts` | A snapshot of the number of users, teams, projects (instances), etc, in use on the platform.
 `platform.config.driver` | Which backend driver is being used
 `platform.config.broker.enabled` | A flag indicating whether the the internal comms broker is enabled
 `platform.config.fileStore.enabled` | A flag indicating whether the file store is enabled
