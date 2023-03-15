@@ -9,6 +9,12 @@
                 <p>It will always run the latest flow deployed in Node-RED and use the latest credentials and runtime settings defined in the Projects settings.</p>
                 <p>To edit an Application's flow, open the editor of the Instance.</p>
             </template>
+            <template #tools>
+                <ff-button @click="addInstance()">
+                    <template v-slot:icon-left><PlusSmIcon /></template>
+                    Add Instance
+                </ff-button>
+            </template>
         </SectionTopMenu>
 
         <div class="space-y-6 mb-12">
@@ -61,6 +67,8 @@ import { Roles } from '@core/lib/roles'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
+import { PlusSmIcon } from '@heroicons/vue/outline'
+
 import SectionTopMenu from '../../components/SectionTopMenu'
 
 import ProjectStatusBadge from './components/ProjectStatusBadge'
@@ -70,10 +78,12 @@ import LastSeen from './components/cells/LastSeen.vue'
 import ProjectEditorLink from './components/cells/ProjectEditorLink.vue'
 
 import permissionsMixin from '@/mixins/Permissions'
+import Dialog from '@/services/dialog'
 
 export default {
     name: 'ProjectOverview',
     components: {
+        PlusSmIcon,
         SectionTopMenu
     },
     mixins: [permissionsMixin],
@@ -115,6 +125,13 @@ export default {
                 params: {
                     id: cloudInstance.id
                 }
+            })
+        },
+        addInstance () {
+            // placeholder before full functionality is available
+            Dialog.show({
+                header: 'Multiple Instances per Application - Coming Soon!',
+                html: `<p>We've not quite got this part ready just yet, but soon, you will be able to manage multiple instances of Node-RED within a single "Application".</p><p>This will enable <b>DevOps Pipelines, High Availability, and much more</b>. You can read more about what we have planned <a href="https://github.com/flowforge/flowforge/issues/1689" target="_blank">here.</a></p><p>For now, Applications and Instances are still mapped 1:1, so you can still add new instances of Node-RED from the <a href="/team/${this.team.slug}/projects">Applications</a> page.</p>`
             })
         }
     }

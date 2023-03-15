@@ -113,14 +113,15 @@
         border-left: none;
     }
 
+    .forge-nav-item {
+        @apply flex items-center;
+        @apply pb-3;
+        @apply border-b-4 border-b-transparent;
+    }
     .forge-nav-item:not(.forge-nav-item-active) {
         @apply text-sm;
-        @apply sm:pb-5;
-        @apply pb-3;
     }
     .forge-nav-item:not(.forge-nav-item-active):hover {
-        @apply sm:pb-4;
-        @apply pb-2;
         @apply text-blue-700;
         @apply border-b-4;
         @apply border-gray-400;
@@ -128,8 +129,6 @@
 
     .forge-nav-item-active {
         @apply text-sm;
-        @apply sm:pb-4;
-        @apply pb-2;
         @apply text-blue-700;
         @apply border-b-4;
         @apply border-blue-700;
