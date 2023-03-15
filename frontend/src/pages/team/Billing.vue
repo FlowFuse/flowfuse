@@ -4,7 +4,7 @@
     </div>
     <SectionTopMenu hero="Team Billing">
         <template #tools>
-            <ff-button v-if="subscription" size="small" @click="customerPortal()">
+            <ff-button v-if="subscription" @click="customerPortal()">
                 <template #icon-right><ExternalLinkIcon /></template>
                 Stripe Customer Portal
             </ff-button>
