@@ -6,45 +6,46 @@ An Environment Variable consists of a name and a value.
 
 ## Editing 
 
-You can edit the environment variables for a project from the `Settings` tab of a project, select the `Environment` option from the side menu.
+You can edit the environment variables from the `Settings` tab of an instance, select the `Environment` option from the side menu.
 
-Changes will only take effect when the project is restarted.
+Changes will only take effect when the Node-RED instance is restarted.
 
 ## Template provided variables
 
-The [Template](concepts.md#project-template) may include some predefined environment 
-variables that are automatically applied to the project. The template may lock
-some of those variables to prevent a Project from changing them.
+The [Template](concepts.md#template) may include some predefined environment 
+variables that are automatically applied. The template may lock some of those 
+ariables to prevent an individual instance from changing them.
 
-Variables provided by the template cannot be deleted, however if they are editable, their value can be set to blank.
+Variables provided by the template cannot be deleted, however if they are editable,
+their value can be set to blank.
 
-## Project
+## Node-RED instance variables
 
-You can create additional variables for a single project by entering the name and value in the boxes at the bottom of the list and clicking the `+` button.
+You can create additional variables for an individual Node-RED instance by entering the name and value in the boxes at the bottom of the list and clicking the `+` button.
 
-You can delete a project variable using the trash can icon.
+You can delete a variable using the trash can icon.
 
-The image below shows a project with 3 environment variables.
+The image below shows an instance with 3 environment variables.
 
 The first one `foo` is set by the template but the value `bar` is editable
 
 The second one `locked` is set by the template and the value is set to `true` is not editable
 
-The third one `user` is set for the project, the value can be edited or the variable deleted
+The third one `user` is set for the instance, the value can be edited or the variable deleted
 
 <img src="images/project-envvar.png" width="500" />
 
 ## Standard environment variables
 
-Projects running on FlowForge are assigned a standard set environment variables as follows.
+Instances running on FlowForge are assigned a standard set environment variables as follows.
 
-- FF_PROJECT_ID
-- FF_PROJECT_NAME
-- FF_DEVICE_ID
-- FF_DEVICE_NAME
+- `FF_PROJECT_ID`
+- `FF_PROJECT_NAME`
+- `FF_DEVICE_ID` (devices only)
+- `FF_DEVICE_NAME` (devices only)
 
-`FF_PROJECT_ID` and `FF_PROJECT_NAME` are assigned to the Project running on the FlowForge server as well as all associated Devices. In all Node-RED instances within a Project these variables will be the same.
+`FF_PROJECT_ID` and `FF_PROJECT_NAME` are assigned to the Node-RED instance running on the FlowForge server as well as all associated Devices.
 
-Unique values for `FF_DEVICE_ID` and `FF_DEVICE_NAME` are assigned to each instance of Node-RED running on a Device within a Project however these variables are not assigned to the instance running on the FlowForge server.
+Devices also have `FF_DEVICE_ID` and `FF_DEVICE_NAME` set so that flows can know where they are running.
 
 

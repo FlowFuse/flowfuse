@@ -47,7 +47,7 @@ and click the button to resend it.
 ## Node-RED on FlowForge Cloud
 
 FlowForge currently offers Node-RED 2.2 and 3.0 to customers. When creating a
-new instance a [Stack](../user/concepts.md#project-stack) is chosen, which later
+new instance a [Stack](../user/concepts.md#stack) is chosen, which later
 can be [upgraded to a later version](../user/changestack.md).
 
 Each Node-RED can install custom modules as advertised in the [Flow Library](https://flows.nodered.org).

@@ -18,7 +18,7 @@ This is done by adding `10-file-js` in the **Exclude nodes by filename**
 section of your instance settings under the **Palette** section.
 
 This setting is modifiable only by a Team owner and only if it has not been
-locked in the [template](concepts.md#project-template) by the platform Administrator.
+locked in the [template](concepts.md#template) by the platform Administrator.
 
 ## Nodes
 

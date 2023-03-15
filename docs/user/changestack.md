@@ -1,6 +1,6 @@
 # Changing the Stack
 
-[Stacks](concepts.md#project-stack) define various aspects of how Node-RED instances run - including the version of Node-RED being used.
+[Stacks](concepts.md#stack) define various aspects of how Node-RED instances run - including the version of Node-RED being used.
 
 FlowForge allows you to change the stack an instance is using - providing a way
 to upgrade Node-RED.
