@@ -14,7 +14,7 @@
     </FormRow>
 
     <div class="mt-6 flex gap-4">
-        <ff-button :disabled="!input.target || loading" data-action="push-stage" @click="deploy()">
+        <ff-button :disabled="!input.target" data-action="push-stage" @click="deploy()">
             {{ deploying ? `Pushing to "${input.target.name}"...` : 'Push to Stage' }}
         </ff-button>
         <ff-button kind="secondary" :to="{name: 'Instance', params: { 'id': input.target?.id }}" :disabled="!input.target" data-action="view-target-project">
