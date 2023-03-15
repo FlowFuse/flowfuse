@@ -414,9 +414,14 @@ export default {
                     confirmLabel: 'Remove'
                 }, async () => {
                     await deviceApi.updateDevice(device.id, { project: null })
-                    delete device.project
 
-                    this.devices.delete(device.id)
+                    // TODO Remove temporary duplication
+                    delete device.project
+                    delete device.instance
+
+                    if (this.displayingInstance) {
+                        this.devices.delete(device.id)
+                    }
 
                     Alerts.emit('Successfully removed the device from the instance.', 'confirmation')
                 })
