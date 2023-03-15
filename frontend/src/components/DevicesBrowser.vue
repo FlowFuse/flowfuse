@@ -76,11 +76,14 @@
                     />
                     <ff-list-item
                         v-if="!row.instance && displayingTeam"
-                        label="Add to Application Instance" @click="deviceAction('assignToProject', row.id)"
+                        label="Add to Application Instance"
+                        data-action="device-assign"
+                        @click="deviceAction('assignToProject', row.id)"
                     />
                     <ff-list-item
                         v-else
                         label="Remove from Application Instance"
+                        data-action="device-remove"
                         @click="deviceAction('removeFromProject', row.id)"
                     />
                     <ff-list-item
@@ -134,10 +137,10 @@
         @snapshot-assigned="$emit('instance-updated')"
     />
 
-    <DeviceAssignProjectDialog
+    <DeviceAssignInstanceDialog
         v-if="displayingTeam"
-        ref="deviceAssignProjectDialog"
-        :team="team"
+        ref="deviceAssignInstanceDialog"
+        :instances="teamInstances"
         @assign-device="assignDevice"
     />
 </template>
@@ -156,7 +159,7 @@ import ApplicationLink from '../pages/project/components/cells/ApplicationLink'
 import DeviceLink from '../pages/project/components/cells/DeviceLink.vue'
 import InstanceInstancesLink from '../pages/project/components/cells/InstanceInstancesLink.vue'
 import Snapshot from '../pages/project/components/cells/Snapshot.vue'
-import DeviceAssignProjectDialog from '../pages/team/Devices/dialogs/DeviceAssignProjectDialog'
+import DeviceAssignInstanceDialog from '../pages/team/Devices/dialogs/DeviceAssignInstanceDialog'
 import DeviceCredentialsDialog from '../pages/team/Devices/dialogs/DeviceCredentialsDialog'
 import TeamDeviceCreateDialog from '../pages/team/Devices/dialogs/TeamDeviceCreateDialog'
 
@@ -173,7 +176,7 @@ export default {
     name: 'ProjectOverview',
     components: {
         ClockIcon,
-        DeviceAssignProjectDialog,
+        DeviceAssignInstanceDialog,
         DeviceCredentialsDialog,
         PlusSmIcon,
         SnapshotAssignDialog,
@@ -207,7 +210,8 @@ export default {
             deletingDevice: false,
             nextCursor: null,
             devices: new Map(),
-            checkInterval: null
+            checkInterval: null,
+            teamInstances: null
         }
     },
     computed: {
@@ -377,6 +381,10 @@ export default {
             this.loading = false
         },
 
+        async updateTeamInstances () {
+            this.teamInstances = (await teamApi.getTeamProjects(this.team.id)).projects // TODO Currently fetches projects not instances
+        },
+
         deviceAction (action, deviceId) {
             const device = this.devices.get(deviceId)
             if (action === 'edit') {
@@ -409,14 +417,20 @@ export default {
                     confirmLabel: 'Remove'
                 }, async () => {
                     await deviceApi.updateDevice(device.id, { project: null })
-                    delete device.project
 
-                    this.devices.delete(device.id)
+                    // TODO Remove temporary duplication
+                    delete device.project
+                    delete device.instance
+
+                    if (this.displayingInstance) {
+                        this.devices.delete(device.id)
+                    }
 
                     Alerts.emit('Successfully removed the device from the instance.', 'confirmation')
                 })
             } else if (action === 'assignToProject') {
-                this.$refs.deviceAssignProjectDialog.show(device)
+                this.updateTeamInstances()
+                this.$refs.deviceAssignInstanceDialog.show(device)
             }
         }
     }
