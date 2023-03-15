@@ -6,29 +6,49 @@
         confirm-label="Add"
         @confirm="assignDevice()"
     >
-        <template v-slot:default>
+        <template #default>
             <form class="space-y-6 mt-2 mb-2">
                 <p class="text-sm text-gray-500">
                     Select the instance to add the device to:
                 </p>
-                <FormRow :options="projects" v-model="input.project">Application Instance</FormRow>
+                <FormRow
+                    v-model="input.project"
+                    :options="options"
+                    :disabled="disabled"
+                    :placeholder="placeholder"
+                >
+                    Application Instance
+                </FormRow>
             </form>
         </template>
     </ff-dialog>
 </template>
 
 <script>
-// import devicesApi from '@/api/devices'
-
-import teamApi from '@/api/team'
-import alerts from '@/services/alerts'
 import FormRow from '@/components/FormRow'
+import alerts from '@/services/alerts'
+
 export default {
     name: 'DeviceAssignProjectDialog',
     components: {
         FormRow
     },
-    props: ['team'],
+    props: {
+        instances: {
+            type: Array,
+            default () {
+                return []
+            }
+        }
+    },
+    setup () {
+        return {
+            async show (device) {
+                this.$refs.dialog.show()
+                this.device = device
+            }
+        }
+    },
     data () {
         return {
             device: null,
@@ -38,22 +58,37 @@ export default {
             }
         }
     },
+    computed: {
+        options () {
+            return this.instances?.map(d => { return { value: d.id, label: d.name } }) ?? []
+        },
+
+        placeholder () {
+            if (this.loadingInstances) {
+                return 'Loading...'
+            } else if (this.noInstances) {
+                return 'No instances found.'
+            }
+
+            return undefined
+        },
+
+        noInstances () {
+            return this.instances?.length === 0
+        },
+
+        loadingInstances () {
+            return !this.instances
+        },
+
+        disabled () {
+            return this.noInstances || this.loadingInstances
+        }
+    },
     methods: {
         assignDevice () {
             this.$emit('assignDevice', this.device, this.input.project)
             alerts.emit('Device successfully assigned to instance.', 'confirmation')
-        }
-    },
-    setup () {
-        return {
-            async show (device) {
-                this.$refs.dialog.show()
-                this.device = device
-                this.projects = []
-
-                const result = await teamApi.getTeamProjects(this.team.id)
-                this.projects = result.projects.map(d => { return { value: d.id, label: d.name } })
-            }
         }
     }
 }
