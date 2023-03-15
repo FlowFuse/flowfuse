@@ -3,8 +3,8 @@
         <template #helptext>
             <p>FlowForge can be used to manage instances of Node-RED running on remote devices.</p>
             <p>Each device must run the <a href="https://flowforge.com/docs/user/devices/" target="_blank">FlowForge Device Agent</a>, which connects back to the platform to receive updates.</p>
-            <p>Devices are registered to a Team, and assigned to a Project within that team.</p>
-            <p>Flows can then be deployed remotely to the devices through a Project Snapshot.</p>
+            <p>Devices are registered to a Team, and assigned to an Instance within an Application.</p>
+            <p>Flows can then be deployed remotely to the devices as an Instance Snapshot.</p>
         </template>
     </SectionTopMenu>
 
