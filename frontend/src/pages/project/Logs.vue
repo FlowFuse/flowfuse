@@ -44,6 +44,7 @@ export default {
             required: true
         }
     },
+    emits: ['project-enable-polling', 'project-disable-polling'],
     data () {
         return {
             input: {
@@ -62,6 +63,12 @@ export default {
     },
     created () {
         this.projectChanged()
+    },
+    mounted () {
+        this.$emit('project-enable-polling')
+    },
+    unmounted () {
+        this.$emit('project-disable-polling')
     },
     methods: {
         projectChanged () {
