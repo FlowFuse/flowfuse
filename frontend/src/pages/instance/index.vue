@@ -126,6 +126,7 @@ export default {
             instance: {},
             navigation: [],
             checkInterval: null,
+            checkWaitTime: 1000,
             loading: {
                 deleting: false,
                 suspend: false
@@ -187,6 +188,7 @@ export default {
     methods: {
         async startPolling () {
             await this.updateInstance()
+            this.checkWaitTime = 1000
             if (this.instance.pendingRestart && !this.instanceTransitionStates.includes(this.instance.state)) {
                 this.instance.pendingRestart = false
             }
@@ -226,6 +228,8 @@ export default {
             if (this.instance.pendingStateChange) {
                 clearTimeout(this.checkInterval)
                 this.checkInterval = setTimeout(async () => {
+                    this.checkWaitTime *= 1.1
+
                     if (this.instance.id) {
                         const data = await InstanceApi.getInstance(this.instance.id)
                         const wasPendingRestart = this.instance.pendingRestart
@@ -238,7 +242,7 @@ export default {
                         this.instance.pendingStatePrevious = wasPendingStatePrevious
                         this.instance.pendingStateChange = wasPendingStateChange
                     }
-                }, 1000)
+                }, this.checkWaitTime)
             }
         },
         checkAccess () {

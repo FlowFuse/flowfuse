@@ -93,6 +93,7 @@ export default {
             project: {},
             navigation: [],
             checkInterval: null,
+            checkWaitTime: 1000,
             loading: {
                 deleting: false,
                 suspend: false
@@ -126,14 +127,13 @@ export default {
     methods: {
         async onEnablePolling () {
             await this.updateProject()
-            this.pollingActive = true
+            this.checkWaitTime = 1000
             if (this.project.pendingRestart && !this.projectTransitionStates.includes(this.project.state)) {
                 this.project.pendingRestart = false
             }
             this.checkAccess()
         },
         onDisablePolling (unmounting) {
-            this.pollingActive = false
             if (unmounting) {
                 // ensure timer and flags are cleared when navigating away from page
                 if (this.project?.pendingStateChange || this.project?.pendingRestart) {
@@ -166,12 +166,11 @@ export default {
             }
         },
         async refreshProject () {
-            if (!this.overviewActive) {
-                return // dont refresh if not on overview page
-            }
             if (this.project.pendingStateChange) {
                 clearTimeout(this.checkInterval)
                 this.checkInterval = setTimeout(async () => {
+                    this.checkWaitTime *= 1.1
+
                     if (this.project.id) {
                         const data = await projectApi.getProject(this.project.id)
                         const wasPendingRestart = this.project.pendingRestart
@@ -184,7 +183,7 @@ export default {
                         this.project.pendingStatePrevious = wasPendingStatePrevious
                         this.project.pendingStateChange = wasPendingStateChange
                     }
-                }, 1000)
+                }, this.checkWaitTime)
             }
         },
         checkAccess () {
