@@ -1,15 +1,18 @@
 <template>
-    <div class="ff-audit-entry py-3 border-b text-base">
+    <div class="ff-audit-entry py-1 lg:py-3 border-b text-base">
         <!-- Time -->
-        <div class="ff-audit-entry-time w-20 text-gray-500">{{ entry.time }}</div>
+        <div class="ff-audit-entry-time">{{ entry.time }}</div>
+
         <!-- Icon -->
-        <div class="ff-audit-entry-icon w-12 flex justify-center">
-            <AuditEntryIcon v-if="entry.body?.error" event="error"></AuditEntryIcon>
-            <AuditEntryIcon v-else :event="entry.event"></AuditEntryIcon>
-        </div>
-        <!-- Event -->
-        <div class="ff-audit-entry-description">
-            <AuditEntryVerbose :entry="entry"></AuditEntryVerbose>
+        <div class="ff-audit-entry-info flex items-center gap-4 lg:ml-3">
+            <div class="ff-audit-entry-icon text-center">
+                <AuditEntryIcon v-if="entry.body?.error" event="error"></AuditEntryIcon>
+                <AuditEntryIcon v-else :event="entry.event"></AuditEntryIcon>
+            </div>
+            <!-- Event -->
+            <div class="ff-audit-entry-description">
+                <AuditEntryVerbose :entry="entry"></AuditEntryVerbose>
+            </div>
         </div>
         <!-- User/Trigger -->
         <div v-if="entry.trigger.name !== 'unknown'" class="ff-audit-entry-trigger">
