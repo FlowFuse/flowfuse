@@ -1,7 +1,7 @@
 <template>
-    <tr class="ff-data-table--row" :class="{'selectable': selectable}" @click="$emit('selected', data)">
+    <tr class="ff-data-table--row" :class="{'selectable': selectable}">
         <slot>
-            <ff-data-table-cell v-for="(col, $column) in columns" :key="col.label" :class="col.class" :style="col.style" :highlight="highlightCell === $column">
+            <ff-data-table-cell v-for="(col, $column) in columns" :key="col.label" :class="col.class" :style="col.style" :highlight="highlightCell === $column" @click="$emit('selected', data)">
                 <template v-if="col.component">
                     <component :is="col.component.is" v-bind="{...col.component.extraProps ?? {}, ...getCellData(data, col)}"></component>
                 </template>
@@ -13,8 +13,8 @@
                 </template>
             </ff-data-table-cell>
         </slot>
-        <ff-data-table-cell v-if="hasContextMenu" style="width: 50px">
-            <ff-kebab-menu menu-align="right">
+        <ff-data-table-cell v-if="hasContextMenu" style="width: 50px" @click="$refs.kebab.openOptions()">
+            <ff-kebab-menu ref="kebab" menu-align="right">
                 <slot name="context-menu" :row="data" message="hello world"></slot>
             </ff-kebab-menu>
         </ff-data-table-cell>
