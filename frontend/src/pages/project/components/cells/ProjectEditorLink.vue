@@ -6,6 +6,7 @@
             target="_blank"
             class="ff-btn ff-btn--secondary"
             data-action="open-editor"
+            @click.stop
         >
             Open Editor
             <span class="ff-btn--icon ff-btn--icon-right">
