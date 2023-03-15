@@ -26,8 +26,8 @@
         <router-view
             :project="project"
             :is-visiting-admin="isVisitingAdmin"
-            @project-overview-exit="onOverviewExit"
-            @project-overview-enter="onOverviewEnter"
+            @project-enable-polling="onEnablePolling"
+            @project-disable-polling="onDisablePolling"
             @projectUpdated="updateProject"
             @project-start="startProject"
             @project-restart="restartProject"
@@ -99,9 +99,6 @@ export default {
             }
         }
     },
-    async created () {
-        await this.updateProject()
-    },
     computed: {
         ...mapState('account', ['teamMembership', 'team']),
         isVisitingAdmin: function () {
@@ -116,24 +113,27 @@ export default {
         teamMembership: 'checkAccess',
         'project.pendingStateChange': 'refreshProject'
     },
+    async created () {
+        await this.updateProject()
+    },
     mounted () {
         this.checkAccess()
         this.mounted = true
     },
     beforeUnmount () {
-        this.onOverviewExit(true)
+        this.onDisablePolling(true)
     },
     methods: {
-        async onOverviewEnter () {
+        async onEnablePolling () {
             await this.updateProject()
-            this.overviewActive = true
+            this.pollingActive = true
             if (this.project.pendingRestart && !this.projectTransitionStates.includes(this.project.state)) {
                 this.project.pendingRestart = false
             }
             this.checkAccess()
         },
-        onOverviewExit (unmounting) {
-            this.overviewActive = false
+        onDisablePolling (unmounting) {
+            this.pollingActive = false
             if (unmounting) {
                 // ensure timer and flags are cleared when navigating away from page
                 if (this.project?.pendingStateChange || this.project?.pendingRestart) {
