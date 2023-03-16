@@ -5,16 +5,25 @@
     },
     "extends": [
         "standard",
-        "plugin:vue/vue3-essential"
+        "plugin:vue/vue3-recommended"
     ],
     "ignorePatterns": ["frontend/dist/", "var/"],
     "rules": {
         // Inbuilt
         "indent": ["error", 4],
         "object-shorthand": ["error"],
+        "sort-imports": [
+            "error",
+            {
+                "ignoreDeclarationSort": true
+            }
+        ],
 
         // plugin:vue
         "vue/html-indent": ["error", 4],
+        "vue/singleline-html-element-content-newline": "off",
+        "vue/max-attributes-per-line": "off",
+        "vue/attribute-hyphenation": "off"
     },
     "overrides": [
         {
