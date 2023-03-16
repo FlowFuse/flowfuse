@@ -7,9 +7,6 @@
         "standard",
         "plugin:vue/vue3-essential"
     ],
-    "parserOptions": {
-        "ecmaVersion": 12
-    },
     "ignorePatterns": ["frontend/dist/", "var/"],
     "rules": {
         // Inbuilt
