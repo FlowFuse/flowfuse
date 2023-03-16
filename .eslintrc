@@ -5,6 +5,7 @@
     },
     "extends": [
         "standard",
+        "plugin:import/recommended",
         "plugin:vue/vue3-recommended"
     ],
     "ignorePatterns": ["frontend/dist/", "var/"],
@@ -18,6 +19,18 @@
                 "ignoreDeclarationSort": true
             }
         ],
+
+        // plugin:import
+        "import/order": [
+            "error",
+            {
+                "alphabetize": {
+                    "order": "asc"
+                },
+                "newlines-between": "always-and-inside-groups"
+            }
+        ],
+        "import/no-unresolved": "off",
 
         // plugin:vue
         "vue/html-indent": ["error", 4],
