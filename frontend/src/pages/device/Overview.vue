@@ -8,14 +8,16 @@
 
             <table class="table-fixed w-full" v-if="device">
                 <tr class="border-b">
+                    <td class="w-1/4 font-medium">Last Seen</td>
+                    <td class="py-2">
+                        <DeviceLastSeenBadge :last-seen-at="device.lastSeenAt" :last-seen-ms="device.lastSeenMs" :last-seen-since="device.lastSeenSince" />
+                    </td>
+                </tr>
+                <tr class="border-b">
                     <td class="w-1/4 font-medium">Status</td>
                     <td class="py-2">
                         <ProjectStatusBadge :status="device.status"/>
                     </td>
-                </tr>
-                <tr class="border-b">
-                    <td class="w-1/4 font-medium">Last Seen</td>
-                    <td class="py-2">{{ lastSeen || "Not Available" }}</td>
                 </tr>
             </table>
         </div>
@@ -97,6 +99,7 @@ import elapsedTime from '@/utils/elapsedTime'
 
 // components
 import FormHeading from '@/components/FormHeading'
+import DeviceLastSeenBadge from '@/pages/device/components/DeviceLastSeenBadge'
 import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
 
 // icons
@@ -107,6 +110,7 @@ export default {
     props: ['device'],
     components: {
         FormHeading,
+        DeviceLastSeenBadge,
         ProjectStatusBadge,
         CheckCircleIcon,
         ExclamationIcon,
