@@ -2,7 +2,7 @@
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigationTeamOptions>
             <template v-slot:nested-menu>
-                <div class="ff-nested-title">{{ project.name ?? 'Application' }}</div>
+                <div class="ff-nested-title">Application</div>
                 <router-link v-for="route in navigation" :key="route.label" :to="route.path">
                     <nav-item :icon="route.icon" :label="route.label" :data-nav="route.tag"></nav-item>
                 </router-link>
@@ -15,7 +15,7 @@
     <main v-else-if="!project?.id">
         <ff-loading message="Loading Application..." />
     </main>
-    <main v-else>
+    <main v-else class="ff-with-status-header">
         <ConfirmInstanceDeleteDialog @confirm="deleteInstance" ref="confirmInstanceDeleteDialog"/>
         <ConfirmApplicationDeleteDialog @confirm="deleteApplication" ref="confirmApplicationDeleteDialog"/>
         <Teleport v-if="mounted" to="#platform-banner">
@@ -23,18 +23,33 @@
             <SubscriptionExpiredBanner :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
         </Teleport>
-        <router-view
-            :project="project"
-            :is-visiting-admin="isVisitingAdmin"
-            @project-enable-polling="onEnablePolling"
-            @project-disable-polling="onDisablePolling"
-            @projectUpdated="updateProject"
-            @project-start="startProject"
-            @project-restart="restartProject"
-            @project-suspend="showConfirmSuspendDialog"
-            @project-delete="showConfirmDeleteInstanceDialog"
-            @application-delete="showConfirmDeleteApplicationDialog"
-        />
+
+        <div class="ff-instance-header">
+            <InstanceStatusHeader>
+                <template #hero>
+                    <div class="flex-grow space-x-6 items-center inline-flex" data-el="instance-name">
+                        <div class="text-gray-800 text-xl font-bold">
+                            <div class="text-sm font-medium text-gray-500">Application:</div>
+                            {{ project.name }}
+                        </div>
+                    </div>
+                </template>
+            </InstanceStatusHeader>
+        </div>
+        <div class="px-3 py-3 md:px-6 md:py-6">
+            <router-view
+                :project="project"
+                :is-visiting-admin="isVisitingAdmin"
+                @project-enable-polling="onEnablePolling"
+                @project-disable-polling="onDisablePolling"
+                @projectUpdated="updateProject"
+                @project-start="startProject"
+                @project-restart="restartProject"
+                @project-suspend="showConfirmSuspendDialog"
+                @project-delete="showConfirmDeleteInstanceDialog"
+                @application-delete="showConfirmDeleteApplicationDialog"
+            />
+        </div>
     </main>
 </template>
 
@@ -44,6 +59,7 @@ import { ChevronLeftIcon, CogIcon, TerminalIcon, ViewListIcon } from '@heroicons
 
 import { mapState } from 'vuex'
 
+import InstanceStatusHeader from '@/components/InstanceStatusHeader'
 import ConfirmInstanceDeleteDialog from '../instance/Settings/dialogs/ConfirmInstanceDeleteDialog'
 
 import ConfirmApplicationDeleteDialog from './Settings/dialogs/ConfirmApplicationDeleteDialog'
@@ -78,6 +94,7 @@ export default {
     components: {
         ConfirmApplicationDeleteDialog,
         ConfirmInstanceDeleteDialog,
+        InstanceStatusHeader,
         NavItem,
         SideNavigationTeamOptions,
         SubscriptionExpiredBanner,
