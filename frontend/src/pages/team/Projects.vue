@@ -31,14 +31,11 @@
 </template>
 
 <script>
-import { markRaw } from 'vue'
 import permissionsMixin from '@/mixins/Permissions'
 
 import teamApi from '@/api/team'
 import { PlusSmIcon } from '@heroicons/vue/outline'
 import SectionTopMenu from '@/components/SectionTopMenu'
-
-import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
 
 export default {
     name: 'TeamProjects',
@@ -48,9 +45,7 @@ export default {
             loading: false,
             projects: [],
             columns: [
-                { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true },
-                { label: 'Status', class: ['w-44'], key: 'status', sortable: true, component: { is: markRaw(ProjectStatusBadge) } },
-                { label: 'Updated', class: ['w-44', 'text-xs'], key: 'updatedSince', sortable: true }
+                { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true }
             ]
         }
     },
