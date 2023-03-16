@@ -1,3 +1,54 @@
+#### 1.5.0: Release
+
+ - Make mosquitto.conf path clearer (#1780)
+ - docs: TCP/UDP nodes routability (#1770)
+ - Updated Readme description (#1763)
+ - Add 1.4 Upgrade statement
+ - Application Instances: Project & Instance Status Polling (#1843) @Pezmc
+ - Application Instances: Team Device Bug Fixes (#1841) @Pezmc
+ - docs: Initial pass of Project->Instance renaming (#1840) @knolleary
+ - Audit Log UI Improvements (#1805) @Pezmc
+ - "Add Instance" placeholder & improve button size consistency (#1842) @joepavitt
+ - Improve data-row interactions (#1839) @joepavitt
+ - Relabel Project Types to Instance Types in UI (#1834) @knolleary
+ - InstanceStatusHeader & "Node-RED Instances" (#1835) @joepavitt
+ - Rename "Remote Instances" > "Devices" (#1832) @joepavitt
+ - Allow user to delete self (#1787) @Steve-Mcl
+ - Consistent look and placement of "add" buttons, Add Device Dialog improved wording. (#1812) @Steve-Mcl
+ - Application Instances: Remove Application > Remote Instances list (#1827) @Pezmc
+ - Application Instances: Delete Application (#1811) @Pezmc
+ - Bump pino-pretty from 9.4.0 to 10.0.0 (#1807) @app/dependabot
+ - Bump lru-cache from 7.18.3 to 8.0.0 (#1808) @app/dependabot
+ - Reword audit log default filters from "Not Specified" to "Show All" (#1797) @Steve-Mcl
+ - Application Instances: Team Devices (#1809) @Pezmc
+ - Plus icon is no longer used (#1814) @Pezmc
+ - Application Instances: UX tweaks (#1803) @Pezmc
+ - Application Instances: Remote Instances Tab (#1795) @Pezmc
+ - DOCS: Encourage users to click through to "first run" after initial setup (#1798) @Steve-Mcl
+ - Add free trial docs (#1794) @knolleary
+ - Application Instances (#1792) @Pezmc
+ - docs: Add Team library RBAC to table (#1791) @ZJvandeWeg
+ - Ensure a trial project can be restarted (#1784) @knolleary
+ - Add IF EXISTS to DROP DATABASE in tests (#1776) @Steve-Mcl
+ - Remove unused dependency (#1774) @Pezmc
+ - Bump vitest from 0.28.5 to 0.29.2 (#1772) @app/dependabot
+ - Bump @headlessui/vue from 1.7.9 to 1.7.12 (#1773) @app/dependabot
+ - Update behaviour when license expires (#1757) @Steve-Mcl
+ - Introduce fake log entries for the stub driver (#1771) @Pezmc
+ - Fix device seen status sometimes shows "never" even though has (#1762) @Steve-Mcl
+ - copy: Update readme with standard copy (#1764) @ZJvandeWeg
+ - Increase http body size to 5mb (#1761) @hardillb
+ - Move registration of `monitor` to after registration of `ee` (#1758) @Steve-Mcl
+ - Audit log license overage (#1744) @Steve-Mcl
+ - Allow license overages (#1743) @Steve-Mcl
+ - License identifier in telemetry (#1751) @Steve-Mcl
+ - Add SMTP to Digital Ocean Docs (#1746) @hardillb
+ - Ensure telemetry is enabled for licensed installs (#1736) @Steve-Mcl
+ - docs: Simplify migration documentation with NR Tools (#1738) @ZJvandeWeg
+ - Spellcheck of all user facing strings (#1727) @Pezmc
+ - Fix flaky date-time test failures on GitHub (#1728) @Pezmc
+ - docs: Remove broken image (#1725) @ZJvandeWeg
+
 #### 1.4.0: Release
 
  - Revert "Ensure a suspended trial project is not added to billing at trial end"
