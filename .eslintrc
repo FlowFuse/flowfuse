@@ -1,13 +1,8 @@
 {
     "env": {
-        "browser": true,
-        "commonjs": true,
-        "es2021": true,
-        "mocha": true
+        "es2022": true,
+        "commonjs": true
     },
-    "plugins": [
-        "no-only-tests"
-    ],
     "extends": [
         "standard",
         "plugin:vue/vue3-essential"
@@ -15,15 +10,38 @@
     "parserOptions": {
         "ecmaVersion": 12
     },
+    "ignorePatterns": ["frontend/dist/", "var/"],
     "rules": {
+        // Inbuilt
         "indent": ["error", 4],
+        "object-shorthand": ["error"],
+
+        // plugin:vue
         "vue/html-indent": ["error", 4],
-        "no-only-tests/no-only-tests": "error",
-        "object-shorthand": ["error"]
     },
-    "globals": {
-        "cy": true,
-        "expect": true,
-        "Cypress": true
-    }
+    "overrides": [
+        {
+            "files": "frontend/",
+            "env": {
+                "browser": true,
+                "commonjs": false
+            }
+        },
+
+        {
+            "files": "test/system/",
+            "env": {
+                "mocha": true
+            }
+        },
+
+        {
+            "files": "test/",
+
+            "plugins": ["no-only-tests"],
+            "rules": {
+                "no-only-tests/no-only-tests": "error"
+            }
+        }
+    ]
 }
