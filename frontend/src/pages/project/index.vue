@@ -27,7 +27,7 @@
         <div class="ff-instance-header">
             <InstanceStatusHeader>
                 <template #hero>
-                    <div class="flex-grow space-x-6 items-center inline-flex" data-el="instance-name">
+                    <div class="flex-grow space-x-6 items-center inline-flex" data-el="application-name">
                         <div class="text-gray-800 text-xl font-bold">
                             <div class="text-sm font-medium text-gray-500">Application:</div>
                             {{ project.name }}
