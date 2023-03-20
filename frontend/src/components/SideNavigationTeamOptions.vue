@@ -136,7 +136,6 @@ export default {
                     return true
                 }
             }
-            console.log(route.to, this.$route.path)
             // the high-level route link to "/instances"
             if (route.to === '/instances') {
                 // highlight it if we are currently viewing a single instance
