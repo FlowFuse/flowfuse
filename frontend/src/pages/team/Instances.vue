@@ -68,11 +68,11 @@ export default {
             }
             this.loading = false
         },
-        openInstance (project) {
+        openInstance (instance) {
             this.$router.push({
                 name: 'Instance',
                 params: {
-                    id: project.id
+                    id: instance.id
                 }
             })
         }
