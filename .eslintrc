@@ -48,20 +48,28 @@
             }
         },
 
-        // System tests run using Mocha
+        // System and E2E tests run using Mocha
         {
-            "files": "test/system/",
+            "files": ["test/system/**", "test/e2e/**"],
             "env": {
                 "mocha": true
             }
         },
 
-        // All tests should not allow .only
+        // Cypress is used for E2E
         {
-            "files": "test/",
-            "plugins": ["no-only-tests"],
+            "files": "test/e2e/**",
+            "env": {
+                "cypress/globals": true,
+                "mocha": true
+            },
+            "extends": ["plugin:cypress/recommended"],
+            "plugins": ["cypress"],
             "rules": {
-                "no-only-tests/no-only-tests": "error"
+                "cypress/require-data-selectors": "warn",
+                "cypress/assertion-before-screenshot": "error",
+                "cypress/no-force": "warn",
+                "cypress/no-pause": "error"
             }
         },
 
@@ -91,6 +99,28 @@
                 "comma-spacing": "off"
             },
             "files": ["config/postcss.config.js"]
+        },
+        {
+            "rules": {
+                "cypress/require-data-selectors": "off"
+            },
+            "files": [
+                "test/e2e/frontend/cypress/tests/admin.spec.js",
+                "test/e2e/frontend/cypress/tests/admin/instance-types.spec.js",
+                "test/e2e/frontend/cypress/tests/admin/stacks.spec.js",
+                "test/e2e/frontend/cypress/tests/admin/templates.spec.js",
+                "test/e2e/frontend/cypress/tests/auth.spec.js",
+                "test/e2e/frontend/cypress/tests/devices.spec.js",
+                "test/e2e/frontend/cypress/tests/instances.spec.js",
+                "test/e2e/frontend/cypress/tests/instances/devices.spec.js",
+                "test/e2e/frontend/cypress/tests/instances/snapshots.spec.js",
+                "test/e2e/frontend/cypress/tests/instances/staging.spec.js",
+                "test/e2e/frontend/cypress/tests/invitations.spec.js",
+                "test/e2e/frontend/cypress/tests/project.spec.js",
+                "test/e2e/frontend/cypress/tests/team/audit-log.spec.js",
+                "test/e2e/frontend/cypress/tests/team/team-membership.spec.js",
+                "test/e2e/frontend/cypress/tests/terms-and-conditions.spec.js"
+            ]
         },
         {
             "rules": {
