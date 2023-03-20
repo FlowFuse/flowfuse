@@ -72,7 +72,7 @@ app.get('/', { config: { allowAnonymous: true } }, async (request, reply) => {
 
 Routes under `forge/routes/api/team.js` that relate to a specific team,
 must use `:teamId` as the placeholder in the route. A request preHandler will
-use that to ensure the requesting user has permission to access the project.
+use that to ensure the requesting user has permission to access the instance.
 
 The following properties will then be available on the `request`:
 
@@ -80,6 +80,10 @@ The following properties will then be available on the `request`:
  - `request.teamMembership` - the requesting user's role on the team
 
 ### Project routes
+
+**Note:** In FlowForge 1.5 we started to replace the Project concept with that of Application
+and Instance. No changes have been made to the underlying APIs - that will be evaluated
+as part of 1.6.
 
 Routes under `forge/routes/api/project.js` that relate to a specific project,
 must use `:projectId` as the placeholder in the route. A request preHandler will

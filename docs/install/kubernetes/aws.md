@@ -183,7 +183,7 @@ Create IAM Policy to allow sending emails (example: https://docs.aws.amazon.com/
 
 The following script creates a AWS RDS PostgreSQL instance, it also
 sets up some network access rules so only the FlowForge app can access
-it from inside the cluster (and not the Node-RED Projects).
+it from inside the cluster (and not the Node-RED instances).
 
 Please read it carefully before running it to ensure you understand it.
 

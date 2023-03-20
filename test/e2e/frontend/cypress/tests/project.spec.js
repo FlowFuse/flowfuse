@@ -1,14 +1,16 @@
 describe('FlowForge - Projects', () => {
     beforeEach(() => {
-        cy.intercept('GET', '/api/*/project-types*').as('getProjectTypes')
+        cy.intercept('GET', '/api/*/project-types*').as('getInstanceTypes')
 
         cy.login('alice', 'aaPassword')
         cy.home()
-        cy.visit('/admin/project-types')
-        cy.wait('@getProjectTypes')
+        cy.visit('/admin/instance-types')
+        cy.wait('@getInstanceTypes')
     })
 
     it('can be created', () => {
+        const APPLICATION_NAME = `new-application-${Math.random().toString(36).substring(2, 7)}`
+
         cy.request('GET', 'api/v1/teams').then((response) => {
             const team = response.body.teams[0]
 
@@ -24,7 +26,7 @@ describe('FlowForge - Projects', () => {
                 expect(projectName.length).to.be.above(0)
             })
 
-            cy.get('[data-form="project-name"] input').clear().type('my-project-name')
+            cy.get('[data-form="project-name"] input').clear().type(APPLICATION_NAME)
             cy.get('[data-action="create-project"]').should('be.disabled')
 
             cy.get('[data-form="project-type"]').contains('type1').click()
@@ -41,15 +43,7 @@ describe('FlowForge - Projects', () => {
 
             cy.wait('@createProject')
 
-            cy.contains('my-project-name')
-
-            // Tidy-up
-            cy.get('[data-el="cloud-instances"] .ff-kebab-menu').click()
-            cy.get('[data-el="cloud-instances"] .ff-kebab-menu').find('.ff-list-item').contains('Delete').click()
-            cy.get('[data-el="delete-project-dialog"]').within(() => {
-                cy.get('[data-form="project-name"] input[type="text"]').type('my-project-name')
-                cy.get('button.ff-btn.ff-btn--danger').click()
-            })
+            cy.contains(APPLICATION_NAME)
         })
     })
 
@@ -85,6 +79,67 @@ describe('FlowForge - Projects', () => {
             cy.get('[data-form="project-name"] [data-el="form-row-error"]').contains('name in use')
         })
     })
+
+    it('can be deleted', () => {
+        const APPLICATION_NAME = `new-application-${Math.random().toString(36).substring(2, 7)}`
+
+        cy.intercept('DELETE', '/api/*/projects/*').as('deleteProject')
+
+        let team, template, stack, type
+
+        cy.request('GET', 'api/v1/teams')
+            .then((response) => {
+                team = response.body.teams[0]
+                return cy.request('GET', 'api/v1/templates')
+            })
+            .then((response) => {
+                template = response.body.templates[0]
+                return cy.request('GET', 'api/v1/project-types')
+            })
+            .then((response) => {
+                type = response.body.types[0]
+                return cy.request('GET', `api/v1/stacks?projectType=${type.id}`)
+            })
+            .then((response) => {
+                stack = response.body.stacks[0]
+                return cy.request('POST', '/api/v1/projects', {
+                    name: APPLICATION_NAME,
+                    stack: stack.id,
+                    template: template.id,
+                    billingConfirmation: false,
+                    projectType: type.id,
+                    team: team.id
+                })
+            })
+            .then((response) => {
+                cy.intercept('GET', '/api/*/projects/*').as('getProject')
+
+                const project = response.body
+                cy.visit(`/project/${project.id}/settings`)
+                cy.wait('@getProject')
+
+                cy.get('[data-el="delete-application-dialog"]').should('not.be.visible')
+                cy.get('button[data-action="delete-application"]').click()
+
+                cy.get('[data-el="delete-application-dialog"]')
+                    .should('be.visible')
+                    .within(() => {
+                        // Dialog is open
+                        cy.get('.ff-dialog-header').contains('Delete Application')
+
+                        // Main button should be disabled
+                        cy.get('button.ff-btn.ff-btn--danger').should('be.disabled')
+                        cy.get('[data-form="application-name"] input[type="text"]').type(APPLICATION_NAME)
+
+                        // Should now be enabled again
+                        cy.get('button.ff-btn.ff-btn--danger').click()
+                    })
+
+                cy.wait('@deleteProject')
+
+                cy.url().should('include', `/team/${team.slug}/overview`)
+            })
+    })
 })
 
 describe('FlowForge - Projects - With Billing', () => {
@@ -107,9 +162,9 @@ describe('FlowForge - Projects - With Billing', () => {
 
             cy.get('[data-el="charges-table"]').should('exist')
 
-            cy.get('[data-el="selected-project-type-name"]').contains('type1')
-            cy.get('[data-el="selected-project-type-cost"]').contains('$15.00')
-            cy.get('[data-el="selected-project-type-interval"]').contains('/mo')
+            cy.get('[data-el="selected-instance-type-name"]').contains('type1')
+            cy.get('[data-el="selected-instance-type-cost"]').contains('$15.00')
+            cy.get('[data-el="selected-instance-type-interval"]').contains('/mo')
 
             cy.get('[data-el="form-row-description"]').contains('$15.00 now').contains('$15.00/month')
 
@@ -141,9 +196,9 @@ describe('FlowForge - Projects - With Billing', () => {
 
             cy.get('[data-el="credit-balance-banner"]').should('exist').contains('$10.01')
 
-            cy.get('[data-el="selected-project-type-name"]').contains('type1')
-            cy.get('[data-el="selected-project-type-cost"]').contains('$15.00')
-            cy.get('[data-el="selected-project-type-interval"]').contains('/mo')
+            cy.get('[data-el="selected-instance-type-name"]').contains('type1')
+            cy.get('[data-el="selected-instance-type-cost"]').contains('$15.00')
+            cy.get('[data-el="selected-instance-type-interval"]').contains('/mo')
 
             cy.get('[data-el="credit-balance-row"]').should('exist')
             cy.get('[data-el="credit-balance-amount"]').contains('$10.01')

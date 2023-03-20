@@ -41,7 +41,7 @@
 
 <script>
 import stacksApi from '@/api/stacks'
-import projectTypesApi from '@/api/projectTypes'
+import instanceTypesApi from '@/api/instanceTypes'
 
 import Alerts from '@/services/alerts'
 import Dialog from '@/services/dialog'
@@ -81,7 +81,7 @@ function comparator (A, B) {
         if (!B.projectType) {
             return 1
         }
-        return this.projectTypes[A.projectType].order - this.projectTypes[B.projectType].order
+        return this.instanceTypes[A.projectType].order - this.instanceTypes[B.projectType].order
     }
 }
 
@@ -90,7 +90,7 @@ export default {
     data () {
         return {
             allStacks: new Map(),
-            projectTypes: [],
+            instanceTypes: [],
             loadingActive: false,
             loadingInactive: false,
             nextActiveCursor: null,
@@ -109,9 +109,9 @@ export default {
         }
     },
     async created () {
-        const result = await projectTypesApi.getProjectTypes(null, 100, 'all')
+        const result = await instanceTypesApi.getInstanceTypes(null, 100, 'all')
         result.types.forEach(pt => {
-            this.projectTypes[pt.id] = pt
+            this.instanceTypes[pt.id] = pt
         })
         this.loadInactiveItems()
         this.loadActiveItems()
@@ -174,7 +174,7 @@ export default {
             this.allStacks.set(stack.id, stack)
 
             if (stack.projectType) {
-                stack.projectTypeName = this.projectTypes[stack.projectType]?.name
+                stack.projectTypeName = this.instanceTypes[stack.projectType]?.name
             }
             if (replaced) {
                 this.stackUpdated(replaced)
@@ -184,7 +184,7 @@ export default {
             this.allStacks.set(stack.id, stack)
 
             if (stack.projectType) {
-                stack.projectTypeName = this.projectTypes[stack.projectType]?.name
+                stack.projectTypeName = this.instanceTypes[stack.projectType]?.name
             }
         },
         loadActiveItems: async function () {
@@ -193,7 +193,7 @@ export default {
             this.nextActiveCursor = result.meta.next_cursor
             result.stacks.forEach(stack => {
                 if (stack.projectType) {
-                    stack.projectTypeName = this.projectTypes[stack.projectType]?.name
+                    stack.projectTypeName = this.instanceTypes[stack.projectType]?.name
                 }
                 this.allStacks.set(stack.id, stack)
             })
@@ -205,7 +205,7 @@ export default {
             this.nextInactiveCursor = result.meta.next_cursor
             result.stacks.forEach(stack => {
                 if (stack.projectType) {
-                    stack.projectTypeName = this.projectTypes[stack.projectType]?.name
+                    stack.projectTypeName = this.instanceTypes[stack.projectType]?.name
                 }
                 this.allStacks.set(stack.id, stack)
             })

@@ -3,13 +3,12 @@
 Node-RED allows you to import and export **flows** and **functions** to a local library. This is helpful
 for saving pieces of flow that you want to reuse.
 
-With FlowForge Premium, each project also has access to a Team Library that makes
-it very easy to share flows and functions between the projects without having to manually copy
-them around.
+With FlowForge Premium, each Node-RED instance has access to a Team Library that makes
+it very easy to share flows and functions without having to manually copy them around.
 
-For example, you may have a standard set of flows that you want each project to
-include. By exporting them to the Team Library, you can quickly import them into
-new projects.
+For example, you may have a standard set of flows that you want each Node-RED instance
+to include. By exporting them to the Team Library, you can quickly import them wherever
+you want to use them.
 
 A short video is available on [how to use this feature](https://www.youtube.com/watch?v=B7XK3TUklUU).
 

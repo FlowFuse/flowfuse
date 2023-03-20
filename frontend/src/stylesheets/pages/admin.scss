@@ -1,5 +1,5 @@
 .ff-admin-audit {
     display: grid;
-    grid-template-columns: 1fr 240px;
+    grid-template-columns: 2fr minmax(min-content, 240px);
     gap: 24px;
 }

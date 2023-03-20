@@ -8,9 +8,9 @@ You can just straight to the deployment wizard [here](https://marketplace.digita
 
 ### DNS
 
-To make use of this Droplet you will need a DNS Domain to host both the FlowForge application and the Projects you create. 
+To make use of this Droplet you will need a DNS Domain to host both the FlowForge application and the Node-RED instances you create. 
 
-For example if you use `ff.example.com` then the FlowForge application will run on `https://forge.ff.example.com` and a project would be on `https://[project-name].ff.example.com`.
+For example if you use `ff.example.com` then the FlowForge application will run on `https://forge.ff.example.com` and Node-RED would be on `https://[instance-name].ff.example.com`.
 
 You will need to set up a wildcard DNS entry that points the whole domain to the Public IP address of the Droplet.
 

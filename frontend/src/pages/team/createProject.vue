@@ -21,7 +21,7 @@
         <div class="max-w-2xl m-auto">
             <ff-loading
                 v-if="loading"
-                message="Creating Instance..."
+                message="Creating Application..."
             />
             <ff-loading
                 v-else-if="sourceProjectId && !sourceProject"

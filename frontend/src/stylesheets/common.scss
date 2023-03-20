@@ -115,3 +115,9 @@ label {
         color: black;
     }
 }
+
+// Handle nested buttons in a data table
+
+.ff-data-table--cell a:not(.ff-btn):hover {
+    color: $ff-blue-600;
+}

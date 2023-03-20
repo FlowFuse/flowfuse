@@ -1,13 +1,13 @@
 # FlowForge File Storage
 
 When running in container-based environments, such as Docker or Kubernetes,
-the FlowForge Projects do not have access to a persistent filesystem.
+the Node-RED instances do not have access to a persistent filesystem.
 
-This means any files written to the container will be lost if the project is
+This means any files written to the container will be lost if the instance is
 restarted.
 
 The FlowForge platform includes a File Storage service that can be used to provide
-persistent storage to projects in two different ways:
+persistent storage to Node-RED in two different ways:
 
   - A set of custom File nodes that behave the same way as the standard Node-RED
     File nodes
@@ -15,7 +15,7 @@ persistent storage to projects in two different ways:
     This feature is only available for platforms running with a premium license.
 
 *Note:* the File Storage service is only required in Docker or Kubernetes environments.
-If you are running using the LocalFS platform driver, the projects have direct
+If you are running using the LocalFS platform driver, Node-RED will have direct
 access to the local filesystem already.
 
 ## Configuring
@@ -56,8 +56,8 @@ server container.
 Option        | Description
 --------------|------------
 `driver.type` | `localfs`
-`driver.quota` | A per-project quota for how much data will be stored - in bytes. If this is not set, no limit will be applied
-`driver.options.root` | The root path under which project data should be stored.
+`driver.quota` | A per-instance quota for how much data will be stored - in bytes. If this is not set, no limit will be applied
+`driver.options.root` | The root path under which Node-RED instance data should be stored.
 
 
 The following shows an example configuration using the `localfs` file driver.
@@ -77,7 +77,7 @@ Stores the files in an external service using the AWS S3 API.
 Option        | Description
 --------------|------------
 `driver.type` | `s3`
-`driver.quota` | A per-project quota for how much data will be stored - in bytes. If this is not set, no limit will be applied
+`driver.quota` | A per-instance quota for how much data will be stored - in bytes. If this is not set, no limit will be applied
 `driver.options.bucket` | Name of the S3 bucket to use (required)
 `driver.options.region` | Name of AWS region of the bucket (required)
 `driver.options.endpoint` | S3 ObjectStore Endpoint, if not using AWS S3
@@ -106,7 +106,7 @@ driver:
 
 The FlowForge File nodes have been written to be direct replacements
 for the Node-RED core file-in and file-out nodes. This means that only 
-one version of these nodes can be active in a project at a time.
+one version of these nodes can be active in Node-RED at a time.
 
 The FlowForge File nodes will automatically disable themselves if the 
 core nodes are present. This means to enable the nodes you need to 
@@ -116,7 +116,7 @@ This can be done in the FlowForge Template.
 
 <img src="../images/file-node-template.png" width=500 />
 
-Adding `10-file.js` to the list of "Excluded nodes by filename" section will ensure that the core file nodes are not loaded by the project.
+Adding `10-file.js` to the list of "Excluded nodes by filename" section will ensure that the core file nodes are not loaded by Node-RED.
 
 ### Persistent Context configuration
 
@@ -133,7 +133,7 @@ database.
 Option        | Description
 --------------|------------
 `context.type` | `sequelize`
-`context.quote` | A per-project quota for how much data will be stored - in bytes. If this is not set, no limit will be applied
+`context.quote` | A per-instance quota for how much data will be stored - in bytes. If this is not set, no limit will be applied
 `context.options.type` | `sqlite`
 `context.options.storage` | Path to the sqlite database file to use
 
@@ -153,7 +153,7 @@ context:
 Option        | Description
 --------------|------------
 `context.type` | `sequelize`
-`context.quote` | A per-project quota for how much data will be stored - in bytes. If this is not set, no limit will be applied
+`context.quote` | A per-instance quota for how much data will be stored - in bytes. If this is not set, no limit will be applied
 `context.options.type` | `postgres`
 `context.options.host` | The hostname of the database server
 `context.options.port` | The port of the database server

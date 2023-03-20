@@ -1,8 +1,16 @@
 <template>
-    <div class="flex flex-col sm:flex-row">
+    <div class="mb-3">
+        <SectionTopMenu hero="Settings" info="" />
+    </div>
+    <div class="flex flex-col sm:flex-row ml-6">
         <SectionSideMenu :options="sideNavigation" />
         <div class="flex-grow">
-            <router-view :project="instance" :instance="instance" @instance-updated="$emit('instance-updated')" />
+            <router-view
+                :project="instance"
+                :instance="instance"
+                @instance-updated="$emit('instance-updated')"
+                @instance-confirm-delete="$emit('instance-confirm-delete')"
+            />
         </div>
     </div>
 </template>
@@ -11,22 +19,24 @@
 import { mapState } from 'vuex'
 
 import SectionSideMenu from '@/components/SectionSideMenu'
+import SectionTopMenu from '@/components/SectionTopMenu'
 import permissionsMixin from '@/mixins/Permissions'
 
 export default {
     name: 'InstanceSettings',
     components: {
+        SectionTopMenu,
         SectionSideMenu
     },
     mixins: [permissionsMixin],
+    inheritAttrs: false,
     props: {
         instance: {
             type: Object,
             required: true
         }
     },
-
-    emits: ['instance-updated'],
+    emits: ['instance-updated', 'instance-confirm-delete'],
     data () {
         return {
             sideNavigation: []

@@ -50,6 +50,11 @@ const updateUser = async (options) => {
         return res.data
     })
 }
+const deleteUser = async () => {
+    return client.delete('/api/v1/user').then(res => {
+        return res.data
+    })
+}
 const getTeamInvitations = async () => {
     return client.get('/api/v1/user/invitations').then(res => {
         res.data.invitations = res.data.invitations.map(r => {
@@ -116,6 +121,7 @@ export default {
     logout,
     changePassword,
     updateUser,
+    deleteUser,
     getTeamInvitations,
     acceptTeamInvitation,
     rejectTeamInvitation,

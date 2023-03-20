@@ -1,9 +1,13 @@
 @import '~@flowforge/forge-ui-components/dist/scss/forge-colors.scss';
+@import '~@flowforge/forge-ui-components/dist/scss/forge-variables.scss';
 
 .ff-audit-entry {
-    align-items: center;
     display: grid;
-    grid-template-columns: 75px 50px 1fr 200px;
+    grid-template-areas:
+        'time       author'
+        'entry       entry';
+    grid-gap: 0.25rem;
+    align-items: center;
     label {
         font-weight: 500;
     }
@@ -51,10 +55,28 @@
     }
 }
 
-.ff-audit-entry-trigger {
-    color: $ff-grey-400;
-    text-align: right;
+.ff-audit-entry-info {
+    grid-area: entry;
+}
+
+.ff-audit-entry-trigger, .ff-audit-entry-time {
+    grid-area: time;
+    display: block;
+    color: $ff-grey-500;
     overflow-x: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+}
+
+.ff-audit-entry-trigger {
+    grid-area: author;
+    text-align: right;
+}
+
+
+@media screen and (min-width: $ff-screen-lg) {
+    .ff-audit-entry {
+        grid-template-areas: 'time entry author';
+        grid-template-columns: min-content 1fr min-content;
+    }
 }

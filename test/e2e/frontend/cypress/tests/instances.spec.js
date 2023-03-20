@@ -20,12 +20,12 @@ describe('FlowForge - Instances', () => {
     }
 
     beforeEach(() => {
-        cy.intercept('GET', '/api/*/project-types*').as('getProjectTypes')
+        cy.intercept('GET', '/api/*/project-types*').as('getInstanceTypes')
 
         cy.login('alice', 'aaPassword')
         cy.home()
-        cy.visit('/admin/project-types')
-        cy.wait('@getProjectTypes')
+        cy.visit('/admin/instance-types')
+        cy.wait('@getInstanceTypes')
     })
 
     it('can be navigated to from projects', () => {
@@ -52,7 +52,7 @@ describe('FlowForge - Instances', () => {
     })
 
     it('can be deleted', () => {
-        const PROJECT_NAME = 'my-project'
+        const INSTANCE_NAME = `new-instance-${Math.random().toString(36).substring(2, 7)}`
 
         cy.intercept('DELETE', '/api/*/projects/*').as('deleteProject')
 
@@ -74,7 +74,7 @@ describe('FlowForge - Instances', () => {
             .then((response) => {
                 stack = response.body.stacks[0]
                 return cy.request('POST', '/api/v1/projects', {
-                    name: PROJECT_NAME,
+                    name: INSTANCE_NAME,
                     stack: stack.id,
                     template: template.id,
                     billingConfirmation: false,
@@ -89,20 +89,23 @@ describe('FlowForge - Instances', () => {
                 cy.visit(`/instance/${project.id}/settings`)
                 cy.wait('@getProject')
 
-                cy.get('[data-el="delete-project"]').should('not.be.visible')
-                cy.get('button[data-action="delete-project"]').click()
-                cy.get('[data-el="delete-project"]').should('be.visible')
-                cy.get('.ff-dialog-header').contains('Delete Instance')
+                cy.get('[data-el="delete-instance-dialog"]').should('not.be.visible')
+                cy.get('button[data-action="delete-instance"]').click()
 
-                // main button should be disabled
-                cy.get('[data-el="delete-project"] button.ff-btn.ff-btn--danger').should('be.disabled')
-                cy.get('[data-el="delete-project"]').should('be.visible')
-                cy.get('.ff-dialog-header').contains('Delete Instance')
+                cy.get('[data-el="delete-instance-dialog"]')
+                    .should('be.visible')
+                    .within(() => {
+                        // Dialog is open
+                        cy.get('.ff-dialog-header').contains('Delete Instance')
 
-                cy.get('[data-el="delete-project"] [data-form="project-name"] input[type="text"]').type(PROJECT_NAME)
+                        // main button should be disabled
+                        cy.get('button.ff-btn.ff-btn--danger').should('be.disabled')
+                        cy.get('[data-form="instance-name"] input[type="text"]').type(INSTANCE_NAME)
 
-                // should now be enabled again
-                cy.get('[data-el="delete-project"] button.ff-btn.ff-btn--danger').click()
+                        // should now be enabled again
+                        cy.get('button.ff-btn.ff-btn--danger').click()
+                    })
+
                 cy.wait('@deleteProject')
 
                 cy.url().should('include', `/team/${team.slug}/overview`)

@@ -6,7 +6,7 @@
 const marked = require('marked')
 
 export default {
-    name: 'ProjectTypeDescriptionCell',
+    name: 'InstanceTypeDescriptionCell',
     props: ['description'],
     computed: {
         renderedDescription () {

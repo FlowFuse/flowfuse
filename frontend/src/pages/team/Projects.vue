@@ -1,29 +1,30 @@
 <template>
     <SectionTopMenu hero="Applications">
-        <template v-slot:tools>
-            <ff-button data-action="create-project-1" v-if="hasPermission('project:create')" kind="primary" size="small" to="./projects/create" data-nav="create-project"><template v-slot:icon-left><PlusSmIcon /></template>Create Application</ff-button>
-        </template>
     </SectionTopMenu>
     <div class="space-y-6">
         <ff-loading v-if="loading" message="Loading Applications..." />
-        <template v-else-if="projects.length > 0">
-            <ff-data-table data-el="projects-table" :columns="columns" :rows="projects" :show-search="true" search-placeholder="Search Applications..."
-                           :rows-selectable="true" @row-selected="openProject"/>
-        </template>
-        <template v-else-if="hasPermission('project:create') && !loading">
-            <div class="flex justify-center mb-4 p-8">
-                <ff-button data-action="create-project-2" to="./projects/create">
-                    <template v-slot:icon-right>
-                        <PlusSmIcon />
-                    </template>
-                    Create Application
-                </ff-button>
-            </div>
-        </template>
         <template v-else>
-            <div class="flex text-gray-500 justify-center italic mb-4 p-8">
-                You don't have any applications yet
-            </div>
+            <ff-data-table data-el="projects-table" :columns="columns" :rows="projects" :show-search="true" search-placeholder="Search Applications..."
+                           :rows-selectable="true" @row-selected="openProject"
+            >
+                <template #actions>
+                    <ff-button data-action="create-project-1"
+                               v-if="hasPermission('project:create')"
+                               kind="primary"
+                               to="./projects/create" data-nav="create-project">
+                        <template v-slot:icon-left>
+                            <PlusSmIcon />
+                        </template>
+                        Create Application
+                    </ff-button>
+                </template>
+                <template v-if="projects.length == 0" #table>
+                    <div class="ff-no-data ff-no-data-large">
+                        You don't have any applications yet
+                    </div>
+                </template>
+
+            </ff-data-table>
         </template>
     </div>
     <router-view></router-view>

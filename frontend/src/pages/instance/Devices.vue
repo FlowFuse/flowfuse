@@ -1,5 +1,5 @@
 <template>
-    <SectionTopMenu hero="Devices" help-header="FlowForge - Devices" info="A list of all edge devices registered in your team. Assign them to application instances in order to deploy Node-RED remotely.">
+    <SectionTopMenu hero="Devices" help-header="FlowForge - Devices" info="A list of all edge devices registered to this instance.">
         <template #helptext>
             <p>FlowForge can be used to manage instances of Node-RED running on remote devices.</p>
             <p>Each device must run the <a href="https://flowforge.com/docs/user/devices/" target="_blank">FlowForge Device Agent</a>, which connects back to the platform to receive updates.</p>
@@ -7,35 +7,39 @@
             <p>Flows can then be deployed remotely to the devices as an Instance Snapshot.</p>
         </template>
     </SectionTopMenu>
-
     <DevicesBrowser
         :team="team"
         :teamMembership="teamMembership"
+        :instance="instance"
+        @instance-updated="$emit('instance-updated', ...arguments)"
     />
 </template>
 
 <script>
-import DevicesBrowser from '../../../components/DevicesBrowser'
+import { mapState } from 'vuex'
 
-import SectionTopMenu from '@/components/SectionTopMenu'
+import DevicesBrowser from '../../components/DevicesBrowser.vue'
+import SectionTopMenu from '../../components/SectionTopMenu.vue'
+
 import permissionsMixin from '@/mixins/Permissions'
 
 export default {
-    name: 'TeamDevices',
+    name: 'InstanceRemoteInstances',
     components: {
-        SectionTopMenu,
-        DevicesBrowser
+        DevicesBrowser,
+        SectionTopMenu
     },
     mixins: [permissionsMixin],
+    inheritAttrs: false,
     props: {
-        team: {
-            type: Object,
-            required: true
-        },
-        teamMembership: {
-            type: Object,
-            required: true
+        instance: {
+            required: true,
+            type: Object
         }
+    },
+    emits: ['instance-updated'],
+    computed: {
+        ...mapState('account', ['team', 'teamMembership'])
     }
 }
 </script>

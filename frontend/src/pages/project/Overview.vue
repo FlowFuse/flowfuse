@@ -1,13 +1,19 @@
 <template>
     <div>
-        <SectionTopMenu hero="FlowForge Hosted Instances" help-header="FlowForge - Instances - Local" info="Instances of Node-RED running in the FlowForge cloud">
+        <SectionTopMenu hero="Node-RED Instances" help-header="Node-RED Instances - Running in FlowForge" info="Instances of Node-RED, in this application, that are running in the FlowForge cloud.">
             <template #pictogram>
                 <img src="../../images/pictograms/edge_red.png">
             </template>
             <template #helptext>
                 <p>This is a list of all instances of this Application hosted on the same domain as FlowForge.</p>
                 <p>It will always run the latest flow deployed in Node-RED and use the latest credentials and runtime settings defined in the Projects settings.</p>
-                <p>To edit an Applications flow, open the editor of the Instance.</p>
+                <p>To edit an Application's flow, open the editor of the Instance.</p>
+            </template>
+            <template #tools>
+                <ff-button @click="addInstance()">
+                    <template v-slot:icon-left><PlusSmIcon /></template>
+                    Add Instance
+                </ff-button>
             </template>
         </SectionTopMenu>
 
@@ -51,45 +57,17 @@
                 </template>
             </ff-data-table>
         </div>
-
-        <SectionTopMenu hero="Remote Instances" help-header="FlowForge - Instances - Remote" info="Devices running the FlowForge Device Agent assigned to instances in this Application">
-            <template #pictogram>
-                <img src="../../images/pictograms/edge_red.png">
-            </template>
-            <template #helptext>
-                <p>
-                    FlowForge enables the deployment and management of remote instances of Node-RED via "Devices".
-                </p>
-                <p>
-                    Here you will see all Devices attached to instances of this application.
-                    When you set a new Target Snapshot, that will get deployed,
-                    using the <a href="https://flowforge.com/docs/user/devices/" target="_blank">FlowForge Device Agent</a>, out to all connected devices.
-                </p>
-                <p>
-                    Here, you can see a picture of the last time the device was online, and the status of the Node-RED
-                    flows on those devices at that point in time.
-                </p>
-            </template>
-        </SectionTopMenu>
-
-        <DevicesBrowser
-            :application="project"
-            :team="team"
-            :teamMembership="teamMembership"
-            @project-updated="$emit('projectUpdated', ...arguments)"
-        />
     </div>
 </template>
 
 <script>
-
 import { Roles } from '@core/lib/roles'
-import { PlusSmIcon } from '@heroicons/vue/solid'
 
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import DevicesBrowser from '../../components/DevicesBrowser'
+import { PlusSmIcon } from '@heroicons/vue/outline'
+
 import SectionTopMenu from '../../components/SectionTopMenu'
 
 import ProjectStatusBadge from './components/ProjectStatusBadge'
@@ -99,11 +77,11 @@ import LastSeen from './components/cells/LastSeen.vue'
 import ProjectEditorLink from './components/cells/ProjectEditorLink.vue'
 
 import permissionsMixin from '@/mixins/Permissions'
+import Dialog from '@/services/dialog'
 
 export default {
     name: 'ProjectOverview',
     components: {
-        DevicesBrowser,
         PlusSmIcon,
         SectionTopMenu
     },
@@ -115,7 +93,7 @@ export default {
             required: true
         }
     },
-    emits: ['project-delete', 'project-suspend', 'project-restart', 'project-start', 'projectUpdated'],
+    emits: ['project-delete', 'project-suspend', 'project-restart', 'project-start', 'projectUpdated', 'project-enable-polling', 'project-disable-polling'],
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
         cloudColumns () {
@@ -139,6 +117,12 @@ export default {
             return this.teamMembership.role === Roles.Admin
         }
     },
+    mounted () {
+        this.$emit('project-enable-polling')
+    },
+    unmounted () {
+        this.$emit('project-disable-polling')
+    },
     methods: {
         selectedCloudRow (cloudInstance) {
             this.$router.push({
@@ -146,6 +130,13 @@ export default {
                 params: {
                     id: cloudInstance.id
                 }
+            })
+        },
+        addInstance () {
+            // placeholder before full functionality is available
+            Dialog.show({
+                header: 'Multiple Instances per Application - Coming Soon!',
+                html: `<p>We've not quite got this part ready just yet, but soon, you will be able to manage multiple instances of Node-RED within a single "Application".</p><p>This will enable <b>DevOps Pipelines, High Availability, and much more</b>. You can read more about what we have planned <a href="https://github.com/flowforge/flowforge/issues/1689" target="_blank">here.</a></p><p>For now, Applications and Instances are still mapped 1:1, so you can still add new instances of Node-RED from the <a href="/team/${this.team.slug}/projects">Applications</a> page.</p>`
             })
         }
     }

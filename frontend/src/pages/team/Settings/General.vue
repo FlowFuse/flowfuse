@@ -31,12 +31,12 @@
 
         <div class="space-x-4 whitespace-nowrap">
             <template v-if="!editing">
-                <ff-button kind="primary" size="small" @click="editName">Edit team settings</ff-button>
+                <ff-button kind="primary" @click="editName">Edit team settings</ff-button>
             </template>
             <template v-else>
                 <div class="flex gap-x-3">
-                    <ff-button kind="secondary" size="small" @click="cancelEditName">Cancel</ff-button>
-                    <ff-button kind="primary" size="small" :disabled="!formValid" @click="saveEditName">Save team settings</ff-button>
+                    <ff-button kind="secondary" @click="cancelEditName">Cancel</ff-button>
+                    <ff-button kind="primary" :disabled="!formValid" @click="saveEditName">Save team settings</ff-button>
                 </div>
             </template>
         </div>

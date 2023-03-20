@@ -2,11 +2,11 @@
 
 When running FlowForge on Docker or Kubernetes you will need to be able to setup an entry in a DNS server.
 
-This is because FlowForge uses hostname based routing to know which project you want to access.
+This is because FlowForge uses hostname based routing to know which Node-RED instance you want to access.
 
-By default the project name is used in combination with a supplied domain. In this document I will use `example.com` as the domain. (It doesn't need to be a "whole" domain, it could also be a sub domain of one you already own. e.g. `ff.example.com`).
+By default the instance name is used in combination with a supplied domain. In this document we will use `example.com` as the domain. (It doesn't need to be a "whole" domain, it could also be a sub domain of one you already own. e.g. `ff.example.com`).
 
-If you are running Docker/Kubernetes on the same machine as the DNS server and Web Browser do not use `127.0.0.1` as the IP address to point the wild card domain at. This is because the host names will be looked up by the Web Browser, the Forge Application, and the Project Node-RED instances. The last 2 are running in containers and `127.0.0.1` will resolve to the container, not the entry point. 
+If you are running Docker/Kubernetes on the same machine as the DNS server and Web Browser do not use `127.0.0.1` as the IP address to point the wild card domain at. This is because the host names will be looked up by the Web Browser, the Forge Application, and the Node-RED instances. The last 2 are running in containers and `127.0.0.1` will resolve to the container, not the entry point. 
 
 ## Production
 

@@ -1,18 +1,23 @@
 <template>
-    <ff-loading v-if="loading.deleting" message="Deleting Project..." />
-    <ff-loading v-if="loading.suspend" message="Suspending Project..." />
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigationTeamOptions>
             <template v-slot:nested-menu>
-                <div class="ff-nested-title">{{ project.name }}</div>
+                <div class="ff-nested-title">{{ project.name ?? 'Application' }}</div>
                 <router-link v-for="route in navigation" :key="route.label" :to="route.path">
                     <nav-item :icon="route.icon" :label="route.label" :data-nav="route.tag"></nav-item>
                 </router-link>
             </template>
         </SideNavigationTeamOptions>
     </Teleport>
-    <main>
-        <ConfirmProjectDeleteDialog @confirm="deleteProject" ref="confirmProjectDeleteDialog"/>
+
+    <ff-loading v-if="loading.deleting" message="Deleting Application..." />
+    <ff-loading v-else-if="loading.suspend" message="Suspending Application..." />
+    <main v-else-if="!project?.id">
+        <ff-loading message="Loading Application..." />
+    </main>
+    <main v-else>
+        <ConfirmInstanceDeleteDialog @confirm="deleteInstance" ref="confirmInstanceDeleteDialog"/>
+        <ConfirmApplicationDeleteDialog @confirm="deleteApplication" ref="confirmApplicationDeleteDialog"/>
         <Teleport v-if="mounted" to="#platform-banner">
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">You are viewing this application as an Administrator</div>
             <SubscriptionExpiredBanner :team="team" />
@@ -21,13 +26,14 @@
         <router-view
             :project="project"
             :is-visiting-admin="isVisitingAdmin"
-            @project-overview-exit="onOverviewExit"
-            @project-overview-enter="onOverviewEnter"
+            @project-enable-polling="onEnablePolling"
+            @project-disable-polling="onDisablePolling"
             @projectUpdated="updateProject"
             @project-start="startProject"
             @project-restart="restartProject"
             @project-suspend="showConfirmSuspendDialog"
-            @project-delete="showConfirmDeleteDialog"
+            @project-delete="showConfirmDeleteInstanceDialog"
+            @application-delete="showConfirmDeleteApplicationDialog"
         />
     </main>
 </template>
@@ -35,18 +41,21 @@
 <script>
 import { Roles } from '@core/lib/roles'
 import { ChevronLeftIcon, CogIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
+
 import { mapState } from 'vuex'
 
-import ConfirmProjectDeleteDialog from './Settings/dialogs/ConfirmProjectDeleteDialog'
+import ConfirmInstanceDeleteDialog from '../instance/Settings/dialogs/ConfirmInstanceDeleteDialog'
 
+import ConfirmApplicationDeleteDialog from './Settings/dialogs/ConfirmApplicationDeleteDialog'
+
+import instanceApi from '@/api/instances'
 import projectApi from '@/api/project'
 import snapshotApi from '@/api/projectSnapshots'
 
 import NavItem from '@/components/NavItem'
+import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '@/components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '@/components/banners/TeamTrial.vue'
-
-import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vue'
 
 import ProjectsIcon from '@/components/icons/Projects'
 import permissionsMixin from '@/mixins/Permissions'
@@ -66,6 +75,15 @@ const projectTransitionStates = [
 
 export default {
     name: 'ProjectPage',
+    components: {
+        ConfirmApplicationDeleteDialog,
+        ConfirmInstanceDeleteDialog,
+        NavItem,
+        SideNavigationTeamOptions,
+        SubscriptionExpiredBanner,
+        TeamTrialBanner
+    },
+    mixins: [permissionsMixin],
     data: function () {
         return {
             mounted: false,
@@ -75,15 +93,12 @@ export default {
             project: {},
             navigation: [],
             checkInterval: null,
+            checkWaitTime: 1000,
             loading: {
                 deleting: false,
                 suspend: false
             }
         }
-    },
-    mixins: [permissionsMixin],
-    async created () {
-        await this.updateProject()
     },
     computed: {
         ...mapState('account', ['teamMembership', 'team']),
@@ -99,24 +114,26 @@ export default {
         teamMembership: 'checkAccess',
         'project.pendingStateChange': 'refreshProject'
     },
+    async created () {
+        await this.updateProject()
+    },
     mounted () {
         this.checkAccess()
         this.mounted = true
     },
     beforeUnmount () {
-        this.onOverviewExit(true)
+        this.onDisablePolling(true)
     },
     methods: {
-        async onOverviewEnter () {
+        async onEnablePolling () {
             await this.updateProject()
-            this.overviewActive = true
+            this.checkWaitTime = 1000
             if (this.project.pendingRestart && !this.projectTransitionStates.includes(this.project.state)) {
                 this.project.pendingRestart = false
             }
             this.checkAccess()
         },
-        onOverviewExit (unmounting) {
-            this.overviewActive = false
+        onDisablePolling (unmounting) {
             if (unmounting) {
                 // ensure timer and flags are cleared when navigating away from page
                 if (this.project?.pendingStateChange || this.project?.pendingRestart) {
@@ -149,12 +166,11 @@ export default {
             }
         },
         async refreshProject () {
-            if (!this.overviewActive) {
-                return // dont refresh if not on overview page
-            }
             if (this.project.pendingStateChange) {
                 clearTimeout(this.checkInterval)
                 this.checkInterval = setTimeout(async () => {
+                    this.checkWaitTime *= 1.1
+
                     if (this.project.id) {
                         const data = await projectApi.getProject(this.project.id)
                         const wasPendingRestart = this.project.pendingRestart
@@ -167,14 +183,14 @@ export default {
                         this.project.pendingStatePrevious = wasPendingStatePrevious
                         this.project.pendingStateChange = wasPendingStateChange
                     }
-                }, 1000)
+                }, this.checkWaitTime)
             }
         },
         checkAccess () {
             this.navigation = [
-                { label: 'Instances', path: `/project/${this.project.id}/instances`, tag: 'project-overview', icon: ProjectsIcon },
-                { label: 'Audit Log', path: `/project/${this.project.id}/activity`, tag: 'project-activity', icon: ViewListIcon },
+                { label: 'Node-RED Instances', path: `/project/${this.project.id}/instances`, tag: 'project-overview', icon: ProjectsIcon },
                 { label: 'Node-RED Logs', path: `/project/${this.project.id}/logs`, tag: 'project-logs', icon: TerminalIcon },
+                { label: 'Audit Log', path: `/project/${this.project.id}/activity`, tag: 'project-activity', icon: ViewListIcon },
                 { label: 'Settings', path: `/project/${this.project.id}/settings`, tag: 'project-settings', icon: CogIcon }
             ]
             if (this.mounted && this.project.meta) {
@@ -222,18 +238,35 @@ export default {
                 this.project.pendingStateChange = true
             }
         },
-        showConfirmDeleteDialog () {
-            this.$refs.confirmProjectDeleteDialog.show(this.project)
+        showConfirmDeleteInstanceDialog () {
+            this.$refs.confirmInstanceDeleteDialog.show(this.project)
         },
-        deleteProject () {
+        showConfirmDeleteApplicationDialog () {
+            this.$refs.confirmApplicationDeleteDialog.show(this.project)
+        },
+        // TODO: Currently assumes 1:1 application to instance mapping
+        deleteInstance () {
+            this.loading.deleting = true
+            instanceApi.deleteProject(this.project.id).then(async () => {
+                await this.$store.dispatch('account/refreshTeam')
+                this.$router.push({ name: 'Home' })
+                alerts.emit('Instance successfully deleted.', 'confirmation')
+            }).catch(err => {
+                console.warn(err)
+                alerts.emit('Instance failed to delete.', 'warning')
+            }).finally(() => {
+                this.loading.deleting = false
+            })
+        },
+        deleteApplication () {
             this.loading.deleting = true
             projectApi.deleteProject(this.project.id).then(async () => {
                 await this.$store.dispatch('account/refreshTeam')
                 this.$router.push({ name: 'Home' })
-                alerts.emit('Project successfully deleted.', 'confirmation')
+                alerts.emit('Application successfully deleted.', 'confirmation')
             }).catch(err => {
                 console.warn(err)
-                alerts.emit('Project failed to delete.', 'warning')
+                alerts.emit('Application failed to delete.', 'warning')
             }).finally(() => {
                 this.loading.deleting = false
             })
@@ -257,13 +290,6 @@ export default {
                 })
             })
         }
-    },
-    components: {
-        NavItem,
-        SideNavigationTeamOptions,
-        ConfirmProjectDeleteDialog,
-        SubscriptionExpiredBanner,
-        TeamTrialBanner
     }
 }
 </script>

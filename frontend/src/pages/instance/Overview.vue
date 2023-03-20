@@ -98,7 +98,6 @@ export default {
             type: Boolean
         }
     },
-    emits: ['instance-overview-exit', 'instance-overview-enter'],
     data () {
         return {
             auditLog: []
@@ -114,16 +113,12 @@ export default {
         }
     },
     watch: {
-        instance: function () {
+        'instance.id': function (old, news) {
             this.loadLogs()
         }
     },
     mounted () {
-        this.$emit('instance-overview-enter')
         this.loadLogs()
-    },
-    unmounted () {
-        this.$emit('instance-overview-exit')
     },
     methods: {
         loadLogs () {

@@ -11,9 +11,9 @@ the options available in the configuration file.
 
 Option | Description
 -------|------------
-`host` | The address to serve the web ui on. This defaults to `localhost` which means the ui will only be available when browsing from the same server that is running the platform. To make it accessible to other devices on the network, set it to `0.0.0.0`. <br>NOTE: If `host` is changed, please also update `base_url` to match e.g.  `http://[ip-address-of-host]:3000`<br>NOTE: We do not support changing the host value once you have created a project.
+`host` | The address to serve the web ui on. This defaults to `localhost` which means the ui will only be available when browsing from the same server that is running the platform. To make it accessible to other devices on the network, set it to `0.0.0.0`. <br>NOTE: If `host` is changed, please also update `base_url` to match e.g.  `http://[ip-address-of-host]:3000`<br>NOTE: We do not support changing the host value once you have created a Node-RED instance.
 `port` | The TCP port the platform serves its web ui. Default: `3000`
-`base_url` | The url to access the platform. This defaults to `http://localhost:3000` which means a number of internally generated URLs will only work when browsing on the same device as is running the platform. To be able to access the platform remotely, replace `localhost` with the ip address of the device running FlowForge. IMPORTANT: This should not be changed after starting projects as it is used by the projects to find the core platform.
+`base_url` | The url to access the platform. This defaults to `http://localhost:3000` which means a number of internally generated URLs will only work when browsing on the same device as is running the platform. To be able to access the platform remotely, replace `localhost` with the ip address of the device running FlowForge. IMPORTANT: This should not be changed after starting Node-RED instances as it is used by the instances to find the core platform.
 `support_contact` | a URL or string with contact details for the administrator e.g `mailto:support@example.com` or `https://support.example.com` . Defaults to the email address of the first admin user or `the administrator` if no email address set.
 
 ## Database configuration
@@ -39,7 +39,7 @@ Option       | Description
 `db.user`    | Username used when connecting to Postgres Server. 
 `db.password`| Password used when connecting to Postgres Server.
 
-## Project Driver configuration
+## Node-RED Driver configuration
 
 This configures how Node-RED instances are run by the platform.
 
@@ -51,7 +51,7 @@ Option        | Description
 
 Option        | Description
 --------------|------------
-`driver.options.start_port` | The port number to start assigning to projects as they are created. Default: `12080`
+`driver.options.start_port` | The port number to start assigning to Node-RED instances as they are created. Default: `12080`
 `driver.options.node_path` | The path to find the node.js executable - useful if Node.js has been installed with `nvm` so isn't necessarily on the system path.
 
 ### Docker Driver options
@@ -64,9 +64,9 @@ Option        | Description
 
 Option        | Description
 --------------|------------
-`driver.options.namespace` | The namespace to run projects in. Default: `flowforge`
+`driver.options.namespace` | The namespace to run Node-RED instances in. Default: `flowforge`
 `driver.options.cloudProvider` | Enables specific options for certain platforms e.g. `aws`. Default: not set
-`driver.options.projectSelector` | A YAML object containing node annotations to use to filter which nodes projects run on. Default: `role: projects`
+`driver.options.projectSelector` | A YAML object containing node annotations to use to filter which nodes Node-RED instances run on. Default: `role: projects`
 
 ## MQTT Broker configuration
 
@@ -138,7 +138,7 @@ broker, but some features will not be available.
 
 Option         | Description
 ---------------|--------------
-`broker.url`   | The full url to the platform broker. This is used by the platform and project launchers to connect to the broker. For example: `mqtt://localhost:1883`.
+`broker.url`   | The full url to the platform broker. This is used by the platform and Node-RED instances to connect to the broker. For example: `mqtt://localhost:1883`.
 `broker.public_url` | If set, this is the url provided to Devices to connect to the broker with. When running in a Docker or K8S environment, this url should be the externally addressable url the broker is provided on. This could be via WebSockets, for example: `ws://example.com:1884`
 
 ## Logging configuration
@@ -154,7 +154,7 @@ Setting `logging.http` to `info` will log every HTTP request and response detail
 
 ## File storage
 
-FlowForge includes a service that can be used by projects to read and write files
+FlowForge includes a service that can be used by Node-RED instances to read and write files
 in their flows as well as providing persistent storage for flow context information.
 
 Details of configuring the File Storage service are available [here](./file-storage/README.md).

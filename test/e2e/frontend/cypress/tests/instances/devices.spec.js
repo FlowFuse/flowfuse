@@ -1,4 +1,4 @@
-describe('FlowForge - Project - Overview', () => {
+describe('FlowForge - Instance - Devices', () => {
     function navigateToProject (teamName, projectName) {
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {
@@ -11,7 +11,7 @@ describe('FlowForge - Project - Overview', () => {
                 const project = response.body.projects.find(
                     (project) => project.name === projectName
                 )
-                cy.visit(`/instance/${project.id}/remote-instances`)
+                cy.visit(`/instance/${project.id}/devices`)
                 cy.wait('@getInstanceRemoteInstances')
             })
     }

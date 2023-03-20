@@ -1,67 +1,70 @@
 <template>
-    <ff-loading v-if="loading.deleting" message="Deleting Instance..." />
-    <ff-loading v-if="loading.suspend" message="Suspending Instance..." />
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigationTeamOptions>
             <template #nested-menu>
-                <!-- TODO Read instance.application or pass in application details -->
+                <!-- TODO Read instance.application or pass in application details as a prop -->
                 <router-link :to="{name: 'Project', id: instance.id}">
                     <nav-item :icon="icons.chevronLeft" label="Back to Application" data-nav="project-overview" />
                 </router-link>
 
-                <li class="ff-navigation-divider">{{ instance.name }}</li>
+                <li class="ff-navigation-divider">{{ instance.name ?? 'Instance' }}</li>
                 <router-link v-for="route in navigation" :key="route.label" :to="route.path">
                     <nav-item :icon="route.icon" :label="route.label" :data-nav="route.tag" />
                 </router-link>
             </template>
         </SideNavigationTeamOptions>
     </Teleport>
-    <main v-if="!instance?.id">
+    <ff-loading v-if="loading.deleting" message="Deleting Instance..." />
+    <ff-loading v-else-if="loading.suspend" message="Suspending Instance..." />
+    <main v-else-if="!instance?.id">
         <ff-loading message="Loading Instance..." />
     </main>
-    <main v-else data-el="instances-section">
-        <SectionTopMenu>
-            <template #hero>
-                <div class="flex-grow space-x-6 items-center inline-flex" data-el="instance-name">
-                    <div class="text-gray-800 text-xl font-bold">
-                        {{ instance.name }}
+    <main v-else data-el="instances-section" class="ff-with-status-header">
+        <div class="ff-instance-header">
+            <InstanceStatusHeader>
+                <template #hero>
+                    <div class="flex-grow space-x-6 items-center inline-flex" data-el="instance-name">
+                        <div class="text-gray-800 text-xl font-bold">
+                            {{ instance.name }}
+                        </div>
+                        <InstanceStatusBadge v-if="instance.meta" :status="instance.meta.state" :pendingStateChange="instance.pendingStateChange" />
                     </div>
-                    <InstanceStatusBadge v-if="instance.meta" :status="instance.meta.state" :pendingStateChange="instance.pendingStateChange" />
-                </div>
-            </template>
-            <template #tools>
-                <div class="space-x-2 flex">
-                    <div v-if="editorAvailable">
-                        <a v-if="!isVisitingAdmin" :href="instance.url" target="_blank" class="ff-btn ff-btn--secondary" data-action="open-editor">
-                            Open Editor
-                            <span class="ff-btn--icon ff-btn--icon-right">
-                                <ExternalLinkIcon />
-                            </span>
-                        </a>
-                        <button v-else title="Unable to open editor when visiting as an admin" class="ff-btn ff-btn--secondary" disabled>
-                            Open Editor
-                            <span class="ff-btn--icon ff-btn--icon-right">
-                                <ExternalLinkIcon />
-                            </span>
-                        </button>
+                </template>
+                <template #tools>
+                    <div class="space-x-2 flex align-center">
+                        <div v-if="editorAvailable">
+                            <a v-if="!isVisitingAdmin" :href="instance.url" target="_blank" class="ff-btn ff-btn--secondary" data-action="open-editor">
+                                Open Editor
+                                <span class="ff-btn--icon ff-btn--icon-right">
+                                    <ExternalLinkIcon />
+                                </span>
+                            </a>
+                            <button v-else title="Unable to open editor when visiting as an admin" class="ff-btn ff-btn--secondary" disabled>
+                                Open Editor
+                                <span class="ff-btn--icon ff-btn--icon-right">
+                                    <ExternalLinkIcon />
+                                </span>
+                            </button>
+                        </div>
+                        <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
                     </div>
-                    <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
-                </div>
-            </template>
-        </SectionTopMenu>
+                </template>
+            </InstanceStatusHeader>
+        </div>
         <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="deleteInstance" />
         <Teleport v-if="mounted" to="#platform-banner">
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">You are viewing this instance as an Administrator</div>
             <SubscriptionExpiredBanner :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
         </Teleport>
-        <router-view
-            :instance="instance"
-            :is-visiting-admin="isVisitingAdmin"
-            @instance-overview-exit="onOverviewExit"
-            @instance-overview-enter="onOverviewEnter"
-            @instance-updated="updateInstance"
-        />
+        <div class="px-3 py-3 md:px-6 md:py-6">
+            <router-view
+                :instance="instance"
+                :is-visiting-admin="isVisitingAdmin"
+                @instance-updated="updateInstance"
+                @instance-confirm-delete="showConfirmDeleteDialog"
+            />
+        </div>
     </main>
 </template>
 
@@ -79,8 +82,8 @@ import InstanceApi from '@/api/instances'
 import SnapshotApi from '@/api/projectSnapshots'
 
 import DropdownMenu from '@/components/DropdownMenu'
+import InstanceStatusHeader from '@/components/InstanceStatusHeader'
 import NavItem from '@/components/NavItem'
-import SectionTopMenu from '@/components/SectionTopMenu'
 import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '@/components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '@/components/banners/TeamTrial.vue'
@@ -108,7 +111,7 @@ export default {
         ExternalLinkIcon,
         NavItem,
         InstanceStatusBadge,
-        SectionTopMenu,
+        InstanceStatusHeader,
         SideNavigationTeamOptions,
         SubscriptionExpiredBanner,
         TeamTrialBanner
@@ -123,6 +126,7 @@ export default {
             instance: {},
             navigation: [],
             checkInterval: null,
+            checkWaitTime: 1000,
             loading: {
                 deleting: false,
                 suspend: false
@@ -171,33 +175,37 @@ export default {
     },
     async created () {
         await this.updateInstance()
+
+        this.$watch(
+            () => this.$route.params.id,
+            async () => {
+                await this.updateInstance()
+            }
+        )
     },
     mounted () {
-        this.checkAccess()
         this.mounted = true
+
+        this.startPolling()
     },
     beforeUnmount () {
-        this.onOverviewExit(true)
+        this.stopPolling()
     },
     methods: {
-        async onOverviewEnter () {
-            await this.updateInstance()
-            this.overviewActive = true
+        startPolling () {
+            this.checkWaitTime = 1000
             if (this.instance.pendingRestart && !this.instanceTransitionStates.includes(this.instance.state)) {
                 this.instance.pendingRestart = false
             }
             this.checkAccess()
         },
-        onOverviewExit (unmounting) {
-            this.overviewActive = false
-            if (unmounting) {
-                // ensure timer and flags are cleared when navigating away from page
-                if (this.instance?.pendingStateChange || this.instance?.pendingRestart) {
-                    this.instance.pendingStateChange = false
-                    this.instance.pendingRestart = false
-                }
-                clearTimeout(this.checkInterval)
+        stopPolling () {
+            // ensure timer and flags are cleared when navigating away from page
+            if (this.instance?.pendingStateChange || this.instance?.pendingRestart) {
+                this.instance.pendingStateChange = false
+                this.instance.pendingRestart = false
             }
+            clearTimeout(this.checkInterval)
         },
         async updateInstance () {
             const instanceId = this.$route.params.id
@@ -222,12 +230,11 @@ export default {
             }
         },
         async refreshInstance () {
-            if (!this.overviewActive) {
-                return // dont refresh if not on overview page
-            }
             if (this.instance.pendingStateChange) {
                 clearTimeout(this.checkInterval)
                 this.checkInterval = setTimeout(async () => {
+                    this.checkWaitTime *= 1.1
+
                     if (this.instance.id) {
                         const data = await InstanceApi.getInstance(this.instance.id)
                         const wasPendingRestart = this.instance.pendingRestart
@@ -240,13 +247,13 @@ export default {
                         this.instance.pendingStatePrevious = wasPendingStatePrevious
                         this.instance.pendingStateChange = wasPendingStateChange
                     }
-                }, 1000)
+                }, this.checkWaitTime)
             }
         },
         checkAccess () {
             this.navigation = [
                 { label: 'Overview', path: `/instance/${this.instance.id}/overview`, tag: 'instance-overview', icon: TemplateIcon },
-                { label: 'Remote Instances', path: `/instance/${this.instance.id}/remote-instances`, tag: 'instance-remote', icon: ChipIcon },
+                { label: 'Devices', path: `/instance/${this.instance.id}/devices`, tag: 'instance-remote', icon: ChipIcon },
                 { label: 'Snapshots', path: `/instance/${this.instance.id}/snapshots`, tag: 'instance-snapshots', icon: ClockIcon },
                 { label: 'Audit Log', path: `/instance/${this.instance.id}/audit-log`, tag: 'instance-activity', icon: ViewListIcon },
                 { label: 'Node-RED Logs', path: `/instance/${this.instance.id}/logs`, tag: 'instance-logs', icon: TerminalIcon },

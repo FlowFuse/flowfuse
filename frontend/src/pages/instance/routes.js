@@ -5,7 +5,7 @@
 import InstanceAuditLog from './AuditLog.vue'
 import InstanceLogs from './Logs.vue'
 import InstanceOverview from './Overview.vue'
-import InstanceRemoteInstances from './RemoteInstances.vue'
+import InstanceRemoteInstances from './Devices.vue'
 import InstanceSettings from './Settings/index.vue'
 import InstanceSettingsRoutes from './Settings/routes'
 import InstanceSnapshots from './Snapshots/index.vue'
@@ -39,7 +39,7 @@ export default [
                 }
             },
             {
-                path: 'remote-instances',
+                path: 'devices',
                 name: 'InstanceRemoteInstances',
                 component: InstanceRemoteInstances,
                 meta: {

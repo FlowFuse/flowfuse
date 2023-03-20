@@ -29,7 +29,7 @@
             <nav-item label="Create New Team" :icon="plusIcon"
                       @click="mobileTeamSelectionOpen = false; $router.push({name: 'CreateTeam'})"></nav-item>
         </div>
-        <div class="hidden sm:flex">
+        <div class="hidden lg:flex">
             <ff-team-selection  data-action="team-selection" />
             <!-- Desktop: User Options -->
             <ff-dropdown v-if="user" class="ff-navigation ff-user-options" options-align="right" data-action="user-options" data-cy="user-options">

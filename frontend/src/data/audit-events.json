@@ -61,9 +61,9 @@
         "platform.license.inspected": "License Inspected",
         "platform.licence.inspect": "License Inspected",
         "platform.license.overage": "License Overage",
-        "platform.project-type.created": "New Project Type Created",
-        "platform.project-type.deleted": "Project Type Deleted",
-        "platform.project-type.updated": "Project Type Updated",
+        "platform.project-type.created": "New Instance Type Created",
+        "platform.project-type.deleted": "Instance Type Deleted",
+        "platform.project-type.updated": "Instance Type Updated",
         "platform.stack.created": "New Stack Created",
         "platform.stack.deleted": "Stack Deleted",
         "platform.stack.updated": "Stack Updated",
@@ -91,7 +91,8 @@
         "user.invite.delete": "User Invite Deleted",
         "user.invitations.delete-invite": "User Invite Deleted",
         "user.created-user": "User Created",
-        "user.deleted-user": "User Deleted",
+        "user.deleted": "User Deleted Account",
+        "users.deleted-user": "User Deleted",
         "users.updated-user": "User Updated",
         "users.auto-created-team": "Team Created"
     }

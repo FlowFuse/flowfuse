@@ -1,13 +1,13 @@
-# Local Project Stacks
+# Local Stacks
 
-A Project Stack defines a set of platform configuration options that will get
-applied to each project when it is created.
+A Stack defines a set of platform configuration options that will get
+applied to each Node-RED instance when it is created.
 
 For the Local deployment model, this covers two things:
 
  - `memory` - the value to apply (in MB) to the Node.js `max-old-space-size` option.
     This defines the point where Node.js will start freeing unused memory. It is
-    not a hard limit - the project's memory usage will not be capped - but this
+    not a hard limit - Node-RED's memory usage will not be capped - but this
     is useful when running on a memory constrained device such as a Raspberry Pi. Recommended minimum `256`.
  - `nodered` - the version number of Node-RED to use. This should match the value used in the steps following.
 
@@ -46,7 +46,7 @@ For a local install there are two steps required:
    Admin Settings -> Stacks section.
 
    If this new stack should be offered as a direct upgrade of an existing stack, select the 'Create new version' option from the dropdown menu
-   of the stack you want to replace. Projects that use the old stack
+   of the stack you want to replace. Node-RED instances that use the old stack
    will offer the new stack as a one-click upgrade option.
 
    Alternatively, click 'Create stack' to create an entirely new stack.
@@ -58,7 +58,7 @@ For a local install there are two steps required:
 ### Development Only
 
 If you are developing FlowForge having checked it out from GitHub then you can run 
-the following command in the project root to install a stack:
+the following command in the repository root to install a stack:
 
 ```bash
 npm run install-stack --vers=3.0.2

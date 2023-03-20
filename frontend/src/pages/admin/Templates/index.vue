@@ -1,16 +1,15 @@
 <template>
     <div class="space-y-6">
-        <FormHeading>
-            <div class="text-xl font-bold flex">Templates</div>
+        <SectionTopMenu hero="Templates">
             <template v-slot:tools>
-                <ff-button size="small" :to="{ name: 'Admin Template', params: { id: 'create' } }">
+                <ff-button :to="{ name: 'Admin Template', params: { id: 'create' } }">
                     <template v-slot:icon-right>
                         <PlusSmIcon />
                     </template>
                     Create template
                 </ff-button>
             </template>
-        </FormHeading>
+        </SectionTopMenu>
         <ff-loading v-if="loading" message="Loading Templates..." />
         <ff-data-table v-if="!loading" :columns="columns" data-el="templates"
                        :rows="templates" :show-search="true" search-placeholder="Search Templates..."
@@ -33,7 +32,7 @@ import templatesApi from '@/api/templates'
 
 import Dialog from '@/services/dialog'
 
-import FormHeading from '@/components/FormHeading'
+import SectionTopMenu from '@/components/SectionTopMenu'
 
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
@@ -114,7 +113,7 @@ export default {
         }
     },
     components: {
-        FormHeading,
+        SectionTopMenu,
         PlusSmIcon
     }
 }

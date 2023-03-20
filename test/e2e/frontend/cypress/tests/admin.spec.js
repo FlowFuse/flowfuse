@@ -92,7 +92,7 @@ describe('FlowForge platform admin users', () => {
         cy.get('[data-nav="team-devices"]').click()
         cy.wait('@getDevices')
 
-        cy.get('[data-el="devices"]').contains('team2-unassigned-device').click()
+        cy.get('[data-el="devices-browser"]').contains('team2-unassigned-device').click()
         cy.wait('@getDevice')
 
         cy.get('[data-el="banner-device-as-admin"]').should('exist')
