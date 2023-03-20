@@ -3,11 +3,10 @@
         "es2022": true,
         "commonjs": true
     },
-    "extends": [
-        "standard",
-        "plugin:import/recommended",
-        "plugin:vue/vue3-recommended"
-    ],
+    "extends": ["standard", "plugin:import/recommended"],
+    "parserOptions": {
+        "ecmaVersion": 2022
+    },
     "ignorePatterns": ["frontend/dist/", "var/"],
     "rules": {
         // Inbuilt
@@ -31,20 +30,22 @@
             }
         ],
         "import/no-unresolved": "off",
-
-        // plugin:vue
-        "vue/html-indent": ["error", 4],
-        "vue/singleline-html-element-content-newline": "off",
-        "vue/max-attributes-per-line": "off",
-        "vue/attribute-hyphenation": "off"
     },
     "overrides": [
         // Frontend runs in the browser and builds with webpack
         {
             "files": "frontend/",
+            "extends": ["plugin:vue/vue3-recommended"],
             "env": {
                 "browser": true,
                 "commonjs": false
+            },
+            "rules": {
+                // plugin:vue
+                "vue/html-indent": ["error", 4],
+                "vue/singleline-html-element-content-newline": "off",
+                "vue/max-attributes-per-line": "off",
+                "vue/attribute-hyphenation": "off"
             }
         },
 
