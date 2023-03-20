@@ -3,11 +3,28 @@
         "es2022": true,
         "commonjs": true
     },
-    "extends": ["standard", "plugin:import/recommended"],
+    "extends": [
+        "standard",
+        "plugin:import/recommended",
+        "plugin:promise/recommended",
+        "plugin:n/recommended"
+    ],
     "parserOptions": {
         "ecmaVersion": 2022
     },
     "ignorePatterns": ["frontend/dist/", "var/"],
+    "plugins": ["promise"],
+    "settings": {
+        "node": {
+            "allowModules": [
+                "flowforge-test-utils", // exists at test/node_modules/flowforge-test-utils
+                "./config",
+                "promptly",
+                "@core"
+            ],
+            "tryExtensions": [".js", ".json", ".vue"]
+        }
+    },
     "rules": {
         // Inbuilt
         "indent": ["error", 4],
@@ -30,28 +47,37 @@
             }
         ],
         "import/no-unresolved": "off",
+
+        // plugin:n
+        "n/no-missing-import": "off"
     },
     "overrides": [
         // Frontend runs in the browser and builds with webpack
         {
-            "files": "frontend/",
+            "files": "frontend/**",
             "extends": ["plugin:vue/vue3-recommended"],
             "env": {
                 "browser": true,
                 "commonjs": false
+            },
+            "parserOptions": {
+                "sourceType": "module"
             },
             "rules": {
                 // plugin:vue
                 "vue/html-indent": ["error", 4],
                 "vue/singleline-html-element-content-newline": "off",
                 "vue/max-attributes-per-line": "off",
-                "vue/attribute-hyphenation": "off"
+                "vue/attribute-hyphenation": "off",
+
+                // plugin:promise
+                "promise/always-return": "off" // common Vue.js pattern
             }
         },
 
-        // System and E2E tests run using Mocha
+        // System, unit, and E2E tests run using Mocha
         {
-            "files": ["test/system/**", "test/e2e/**"],
+            "files": ["test/**"],
             "env": {
                 "mocha": true
             }
@@ -61,46 +87,35 @@
         {
             "files": "test/e2e/**",
             "env": {
-                "cypress/globals": true,
-                "mocha": true
+                "cypress/globals": true
             },
             "extends": ["plugin:cypress/recommended"],
             "plugins": ["cypress"],
             "rules": {
+                // plugin:cypress
                 "cypress/require-data-selectors": "warn",
                 "cypress/assertion-before-screenshot": "error",
                 "cypress/no-force": "warn",
-                "cypress/no-pause": "error"
+                "cypress/no-pause": "error",
+
+                // plugin:n
+                "promise/always-return": "off",
+                "promise/catch-or-return": "off"
+            }
+        },
+
+        // Front ends tests are modules
+        {
+            "files": ["test/unit/frontend/**", "test/e2e/frontend/**"],
+            "parserOptions": {
+                "sourceType": "module"
             }
         },
 
         //////////
         // Auto-generated rule overrides for old files that fail on newly introduced rules
         //////////
-        {
-            "rules": {
-                "quotes": "off"
-            },
-            "files": ["config/postcss.config.js"]
-        },
-        {
-            "rules": {
-                "comma-dangle": "off"
-            },
-            "files": ["config/postcss.config.js"]
-        },
-        {
-            "rules": {
-                "semi": "off"
-            },
-            "files": ["config/postcss.config.js"]
-        },
-        {
-            "rules": {
-                "comma-spacing": "off"
-            },
-            "files": ["config/postcss.config.js"]
-        },
+
         {
             "rules": {
                 "cypress/require-data-selectors": "off"
