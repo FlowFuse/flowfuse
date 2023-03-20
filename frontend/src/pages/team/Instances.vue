@@ -15,7 +15,6 @@
             </ff-data-table>
         </template>
     </div>
-    <router-view></router-view>
 </template>
 
 <script>
