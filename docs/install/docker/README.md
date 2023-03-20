@@ -116,7 +116,7 @@ Then, in the `docker-compose.yml` file, edit the following lines added your doma
 - "LETSENCRYPT_HOST=forge.example.com"
 ```
 
-You will also need to update the `etc/flowforge.yml` file to change the `broker.public_url` entry from starting with `ws://` to `wss://`.
+You will also need to update the `etc/flowforge.yml` file to change `base_url` from starting with `http://` to `https://` and the `broker.public_url` entry from starting with `ws://` to `wss://`.
 
 #### Wildcard TLS Certificate
 
