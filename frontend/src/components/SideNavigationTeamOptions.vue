@@ -64,6 +64,11 @@ export default {
                 tag: 'team-projects',
                 icon: ProjectsIcon
             }, {
+                label: 'Instances',
+                to: '/instances',
+                tag: 'team-instances',
+                icon: ProjectsIcon
+            }, {
                 label: 'Devices',
                 to: '/devices',
                 tag: 'team-devices',
@@ -131,11 +136,18 @@ export default {
                     return true
                 }
             }
+            // the high-level route link to "/instances"
+            if (route.to === '/instances') {
+                // highlight it if we are currently viewing a single instance
+                if (this.$route.path.indexOf('/instance') === 0) {
+                    return true
+                }
+            }
         },
         checkFeatures () {
             if (this.features['shared-library']) {
                 // insert billing in second slot of admin
-                this.routes.general.splice(3, 0, {
+                this.routes.general.splice(4, 0, {
                     label: 'Library',
                     to: '/library',
                     tag: 'shared-library',
