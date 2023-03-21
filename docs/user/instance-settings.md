@@ -48,7 +48,11 @@ This covers a number of options to customize the Node-RED editor. This includes:
 
  - Disabling the editor entirely
  - Modifying the paths the editor and dashboard are served on
+ - Choosing which code editor to use in your Node-RED nodes
+ - Setting a custom title for the editor
+ - Choosing a light or dark theme for the editor
  - Controlling the runtime timezone
+ - Controlling the use of node modules in function nodes
 
 ## Security
 

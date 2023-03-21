@@ -1716,7 +1716,8 @@ describe('Project API', function () {
         })
     })
     describe('Project Settings', function () {
-        it('Project token can get project Settings', async function () {
+        // helper function to get settings
+        const getSettings = async () => {
             const settingsURL = `/api/v1/projects/${app.project.id}/settings`
             const response = await app.inject({
                 method: 'GET',
@@ -1725,7 +1726,11 @@ describe('Project API', function () {
                     authorization: `Bearer ${TestObjects.tokens.project}`
                 }
             })
-            const newSettings = response.json()
+            response.statusCode.should.equal(200)
+            return response.json()
+        }
+        it('Project token can get project Settings', async function () {
+            const newSettings = await getSettings()
             should(newSettings).have.property('storageURL')
             should(newSettings).have.property('forgeURL')
         })
@@ -1756,6 +1761,29 @@ describe('Project API', function () {
             })
             should(response).have.property('statusCode')
             should(response.statusCode).eqls(404)
+        })
+
+        it('Editor theme selection can be changed', async function () {
+            // GET current settings
+            const { settings: settingsBefore } = await getSettings()
+            settingsBefore.should.not.have.property('theme', 'forge-dark')
+
+            // PUT new theme value
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/projects/${TestObjects.project1.id}`,
+                payload: {
+                    settings: {
+                        theme: 'forge-dark'
+                    }
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+
+            // GET new settings & check theme value
+            const { settings: settingsAfter } = await getSettings()
+            settingsAfter.should.have.property('theme', 'forge-dark') // should now be forge-dark
         })
     })
     describe('Project import flows & credentials', function () {
