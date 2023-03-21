@@ -39,7 +39,6 @@ module.exports = {
             result.application = {
                 id: proj.Application.hashid,
                 name: proj.Application.name,
-                fred: true,
                 links: proj.Application.links
             }
         }

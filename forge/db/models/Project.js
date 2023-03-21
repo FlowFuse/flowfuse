@@ -337,14 +337,6 @@ module.exports = {
                                 model: M.ProjectType,
                                 attributes: ['hashid', 'id', 'name']
                             }
-                            //,
-                            // {
-                            //     model: M.ProjectStack
-                            // },
-                            // {
-                            //     model: M.ProjectTemplate,
-                            //     attributes: ['hashid', 'id', 'name', 'links']
-                            // }
                         ]
                     })
                 },
