@@ -1,7 +1,7 @@
 <template>
     <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" logType="project" @load-entries="loadEntries">
         <template #title>
-            <SectionTopMenu hero="Application Audit Log" info="Recorded events that have taken place in within this application." />
+            <SectionTopMenu hero="Audit Log" info="Recorded events that have taken place in within this application." />
         </template>
         <template #extraFilters>
             <FormHeading class="mt-4">Application Instance:</FormHeading>
