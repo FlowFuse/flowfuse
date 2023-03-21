@@ -136,6 +136,7 @@ describe('FlowForge - Devices', () => {
                         cy.get('.ff-dropdown').click()
 
                         // Grab name of first instance
+                        cy.get('.ff-dropdown-options').should('be.visible')
                         cy.get('.ff-dropdown-options > .ff-dropdown-option:first').invoke('text').then((text) => {
                             selectedInstance = text
                         })
