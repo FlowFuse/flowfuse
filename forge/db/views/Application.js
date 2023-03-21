@@ -14,7 +14,19 @@ module.exports = {
             return null
         }
     },
-
+    applicationSummary: function (app, application) {
+        // application could already be a vanilla object,
+        // or a database model object.
+        if (Object.hasOwn(application, 'get')) {
+            application = application.get({ plain: true })
+        }
+        const result = {
+            id: application.hashid,
+            name: application.name,
+            links: application.links
+        }
+        return result
+    },
     teamApplicationList: function (app, applications) {
         return applications.map(app => {
             return {
