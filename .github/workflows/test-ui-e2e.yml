@@ -34,3 +34,10 @@ jobs:
           config-file: config/cypress.config.js
           build: npm run build
           start: node test/e2e/frontend/test_environment.js
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: cypress-output
+          path: |
+            cypress/screenshots
+            cypress/videos
