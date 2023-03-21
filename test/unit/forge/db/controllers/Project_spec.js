@@ -23,9 +23,11 @@ describe('Project controller', function () {
                 url: ''
             })
             const env = app.db.controllers.Project.insertPlatformSpecificEnvVars(project, null)
-            should(env).be.an.Array().with.lengthOf(2)
-            env.should.containEql({ name: 'FF_PROJECT_NAME', value: 'project1', platform: true })
-            env.should.containEql({ name: 'FF_PROJECT_ID', value: project.id, platform: true })
+            should(env).be.an.Array().with.lengthOf(4)
+            env.should.containEql({ name: 'FF_PROJECT_NAME', value: 'project1', platform: true }) // deprecated in favour of FF_INSTANCE_NAME as of V1.6.0
+            env.should.containEql({ name: 'FF_PROJECT_ID', value: project.id, platform: true }) // deprecated in favour of FF_INSTANCE_ID as of V1.6.0
+            env.should.containEql({ name: 'FF_INSTANCE_NAME', value: 'project1', platform: true })
+            env.should.containEql({ name: 'FF_INSTANCE_ID', value: project.id, platform: true })
         })
         it('merges env vars', async function () {
             const project = await app.db.models.Project.create({
@@ -38,17 +40,21 @@ describe('Project controller', function () {
                 { name: 'two', value: '2' }
             ]
             const env = app.db.controllers.Project.insertPlatformSpecificEnvVars(project, dummyEnvVars)
-            should(env).be.an.Array().with.lengthOf(4)
-            env.should.containEql({ name: 'FF_PROJECT_NAME', value: 'project2', platform: true })
-            env.should.containEql({ name: 'FF_PROJECT_ID', value: project.id, platform: true })
+            should(env).be.an.Array().with.lengthOf(6)
+            env.should.containEql({ name: 'FF_PROJECT_NAME', value: 'project2', platform: true }) // deprecated in favour of FF_INSTANCE_NAME as of V1.6.0
+            env.should.containEql({ name: 'FF_PROJECT_ID', value: project.id, platform: true }) // deprecated in favour of FF_INSTANCE_ID as of V1.6.0
+            env.should.containEql({ name: 'FF_INSTANCE_NAME', value: 'project2', platform: true })
+            env.should.containEql({ name: 'FF_INSTANCE_ID', value: project.id, platform: true })
             env.should.containEql({ name: 'one', value: '1' })
             env.should.containEql({ name: 'two', value: '2' })
         })
         it('removes env vars', async function () {
             const dummyEnvVars = [
                 { name: 'FF_FUTURE_UNKNOWN_ENV_VAR', value: 'future unknown env var starting with FF_ should be removed' },
-                { name: 'FF_PROJECT_ID', value: 'a' },
-                { name: 'FF_PROJECT_NAME', value: 'b' },
+                { name: 'FF_PROJECT_ID', value: 'a' }, // deprecated in favour of FF_INSTANCE_ID as of V1.6.0
+                { name: 'FF_PROJECT_NAME', value: 'b' }, // deprecated in favour of FF_INSTANCE_NAME as of V1.6.0
+                { name: 'FF_INSTANCE_ID', value: 'a' },
+                { name: 'FF_INSTANCE_NAME', value: 'b' },
                 { name: 'FF_DEVICE_ID', value: 'c' },
                 { name: 'FF_DEVICE_NAME', value: 'd' },
                 { name: 'FF_DEVICE_TYPE', value: 'e' },
@@ -130,8 +136,10 @@ describe('Project controller', function () {
             result.env.should.have.property('one', 'project-a')
             result.env.should.have.property('two', 'b')
             result.env.should.have.property('three', 'c')
-            result.env.should.have.property('FF_PROJECT_ID', project.id)
-            result.env.should.have.property('FF_PROJECT_NAME', 'testProject')
+            result.env.should.have.property('FF_PROJECT_ID', project.id) // deprecated in favour of FF_INSTANCE_ID as of V1.6.0
+            result.env.should.have.property('FF_PROJECT_NAME', 'testProject') // deprecated in favour of FF_INSTANCE_NAME as of V1.6.0
+            result.env.should.have.property('FF_INSTANCE_ID', project.id)
+            result.env.should.have.property('FF_INSTANCE_NAME', 'testProject')
             result.env.should.not.have.property('FF_PROJECT_VAR_TEST')
             result.env.should.not.have.property('FF_DEVICE_VAR_TEST')
             result.env.should.not.have.property('FF_RANDOM_XXX_123')
