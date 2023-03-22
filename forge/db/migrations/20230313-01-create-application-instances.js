@@ -15,8 +15,9 @@ module.exports = {
             await context.sequelize.transaction(async (transaction) => {
                 // Create an Application with matching name
                 const [results, metadata] = await context.sequelize.query(
-                    'INSERT into "Applications" ("name", "TeamId", "createdAt", "updatedAt") VALUES (?,?,?,?)',
+                    'INSERT into "Applications" ("name", "TeamId", "createdAt", "updatedAt") VALUES (?,?,?,?) RETURNING id',
                     {
+                        type: context.sequelize.QueryTypes.INSERT,
                         replacements: [
                             project.name,
                             project.TeamId,
@@ -33,7 +34,7 @@ module.exports = {
                      WHERE id = ?`,
                     {
                         replacements: [
-                            metadata.lastID,
+                            results[0].id,
                             project.id
                         ],
                         transaction
