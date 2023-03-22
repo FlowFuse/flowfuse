@@ -41,7 +41,7 @@ describe('Project controller', function () {
             ]
             const env = app.db.controllers.Project.insertPlatformSpecificEnvVars(project, dummyEnvVars)
             should(env).be.an.Array().with.lengthOf(6)
-            env.should.containEql({ name: 'FF_PROJECT_NAME', value: 'project2', platform: true, deprecated: true    }) // deprecated in favour of FF_INSTANCE_NAME as of V1.6.0
+            env.should.containEql({ name: 'FF_PROJECT_NAME', value: 'project2', platform: true, deprecated: true }) // deprecated in favour of FF_INSTANCE_NAME as of V1.6.0
             env.should.containEql({ name: 'FF_PROJECT_ID', value: project.id, platform: true, deprecated: true }) // deprecated in favour of FF_INSTANCE_ID as of V1.6.0
             env.should.containEql({ name: 'FF_INSTANCE_NAME', value: 'project2', platform: true, deprecated: undefined })
             env.should.containEql({ name: 'FF_INSTANCE_ID', value: project.id, platform: true, deprecated: undefined })
