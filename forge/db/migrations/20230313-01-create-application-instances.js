@@ -27,6 +27,12 @@ module.exports = {
                         transaction
                     }
                 )
+                let applicationId = results
+                // sqlite - returns a bare number
+                // postgres - returns [{id:number}]
+                if (typeof results !== 'number') {
+                    applicationId = results[0].id
+                }
                 // Update the Project's ApplicationId
                 await context.sequelize.query(
                     `UPDATE "Projects"
@@ -34,7 +40,7 @@ module.exports = {
                      WHERE id = ?`,
                     {
                         replacements: [
-                            results[0].id,
+                            applicationId,
                             project.id
                         ],
                         transaction
