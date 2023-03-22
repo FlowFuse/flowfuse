@@ -15,8 +15,9 @@ module.exports = {
             await context.sequelize.transaction(async (transaction) => {
                 // Create an Application with matching name
                 const [results, metadata] = await context.sequelize.query(
-                    'INSERT into "Applications" ("name", "TeamId", "createdAt", "updatedAt") VALUES (?,?,?,?)',
+                    'INSERT into "Applications" ("name", "TeamId", "createdAt", "updatedAt") VALUES (?,?,?,?) RETURNING id',
                     {
+                        type: context.sequelize.QueryTypes.INSERT,
                         replacements: [
                             project.name,
                             project.TeamId,
@@ -26,14 +27,20 @@ module.exports = {
                         transaction
                     }
                 )
+                let applicationId = results
+                // sqlite - returns a bare number
+                // postgres - returns [{id:number}]
+                if (typeof results !== 'number') {
+                    applicationId = results[0].id
+                }
                 // Update the Project's ApplicationId
                 await context.sequelize.query(
                     `UPDATE "Projects"
-                     SET ApplicationId = ?
+                     SET "ApplicationId" = ?
                      WHERE id = ?`,
                     {
                         replacements: [
-                            metadata.lastID,
+                            applicationId,
                             project.id
                         ],
                         transaction
