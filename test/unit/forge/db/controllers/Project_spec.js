@@ -24,10 +24,10 @@ describe('Project controller', function () {
             })
             const env = app.db.controllers.Project.insertPlatformSpecificEnvVars(project, null)
             should(env).be.an.Array().with.lengthOf(4)
-            env.should.containEql({ name: 'FF_PROJECT_NAME', value: 'project1', platform: true }) // deprecated in favour of FF_INSTANCE_NAME as of V1.6.0
-            env.should.containEql({ name: 'FF_PROJECT_ID', value: project.id, platform: true }) // deprecated in favour of FF_INSTANCE_ID as of V1.6.0
-            env.should.containEql({ name: 'FF_INSTANCE_NAME', value: 'project1', platform: true })
-            env.should.containEql({ name: 'FF_INSTANCE_ID', value: project.id, platform: true })
+            env.should.containEql({ name: 'FF_PROJECT_NAME', value: 'project1', platform: true, deprecated: true }) // deprecated in favour of FF_INSTANCE_NAME as of V1.6.0
+            env.should.containEql({ name: 'FF_PROJECT_ID', value: project.id, platform: true, deprecated: true }) // deprecated in favour of FF_INSTANCE_ID as of V1.6.0
+            env.should.containEql({ name: 'FF_INSTANCE_NAME', value: 'project1', platform: true, deprecated: undefined })
+            env.should.containEql({ name: 'FF_INSTANCE_ID', value: project.id, platform: true, deprecated: undefined })
         })
         it('merges env vars', async function () {
             const project = await app.db.models.Project.create({
@@ -41,10 +41,10 @@ describe('Project controller', function () {
             ]
             const env = app.db.controllers.Project.insertPlatformSpecificEnvVars(project, dummyEnvVars)
             should(env).be.an.Array().with.lengthOf(6)
-            env.should.containEql({ name: 'FF_PROJECT_NAME', value: 'project2', platform: true }) // deprecated in favour of FF_INSTANCE_NAME as of V1.6.0
-            env.should.containEql({ name: 'FF_PROJECT_ID', value: project.id, platform: true }) // deprecated in favour of FF_INSTANCE_ID as of V1.6.0
-            env.should.containEql({ name: 'FF_INSTANCE_NAME', value: 'project2', platform: true })
-            env.should.containEql({ name: 'FF_INSTANCE_ID', value: project.id, platform: true })
+            env.should.containEql({ name: 'FF_PROJECT_NAME', value: 'project2', platform: true, deprecated: true    }) // deprecated in favour of FF_INSTANCE_NAME as of V1.6.0
+            env.should.containEql({ name: 'FF_PROJECT_ID', value: project.id, platform: true, deprecated: true }) // deprecated in favour of FF_INSTANCE_ID as of V1.6.0
+            env.should.containEql({ name: 'FF_INSTANCE_NAME', value: 'project2', platform: true, deprecated: undefined })
+            env.should.containEql({ name: 'FF_INSTANCE_ID', value: project.id, platform: true, deprecated: undefined })
             env.should.containEql({ name: 'one', value: '1' })
             env.should.containEql({ name: 'two', value: '2' })
         })
