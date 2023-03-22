@@ -30,7 +30,7 @@ module.exports = {
                 // Update the Project's ApplicationId
                 await context.sequelize.query(
                     `UPDATE "Projects"
-                     SET ApplicationId = ?
+                     SET "ApplicationId" = ?
                      WHERE id = ?`,
                     {
                         replacements: [
