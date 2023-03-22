@@ -356,4 +356,54 @@ describe('Application API', function () {
             result.should.have.property('error')
         })
     })
+
+    describe('List instances', async function () {
+        it('Returns application instances - empty list', async function () {
+            const sid = await login('bob', 'bbPassword')
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/applications/${TestObjects.application.hashid}/instances`,
+                cookies: { sid }
+            })
+
+            response.statusCode.should.equal(200)
+
+            const result = response.json()
+            result.should.have.property('instances')
+            result.instances.should.have.length(0)
+        })
+        it('Returns application instances - non-empty list', async function () {
+            const sid = await login('bob', 'bbPassword')
+            const project = await app.db.models.Project.create({
+                name: 'project2',
+                type: '',
+                url: ''
+            })
+            await TestObjects.application.addProject(project)
+            await TestObjects.BTeam.addProject(project)
+
+            // Create another project *not* in the Application
+            // to verify it doesn't get included in the list
+            const otherProject = await app.db.models.Project.create({
+                name: 'project3',
+                type: '',
+                url: ''
+            })
+            await TestObjects.BTeam.addProject(otherProject)
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/applications/${TestObjects.application.hashid}/instances`,
+                cookies: { sid }
+            })
+
+            response.statusCode.should.equal(200)
+
+            const result = response.json()
+            result.should.have.property('instances')
+            result.instances.should.have.length(1)
+            result.instances[0].should.have.property('id', project.id)
+        })
+    })
 })

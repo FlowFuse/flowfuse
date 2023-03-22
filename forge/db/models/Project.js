@@ -258,6 +258,10 @@ module.exports = {
                             model: M.Team,
                             include: [
                                 {
+                                    model: M.Application,
+                                    attributes: ['hashid', 'id', 'name', 'links']
+                                },
+                                {
                                     model: M.TeamMember,
                                     where: {
                                         UserId: user.id
@@ -288,6 +292,10 @@ module.exports = {
                                 attributes: ['hashid', 'id', 'name', 'slug', 'links']
                             },
                             {
+                                model: M.Application,
+                                attributes: ['hashid', 'id', 'name', 'links']
+                            },
+                            {
                                 model: M.ProjectType,
                                 attributes: ['hashid', 'id', 'name']
                             },
@@ -312,6 +320,26 @@ module.exports = {
                         ]
                     })
                 },
+                byApplication: async (applicationHashId) => {
+                    const applicationId = M.Application.decodeHashid(applicationHashId)
+                    return this.findAll({
+                        include: [
+                            {
+                                model: M.Team,
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                            },
+                            {
+                                model: M.Application,
+                                where: { id: applicationId },
+                                attributes: ['hashid', 'id', 'name', 'links']
+                            },
+                            {
+                                model: M.ProjectType,
+                                attributes: ['hashid', 'id', 'name']
+                            }
+                        ]
+                    })
+                },
                 byTeam: async (teamHashId) => {
                     const teamId = M.Team.decodeHashid(teamHashId)
                     return this.findAll({
@@ -320,6 +348,10 @@ module.exports = {
                                 model: M.Team,
                                 where: { id: teamId },
                                 attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                            },
+                            {
+                                model: M.Application,
+                                attributes: ['hashid', 'id', 'name', 'links']
                             },
                             {
                                 model: M.ProjectType,

@@ -17,13 +17,15 @@ module.exports = {
         })
     },
     teamSummary: function (app, team) {
-        const d = team.get({ plain: true })
+        if (Object.hasOwn(team, 'get')) {
+            team = team.get({ plain: true })
+        }
         const result = {
-            id: d.hashid,
-            name: d.name,
-            slug: d.slug,
-            avatar: d.avatar,
-            links: d.links
+            id: team.hashid,
+            name: team.name,
+            slug: team.slug,
+            avatar: team.avatar,
+            links: team.links
         }
         return result
     },
