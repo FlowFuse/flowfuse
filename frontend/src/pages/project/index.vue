@@ -264,7 +264,7 @@ export default {
         // TODO: Currently assumes 1:1 application to instance mapping
         deleteInstance () {
             this.loading.deleting = true
-            instanceApi.deleteProject(this.project.id).then(async () => {
+            instanceApi.deleteInstance(this.project.id).then(async () => {
                 await this.$store.dispatch('account/refreshTeam')
                 this.$router.push({ name: 'Home' })
                 alerts.emit('Instance successfully deleted.', 'confirmation')
