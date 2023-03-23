@@ -65,9 +65,11 @@ module.exports.init = function (app) {
         for (const subscription of pendingEmailSubscriptions) {
             const endingInDurationDays = Math.ceil((subscription.trialEndsAt - Date.now()) / ONE_DAY)
             const endingInDuration = endingInDurationDays + ' day' + ((endingInDurationDays !== 1) ? 's' : '')
+            const billingUrl = `${app.config.base_url}/team/${subscription.Team.slug}/billing`
             await sendTrialEmail(subscription.Team, 'TrialTeamReminder', {
                 endingInDuration,
-                billingSetup: subscription.isActive()
+                billingSetup: subscription.isActive(),
+                billingUrl
             })
             if (subscription.trialStatus === app.db.models.Subscription.TRIAL_STATUS.CREATED) {
                 subscription.trialStatus = app.db.models.Subscription.TRIAL_STATUS.WEEK_EMAIL_SENT
