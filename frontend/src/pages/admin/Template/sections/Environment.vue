@@ -65,7 +65,7 @@
                         No Environment Variables Defined
                     </td>
                 </tr>
-                <!-- Empty row to differentiate between the existing env vars, and the iput form row-->
+                <!-- Empty row to differentiate between the existing env vars, and the input form row-->
                 <tr v-if="!readOnly">
                     <td :colspan="editTemplate?4:3" class="p-4 bg-gray-50"></td>
                 </tr>
