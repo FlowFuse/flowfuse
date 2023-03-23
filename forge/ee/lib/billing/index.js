@@ -71,8 +71,21 @@ module.exports.init = async function (app) {
         return await project.getSetting(KEY_BILLING_STATE)
     }
 
+    /**
+     * Convert a user-friendly promo code to its api id, if valid.
+     * @param {string} code The user-friendly promo code 'FREEDONUTS'
+     * @returns the promoCode id (`promo_xyz`) if valid, null otherwise
+     */
+    async function getPromotionCodeId (code) {
+        const promoCodes = await stripe.promotionCodes.list({ code, active: true })
+        if (promoCodes.data?.length === 1) {
+            return promoCodes.data[0].id
+        }
+        return null
+    }
+
     return {
-        createSubscriptionSession: async (team, coupon = null, user = null) => {
+        createSubscriptionSession: async (team, promoCode = null, user = null) => {
             const billingIds = getBillingIdsForTeam(team)
 
             const sub = {
@@ -112,12 +125,15 @@ module.exports.init = async function (app) {
             }
 
             // Apply a USER provided coupon
-            if (coupon) {
-                sub.discounts = [
-                    {
-                        promotion_code: coupon
-                    }
-                ]
+            if (promoCode) {
+                const promoCodeId = await getPromotionCodeId(promoCode)
+                if (promoCodeId) {
+                    sub.discounts = [
+                        {
+                            promotion_code: promoCodeId
+                        }
+                    ]
+                }
             } else {
                 sub.allow_promotion_codes = true
             }
@@ -135,7 +151,7 @@ module.exports.init = async function (app) {
             }
 
             const session = await stripe.checkout.sessions.create(sub)
-            app.log.info(`Creating Subscription for team ${team.hashid}`)
+            app.log.info(`Creating Subscription for team ${team.hashid}` + (sub.discounts ? ` code='${promoCode}'` : ''))
             return session
         },
 
