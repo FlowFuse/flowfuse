@@ -103,7 +103,7 @@ module.exports = {
                     if (components.credentialSecret) {
                         // This code path is currently unused. It is here
                         // for a future item where a user wants to export a project
-                        // out of the plaform. They will provide their own
+                        // out of the platform. They will provide their own
                         // credentialSecret value - which we will used to re-encrypt
                         // the project credentials
                         const projectSecret = await project.getCredentialSecret()

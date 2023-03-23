@@ -34,7 +34,7 @@ This stops the instance entirely.
 
 ### Delete Instance
 
-If you're really sure you don't want the instance anymore, this allows you to delete
+If you're really sure you don't want the instance any more, this allows you to delete
 it. You cannot undo deleting an instance.
 
 ## Environment

@@ -14,7 +14,7 @@ Changes will only take effect when the Node-RED instance is restarted.
 
 The [Template](concepts.md#template) may include some predefined environment 
 variables that are automatically applied. The template may lock some of those 
-ariables to prevent an individual instance from changing them.
+variables to prevent an individual instance from changing them.
 
 Variables provided by the template cannot be deleted, however if they are editable,
 their value can be set to blank.
