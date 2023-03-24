@@ -220,6 +220,7 @@ you can use a pre-built docker image that provides everything needed.
     You will need to customise the values to match your local configuration:
      - `auth_opt_http_host` value to match the IP address of either the docker0 interface or the external IP address of the machine running the Forge platform
      - `auth_opt_http_port` if you have changed the port the Forge platform is running on
+     - `auth_plugin` should be changed to `auth_plugin /mosquitto/go-auth.so`
 
 3. Start the container with the following command
     ```bash
