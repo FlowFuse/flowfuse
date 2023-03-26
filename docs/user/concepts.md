@@ -6,10 +6,10 @@ are a few concepts the platform introduces to help organise things.
  - [Team](#team)
  - [Application](#application)
  - [Instance](#instance)
-   - [Type](#type)
+   - [Type](#instance-type)
    - [Stack](#stack)
    - [Template](#template)
-   - [Snapshot](#snapshot)
+   - [Snapshot](#instance-snapshot)
  - [Device](#device)
 
 
