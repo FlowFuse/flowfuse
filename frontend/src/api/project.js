@@ -1,3 +1,9 @@
+/**
+ * This file is deprecated
+ * New methods should only be added to ./application or ./instances
+ *
+ * All methods in this file should slowly be moved to  ./application or ./instances
+ */
 import client from './client'
 import daysSince from '@/utils/daysSince'
 import paginateUrl from '@/utils/paginateUrl'
@@ -15,10 +21,6 @@ const getProject = (projectId) => {
         res.data.flowLastUpdatedSince = daysSince(res.data.flowLastUpdatedAt)
         return res.data
     })
-}
-
-const deleteProject = async (projectId) => {
-    return client.delete(`/api/v1/projects/${projectId}`)
 }
 
 const getProjectAuditLog = async (projectId, params, cursor, limit) => {
@@ -90,7 +92,6 @@ const getProjectInstances = async (projectId, cursor, limit) => {
 export default {
     create,
     getProject,
-    deleteProject,
     getProjectLogs,
     getProjectAuditLog,
     startProject,
