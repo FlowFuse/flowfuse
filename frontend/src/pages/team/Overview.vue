@@ -7,8 +7,8 @@
                     <ff-button kind="primary" to="./projects/create" data-nav="create-project"><template v-slot:icon-left><PlusSmIcon /></template>Create Application</ff-button>
                 </template>
             </SectionTopMenu>
-            <template v-if="projectCount > 0">
-                <ProjectSummaryList :projects="projects" :team="team" />
+            <template v-if="applicationCount > 0">
+                <ProjectSummaryList :projects="applications" :team="team" />
             </template>
             <template v-else>
                 <div v-if="!showingMessage" class="flex text-gray-500 justify-center italic mb-4 p-8">
@@ -46,8 +46,8 @@ export default {
             loading: false,
             userCount: 0,
             users: null,
-            projectCount: 0,
-            projects: null,
+            applicationCount: 0,
+            applications: null,
             show: {
                 thankyou: false
             }
@@ -70,23 +70,20 @@ export default {
         fetchData: async function (newVal, oldVal) {
             this.loading = true
             if (this.team.slug) {
-                // Team Data
-                const data = await teamApi.getTeamProjects(this.team.id)
-                    .then((data) => {
-                        this.projectCount = data.count
-                        this.projects = data.projects
-                    }).catch(() => {})
+                const applicationsPromise = teamApi.getTeamApplications(this.team.id)
+                const membersPromise = await teamApi.getTeamMembers(this.team.id)
 
-                // Team Members
-                const members = await teamApi.getTeamMembers(this.team.id)
-                    .then((members) => {
-                        this.userCount = members.count
-                        this.users = members.members
-                    }).catch(() => {})
-
-                Promise.all([data, members]).finally(() => {
+                Promise.all([applicationsPromise, membersPromise]).finally(() => {
                     this.loading = false
                 })
+
+                // Applications
+                this.applicationCount = (await applicationsPromise).count
+                this.applications = (await applicationsPromise).applications
+
+                // Team Members
+                this.userCount = (await membersPromise).count
+                this.users = (await membersPromise).members
             }
         },
         // has the user navigated here directly from Stripe, having just completed payment details
