@@ -85,10 +85,10 @@ export default {
         },
         navigation () {
             return [
-                { label: 'Node-RED Instances', path: `/project/${this.application.id}/instances`, tag: 'project-overview', icon: ProjectsIcon },
-                { label: 'Node-RED Logs', path: `/project/${this.application.id}/logs`, tag: 'project-logs', icon: TerminalIcon },
-                { label: 'Audit Log', path: `/project/${this.application.id}/activity`, tag: 'project-activity', icon: ViewListIcon },
-                { label: 'Settings', path: `/project/${this.application.id}/settings`, tag: 'project-settings', icon: CogIcon }
+                { label: 'Node-RED Instances', path: `/application/${this.application.id}/instances`, tag: 'project-overview', icon: ProjectsIcon },
+                { label: 'Node-RED Logs', path: `/application/${this.application.id}/logs`, tag: 'project-logs', icon: TerminalIcon },
+                { label: 'Audit Log', path: `/application/${this.application.id}/activity`, tag: 'project-activity', icon: ViewListIcon },
+                { label: 'Settings', path: `/application/${this.application.id}/settings`, tag: 'project-settings', icon: CogIcon }
             ]
         }
     },

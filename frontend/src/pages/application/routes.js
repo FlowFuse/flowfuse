@@ -12,9 +12,9 @@ import ApplicationIndex from '@/pages/application/index.vue'
 
 export default [
     {
-        path: '/Application/:id',
+        path: '/application/:id',
         redirect: to => {
-            return `/Application/${to.params.id}/instances`
+            return `/application/${to.params.id}/instances`
         },
         name: 'Application',
         component: ApplicationIndex,

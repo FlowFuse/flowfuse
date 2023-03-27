@@ -12,10 +12,7 @@ module.exports = {
     associations: function (M) {
         this.hasMany(M.Project)
         this.hasMany(M.Project, { as: 'Instances' })
-        this.belongsTo(M.Team)
-    },
-    TeamId: {
-        allowNull: false
+        this.belongsTo(M.Team, { foreignKey: { allowNull: false } })
     },
     finders: function (M) {
         return {

@@ -104,6 +104,7 @@ module.exports = async (options = {}) => {
 
         return server
     } catch (err) {
+        console.error(err)
         server.log.error(`Failed to start: ${err.toString()}`)
         throw err
     }

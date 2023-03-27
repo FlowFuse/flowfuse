@@ -111,8 +111,14 @@ module.exports = async function (app) {
     app.post('/', {
         preHandler: [
             async (request, reply) => {
-                if (request.body && request.body.team) {
-                    request.teamMembership = await request.session.User.getTeamMembership(request.body.team)
+                request.application = await app.db.models.Application.byId(request.body.applicationId)
+                if (!request.application) {
+                    return reply.code(404).send({ code: 'not_found', error: 'application not found' })
+                }
+
+                request.teamMembership = await request.session.User.getTeamMembership(request.application.Team.id)
+                if (!request.teamMembership && !request.session.User.admin) {
+                    return reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
                 }
             },
             app.needsPermission('project:create')
@@ -120,10 +126,10 @@ module.exports = async function (app) {
         schema: {
             body: {
                 type: 'object',
-                required: ['name', 'team', 'projectType', 'stack', 'template'],
+                required: ['name', 'projectType', 'stack', 'template', 'applicationId'],
                 properties: {
                     name: { type: 'string' },
-                    team: { anyOf: [{ type: 'string' }, { type: 'number' }] },
+                    applicationId: { anyOf: [{ type: 'string' }, { type: 'number' }] },
                     projectType: { type: 'string' },
                     stack: { type: 'string' },
                     template: { type: 'string' },
@@ -138,16 +144,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const teamMembership = await request.session.User.getTeamMembership(request.body.team, true)
-        // Assume membership is enough to allow project creation.
-        // If we have roles that limit creation, that will need to be checked here.
-
-        if (!teamMembership) {
-            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
-            return
-        }
-
-        const team = teamMembership.get('Team')
+        const team = await request.teamMembership.getTeam()
 
         const projectType = await app.db.models.ProjectType.byId(request.body.projectType)
         if (!projectType) {
@@ -209,6 +206,7 @@ module.exports = async function (app) {
         try {
             project = await app.db.models.Project.create({
                 name,
+                ApplicationId: request.application.id,
                 type: '',
                 url: ''
             })

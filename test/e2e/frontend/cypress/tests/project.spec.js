@@ -115,7 +115,7 @@ describe('FlowForge - Projects', () => {
                 cy.intercept('GET', '/api/*/projects/*').as('getProject')
 
                 const project = response.body
-                cy.visit(`/project/${project.id}/settings`)
+                cy.visit(`/application/${project.id}/settings`)
                 cy.wait('@getProject')
 
                 cy.get('[data-el="delete-application-dialog"]').should('not.be.visible')

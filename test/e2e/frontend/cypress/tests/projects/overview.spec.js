@@ -11,7 +11,7 @@ describe('FlowForge - Project - Overview', () => {
                 const project = response.body.projects.find(
                     (project) => project.name === projectName
                 )
-                cy.visit(`/project/${project.id}/instances`)
+                cy.visit(`/application/${project.id}/instances`)
                 cy.wait('@getProject')
             })
     }

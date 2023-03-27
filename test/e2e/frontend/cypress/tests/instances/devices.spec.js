@@ -75,7 +75,7 @@ describe('FlowForge shows audit logs', () => {
                 const project = response.body.projects.find(
                     (project) => project.name === projectName
                 )
-                cy.visit(`/project/${project.id}/activity`)
+                cy.visit(`/application/${project.id}/activity`)
             })
     }
 

@@ -142,15 +142,15 @@ export default {
                 return
             }
 
-            this.$router.push({ name: 'Project', params: { id: this.application.id } })
             this.loading = false
+            this.$router.push({ name: 'Application', params: { id: this.application.id } })
         },
         createApplication (applicationDetails) {
             const createPayload = { ...applicationDetails, teamId: this.team.id }
             return applicationApi.createApplication(createPayload)
         },
         createProject (projectDetails, copyParts) {
-            const createPayload = { ...projectDetails, team: this.team.id, applicationId: this.application.id }
+            const createPayload = { ...projectDetails, applicationId: this.application.id }
             if (this.isCopyProject) {
                 createPayload.sourceProject = {
                     id: this.sourceProjectId,

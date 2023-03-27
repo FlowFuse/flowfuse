@@ -35,8 +35,9 @@ module.exports = async function (app) {
     app.post('/', {
         preHandler: [
             async (request, reply) => {
-                if (request.body?.teamId) {
-                    request.teamMembership = await request.session.User.getTeamMembership(request.body.teamId)
+                request.teamMembership = await request.session.User.getTeamMembership(request.body.teamId)
+                if (!request.teamMembership) {
+                    return reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
                 }
             },
             app.needsPermission('project:create') // TODO Using project level permissions
@@ -52,14 +53,9 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        // Assume membership is enough to allow application creation.
-        // If we have roles that limit creation, that will need to be checked here.
-        const teamMembership = await request.session.User.getTeamMembership(request.body.teamId, true)
-        if (!teamMembership) {
-            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
-            return
-        }
-        const team = teamMembership.get('Team')
+        const team = await request.teamMembership.getTeam()
+
+        console.log(request.teamMembership, team)
 
         const name = request.body.name?.trim()
         if (name === '') {
