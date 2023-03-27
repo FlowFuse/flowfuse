@@ -1,7 +1,7 @@
 const { KEY_HOSTNAME, KEY_SETTINGS } = require('../models/ProjectSettings')
 
 module.exports = {
-    project: async function (app, project, includeSettings = true) {
+    project: async function (app, project, { includeSettings = true } = {}) {
         const proj = project.toJSON()
         const result = {
             id: proj.id,
@@ -78,7 +78,7 @@ module.exports = {
         const result = new Array(projectList.length)
         for (let i = 0; i < projectList.length; i++) {
             const p = projectList[i]
-            const r = await app.db.views.Project.project(p, false)
+            const r = await app.db.views.Project.project(p, { includeSettings: false })
             // A limitation of how httpAdminRoot is applied to the url property
             // means we can't return the raw url from a projectList that won't
             // include the Template/Settings values with additional db lookups
