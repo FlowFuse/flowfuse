@@ -167,12 +167,12 @@ module.exports = async function (app) {
     app.get('/:teamId/applications', {
         preHandler: app.needsPermission('team:projects:list') // TODO Using project level permissions
     }, async (request, reply) => {
-        const applications = await app.db.models.Application.byTeam(request.params.teamId)
+        const includeInstances = true
+        const applications = await app.db.models.Application.byTeam(request.params.teamId, { includeInstances })
 
-        // TODO Use a view
         reply.send({
             count: applications.length,
-            applications: app.db.views.Application.teamApplicationList(applications)
+            applications: app.db.views.Application.teamApplicationList(applications, { includeInstances })
         })
     })
 

@@ -72,6 +72,17 @@ const getTeamProjectList = async (teamId) => {
     return list
 }
 
+/**
+ * Get a list of applications
+ * This function does not get project status
+ * @param {string} teamId The Team ID (hash) to get projects for
+ * @returns An array of application objects
+ */
+const getTeamApplications = async (teamId) => {
+    const result = await client.get(`/api/v1/teams/${teamId}/applications`)
+    return result.data
+}
+
 const getTeamMembers = (teamId) => {
     return client.get(`/api/v1/teams/${teamId}/members`).then(res => {
         return res.data
@@ -245,6 +256,7 @@ export default {
     deleteTeam,
     updateTeam,
     getTeams,
+    getTeamApplications,
     getTeamProjects,
     getTeamProjectList,
     getTeamMembers,

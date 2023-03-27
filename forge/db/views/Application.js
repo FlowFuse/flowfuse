@@ -9,6 +9,11 @@ module.exports = {
                 updatedAt: raw.updatedAt,
                 links: raw.links
             }
+
+            if (application.Team) {
+                filtered.team = app.db.views.Team.teamSummary(application.Team)
+            }
+
             return filtered
         } else {
             return null
@@ -20,20 +25,21 @@ module.exports = {
         if (Object.hasOwn(application, 'get')) {
             application = application.get({ plain: true })
         }
-        const result = {
+
+        return {
             id: application.hashid,
             name: application.name,
             links: application.links
         }
-        return result
     },
-    teamApplicationList: function (app, applications) {
-        return applications.map(app => {
-            return {
-                id: app.hashid,
-                name: app.name,
-                links: app.links
+    teamApplicationList: function (app, applications, { includeInstances = false } = {}) {
+        return applications.map(application => {
+            const summary = app.db.views.Application.applicationSummary(application)
+            if (includeInstances) {
+                summary.instances = application.Instances.map(app.db.views.Project.projectSummary)
             }
+
+            return summary
         })
     }
 }
