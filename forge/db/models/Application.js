@@ -13,6 +13,9 @@ module.exports = {
         this.hasMany(M.Project)
         this.belongsTo(M.Team)
     },
+    TeamId: {
+        allowNull: false
+    },
     finders: function (M) {
         return {
             static: {

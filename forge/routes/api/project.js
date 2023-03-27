@@ -213,6 +213,8 @@ module.exports = async function (app) {
                 url: ''
             })
         } catch (err) {
+            console.error(err)
+
             reply.status(400).type('application/json').send({ code: 'unexpected_error', error: err.message })
             return
         }
