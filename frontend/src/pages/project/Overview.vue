@@ -25,6 +25,12 @@
                 :rows-selectable="true"
                 @row-selected="selectedCloudRow"
             >
+                <template v-if="instances?.length === 0" #table>
+                    <div class="ff-no-data ff-no-data-large">
+                        This application does not have any instances yet.
+                    </div>
+                </template>
+
                 <template
                     v-if="hasPermission('device:edit')"
                     #context-menu
@@ -88,42 +94,50 @@ export default {
     mixins: [permissionsMixin],
     inheritAttrs: false,
     props: {
-        project: {
+        application: {
             type: Object,
+            required: true
+        },
+        instances: {
+            type: Array,
             required: true
         }
     },
-    emits: ['project-delete', 'project-suspend', 'project-restart', 'project-start', 'projectUpdated', 'project-enable-polling', 'project-disable-polling'],
+    emits: ['project-delete', 'project-suspend', 'project-restart', 'project-start', 'instances-enable-polling', 'instances-disable-polling'],
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
         cloudColumns () {
             return [
-                { label: 'Name', class: ['w-64'], component: { is: markRaw(DeploymentName), extraProps: { disabled: !this.projectRunning || this.isVisitingAdmin } } },
+                { label: 'Name', class: ['w-64'], component: { is: markRaw(DeploymentName), map: { disabled: 'editorDisabled' } } },
                 { label: 'Last Deployed', class: ['w-48'], component: { is: markRaw(LastSeen), map: { lastSeenSince: 'flowLastUpdatedSince' } } },
                 { label: 'Deployment Status', class: ['w-48'], component: { is: markRaw(ProjectStatusBadge), map: { status: 'meta.state' } } },
-                { label: '', class: ['w-20'], component: { is: markRaw(ProjectEditorLink), extraProps: { disabled: !this.projectRunning || this.isVisitingAdmin } } }
+                { label: '', class: ['w-20'], component: { is: markRaw(ProjectEditorLink), map: { disabled: 'editorDisabled' } } }
             ]
         },
         cloudRows () {
-            return this.project.id ? [this.project] : []
-        },
-        projectRunning () {
-            return this.project.meta?.state === 'running'
-        },
-        projectNotSuspended () {
-            return this.project.meta?.state !== 'suspended'
+            return this.instances.map((instance) => {
+                instance.running = instance.meta?.state === 'running'
+                instance.notSuspended = instance.meta?.state !== 'suspended'
+
+                instance.editorDisabled = !instance.running || this.isVisitingAdmin
+
+                return instance
+            })
         },
         isVisitingAdmin () {
             return this.teamMembership.role === Roles.Admin
         }
     },
     mounted () {
-        this.$emit('project-enable-polling')
+        this.$emit('instances-enable-polling')
     },
     unmounted () {
-        this.$emit('project-disable-polling')
+        this.$emit('instances-disable-polling')
     },
     methods: {
+        loadInstances () {
+
+        },
         selectedCloudRow (cloudInstance) {
             this.$router.push({
                 name: 'Instance',

@@ -7,7 +7,6 @@
             <FormHeading class="mt-4">Application Instance:</FormHeading>
             <div data-el="filter-event-types">
                 <ff-dropdown v-model="auditFilters.instance" class="w-full">
-                    <ff-dropdown-option label="Show All" :value="undefined" />
                     <ff-dropdown-option
                         v-for="instance in auditFilters.instances" :key="instance.id"
                         :label="instance.name" :value="instance.id"
@@ -25,6 +24,7 @@ import FormHeading from '../../components/FormHeading'
 import SectionTopMenu from '../../components/SectionTopMenu'
 import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser'
 
+import ApplicationApi from '@/api/application'
 import ProjectAPI from '@/api/project'
 import TeamAPI from '@/api/team'
 
@@ -37,7 +37,7 @@ export default {
     },
     inheritAttrs: false,
     props: {
-        project: {
+        application: {
             type: Object,
             required: true
         }
@@ -47,8 +47,7 @@ export default {
             logEntries: [],
             users: [],
             auditFilters: {
-                instance: null,
-                instances: []
+                instance: null
             }
         }
     },
@@ -56,11 +55,14 @@ export default {
         ...mapState('account', ['team'])
     },
     watch: {
-        project () {
+        application () {
             this.$refs.AuditLog?.loadEntries()
             this.loadInstances()
         },
-        team: 'loadUsers'
+        team: 'loadUsers',
+        instances () {
+            this.auditFilters.instance = this.instances[0]?.id
+        }
     },
     created () {
         this.loadUsers()
@@ -71,20 +73,12 @@ export default {
             this.users = (await TeamAPI.getTeamMembers(this.team.id)).members
         },
         async loadEntries (params = new URLSearchParams(), cursor = undefined) {
-            const projectId = this.project.id
-            if (projectId) {
+            const applicationId = this.application.id
+            if (applicationId) {
                 // TODO Currently this filter effectively does nothing as each application contains only one instance
-                if (this.auditFilters.instance) {
-                    params.append('instance', this.auditFilters.instance)
-                }
+                const instanceId = this.auditFilters.instance.id
 
-                this.logEntries = (await ProjectAPI.getProjectAuditLog(projectId, params, cursor, 200)).log
-            }
-        },
-        async loadInstances () {
-            const projectId = this.project.id
-            if (projectId) {
-                this.auditFilters.instances = await ProjectAPI.getProjectInstances(projectId)
+                this.logEntries = (await ProjectAPI.getProjectAuditLog(instanceId, params, cursor, 200)).log
             }
         }
     }

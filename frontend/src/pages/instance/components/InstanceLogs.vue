@@ -59,7 +59,7 @@ export default {
     methods: {
         fetchData: async function () {
             if (this.instance.id) {
-                if (this.instance.meta.state !== 'suspended') {
+                if (this.instance.meta && this.instance.meta.state !== 'suspended') {
                     await this.loadItems(this.instance.id)
                     this.loading = false
                 } else {

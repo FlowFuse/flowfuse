@@ -1,6 +1,6 @@
 <template>
     <ff-loading v-if="loading" message="Loading Activity..." />
-    <div v-if="hasNoEntries && !loading" class="ff-no-data">
+    <div v-if="hasNoEntries && !loading" class="ff-no-data ff-no-data-large">
         No Activity Found
     </div>
     <ff-accordion v-for="(entries, date, $index) in logEntriesByDate" :key="date" :label="date" :set-open="$index < 3" data-el="accordion" :disabled="disableAccordion">

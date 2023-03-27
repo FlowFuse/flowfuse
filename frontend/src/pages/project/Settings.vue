@@ -47,7 +47,7 @@ export default {
     mixins: [permissionsMixin],
     inheritAttrs: false,
     props: {
-        project: {
+        application: {
             type: Object,
             required: true
         }
@@ -57,15 +57,15 @@ export default {
         return {
             sideNavigation: [{ name: 'General', path: './settings' }],
             input: {
-                projectName: this.project.name,
-                projectId: this.project.id
+                projectName: this.application.name,
+                projectId: this.application.id
             }
         }
     },
     watch: {
         project () {
-            this.input.projectName = this.project.name
-            this.input.projectId = this.project.id
+            this.input.projectName = this.application.name
+            this.input.projectId = this.application.id
         }
     }
 }
