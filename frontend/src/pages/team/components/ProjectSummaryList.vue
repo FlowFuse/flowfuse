@@ -2,7 +2,7 @@
     <div class="grid md:grid-cols-2 gap-2">
         <template v-if="projects && projects.length > 0">
             <div class="forge-button-tertiary text-xs" v-for="project in projects" :key="project.id">
-                <router-link :to="{name: 'Project', params: {id: project.id}}" data-action="view-project" class="px-1 py-1 flex w-full">
+                <router-link :to="{name: 'Application', params: {id: project.id}}" data-action="view-project" class="px-1 py-1 flex w-full">
                     <div class="flex-grow">
                         <div class="flex items-center mt-2">
                             <TemplateIcon class="w-6 h-6 mr-4" />

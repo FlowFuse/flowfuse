@@ -29,7 +29,7 @@
                 <tr class="border-b">
                     <td class="w-1/4 font-medium">Application</td>
                     <td class="py-2">
-                        <router-link v-if="device?.project" :to="{name: 'Project', params: { id: device.project.id }}">
+                        <router-link v-if="device?.project" :to="{name: 'Application', params: { id: device.project.id }}">
                             {{ device.project?.name }}
                         </router-link>
                         <span v-else>None</span>

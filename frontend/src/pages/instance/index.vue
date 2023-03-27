@@ -3,7 +3,7 @@
         <SideNavigationTeamOptions>
             <template #nested-menu>
                 <!-- TODO Read instance.application or pass in application details as a prop -->
-                <router-link :to="{name: 'Project', id: instance.id}">
+                <router-link :to="{name: 'Application', id: instance.id}">
                     <nav-item :icon="icons.chevronLeft" label="Back to Application" data-nav="project-overview" />
                 </router-link>
 

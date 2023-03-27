@@ -1,6 +1,6 @@
 <template>
     <template v-if="id">
-        <router-link :to="{ name: 'Project', params: { id: id }}">{{ name }}</router-link>
+        <router-link :to="{ name: 'Application', params: { id: id }}">{{ name }}</router-link>
     </template>
     <template v-else><span class="italic text-gray-500">Unassigned</span></template>
 </template>
