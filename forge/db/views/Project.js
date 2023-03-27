@@ -31,10 +31,11 @@ module.exports = {
                 result.settings.palette = result.settings.palette || {}
                 result.settings.palette.modules = await app.db.controllers.StorageSettings.getProjectModules(project)
             }
+
+            const settingsHostnameRow = proj.ProjectSettings?.find((projectSettingsRow) => projectSettingsRow.key === KEY_HOSTNAME)
+            result.hostname = settingsHostnameRow?.value || ''
         }
 
-        const settingsHostnameRow = proj.ProjectSettings?.find((projectSettingsRow) => projectSettingsRow.key === KEY_HOSTNAME)
-        result.hostname = settingsHostnameRow?.value || ''
         if (proj.Application) {
             result.application = app.db.views.Application.applicationSummary(proj.Application)
         }
