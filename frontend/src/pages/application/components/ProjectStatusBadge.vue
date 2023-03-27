@@ -14,13 +14,13 @@
 </template>
 
 <script>
-import { DownloadIcon, ExclamationIcon, ExclamationCircleIcon, PlayIcon, StopIcon, DotsCircleHorizontalIcon, SupportIcon, CloudDownloadIcon, CloudUploadIcon } from '@heroicons/vue/outline'
+import { CloudDownloadIcon, CloudUploadIcon, DotsCircleHorizontalIcon, DownloadIcon, ExclamationCircleIcon, ExclamationIcon, PlayIcon, StopIcon, SupportIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'ProjectStatusBadge',
-    props: ['status', 'pendingStateChange'],
     components: {
         DownloadIcon, ExclamationIcon, ExclamationCircleIcon, PlayIcon, StopIcon, DotsCircleHorizontalIcon, SupportIcon, CloudDownloadIcon, CloudUploadIcon
-    }
+    },
+    props: ['status', 'pendingStateChange']
 }
 </script>

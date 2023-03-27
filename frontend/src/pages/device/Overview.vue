@@ -97,7 +97,7 @@ import elapsedTime from '@/utils/elapsedTime'
 
 // components
 import FormHeading from '@/components/FormHeading'
-import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
+import ProjectStatusBadge from '@/pages/application/components/ProjectStatusBadge'
 
 // icons
 import { CheckCircleIcon, ExclamationIcon, TemplateIcon, WifiIcon } from '@heroicons/vue/outline'

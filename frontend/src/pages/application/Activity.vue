@@ -24,7 +24,6 @@ import FormHeading from '../../components/FormHeading'
 import SectionTopMenu from '../../components/SectionTopMenu'
 import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser'
 
-import ApplicationApi from '@/api/application'
 import ProjectAPI from '@/api/project'
 import TeamAPI from '@/api/team'
 

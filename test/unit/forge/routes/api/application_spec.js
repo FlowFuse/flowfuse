@@ -1,6 +1,7 @@
 const should = require('should') // eslint-disable-line
-const FF_UTIL = require('flowforge-test-utils')
 const setup = require('../setup')
+
+const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 
 describe('Application API', function () {

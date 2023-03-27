@@ -11,7 +11,7 @@
             </template>
             <template #tools>
                 <ff-button @click="addInstance()">
-                    <template v-slot:icon-left><PlusSmIcon /></template>
+                    <template #icon-left><PlusSmIcon /></template>
                     Add Instance
                 </ff-button>
             </template>
@@ -69,10 +69,9 @@
 <script>
 import { Roles } from '@core/lib/roles'
 
+import { PlusSmIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
-
-import { PlusSmIcon } from '@heroicons/vue/outline'
 
 import SectionTopMenu from '../../components/SectionTopMenu'
 

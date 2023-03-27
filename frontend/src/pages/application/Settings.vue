@@ -1,5 +1,5 @@
 <template>
-    <SectionTopMenu hero="Application Settings" info="Live logs from your FlowForge instances of Node-RED"></SectionTopMenu>
+    <SectionTopMenu hero="Application Settings" info="Live logs from your FlowForge instances of Node-RED" />
     <div class="flex flex-col sm:flex-row mt-3 ml-6">
         <SectionSideMenu :options="sideNavigation" />
         <div class="space-y-6">
@@ -32,8 +32,8 @@
 <script>
 import FormHeading from '@/components/FormHeading'
 import FormRow from '@/components/FormRow'
-import SectionTopMenu from '@/components/SectionTopMenu'
 import SectionSideMenu from '@/components/SectionSideMenu'
+import SectionTopMenu from '@/components/SectionTopMenu'
 import permissionsMixin from '@/mixins/Permissions'
 
 export default {

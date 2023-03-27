@@ -39,7 +39,7 @@ import teamApi from '@/api/team'
 import SectionTopMenu from '@/components/SectionTopMenu'
 import permissionsMixin from '@/mixins/Permissions'
 
-// import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
+// import ProjectStatusBadge from '@/pages/application/components/ProjectStatusBadge'
 
 export default {
     name: 'TeamProjects',

@@ -35,7 +35,7 @@
 </template>
 
 <script>
-import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
+import ProjectStatusBadge from '@/pages/application/components/ProjectStatusBadge'
 import { PlusSmIcon, ChevronRightIcon, TemplateIcon } from '@heroicons/vue/outline'
 
 export default {

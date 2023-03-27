@@ -1,12 +1,12 @@
 <template>
     <div class="space-y-4 my-3">
-        <FormRow type="file" accept=".json" ref="flows" v-model="localData.flows" :error="errors.flows">
+        <FormRow ref="flows" v-model="localData.flows" type="file" accept=".json" :error="errors.flows">
             Flow File
         </FormRow>
-        <FormRow type="file" accept=".json" ref="creds" v-model="localData.creds" :errors="errors.creds">
+        <FormRow ref="creds" v-model="localData.creds" type="file" accept=".json" :errors="errors.creds">
             Credentials File
         </FormRow>
-        <FormRow :disabled="withCreds" type="text" v-model="localData.secret">
+        <FormRow v-model="localData.secret" :disabled="withCreds" type="text">
             Credentials Secret
         </FormRow>
     </div>
@@ -36,11 +36,18 @@ export default {
             }
         }
     },
-    mounted () {
-        this.disableCredsSecret = true
-        this.localData.flows = null
-        this.localData.creds = null
-        this.localData.secret = ''
+    computed: {
+        parts: {
+            get () {
+                return this.modelValue
+            },
+            set (localValue) {
+                this.$emit('update:modelValue', localValue)
+            }
+        },
+        withCreds () {
+            return this.disableCredsSecret
+        }
     },
     watch: {
         localData: {
@@ -57,6 +64,12 @@ export default {
                 this.parts.credsSecret = value.secret
             }
         }
+    },
+    mounted () {
+        this.disableCredsSecret = true
+        this.localData.flows = null
+        this.localData.creds = null
+        this.localData.secret = ''
     },
     methods: {
         getFlowFile (file) {
@@ -113,19 +126,6 @@ export default {
             }
             this.localData.creds = undefined
             this.localData.secret = ''
-        }
-    },
-    computed: {
-        parts: {
-            get () {
-                return this.modelValue
-            },
-            set (localValue) {
-                this.$emit('update:modelValue', localValue)
-            }
-        },
-        withCreds () {
-            return this.disableCredsSecret
         }
     }
 }
