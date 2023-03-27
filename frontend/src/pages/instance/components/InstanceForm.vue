@@ -1,10 +1,10 @@
 <template>
     <form
         class="space-y-6"
-        @submit.prevent="$emit('on-submit', input)"
+        @submit.prevent="$emit('on-submit', input, copyParts)"
     >
         <SectionTopMenu
-            :hero="creatingNew ? 'Create a new Application' : 'Update Instance'"
+            :hero="creatingNew ? 'Create a new Application & Instance' : 'Update Instance'"
         />
 
         <!-- Form title -->
@@ -20,6 +20,33 @@
         </div>
 
         <!-- Application Name -->
+        <div v-if="creatingNew">
+            <FormRow
+                v-model="input.applicationName"
+                :error="errors.applicationName || submitErrors?.applicationName"
+                :disabled="!creatingNew || applicationFieldsLocked"
+                data-form="application-name"
+            >
+                <template #default>
+                    Application Name
+                </template>
+                <template
+                    v-if="creatingNew && !applicationFieldsLocked"
+                    #append
+                >
+                    <ff-button
+                        kind="secondary"
+                        @click="refreshApplicationName"
+                    >
+                        <template #icon>
+                            <RefreshIcon />
+                        </template>
+                    </ff-button>
+                </template>
+            </FormRow>
+        </div>
+
+        <!-- Instance Name -->
         <div>
             <FormRow
                 v-model="input.name"
@@ -28,14 +55,13 @@
                 data-form="project-name"
             >
                 <template #default>
-                    Application Name
+                    Instance Domain
                 </template>
                 <template
                     v-if="creatingNew"
                     #description
                 >
-                    This will be shared by the application and it's first instance<br>
-                    Please note, currently, names cannot be changed once created
+                    Please note, currently, domains cannot be changed once created
                 </template>
                 <template
                     v-if="creatingNew"
@@ -243,6 +269,10 @@ export default {
         submitErrors: {
             default: null,
             type: Object
+        },
+        applicationFieldsLocked: {
+            default: false,
+            type: Boolean
         }
     },
     emits: ['on-submit'],
@@ -256,6 +286,8 @@ export default {
             subscription: null,
             input: {
                 billingConfirmation: false,
+
+                applicationName: NameGenerator(),
 
                 // Only read name from existing project, never source
                 name: this.instance?.name || NameGenerator(),
@@ -427,6 +459,9 @@ export default {
     methods: {
         refreshName () {
             this.input.name = NameGenerator()
+        },
+        refreshApplicationName () {
+            this.input.applicationName = NameGenerator()
         },
         findStackById (stackId) {
             return this.stacks.find(stack => stack.id === stackId)

@@ -13,7 +13,7 @@ import TeamSettingsDanger from '@/pages/team/Settings/Danger.vue'
 import TeamSettingsDevices from '@/pages/team/Settings/Devices.vue'
 // import TeamSettingsPermissions from '@/pages/team/Settings/Permissions.vue'
 import CreateTeam from '@/pages/team/create.vue'
-import CreateProject from '@/pages/team/createProject.vue'
+import CreateApplication from '@/pages/team/createApplication'
 
 // EE Only
 import TeamBilling from '@/pages/team/Billing.vue'
@@ -116,12 +116,12 @@ export default [
     {
         path: '/team/:team_slug/projects/create',
         name: 'CreateTeamProject',
-        component: CreateProject,
+        component: CreateApplication,
         props: route => ({
             sourceProjectId: route.query.sourceProject
         }),
         meta: {
-            title: 'Team - Create Project'
+            title: 'Team - Create Application'
         }
     }
 ]
