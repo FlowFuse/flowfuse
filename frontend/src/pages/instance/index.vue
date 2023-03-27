@@ -308,10 +308,11 @@ export default {
             this.$refs.confirmInstanceDeleteDialog.show(this.instance)
         },
         deleteInstance () {
+            const applicationId = this.instance.application.id
             this.loading.deleting = true
             InstanceApi.deleteInstance(this.instance.id).then(async () => {
                 await this.$store.dispatch('account/refreshTeam')
-                this.$router.push({ name: 'Home' })
+                this.$router.push({ name: 'Application', params: { id: applicationId }})
                 alerts.emit('Instance successfully deleted.', 'confirmation')
             }).catch(err => {
                 console.warn(err)

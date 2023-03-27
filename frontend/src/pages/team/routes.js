@@ -43,11 +43,11 @@ export default [
         children: [
             { path: 'overview', component: TeamOverview },
             {
-                path: 'projects',
-                name: 'Projects',
+                path: 'applications',
+                name: 'Applications',
                 component: TeamApplications,
                 meta: {
-                    title: 'Team - Projects'
+                    title: 'Team - Applications'
                 }
             },
             {
@@ -114,8 +114,8 @@ export default [
         ]
     },
     {
-        path: '/team/:team_slug/projects/create',
-        name: 'CreateTeamProject',
+        path: '/team/:team_slug/application/create',
+        name: 'CreateTeamApplication',
         component: CreateApplication,
         props: route => ({
             sourceProjectId: route.query.sourceProject

@@ -60,8 +60,8 @@ export default {
                 icon: TemplateIcon
             }, {
                 label: 'Applications',
-                to: '/projects',
-                tag: 'team-projects',
+                to: '/applications',
+                tag: 'team-applications',
                 icon: ProjectsIcon
             }, {
                 label: 'Devices',

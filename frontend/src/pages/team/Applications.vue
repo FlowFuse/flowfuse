@@ -75,11 +75,11 @@ export default {
             }
             this.loading = false
         },
-        openApplication (project) {
+        openApplication (application) {
             this.$router.push({
-                name: 'Project',
+                name: 'Application',
                 params: {
-                    id: project.id
+                    id: application.id
                 }
             })
         }

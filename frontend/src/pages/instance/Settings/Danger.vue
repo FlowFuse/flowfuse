@@ -188,7 +188,7 @@ export default {
         },
         showDuplicateProjectDialog () {
             this.$router.push({
-                name: 'CreateTeamProject',
+                name: 'CreateTeamApplication',
                 params: { team_slug: this.team.slug },
                 query: { sourceProject: this.project.id }
             })
@@ -221,19 +221,6 @@ export default {
                 alerts.emit('Failed to import flows.', 'warning')
             }).finally(() => {
                 this.loading.importing = false
-            })
-        },
-        deleteProject () {
-            this.loading.deleting = true
-            InstanceApi.deleteInstance(this.project.id).then(async () => {
-                await this.$store.dispatch('account/refreshTeam')
-                this.$router.push({ name: 'Home' })
-                alerts.emit('Instance successfully deleted.', 'confirmation')
-            }).catch(err => {
-                console.warn(err)
-                alerts.emit('Instance failed to delete.', 'warning')
-            }).finally(() => {
-                this.loading.deleting = false
             })
         },
         changeStack (selectedStack) {

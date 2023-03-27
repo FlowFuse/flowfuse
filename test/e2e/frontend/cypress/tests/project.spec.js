@@ -52,7 +52,7 @@ describe('FlowForge - Projects', () => {
 
         cy.visit('/')
 
-        cy.get('[data-nav="team-projects"]')
+        cy.get('[data-nav="team-applications"]')
 
         cy.wait('@getTeamProjects')
 
