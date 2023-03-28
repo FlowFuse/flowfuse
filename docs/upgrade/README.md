@@ -66,8 +66,7 @@ that was introduced in FlowForge 1.1.
 Details of how to configure this can be found at the following links:
 
 - [LocalFS](../install/file-storage/README.md#localfs)
-- [Docker](../install/file-storage/README.md#docker-compose)
-- [Kubernetes](../install/file-storage/README.md#kubernetes-helm)
+- [Docker and Kubernetes](../install/file-storage/README.md#configuring)
 
 ### Upgrading to 1.1
 
@@ -91,7 +90,7 @@ This release introduces an MQTT Broker into the FlowForge platform used to commu
 between devices and the core platform.
 
 For LocalFS users, they will need to manually setup the broker and ensure it is
-properly configured. The documentation for this is available [here](../install/local/README.md#mosquitto)
+properly configured. The documentation for this is available [here](../install/local/#setting-up-mosquitto-(optional))
 
 #### LocalFS Users
 
