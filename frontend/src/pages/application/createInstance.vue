@@ -14,26 +14,22 @@
             </template>
         </SideNavigation>
     </Teleport>
-    <Teleport v-if="mounted" to="#platform-banner">
-        <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
-    </Teleport>
     <main>
         <div class="max-w-2xl m-auto">
             <ff-loading
                 v-if="loading"
-                message="Creating Application..."
+                message="Creating Instance..."
             />
             <ff-loading
-                v-else-if="sourceProjectId && !sourceProject"
-                message="Loading Instance to Copy From..."
+                v-else-if="sourceInstanceId && !sourceInstance"
+                message="Loading instance to Copy From..."
             />
             <InstanceForm
                 v-else
-                :instance="projectDetails"
-                :source-instance="sourceProject"
+                :instance="instanceDetails"
+                :source-instance="sourceInstance"
                 :team="team"
                 :applicationFieldsLocked="!!application?.id"
-                :applicationFieldsVisible="true"
                 :billing-enabled="!!features.billing"
                 :submit-errors="errors"
                 @on-submit="handleFormSubmit"
@@ -46,51 +42,53 @@
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
-import applicationApi from '../../api/application'
+import instanceApi from '../../api/instances'
 import InstanceForm from '../instance/components/InstanceForm'
 
-import projectApi from '@/api/project'
 import NavItem from '@/components/NavItem'
 import SideNavigation from '@/components/SideNavigation'
-import TeamTrialBanner from '@/components/banners/TeamTrial.vue'
 import Alerts from '@/services/alerts'
 
 export default {
-    name: 'CreateApplication',
+    name: 'ApplicationCreateInstance',
     components: {
         InstanceForm,
         NavItem,
-        SideNavigation,
-        TeamTrialBanner
+        SideNavigation
     },
+    inheritAttrs: false,
     props: {
-        sourceProjectId: {
+        application: {
+            required: true,
+            type: Object
+        },
+        sourceInstanceId: {
             default: null,
             type: String
         }
     },
     data () {
         return {
+            isCopyInstance: false,
             icons: {
                 chevronLeft: ChevronLeftIcon
             },
             loading: false,
-            sourceProject: null,
+            sourceInstance: null,
             mounted: false,
             errors: {
                 name: ''
             },
-            projectDetails: null,
-            application: {}
+            instanceDetails: null
         }
     },
     computed: {
         ...mapState('account', ['features', 'team'])
     },
     created () {
-        if (this.sourceProjectId) {
-            projectApi.getProject(this.sourceProjectId).then(project => {
-                this.sourceProject = project
+        if (this.sourceInstanceId) {
+            instanceApi.getInstance(this.sourceInstanceId).then(instance => {
+                this.sourceInstance = instance
             }).catch(err => {
                 console.log('Failed to load source instance', err)
             })
@@ -103,33 +101,16 @@ export default {
         async handleFormSubmit (formData, copyParts) {
             this.loading = true
 
-            const { applicationName, ...projectFields } = formData
-            const applicationFields = { name: applicationName }
+            const { ...instanceFields } = formData
 
             try {
-                if (!this.application?.id) {
-                    this.application = await this.createApplication(applicationFields)
-                }
-            } catch (err) {
-                if (err.response.data?.error) {
-                    Alerts.emit('Failed to create application: ' + err.response.data.error, 'warning', 7500)
-                } else {
-                    Alerts.emit('Failed to create application', 'warning', 7500)
-                    console.error(err)
-                }
-
-                this.loading = false
-                return
-            }
-
-            console.log(this.application)
-
-            try {
-                await this.createProject(projectFields, copyParts)
+                const instance = await this.createInstance(instanceFields, copyParts)
 
                 await this.$store.dispatch('account/refreshTeam')
+
+                this.$router.push({ name: 'Instance', params: { id: instance.id } })
             } catch (err) {
-                this.projectDetails = projectFields
+                this.instanceDetails = instanceFields
                 if (err.response?.status === 409) {
                     this.errors.name = err.response.data.error
                 } else if (err.response?.status === 400) {
@@ -138,28 +119,20 @@ export default {
                     Alerts.emit('Failed to create instance')
                     console.error(err)
                 }
-
-                this.loading = false
-                return
             }
 
             this.loading = false
-            this.$router.push({ name: 'Application', params: { id: this.application.id } })
         },
-        createApplication (applicationDetails) {
-            const createPayload = { ...applicationDetails, teamId: this.team.id }
-            return applicationApi.createApplication(createPayload)
-        },
-        createProject (projectDetails, copyParts) {
-            const createPayload = { ...projectDetails, applicationId: this.application.id }
-            if (this.isCopyProject) {
+        createInstance (instanceDetails, copyParts) {
+            const createPayload = { ...instanceDetails, applicationId: this.application.id }
+            if (this.isCopyInstance) {
                 createPayload.sourceProject = {
-                    id: this.sourceProjectId,
+                    id: this.sourceInstanceId,
                     options: { ...copyParts }
                 }
             }
 
-            return projectApi.create(createPayload)
+            return instanceApi.create(createPayload)
         }
     }
 }

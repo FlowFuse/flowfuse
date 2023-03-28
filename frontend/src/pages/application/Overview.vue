@@ -10,7 +10,9 @@
                 <p>To edit an Application's flow, open the editor of the Instance.</p>
             </template>
             <template #tools>
-                <ff-button @click="addInstance()">
+                <ff-button
+                    :to="{ name: 'ApplicationCreateInstance' }"
+                >
                     <template #icon-left><PlusSmIcon /></template>
                     Add Instance
                 </ff-button>
@@ -140,13 +142,6 @@ export default {
                 params: {
                     id: cloudInstance.id
                 }
-            })
-        },
-        addInstance () {
-            // placeholder before full functionality is available
-            Dialog.show({
-                header: 'Multiple Instances per Application - Coming Soon!',
-                html: `<p>We've not quite got this part ready just yet, but soon, you will be able to manage multiple instances of Node-RED within a single "Application".</p><p>This will enable <b>DevOps Pipelines, High Availability, and much more</b>. You can read more about what we have planned <a href="https://github.com/flowforge/flowforge/issues/1689" target="_blank">here.</a></p><p>For now, Applications and Instances are still mapped 1:1, so you can still add new instances of Node-RED from the <a href="/team/${this.team.slug}/projects">Applications</a> page.</p>`
             })
         }
     }

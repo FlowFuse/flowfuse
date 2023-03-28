@@ -4,11 +4,12 @@
  *
  * No new functionality should be added here.
  */
-import ApplicationActivity from '@/pages/application/Activity.vue'
-import ApplicationLogs from '@/pages/application/Logs.vue'
-import ApplicationOverview from '@/pages/application/Overview.vue'
-import ApplicationSettings from '@/pages/application/Settings.vue'
-import ApplicationIndex from '@/pages/application/index.vue'
+import ApplicationActivity from './Activity.vue'
+import ApplicationLogs from './Logs.vue'
+import ApplicationOverview from './Overview.vue'
+import ApplicationSettings from './Settings.vue'
+import ApplicationCreateInstance from './createInstance.vue'
+import ApplicationIndex from './index.vue'
 
 export default [
     {
@@ -27,6 +28,14 @@ export default [
                 component: ApplicationOverview,
                 meta: {
                     title: 'Application - Instances'
+                }
+            },
+            {
+                path: 'instances/create',
+                name: 'ApplicationCreateInstance',
+                component: ApplicationCreateInstance,
+                meta: {
+                    title: 'Application - Instances - Create'
                 }
             },
             {

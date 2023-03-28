@@ -4,7 +4,7 @@
         @submit.prevent="$emit('on-submit', input, copyParts)"
     >
         <SectionTopMenu
-            :hero="creatingNew ? 'Create a new Application & Instance' : 'Update Instance'"
+            :hero="creatingNew ? (applicationFieldsVisible ? 'Create a new Application & Instance' : 'Create Instance') : 'Update Instance'"
         />
 
         <!-- Form title -->
@@ -20,7 +20,7 @@
         </div>
 
         <!-- Application Name -->
-        <div v-if="creatingNew">
+        <div v-if="creatingNew && applicationFieldsVisible">
             <FormRow
                 v-model="input.applicationName"
                 :error="errors.applicationName || submitErrors?.applicationName"
@@ -193,7 +193,8 @@
                 type="submit"
             >
                 <template v-if="creatingNew">
-                    Create Application
+                    <span v-if="applicationFieldsVisible">Create Application</span>
+                    <span v-else>Create Instance</span>
                 </template>
                 <template v-else>
                     Confirm Changes
@@ -258,7 +259,12 @@ export default {
             default: null,
             type: Object
         },
+        // Todo: Move these to a separate component
         applicationFieldsLocked: {
+            default: false,
+            type: Boolean
+        },
+        applicationFieldsVisible: {
             default: false,
             type: Boolean
         }
