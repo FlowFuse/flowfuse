@@ -21,7 +21,7 @@
     </SectionTopMenu>
 
     <LogsShared v-if="instance?.id" :instance="instance" />
-    <div class="ff-no-data ff-no-data-large">
+    <div v-else class="ff-no-data ff-no-data-large">
         Select an instance to view live logs.
     </div>
 </template>

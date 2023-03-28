@@ -18,13 +18,15 @@
     <main v-else>
         <ConfirmApplicationDeleteDialog ref="confirmApplicationDeleteDialog" @confirm="deleteApplication" />
         <Teleport v-if="mounted" to="#platform-banner">
-            <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">You are viewing this application as an Administrator</div>
+            <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">
+                You are viewing this application as an Administrator
+            </div>
             <SubscriptionExpiredBanner :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
         </Teleport>
         <router-view
             :application="application"
-            :instances="applicationInstances"
+            :instances="Array.from(applicationInstances.values())"
             :is-visiting-admin="isVisitingAdmin"
             @application-updated="updateApplication"
             @application-delete="showConfirmDeleteApplicationDialog"

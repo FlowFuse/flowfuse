@@ -41,7 +41,7 @@ export default {
         instance: 'fetchData'
     },
     mounted () {
-        if (this.instance.meta && this.instance.meta.state === 'suspended') {
+        if (!this.instance.meta || this.instance.meta.state === 'suspended') {
             this.loading = false
         }
         this.fetchData()

@@ -8,7 +8,7 @@
             <div data-el="filter-event-types">
                 <ff-dropdown v-model="auditFilters.instance" class="w-full">
                     <ff-dropdown-option
-                        v-for="instance in auditFilters.instances" :key="instance.id"
+                        v-for="instance in instances" :key="instance.id"
                         :label="instance.name" :value="instance.id"
                     />
                 </ff-dropdown>
@@ -36,7 +36,7 @@ export default {
     },
     inheritAttrs: false,
     props: {
-        application: {
+        instances: {
             type: Object,
             required: true
         }
@@ -56,7 +56,6 @@ export default {
     watch: {
         application () {
             this.$refs.AuditLog?.loadEntries()
-            this.loadInstances()
         },
         team: 'loadUsers',
         instances () {
@@ -65,7 +64,6 @@ export default {
     },
     created () {
         this.loadUsers()
-        this.loadInstances()
     },
     methods: {
         async loadUsers () {
@@ -75,6 +73,7 @@ export default {
             const applicationId = this.application.id
             if (applicationId) {
                 // TODO Currently this filter effectively does nothing as each application contains only one instance
+                // And the API only supports one set of instance logs at a time regardless
                 const instanceId = this.auditFilters.instance.id
 
                 this.logEntries = (await ProjectAPI.getProjectAuditLog(instanceId, params, cursor, 200)).log
