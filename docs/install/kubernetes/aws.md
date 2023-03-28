@@ -187,7 +187,7 @@ it from inside the cluster (and not the Node-RED instances).
 
 Please read it carefully before running it to ensure you understand it.
 
-A copy of this file can be found [here](setup-rds.sh)
+A copy of this file can be found [here](./setup-rds.sh)
 
 Run the following command
 
