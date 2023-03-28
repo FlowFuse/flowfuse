@@ -2,7 +2,7 @@
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigationTeamOptions>
             <template #nested-menu>
-                <router-link :to="{name: 'Application', params: { id: instance.application.id }}">
+                <router-link v-if="instance.application?.id" :to="{name: 'Application', params: { id: instance.application?.id }}">
                     <nav-item :icon="icons.chevronLeft" label="Back to Application" data-nav="project-overview" />
                 </router-link>
 

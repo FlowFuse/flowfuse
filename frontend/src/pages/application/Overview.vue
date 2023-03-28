@@ -33,32 +33,32 @@
 
                 <template
                     v-if="hasPermission('device:edit')"
-                    #context-menu
+                    #context-menu="{row}"
                 >
                     <ff-list-item
-                        :disabled="project.pendingStateChange || projectRunning"
+                        :disabled="row.pendingStateChange || row.projectRunning"
                         label="Start"
-                        @click.stop="$emit('project-start')"
+                        @click.stop="$emit('instance-start', row)"
                     />
 
                     <ff-list-item
-                        :disabled="!projectNotSuspended"
+                        :disabled="!row.projectNotSuspended"
                         label="Restart"
-                        @click.stop="$emit('project-restart')"
+                        @click.stop="$emit('instance-restart', row)"
                     />
 
                     <ff-list-item
-                        :disabled="!projectNotSuspended"
+                        :disabled="!row.projectNotSuspended"
                         kind="danger"
                         label="Suspend"
-                        @click.stop="$emit('project-suspend')"
+                        @click.stop="$emit('instance-suspend', row)"
                     />
 
                     <ff-list-item
                         v-if="hasPermission('project:delete')"
                         kind="danger"
                         label="Delete"
-                        @click.stop="$emit('project-delete')"
+                        @click.stop="$emit('instance-delete', row)"
                     />
                 </template>
             </ff-data-table>
@@ -102,7 +102,7 @@ export default {
             required: true
         }
     },
-    emits: ['project-delete', 'project-suspend', 'project-restart', 'project-start', 'instances-enable-polling', 'instances-disable-polling'],
+    emits: ['instance-delete', 'instance-suspend', 'instance-restart', 'instance-start', 'instances-enable-polling', 'instances-disable-polling'],
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
         cloudColumns () {

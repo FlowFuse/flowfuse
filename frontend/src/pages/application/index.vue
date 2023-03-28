@@ -28,10 +28,14 @@
             :application="application"
             :instances="Array.from(applicationInstances.values())"
             :is-visiting-admin="isVisitingAdmin"
-            @application-updated="updateApplication"
             @application-delete="showConfirmDeleteApplicationDialog"
-            @instances-enable-polling="pollingWarning"
+            @application-updated="updateApplication"
+            @instance-delete="instanceShowConfirmDelete"
+            @instance-restart="instanceRestart"
+            @instance-start="instanceStart"
+            @instance-suspend="instanceSuspend"
             @instances-disabled-polling="pollingWarning"
+            @instances-enable-polling="pollingWarning"
         />
     </main>
 </template>
@@ -154,7 +158,6 @@ export default {
             this.$refs.confirmApplicationDeleteDialog.show(this.application)
         },
 
-        // TODO: Currently assumes 1:1 application to instance mapping
         async deleteApplication () {
             this.loading.deleting = true
 
@@ -176,6 +179,23 @@ export default {
 
         pollingWarning () {
             console.warn('Polling yet be implemented')
+            // Logic here to poll for live statuses
+        },
+
+        instanceShowConfirmDelete () {
+            alert('Not implemented')
+        },
+
+        instanceRestart () {
+            alert('Not implemented')
+        },
+
+        instanceStart () {
+            alert('Not implemented')
+        },
+
+        instanceSuspend () {
+            alert('Not implemented')
         }
     }
 }
