@@ -4,7 +4,7 @@
         <div class="flex-grow">
             <SectionTopMenu hero="Applications">
                 <template v-if="hasPermission('project:create')" v-slot:tools>
-                    <ff-button kind="primary" to="./projects/create" data-nav="create-project"><template v-slot:icon-left><PlusSmIcon /></template>Create Application</ff-button>
+                    <ff-button kind="primary" :to="{name: 'CreateTeamApplication'}" data-nav="create-project"><template v-slot:icon-left><PlusSmIcon /></template>Create Application</ff-button>
                 </template>
             </SectionTopMenu>
             <template v-if="applicationCount > 0">

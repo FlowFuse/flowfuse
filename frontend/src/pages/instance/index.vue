@@ -2,8 +2,7 @@
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigationTeamOptions>
             <template #nested-menu>
-                <!-- TODO Read instance.application or pass in application details as a prop -->
-                <router-link :to="{name: 'Application', id: instance.id}">
+                <router-link :to="{name: 'Application', params: { id: instance.application.id }}">
                     <nav-item :icon="icons.chevronLeft" label="Back to Application" data-nav="project-overview" />
                 </router-link>
 
@@ -312,7 +311,7 @@ export default {
             this.loading.deleting = true
             InstanceApi.deleteInstance(this.instance.id).then(async () => {
                 await this.$store.dispatch('account/refreshTeam')
-                this.$router.push({ name: 'Application', params: { id: applicationId }})
+                this.$router.push({ name: 'Application', params: { id: applicationId } })
                 alerts.emit('Instance successfully deleted.', 'confirmation')
             }).catch(err => {
                 console.warn(err)

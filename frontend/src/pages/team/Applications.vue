@@ -12,7 +12,7 @@
                         v-if="hasPermission('project:create')"
                         data-action="create-project-1"
                         kind="primary"
-                        to="./projects/create" data-nav="create-project"
+                        :to="{name: 'CreateTeamApplication'}" data-nav="create-project"
                     >
                         <template #icon-left>
                             <PlusSmIcon />
