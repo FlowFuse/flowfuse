@@ -25,23 +25,11 @@
                 v-model="input.applicationName"
                 :error="errors.applicationName || submitErrors?.applicationName"
                 :disabled="!creatingNew || applicationFieldsLocked"
+                placeholder="My Application Name"
                 data-form="application-name"
             >
                 <template #default>
                     Application Name
-                </template>
-                <template
-                    v-if="creatingNew && !applicationFieldsLocked"
-                    #append
-                >
-                    <ff-button
-                        kind="secondary"
-                        @click="refreshApplicationName"
-                    >
-                        <template #icon>
-                            <RefreshIcon />
-                        </template>
-                    </ff-button>
                 </template>
             </FormRow>
         </div>
@@ -287,7 +275,7 @@ export default {
             input: {
                 billingConfirmation: false,
 
-                applicationName: NameGenerator(),
+                applicationName: '',
 
                 // Only read name from existing project, never source
                 name: this.instance?.name || NameGenerator(),
@@ -459,9 +447,6 @@ export default {
     methods: {
         refreshName () {
             this.input.name = NameGenerator()
-        },
-        refreshApplicationName () {
-            this.input.applicationName = NameGenerator()
         },
         findStackById (stackId) {
             return this.stacks.find(stack => stack.id === stackId)
