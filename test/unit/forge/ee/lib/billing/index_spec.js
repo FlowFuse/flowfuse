@@ -183,7 +183,7 @@ describe('Billing', function () {
             })
         })
 
-        describe.only('billing codes', function () {
+        describe('billing codes', function () {
             it('creates a session with a user billing code', async function () {
                 app = await setup({
                     billing: {
