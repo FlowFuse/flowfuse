@@ -85,7 +85,7 @@ module.exports.init = async function (app) {
     }
 
     return {
-        createSubscriptionSession: async (team, promoCode = null, user = null) => {
+        createSubscriptionSession: async (team, user = null) => {
             const billingIds = getBillingIdsForTeam(team)
 
             const sub = {
@@ -104,7 +104,7 @@ module.exports.init = async function (app) {
                 },
                 custom_text: {
                     submit: {
-                        message: 'This sets up your team for billing. You are only charged when creating a Project.'
+                        message: 'This sets up your team for billing. You are only charged when creating an application instance.'
                     }
                 },
                 client_reference_id: team.hashid,
@@ -123,16 +123,21 @@ module.exports.init = async function (app) {
                     name: 'auto'
                 }
             }
-
-            // Apply a USER provided coupon
-            if (promoCode) {
-                const promoCodeId = await getPromotionCodeId(promoCode)
+            let userBillingCode
+            if (user) {
+                // Apply a USER provided coupon
+                userBillingCode = await app.billing.getUserBillingCode(user)
+            }
+            if (userBillingCode) {
+                const promoCodeId = await getPromotionCodeId(userBillingCode.code)
+                console.log(`${userBillingCode.code} -> ${promoCodeId}`)
                 if (promoCodeId) {
                     sub.discounts = [
                         {
                             promotion_code: promoCodeId
                         }
                     ]
+                    sub.custom_text.submit.message += ` We will apply the code ${userBillingCode.code} to your subscription.`
                 }
             } else {
                 sub.allow_promotion_codes = true
@@ -149,9 +154,8 @@ module.exports.init = async function (app) {
 
                 sub.subscription_data.metadata.free_trial = eligibleForTrial
             }
-
             const session = await stripe.checkout.sessions.create(sub)
-            app.log.info(`Creating Subscription for team ${team.hashid}` + (sub.discounts ? ` code='${promoCode}'` : ''))
+            app.log.info(`Creating Subscription for team ${team.hashid}` + (sub.discounts ? ` code='${userBillingCode.code}'` : ''))
             return session
         },
 
@@ -478,6 +482,19 @@ module.exports.init = async function (app) {
             }
         },
         getProjectBillingState,
-        setProjectBillingState
+        setProjectBillingState,
+        getUserBillingCode: async (user) => {
+            return app.db.controllers.UserBillingCode.getUserCode(user)
+        },
+        setUserBillingCode: async (user, code) => {
+            // Validate this is an active code
+            const promoCodeId = await getPromotionCodeId(code)
+            if (promoCodeId) {
+                // This is a valid code - store the original user-facing code rather
+                // than the underlying id. This will allow us to change the associated
+                // promo for this code rather than tying to exactly one.
+                return app.db.controllers.UserBillingCode.setUserCode(user, code)
+            }
+        }
     }
 }

@@ -236,11 +236,7 @@ module.exports = async function (app) {
             const teamView = app.db.views.Team.team(team)
 
             if (app.license.active() && app.billing) {
-                let coupon
-                if (request.cookies.ff_coupon) {
-                    coupon = request.unsignCookie(request.cookies.ff_coupon)?.valid ? request.unsignCookie(request.cookies.ff_coupon).value : undefined
-                }
-                const session = await app.billing.createSubscriptionSession(team, coupon, request.session.User)
+                const session = await app.billing.createSubscriptionSession(team, request.session.User)
                 app.auditLog.Team.billing.session.created(request.session.User, null, team, session)
                 teamView.billingURL = session.url
             }

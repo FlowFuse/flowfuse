@@ -148,6 +148,14 @@ setup.setupStripe = (testSpecificMock = {}) => {
                 }
             })
         },
+        promotionCodes: {
+            list: async opts => {
+                if (opts.code === 'KNOWN_CODE') {
+                    return { data: [{ id: 'knownCodeId' }] }
+                }
+                return { data: [] }
+            }
+        },
         ...testSpecificMock
     }
     require.cache[require.resolve('stripe')] = {

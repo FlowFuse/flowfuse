@@ -92,10 +92,6 @@ export default {
         // has the user navigated here directly from Stripe, having just completed payment details
         async checkBillingSession () {
             this.show.thankyou = 'billing_session' in this.$route.query
-            if (this.show.thankyou) {
-                // delete
-                document.cookie = 'ff_coupon=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-            }
         }
     },
     components: {
