@@ -39,10 +39,8 @@ import teamApi from '@/api/team'
 import SectionTopMenu from '@/components/SectionTopMenu'
 import permissionsMixin from '@/mixins/Permissions'
 
-// import ProjectStatusBadge from '@/pages/application/components/ProjectStatusBadge'
-
 export default {
-    name: 'TeamProjects',
+    name: 'TeamApplications',
     components: {
         PlusSmIcon,
         SectionTopMenu
@@ -55,7 +53,7 @@ export default {
             applications: [],
             columns: [
                 { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true },
-                // { label: 'Status', class: ['w-44'], key: 'status', sortable: true, component: { is: markRaw(ProjectStatusBadge) } },
+                // { label: 'Status', class: ['w-44'], key: 'status', sortable: true, component: { is: markRaw(InstanceStatusBadge) } },
                 { label: 'Updated', class: ['w-44', 'text-xs'], key: 'updatedSince', sortable: true }
             ]
         }

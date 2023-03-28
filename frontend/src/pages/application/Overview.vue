@@ -75,11 +75,11 @@ import { mapState } from 'vuex'
 
 import SectionTopMenu from '../../components/SectionTopMenu'
 
-import ProjectStatusBadge from './components/ProjectStatusBadge'
-import DeploymentName from './components/cells/DeploymentName.vue'
+import InstanceStatusBadge from '../instance/components/InstanceStatusBadge'
+import InstanceEditorLink from '../instance/components/cells/InstanceEditorLink'
 
+import DeploymentName from './components/cells/DeploymentName.vue'
 import LastSeen from './components/cells/LastSeen.vue'
-import ProjectEditorLink from './components/cells/ProjectEditorLink.vue'
 
 import permissionsMixin from '@/mixins/Permissions'
 import Dialog from '@/services/dialog'
@@ -109,8 +109,8 @@ export default {
             return [
                 { label: 'Name', class: ['w-64'], component: { is: markRaw(DeploymentName), map: { disabled: 'editorDisabled' } } },
                 { label: 'Last Deployed', class: ['w-48'], component: { is: markRaw(LastSeen), map: { lastSeenSince: 'flowLastUpdatedSince' } } },
-                { label: 'Deployment Status', class: ['w-48'], component: { is: markRaw(ProjectStatusBadge), map: { status: 'meta.state' } } },
-                { label: '', class: ['w-20'], component: { is: markRaw(ProjectEditorLink), map: { disabled: 'editorDisabled' } } }
+                { label: 'Deployment Status', class: ['w-48'], component: { is: markRaw(InstanceStatusBadge), map: { status: 'meta.state' } } },
+                { label: '', class: ['w-20'], component: { is: markRaw(InstanceEditorLink), map: { disabled: 'editorDisabled', url: 'meta.url' } } }
             ]
         },
         cloudRows () {
@@ -134,9 +134,6 @@ export default {
         this.$emit('instances-disable-polling')
     },
     methods: {
-        loadInstances () {
-
-        },
         selectedCloudRow (cloudInstance) {
             this.$router.push({
                 name: 'Instance',

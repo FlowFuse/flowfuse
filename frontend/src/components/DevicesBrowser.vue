@@ -151,13 +151,13 @@ import { PlusSmIcon } from '@heroicons/vue/solid'
 
 import { markRaw } from 'vue'
 
-import ProjectStatusBadge from '../pages/application/components/ProjectStatusBadge'
 import ApplicationLink from '../pages/application/components/cells/ApplicationLink'
 import DeviceLink from '../pages/application/components/cells/DeviceLink.vue'
 import InstanceInstancesLink from '../pages/application/components/cells/InstanceInstancesLink.vue'
 import Snapshot from '../pages/application/components/cells/Snapshot.vue'
 import DeviceLastSeenBadge from '../pages/device/components/DeviceLastSeenBadge'
 import SnapshotAssignDialog from '../pages/instance/Snapshots/dialogs/SnapshotAssignDialog'
+import InstanceStatusBadge from '../pages/instance/components/InstanceStatusBadge'
 import DeviceAssignInstanceDialog from '../pages/team/Devices/dialogs/DeviceAssignInstanceDialog'
 import DeviceCredentialsDialog from '../pages/team/Devices/dialogs/DeviceCredentialsDialog'
 import TeamDeviceCreateDialog from '../pages/team/Devices/dialogs/TeamDeviceCreateDialog'
@@ -221,7 +221,7 @@ export default {
 
             const statusColumns = [
                 { label: 'Last Seen', key: 'lastSeenAt', class: ['w-32'], sortable: true, component: { is: markRaw(DeviceLastSeenBadge) } },
-                { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(ProjectStatusBadge) } }
+                { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(InstanceStatusBadge) } }
             ]
 
             if (this.displayingTeam) {

@@ -16,8 +16,8 @@ export default {
     inheritAttrs: false,
     props: {
         lastSeenSince: {
-            required: true,
-            type: String
+            type: String,
+            default: ''
         }
     }
 }

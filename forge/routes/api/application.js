@@ -162,4 +162,31 @@ module.exports = async function (app) {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
     })
+
+    /**
+     * List Application instances statuses
+     * @name /api/v1/application/:id/instances/status
+     * @memberof forge.routes.api.application
+     */
+    app.get('/:applicationId/instances/status', {
+        // TODO: tidy up permissions
+        preHandler: app.needsPermission('team:projects:list')
+    }, async (request, reply) => {
+        const instances = await app.db.models.Project.byApplication(request.application.hashid)
+        if (instances) {
+            const instanceStatuses = await Promise.all(
+                instances.map((instance) =>
+                    instance.liveState().then((state) => {
+                        return { id: instance.id, ...state }
+                    })
+                )
+            )
+            reply.send({
+                count: instanceStatuses.length,
+                instances: instanceStatuses
+            })
+        } else {
+            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+    })
 }

@@ -249,7 +249,7 @@ module.exports = {
                     const inflightState = Controllers.Project.getInflightState(this)
 
                     const result = {
-                        flowLastUpdatedAt: storageFlow?.updatedAt
+                        flowLastUpdatedAt: storageFlow?.updatedAt // prop not set if storageFlow not found
                     }
 
                     if (inflightState) {

@@ -10,7 +10,7 @@
                 <tr class="border-b">
                     <td class="w-1/4 font-medium">Status</td>
                     <td class="py-2">
-                        <ProjectStatusBadge :status="device.status"/>
+                        <InstanceStatusBadge :status="device.status"/>
                     </td>
                 </tr>
                 <tr class="border-b">
@@ -97,7 +97,7 @@ import elapsedTime from '@/utils/elapsedTime'
 
 // components
 import FormHeading from '@/components/FormHeading'
-import ProjectStatusBadge from '@/pages/application/components/ProjectStatusBadge'
+import InstanceStatusBadge from '../instance/components/InstanceStatusBadge'
 
 // icons
 import { CheckCircleIcon, ExclamationIcon, TemplateIcon, WifiIcon } from '@heroicons/vue/outline'
@@ -107,7 +107,7 @@ export default {
     props: ['device'],
     components: {
         FormHeading,
-        ProjectStatusBadge,
+        InstanceStatusBadge,
         CheckCircleIcon,
         ExclamationIcon,
         TemplateIcon,

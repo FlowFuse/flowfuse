@@ -9,7 +9,7 @@
                             <div class="text-base text-gray-800">{{project.name}}</div>
                         </div>
                         <div class="flex space-x-2 mt-4">
-                            <ProjectStatusBadge :status="project.status" />
+                            <InstanceStatusBadge :status="project.status" />
                             <div class="forge-badge">Updated: {{project.updatedSince}}</div>
                         </div>
                     </div>
@@ -35,14 +35,14 @@
 </template>
 
 <script>
-import ProjectStatusBadge from '@/pages/application/components/ProjectStatusBadge'
+import InstanceStatusBadge from '../../instance/components/InstanceStatusBadge'
 import { PlusSmIcon, ChevronRightIcon, TemplateIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'MemberProjectSummaryList',
     props: ['projects', 'team'],
     components: {
-        ProjectStatusBadge,
+        InstanceStatusBadge,
         ChevronRightIcon,
         PlusSmIcon,
         TemplateIcon

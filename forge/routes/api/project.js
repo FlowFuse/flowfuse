@@ -302,7 +302,7 @@ module.exports = async function (app) {
         const projectViewPromise = app.db.views.Project.project(project)
         const projectStatePromise = project.liveState()
 
-        reply.send({ ...projectViewPromise, ...projectStatePromise })
+        reply.send({ ...await projectViewPromise, ...await projectStatePromise })
     })
     /**
      * Delete a project

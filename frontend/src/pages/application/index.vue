@@ -68,7 +68,7 @@ export default {
         return {
             mounted: false,
             application: {},
-            applicationInstances: [],
+            applicationInstances: new Map(),
             loading: {
                 deleting: false,
                 suspend: false
@@ -114,7 +114,27 @@ export default {
                 const instancesPromise = applicationApi.getApplicationInstances(applicationId) // To-do needs to be enriched with instance state
 
                 this.application = await applicationPromise
-                this.applicationInstances = await instancesPromise
+                const applicationInstances = await instancesPromise
+
+                this.applicationInstances = new Map()
+                applicationInstances.forEach(instance => {
+                    this.applicationInstances.set(instance.id, instance)
+                })
+
+                // Not waited for, as loading status is slightly slower
+                applicationApi
+                    .getApplicationInstancesStatuses(applicationId)
+                    .then((instanceStatuses) => {
+                        instanceStatuses.forEach((instanceStatus) => {
+                            this.applicationInstances.set(instanceStatus.id, {
+                                ...this.applicationInstances.get(instanceStatus.id),
+                                ...instanceStatus
+                            })
+                        })
+                    })
+                    .catch((err) => {
+                        console.error(err)
+                    })
 
                 this.$store.dispatch('account/setTeam', this.application.team.slug)
             } catch (err) {
@@ -141,8 +161,12 @@ export default {
                 await this.$store.dispatch('account/refreshTeam')
                 this.$router.push({ name: 'Home' })
                 alerts.emit('Application successfully deleted.', 'confirmation')
-            } catch {
-                alerts.emit('Application failed to delete.', 'warning')
+            } catch (err) {
+                if (err.response.data.error) {
+                    alerts.emit(`Application failed to delete: ${err.response.data.error}`, 'warning')
+                } else {
+                    alerts.emit('Application failed to delete', 'warning')
+                }
             }
 
             this.loading.deleting = false

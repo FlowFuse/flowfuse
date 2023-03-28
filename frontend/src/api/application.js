@@ -37,6 +37,21 @@ const getApplicationInstances = async (applicationId, cursor, limit) => {
     const instances = result.data.instances.map((instance) => {
         instance.createdSince = daysSince(instance.createdAt)
         instance.updatedSince = daysSince(instance.updatedAt)
+        return instance
+    })
+
+    return instances
+}
+
+/**
+ * @param {string} applicationId
+ * @param {string} cursor
+ * @param {string} limit
+ */
+const getApplicationInstancesStatuses = async (applicationId, cursor, limit) => {
+    const result = await client.get(`/api/v1/applications/${applicationId}/instances/status`)
+
+    const instances = result.data.instances.map((instance) => {
         instance.flowLastUpdatedSince = daysSince(instance.flowLastUpdatedAt)
         return instance
     })
@@ -48,5 +63,6 @@ export default {
     createApplication,
     deleteApplication,
     getApplication,
-    getApplicationInstances
+    getApplicationInstances,
+    getApplicationInstancesStatuses
 }
