@@ -72,7 +72,7 @@ module.exports = async function (app) {
     app.register(ProjectSnapshots, { prefix: '/:projectId/snapshots' })
 
     /**
-     * Get the details of a given project
+     * Get the details of a given instance
      * @name /api/v1/project/:projectId
      * @static
      * @memberof forge.routes.api.project
@@ -80,27 +80,13 @@ module.exports = async function (app) {
     app.get('/:projectId', {
         preHandler: app.needsPermission('project:read')
     }, async (request, reply) => {
-        const [result, projectFlow] = await Promise.all([
-            await app.db.views.Project.project(request.project),
-            await app.db.models.StorageFlow.byProject(request.project.id)
-        ])
-        const inflightState = app.db.controllers.Project.getInflightState(request.project)
+        const projectPromise = app.db.views.Project.project(request.project)
+        const projectStatePromise = request.project.liveState()
 
-        result.flowLastUpdatedAt = projectFlow?.updatedAt
+        const project = await projectPromise
+        const projectState = await projectStatePromise
 
-        if (inflightState) {
-            result.meta = {
-                state: inflightState
-            }
-        } else if (request.project.state === 'suspended') {
-            result.meta = {
-                state: 'suspended'
-            }
-        } else {
-            result.meta = await app.containers.details(request.project) || { state: 'unknown' }
-        }
-        // result.team = await app.db.views.Team.team(request.project.Team)
-        reply.send(result)
+        reply.send({ ...project, ...projectState })
     })
 
     /**
@@ -313,17 +299,10 @@ module.exports = async function (app) {
             await app.auditLog.Team.project.created(request.session.User, null, team, project)
         }
 
-        const result = await app.db.views.Project.project(project)
+        const projectViewPromise = app.db.views.Project.project(project)
+        const projectStatePromise = project.liveState()
 
-        if (project.state === 'suspended') {
-            result.meta = {
-                state: 'suspended'
-            }
-        } else {
-            result.meta = await app.containers.details(project) || { state: 'unknown' }
-        }
-
-        reply.send(result)
+        reply.send({ ...projectViewPromise, ...projectStatePromise })
     })
     /**
      * Delete a project

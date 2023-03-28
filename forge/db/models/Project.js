@@ -168,7 +168,7 @@ module.exports = {
             }
         }
     },
-    finders: function (M) {
+    finders: function (M, app) {
         return {
             instance: {
                 async refreshAuthTokens () {
@@ -242,6 +242,29 @@ module.exports = {
                         }
                     }
                     return credentialSecret
+                },
+
+                async liveState () {
+                    const storageFlow = await M.StorageFlow.byProject(this.id)
+                    const inflightState = Controllers.Project.getInflightState(this)
+
+                    const result = {
+                        flowLastUpdatedAt: storageFlow?.updatedAt
+                    }
+
+                    if (inflightState) {
+                        result.meta = {
+                            state: inflightState
+                        }
+                    } else if (this.state === 'suspended') {
+                        result.meta = {
+                            state: 'suspended'
+                        }
+                    } else {
+                        result.meta = await app.containers.details(this) || { state: 'unknown' }
+                    }
+
+                    return result
                 }
             },
             static: {

@@ -176,6 +176,9 @@ module.exports = async function (app) {
         })
     })
 
+    /**
+     * @deprecated Use /:teamId/applications, or /:applicationId/instances
+     */
     app.get('/:teamId/projects', {
         preHandler: app.needsPermission('team:projects:list')
     }, async (request, reply) => {
