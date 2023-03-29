@@ -117,9 +117,6 @@ export default [
         path: '/team/:team_slug/application/create',
         name: 'CreateTeamApplication',
         component: CreateApplication,
-        props: route => ({
-            sourceProjectId: route.query.sourceProject
-        }),
         meta: {
             title: 'Team - Create Application'
         }

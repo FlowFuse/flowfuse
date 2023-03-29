@@ -7,7 +7,7 @@
     <ff-loading v-if="loading.importing" message="Importing Instance..." />
     <form v-if="!isLoading" class="space-y-6">
         <FormHeading>Change Instance Stack</FormHeading>
-        <div v-if="project.stack && project.stack.replacedBy" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+        <div v-if="instance.stack && instance.stack.replacedBy" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
                 <div class="max-w-sm">
                     There is a new version of the current stack available.
@@ -15,7 +15,7 @@
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button :disabled="!project.projectType" kind="secondary" @click="upgradeStack()">Update Stack</ff-button>
+                <ff-button :disabled="!instance.projectType" kind="secondary" @click="upgradeStack()">Update Stack</ff-button>
             </div>
         </div>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
@@ -26,7 +26,7 @@
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button :disabled="!project.projectType" kind="secondary" @click="showChangeStackDialog()">Change Stack</ff-button>
+                <ff-button :disabled="!instance.projectType" kind="secondary" @click="showChangeStackDialog()">Change Stack</ff-button>
                 <ChangeStackDialog ref="changeStackDialog" @confirm="changeStack" />
             </div>
         </div>
@@ -36,11 +36,11 @@
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
                 <div class="max-w-sm">
-                    Add a new instance to your team, that is a copy of this instance.
+                    Add a new instance to your application, that is a copy of this instance.
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="secondary" data-nav="copy-project" @click="showDuplicateProjectDialog()">Duplicate Instance</ff-button>
+                <ff-button kind="secondary" data-nav="copy-project" @click="showDuplicateInstanceDialog()">Duplicate Instance</ff-button>
             </div>
         </div>
 
@@ -73,7 +73,7 @@
         <FormHeading class="text-red-700">Suspend Instance</FormHeading>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
-                <div v-if="project?.meta?.state === 'suspended'" class="max-w-sm">
+                <div v-if="instance?.meta?.state === 'suspended'" class="max-w-sm">
                     Your instance is already suspended. To restart the instance, select "Start" from the Instance actions.
                 </div>
                 <div v-else class="max-w-sm">
@@ -82,7 +82,7 @@
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="danger" :disabled="project?.meta?.state === 'suspended'" @click="showConfirmSuspendDialog()">Suspend Instance</ff-button>
+                <ff-button kind="danger" :disabled="instance?.meta?.state === 'suspended'" @click="showConfirmSuspendDialog()">Suspend Instance</ff-button>
             </div>
         </div>
 
@@ -126,7 +126,7 @@ export default {
     mixins: [permissionsMixin],
     inheritAttrs: false,
     props: {
-        project: {
+        instance: {
             type: Object,
             required: true
         }
@@ -167,7 +167,7 @@ export default {
                 kind: 'danger'
             }, () => {
                 this.loading.suspend = true
-                InstanceApi.suspendInstance(this.project.id).then(() => {
+                InstanceApi.suspendInstance(this.instance.id).then(() => {
                     this.$router.push({ name: 'Home' })
                     alerts.emit('Instance successfully suspended.', 'confirmation')
                 }).catch(err => {
@@ -184,20 +184,20 @@ export default {
             })
         },
         showChangeStackDialog () {
-            this.$refs.changeStackDialog.show(this.project)
+            this.$refs.changeStackDialog.show(this.instance)
         },
-        showDuplicateProjectDialog () {
+        showDuplicateInstanceDialog () {
             this.$router.push({
-                name: 'CreateTeamApplication',
-                params: { team_slug: this.team.slug },
-                query: { sourceProject: this.project.id }
+                name: 'ApplicationCreateInstance',
+                params: { id: this.instance.application.id, team_slug: this.team.slug },
+                query: { sourceInstanceId: this.instance.id }
             })
         },
         showImportInstanceDialog () {
-            this.$refs.importProjectDialog.show(this.project)
+            this.$refs.importProjectDialog.show(this.instance)
         },
         upgradeStack () {
-            this.changeStack(this.project.stack.replacedBy)
+            this.changeStack(this.instance.stack.replacedBy)
         },
         duplicateProject (parts) {
             this.loading.duplicating = true
@@ -213,8 +213,8 @@ export default {
         },
         importProject (parts) {
             this.loading.importing = true
-            InstanceApi.importProject(this.project.id, parts).then(result => {
-                this.$router.push({ name: 'Instance', params: { id: this.project.id } })
+            InstanceApi.importProject(this.instance.id, parts).then(result => {
+                this.$router.push({ name: 'Instance', params: { id: this.instance.id } })
                 alerts.emit('Instance flows imported.', 'confirmation')
             }).catch(err => {
                 console.log(err)
@@ -224,10 +224,10 @@ export default {
             })
         },
         changeStack (selectedStack) {
-            if (this.project.stack?.id !== selectedStack) {
+            if (this.instance.stack?.id !== selectedStack) {
                 this.loading.changingStack = true
-                InstanceApi.changeStack(this.project.id, selectedStack).then(() => {
-                    this.$router.push({ name: 'Instance', params: { id: this.project.id } })
+                InstanceApi.changeStack(this.instance.id, selectedStack).then(() => {
+                    this.$router.push({ name: 'Instance', params: { id: this.instance.id } })
                     this.$emit('instance-updated')
                     alerts.emit('Instance stack successfully updated.', 'confirmation')
                 }).catch(err => {

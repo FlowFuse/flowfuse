@@ -10,9 +10,9 @@
                 <template #actions>
                     <ff-button
                         v-if="hasPermission('project:create')"
-                        data-action="create-project-1"
+                        data-action="create-application"
                         kind="primary"
-                        :to="{name: 'CreateTeamApplication'}" data-nav="create-project"
+                        :to="{name: 'CreateTeamApplication'}"
                     >
                         <template #icon-left>
                             <PlusSmIcon />

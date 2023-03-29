@@ -10,6 +10,8 @@ const { isFQDN } = require('../../lib/validate')
 /**
  * Instance api routes
  *
+ * Of note: Instances were previously called projects
+ *
  * - /api/v1/project
  *
  * - Any route that has a :projectId parameter will:
@@ -151,8 +153,11 @@ module.exports = async function (app) {
             if (!sourceProject) {
                 reply.code(400).send({ code: 'invalid_source_project', error: 'Source Project Not Found' })
                 return
-            } else if (sourceProject.Team.hashid !== request.body.team) {
+            } else if (sourceProject.Team.id !== team.id) {
                 reply.code(403).send({ code: 'invalid_source_project', error: 'Source Project Not in Same Team' })
+                return
+            } else if (sourceProject.Application.id !== request.application.id) {
+                reply.code(403).send({ code: 'invalid_source_project', error: 'Source Project Not in Same Application' })
                 return
             }
         }
@@ -222,7 +227,7 @@ module.exports = async function (app) {
 
         if (sourceProject) {
             // need to copy values over
-            const settingsString = (await app.db.models.StorageSettings.byProject(sourceProject.id))?.settings
+            const settingsString = (await app.db.models.StorageSettings.byProject(sourceProject.id))?.settings ?? '{}'
             const newSettings = {
                 users: {}
             }
@@ -640,7 +645,7 @@ module.exports = async function (app) {
             const { resumeProject, targetState } = await suspendProject(targetProject)
 
             // Nodes
-            const sourceSettingsString = ((await app.db.models.StorageSettings.byProject(sourceProject.id))?.settings) || '{}'
+            const sourceSettingsString = ((await app.db.models.StorageSettings.byProject(sourceProject.id))?.settings) ?? '{}'
             const sourceSettings = JSON.parse(sourceSettingsString)
 
             let targetStorageSettings = await app.db.models.StorageSettings.byProject(targetProject.id)

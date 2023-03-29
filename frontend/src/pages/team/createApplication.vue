@@ -23,14 +23,9 @@
                 v-if="loading"
                 message="Creating Application..."
             />
-            <ff-loading
-                v-else-if="sourceProjectId && !sourceProject"
-                message="Loading Instance to Copy From..."
-            />
             <InstanceForm
                 v-else
                 :instance="projectDetails"
-                :source-instance="sourceProject"
                 :team="team"
                 :applicationFieldsLocked="!!application?.id"
                 :applicationFieldsVisible="true"
@@ -63,19 +58,12 @@ export default {
         SideNavigation,
         TeamTrialBanner
     },
-    props: {
-        sourceProjectId: {
-            default: null,
-            type: String
-        }
-    },
     data () {
         return {
             icons: {
                 chevronLeft: ChevronLeftIcon
             },
             loading: false,
-            sourceProject: null,
             mounted: false,
             errors: {
                 name: ''
@@ -86,15 +74,6 @@ export default {
     },
     computed: {
         ...mapState('account', ['features', 'team'])
-    },
-    created () {
-        if (this.sourceProjectId) {
-            projectApi.getProject(this.sourceProjectId).then(project => {
-                this.sourceProject = project
-            }).catch(err => {
-                console.log('Failed to load source instance', err)
-            })
-        }
     },
     async mounted () {
         this.mounted = true
@@ -152,13 +131,6 @@ export default {
         },
         createProject (projectDetails, copyParts) {
             const createPayload = { ...projectDetails, applicationId: this.application.id }
-            if (this.isCopyProject) {
-                createPayload.sourceProject = {
-                    id: this.sourceProjectId,
-                    options: { ...copyParts }
-                }
-            }
-
             return projectApi.create(createPayload)
         }
     }

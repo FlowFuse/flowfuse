@@ -25,6 +25,7 @@ export default [
         children: [
             {
                 path: 'instances',
+                name: 'ApplicationInstances',
                 component: ApplicationOverview,
                 meta: {
                     title: 'Application - Instances'
@@ -34,6 +35,9 @@ export default [
                 path: 'instances/create',
                 name: 'ApplicationCreateInstance',
                 component: ApplicationCreateInstance,
+                props: route => ({
+                    sourceInstanceId: route.query.sourceInstanceId
+                }),
                 meta: {
                     title: 'Application - Instances - Create'
                 }

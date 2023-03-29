@@ -25,7 +25,7 @@
             Template
         </FormRow>
         <DangerSettings
-            :project="project"
+            :instance="project"
             @instance-confirm-delete="$emit('instance-confirm-delete')"
         />
     </div>

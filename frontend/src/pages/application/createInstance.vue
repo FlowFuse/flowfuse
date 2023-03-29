@@ -18,7 +18,7 @@
         <div class="max-w-2xl m-auto">
             <ff-loading
                 v-if="loading"
-                message="Creating Instance..."
+                message="Creating instance..."
             />
             <ff-loading
                 v-else-if="sourceInstanceId && !sourceInstance"
@@ -69,7 +69,6 @@ export default {
     },
     data () {
         return {
-            isCopyInstance: false,
             icons: {
                 chevronLeft: ChevronLeftIcon
             },
@@ -101,14 +100,15 @@ export default {
         async handleFormSubmit (formData, copyParts) {
             this.loading = true
 
-            const { ...instanceFields } = formData
+            // Drop applicationName from the payload
+            const { applicationName, ...instanceFields } = formData
 
             try {
-                const instance = await this.createInstance(instanceFields, copyParts)
+                await this.createInstance(instanceFields, copyParts)
 
                 await this.$store.dispatch('account/refreshTeam')
 
-                this.$router.push({ name: 'Instance', params: { id: instance.id } })
+                this.$router.push({ name: 'ApplicationInstances', params: { id: this.application.id } })
             } catch (err) {
                 this.instanceDetails = instanceFields
                 if (err.response?.status === 409) {
@@ -125,7 +125,7 @@ export default {
         },
         createInstance (instanceDetails, copyParts) {
             const createPayload = { ...instanceDetails, applicationId: this.application.id }
-            if (this.isCopyInstance) {
+            if (this.sourceInstance?.id) {
                 createPayload.sourceProject = {
                     id: this.sourceInstanceId,
                     options: { ...copyParts }
