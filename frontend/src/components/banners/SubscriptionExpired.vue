@@ -1,6 +1,6 @@
 <template>
     <div
-        v-if="subscriptionExpired"
+        v-if="subscriptionExpired || subscriptionPastDue"
         class="ff-banner ff-banner-warning"
         :class="{
             'cursor-pointer': linkToBilling
@@ -9,13 +9,14 @@
         @click="navigateToBilling"
     >
         <span>
-            <ExclamationCircleIcon class="ff-icon mr-2" /> The subscription for this team has expired.
-
+            <ExclamationCircleIcon class="ff-icon mr-2" />
+            <span v-if="subscriptionExpired">The subscription for this team has expired.</span>
+            <span v-else-if="subscriptionPastDue">The subscription for this team has over due payments.</span>
             <template v-if="linkToBilling">
-                Please visit <strong>Billing settings</strong> to renew.
+                Please visit <strong>Billing settings</strong> to update.
             </template>
             <template v-else-if="!hasPermission('team:edit')">
-                Please ask a team administrator to renew the subscription.
+                Please ask a team administrator to update the subscription.
             </template>
         </span>
 
@@ -55,6 +56,9 @@ export default {
         },
         onBillingPage () {
             return this.$route.path.includes(this.billingPath)
+        },
+        subscriptionPastDue () {
+            return this.team.billing?.pastDue
         },
         subscriptionExpired () {
             return this.team.billing?.canceled
