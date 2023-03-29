@@ -62,7 +62,7 @@ describe('FlowForge platform admin users', () => {
 
         // Not a member of BTeam
         cy.get('[data-el="teams-table"]').contains('BTeam').click()
-        cy.wait('@getTeamProjects')
+        cy.wait('@getTeamApplications')
 
         cy.get('[data-el="banner-team-as-admin"]').should('exist')
 
@@ -87,7 +87,7 @@ describe('FlowForge platform admin users', () => {
 
         // Not a member of BTeam
         cy.get('[data-el="teams-table"]').contains('BTeam').click()
-        cy.wait('@getTeamProjects')
+        cy.wait('@getTeamApplications')
 
         cy.get('[data-nav="team-devices"]').click()
         cy.wait('@getDevices')

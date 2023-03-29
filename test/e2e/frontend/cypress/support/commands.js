@@ -54,7 +54,7 @@ Cypress.Commands.add('home', (username, password) => {
     cy.intercept('/api/*/teams/*').as('getTeam')
     cy.intercept('/api/*/teams/*/user').as('getTeamRole')
     cy.intercept('/api/*/teams/*/members').as('getTeamMembers')
-    cy.intercept('/api/*/teams/*/projects').as('getTeamProjects')
+    cy.intercept('/api/*/teams/*/applications').as('getTeamApplications')
     cy.intercept('/api/*/user/invitations').as('getInvitations')
 
     cy.intercept('/api/*/admin/stats').as('getAdminStats')
@@ -68,7 +68,7 @@ Cypress.Commands.add('home', (username, password) => {
     cy.wait('@getTeams')
     cy.wait('@getTeamRole')
     cy.wait('@getTeamMembers')
-    cy.wait('@getTeamProjects')
+    cy.wait('@getTeamApplications')
     cy.wait('@getInvitations')
 
     cy.url().should('include', '/overview')

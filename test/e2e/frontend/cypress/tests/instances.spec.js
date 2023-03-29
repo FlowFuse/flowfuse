@@ -35,7 +35,7 @@ describe('FlowForge - Instances', () => {
 
         cy.get('[data-nav="team-applications"]')
 
-        cy.wait('@getTeamProjects')
+        cy.wait('@getTeamApplications')
 
         cy.contains('project1').click()
 
