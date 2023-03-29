@@ -254,7 +254,6 @@ module.exports = async function (app) {
             } else {
                 responseMessage = err.toString()
             }
-            reply.clearCookie('ff_coupon', { path: '/' })
             reply.code(400).send({ code: 'unexpected_error', error: responseMessage })
         }
     })
