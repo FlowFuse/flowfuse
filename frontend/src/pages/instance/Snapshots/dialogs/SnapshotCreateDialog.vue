@@ -83,7 +83,7 @@ export default {
                     this.$emit('snapshot-created', response)
                     alerts.emit('Successfully created snapshot of instance.', 'confirmation')
                 }).catch(err => {
-                    console.log(err.response?.data)
+                    console.error(err.response?.data)
                     if (err.response?.data) {
                         if (/name/.test(err.response.data.error)) {
                             this.errors.name = err.response.data.error

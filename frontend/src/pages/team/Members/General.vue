@@ -76,9 +76,6 @@ export default {
             this.fetchData()
         },
         userRemoved (user) {
-            if (user.id === this.$store.state.account.user.id) {
-                console.log('SELF REMOVAL')
-            }
             this.fetchData()
         },
         async fetchData () {

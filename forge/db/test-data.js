@@ -7,7 +7,7 @@ async function inject (app) {
         if (!process.env.TEST_DATA) {
             return
         }
-        console.log('Applying test data')
+        console.info('Applying test data')
         // await app.db.models.ProjectType.create({
         //     name: 'Hobby Project',
         //     active: true,

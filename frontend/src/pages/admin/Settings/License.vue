@@ -133,7 +133,7 @@ export default {
                 this.cancelEditLicense()
                 this.loading.updating = false
             } catch (err) {
-                console.log(err)
+                console.error(err)
                 if (err.response && err.response.data && err.response.data.error) {
                     this.errors.license = err.response.data.error
                 } else {

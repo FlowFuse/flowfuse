@@ -89,7 +89,7 @@ describe('User model', function () {
                     name: 'http://example.com'
                 })
             } catch (err) {
-                // console.log(err)
+                // console.error(err)
             }
 
             should.not.exist(user)

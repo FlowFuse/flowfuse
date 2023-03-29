@@ -128,7 +128,7 @@ export default {
                 ssoApi.updateProvider(this.provider.id, opts).then(response => {
                     this.$router.push({ name: 'AdminSettingsSSO' })
                 }).catch(err => {
-                    console.log(err)
+                    console.error(err)
                 })
             }
         },
@@ -152,7 +152,7 @@ export default {
                     if (err.response.status === 404) {
                         this.$router.push({ name: 'AdminSettingsSSO' })
                     }
-                    console.log(err)
+                    console.error(err)
                 } finally {
                     this.loading = false
                 }

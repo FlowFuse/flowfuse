@@ -205,7 +205,7 @@ export default {
                 this.$router.push({ name: 'Instance', params: { id: result.id } })
                 alerts.emit('Instance successfully duplicated.', 'confirmation')
             }).catch(err => {
-                console.log(err)
+                console.error(err)
                 alerts.emit('Instance failed to duplicate.', 'warning')
             }).finally(() => {
                 this.loading.duplicating = false
@@ -217,7 +217,7 @@ export default {
                 this.$router.push({ name: 'Instance', params: { id: this.instance.id } })
                 alerts.emit('Instance flows imported.', 'confirmation')
             }).catch(err => {
-                console.log(err)
+                console.error(err)
                 alerts.emit('Failed to import flows.', 'warning')
             }).finally(() => {
                 this.loading.importing = false

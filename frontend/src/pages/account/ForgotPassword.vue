@@ -44,7 +44,7 @@ export default {
                 this.flash = 'We have sent you an email with instructions to reset your password'
             }).catch(e => {
                 this.errors.email = ''
-                console.log(e)
+                console.error(e)
             })
         }
     },

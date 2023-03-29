@@ -198,7 +198,7 @@ export default {
                 this.editable = preparedTemplate.editable
                 this.original = preparedTemplate.original
             } catch (err) {
-                console.log(err)
+                console.error(err)
                 this.$router.push({
                     name: 'PageNotFound',
                     params: { pathMatch: this.$router.currentRoute.value.path.substring(1).split('/') },
@@ -271,7 +271,7 @@ export default {
                 } else {
                     alerts.emit('Unknown Error. Check logs.', 'warning')
                 }
-                console.log(err)
+                console.error(err)
             }
         },
         async createTemplate () {
@@ -309,7 +309,7 @@ export default {
                 } else {
                     alerts.emit('Unknown Error. Check logs.', 'warning')
                 }
-                console.log(err)
+                console.error(err)
             }
         }
     },

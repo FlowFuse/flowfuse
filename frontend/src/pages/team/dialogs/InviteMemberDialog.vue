@@ -99,7 +99,7 @@ export default {
                 if (err.response?.data) {
                     alerts.emit(`Unable to invite users: ${err.response.data.error}`)
                 } else {
-                    console.log(err)
+                    console.error(err)
                 }
             }
         }

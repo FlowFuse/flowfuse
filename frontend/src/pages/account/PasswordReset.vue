@@ -66,7 +66,7 @@ export default {
                 this.complete = true
                 alerts.emit('Password successfully updated.', 'confirmation')
             }).catch(e => {
-                console.log(e)
+                console.error(e)
             })
         }
     },

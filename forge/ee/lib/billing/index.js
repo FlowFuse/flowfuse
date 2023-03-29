@@ -173,9 +173,7 @@ module.exports.init = async function (app) {
 
             if (projectItem) {
                 const metadata = existingSub.metadata ? existingSub.metadata : {}
-                // console.log('updating metadata', metadata)
                 metadata[project.id] = 'true'
-                // console.log(metadata)
                 const update = {
                     quantity: projectItem.quantity + 1,
                     proration_behavior: 'always_invoice'
@@ -336,7 +334,7 @@ module.exports.init = async function (app) {
                         app.log.info(update)
                         await stripe.subscriptions.update(subscription.subscription, update)
                     } catch (error) {
-                        console.log(error)
+                        console.error(error)
                         app.log.warn(`Problem adding first device to subscription\n${error.message}`)
                         throw error
                     }

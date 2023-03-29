@@ -142,7 +142,7 @@ export default {
                     this.emailSent = true
                 }
             }).catch(err => {
-                console.log(err.response.data)
+                console.error(err.response.data)
                 if (err.response.data) {
                     if (/username/.test(err.response.data.error)) {
                         this.errors.username = 'Username unavailable'

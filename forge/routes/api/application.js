@@ -55,8 +55,6 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const team = await request.teamMembership.getTeam()
 
-        console.log(request.teamMembership, team)
-
         const name = request.body.name?.trim()
         if (name === '') {
             reply.status(409).type('application/json').send({ code: 'invalid_application_name', error: 'name must be set' })

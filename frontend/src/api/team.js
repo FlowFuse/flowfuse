@@ -44,7 +44,7 @@ const getTeamProjects = async (teamId) => {
         promises.push(client.get(`/api/v1/projects/${r.id}`).then(p => {
             r.status = p.data.meta.state
         }).catch(err => {
-            console.log('not found', err)
+            console.error('not found', err)
             r.status = 'stopped'
         }))
 

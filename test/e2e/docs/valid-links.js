@@ -104,7 +104,7 @@ async function testLinks (fileUri) {
 
     linkCount += links.length
 
-    console.log(`\n\n\x1b[33m Running Link Tests: ${fileUri}`)
+    console.info(`\n\n\x1b[33m Running Link Tests: ${fileUri}`)
 
     links.forEach(async (link) => {
         const linkData = parseUri(link)
@@ -146,8 +146,8 @@ async function testLinks (fileUri) {
                     })
                     errors += 1
                 } else {
-                    console.log(`${GREEN} /   Valid Link: ${link}`)
-                    console.log(`${GREEN} /            => ${exists}`)
+                    console.info(`${GREEN} /   Valid Link: ${link}`)
+                    console.info(`${GREEN} /            => ${exists}`)
                 }
                 resolve()
             }))
@@ -155,7 +155,7 @@ async function testLinks (fileUri) {
             // external link - let's validate using HTTP request
             promises.push(axios.get(link)
                 .then(() => {
-                    console.log(`${GREEN} /   Valid Link: ${link}`)
+                    console.info(`${GREEN} /   Valid Link: ${link}`)
                 })
                 .catch(err => {
                     if (err.response) {
@@ -180,10 +180,10 @@ async function testLinks (fileUri) {
     })
 
     return Promise.all(promises).then(() => {
-        console.log(`\n${YELLOW}------ REPORT ------`)
-        console.log(`${YELLOW} TESTED:` + `${links.length}`.padStart(12))
-        console.log(`${GREEN}  VALID:` + `${links.length - errors}`.padStart(12))
-        console.log(`${RED} ERRORS:` + `${errors}`.padStart(12))
+        console.info(`\n${YELLOW}------ REPORT ------`)
+        console.info(`${YELLOW} TESTED:` + `${links.length}`.padStart(12))
+        console.info(`${GREEN}  VALID:` + `${links.length - errors}`.padStart(12))
+        console.info(`${RED} ERRORS:` + `${errors}`.padStart(12))
     })
 }
 
@@ -199,14 +199,14 @@ async function parseDirectory (dir) {
 async function runReport (dir) {
     await parseDirectory(dir)
     const errorCount = errorRecords.internal.length + errorRecords.external.length
-    console.log(`\n\n${RED}------ INTERNAL ERRORS ------${RESET}`)
-    console.log(errorRecords.internal)
-    console.log(`\n${RED}------ EXTERNAL ERRORS ------${RESET}`)
-    console.log(errorRecords.external)
-    console.log(`\n${YELLOW}------ FINAL REPORT ------`)
-    console.log(`${YELLOW} TESTED:` + `${linkCount}`.padStart(20))
-    console.log(`${GREEN}  VALID:` + `${linkCount - errorCount}`.padStart(20))
-    console.log(`${RED} ERRORS:` + `${errorCount}`.padStart(20))
+    console.info(`\n\n${RED}------ INTERNAL ERRORS ------${RESET}`)
+    console.info(errorRecords.internal)
+    console.info(`\n${RED}------ EXTERNAL ERRORS ------${RESET}`)
+    console.info(errorRecords.external)
+    console.info(`\n${YELLOW}------ FINAL REPORT ------`)
+    console.info(`${YELLOW} TESTED:` + `${linkCount}`.padStart(20))
+    console.info(`${GREEN}  VALID:` + `${linkCount - errorCount}`.padStart(20))
+    console.info(`${RED} ERRORS:` + `${errorCount}`.padStart(20))
 
     if (errorCount > 1) {
         // ensure process fails for reporting in GH Action

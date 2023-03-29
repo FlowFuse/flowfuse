@@ -124,7 +124,6 @@ module.exports = async function (app) {
         const paginationOptions = app.getPaginationOptions(request)
         const logEntries = await app.db.models.AuditLog.forPlatform(paginationOptions)
         const result = app.db.views.AuditLog.auditLog(logEntries)
-        // console.log(logEntries);
         reply.send(result)
     })
 }

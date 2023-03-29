@@ -28,7 +28,7 @@ module.exports = async function (app) {
     //                 request.userRole = await request.user.getTeamMembership(request.params.teamId)
     //             }
     //         } catch (err) {
-    //             console.log(err)
+    //             console.error(err)
     //             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
     //         }
     //     }

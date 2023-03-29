@@ -89,7 +89,7 @@ export default {
             instanceApi.getInstance(this.sourceInstanceId).then(instance => {
                 this.sourceInstance = instance
             }).catch(err => {
-                console.log('Failed to load source instance', err)
+                console.error('Failed to load source instance', err)
             })
         }
     },

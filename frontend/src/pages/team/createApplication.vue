@@ -101,8 +101,6 @@ export default {
                 return
             }
 
-            console.log(this.application)
-
             try {
                 await this.createProject(projectFields, copyParts)
 
