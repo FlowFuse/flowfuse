@@ -1,4 +1,4 @@
-describe('FlowForge - Projects', () => {
+describe('FlowForge - Applications', () => {
     beforeEach(() => {
         cy.intercept('GET', '/api/*/project-types*').as('getInstanceTypes')
 
@@ -10,15 +10,19 @@ describe('FlowForge - Projects', () => {
 
     it('can be created', () => {
         const APPLICATION_NAME = `new-application-${Math.random().toString(36).substring(2, 7)}`
+        const INSTANCE_NAME = `new-instance-${Math.random().toString(36).substring(2, 7)}`
 
         cy.request('GET', 'api/v1/teams').then((response) => {
             const team = response.body.teams[0]
 
-            cy.visit(`/team/${team.slug}/projects/create`)
+            cy.visit(`/team/${team.slug}/applications/create`)
 
-            cy.intercept('POST', '/api/*/projects').as('createProject')
+            cy.intercept('POST', '/api/*/applications').as('createApplication')
+            cy.intercept('POST', '/api/*/projects').as('createInstance')
 
             cy.get('[data-action="create-project"]').should('be.disabled')
+
+            cy.get('[data-form="application-name"] input').clear().type(APPLICATION_NAME)
 
             // Pre-fills name
             cy.get('[data-form="project-name"] input').should(($input) => {
@@ -26,7 +30,7 @@ describe('FlowForge - Projects', () => {
                 expect(projectName.length).to.be.above(0)
             })
 
-            cy.get('[data-form="project-name"] input').clear().type(APPLICATION_NAME)
+            cy.get('[data-form="project-name"] input').clear().type(INSTANCE_NAME)
             cy.get('[data-action="create-project"]').should('be.disabled')
 
             cy.get('[data-form="project-type"]').contains('type1').click()
@@ -41,14 +45,16 @@ describe('FlowForge - Projects', () => {
 
             cy.get('[data-action="create-project"]').should('not.be.disabled').click()
 
-            cy.wait('@createProject')
+            cy.wait('@createApplication')
+            cy.wait('@createInstance')
 
             cy.contains(APPLICATION_NAME)
+            cy.contains(INSTANCE_NAME)
         })
     })
 
     it('can be viewed', () => {
-        cy.intercept('GET', '/api/*/projects/*').as('getProject')
+        cy.intercept('GET', '/api/*/applications/*').as('getApplication')
 
         cy.visit('/')
 
@@ -56,9 +62,9 @@ describe('FlowForge - Projects', () => {
 
         cy.wait('@getTeamApplications')
 
-        cy.contains('instance-1-1').click()
+        cy.contains('application-1').click()
 
-        cy.wait('@getProject')
+        cy.wait('@getApplication')
 
         cy.get('[data-el="banner-project-as-admin"]').should('not.exist')
 
@@ -69,7 +75,9 @@ describe('FlowForge - Projects', () => {
         cy.request('GET', 'api/v1/teams', { failOnStatusCode: false }).then((response) => {
             const team = response.body.teams[0]
 
-            cy.visit(`/team/${team.slug}/projects/create`)
+            cy.visit(`/team/${team.slug}/applications/create`)
+
+            cy.get('[data-form="application-name"] input').clear().type(`new-application-${Math.random().toString(36).substring(2, 7)}`)
 
             cy.get('[data-form="project-name"] input').clear().type('instance-1-1')
             cy.get('[data-form="project-type"]').contains('type1').click()
@@ -83,43 +91,26 @@ describe('FlowForge - Projects', () => {
     it('can be deleted', () => {
         const APPLICATION_NAME = `new-application-${Math.random().toString(36).substring(2, 7)}`
 
-        cy.intercept('DELETE', '/api/*/projects/*').as('deleteProject')
+        cy.intercept('DELETE', '/api/*/applications/*').as('deleteProject')
 
-        let team, template, stack, type
-
+        let team
         cy.request('GET', 'api/v1/teams')
             .then((response) => {
                 team = response.body.teams[0]
-                return cy.request('GET', 'api/v1/templates')
-            })
-            .then((response) => {
-                template = response.body.templates[0]
-                return cy.request('GET', 'api/v1/project-types')
-            })
-            .then((response) => {
-                type = response.body.types[0]
-                return cy.request('GET', `api/v1/stacks?projectType=${type.id}`)
-            })
-            .then((response) => {
-                stack = response.body.stacks[0]
-                return cy.request('POST', '/api/v1/projects', {
+                return cy.request('POST', '/api/v1/applications', {
                     name: APPLICATION_NAME,
-                    stack: stack.id,
-                    template: template.id,
-                    billingConfirmation: false,
-                    projectType: type.id,
-                    team: team.id
+                    teamId: team.id
                 })
             })
             .then((response) => {
-                cy.intercept('GET', '/api/*/projects/*').as('getProject')
+                cy.intercept('GET', '/api/*/applications/*').as('getApplication')
 
-                const project = response.body
-                cy.visit(`/application/${project.id}/settings`)
-                cy.wait('@getProject')
+                const application = response.body
+                cy.visit(`/application/${application.id}/settings`)
+                cy.wait('@getApplication')
 
                 cy.get('[data-el="delete-application-dialog"]').should('not.be.visible')
-                cy.get('button[data-action="delete-application"]').click()
+                cy.get('[data-action="delete-application"]').click()
 
                 cy.get('[data-el="delete-application-dialog"]')
                     .should('be.visible')
@@ -142,22 +133,28 @@ describe('FlowForge - Projects', () => {
     })
 })
 
-describe('FlowForge - Projects - With Billing', () => {
+describe('FlowForge - Applications - With Billing', () => {
     beforeEach(() => {
         cy.enableBilling()
     })
 
     it('can create a project that will charge the user', () => {
+        cy.intercept('POST', '/api/*/applications').as('createApplication')
+        cy.intercept('POST', '/api/*/projects').as('createInstance')
+
         cy.login('alice', 'aaPassword')
         cy.home()
 
         cy.request('GET', 'api/v1/teams').then((response) => {
             const team = response.body.teams[0]
 
-            cy.visit(`/team/${team.slug}/projects/create`)
+            cy.visit(`/team/${team.slug}/applications/create`)
+
+            cy.get('[data-action="create-project"]').should('be.disabled')
 
             cy.get('[data-el="charges-table"]').should('not.exist')
 
+            cy.get('[data-form="application-name"] input').clear().type(`new-application-${Math.random().toString(36).substring(2, 7)}`)
             cy.contains('type1').click()
 
             cy.get('[data-el="charges-table"]').should('exist')
@@ -184,12 +181,13 @@ describe('FlowForge - Projects - With Billing', () => {
         cy.request('GET', 'api/v1/teams').then((response) => {
             const team = response.body.teams[0]
 
-            cy.visit(`/team/${team.slug}/projects/create`)
+            cy.visit(`/team/${team.slug}/applications/create`)
 
             cy.wait('@getTeamBilling')
 
             cy.get('[data-el="charges-table"]').should('not.exist')
 
+            cy.get('[data-form="application-name"] input').clear().type(`new-application-${Math.random().toString(36).substring(2, 7)}`)
             cy.contains('type1').click()
 
             cy.get('[data-el="charges-table"]').should('exist')

@@ -114,7 +114,7 @@ export default [
         ]
     },
     {
-        path: '/team/:team_slug/application/create',
+        path: '/team/:team_slug/applications/create',
         name: 'CreateTeamApplication',
         component: CreateApplication,
         meta: {

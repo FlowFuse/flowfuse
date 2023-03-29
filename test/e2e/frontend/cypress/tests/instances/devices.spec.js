@@ -8,10 +8,10 @@ describe('FlowForge - Instance - Devices', () => {
                 return cy.request('GET', `/api/v1/teams/${team.id}/projects`)
             })
             .then((response) => {
-                const project = response.body.projects.find(
+                const instance = response.body.projects.find(
                     (project) => project.name === projectName
                 )
-                cy.visit(`/instance/${project.id}/devices`)
+                cy.visit(`/instance/${instance.id}/devices`)
                 cy.wait('@getInstanceRemoteInstances')
             })
     }
@@ -63,7 +63,9 @@ describe('FlowForge - Instance - Devices', () => {
 })
 
 describe('FlowForge shows audit logs', () => {
-    function navigateToProject (teamName, projectName) {
+    function navigateToInstance (teamName, projectName) {
+        cy.intercept('GET', '/api/*/projects/*/audit-log*').as('getInstanceAuditLog')
+
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {
                 const team = response.body.teams.find(
@@ -72,17 +74,18 @@ describe('FlowForge shows audit logs', () => {
                 return cy.request('GET', `/api/v1/teams/${team.id}/projects`)
             })
             .then((response) => {
-                const project = response.body.projects.find(
+                const instance = response.body.projects.find(
                     (project) => project.name === projectName
                 )
-                cy.visit(`/application/${project.id}/activity`)
+                cy.visit(`/instance/${instance.id}/audit-log`)
+                cy.wait('@getInstanceAuditLog')
             })
     }
 
     beforeEach(() => {
         cy.login('bob', 'bbPassword')
         cy.home()
-        navigateToProject('BTeam', 'instance-2-with-devices')
+        navigateToInstance('BTeam', 'instance-2-with-devices')
     })
 
     it('for when a snapshot is set as the device target', () => {
