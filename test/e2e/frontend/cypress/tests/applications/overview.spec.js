@@ -31,4 +31,9 @@ describe('FlowForge - Application - Overview', () => {
         cy.get('[data-el="cloud-instances"]').contains('instance-2-1')
         cy.get('[data-el="cloud-instances"]').contains('instance-2-with-devices')
     })
+
+    it('Start an instance')
+    it('Restart an instance')
+    it('Suspend an instance')
+    it('Delete an instance')
 })
