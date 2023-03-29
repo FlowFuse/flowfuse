@@ -52,8 +52,9 @@ describe('FlowForge platform admin users', () => {
         cy.get('[data-el="license-details"]').should('exist')
     })
 
-    it('can view projects from teams they\'re not a member of', () => {
-        cy.intercept('GET', '/api/*/projects/*').as('getProject')
+    it("can view applications and instances from teams they're not a member of", () => {
+        cy.intercept('GET', '/api/*/projects/*').as('getInstance')
+        cy.intercept('GET', '/api/*/applications/*').as('getApplication')
 
         cy.visit('/admin/overview')
 
@@ -66,16 +67,22 @@ describe('FlowForge platform admin users', () => {
 
         cy.get('[data-el="banner-team-as-admin"]').should('exist')
 
-        cy.get('[data-action="view-project"]').contains('project2').click()
+        cy.get('[data-action="view-application"]').contains('application-2').click()
 
-        cy.wait('@getProject')
+        cy.wait('@getApplication')
 
         cy.get('[data-el="banner-project-as-admin"]').should('exist')
+        cy.get('[data-action="open-editor"]').should('not.exist')
 
+        cy.get('[data-el="cloud-instances"] tr').contains('instance-2-1').click()
+
+        cy.wait('@getInstance')
+
+        cy.get('[data-el="banner-project-as-admin"]').should('exist')
         cy.get('[data-action="open-editor"]').should('not.exist')
     })
 
-    it('can view devices from teams they\'re not a member of', () => {
+    it("can view devices from teams they're not a member of", () => {
         cy.intercept('GET', '/api/*/projects/*').as('getProject')
         cy.intercept('GET', '/api/*/teams/*/devices').as('getDevices')
         cy.intercept('GET', '/api/*/devices/*').as('getDevice')

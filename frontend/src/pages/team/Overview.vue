@@ -8,7 +8,7 @@
                 </template>
             </SectionTopMenu>
             <template v-if="applicationCount > 0">
-                <ProjectSummaryList :projects="applications" :team="team" />
+                <ProjectSummaryList :applications="applications" :team="team" />
             </template>
             <template v-else>
                 <div v-if="!showingMessage" class="flex text-gray-500 justify-center italic mb-4 p-8">

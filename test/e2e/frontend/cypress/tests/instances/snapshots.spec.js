@@ -91,7 +91,7 @@ describe('FlowForge shows audit logs', () => {
     beforeEach(() => {
         cy.login('alice', 'aaPassword')
         cy.home()
-        navigateToProject('ATeam', 'project1')
+        navigateToProject('ATeam', 'instance-1-1')
     })
 
     it('for when a snapshot is created', () => {

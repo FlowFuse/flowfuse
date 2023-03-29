@@ -56,7 +56,7 @@ describe('FlowForge - Projects', () => {
 
         cy.wait('@getTeamApplications')
 
-        cy.contains('project1').click()
+        cy.contains('instance-1-1').click()
 
         cy.wait('@getProject')
 
@@ -71,7 +71,7 @@ describe('FlowForge - Projects', () => {
 
             cy.visit(`/team/${team.slug}/projects/create`)
 
-            cy.get('[data-form="project-name"] input').clear().type('project1')
+            cy.get('[data-form="project-name"] input').clear().type('instance-1-1')
             cy.get('[data-form="project-type"]').contains('type1').click()
 
             cy.get('[data-action="create-project"]').click()

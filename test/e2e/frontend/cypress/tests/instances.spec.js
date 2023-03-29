@@ -37,12 +37,12 @@ describe('FlowForge - Instances', () => {
 
         cy.wait('@getTeamApplications')
 
-        cy.contains('project1').click()
+        cy.contains('instance-1-1').click()
 
         cy.wait('@getProject')
 
         cy.get('[data-nav="project-overview"]').click()
-        cy.get('[data-el="cloud-instances"]').contains('project1').click()
+        cy.get('[data-el="cloud-instances"]').contains('instance-1-1').click()
         cy.get('[data-el="instances-section"]').should('exist')
 
         cy.get('[data-el="banner-project-as-admin"]').should('not.exist')
@@ -115,7 +115,7 @@ describe('FlowForge - Instances', () => {
     it('can be updated', () => {
         cy.intercept('GET', '/api/*/projects/*').as('getProject')
 
-        navigateToInstance('ATeam', 'project1')
+        navigateToInstance('ATeam', 'instance-1-1')
 
         cy.get('[data-nav="instance-settings"]').click()
         cy.get('[data-nav="general"]').click()
@@ -131,7 +131,7 @@ describe('FlowForge - Instances', () => {
 
             cy.get('[data-form="project-name"] input').should('be.disabled').should(($input) => {
                 const projectName = $input.val()
-                expect(projectName).to.equal('project1')
+                expect(projectName).to.equal('instance-1-1')
             })
 
             cy.get('[data-form="instance-stack"]').contains('stack2').click()
@@ -150,7 +150,7 @@ describe('FlowForge - Instances', () => {
         cy.wait('@updateProject')
         cy.wait('@getProject')
 
-        cy.contains('project1')
+        cy.contains('instance-1-1')
         cy.contains('type2 / stack1-for-type2')
 
         // Put it back how it was
@@ -166,7 +166,7 @@ describe('FlowForge - Instances', () => {
         cy.wait('@updateProject')
         cy.wait('@getProject')
 
-        cy.contains('project1')
+        cy.contains('instance-1-1')
         cy.contains('type1 / stack1')
     })
 
@@ -177,7 +177,7 @@ describe('FlowForge - Instances', () => {
 
         cy.visit('/')
 
-        navigateToInstance('ATeam', 'project1')
+        navigateToInstance('ATeam', 'instance-1-1')
 
         cy.wait('@getProject')
 
@@ -188,7 +188,7 @@ describe('FlowForge - Instances', () => {
         // Does not use same name
         cy.get('[data-form="project-name"] input').should(($input) => {
             const projectName = $input.val()
-            expect(projectName).not.to.be.equal('project1')
+            expect(projectName).not.to.be.equal('instance-1-1')
         })
 
         cy.get('[data-action="create-project"]').click()

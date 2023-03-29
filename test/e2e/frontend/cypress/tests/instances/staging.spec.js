@@ -23,7 +23,7 @@ describe('FlowForge - Instance Settings - DevOps', () => {
     })
 
     it('allow the selection of a target project from a list of all projects in the team', () => {
-        navigateToInstanceStaging('BTeam', 'project2')
+        navigateToInstanceStaging('BTeam', 'instance-2-1')
 
         // buttons should be disabled
         cy.get('[data-action="push-stage"]').should('be.disabled')
@@ -33,7 +33,7 @@ describe('FlowForge - Instance Settings - DevOps', () => {
         cy.get('[data-el="target-project"] .ff-dropdown').click()
         cy.get('[data-el="target-project"] .ff-dropdown-options').should('be.visible')
 
-        cy.get('[data-el="target-project"] .ff-dropdown-options > .ff-dropdown-option').eq(0).contains('project-with-devices').should('be.visible')
+        cy.get('[data-el="target-project"] .ff-dropdown-options > .ff-dropdown-option').eq(0).contains('instance-2-with-devices').should('be.visible')
         cy.get('[data-el="target-project"] .ff-dropdown-options > .ff-dropdown-option').eq(0).click()
 
         cy.get('[data-action="push-stage"]').should('not.be.disabled')
@@ -41,12 +41,12 @@ describe('FlowForge - Instance Settings - DevOps', () => {
 
         cy.get('[data-action="push-stage"]').click()
 
-        cy.get('.ff-dialog-header').contains('Push to "project-with-devices"')
+        cy.get('.ff-dialog-header').contains('Push to "instance-2-with-devices"')
         cy.get('.ff-dialog-box .ff-btn--primary').contains('Confirm').click()
     })
 
     it('successfully navigates to the Target Project when the option is selected', () => {
-        navigateToInstanceStaging('BTeam', 'project2')
+        navigateToInstanceStaging('BTeam', 'instance-2-1')
 
         // buttons should be disabled
         cy.get('[data-action="push-stage"]').should('be.disabled')
@@ -56,7 +56,7 @@ describe('FlowForge - Instance Settings - DevOps', () => {
         cy.get('[data-el="target-project"] .ff-dropdown').click()
         cy.get('[data-el="target-project"] .ff-dropdown-options').should('be.visible')
 
-        cy.get('[data-el="target-project"] .ff-dropdown-options > .ff-dropdown-option').eq(0).contains('project-with-devices').should('be.visible')
+        cy.get('[data-el="target-project"] .ff-dropdown-options > .ff-dropdown-option').eq(0).contains('instance-2-with-devices').should('be.visible')
         cy.get('[data-el="target-project"] .ff-dropdown-options > .ff-dropdown-option').eq(0).click()
 
         cy.get('[data-action="push-stage"]').should('not.be.disabled')
@@ -64,7 +64,7 @@ describe('FlowForge - Instance Settings - DevOps', () => {
 
         cy.get('[data-action="view-target-project"]').click()
 
-        cy.get('[data-el="instance-name"]').contains('project-with-devices')
+        cy.get('[data-el="instance-name"]').contains('instance-2-with-devices')
     })
 })
 
@@ -91,12 +91,12 @@ describe('FlowForge shows audit logs', () => {
     })
 
     it('for when a project is pushed to next stage', () => {
-        navigateToProjectActivity('BTeam', 'project2')
+        navigateToProjectActivity('BTeam', 'instance-2-1')
         cy.get('.ff-audit-entry').contains('Project Copied')
     })
 
     it('for when a project is imported', () => {
-        navigateToProjectActivity('BTeam', 'project-with-devices')
+        navigateToProjectActivity('BTeam', 'instance-2-with-devices')
         cy.get('.ff-audit-entry').contains('Project Imported')
     })
 })

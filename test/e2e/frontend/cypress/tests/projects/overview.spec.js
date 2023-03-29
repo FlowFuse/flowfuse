@@ -25,7 +25,7 @@ describe('FlowForge - Project - Overview', () => {
     })
 
     it('shows a list of cloud hosted instances', () => {
-        navigateToProject('BTeam', 'project2')
+        navigateToProject('BTeam', 'instance-2-1')
 
         cy.get('[data-el="cloud-instances"]').find('tbody tr').should('have.length', 1)
     })

@@ -24,13 +24,13 @@ describe('FlowForge - Instance - Devices', () => {
     })
 
     it('shows a placeholder message when no devices have been added to the project', () => {
-        navigateToProject('BTeam', 'project2')
+        navigateToProject('BTeam', 'instance-2-1')
 
         cy.get('[data-el="devices-section"]').get('[data-el="instance-no-devices"]').should('exist')
     })
 
     it('provides functionality to assign a snapshot', () => {
-        navigateToProject('BTeam', 'project-with-devices')
+        navigateToProject('BTeam', 'instance-2-with-devices')
 
         cy.get('[data-action="change-target-snapshot"]').contains('none')
 
@@ -82,7 +82,7 @@ describe('FlowForge shows audit logs', () => {
     beforeEach(() => {
         cy.login('bob', 'bbPassword')
         cy.home()
-        navigateToProject('BTeam', 'project-with-devices')
+        navigateToProject('BTeam', 'instance-2-with-devices')
     })
 
     it('for when a snapshot is set as the device target', () => {

@@ -1,16 +1,15 @@
 <template>
     <div class="grid md:grid-cols-2 gap-2">
-        <template v-if="projects && projects.length > 0">
-            <div class="forge-button-tertiary text-xs" v-for="project in projects" :key="project.id">
-                <router-link :to="{name: 'Application', params: {id: project.id}}" data-action="view-project" class="px-1 py-1 flex w-full">
+        <template v-if="applications && applications.length > 0">
+            <div class="forge-button-tertiary text-xs" v-for="application in applications" :key="application.id">
+                <router-link :to="{name: 'Application', params: {id: application.id}}" data-action="view-application" class="px-1 py-1 flex w-full">
                     <div class="flex-grow">
                         <div class="flex items-center mt-2">
                             <TemplateIcon class="w-6 h-6 mr-4" />
-                            <div class="text-base text-gray-800">{{project.name}}</div>
+                            <div class="text-base text-gray-800">{{application.name}}</div>
                         </div>
                         <div class="flex space-x-2 mt-4">
-                            <InstanceStatusBadge :status="project.status" />
-                            <div class="forge-badge">Updated: {{project.updatedSince}}</div>
+                            <i>To-do: No status or updated at for applications.</i>
                         </div>
                     </div>
                     <div class="flex">
@@ -35,14 +34,12 @@
 </template>
 
 <script>
-import InstanceStatusBadge from '../../instance/components/InstanceStatusBadge'
 import { PlusSmIcon, ChevronRightIcon, TemplateIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'MemberProjectSummaryList',
-    props: ['projects', 'team'],
+    props: ['applications', 'team'],
     components: {
-        InstanceStatusBadge,
         ChevronRightIcon,
         PlusSmIcon,
         TemplateIcon
