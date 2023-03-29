@@ -76,10 +76,10 @@ module.exports.init = async function (app) {
      * @param {string} code The user-friendly promo code 'FREEDONUTS'
      * @returns the promoCode id (`promo_xyz`) if valid, null otherwise
      */
-    async function getPromotionCodeId (code) {
+    async function getPromotionCode (code) {
         const promoCodes = await stripe.promotionCodes.list({ code, active: true })
         if (promoCodes.data?.length === 1) {
-            return promoCodes.data[0].id
+            return promoCodes.data[0]
         }
         return null
     }
@@ -113,6 +113,17 @@ module.exports.init = async function (app) {
                 cancel_url: `${app.config.base_url}/team/${team.slug}/overview`
             }
 
+            let userBillingCode
+            let promoCode
+            if (user) {
+                // Check to see if this user has a billingCode associated
+                userBillingCode = await app.billing.getUserBillingCode(user)
+                if (userBillingCode) {
+                    // Check to see if that is a valid stripe promotionCode
+                    promoCode = await getPromotionCode(userBillingCode.code)
+                }
+            }
+
             // Use existing Stripe customer
             const existingLocalSubscription = await app.db.models.Subscription.byTeamId(team.id)
             if (existingLocalSubscription?.customer) {
@@ -122,23 +133,22 @@ module.exports.init = async function (app) {
                 sub.customer_update = {
                     name: 'auto'
                 }
-            }
-            let userBillingCode
-            if (user) {
-                // Apply a USER provided coupon
-                userBillingCode = await app.billing.getUserBillingCode(user)
-            }
-            if (userBillingCode) {
-                const promoCodeId = await getPromotionCodeId(userBillingCode.code)
-                console.log(`${userBillingCode.code} -> ${promoCodeId}`)
-                if (promoCodeId) {
-                    sub.discounts = [
-                        {
-                            promotion_code: promoCodeId
-                        }
-                    ]
-                    sub.custom_text.submit.message += ` We will apply the code ${userBillingCode.code} to your subscription.`
+
+                if (promoCode?.restrictions?.first_time_transaction) {
+                    // This promoCode has been configured for one use per customer
+                    // As this is an existing customer (ie Team Subscription)
+                    // we cannot proceed with this coupon. The only option is
+                    // to continue without the coupon.
+                    promoCode = null
                 }
+            }
+            if (promoCode?.id) {
+                sub.discounts = [
+                    {
+                        promotion_code: promoCode.id
+                    }
+                ]
+                sub.custom_text.submit.message += ` We will apply the code ${userBillingCode.code} to your subscription.`
             } else {
                 sub.allow_promotion_codes = true
             }
@@ -488,8 +498,8 @@ module.exports.init = async function (app) {
         },
         setUserBillingCode: async (user, code) => {
             // Validate this is an active code
-            const promoCodeId = await getPromotionCodeId(code)
-            if (promoCodeId) {
+            const promoCode = await getPromotionCode(code)
+            if (promoCode?.id) {
                 // This is a valid code - store the original user-facing code rather
                 // than the underlying id. This will allow us to change the associated
                 // promo for this code rather than tying to exactly one.
