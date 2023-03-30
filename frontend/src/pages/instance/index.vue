@@ -26,7 +26,7 @@
                         <InstanceStatusBadge v-if="instance.meta" :status="instance.meta.state" :pendingStateChange="instance.pendingStateChange" />
                         <div class="w-full text-sm mt-1">
                             Application:
-                            <router-link :to="{name: 'Project', params: {id: instance.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ instance.name }}</router-link>
+                            <router-link :to="{name: 'Application', params: {id: instance.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ instance.application.name }}</router-link>
                         </div>
                     </div>
                 </template>

@@ -57,7 +57,7 @@ import { Roles } from '@core/lib/roles'
 // components
 import NavItem from '@/components/NavItem'
 import InstanceStatusHeader from '@/components/InstanceStatusHeader'
-import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
+import ProjectStatusBadge from '@/pages/instance/components/InstanceStatusBadge'
 import DeviceLastSeenBadge from '@/pages/device/components/DeviceLastSeenBadge'
 import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions'
 import SubscriptionExpiredBanner from '@/components/banners/SubscriptionExpired.vue'
