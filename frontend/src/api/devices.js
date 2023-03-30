@@ -22,6 +22,9 @@ const deleteDevice = async (deviceId) => {
 }
 const getDevice = async (deviceId) => {
     return await client.get(`/api/v1/devices/${deviceId}`).then(res => {
+        const device = res.data
+        device.lastSeenSince = device.lastSeenAt ? elapsedTime(0, device.lastSeenMs) + ' ago' : ''
+        res.data = device
         return res.data
     })
 }

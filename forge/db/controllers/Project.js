@@ -103,7 +103,7 @@ module.exports = {
                     if (components.credentialSecret) {
                         // This code path is currently unused. It is here
                         // for a future item where a user wants to export a project
-                        // out of the plaform. They will provide their own
+                        // out of the platform. They will provide their own
                         // credentialSecret value - which we will used to re-encrypt
                         // the project credentials
                         const projectSecret = await project.getCredentialSecret()
@@ -220,12 +220,14 @@ module.exports = {
         if (!envVars || !Array.isArray(envVars)) {
             envVars = []
         }
-        const makeVar = (name, value) => {
-            return { name, value: value || '', platform: true } // add `platform` flag for UI
+        const makeVar = (name, value, deprecated) => {
+            return { name, value: value || '', platform: true, deprecated } // add `platform` and `deprecated` flags for UI
         }
         const result = []
-        result.push(makeVar('FF_PROJECT_ID', project.id || ''))
-        result.push(makeVar('FF_PROJECT_NAME', project.name || ''))
+        result.push(makeVar('FF_INSTANCE_ID', project.id || ''))
+        result.push(makeVar('FF_INSTANCE_NAME', project.name || ''))
+        result.push(makeVar('FF_PROJECT_ID', project.id || '', true)) // deprecated as of V1.6.0
+        result.push(makeVar('FF_PROJECT_NAME', project.name || '', true)) // deprecated as of V1.6.0
         result.push(...app.db.controllers.Project.removePlatformSpecificEnvVars(envVars))
         return result
     },

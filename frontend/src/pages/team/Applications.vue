@@ -33,11 +33,10 @@
 
 <script>
 import { PlusSmIcon } from '@heroicons/vue/outline'
-// import { markRaw } from 'vue'
+import permissionsMixin from '@/mixins/Permissions'
 
 import teamApi from '@/api/team'
 import SectionTopMenu from '@/components/SectionTopMenu'
-import permissionsMixin from '@/mixins/Permissions'
 
 export default {
     name: 'TeamApplications',

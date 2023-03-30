@@ -48,8 +48,8 @@ describe('Device controller', function () {
         it('removes env vars', async function () {
             const dummyEnvVars = [
                 { name: 'FF_FUTURE_UNKNOWN_ENV_VAR', value: 'future unknown env var starting with FF_ should be removed' },
-                { name: 'FF_PROJECT_ID', value: 'a' },
-                { name: 'FF_DEVICE_NAME', value: 'b' },
+                { name: 'FF_INSTANCE_ID', value: 'a' },
+                { name: 'FF_INSTANCE_NAME', value: 'b' },
                 { name: 'FF_DEVICE_ID', value: 'c' },
                 { name: 'FF_DEVICE_NAME', value: 'd' },
                 { name: 'FF_DEVICE_TYPE', value: 'e' },

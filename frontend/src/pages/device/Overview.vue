@@ -8,14 +8,16 @@
 
             <table class="table-fixed w-full" v-if="device">
                 <tr class="border-b">
+                    <td class="w-1/4 font-medium">Last Seen</td>
+                    <td class="py-2">
+                        <DeviceLastSeenBadge :last-seen-at="device.lastSeenAt" :last-seen-ms="device.lastSeenMs" :last-seen-since="device.lastSeenSince" />
+                    </td>
+                </tr>
+                <tr class="border-b">
                     <td class="w-1/4 font-medium">Status</td>
                     <td class="py-2">
                         <InstanceStatusBadge :status="device.status"/>
                     </td>
-                </tr>
-                <tr class="border-b">
-                    <td class="w-1/4 font-medium">Last Seen</td>
-                    <td class="py-2">{{ lastSeen || "Not Available" }}</td>
                 </tr>
             </table>
         </div>
@@ -98,6 +100,7 @@ import elapsedTime from '@/utils/elapsedTime'
 // components
 import FormHeading from '@/components/FormHeading'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge'
+import DeviceLastSeenBadge from '@/pages/device/components/DeviceLastSeenBadge'
 
 // icons
 import { CheckCircleIcon, ExclamationIcon, TemplateIcon, WifiIcon } from '@heroicons/vue/outline'
@@ -108,6 +111,7 @@ export default {
     components: {
         FormHeading,
         InstanceStatusBadge,
+        DeviceLastSeenBadge,
         CheckCircleIcon,
         ExclamationIcon,
         TemplateIcon,
