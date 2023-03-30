@@ -506,6 +506,11 @@ $nav_height: 60px;
     .ff-side-navigation {
         display: flex;
         height: 100%;
+        .ff-side-navigation-divider {
+            height: 4px;
+            border-bottom: 1px solid $ff-grey-600;
+            background-color: $ff-grey-800;
+        }
         .ff-team-selection {
             height: 54px;
         }
