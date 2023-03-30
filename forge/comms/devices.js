@@ -12,7 +12,7 @@ class DeviceCommsHandler {
 
         // Listen for any incoming device status events
         client.on('status/device', (status) => { this.handleStatus(status) })
-        client.on('logs/device', (log) => { this.forwardLog(log)})
+        client.on('logs/device', (log) => { this.forwardLog(log) })
     }
 
     async handleStatus (status) {
