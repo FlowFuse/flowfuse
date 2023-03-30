@@ -128,9 +128,9 @@ export default {
                 }
             }
             // the high-level route link to "/projects"
-            if (route.to === '/projects') {
+            if (route.to === '/applications') {
                 // highlight it if we are currently viewing a single project
-                if (this.$route.path.indexOf('/project') === 0) {
+                if (this.$route.path.indexOf('/application') === 0) {
                     return true
                 }
             }
