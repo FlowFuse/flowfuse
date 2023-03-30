@@ -38,6 +38,7 @@ describe('Billing - Trial Housekeeper Task', function () {
     beforeEach(async function () {
         stripe = setup.setupStripe()
         app = await setup({ housekeeper: false })
+
         task = trialTask.init(app)
         TestObjects.tokens = {}
 
@@ -62,9 +63,12 @@ describe('Billing - Trial Housekeeper Task', function () {
         // TestObjects.ATeam - has billing setup, should not get touched
 
         // Create trial team without billing setup
-        const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id })
-        const trialSub = await app.db.controllers.Subscription.createTrialSubscription(trialTeam, Date.now() + 86400000)
+        const trialTeam = await app.factory.createTeam({ name: 'noBillingTeam' })
+        const trialSub = await app.factory.createTrialSubscription(trialTeam)
         await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+
+        // Create application for team
+        const application = await app.factory.createApplication({ name: 'trialApp' }, trialTeam)
 
         // Create project using the permitted projectType for trials - projectType1
         const response = await app.inject({
@@ -72,7 +76,7 @@ describe('Billing - Trial Housekeeper Task', function () {
             url: '/api/v1/projects',
             payload: {
                 name: 'billing-project',
-                team: trialTeam.hashid,
+                applicationId: application.hashid,
                 projectType: TestObjects.projectType1.hashid,
                 template: TestObjects.template1.hashid,
                 stack: TestObjects.stack1.hashid
@@ -114,10 +118,12 @@ describe('Billing - Trial Housekeeper Task', function () {
         // TestObjects.ATeam - has billing setup, should not get touched
 
         // Create trial team without billing setup
-        const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id })
-        const trialSub = await app.db.controllers.Subscription.createTrialSubscription(trialTeam, Date.now() + 86400000)
-
+        const trialTeam = await app.factory.createTeam({ name: 'noBillingTeam' })
+        const trialSub = await app.factory.createTrialSubscription(trialTeam)
         await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+
+        // Create application for team
+        const application = await app.factory.createApplication({ name: 'trialApp' }, trialTeam)
 
         // Create project using the permitted projectType for trials - projectType1
         const response = await app.inject({
@@ -125,7 +131,7 @@ describe('Billing - Trial Housekeeper Task', function () {
             url: '/api/v1/projects',
             payload: {
                 name: 'billing-project',
-                team: trialTeam.hashid,
+                applicationId: application.hashid,
                 projectType: TestObjects.projectType1.hashid,
                 template: TestObjects.template1.hashid,
                 stack: TestObjects.stack1.hashid
@@ -141,18 +147,16 @@ describe('Billing - Trial Housekeeper Task', function () {
         stripe.subscriptionItems.update.callCount.should.equal(0)
 
         // Enable billing on the team
-        const subscription = 'sub_1234567890'
-        const customer = 'cus_1234567890'
-        await app.db.controllers.Subscription.createSubscription(trialTeam, subscription, customer)
+        await app.factory.createSubscription(trialTeam)
         await trialSub.reload()
 
-        // Create another project - which should get billed normalled
+        // Create another project - which should get billed normally
         const response2 = await app.inject({
             method: 'POST',
             url: '/api/v1/projects',
             payload: {
                 name: 'billing-project-2',
-                team: trialTeam.hashid,
+                applicationId: application.hashid,
                 projectType: TestObjects.projectType1.hashid,
                 template: TestObjects.template1.hashid,
                 stack: TestObjects.stack1.hashid
@@ -197,10 +201,12 @@ describe('Billing - Trial Housekeeper Task', function () {
         // TestObjects.ATeam - has billing setup, should not get touched
 
         // Create trial team without billing setup
-        const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id })
-        const trialSub = await app.db.controllers.Subscription.createTrialSubscription(trialTeam, Date.now() + 86400000)
-
+        const trialTeam = await app.factory.createTeam({ name: 'noBillingTeam' })
+        const trialSub = await app.factory.createTrialSubscription(trialTeam)
         await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+
+        // Create application for team
+        const application = await app.factory.createApplication({ name: 'trialApp' }, trialTeam)
 
         // Create project using the permitted projectType for trials - projectType1
         const response = await app.inject({
@@ -208,7 +214,7 @@ describe('Billing - Trial Housekeeper Task', function () {
             url: '/api/v1/projects',
             payload: {
                 name: 'billing-project',
-                team: trialTeam.hashid,
+                applicationId: application.hashid,
                 projectType: TestObjects.projectType1.hashid,
                 template: TestObjects.template1.hashid,
                 stack: TestObjects.stack1.hashid
@@ -236,9 +242,7 @@ describe('Billing - Trial Housekeeper Task', function () {
         stripe.subscriptionItems.update.callCount.should.equal(0)
 
         // Enable billing on the team
-        const subscription = 'sub_1234567890'
-        const customer = 'cus_1234567890'
-        await app.db.controllers.Subscription.createSubscription(trialTeam, subscription, customer)
+        await app.factory.createSubscription(trialTeam)
         await trialSub.reload()
 
         // Expire the trial
@@ -263,10 +267,11 @@ describe('Billing - Trial Housekeeper Task', function () {
         // TestObjects.ATeam - has billing setup, should not get touched
 
         // Create trial team without billing setup
-        const trialTeam = await app.db.models.Team.create({ name: 'noBillingTeam', TeamTypeId: app.defaultTeamType.id })
-        // Start with a 30 day trial
-        const trialSub = await app.db.controllers.Subscription.createTrialSubscription(trialTeam, Date.now() + 30 * DAY_MS)
+        const trialTeam = await app.factory.createTeam({ name: 'noBillingTeam' })
         await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+
+        // Start with a 30 day trial
+        const trialSub = await app.factory.createTrialSubscription(trialTeam, 30)
 
         await task(app)
 
