@@ -1,0 +1,71 @@
+@import '~@flowforge/forge-ui-components/dist/scss/forge-colors.scss';
+
+.ff-applications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    > li {
+        background-color: white;
+        border-color: $ff-grey-300;
+        border-width: 1px;
+        border-style: solid;
+        border-radius: 6px;
+    }
+    .ff-application-list--app {
+        display: flex;
+        justify-content: space-between;
+        padding: 18px;
+        border-bottom: 1px solid $ff-grey-300;
+    }
+    .ff-applications-list--instance {
+        display: flex;
+        flex-direction: column;
+        span {
+            color: $ff-grey-400;
+            font-size: 0.75rem;;
+        }
+    }
+}
+
+.ff-applications-list-instances {
+    background-color: $ff-grey-50;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    padding: 12px;
+    padding-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    >label {
+        display: block;
+        font-size: 0.875rem;
+        color: $ff-grey-400;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        &::after {
+            content: '';
+            height: 1px;
+            flex-grow: 1;
+            background-color: $ff-grey-200;
+        }
+    }
+    > li {
+        background-color: white;
+        border-color: $ff-grey-300;
+        border-width: 1px;
+        border-style: solid;
+        border-radius: 6px;
+        padding: 12px;
+        display: grid;
+        align-items: center;
+        grid-template-columns: 1fr 100px minmax(auto, 250px) auto;
+        &:hover {
+            cursor: pointer;
+            border-color: $ff-blue-600;
+            .ff-application-list--instance {
+                color: $ff-blue-600;
+            }
+        }
+    }
+}

@@ -17,54 +17,37 @@
     <div class="space-y-6">
         <ff-loading v-if="loading" message="Loading Applications..." />
         <template v-else>
-            <ff-data-table
-                data-el="projects-table" :columns="columns" :show-search="false"
-                :rows-selectable="true" @row-selected="openApplication"
-            >
-                <template v-slot:header>
-                    <ff-data-table-row>
-                        <ff-data-table-cell>Name</ff-data-table-cell>
-                        <ff-data-table-cell>Node-RED Status</ff-data-table-cell>
-                        <ff-data-table-cell>Flows Last Deployed</ff-data-table-cell>
-                        <ff-data-table-cell></ff-data-table-cell>
-                    </ff-data-table-row>
-                </template>
-                <template v-slot:rows>
-                    <template v-for="application in Array.from(applications.values())" :key="application.id">
-                        <ff-data-table-row :selectable="true">
-                            <ff-data-table-cell class="text-base" @click="openApplication(application)" :colspan="4">{{  application.name  }}</ff-data-table-cell>
-                        </ff-data-table-row>
-                        <ff-data-table-row v-for="instance in application.instances" :key="instance.id"
-                                           class="ff-data-table--row--nested" :selectable="true" @selected="">
-                            <template #default>
-                                <ff-data-table-cell>{{ instance.name }}</ff-data-table-cell>
-                                <ff-data-table-cell><InstanceStatusBadge :status="application.instancesMap.get(instance.id).meta?.state" /></ff-data-table-cell>
-                                <ff-data-table-cell>
-                                    <span v-if="application.instancesMap.get(instance.id).flowLastUpdatedSince">
-                                        {{ application.instancesMap.get(instance.id).flowLastUpdatedSince }}
-                                    </span>
-                                    <span v-else class="text-gray-400">
-                                        never
-                                    </span>
-                                </ff-data-table-cell>
-                                <ff-data-table-cell>
-                                    <ff-button kind="secondary" :disabled="true"><template v-slot:icon-right><ExternalLinkIcon /></template>Open Editor</ff-button>
-                                </ff-data-table-cell>
-                            </template>
-                            <!-- <template v-slot:context-menu="{instance}">
-                                <ff-list-item label="Option 1" @click.stop="doSomething(instance)"/>
-                                <ff-list-item label="Option 2" @click.stop="doSomething(instance)"/>
-                                <ff-list-item label="Option 3" @click.stop="doSomething(instance)"/>
-                            </template> -->
-                        </ff-data-table-row>
-                    </template>
-                </template>
-                <template v-if="applications.length == 0" #table>
-                    <div class="ff-no-data ff-no-data-large">
-                        You don't have any applications yet
+            <ul class="ff-applications-list">
+                <li v-for="application in Array.from(applications.values())" :key="application.id">
+                    <div class="ff-application-list--app">
+                        <span>{{ application.name }}</span>
+                        <ff-kebab-menu>
+                            <ff-list-item label="View Application" @click="openApplication(application)"/>
+                        </ff-kebab-menu>
                     </div>
-                </template>
-            </ff-data-table>
+                    <ul class="ff-applications-list-instances">
+                        <label>Instances</label>
+                        <li v-for="instance in application.instances" :key="instance.id" @click.stop="openInstance(instance)">
+                            <div class="ff-applications-list--instance">
+                                <label>{{ instance.name }}</label>
+                                <span>instanceurl.flowforge.cloud</span>
+                            </div>
+                            <div><InstanceStatusBadge :status="application.instancesMap.get(instance.id).meta?.state" /></div>
+                            <div class="text-sm">
+                                <span v-if="application.instancesMap.get(instance.id).flowLastUpdatedSince">
+                                    {{ application.instancesMap.get(instance.id).flowLastUpdatedSince }}
+                                </span>
+                                <span v-else class="text-gray-400">
+                                    never
+                                </span>
+                            </div>
+                            <div>
+                                <ff-button kind="secondary" :disabled="true"><template v-slot:icon-right><ExternalLinkIcon /></template>Open Editor</ff-button>
+                            </div>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
         </template>
     </div>
     <router-view />
@@ -136,7 +119,19 @@ export default {
                     id: application.id
                 }
             })
+        },
+        openInstance (instance) {
+            this.$router.push({
+                name: 'Instance',
+                params: {
+                    id: instance.id
+                }
+            })
         }
     }
 }
 </script>
+
+<style lang="scss">
+@import "../../stylesheets/components/applications-list.scss";
+</style>
