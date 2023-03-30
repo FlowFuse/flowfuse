@@ -1,6 +1,7 @@
 import Device from '@/pages/device/index.vue'
 import DeviceOverview from '@/pages/device/Overview.vue'
 import DeviceSettings from '@/pages/device/Settings/index.vue'
+import DeviceLogs from '@/pages/device/Logs.vue'
 
 import DeviceSettingsGeneral from '@/pages/device/Settings/General.vue'
 import DeviceSettingsEnvironment from '@/pages/device/Settings/Environment.vue'
@@ -33,6 +34,13 @@ export default [
                     { path: 'environment', component: DeviceSettingsEnvironment },
                     { path: 'danger', component: DeviceSettingsDanger }
                 ]
+            },
+            {
+                path: 'logs',
+                component: DeviceLogs,
+                meta: {
+                    title: 'Device - Logs'
+                }
             }
         ]
     }

@@ -349,6 +349,14 @@ module.exports = async function (app) {
             })
         }
     })
+
+    app.get('/:deviceId/logs', {
+        websocket: true,
+        preHandler: app.needsPermission('device:read')
+    }, async (connection, request) => {
+        const team = await app.db.models.Team.byId(request.device.TeamId)
+        app.comms.devices.streamLogs(team.hashid, request.device.hashid, connection.socket)
+    })
 }
 async function assignDeviceToProject (device, project) {
     await device.setProject(project)
