@@ -341,7 +341,7 @@ describe('Billing routes', function () {
         })
 
         describe('customer.subscription.updated', () => {
-            it('Updates existing subscription status if it changes', async () => {
+            it('Updates existing subscription status if it changes - canceled', async () => {
                 const response = await (app.inject({
                     method: 'POST',
                     url: callbackURL,
@@ -380,7 +380,7 @@ describe('Billing routes', function () {
                 log.body.updates[0].new.should.equal('canceled')
             })
 
-            it('Ignores changes to unhandled statuses', async () => {
+            it('Updates existing subscription status if it changes - past_due', async () => {
                 const response = await (app.inject({
                     method: 'POST',
                     url: callbackURL,
@@ -404,9 +404,48 @@ describe('Billing routes', function () {
                         type: 'customer.subscription.updated'
                     }
                 }))
+                should(app.log.info.called).equal(true)
+                app.log.info.firstCall.firstArg.should.equal(`Stripe customer.subscription.updated event sub_1234567890 from cus_1234567890 received for team '${app.team.hashid}'`)
+
+                should(response).have.property('statusCode', 200)
+
+                const subscription = await app.db.models.Subscription.byCustomerId('cus_1234567890')
+                should(subscription.status).equal(app.db.models.Subscription.STATUS.PAST_DUE)
+                const log = await getLog()
+                log.event.should.equal('billing.subscription.updated')
+                log.body.updates.should.have.length(1)
+                log.body.updates[0].key.should.equal('status')
+                log.body.updates[0].old.should.equal('active')
+                log.body.updates[0].new.should.equal('past_due')
+            })
+
+            it('Ignores changes to unhandled statuses', async () => {
+                const response = await (app.inject({
+                    method: 'POST',
+                    url: callbackURL,
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    payload: {
+                        id: 'evt_1MEUqIJ6VWAujNoLDtlTRH3f',
+                        object: 'event',
+                        data: {
+                            object: {
+                                id: 'sub_1234567890',
+                                object: 'subscription',
+                                customer: 'cus_1234567890',
+                                status: 'unpaid'
+                            },
+                            previous_attributes: {
+                                status: 'active'
+                            }
+                        },
+                        type: 'customer.subscription.updated'
+                    }
+                }))
 
                 should(app.log.warn.called).equal(true)
-                app.log.warn.firstCall.firstArg.should.equal("Stripe subscription sub_1234567890 has transitioned in Stripe to a state not currently handled: 'past_due'")
+                app.log.warn.firstCall.firstArg.should.equal("Stripe subscription sub_1234567890 has transitioned in Stripe to a state not currently handled: 'unpaid'")
 
                 should(response).have.property('statusCode', 200)
 
