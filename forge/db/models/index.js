@@ -50,6 +50,7 @@ const { getHashId } = require('../utils')
 
 // The models that should be loaded
 const modelTypes = [
+    'Application',
     'PlatformSettings',
     'Organization',
     'User',
