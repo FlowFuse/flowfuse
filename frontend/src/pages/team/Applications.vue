@@ -20,7 +20,7 @@
             <ul class="ff-applications-list">
                 <li v-for="application in Array.from(applications.values())" :key="application.id">
                     <div class="ff-application-list--app">
-                        <span>{{ application.name }}</span>
+                        <span><TemplateIcon class="ff-icon text-gray-600" />{{ application.name }}</span>
                         <ff-kebab-menu>
                             <ff-list-item label="View Application" @click="openApplication(application)"/>
                         </ff-kebab-menu>
@@ -28,6 +28,7 @@
                     <ul class="ff-applications-list-instances">
                         <label>Instances</label>
                         <li v-for="instance in application.instances" :key="instance.id" @click.stop="openInstance(instance)">
+                            <ProjectIcon class="ff-icon text-gray-600"/>
                             <div class="ff-applications-list--instance">
                                 <label>{{ instance.name }}</label>
                                 <span>instanceurl.flowforge.cloud</span>
@@ -54,7 +55,8 @@
 </template>
 
 <script>
-import { PlusSmIcon, ExternalLinkIcon } from '@heroicons/vue/outline'
+import { PlusSmIcon, ExternalLinkIcon, TemplateIcon } from '@heroicons/vue/outline'
+import ProjectIcon from '../../components/icons/Projects'
 import permissionsMixin from '@/mixins/Permissions'
 
 import teamApi from '@/api/team'
@@ -66,8 +68,10 @@ import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 export default {
     name: 'TeamApplications',
     components: {
+        TemplateIcon,
         ExternalLinkIcon,
         PlusSmIcon,
+        ProjectIcon,
         SectionTopMenu,
         InstanceStatusBadge
     },

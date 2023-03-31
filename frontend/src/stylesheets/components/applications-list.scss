@@ -16,6 +16,11 @@
         justify-content: space-between;
         padding: 18px;
         border-bottom: 1px solid $ff-grey-300;
+        >span {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
     }
     .ff-applications-list--instance {
         display: flex;
@@ -59,7 +64,7 @@
         padding: 12px;
         display: grid;
         align-items: center;
-        grid-template-columns: 1fr 100px minmax(auto, 250px) auto;
+        grid-template-columns: 32px 1fr 100px minmax(auto, 250px) auto;
         &:hover {
             cursor: pointer;
             border-color: $ff-blue-600;
