@@ -16,7 +16,7 @@
     </SectionTopMenu>
     <div class="space-y-6">
         <ff-loading v-if="loading" message="Loading Applications..." />
-        <template v-else>
+        <template v-else-if="!loading && Array.from(applications.values()).length > 0">
             <ul class="ff-applications-list">
                 <li v-for="application in Array.from(applications.values())" :key="application.id">
                     <div class="ff-application-list--app">
@@ -55,6 +55,9 @@
                 </li>
             </ul>
         </template>
+        <div v-else class="ff-no-data">
+            No Applications Created
+        </div>
     </div>
     <router-view />
 </template>
