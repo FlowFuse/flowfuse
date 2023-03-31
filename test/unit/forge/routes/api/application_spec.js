@@ -450,14 +450,14 @@ describe('Application API', function () {
             result.should.have.property('instances')
             result.instances.should.have.length(3)
 
-            result.instances[0].id.should.equal(instance1.id)
-            result.instances[0].meta.state.should.equal('running')
+            const instance1Results = result.instances.find((instance) => instance.id === instance1.id)
+            instance1Results.meta.state.should.equal('running')
 
-            result.instances[1].id.should.equal(instance2.id)
-            result.instances[1].meta.state.should.equal('suspended')
+            const instance2Results = result.instances.find((instance) => instance.id === instance2.id)
+            instance2Results.meta.state.should.equal('suspended')
 
-            result.instances[2].id.should.equal(instance3.id)
-            result.instances[2].meta.state.should.equal('unknown')
+            const instance3Results = result.instances.find((instance) => instance.id === instance3.id)
+            instance3Results.meta.state.should.equal('unknown')
         })
     })
 })
