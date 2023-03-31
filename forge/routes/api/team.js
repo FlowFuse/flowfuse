@@ -97,6 +97,7 @@ module.exports = async function (app) {
             if (subscription) {
                 result.billing.active = subscription.isActive()
                 result.billing.canceled = subscription.isCanceled()
+                result.billing.pastDue = subscription.isPastDue()
                 if (subscription.isTrial()) {
                     result.billing.trial = true
                     result.billing.trialEnded = subscription.isTrialEnded()
@@ -236,11 +237,7 @@ module.exports = async function (app) {
             const teamView = app.db.views.Team.team(team)
 
             if (app.license.active() && app.billing) {
-                let coupon
-                if (request.cookies.ff_coupon) {
-                    coupon = request.unsignCookie(request.cookies.ff_coupon)?.valid ? request.unsignCookie(request.cookies.ff_coupon).value : undefined
-                }
-                const session = await app.billing.createSubscriptionSession(team, coupon, request.session.User)
+                const session = await app.billing.createSubscriptionSession(team, request.session.User)
                 app.auditLog.Team.billing.session.created(request.session.User, null, team, session)
                 teamView.billingURL = session.url
             }
@@ -258,7 +255,6 @@ module.exports = async function (app) {
             } else {
                 responseMessage = err.toString()
             }
-            reply.clearCookie('ff_coupon', { path: '/' })
             reply.code(400).send({ code: 'unexpected_error', error: responseMessage })
         }
     })

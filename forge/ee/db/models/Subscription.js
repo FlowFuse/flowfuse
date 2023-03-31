@@ -10,7 +10,7 @@ const STATUS = {
     // https://stripe.com/docs/billing/subscriptions/overview#subscription-statuses
     ACTIVE: 'active',
     CANCELED: 'canceled',
-
+    PAST_DUE: 'past_due',
     // Local only status, not from Stripe
     TRIAL: 'trial'
 }
@@ -67,10 +67,13 @@ module.exports = {
             instance: {
                 // Should this subscription be treated as active/usable
                 isActive () {
-                    return this.status === STATUS.ACTIVE
+                    return this.status === STATUS.ACTIVE || this.status === STATUS.PAST_DUE
                 },
                 isCanceled () {
                     return this.status === STATUS.CANCELED
+                },
+                isPastDue () {
+                    return this.status === STATUS.PAST_DUE
                 },
                 isTrial () {
                     return !!this.trialEndsAt || this.status === STATUS.TRIAL
