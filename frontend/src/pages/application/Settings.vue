@@ -1,5 +1,5 @@
 <template>
-    <SectionTopMenu hero="Application Settings" info="Live logs from your FlowForge instances of Node-RED" />
+    <SectionTopMenu hero="Settings" info="Live logs from your FlowForge instances of Node-RED" />
     <div class="flex flex-col sm:flex-row mt-3 ml-6">
         <SectionSideMenu :options="sideNavigation" />
         <div class="space-y-6">

@@ -2,11 +2,7 @@
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigationTeamOptions>
             <template #nested-menu>
-                <router-link v-if="instance.application?.id" :to="{name: 'Application', params: { id: instance.application?.id }}">
-                    <nav-item :icon="icons.chevronLeft" label="Back to Application" data-nav="project-overview" />
-                </router-link>
-
-                <li class="ff-navigation-divider">{{ instance.name ?? 'Instance' }}</li>
+                <div class="ff-nested-title">Instance</div>
                 <router-link v-for="route in navigation" :key="route.label" :to="route.path">
                     <nav-item :icon="route.icon" :label="route.label" :data-nav="route.tag" />
                 </router-link>
@@ -22,11 +18,15 @@
         <div class="ff-instance-header">
             <InstanceStatusHeader>
                 <template #hero>
-                    <div class="flex-grow space-x-6 items-center inline-flex" data-el="instance-name">
-                        <div class="text-gray-800 text-xl font-bold">
+                    <div class="flex-grow items-center inline-flex flex-wrap" data-el="instance-name">
+                        <div class="text-gray-800 text-xl font-bold mr-6">
                             {{ instance.name }}
                         </div>
                         <InstanceStatusBadge v-if="instance.meta" :status="instance.meta.state" :pendingStateChange="instance.pendingStateChange" />
+                        <div class="w-full text-sm mt-1">
+                            Application:
+                            <router-link :to="{name: 'Project', params: {id: instance.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ instance.name }}</router-link>
+                        </div>
                     </div>
                 </template>
                 <template #tools>

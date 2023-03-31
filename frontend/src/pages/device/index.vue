@@ -10,27 +10,39 @@
             </template>
         </SideNavigationTeamOptions>
     </Teleport>
-    <main>
+    <main class="ff-with-status-header">
         <Teleport v-if="mounted" to="#platform-banner">
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">You are viewing this team as an Administrator</div>
             <SubscriptionExpiredBanner :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
         </Teleport>
-        <SectionTopMenu>
-            <template #hero>
-                <div class="flex-grow space-x-6 items-center inline-flex">
-                    <router-link :to="navigation[0]?navigation[0].path:''" class="inline-flex items-center" data-nav="device-overview">
-                        <div class="text-gray-800 text-xl font-bold">{{ device?.name }}</div>
-                        <div class="text-gray-400 text-md font-bold ml-3">{{ device?.type }}</div>
-                    </router-link>
-                </div>
-            </template>
-        </SectionTopMenu>
+        <div class="ff-instance-header">
+            <InstanceStatusHeader>
+                <template #hero>
+                    <div class="flex-grow items-center inline-flex flex-wrap" data-el="device-name">
+                        <div class="text-gray-800 text-xl font-bold mr-6">
+                            {{ device.name }}
+                        </div>
+                        <DeviceLastSeenBadge class="mr-6" :last-seen-at="device.lastSeenAt" :last-seen-ms="device.lastSeenMs" :last-seen-since="device.lastSeenSince" />
+                        <ProjectStatusBadge :status="device.status" />
+                        <div class="w-full text-sm mt-1">
+                            <div v-if="device?.project">
+                                Instance:
+                                <router-link :to="{name: 'Instance', params: {id: device.project.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.project.name }}</router-link>
+                            </div>
+                            <span v-else class="text-gray-400 italic">Device Not Assigned to an Instance</span>
+                        </div>
+                    </div>
+                </template>
+            </InstanceStatusHeader>
+        </div>
         <div class="text-sm sm:px-6 mt-4 sm:mt-8">
             <Teleport v-if="mounted && isVisitingAdmin" to="#platform-banner">
                 <div class="ff-banner" data-el="banner-device-as-admin">You are viewing this device as an Administrator</div>
             </Teleport>
-            <router-view :device="device" @device-updated="loadDevice()"></router-view>
+            <div class="px-3 pb-3 md:px-6 md:pb-6">
+                <router-view :device="device" @device-updated="loadDevice()"></router-view>
+            </div>
         </div>
     </main>
 </template>
@@ -44,7 +56,9 @@ import { Roles } from '@core/lib/roles'
 
 // components
 import NavItem from '@/components/NavItem'
-import SectionTopMenu from '@/components/SectionTopMenu'
+import InstanceStatusHeader from '@/components/InstanceStatusHeader'
+import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
+import DeviceLastSeenBadge from '@/pages/device/components/DeviceLastSeenBadge'
 import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions'
 import SubscriptionExpiredBanner from '@/components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '@/components/banners/TeamTrial.vue'
@@ -56,7 +70,9 @@ export default {
     name: 'DevicePage',
     components: {
         NavItem,
-        SectionTopMenu,
+        InstanceStatusHeader,
+        ProjectStatusBadge,
+        DeviceLastSeenBadge,
         SideNavigationTeamOptions,
         SubscriptionExpiredBanner,
         TeamTrialBanner

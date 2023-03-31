@@ -20,6 +20,7 @@
                     <td class="px-4 py-4 border w-auto align-top">
                         <FormRow
                             class="font-mono"
+                            :inputClass="item.deprecated ? 'text-yellow-700 italic' : ''"
                             v-model="item.name"
                             :error="item.error"
                             :disabled="item.encrypted"
@@ -31,6 +32,7 @@
                         <div class="w-full" v-if="!item.encrypted">
                             <FormRow
                                 class="font-mono"
+                                :inputClass="item.deprecated ? 'text-yellow-700 italic' : ''"
                                 v-model="item.value"
                                 value-empty-text=""
                                 :type="(!readOnly && (editTemplate || item.policy === undefined || item.policy))?'text':'uneditable'"></FormRow>
@@ -45,6 +47,12 @@
                                 </template>
                             </ff-button>
                         </div>
+                        <div
+                            v-else-if="(item.deprecated === true)"
+                            class="flex justify-center "
+                            v-ff-tooltip:left="'This setting has been deprecated'">
+                            <ExclamationIcon class="inline text-yellow-700 w-4" />
+                        </div>
                         <div v-else-if="(item.platform === true)" class="flex justify-center ">
                             <LockClosedIcon class="inline w-4" />
                         </div>
@@ -58,7 +66,7 @@
                         No Environment Variables Defined
                     </td>
                 </tr>
-                <!-- Empty row to differentiate between the existing env vars, and the iput form row-->
+                <!-- Empty row to differentiate between the existing env vars, and the input form row-->
                 <tr v-if="!readOnly">
                     <td :colspan="editTemplate?4:3" class="p-4 bg-gray-50"></td>
                 </tr>
@@ -93,7 +101,7 @@ import FormRow from '@/components/FormRow'
 import FormHeading from '@/components/FormHeading'
 import LockSetting from '../components/LockSetting'
 import ChangeIndicator from '../components/ChangeIndicator'
-import { TrashIcon, PlusSmIcon, LockClosedIcon } from '@heroicons/vue/outline'
+import { TrashIcon, PlusSmIcon, LockClosedIcon, ExclamationIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'TemplateEnvironmentEditor',
@@ -142,7 +150,7 @@ export default {
                     if (this.envVarNames[field.name] === undefined) {
                         this.envVarNames[field.name] = i
                     }
-                    if (field.policy === undefined && field.platform === true) {
+                    if (field.policy === undefined && (field.platform === true || field.deprecated === true)) {
                         field.policy = false
                     }
                     if (field.policy === undefined && this.envVarNames[field.name] !== i) {
@@ -189,7 +197,8 @@ export default {
         ChangeIndicator,
         TrashIcon,
         PlusSmIcon,
-        LockClosedIcon
+        LockClosedIcon,
+        ExclamationIcon
     }
 }
 </script>

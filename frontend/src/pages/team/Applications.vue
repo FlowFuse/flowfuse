@@ -33,7 +33,6 @@
 
 <script>
 import { PlusSmIcon } from '@heroicons/vue/outline'
-// import { markRaw } from 'vue'
 
 import teamApi from '@/api/team'
 import SectionTopMenu from '@/components/SectionTopMenu'
@@ -52,9 +51,7 @@ export default {
             loading: false,
             applications: [],
             columns: [
-                { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true },
-                // { label: 'Status', class: ['w-44'], key: 'status', sortable: true, component: { is: markRaw(InstanceStatusBadge) } },
-                { label: 'Updated', class: ['w-44', 'text-xs'], key: 'updatedSince', sortable: true }
+                { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true }
             ]
         }
     },

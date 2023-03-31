@@ -72,6 +72,15 @@
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
+                <FormRow v-model="editable.settings.theme" :disabled="!editTemplate && !editable.policy.theme" type="select" :options="themes">
+                    Editor Theme
+                    <template #append><ChangeIndicator :value="editable.changed.settings.theme"></ChangeIndicator></template>
+                </FormRow>
+            </div>
+            <LockSetting class="flex justify-end flex-col" :editTemplate="editTemplate" v-model="editable.policy.theme" :changed="editable.changed.policy.theme"></LockSetting>
+        </div>
+        <div class="flex flex-col sm:flex-row">
+            <div class="w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.timeZone" :disabled="!editTemplate && !editable.policy.timeZone" type="select" :options="timezones">
                     Time Zone
                     <template #append><ChangeIndicator :value="editable.changed.settings.timeZone"></ChangeIndicator></template>
@@ -129,7 +138,6 @@ export default {
         return {
             timezones: timezonesData.timezones,
             themes: [
-                { label: 'Node-RED', value: '' },
                 { label: 'FlowForge Light', value: 'forge-light' },
                 { label: 'FlowForge Dark', value: 'forge-dark' }
             ] // FUTURE: Get from theme plugins

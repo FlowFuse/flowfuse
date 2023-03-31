@@ -23,6 +23,11 @@ Model      | Description
 If you are just getting started with FlowForge and want to evaluate what it can do,
 we recommend starting with the [Local model](./local/README.md).
 
+### Digital Ocean Marketplace
+
+At this time FlowForge can be installed through the
+[Digital Ocean Marketplace](https://marketplace.digitalocean.com/apps/flowforge).
+
 ## Upgrading FlowForge
 
 If you are upgrading FlowForge, please refer to the [Upgrade Guide](../upgrade/README.md)

@@ -130,7 +130,7 @@ describe('Billing', function () {
                     await newTeam.addUser(user, { through: { role: Roles.Owner } })
                     should.equal(await app.db.controllers.Subscription.userEligibleForFreeTrialCredit(user, true), true)
 
-                    const result = await app.billing.createSubscriptionSession(newTeam, null, user)
+                    const result = await app.billing.createSubscriptionSession(newTeam, user)
 
                     result.should.have.property('subscription_data')
                     result.subscription_data.should.have.property('metadata')
@@ -144,7 +144,7 @@ describe('Billing', function () {
                     await secondTeam.addUser(userAlice, { through: { role: Roles.Owner } })
                     should.equal(await app.db.controllers.Subscription.userEligibleForFreeTrialCredit(userAlice, true), false)
 
-                    const result = await app.billing.createSubscriptionSession(secondTeam, null, userAlice)
+                    const result = await app.billing.createSubscriptionSession(secondTeam, userAlice)
 
                     result.should.have.property('subscription_data')
                     result.subscription_data.should.have.property('metadata')
@@ -174,12 +174,37 @@ describe('Billing', function () {
                 await newTeam.addUser(user, { through: { role: Roles.Owner } })
                 should.equal(await app.db.controllers.Subscription.userEligibleForFreeTrialCredit(user, true), true)
 
-                const result = await app.billing.createSubscriptionSession(newTeam, null, user)
+                const result = await app.billing.createSubscriptionSession(newTeam, user)
 
                 result.should.have.property('subscription_data')
                 result.subscription_data.should.have.property('metadata')
                 result.subscription_data.metadata.should.not.have.property('free_trial')
                 result.subscription_data.metadata.should.not.have.property('free_trial', true)
+            })
+        })
+
+        describe('billing codes', function () {
+            it('creates a session with a user billing code', async function () {
+                app = await setup({
+                    billing: {
+                        stripe: {
+                            key: 1234,
+                            team_product: 'defaultteamprod',
+                            team_price: 'defaultteamprice'
+                        }
+                    }
+                })
+
+                const defaultTeamType = await app.db.models.TeamType.findOne()
+                const newTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
+                const userAlice = await app.db.models.User.byEmail('alice@example.com')
+
+                await app.billing.setUserBillingCode(userAlice, 'KNOWN_CODE')
+
+                const result = await app.billing.createSubscriptionSession(newTeam, userAlice)
+
+                result.should.have.property('discounts')
+                result.discounts[0].should.have.property('promotion_code', 'knownCodeId')
             })
         })
     })

@@ -14,7 +14,7 @@ Changes will only take effect when the Node-RED instance is restarted.
 
 The [Template](concepts.md#template) may include some predefined environment 
 variables that are automatically applied. The template may lock some of those 
-ariables to prevent an individual instance from changing them.
+variables to prevent an individual instance from changing them.
 
 Variables provided by the template cannot be deleted, however if they are editable,
 their value can be set to blank.
@@ -39,13 +39,16 @@ The third one `user` is set for the instance, the value can be edited or the var
 
 Instances running on FlowForge are assigned a standard set environment variables as follows.
 
-- `FF_PROJECT_ID`
-- `FF_PROJECT_NAME`
+- `FF_INSTANCE_ID`
+- `FF_INSTANCE_NAME`
+- `FF_PROJECT_ID` (depreciated as of V1.6.0, use `FF_INSTANCE_ID` instead)
+- `FF_PROJECT_NAME` (depreciated as of V1.6.0, use `FF_INSTANCE_NAME` instead)
 - `FF_DEVICE_ID` (devices only)
 - `FF_DEVICE_NAME` (devices only)
+- `FF_DEVICE_TYPE` (devices only)
 
-`FF_PROJECT_ID` and `FF_PROJECT_NAME` are assigned to the Node-RED instance running on the FlowForge server as well as all associated Devices.
+`FF_INSTANCE_ID` and `FF_INSTANCE_NAME` are assigned to the Node-RED instance running on the FlowForge server as well as all associated Devices.
 
-Devices also have `FF_DEVICE_ID` and `FF_DEVICE_NAME` set so that flows can know where they are running.
+Devices also have `FF_DEVICE_ID`, `FF_DEVICE_NAME` and `FF_DEVICE_TYPE` set so that flows can know where they are running.
 
 

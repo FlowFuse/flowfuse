@@ -273,6 +273,9 @@ describe('Billing - Trial Housekeeper Task', function () {
         // Start with a 30 day trial
         const trialSub = await app.factory.createTrialSubscription(trialTeam, 30)
 
+        // Generate the billing Url for later checking that emails contain it
+        const billingUrl = `${app.config.base_url}/team/${trialTeam.slug}/billing`
+
         await task(app)
 
         // Nothing should have happened
@@ -288,7 +291,11 @@ describe('Billing - Trial Housekeeper Task', function () {
         app.config.email.transport.messages.should.have.length(1)
         await trialSub.reload()
         trialSub.trialStatus.should.equal(app.db.models.Subscription.TRIAL_STATUS.WEEK_EMAIL_SENT)
-        app.config.email.transport.messages[0].text.includes(' 7 days.').should.be.true()
+        const email1 = app.config.email.transport.messages[0]
+        email1.text.includes(' 7 days.').should.be.true()
+        // check that the email includes the billing url to conform with stripe/visa requirements
+        email1.should.have.a.property('text').and.containEql(billingUrl)
+        email1.should.have.a.property('html').and.containEql(billingUrl)
 
         // Rerun task - ensure email not sent again
         await task(app)
@@ -302,7 +309,11 @@ describe('Billing - Trial Housekeeper Task', function () {
         app.config.email.transport.messages.should.have.length(2)
         await trialSub.reload()
         trialSub.trialStatus.should.equal(app.db.models.Subscription.TRIAL_STATUS.DAY_EMAIL_SENT)
-        app.config.email.transport.messages[1].text.includes(' 1 day.').should.be.true()
+        const email2 = app.config.email.transport.messages[1]
+        email2.text.includes(' 1 day.').should.be.true()
+        // check that the email text includes the billing url to conform with stripe/visa requirements
+        email2.should.have.a.property('text').and.containEql(billingUrl)
+        email2.should.have.a.property('html').and.containEql(billingUrl)
 
         // Rerun task - ensure email not sent again
         await task(app)
