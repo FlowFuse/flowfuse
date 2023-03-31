@@ -102,7 +102,6 @@ import FormHeading from '@/components/FormHeading'
 
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge'
-import DeviceLastSeenBadge from '@/pages/device/components/DeviceLastSeenBadge'
 
 // icons
 import { CheckCircleIcon, ExclamationIcon, TemplateIcon, WifiIcon } from '@heroicons/vue/outline'
