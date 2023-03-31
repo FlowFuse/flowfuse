@@ -11,6 +11,15 @@ const createApplication = async (options) => {
 /**
  * @param {string} applicationId
  */
+const updateApplication = async (applicationId, name) => {
+    return client.put(`/api/v1/applications/${applicationId}`, { name }).then(res => {
+        return res.data
+    })
+}
+
+/**
+ * @param {string} applicationId
+ */
 const deleteApplication = async (applicationId) => {
     return client.delete(`/api/v1/applications/${applicationId}`)
 }
@@ -61,6 +70,7 @@ const getApplicationInstancesStatuses = async (applicationId, cursor, limit) => 
 
 export default {
     createApplication,
+    updateApplication,
     deleteApplication,
     getApplication,
     getApplicationInstances,
