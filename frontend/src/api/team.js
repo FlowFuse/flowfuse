@@ -33,8 +33,11 @@ const deleteTeam = async (teamId) => {
  * Get a list of projects for a team.
  * The status of each project will be added to the project object.
  * @param {string} teamId The Team ID (hash) to get projects for
+ * @deprecated
  */
 const getTeamProjects = async (teamId) => {
+    console.warn('This method is deprecated.')
+
     const res = await client.get(`/api/v1/teams/${teamId}/projects`)
     const promises = []
     res.data.projects = res.data.projects.map(r => {
@@ -60,8 +63,11 @@ const getTeamProjects = async (teamId) => {
  * @param {string} teamId The Team ID (hash) to get projects for
  * @see getTeamProjects
  * @returns {[{id: string, name: string}]} An array of project objects containing name and id
+ * @deprecated
  */
 const getTeamProjectList = async (teamId) => {
+    console.warn('This method is deprecated.')
+
     const res = await client.get(`/api/v1/teams/${teamId}/projects`)
     const list = res.data.projects.map(r => {
         return {
@@ -74,12 +80,22 @@ const getTeamProjectList = async (teamId) => {
 
 /**
  * Get a list of applications
- * This function does not get project status
- * @param {string} teamId The Team ID (hash) to get projects for
- * @returns An array of application objects
+ * This function does not get instance status
+ * @param {string} teamId The Team ID (hash) to get applications and instances for
+ * @returns An array of application objects containing an array of instances
  */
 const getTeamApplications = async (teamId) => {
     const result = await client.get(`/api/v1/teams/${teamId}/applications`)
+    return result.data
+}
+
+/**
+ * Get a list of applications, their instances, and the status of each instance
+ * @param {string} teamId The Team ID (hash) to get applications and instances for
+ * @returns An array of application ids containing an array of instance statuses
+ */
+const getTeamApplicationsInstanceStatuses = async (teamId) => {
+    const result = await client.get(`/api/v1/teams/${teamId}/applications/status`)
     return result.data
 }
 
@@ -257,6 +273,7 @@ export default {
     updateTeam,
     getTeams,
     getTeamApplications,
+    getTeamApplicationsInstanceStatuses,
     getTeamProjects,
     getTeamProjectList,
     getTeamMembers,

@@ -173,13 +173,7 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const instances = await app.db.models.Project.byApplication(request.application.hashid)
         if (instances) {
-            const instanceStatuses = await Promise.all(
-                instances.map((instance) =>
-                    instance.liveState().then((state) => {
-                        return { id: instance.id, ...state }
-                    })
-                )
-            )
+            const instanceStatuses = await app.db.views.Application.instanceStatuses(instances)
             reply.send({
                 count: instanceStatuses.length,
                 instances: instanceStatuses
