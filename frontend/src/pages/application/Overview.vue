@@ -111,7 +111,7 @@ export default {
                 { label: 'Name', class: ['w-64'], component: { is: markRaw(DeploymentName), map: { disabled: 'editorDisabled' } } },
                 { label: 'Last Deployed', class: ['w-48'], component: { is: markRaw(LastSeen), map: { lastSeenSince: 'flowLastUpdatedSince' } } },
                 { label: 'Deployment Status', class: ['w-48'], component: { is: markRaw(InstanceStatusBadge), map: { status: 'meta.state' } } },
-                { label: '', class: ['w-20'], component: { is: markRaw(InstanceEditorLink), map: { disabled: 'editorDisabled', url: 'meta.url' } } }
+                { label: '', class: ['w-20'], component: { is: markRaw(InstanceEditorLink), map: { disabled: 'editorDisabled' } } }
             ]
         },
         cloudRows () {

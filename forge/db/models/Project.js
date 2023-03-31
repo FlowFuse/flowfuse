@@ -343,24 +343,41 @@ module.exports = {
                         ]
                     })
                 },
-                byApplication: async (applicationHashId) => {
+                byApplication: async (applicationHashId, { includeSettings = false } = {}) => {
                     const applicationId = M.Application.decodeHashid(applicationHashId)
+
+                    const include = [
+                        {
+                            model: M.Team,
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                        },
+                        {
+                            model: M.Application,
+                            where: { id: applicationId },
+                            attributes: ['hashid', 'id', 'name', 'links']
+                        },
+                        {
+                            model: M.ProjectType,
+                            attributes: ['hashid', 'id', 'name']
+                        }
+                    ]
+
+                    // Needed for project.url (stored in ProjectSettings)
+                    if (includeSettings) {
+                        include.push({
+                            model: M.ProjectTemplate,
+                            attributes: ['hashid', 'id', 'name', 'links', 'settings', 'policy']
+                        })
+
+                        include.push({
+                            model: M.ProjectSettings,
+                            where: { key: KEY_SETTINGS },
+                            required: false
+                        })
+                    }
+
                     return this.findAll({
-                        include: [
-                            {
-                                model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links']
-                            },
-                            {
-                                model: M.Application,
-                                where: { id: applicationId },
-                                attributes: ['hashid', 'id', 'name', 'links']
-                            },
-                            {
-                                model: M.ProjectType,
-                                attributes: ['hashid', 'id', 'name']
-                            }
-                        ]
+                        include
                     })
                 },
                 byTeam: async (teamHashId) => {

@@ -393,6 +393,11 @@ describe('Application API', function () {
             })
             await TestObjects.BTeam.addProject(otherProject)
 
+        it('Includes each instances URL accounting for httpAdminRoot', async function () {
+            const sid = await login('bob', 'bbPassword')
+            const instance = await app.factory.createInstance({ name: 'main-instance' }, TestObjects.application, app.stack, app.template, app.projectType, { start: true })
+            await instance.updateSetting(KEY_SETTINGS, { httpAdminRoot: '/editor' })
+
             const response = await app.inject({
                 method: 'GET',
                 url: `/api/v1/applications/${TestObjects.application.hashid}/instances`,
@@ -404,7 +409,11 @@ describe('Application API', function () {
             const result = response.json()
             result.should.have.property('instances')
             result.instances.should.have.length(1)
-            result.instances[0].should.have.property('id', project.id)
+            result.instances[0].should.have.property('id', instance.id)
+            result.instances[0].should.have.property('url', 'http://main-instance.example.com/editor') // from stub driver
+        })
+    })
+
         })
     })
 })

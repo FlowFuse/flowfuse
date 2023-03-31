@@ -115,8 +115,9 @@ module.exports = class TestModelFactory {
         const defaultProjectDetails = {
             name: 'unnamed-project',
             type: '',
-            url: ''
+            url: '' // added by wrapper.start()
         }
+
         const instance = await this.forge.db.models.Project.create({
             ...defaultProjectDetails,
             ...projectDetails,
