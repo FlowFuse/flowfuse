@@ -67,6 +67,11 @@ export default {
                 tag: 'team-instances',
                 icon: ProjectsIcon
             }, {
+                label: 'Instances',
+                to: '/instances',
+                tag: 'team-instances',
+                icon: ProjectsIcon
+            }, {
                 label: 'Devices',
                 to: '/devices',
                 tag: 'team-devices',
@@ -131,6 +136,13 @@ export default {
             if (route.to === '/applications') {
                 // highlight it if we are currently viewing a single project
                 if (this.$route.path.indexOf('/application') === 0) {
+                    return true
+                }
+            }
+            // the high-level route link to "/instances"
+            if (route.to === '/instances') {
+                // highlight it if we are currently viewing a single instance
+                if (this.$route.path.indexOf('/instance') === 0) {
                     return true
                 }
             }

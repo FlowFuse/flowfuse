@@ -1,10 +1,10 @@
 const should = require('should') // eslint-disable-line
+
+const { KEY_SETTINGS } = require('../../../../../forge/db/models/ProjectSettings')
 const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
-
-const { KEY_SETTINGS } = require('../../../../../forge/db/models/ProjectSettings')
 
 describe('Team API', function () {
     let app

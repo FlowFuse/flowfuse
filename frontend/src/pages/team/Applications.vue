@@ -94,8 +94,6 @@ export default {
             applications: new Map(),
             columns: [
                 { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true }
-                // { label: 'Status', class: ['w-44'], key: 'status', sortable: true, component: { is: markRaw(InstanceStatusBadge) } },
-                // { label: 'Updated', class: ['w-44', 'text-xs'], key: 'updatedSince', sortable: true }
             ]
         }
     },

@@ -323,21 +323,10 @@ module.exports = async function (app) {
     }, async (request, response) => {
         const team = request.team
         try {
-            let coupon
-            if (request.cookies.ff_coupon) {
-                coupon = request.unsignCookie(request.cookies.ff_coupon)?.valid ? request.unsignCookie(request.cookies.ff_coupon).value : undefined
-            }
-            const session = await app.billing.createSubscriptionSession(team, coupon, request.session.User)
+            const session = await app.billing.createSubscriptionSession(team, request.session.User)
             await app.auditLog.Team.billing.session.created(request.session.User, null, team, session)
             response.code(200).type('application/json').send({ billingURL: session.url })
         } catch (err) {
-            // Likely invalid coupon error from stripe
-            if (err.code === 'resource_missing') {
-                response.clearCookie('ff_coupon', { path: '/' })
-                response.code(400).send({ code: 'invalid_coupon', error: err.toString() })
-                return
-            }
-
             // Standard errors
             let responseMessage
             if (err.errors) {

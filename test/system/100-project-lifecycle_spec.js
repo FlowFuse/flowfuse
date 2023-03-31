@@ -1,10 +1,11 @@
-const should = require('should') // eslint-disable-line
+const should = require('should') // eslint-disable-line no-unused-vars
+
+const TestModelFactory = require('../lib/TestModelFactory')
+
 const FF_UTIL = require('flowforge-test-utils')
 const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localTransport.js')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 const { START_DELAY } = FF_UTIL.require('forge/containers/stub/index.js')
-
-const TestModelFactory = require('../lib/TestModelFactory')
 
 async function waitFor (delay) {
     return new Promise((resolve) => { setTimeout(() => resolve(), delay) })

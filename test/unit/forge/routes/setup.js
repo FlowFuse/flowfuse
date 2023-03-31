@@ -1,7 +1,7 @@
+const TestModelFactory = require('../../../lib/TestModelFactory')
+
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
-
-const TestModelFactory = require('../../../lib/TestModelFactory')
 
 module.exports = async function (config = {}) {
     const forge = await FF_UTIL.setupApp(config)

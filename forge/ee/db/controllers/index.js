@@ -1,4 +1,7 @@
-const modelTypes = ['Subscription']
+const modelTypes = [
+    'Subscription',
+    'UserBillingCode'
+]
 
 async function init (app) {
     modelTypes.forEach(type => {

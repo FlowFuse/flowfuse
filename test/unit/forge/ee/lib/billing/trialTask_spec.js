@@ -275,6 +275,9 @@ describe('Billing - Trial Housekeeper Task', function () {
         // Start with a 30 day trial
         const trialSub = await app.factory.createTrialSubscription(trialTeam, 30)
 
+        // Generate the billing Url for later checking that emails contain it
+        const billingUrl = `${app.config.base_url}/team/${trialTeam.slug}/billing`
+
         await task(app)
 
         // Nothing should have happened

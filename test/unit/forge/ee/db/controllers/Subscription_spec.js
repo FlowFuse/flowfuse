@@ -141,4 +141,23 @@ describe('Subscription controller', function () {
             endedSubscription.isTrialEnded().should.be.true()
         })
     })
+
+    describe('Past Due state', function () {
+        it('treats a past_due subscription as still active', async function () {
+            const defaultTeamType = await app.db.models.TeamType.findOne()
+            const team = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: defaultTeamType.id })
+
+            const newSubscription = await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
+            newSubscription.isActive().should.be.true()
+            newSubscription.isCanceled().should.be.false()
+            newSubscription.isPastDue().should.be.false()
+
+            newSubscription.status = 'past_due'
+            await newSubscription.save()
+
+            newSubscription.isActive().should.be.true()
+            newSubscription.isCanceled().should.be.false()
+            newSubscription.isPastDue().should.be.true()
+        })
+    })
 })
