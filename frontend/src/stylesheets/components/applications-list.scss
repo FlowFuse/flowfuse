@@ -28,7 +28,7 @@
 }
 
 .ff-applications-list-instances {
-    background-color: $ff-grey-50;
+    background-color: $ff-grey-100;
     border-bottom-left-radius: 6px;
     border-bottom-right-radius: 6px;
     padding: 12px;
@@ -39,7 +39,7 @@
     >label {
         display: block;
         font-size: 0.875rem;
-        color: $ff-grey-400;
+        color: $ff-grey-500;
         display: flex;
         align-items: center;
         gap: 12px;
@@ -47,7 +47,7 @@
             content: '';
             height: 1px;
             flex-grow: 1;
-            background-color: $ff-grey-200;
+            background-color: $ff-grey-300;
         }
     }
     > li {
