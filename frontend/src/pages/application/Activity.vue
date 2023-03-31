@@ -24,7 +24,7 @@ import FormHeading from '../../components/FormHeading'
 import SectionTopMenu from '../../components/SectionTopMenu'
 import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser'
 
-import ProjectAPI from '@/api/project'
+import InstanceApi from '@/api/instances'
 import TeamAPI from '@/api/team'
 
 export default {
@@ -76,7 +76,7 @@ export default {
                 // And the API only supports one set of instance logs at a time regardless
                 const instanceId = this.auditFilters.instance.id
 
-                this.logEntries = (await ProjectAPI.getProjectAuditLog(instanceId, params, cursor, 200)).log
+                this.logEntries = (await InstanceApi.getInstanceAuditLog(instanceId, params, cursor, 200)).log
             }
         }
     }
