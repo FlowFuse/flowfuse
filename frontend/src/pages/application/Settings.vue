@@ -1,6 +1,6 @@
 <template>
-    <SectionTopMenu hero="Application Settings" info="Live logs from your FlowForge instances of Node-RED" />
-    <div class="flex flex-col sm:flex-row mt-3 ml-6">
+    <SectionTopMenu hero="Application Settings" />
+    <div class="flex flex-col sm:flex-row mt-9 ml-6">
         <SectionSideMenu :options="sideNavigation" />
         <div class="space-y-6">
             <FormHeading class="mb-6">Application Details</FormHeading>
@@ -9,13 +9,24 @@
                     Application ID
                 </FormRow>
 
-                <FormRow id="projectName" v-model="input.projectName" type="uneditable">
+                <FormRow ref="appName" id="projectName" v-model="input.projectName" :type="editing ? 'text' : 'uneditable'">
                     Name
                 </FormRow>
             </div>
+            <div class="space-x-4 whitespace-nowrap">
+                <template v-if="!editing">
+                    <ff-button kind="primary" @click="editName">Edit team settings</ff-button>
+                </template>
+                <template v-else>
+                    <div class="flex gap-x-3">
+                        <ff-button kind="secondary" @click="cancelEditName">Cancel</ff-button>
+                        <ff-button kind="primary" :disabled="!formValid" @click="saveApplication">Save team settings</ff-button>
+                    </div>
+                </template>
+            </div>
 
             <FormHeading class="text-red-700">Delete Application</FormHeading>
-            <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+            <div class="flex flex-col space-y-4 max-w-2xl">
                 <div class="flex-grow">
                     <div class="max-w-sm">
                         Once deleted, your application and all it's instances are permanently deleted. This cannot be undone.
@@ -30,6 +41,10 @@
 </template>
 
 <script>
+
+import ApplicationAPI from '@/api/application'
+import Alerts from '@/services/alerts'
+
 import FormHeading from '@/components/FormHeading'
 import FormRow from '@/components/FormRow'
 import SectionSideMenu from '@/components/SectionSideMenu'
@@ -52,20 +67,45 @@ export default {
             required: true
         }
     },
-    emits: ['application-delete'],
+    emits: ['application-delete', 'application-updated'],
     data () {
         return {
             sideNavigation: [{ name: 'General', path: './settings' }],
             input: {
                 projectName: this.application.name,
                 projectId: this.application.id
-            }
+            },
+            editing: false
         }
     },
     watch: {
         project () {
             this.input.projectName = this.application.name
             this.input.projectId = this.application.id
+        }
+    },
+    computed: {
+        formValid () {
+            return this.input.projectName
+        }
+    },
+    methods: {
+        editName () {
+            this.editing = true
+            this.$refs.appName.focus()
+        },
+        saveApplication () {
+            ApplicationAPI.updateApplication(this.application.id, this.input.projectName)
+                .then(() => {
+                    this.$emit('application-updated')
+                    Alerts.emit('Application updated.', 'confirmation')
+                })
+                .catch(() => {
+                    Alerts.emit('Unable to update Application.', 'warning')
+                })
+                .finally(() => {
+                    this.editing = false
+                })
         }
     }
 }
