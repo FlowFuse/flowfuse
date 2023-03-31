@@ -21,7 +21,7 @@
                 :columns="columns"
                 :rows="Array.from(devices.values())"
                 :show-search="true"
-                :search-placeholder="`Search ${displayingTeam ? 'Devices' : 'Remote Instances'}...`"
+                search-placeholder="Search Devices"
                 :show-load-more="!!nextCursor"
                 @load-more="loadMore"
             >
