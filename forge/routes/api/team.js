@@ -97,6 +97,7 @@ module.exports = async function (app) {
             if (subscription) {
                 result.billing.active = subscription.isActive()
                 result.billing.canceled = subscription.isCanceled()
+                result.billing.pastDue = subscription.isPastDue()
                 if (subscription.isTrial()) {
                     result.billing.trial = true
                     result.billing.trialEnded = subscription.isTrialEnded()
