@@ -44,8 +44,11 @@
                                     never
                                 </span>
                             </div>
-                            <div>
-                                <ff-button kind="secondary" @click.stop="openEditor(instance)" ><template v-slot:icon-right><ExternalLinkIcon /></template>Open Editor</ff-button>
+                            <div class="flex justify-end">
+                                <ff-button kind="secondary" @click.stop="openEditor(instance)" :disabled="instance.settings.disableEditor">
+                                    <template v-slot:icon-right><ExternalLinkIcon /></template>
+                                    {{ instance.settings.disableEditor ? 'Editor Disabled' : 'Open Editor' }}
+                                </ff-button>
                             </div>
                         </li>
                     </ul>

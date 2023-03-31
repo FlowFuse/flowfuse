@@ -78,7 +78,7 @@ module.exports = {
     instancesList: async function (app, instancesArray) {
         return await Promise.all(instancesArray.map(async (instance) => {
             // Full settings are not
-            const result = await app.db.views.Project.project(instance, { includeSettings: false })
+            const result = await app.db.views.Project.project(instance, { includeSettings: true })
 
             if (!result.url) {
                 delete result.url

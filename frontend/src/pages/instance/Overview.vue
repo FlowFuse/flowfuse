@@ -9,7 +9,7 @@
                         <td class="w-1/4 font-medium">Editor</td>
                         <td>
                             <div v-if="editorAvailable">
-                                <div v-if="isVisitingAdmin" class="my-2">
+                                <div v-if="isVisitingAdmin || instance.settings.disableEditor" class="my-2">
                                     {{ instance.url }}
                                 </div>
                                 <a v-else :href="instance.url" target="_blank" class="forge-button-secondary py-1 mb-1" data-el="editor-link">

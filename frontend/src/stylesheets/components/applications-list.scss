@@ -64,7 +64,7 @@
         padding: 12px;
         display: grid;
         align-items: center;
-        grid-template-columns: 40px 1fr 100px minmax(auto, 250px) auto;
+        grid-template-columns: 40px 1fr 100px minmax(auto, 250px) 140px;
         &:hover {
             cursor: pointer;
             border-color: $ff-blue-600;
