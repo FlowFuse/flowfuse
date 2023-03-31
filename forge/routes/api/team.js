@@ -172,7 +172,7 @@ module.exports = async function (app) {
 
         reply.send({
             count: applications.length,
-            applications: app.db.views.Application.teamApplicationList(applications, { includeInstances })
+            applications: await app.db.views.Application.teamApplicationList(applications, { includeInstances })
         })
     })
 

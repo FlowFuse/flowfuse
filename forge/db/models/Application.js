@@ -4,6 +4,8 @@
  */
 const { DataTypes } = require('sequelize')
 
+const { KEY_SETTINGS } = require('./ProjectSettings')
+
 module.exports = {
     name: 'Application',
     schema: {
@@ -50,7 +52,18 @@ module.exports = {
                         includes.push({
                             model: M.Project,
                             as: 'Instances',
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'url'],
+                            include: [
+                                // Need for project URL calculation (depends on httpAdminRoot)
+                                {
+                                    model: M.ProjectTemplate,
+                                    attributes: ['hashid', 'id', 'name', 'links', 'settings', 'policy']
+                                }, {
+                                    model: M.ProjectSettings,
+                                    where: { key: KEY_SETTINGS },
+                                    required: false
+                                }
+                            ]
                         })
                     }
 

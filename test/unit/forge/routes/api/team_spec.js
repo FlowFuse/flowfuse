@@ -4,6 +4,8 @@ const setup = require('../setup')
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 
+const { KEY_SETTINGS } = require('../../../../../forge/db/models/ProjectSettings')
+
 describe('Team API', function () {
     let app
     const TestObjects = {}
@@ -192,6 +194,29 @@ describe('Team API', function () {
 
                 should(application.instances.some((instance) => instance.name === app.project.name)).equal(true)
                 should(application.instances.some((instance) => instance.name === secondInstance.name)).equal(true)
+            })
+
+            it('includes the instance URL for each accounting for httpAdminRoot', async function () {
+                const instance = await app.factory.createInstance({ name: 'another-instance' }, app.application, app.stack, app.template, app.projectType, { start: true })
+                await instance.updateSetting(KEY_SETTINGS, { httpAdminRoot: '/editor' })
+
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/applications`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+
+                response.statusCode.should.equal(200)
+
+                const result = response.json()
+                const application = result.applications.find((application) => application.name === app.application.name)
+
+                application.should.have.property('instances').and.have.a.lengthOf(2)
+
+                const instanceDetails = application.instances.find((instance) => instance.name === 'another-instance')
+
+                instanceDetails.should.have.property('id', instance.id)
+                instanceDetails.should.have.property('url', 'http://another-instance.example.com/editor') // from stub driver
             })
 
             it('fails if a user is not member of the team', async function () {

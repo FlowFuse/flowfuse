@@ -32,15 +32,15 @@ module.exports = {
             links: application.links
         }
     },
-    teamApplicationList: function (app, applications, { includeInstances = false } = {}) {
-        return applications.map(application => {
+    async teamApplicationList (app, applications, { includeInstances = false } = {}) {
+        return await Promise.all(applications.map(async (application) => {
             const summary = app.db.views.Application.applicationSummary(application)
             if (includeInstances) {
-                summary.instances = application.Instances.map(app.db.views.Project.projectSummary)
+                summary.instances = await app.db.views.Project.instancesList(application.Instances)
             }
 
             return summary
-        })
+        }))
     },
     async instanceStatuses (app, instancesArray) {
         return await Promise.all(instancesArray.map(async (instance) => {
