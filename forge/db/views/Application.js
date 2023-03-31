@@ -41,5 +41,11 @@ module.exports = {
 
             return summary
         })
+    },
+    async instanceStatuses (app, instancesArray) {
+        return await Promise.all(instancesArray.map(async (instance) => {
+            const state = await instance.liveState()
+            return { id: instance.id, ...state }
+        }))
     }
 }
