@@ -4,6 +4,8 @@ const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localT
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 const { START_DELAY } = FF_UTIL.require('forge/containers/stub/index.js')
 
+const TestModelFactory = require('../lib/TestModelFactory')
+
 async function waitFor (delay) {
     return new Promise((resolve) => { setTimeout(() => resolve(), delay) })
 }
@@ -45,38 +47,22 @@ describe('Project Lifecycle', function () {
             }
         })
 
+        const factory = new TestModelFactory(forge)
+
         // Setup the database with basic artefacts
-
-        const defaultTeamType = await forge.db.models.TeamType.byName('starter')
-
         await forge.db.models.PlatformSettings.upsert({ key: 'setup:initialised', value: true })
-        TestObjects.userAlice = await forge.db.models.User.create({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
-        TestObjects.ATeam = await forge.db.models.Team.create({ name: 'ATeam', TeamTypeId: defaultTeamType.id })
+        TestObjects.userAlice = await factory.createUser({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', password: 'aaPassword' })
+        TestObjects.ATeam = await factory.createTeam({ name: 'ATeam' })
         await TestObjects.ATeam.addUser(TestObjects.userAlice, { through: { role: Roles.Owner } })
-        TestObjects.ProjectType1 = await forge.db.models.ProjectType.create({
-            name: 'projectType1',
-            active: true,
-            properties: {}
-        })
-        TestObjects.Stack1 = await forge.db.models.ProjectStack.create({
-            name: 'stack1',
-            active: true,
-            properties: { foo: 'bar' }
-        })
 
-        await TestObjects.Stack1.setProjectType(TestObjects.ProjectType1)
+        TestObjects.Application = await factory.createApplication({ name: 'test-application' }, TestObjects.ATeam)
 
-        TestObjects.Stack2 = await forge.db.models.ProjectStack.create({
-            name: 'stack2',
-            active: true,
-            properties: { foo: 'bar' }
-        })
-        TestObjects.Template1 = await forge.db.models.ProjectTemplate.create({
-            name: 'template1',
-            active: true,
-            settings: { },
-            policy: { }
-        })
+        TestObjects.ProjectType1 = await factory.createProjectType({ name: 'projectType1' })
+
+        TestObjects.Stack1 = await factory.createStack({ name: 'stack1', properties: { foo: 'bar' } }, TestObjects.ProjectType1)
+        TestObjects.Stack2 = await factory.createStack({ name: 'stack2', properties: { foo: 'bar' } }, TestObjects.ProjectType1)
+
+        TestObjects.Template1 = await factory.createProjectTemplate({ name: 'template1' })
     })
 
     after(function () {
@@ -101,7 +87,7 @@ describe('Project Lifecycle', function () {
             cookies: { sid: TestObjects.accessToken },
             payload: {
                 name: 'test-project',
-                team: TestObjects.ATeam.hashid,
+                applicationId: TestObjects.Application.hashid,
                 projectType: TestObjects.ProjectType1.hashid,
                 stack: TestObjects.Stack1.hashid,
                 template: TestObjects.Template1.hashid

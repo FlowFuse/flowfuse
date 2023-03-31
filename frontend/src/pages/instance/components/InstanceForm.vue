@@ -43,13 +43,13 @@
                 data-form="project-name"
             >
                 <template #default>
-                    Instance Domain
+                    Instance Name
                 </template>
                 <template
                     v-if="creatingNew"
                     #description
                 >
-                    Please note, currently, domains cannot be changed once created
+                    The instance name is used to access the editor so must be suitable for using in a url. It is not currently possible to rename the instance after it has been created.
                 </template>
                 <template
                     v-if="creatingNew"

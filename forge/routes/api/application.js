@@ -142,9 +142,10 @@ module.exports = async function (app) {
         // TODO: tidy up permissions
         preHandler: app.needsPermission('team:projects:list')
     }, async (request, reply) => {
-        const instances = await app.db.models.Project.byApplication(request.application.hashid)
+        // Settings needed to be able to include the project URL in the response
+        const instances = await app.db.models.Project.byApplication(request.application.hashid, { includeSettings: true })
         if (instances) {
-            let result = await app.db.views.Project.teamProjectList(instances)
+            let result = await app.db.views.Project.instancesList(instances)
             if (request.session.ownerType === 'project') {
                 // This request is from a project token. Filter the list to return
                 // the minimal information needed

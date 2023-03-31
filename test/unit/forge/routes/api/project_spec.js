@@ -50,6 +50,10 @@ describe('Project API', function () {
         TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: app.defaultTeamType.id })
         TestObjects.CTeam = await app.db.models.Team.create({ name: 'CTeam', TeamTypeId: app.defaultTeamType.id })
 
+        TestObjects.ApplicationA = app.application
+        TestObjects.ApplicationB = await app.factory.createApplication({ name: 'ApplicationB' }, TestObjects.BTeam)
+        TestObjects.ApplicationC = await app.factory.createApplication({ name: 'ApplicationC' }, TestObjects.CTeam)
+
         await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Member } })
         await TestObjects.BTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
         await TestObjects.BTeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
@@ -125,7 +129,7 @@ describe('Project API', function () {
             url: '/api/v1/projects',
             payload: {
                 name: name || 'project2',
-                team,
+                applicationId: TestObjects.ApplicationA.hashid,
                 projectType: TestObjects.projectType1.hashid,
                 template,
                 stack,
@@ -156,14 +160,14 @@ describe('Project API', function () {
                 url: '/api/v1/projects',
                 payload: {
                     name: 'test-project',
-                    team: TestObjects.ATeam.hashid,
+                    applicationId: TestObjects.ApplicationA.hashid,
                     projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
                     stack: TestObjects.stack1.hashid
                 },
                 cookies: { sid: TestObjects.tokens.chris }
             })
-            response.statusCode.should.equal(403)
+            response.statusCode.should.equal(401)
         })
 
         it('Non-member cannot create project', async function () {
@@ -173,14 +177,14 @@ describe('Project API', function () {
                 url: '/api/v1/projects',
                 payload: {
                     name: 'test-project',
-                    team: TestObjects.CTeam.hashid,
+                    applicationId: TestObjects.ApplicationC.hashid,
                     projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
                     stack: TestObjects.stack1.hashid
                 },
                 cookies: { sid: TestObjects.tokens.bob }
             })
-            response.statusCode.should.equal(403)
+            response.statusCode.should.equal(401)
         })
 
         it('Fails for unknown template', async function () {
@@ -189,7 +193,7 @@ describe('Project API', function () {
                 url: '/api/v1/projects',
                 payload: {
                     name: 'test-project',
-                    team: TestObjects.ATeam.hashid,
+                    applicationId: TestObjects.ApplicationA.hashid,
                     projectType: TestObjects.projectType1.hashid,
                     template: 'doesnotexist',
                     stack: TestObjects.stack1.hashid
@@ -207,7 +211,7 @@ describe('Project API', function () {
                 url: '/api/v1/projects',
                 payload: {
                     name: 'test-project',
-                    team: TestObjects.ATeam.hashid,
+                    applicationId: TestObjects.ApplicationA.hashid,
                     projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
                     stack: 'doesnotexist'
@@ -225,7 +229,7 @@ describe('Project API', function () {
                 url: '/api/v1/projects',
                 payload: {
                     name: 'test-project',
-                    team: TestObjects.ATeam.hashid,
+                    applicationId: TestObjects.ApplicationA.hashid,
                     projectType: 'doesnotexist',
                     template: TestObjects.template1.hashid,
                     stack: TestObjects.stack1.hashid
@@ -243,7 +247,7 @@ describe('Project API', function () {
                 url: '/api/v1/projects',
                 payload: {
                     name: TestObjects.project1.name,
-                    team: TestObjects.ATeam.hashid,
+                    applicationId: TestObjects.ApplicationA.hashid,
                     projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
                     stack: TestObjects.stack1.hashid
@@ -261,7 +265,7 @@ describe('Project API', function () {
                 url: '/api/v1/projects',
                 payload: {
                     name: TestObjects.project1.name.toUpperCase(),
-                    team: TestObjects.ATeam.hashid,
+                    applicationId: TestObjects.ApplicationA.hashid,
                     projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
                     stack: TestObjects.stack1.hashid
@@ -278,7 +282,7 @@ describe('Project API', function () {
                 url: '/api/v1/projects',
                 payload: {
                     name: 'this-$hould-fail',
-                    team: TestObjects.ATeam.hashid,
+                    applicationId: TestObjects.ApplicationA.hashid,
                     projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
                     stack: TestObjects.stack1.hashid
@@ -295,7 +299,7 @@ describe('Project API', function () {
                 url: '/api/v1/projects',
                 payload: {
                     name: '12345-once-i-caught-a-fish-alive',
-                    team: TestObjects.ATeam.hashid,
+                    applicationId: TestObjects.ApplicationA.hashid,
                     projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
                     stack: TestObjects.stack1.hashid
@@ -312,7 +316,7 @@ describe('Project API', function () {
                 url: '/api/v1/projects',
                 payload: {
                     name: '-dash-dash-dot-dot-dot',
-                    team: TestObjects.ATeam.hashid,
+                    applicationId: TestObjects.ApplicationA.hashid,
                     projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
                     stack: TestObjects.stack1.hashid
@@ -330,7 +334,7 @@ describe('Project API', function () {
                 url: '/api/v1/projects',
                 payload: {
                     name: 'test-project',
-                    team: TestObjects.ATeam.hashid,
+                    applicationId: TestObjects.ApplicationA.hashid,
                     projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
                     stack: TestObjects.stack1.hashid
@@ -376,7 +380,7 @@ describe('Project API', function () {
                 url: '/api/v1/projects',
                 payload: {
                     name: 'New-Project',
-                    team: TestObjects.ATeam.hashid,
+                    applicationId: TestObjects.ApplicationA.hashid,
                     projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
                     stack: TestObjects.stack1.hashid
@@ -432,7 +436,7 @@ describe('Project API', function () {
                     url: '/api/v1/projects',
                     payload: {
                         name: 'test-project',
-                        team: TestObjects.ATeam.hashid,
+                        applicationId: TestObjects.ApplicationA.hashid,
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
                         stack: TestObjects.stack1.hashid,
@@ -511,7 +515,7 @@ describe('Project API', function () {
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
                         stack: TestObjects.stack1.hashid,
-                        team: TestObjects.ATeam.hashid,
+                        applicationId: TestObjects.ApplicationA.hashid,
                         sourceProject: {
                             id: TestObjects.project1.id,
                             options: {
@@ -568,7 +572,7 @@ describe('Project API', function () {
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
                         stack: TestObjects.stack1.hashid,
-                        team: TestObjects.ATeam.hashid,
+                        applicationId: TestObjects.ApplicationA.hashid,
                         sourceProject: {
                             id: TestObjects.project1.id,
                             options: {
@@ -625,7 +629,7 @@ describe('Project API', function () {
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
                         stack: TestObjects.stack1.hashid,
-                        team: TestObjects.ATeam.hashid,
+                        applicationId: TestObjects.ApplicationA.hashid,
                         sourceProject: {
                             id: TestObjects.project1.id,
                             options: {
@@ -671,7 +675,7 @@ describe('Project API', function () {
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
                         stack: TestObjects.stack1.hashid,
-                        team: TestObjects.ATeam.hashid,
+                        applicationId: TestObjects.ApplicationA.hashid,
                         sourceProject: {
                             id: TestObjects.project1.id,
                             options: {
@@ -717,7 +721,7 @@ describe('Project API', function () {
                     url: '/api/v1/projects',
                     payload: {
                         name: 'test-project',
-                        team: TestObjects.BTeam.hashid,
+                        applicationId: TestObjects.ApplicationB.hashid,
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
                         stack: TestObjects.stack1.hashid,
@@ -741,7 +745,7 @@ describe('Project API', function () {
                     url: '/api/v1/projects',
                     payload: {
                         name: 'test-project',
-                        team: TestObjects.ATeam.hashid,
+                        applicationId: TestObjects.ApplicationA.hashid,
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
                         stack: TestObjects.stack1.hashid,
@@ -1406,7 +1410,7 @@ describe('Project API', function () {
                 url: '/api/v1/projects',
                 payload: {
                     name: 'project2',
-                    team: TestObjects.ATeam.hashid,
+                    applicationId: TestObjects.ApplicationA.hashid,
                     projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
                     stack: TestObjects.stack1.hashid,

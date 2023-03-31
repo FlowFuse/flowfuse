@@ -41,6 +41,14 @@ module.exports = class TestModelFactory {
         return team
     }
 
+    async createSubscription (team, subscriptionId = 'sub_1234567890', customerId = 'cus_1234567890') {
+        return await this.forge.db.controllers.Subscription.createSubscription(team, subscriptionId, customerId)
+    }
+
+    async createTrialSubscription (team, days = 1) {
+        return await this.forge.db.controllers.Subscription.createTrialSubscription(team, Date.now() + (days * 86400000))
+    }
+
     async createStack (stackProperties, projectType) {
         const defaultProperties = {
             name: 'unnamed-stack',
@@ -103,12 +111,13 @@ module.exports = class TestModelFactory {
         })
     }
 
-    async createInstance (projectDetails, application, stack, template, projectType) {
+    async createInstance (projectDetails, application, stack, template, projectType, { start = true } = {}) {
         const defaultProjectDetails = {
             name: 'unnamed-project',
             type: '',
-            url: ''
+            url: '' // added by wrapper.start()
         }
+
         const instance = await this.forge.db.models.Project.create({
             ...defaultProjectDetails,
             ...projectDetails,
@@ -128,7 +137,9 @@ module.exports = class TestModelFactory {
                 { model: this.forge.db.models.ProjectSettings }
             ]
         })
-        await this.forge.containers.start(instance) // ensure project is initialized
+        if (start) {
+            await this.forge.containers.start(instance) // ensure project is initialized
+        }
         return instance
     }
 

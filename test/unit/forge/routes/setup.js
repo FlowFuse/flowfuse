@@ -1,30 +1,27 @@
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 
+const TestModelFactory = require('../../../lib/TestModelFactory')
+
 module.exports = async function (config = {}) {
     const forge = await FF_UTIL.setupApp(config)
-
     await forge.db.models.PlatformSettings.upsert({ key: 'setup:initialised', value: true })
 
-    forge.defaultTeamType = await forge.db.models.TeamType.findOne()
+    const factory = new TestModelFactory(forge)
 
-    const userAlice = await forge.db.models.User.create({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
-    const team1 = await forge.db.models.Team.create({ name: 'ATeam', TeamTypeId: forge.defaultTeamType.id })
+    const userAlice = await factory.createUser({
+        admin: true,
+        username: 'alice',
+        name: 'Alice Skywalker',
+        email: 'alice@example.com',
+        password: 'aaPassword'
+    })
+
+    const team1 = await factory.createTeam({ name: 'ATeam' })
     await team1.addUser(userAlice, { through: { role: Roles.Owner } })
 
-    const projectType = {
-        name: 'projectType1',
-        description: 'default project type',
-        active: true,
-        properties: { foo: 'bar' },
-        order: 1
-    }
-    forge.projectType = await forge.db.models.ProjectType.create(projectType)
-
-    const templateProperties = {
+    const template = await factory.createProjectTemplate({
         name: 'template1',
-        active: true,
-        description: '',
         settings: {
             httpAdminRoot: '',
             codeEditor: ''
@@ -34,37 +31,36 @@ module.exports = async function (config = {}) {
             dashboardUI: true,
             codeEditor: true
         }
-    }
-    const template = await forge.db.models.ProjectTemplate.create(templateProperties)
-    template.setOwner(userAlice)
-    await template.save()
+    }, userAlice)
 
-    const stackProperties = {
-        name: 'stack1',
-        active: true,
-        properties: { nodered: '2.2.2' }
-    }
-    const stack = await forge.db.models.ProjectStack.create(stackProperties)
-
-    await stack.setProjectType(forge.projectType)
-
-    const project1 = await forge.db.models.Project.create({ name: 'project1', type: '', url: '' })
-    await team1.addProject(project1)
-    await project1.setProjectStack(stack)
-    await project1.setProjectTemplate(template)
-    await project1.setProjectType(forge.projectType)
-
-    await project1.reload({
-        include: [
-            { model: forge.db.models.Team },
-            { model: forge.db.models.ProjectStack },
-            { model: forge.db.models.ProjectType }
-        ]
+    const projectType = await factory.createProjectType({
+        name: 'projectType1',
+        description: 'default project type',
+        properties: { foo: 'bar' }
     })
+
+    const stack = await factory.createStack({ name: 'stack1' }, projectType)
+
+    const application = await factory.createApplication({ name: 'application-1' }, team1)
+
+    const instance = await factory.createInstance(
+        { name: 'project1' },
+        application,
+        stack,
+        template,
+        projectType,
+        { start: false }
+    )
+
+    forge.factory = factory
+
+    forge.defaultTeamType = await forge.db.models.TeamType.findOne()
     forge.team = team1
-    forge.project = project1
-    forge.template = template
     forge.stack = stack
+    forge.template = template
+    forge.projectType = projectType
+    forge.application = application
+    forge.project = instance
 
     return forge
 }

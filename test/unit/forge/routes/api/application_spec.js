@@ -4,6 +4,8 @@ const setup = require('../setup')
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 
+const { KEY_SETTINGS } = require('../../../../../forge/db/models/ProjectSettings')
+
 describe('Application API', function () {
     let app
     const TestObjects = {}
@@ -127,7 +129,7 @@ describe('Application API', function () {
                 }
             })
 
-            response.statusCode.should.equal(403)
+            response.statusCode.should.equal(401)
 
             const result = response.json()
             result.should.have.property('code', 'unauthorized')
@@ -374,24 +376,16 @@ describe('Application API', function () {
             result.should.have.property('instances')
             result.instances.should.have.length(0)
         })
+
         it('Returns application instances - non-empty list', async function () {
             const sid = await login('bob', 'bbPassword')
-            const project = await app.db.models.Project.create({
-                name: 'project2',
-                type: '',
-                url: ''
-            })
-            await TestObjects.application.addProject(project)
-            await TestObjects.BTeam.addProject(project)
+            const instance = await app.factory.createInstance({ name: 'main-instance' }, TestObjects.application, app.stack, app.template, app.projectType, { start: true })
+            await instance.updateSetting(KEY_SETTINGS, { httpAdminRoot: '/editor' })
 
             // Create another project *not* in the Application
             // to verify it doesn't get included in the list
-            const otherProject = await app.db.models.Project.create({
-                name: 'project3',
-                type: '',
-                url: ''
-            })
-            await TestObjects.BTeam.addProject(otherProject)
+            const otherApplication = await app.factory.createApplication({ name: 'other-application' }, TestObjects.BTeam)
+            await app.factory.createInstance({ name: 'other-instance' }, otherApplication, app.stack, app.template, app.projectType, { start: false })
 
             const response = await app.inject({
                 method: 'GET',
@@ -404,7 +398,66 @@ describe('Application API', function () {
             const result = response.json()
             result.should.have.property('instances')
             result.instances.should.have.length(1)
-            result.instances[0].should.have.property('id', project.id)
+            result.instances[0].should.have.property('id', instance.id)
+            result.instances[0].should.have.property('name', instance.name)
+        })
+
+        it('Includes each instances URL accounting for httpAdminRoot', async function () {
+            const sid = await login('bob', 'bbPassword')
+            const instance = await app.factory.createInstance({ name: 'main-instance' }, TestObjects.application, app.stack, app.template, app.projectType, { start: true })
+            await instance.updateSetting(KEY_SETTINGS, { httpAdminRoot: '/editor' })
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/applications/${TestObjects.application.hashid}/instances`,
+                cookies: { sid }
+            })
+
+            response.statusCode.should.equal(200)
+
+            const result = response.json()
+            result.should.have.property('instances')
+            result.instances.should.have.length(1)
+            result.instances[0].should.have.property('id', instance.id)
+            result.instances[0].should.have.property('url', 'http://main-instance.example.com/editor') // from stub driver
+        })
+    })
+
+    describe('List instances statuses', async function () {
+        it('Returns application instance statuses & meta', async function () {
+            const instance1 = await app.factory.createInstance({ name: 'instance-b-1' }, TestObjects.application, app.stack, app.template, app.projectType, { start: false })
+            const instance2 = await app.factory.createInstance({ name: 'instance-b-2' }, TestObjects.application, app.stack, app.template, app.projectType)
+            const instance3 = await app.factory.createInstance({ name: 'instance-b-3' }, TestObjects.application, app.stack, app.template, app.projectType, { start: false })
+
+            // Started
+            const startResult = await app.containers.start(instance1)
+            await startResult.started
+
+            // Suspended
+            await app.containers.stop(instance2)
+
+            const sid = await login('bob', 'bbPassword')
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/applications/${TestObjects.application.hashid}/instances/status`,
+                cookies: { sid }
+            })
+
+            response.statusCode.should.equal(200)
+
+            const result = response.json()
+            result.should.have.property('instances')
+            result.instances.should.have.length(3)
+
+            result.instances[0].id.should.equal(instance1.id)
+            result.instances[0].meta.state.should.equal('running')
+
+            result.instances[1].id.should.equal(instance2.id)
+            result.instances[1].meta.state.should.equal('suspended')
+
+            result.instances[2].id.should.equal(instance3.id)
+            result.instances[2].meta.state.should.equal('unknown')
         })
     })
 })
