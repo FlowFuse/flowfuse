@@ -43,7 +43,7 @@
                 data-form="project-name"
             >
                 <template #default>
-                    Instance Domain
+                    Instance Name
                 </template>
                 <template
                     v-if="creatingNew"
