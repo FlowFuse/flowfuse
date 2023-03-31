@@ -20,18 +20,20 @@
             <ul class="ff-applications-list">
                 <li v-for="application in Array.from(applications.values())" :key="application.id">
                     <div class="ff-application-list--app">
-                        <span><TemplateIcon class="ff-icon text-gray-600" />{{ application.name }}</span>
+                        <span class="flex justify-center"><TemplateIcon class="ff-icon text-gray-600" />{{ application.name }}</span>
                         <ff-kebab-menu>
                             <ff-list-item label="View Application" @click="openApplication(application)"/>
                         </ff-kebab-menu>
                     </div>
-                    <ul class="ff-applications-list-instances">
+                    <ul v-if="application.instances.length > 0" class="ff-applications-list-instances">
                         <label>Instances</label>
                         <li v-for="instance in application.instances" :key="instance.id" @click.stop="openInstance(instance)">
-                            <ProjectIcon class="ff-icon text-gray-600"/>
+                            <span class="flex justify-center mr-3">
+                                <ProjectIcon class="ff-icon text-gray-600"/>
+                            </span>
                             <div class="ff-applications-list--instance">
                                 <label>{{ instance.name }}</label>
-                                <span>instanceurl.flowforge.cloud</span>
+                                <span>{{ instance.url  }}</span>
                             </div>
                             <div><InstanceStatusBadge :status="application.instancesMap.get(instance.id).meta?.state" /></div>
                             <div class="text-sm">
@@ -43,10 +45,13 @@
                                 </span>
                             </div>
                             <div>
-                                <ff-button kind="secondary" :disabled="true"><template v-slot:icon-right><ExternalLinkIcon /></template>Open Editor</ff-button>
+                                <ff-button kind="secondary" @click.stop="openEditor(instance)" ><template v-slot:icon-right><ExternalLinkIcon /></template>Open Editor</ff-button>
                             </div>
                         </li>
                     </ul>
+                    <div v-else class="ff-no-data">
+                        This Application currently has no attached Node-RED Instances.
+                    </div>
                 </li>
             </ul>
         </template>
@@ -131,6 +136,9 @@ export default {
                     id: instance.id
                 }
             })
+        },
+        openEditor (instance) {
+            window.open(instance.url, '_blank')
         }
     }
 }
