@@ -19,11 +19,14 @@
         <template v-else-if="!loading && Array.from(applications.values()).length > 0">
             <ul class="ff-applications-list">
                 <li v-for="application in Array.from(applications.values())" :key="application.id">
-                    <div class="ff-application-list--app">
+                    <div class="ff-application-list--app" @click="openApplication(application)" data-action="view-application">
                         <span class="flex justify-center"><TemplateIcon class="ff-icon text-gray-600" />{{ application.name }}</span>
-                        <ff-kebab-menu>
-                            <ff-list-item label="View Application" @click="openApplication(application)"/>
-                        </ff-kebab-menu>
+                        <label class="italic text-gray-400 text-sm">
+                            {{ application.instances.length }} Instance{{ application.instances.length === 1 ? '' : 's' }}
+                        </label>
+                        <!-- <ff-kebab-menu data-el="application-options">
+                            <ff-list-item data-action="view-application" label="View Application" @click="openApplication(application)"/>
+                        </ff-kebab-menu> -->
                     </div>
                     <ul v-if="application.instances.length > 0" class="ff-applications-list-instances">
                         <label>Instances</label>

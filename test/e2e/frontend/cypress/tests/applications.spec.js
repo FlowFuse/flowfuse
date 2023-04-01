@@ -128,7 +128,7 @@ describe('FlowForge - Applications', () => {
 
                 cy.wait('@deleteProject')
 
-                cy.url().should('include', `/team/${team.slug}/overview`)
+                cy.url().should('include', `/team/${team.slug}/applications`)
             })
     })
 })

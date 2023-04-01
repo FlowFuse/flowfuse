@@ -132,6 +132,24 @@ describe('FlowForge - Devices', () => {
                 .should('be.visible')
                 .within(() => {
                     // Instance dropdown
+                    cy.get('[data-form="application"]').within(() => {
+                        cy.get('.ff-dropdown[disabled=false]').click()
+
+                        // Grab name of first instance
+                        cy.get('.ff-dropdown-options').should('be.visible')
+                        cy.get('.ff-dropdown-options > .ff-dropdown-option:first').invoke('text').then((text) => {
+                            selectedInstance = text
+                        })
+
+                        // Click first instance
+                        cy.get('.ff-dropdown-options > .ff-dropdown-option:first').click()
+                    })
+                })
+
+            cy.get('[data-el="assign-device-dialog"]')
+                .should('be.visible')
+                .within(() => {
+                    // Instance dropdown
                     cy.get('[data-form="instance"]').within(() => {
                         cy.get('.ff-dropdown[disabled=false]').click()
 

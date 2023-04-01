@@ -7,7 +7,6 @@
     > li {
         background-color: white;
         border-color: $ff-grey-300;
-        border-width: 1px;
         border-style: solid;
         border-radius: 6px;
     }
@@ -15,11 +14,17 @@
         display: flex;
         justify-content: space-between;
         padding: 18px;
-        border-bottom: 1px solid $ff-grey-300;
+        border: 1px solid $ff-grey-300;
+        border-top-left-radius: 6px;
+        border-top-right-radius: 6px;
         >span {
             display: flex;
             align-items: center;
             gap: 1rem;
+        }
+        &:hover {
+            cursor: pointer;
+            border-color: $ff-blue-600;
         }
     }
     .ff-applications-list--instance {
@@ -34,6 +39,9 @@
 
 .ff-applications-list-instances {
     background-color: $ff-grey-100;
+    border-width: 1px;
+    border-top-width: 0;
+    border-color: $ff-grey-300;
     border-bottom-left-radius: 6px;
     border-bottom-right-radius: 6px;
     padding: 12px;
