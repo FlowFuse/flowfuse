@@ -212,7 +212,7 @@ describe('FlowForge - Applications - With Billing', () => {
     })
 })
 
-describe('FlowForge stores audit logs for a project', () => {
+describe('FlowForge stores audit logs for an application', () => {
     beforeEach(() => {
         cy.login('alice', 'aaPassword')
         cy.home()

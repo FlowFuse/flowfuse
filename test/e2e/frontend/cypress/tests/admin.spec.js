@@ -8,10 +8,6 @@ describe('FlowForge platform admin users', () => {
 
     it('can login in', () => {
         cy.url().should('include', '/applications')
-        cy.url().should('include', '/applications')
-        cy.url().should('include', '/overview')
-        cy.url().should('include', '/applications')
-        cy.url().should('include', '/applications')
     })
 
     it('can view (and click) the "Admin Settings" in user options', () => {
@@ -164,10 +160,6 @@ describe('FlowForge platform non-admin users', () => {
     })
 
     it('can login in', () => {
-        cy.url().should('include', '/applications')
-        cy.url().should('include', '/applications')
-        cy.url().should('include', '/overview')
-        cy.url().should('include', '/applications')
         cy.url().should('include', '/applications')
     })
 
