@@ -9,7 +9,7 @@
                     Application ID
                 </FormRow>
 
-                <FormRow ref="appName" id="projectName" v-model="input.projectName" :type="editing ? 'text' : 'uneditable'">
+                <FormRow id="projectName" ref="appName" v-model="input.projectName" :type="editing ? 'text' : 'uneditable'">
                     Name
                 </FormRow>
             </div>
@@ -43,13 +43,13 @@
 <script>
 
 import ApplicationAPI from '@/api/application'
-import Alerts from '@/services/alerts'
 
 import FormHeading from '@/components/FormHeading'
 import FormRow from '@/components/FormRow'
 import SectionSideMenu from '@/components/SectionSideMenu'
 import SectionTopMenu from '@/components/SectionTopMenu'
 import permissionsMixin from '@/mixins/Permissions'
+import Alerts from '@/services/alerts'
 
 export default {
     name: 'ProjectSettings',
@@ -78,15 +78,15 @@ export default {
             editing: false
         }
     },
+    computed: {
+        formValid () {
+            return this.input.projectName
+        }
+    },
     watch: {
         project () {
             this.input.projectName = this.application.name
             this.input.projectId = this.application.id
-        }
-    },
-    computed: {
-        formValid () {
-            return this.input.projectName
         }
     },
     methods: {
@@ -100,11 +100,11 @@ export default {
                     this.$emit('application-updated')
                     Alerts.emit('Application updated.', 'confirmation')
                 })
-                .catch(() => {
-                    Alerts.emit('Unable to update Application.', 'warning')
-                })
                 .finally(() => {
                     this.editing = false
+                })
+                .catch(() => {
+                    Alerts.emit('Unable to update Application.', 'warning')
                 })
         }
     }

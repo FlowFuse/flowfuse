@@ -16,31 +16,28 @@
     </SectionTopMenu>
     <div class="space-y-6">
         <ff-loading v-if="loading" message="Loading Applications..." />
-        <template v-else-if="!loading && Array.from(applications.values()).length > 0">
+        <template v-else-if="!loading && applications.size > 0">
             <ul class="ff-applications-list">
                 <li v-for="application in Array.from(applications.values())" :key="application.id">
-                    <div class="ff-application-list--app" @click="openApplication(application)" data-action="view-application">
+                    <div class="ff-application-list--app" data-action="view-application" @click="openApplication(application)">
                         <span class="flex justify-center"><TemplateIcon class="ff-icon text-gray-600" />{{ application.name }}</span>
                         <label class="italic text-gray-400 text-sm">
                             {{ application.instances.length }} Instance{{ application.instances.length === 1 ? '' : 's' }}
                         </label>
-                        <!-- <ff-kebab-menu data-el="application-options">
-                            <ff-list-item data-action="view-application" label="View Application" @click="openApplication(application)"/>
-                        </ff-kebab-menu> -->
                     </div>
                     <ul v-if="application.instances.length > 0" class="ff-applications-list-instances">
                         <label>Instances</label>
                         <li v-for="instance in application.instances" :key="instance.id" @click.stop="openInstance(instance)">
                             <span class="flex justify-center mr-3">
-                                <ProjectIcon class="ff-icon text-gray-600"/>
+                                <ProjectIcon class="ff-icon text-gray-600" />
                             </span>
                             <div class="ff-applications-list--instance">
                                 <label>{{ instance.name }}</label>
-                                <span>{{ instance.url  }}</span>
+                                <span>{{ instance.url }}</span>
                             </div>
-                            <div><InstanceStatusBadge :status="application.instancesMap.get(instance.id).meta?.state" /></div>
+                            <div><InstanceStatusBadge :status="application.instancesMap.get(instance.id)?.meta?.state" /></div>
                             <div class="text-sm">
-                                <span v-if="application.instancesMap.get(instance.id).flowLastUpdatedSince">
+                                <span v-if="application.instancesMap.get(instance.id)?.flowLastUpdatedSince">
                                     {{ application.instancesMap.get(instance.id).flowLastUpdatedSince }}
                                 </span>
                                 <span v-else class="text-gray-400">
@@ -48,8 +45,8 @@
                                 </span>
                             </div>
                             <div class="flex justify-end">
-                                <ff-button kind="secondary" @click.stop="openEditor(instance)" :disabled="instance.settings.disableEditor">
-                                    <template v-slot:icon-right><ExternalLinkIcon /></template>
+                                <ff-button kind="secondary" :disabled="instance.settings.disableEditor" @click.stop="openEditor(instance)">
+                                    <template #icon-right><ExternalLinkIcon /></template>
                                     {{ instance.settings.disableEditor ? 'Editor Disabled' : 'Open Editor' }}
                                 </ff-button>
                             </div>
@@ -69,15 +66,16 @@
 </template>
 
 <script>
-import { PlusSmIcon, ExternalLinkIcon, TemplateIcon } from '@heroicons/vue/outline'
-import ProjectIcon from '../../components/icons/Projects'
-import permissionsMixin from '@/mixins/Permissions'
+import { ExternalLinkIcon, PlusSmIcon, TemplateIcon } from '@heroicons/vue/outline'
 
-import teamApi from '@/api/team'
-import applicationApi from '@/api/application'
-import SectionTopMenu from '@/components/SectionTopMenu'
+import ProjectIcon from '../../components/icons/Projects'
 
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
+
+import applicationApi from '@/api/application'
+import teamApi from '@/api/team'
+import SectionTopMenu from '@/components/SectionTopMenu'
+import permissionsMixin from '@/mixins/Permissions'
 
 export default {
     name: 'TeamApplications',
@@ -107,7 +105,7 @@ export default {
         this.fetchData()
     },
     methods: {
-        fetchData: async function (newVal) {
+        fetchData: async function () {
             this.loading = true
             if (this.team.id) {
                 const data = await teamApi.getTeamApplications(this.team.id)
@@ -120,12 +118,15 @@ export default {
             this.loading = false
         },
         loadInstancesStatuses (application) {
+            // TODO Swap to using the team API for instance statuses
             applicationApi.getApplicationInstancesStatuses(application.id)
                 .then((instances) => {
-                    console.log(instances)
                     instances?.forEach((instance) => {
                         this.applications.get(application.id).instancesMap.set(instance.id, instance)
                     })
+                })
+                .catch((error) => {
+                    console.error(error)
                 })
         },
         openApplication (application) {

@@ -32,8 +32,8 @@
                 <template #tools>
                     <div class="space-x-2 flex align-center">
                         <div v-if="editorAvailable">
-                            <ff-button v-if="!isVisitingAdmin" @click="openEditor()" kind="secondary" data-action="open-editor" :disabled="instance.settings.disableEditor">
-                                <template v-slot:icon-right>
+                            <ff-button v-if="!isVisitingAdmin" kind="secondary" data-action="open-editor" :disabled="instance.settings.disableEditor" @click="openEditor()">
+                                <template #icon-right>
                                     <ExternalLinkIcon />
                                 </template>
                                 {{ instance.settings.disableEditor ? 'Editor Disabled' : 'Open Editor' }}

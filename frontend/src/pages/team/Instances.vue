@@ -50,7 +50,7 @@ export default {
                 { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true },
                 { label: 'Status', class: ['w-44'], key: 'status', sortable: true, component: { is: markRaw(InstanceStatusBadge) } },
                 { label: 'Updated', class: ['w-60'], key: 'updatedSince', sortable: true },
-                { label: 'Application', class: ['flex-grow-[0.25]'], key: 'application.name', sortable: true } // Todo: Currently showing project name
+                { label: 'Application', class: ['flex-grow-[0.25]'], key: 'application.name', sortable: true }
             ]
         }
     },

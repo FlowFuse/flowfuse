@@ -2,7 +2,7 @@ import client from './client'
 
 import daysSince from '@/utils/daysSince'
 
-const createApplication = async (options) => {
+const createApplication = (options) => {
     return client.post('/api/v1/applications', options).then(res => {
         return res.data
     })
@@ -10,8 +10,9 @@ const createApplication = async (options) => {
 
 /**
  * @param {string} applicationId
+ * @param {string} name New name for the application
  */
-const updateApplication = async (applicationId, name) => {
+const updateApplication = (applicationId, name) => {
     return client.put(`/api/v1/applications/${applicationId}`, { name }).then(res => {
         return res.data
     })
@@ -20,7 +21,7 @@ const updateApplication = async (applicationId, name) => {
 /**
  * @param {string} applicationId
  */
-const deleteApplication = async (applicationId) => {
+const deleteApplication = (applicationId) => {
     return client.delete(`/api/v1/applications/${applicationId}`)
 }
 

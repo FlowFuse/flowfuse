@@ -60,10 +60,10 @@ import { CogIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
 
 import { mapState } from 'vuex'
 
-import InstanceStatusHeader from '@/components/InstanceStatusHeader'
 import ConfirmApplicationDeleteDialog from './Settings/dialogs/ConfirmApplicationDeleteDialog'
 
 import applicationApi from '@/api/application'
+import InstanceStatusHeader from '@/components/InstanceStatusHeader'
 
 import NavItem from '@/components/NavItem'
 import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vue'
