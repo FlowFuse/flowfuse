@@ -22,7 +22,8 @@ describe('FlowForge - Applications', () => {
 
             cy.get('[data-action="create-project"]').should('be.disabled')
 
-            cy.get('[data-form="application-name"] input').clear().type(APPLICATION_NAME)
+            cy.get('[data-form="application-name"] input').clear()
+            cy.get('[data-form="application-name"] input').type(APPLICATION_NAME)
 
             // Pre-fills name
             cy.get('[data-form="project-name"] input').should(($input) => {
@@ -30,7 +31,8 @@ describe('FlowForge - Applications', () => {
                 expect(projectName.length).to.be.above(0)
             })
 
-            cy.get('[data-form="project-name"] input').clear().type(INSTANCE_NAME)
+            cy.get('[data-form="project-name"] input').clear()
+            cy.get('[data-form="project-name"] input').type(INSTANCE_NAME)
             cy.get('[data-action="create-project"]').should('be.disabled')
 
             cy.get('[data-form="project-type"]').contains('type1').click()
@@ -77,9 +79,11 @@ describe('FlowForge - Applications', () => {
 
             cy.visit(`/team/${team.slug}/applications/create`)
 
-            cy.get('[data-form="application-name"] input').clear().type(`new-application-${Math.random().toString(36).substring(2, 7)}`)
+            cy.get('[data-form="application-name"] input').clear()
+            cy.get('[data-form="application-name"] input').type(`new-application-${Math.random().toString(36).substring(2, 7)}`)
 
-            cy.get('[data-form="project-name"] input').clear().type('instance-1-1')
+            cy.get('[data-form="project-name"] input').clear()
+            cy.get('[data-form="project-name"] input').type('instance-1-1')
             cy.get('[data-form="project-type"]').contains('type1').click()
 
             cy.get('[data-action="create-project"]').click()
@@ -154,7 +158,8 @@ describe('FlowForge - Applications - With Billing', () => {
 
             cy.get('[data-el="charges-table"]').should('not.exist')
 
-            cy.get('[data-form="application-name"] input').clear().type(`new-application-${Math.random().toString(36).substring(2, 7)}`)
+            cy.get('[data-form="application-name"] input').clear()
+            cy.get('[data-form="application-name"] input').type(`new-application-${Math.random().toString(36).substring(2, 7)}`)
             cy.contains('type1').click()
 
             cy.get('[data-el="charges-table"]').should('exist')
@@ -187,7 +192,8 @@ describe('FlowForge - Applications - With Billing', () => {
 
             cy.get('[data-el="charges-table"]').should('not.exist')
 
-            cy.get('[data-form="application-name"] input').clear().type(`new-application-${Math.random().toString(36).substring(2, 7)}`)
+            cy.get('[data-form="application-name"] input').clear()
+            cy.get('[data-form="application-name"] input').type(`new-application-${Math.random().toString(36).substring(2, 7)}`)
             cy.contains('type1').click()
 
             cy.get('[data-el="charges-table"]').should('exist')
