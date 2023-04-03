@@ -9,7 +9,7 @@ import router from './routes'
 import Alerts from './services/alerts'
 import store from './store'
 import App from './App.vue'
-import '@/index.css'
+import './index.css'
 
 // Globally available FF Components
 import Loading from './components/Loading'

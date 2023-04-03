@@ -73,5 +73,5 @@ export default {
 </script>
 
 <style lang="scss">
-@import "@/stylesheets/pages/admin.scss";
+@import "../../stylesheets/pages/admin.scss";
 </style>
