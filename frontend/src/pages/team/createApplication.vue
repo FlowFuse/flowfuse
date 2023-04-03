@@ -41,10 +41,11 @@
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
-import applicationApi from '../../api/application'
+import ApplicationApi from '../../api/application'
+import InstanceApi from '../../api/instances'
+
 import InstanceForm from '../instance/components/InstanceForm'
 
-import projectApi from '@/api/project'
 import NavItem from '@/components/NavItem'
 import SideNavigation from '@/components/SideNavigation'
 import TeamTrialBanner from '@/components/banners/TeamTrial.vue'
@@ -125,11 +126,11 @@ export default {
         },
         createApplication (applicationDetails) {
             const createPayload = { ...applicationDetails, teamId: this.team.id }
-            return applicationApi.createApplication(createPayload)
+            return ApplicationApi.createApplication(createPayload)
         },
         createProject (projectDetails, copyParts) {
             const createPayload = { ...projectDetails, applicationId: this.application.id }
-            return projectApi.create(createPayload)
+            return InstanceApi.create(createPayload)
         }
     }
 }
