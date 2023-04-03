@@ -35,6 +35,7 @@
                 "ignoreDeclarationSort": true
             }
         ],
+        "no-console": ["error", { "allow": ["info", "warn", "error"] }],
 
         // plugin:import
         "import/order": [
@@ -141,6 +142,7 @@
                 "test/e2e/frontend/cypress/tests/admin/instance-types.spec.js",
                 "test/e2e/frontend/cypress/tests/admin/stacks.spec.js",
                 "test/e2e/frontend/cypress/tests/admin/templates.spec.js",
+                "test/e2e/frontend/cypress/tests/applications.spec.js",
                 "test/e2e/frontend/cypress/tests/auth.spec.js",
                 "test/e2e/frontend/cypress/tests/devices.spec.js",
                 "test/e2e/frontend/cypress/tests/instances.spec.js",
@@ -148,7 +150,6 @@
                 "test/e2e/frontend/cypress/tests/instances/snapshots.spec.js",
                 "test/e2e/frontend/cypress/tests/instances/staging.spec.js",
                 "test/e2e/frontend/cypress/tests/invitations.spec.js",
-                "test/e2e/frontend/cypress/tests/project.spec.js",
                 "test/e2e/frontend/cypress/tests/team/audit-log.spec.js",
                 "test/e2e/frontend/cypress/tests/team/team-membership.spec.js",
                 "test/e2e/frontend/cypress/tests/terms-and-conditions.spec.js"
@@ -220,7 +221,6 @@
                 "frontend/src/api/client.js",
                 "frontend/src/api/devices.js",
                 "frontend/src/api/instanceTypes.js",
-                "frontend/src/api/project.js",
                 "frontend/src/api/projectSnapshots.js",
                 "frontend/src/api/stacks.js",
                 "frontend/src/api/team.js",
@@ -282,7 +282,6 @@
                 "frontend/src/pages/admin/Users/General.vue",
                 "frontend/src/pages/admin/Users/Invitations.vue",
                 "frontend/src/pages/admin/Users/UserDetails.vue",
-                "frontend/src/pages/device/index.vue",
                 "frontend/src/pages/device/Overview.vue",
                 "frontend/src/pages/device/routes.js",
                 "frontend/src/pages/device/Settings/Danger.vue",
@@ -294,13 +293,8 @@
                 "frontend/src/pages/instance/routes.js",
                 "frontend/src/pages/Login.vue",
                 "frontend/src/pages/PasswordExpired.vue",
-                "frontend/src/pages/project/Overview.vue",
-                "frontend/src/pages/project/routes.js",
-                "frontend/src/pages/project/Settings.vue",
                 "frontend/src/pages/team/components/LibraryEntryTypeIcon.vue",
-                "frontend/src/pages/team/components/ProjectSummaryList.vue",
                 "frontend/src/pages/team/create.vue",
-                "frontend/src/pages/team/createProject.vue",
                 "frontend/src/pages/team/Devices/dialogs/CreateProvisioningTokenDialog.vue",
                 "frontend/src/pages/team/Devices/dialogs/DeviceCredentialsDialog.vue",
                 "frontend/src/pages/team/Devices/dialogs/ProvisioningCredentialsDialog.vue",
@@ -311,7 +305,6 @@
                 "frontend/src/pages/team/Members/General.vue",
                 "frontend/src/pages/team/Members/Invitations.vue",
                 "frontend/src/pages/team/Overview.vue",
-                "frontend/src/pages/team/Projects.vue",
                 "frontend/src/pages/team/routes.js",
                 "frontend/src/pages/team/Settings/Danger.vue",
                 "frontend/src/pages/team/Settings/Devices.vue",
@@ -528,6 +521,7 @@
                 "frontend/src/index.css",
                 "frontend/src/stylesheets/common.scss",
                 "frontend/src/stylesheets/components/accordion.scss",
+                "frontend/src/stylesheets/components/applications-list.scss",
                 "frontend/src/stylesheets/components/audit-log.scss",
                 "frontend/src/stylesheets/components/code-previewer.scss",
                 "frontend/src/stylesheets/layouts.scss",
@@ -597,7 +591,6 @@
                 "frontend/src/pages/instance/Overview.vue",
                 "frontend/src/pages/instance/Settings/ChangeInstanceType.vue",
                 "frontend/src/pages/instance/Settings/Danger.vue",
-                "frontend/src/pages/project/index.vue",
                 "frontend/src/pages/team/create.vue",
                 "frontend/src/pages/team/Overview.vue",
                 "frontend/src/store/account.js"
@@ -648,7 +641,6 @@
                 "frontend/src/pages/admin/Template/index.vue",
                 "frontend/src/pages/admin/Template/sections/Environment.vue",
                 "frontend/src/pages/admin/Template/sections/PaletteModules.vue",
-                "frontend/src/pages/project/components/ProjectStatusBadge.vue",
                 "frontend/src/pages/team/components/LibraryEntryTypeIcon.vue",
                 "frontend/src/pages/team/components/ProjectSummaryList.vue"
             ]
@@ -702,10 +694,6 @@
                 "frontend/src/pages/device/Settings/Environment.vue",
                 "frontend/src/pages/device/Settings/General.vue",
                 "frontend/src/pages/Login.vue",
-                "frontend/src/pages/project/components/cells/Snapshot.vue",
-                "frontend/src/pages/project/components/ExportProjectComponents.vue",
-                "frontend/src/pages/project/components/ImportProjectComponents.vue",
-                "frontend/src/pages/project/index.vue",
                 "frontend/src/pages/setup/CreateAdminUser.vue",
                 "frontend/src/pages/setup/Final.vue",
                 "frontend/src/pages/setup/License.vue",
@@ -720,7 +708,6 @@
                 "frontend/src/pages/team/dialogs/ConfirmTeamUserRemoveDialog.vue",
                 "frontend/src/pages/team/dialogs/InviteMemberDialog.vue",
                 "frontend/src/pages/team/Members/General.vue",
-                "frontend/src/pages/team/Projects.vue",
                 "frontend/src/pages/team/Settings/Danger.vue",
                 "frontend/src/pages/team/Settings/Devices.vue",
                 "frontend/src/pages/team/Settings/General.vue",
@@ -771,8 +758,7 @@
                 "frontend/src/pages/admin/Stacks/index.vue",
                 "frontend/src/pages/admin/Templates/index.vue",
                 "frontend/src/pages/team/create.vue",
-                "frontend/src/pages/team/Devices/dialogs/CreateProvisioningTokenDialog.vue",
-                "frontend/src/pages/team/Projects.vue"
+                "frontend/src/pages/team/Devices/dialogs/CreateProvisioningTokenDialog.vue"
             ]
         },
         {
@@ -792,8 +778,7 @@
                 "frontend/src/pages/admin/Template/sections/Environment.vue",
                 "frontend/src/pages/admin/Template/sections/PaletteModules.vue",
                 "frontend/src/pages/team/create.vue",
-                "frontend/src/pages/team/Devices/dialogs/CreateProvisioningTokenDialog.vue",
-                "frontend/src/pages/team/Projects.vue"
+                "frontend/src/pages/team/Devices/dialogs/CreateProvisioningTokenDialog.vue"
             ]
         },
         {
@@ -841,7 +826,6 @@
                 "frontend/src/pages/device/Settings/Danger.vue",
                 "frontend/src/pages/Home.vue",
                 "frontend/src/pages/Login.vue",
-                "frontend/src/pages/project/index.vue",
                 "frontend/src/pages/setup/CreateAdminUser.vue",
                 "frontend/src/pages/team/components/LibraryEntryTypeIcon.vue",
                 "frontend/src/pages/team/create.vue",
@@ -912,14 +896,10 @@
                 "frontend/src/pages/admin/Users/index.vue",
                 "frontend/src/pages/admin/Users/Invitations.vue",
                 "frontend/src/pages/admin/Users/UserDetails.vue",
-                "frontend/src/pages/device/index.vue",
                 "frontend/src/pages/device/Settings/Danger.vue",
                 "frontend/src/pages/device/Settings/index.vue",
                 "frontend/src/pages/instance/AuditLog.vue",
                 "frontend/src/pages/instance/Logs.vue",
-                "frontend/src/pages/project/components/ExportProjectComponents.vue",
-                "frontend/src/pages/project/index.vue",
-                "frontend/src/pages/project/Settings.vue",
                 "frontend/src/pages/team/components/ProjectTypeSummary.vue",
                 "frontend/src/pages/team/components/TeamUserEditButton.vue",
                 "frontend/src/pages/team/create.vue",
@@ -928,7 +908,6 @@
                 "frontend/src/pages/team/Members/General.vue",
                 "frontend/src/pages/team/Members/index.vue",
                 "frontend/src/pages/team/Members/Invitations.vue",
-                "frontend/src/pages/team/Projects.vue",
                 "frontend/src/pages/team/Settings/General.vue",
                 "frontend/src/pages/team/Settings/index.vue",
                 "frontend/src/pages/team/Settings/Permissions.vue",
@@ -960,8 +939,7 @@
                 "frontend/src/pages/setup/Options.vue",
                 "frontend/src/pages/team/create.vue",
                 "frontend/src/pages/team/dialogs/ChangeTeamRoleDialog.vue",
-                "frontend/src/pages/team/dialogs/ConfirmTeamUserRemoveDialog.vue",
-                "frontend/src/pages/team/Projects.vue"
+                "frontend/src/pages/team/dialogs/ConfirmTeamUserRemoveDialog.vue"
             ]
         },
         {
@@ -983,7 +961,6 @@
                 "frontend/src/pages/admin/Stacks/dialogs/AdminStackEditDialog.vue",
                 "frontend/src/pages/admin/Users/UserDetails.vue",
                 "frontend/src/pages/team/components/ProjectSummaryList.vue",
-                "frontend/src/pages/team/create.vue",
                 "frontend/src/pages/team/dialogs/ConfirmTeamDeleteDialog.vue",
                 "frontend/src/pages/team/dialogs/ConfirmTeamUserRemoveDialog.vue",
                 "frontend/src/pages/team/dialogs/InviteMemberDialog.vue",
@@ -1101,9 +1078,6 @@
                 "frontend/src/pages/Home.vue",
                 "frontend/src/pages/Login.vue",
                 "frontend/src/pages/PasswordExpired.vue",
-                "frontend/src/pages/project/components/ExportProjectComponents.vue",
-                "frontend/src/pages/project/components/ImportProjectComponents.vue",
-                "frontend/src/pages/project/components/ProjectStatusBadge.vue",
                 "frontend/src/pages/setup/CreateAdminUser.vue",
                 "frontend/src/pages/setup/License.vue",
                 "frontend/src/pages/setup/Options.vue",
@@ -1123,7 +1097,6 @@
                 "frontend/src/pages/team/Members/index.vue",
                 "frontend/src/pages/team/Members/Invitations.vue",
                 "frontend/src/pages/team/Overview.vue",
-                "frontend/src/pages/team/Projects.vue",
                 "frontend/src/pages/team/Settings/Danger.vue",
                 "frontend/src/pages/team/Settings/Devices.vue",
                 "frontend/src/pages/team/Settings/General.vue",
@@ -1163,8 +1136,7 @@
                 "frontend/src/pages/admin/Template/sections/Security.vue",
                 "frontend/src/pages/admin/Template/Settings.vue",
                 "frontend/src/pages/admin/Users/dialogs/AdminUserEditDialog.vue",
-                "frontend/src/pages/project/components/ExportProjectComponents.vue",
-                "frontend/src/pages/project/components/ImportProjectComponents.vue",
+                "frontend/src/pages/application/components/ExportProjectComponents.vue",
                 "frontend/src/pages/setup/CreateAdminUser.vue",
                 "frontend/src/pages/setup/Final.vue",
                 "frontend/src/pages/setup/License.vue",
@@ -1202,6 +1174,9 @@
                 "frontend/src/pages/admin/Template/sections/PaletteModules.vue",
                 "frontend/src/pages/admin/Template/sections/Security.vue",
                 "frontend/src/pages/admin/Template/Settings.vue",
+                "frontend/src/pages/application/components/ExportProjectComponents.vue",
+                "frontend/src/pages/application/components/ImportProjectComponents.vue",
+                "frontend/src/pages/application/Debug.vue",
                 "frontend/src/pages/device/components/DeviceLastSeenBadge.vue",
                 "frontend/src/pages/device/Overview.vue",
                 "frontend/src/pages/device/Settings/Danger.vue",
@@ -1210,14 +1185,10 @@
                 "frontend/src/pages/device/Settings/index.vue",
                 "frontend/src/pages/instance/components/ExportInstanceComponents.vue",
                 "frontend/src/pages/instance/components/ImportInstanceComponents.vue",
-                "frontend/src/pages/instance/components/InstanceStatusBadge.vue",
-                "frontend/src/pages/project/components/ExportProjectComponents.vue",
-                "frontend/src/pages/project/components/ImportProjectComponents.vue",
-                "frontend/src/pages/project/components/ProjectStatusBadge.vue",
-                "frontend/src/pages/project/Debug.vue",
                 "frontend/src/pages/setup/CreateAdminUser.vue",
                 "frontend/src/pages/setup/License.vue",
                 "frontend/src/pages/setup/Options.vue",
+                "frontend/src/pages/team/Applications.vue",
                 "frontend/src/pages/team/AuditLog.vue",
                 "frontend/src/pages/team/Billing.vue",
                 "frontend/src/pages/team/components/MemberSummaryList.vue",
@@ -1232,7 +1203,6 @@
                 "frontend/src/pages/team/Members/index.vue",
                 "frontend/src/pages/team/Members/Invitations.vue",
                 "frontend/src/pages/team/Overview.vue",
-                "frontend/src/pages/team/Projects.vue",
                 "frontend/src/pages/team/Settings/Danger.vue",
                 "frontend/src/pages/team/Settings/Devices.vue",
                 "frontend/src/pages/team/Settings/General.vue",
@@ -1256,14 +1226,6 @@
         },
         {
             "rules": {
-                "vue/v-bind-style": "off"
-            },
-            "files": [
-                "frontend/src/pages/project/components/ExportProjectComponents.vue"
-            ]
-        },
-        {
-            "rules": {
                 "vue/v-on-event-hyphenation": "off"
             },
             "files": [
@@ -1271,7 +1233,6 @@
                 "frontend/src/pages/admin/Stacks/index.vue",
                 "frontend/src/pages/admin/Users/General.vue",
                 "frontend/src/pages/admin/Users/UserDetails.vue",
-                "frontend/src/pages/project/index.vue",
                 "frontend/src/pages/team/Members/General.vue",
                 "frontend/src/pages/team/Settings/Danger.vue",
                 "frontend/src/pages/team/Settings/Devices.vue"
@@ -1304,10 +1265,7 @@
                 "frontend/src/pages/admin/Users/dialogs/AdminUserEditDialog.vue",
                 "frontend/src/pages/admin/Users/General.vue",
                 "frontend/src/pages/admin/Users/Invitations.vue",
-                "frontend/src/pages/device/index.vue",
                 "frontend/src/pages/device/Settings/dialogs/ConfirmDeviceDeleteDialog.vue",
-                "frontend/src/pages/project/index.vue",
-                "frontend/src/pages/project/Overview.vue",
                 "frontend/src/pages/setup/CreateAdminUser.vue",
                 "frontend/src/pages/setup/Options.vue",
                 "frontend/src/pages/team/create.vue",
@@ -1321,7 +1279,6 @@
                 "frontend/src/pages/team/Members/General.vue",
                 "frontend/src/pages/team/Members/Invitations.vue",
                 "frontend/src/pages/team/Overview.vue",
-                "frontend/src/pages/team/Projects.vue",
                 "frontend/src/pages/team/Settings/Devices.vue",
                 "frontend/src/pages/team/Settings/Permissions.vue"
             ]
