@@ -67,7 +67,6 @@ export default {
                             if (!isNaN(m.ts)) {
                                 m.ts = `${m.ts}`
                             }
-                            console.log(m)
                             const d = new Date(parseInt(m.ts.substring(0, m.ts.length - 4)))
                             m.date = `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`
                             this.logEntries.push(m)
