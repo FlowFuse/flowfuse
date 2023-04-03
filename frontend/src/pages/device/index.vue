@@ -108,7 +108,6 @@ export default {
             this.$store.dispatch('account/setTeam', this.device.team.slug)
         },
         checkFeatures: async function () {
-            console.log(this.features)
             if (this.features.projectComms) {
                 this.navigation.splice(1, 0, {
                     label: 'Device Logs',
