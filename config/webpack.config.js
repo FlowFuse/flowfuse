@@ -124,9 +124,7 @@ module.exports = {
     resolve: {
         extensions: ['*', '.js', '.vue', '.json'],
         alias: {
-            vue: require.resolve('vue/dist/vue.esm-bundler.js'),
-            '@core': getPath('forge'),
-            '@': getPath('frontend/src')
+            '@core': getPath('forge')
         }
     },
     optimization: {
