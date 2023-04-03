@@ -187,7 +187,7 @@ it from inside the cluster (and not the Node-RED instances).
 
 Please read it carefully before running it to ensure you understand it.
 
-A copy of this file can be found [here](./setup-rds.sh)
+A copy of this file can be found [here](https://github.com/flowforge/flowforge/blob/f8c06e3cea0ffb539350797af429f1a0366243f1/docs/install/kubernetes/setup-rds.sh)
 
 Run the following command
 
