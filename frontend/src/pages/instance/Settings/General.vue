@@ -32,10 +32,11 @@
 </template>
 
 <script>
-import DangerSettings from './Danger.vue'
 
 import FormHeading from '../../../components/FormHeading'
 import FormRow from '../../../components/FormRow'
+
+import DangerSettings from './Danger.vue'
 
 export default {
     name: 'InstanceSettings',

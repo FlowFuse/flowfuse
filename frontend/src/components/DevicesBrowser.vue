@@ -150,6 +150,10 @@ import { PlusSmIcon } from '@heroicons/vue/solid'
 
 import { markRaw } from 'vue'
 
+import deviceApi from '../api/devices'
+import instanceApi from '../api/instances'
+import teamApi from '../api/team'
+import permissionsMixin from '../mixins/Permissions'
 import DeviceLink from '../pages/application/components/cells/DeviceLink.vue'
 import InstanceInstancesLink from '../pages/application/components/cells/InstanceInstancesLink.vue'
 import Snapshot from '../pages/application/components/cells/Snapshot.vue'
@@ -159,12 +163,6 @@ import InstanceStatusBadge from '../pages/instance/components/InstanceStatusBadg
 import DeviceAssignInstanceDialog from '../pages/team/Devices/dialogs/DeviceAssignInstanceDialog'
 import DeviceCredentialsDialog from '../pages/team/Devices/dialogs/DeviceCredentialsDialog'
 import TeamDeviceCreateDialog from '../pages/team/Devices/dialogs/TeamDeviceCreateDialog'
-
-import deviceApi from '../api/devices'
-import instanceApi from '../api/instances'
-import teamApi from '../api/team'
-
-import permissionsMixin from '../mixins/Permissions'
 
 import Alerts from '../services/alerts'
 import Dialog from '../services/dialog'

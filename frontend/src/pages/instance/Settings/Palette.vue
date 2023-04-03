@@ -14,6 +14,9 @@ import { useRouter } from 'vue-router'
 
 import { mapState } from 'vuex'
 
+import InstanceApi from '../../../api/instances'
+import permissionsMixin from '../../../mixins/Permissions'
+import alerts from '../../../services/alerts'
 import TemplateSettingsPalette from '../../admin/Template/sections/Palette'
 import TemplatePaletteModulesEditor from '../../admin/Template/sections/PaletteModules'
 
@@ -23,10 +26,6 @@ import {
     setTemplateValue,
     templateFields
 } from '../../admin/Template/utils'
-
-import InstanceApi from '../../../api/instances'
-import permissionsMixin from '../../../mixins/Permissions'
-import alerts from '../../../services/alerts'
 
 export default {
     name: 'InstanceSettingsPalette',

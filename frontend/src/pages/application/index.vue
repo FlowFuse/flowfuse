@@ -60,8 +60,6 @@ import { CogIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
 
 import { mapState } from 'vuex'
 
-import ConfirmApplicationDeleteDialog from './Settings/dialogs/ConfirmApplicationDeleteDialog'
-
 import applicationApi from '../../api/application'
 import InstanceStatusHeader from '../../components/InstanceStatusHeader'
 
@@ -74,6 +72,8 @@ import ProjectsIcon from '../../components/icons/Projects'
 import permissionsMixin from '../../mixins/Permissions'
 
 import alerts from '../../services/alerts'
+
+import ConfirmApplicationDeleteDialog from './Settings/dialogs/ConfirmApplicationDeleteDialog'
 
 export default {
     name: 'ProjectPage',

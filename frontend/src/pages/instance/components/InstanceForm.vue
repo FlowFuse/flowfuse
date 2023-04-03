@@ -214,10 +214,6 @@
 import { RefreshIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
-import ExportInstanceComponents from './ExportInstanceComponents'
-import InstanceChargesTable from './InstanceChargesTable'
-import InstanceCreditBanner from './InstanceCreditBanner'
-
 import billingApi from '../../../api/billing'
 import instanceTypesApi from '../../../api/instanceTypes'
 import stacksApi from '../../../api/stacks'
@@ -227,6 +223,10 @@ import FormRow from '../../../components/FormRow'
 import SectionTopMenu from '../../../components/SectionTopMenu'
 
 import NameGenerator from '../../../utils/name-generator'
+
+import ExportInstanceComponents from './ExportInstanceComponents'
+import InstanceChargesTable from './InstanceChargesTable'
+import InstanceCreditBanner from './InstanceCreditBanner'
 
 export default {
     name: 'InstanceForm',

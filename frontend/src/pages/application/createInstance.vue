@@ -43,11 +43,11 @@ import { ChevronLeftIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
 import instanceApi from '../../api/instances'
-import InstanceForm from '../instance/components/InstanceForm'
 
 import NavItem from '../../components/NavItem'
 import SideNavigation from '../../components/SideNavigation'
 import Alerts from '../../services/alerts'
+import InstanceForm from '../instance/components/InstanceForm'
 
 export default {
     name: 'ApplicationCreateInstance',

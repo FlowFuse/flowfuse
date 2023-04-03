@@ -73,10 +73,6 @@ import { ExternalLinkIcon } from '@heroicons/vue/outline'
 import { ChevronLeftIcon, ChipIcon, ClockIcon, CogIcon, TemplateIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
-import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDeleteDialog'
-
-import InstanceStatusBadge from './components/InstanceStatusBadge'
-
 import InstanceApi from '../../api/instances'
 import SnapshotApi from '../../api/projectSnapshots'
 
@@ -91,6 +87,9 @@ import permissionsMixin from '../../mixins/Permissions'
 
 import alerts from '../../services/alerts'
 import Dialog from '../../services/dialog'
+
+import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDeleteDialog'
+import InstanceStatusBadge from './components/InstanceStatusBadge'
 
 const instanceTransitionStates = [
     'loading',

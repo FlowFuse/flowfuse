@@ -40,12 +40,6 @@ import { PlusSmIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import DaysSince from '../../application/Snapshots/components/cells/DaysSince'
-import DeviceCount from '../../application/Snapshots/components/cells/DeviceCount'
-import SnapshotName from '../../application/Snapshots/components/cells/SnapshotName'
-
-import SnapshotCreateDialog from './dialogs/SnapshotCreateDialog'
-
 import InstanceApi from '../../../api/instances'
 import SnapshotApi from '../../../api/projectSnapshots'
 
@@ -54,6 +48,11 @@ import UserCell from '../../../components/tables/cells/UserCell'
 import permissionsMixin from '../../../mixins/Permissions'
 import Alerts from '../../../services/alerts'
 import Dialog from '../../../services/dialog'
+import DaysSince from '../../application/Snapshots/components/cells/DaysSince'
+import DeviceCount from '../../application/Snapshots/components/cells/DeviceCount'
+import SnapshotName from '../../application/Snapshots/components/cells/SnapshotName'
+
+import SnapshotCreateDialog from './dialogs/SnapshotCreateDialog'
 
 export default {
     name: 'InstanceSnapshots',
