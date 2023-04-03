@@ -50,7 +50,6 @@ export default {
     methods: {
         connect: async function () {
             await DeviceApi.startLogs(this.device.id)
-            console.log('connect')
             // this.keepAliveInterval = setInterval(() => {
             //     this.connect(this.device.id)
             // }, 10000)
