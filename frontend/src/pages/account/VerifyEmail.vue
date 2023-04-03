@@ -32,7 +32,7 @@ export default {
                     alerts.emit(`Unable to verify email. ${err.response.data.error}`, 'warning', timing)
                 } else {
                     alerts.emit('Unable to verify email. Check logs for details.', 'warning', timing)
-                    console.log(err)
+                    console.error(err)
                 }
             }
         }

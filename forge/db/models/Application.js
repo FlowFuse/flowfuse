@@ -4,6 +4,8 @@
  */
 const { DataTypes } = require('sequelize')
 
+const { KEY_SETTINGS } = require('./ProjectSettings')
+
 module.exports = {
     name: 'Application',
     schema: {
@@ -11,7 +13,8 @@ module.exports = {
     },
     associations: function (M) {
         this.hasMany(M.Project)
-        this.belongsTo(M.Team)
+        this.hasMany(M.Project, { as: 'Instances' })
+        this.belongsTo(M.Team, { foreignKey: { allowNull: false } })
     },
     finders: function (M) {
         return {
@@ -31,19 +34,41 @@ module.exports = {
                         ]
                     })
                 },
-                byTeam: async (teamIdOrHash) => {
+                byTeam: async (teamIdOrHash, { includeInstances = false }) => {
                     let id = teamIdOrHash
                     if (typeof teamIdOrHash === 'string') {
                         id = M.Team.decodeHashid(teamIdOrHash)
                     }
+
+                    const includes = [
+                        {
+                            model: M.Team,
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links'],
+                            where: { id }
+                        }
+                    ]
+
+                    if (includeInstances) {
+                        includes.push({
+                            model: M.Project,
+                            as: 'Instances',
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'url'],
+                            include: [
+                                // Need for project URL calculation (depends on httpAdminRoot)
+                                {
+                                    model: M.ProjectTemplate,
+                                    attributes: ['hashid', 'id', 'name', 'links', 'settings', 'policy']
+                                }, {
+                                    model: M.ProjectSettings,
+                                    where: { key: KEY_SETTINGS },
+                                    required: false
+                                }
+                            ]
+                        })
+                    }
+
                     return this.findAll({
-                        include: [
-                            {
-                                model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links'],
-                                where: { id }
-                            }
-                        ]
+                        include: includes
                     })
                 }
             },

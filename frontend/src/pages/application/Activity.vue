@@ -7,9 +7,8 @@
             <FormHeading class="mt-4">Application Instance:</FormHeading>
             <div data-el="filter-event-types">
                 <ff-dropdown v-model="auditFilters.instance" class="w-full">
-                    <ff-dropdown-option label="Show All" :value="undefined" />
                     <ff-dropdown-option
-                        v-for="instance in auditFilters.instances" :key="instance.id"
+                        v-for="instance in instances" :key="instance.id"
                         :label="instance.name" :value="instance.id"
                     />
                 </ff-dropdown>
@@ -37,7 +36,7 @@ export default {
     },
     inheritAttrs: false,
     props: {
-        project: {
+        instances: {
             type: Object,
             required: true
         }
@@ -47,8 +46,7 @@ export default {
             logEntries: [],
             users: [],
             auditFilters: {
-                instance: null,
-                instances: []
+                instance: null
             }
         }
     },
@@ -56,35 +54,29 @@ export default {
         ...mapState('account', ['team'])
     },
     watch: {
-        project () {
+        application () {
             this.$refs.AuditLog?.loadEntries()
-            this.loadInstances()
         },
-        team: 'loadUsers'
+        team: 'loadUsers',
+        instances () {
+            this.auditFilters.instance = this.instances[0]?.id
+        }
     },
     created () {
         this.loadUsers()
-        this.loadInstances()
     },
     methods: {
         async loadUsers () {
             this.users = (await TeamAPI.getTeamMembers(this.team.id)).members
         },
         async loadEntries (params = new URLSearchParams(), cursor = undefined) {
-            const projectId = this.project.id
-            if (projectId) {
+            const applicationId = this.application.id
+            if (applicationId) {
                 // TODO Currently this filter effectively does nothing as each application contains only one instance
-                if (this.auditFilters.instance) {
-                    params.append('instance', this.auditFilters.instance)
-                }
+                // And the API only supports one set of instance logs at a time regardless
+                const instanceId = this.auditFilters.instance.id
 
-                this.logEntries = (await ProjectAPI.getProjectAuditLog(projectId, params, cursor, 200)).log
-            }
-        },
-        async loadInstances () {
-            const projectId = this.project.id
-            if (projectId) {
-                this.auditFilters.instances = await ProjectAPI.getProjectInstances(projectId)
+                this.logEntries = (await ProjectAPI.getProjectAuditLog(instanceId, params, cursor, 200)).log
             }
         }
     }

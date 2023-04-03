@@ -9,17 +9,21 @@
                 <div class="mr-2"><strong>Instance:</strong></div>
                 <ff-dropdown ref="dropdown" v-model="input.instanceId" class="w-full">
                     <ff-dropdown-option
-                        v-for="inputInstance in input.instances" :key="inputInstance.id"
+                        v-for="inputInstance in instances" :key="inputInstance.id"
                         :label="inputInstance.name" :value="inputInstance.id"
                     />
                 </ff-dropdown>
-                <router-link v-if="instance.id" :to="{ name: 'Instance', params: { id: instance.id }}">
+                <router-link v-if="instance?.meta" :to="{ name: 'Instance', params: { id: instance.id }}">
                     <InstanceStatusBadge :status="instance.meta?.state" :pendingStateChange="instance.pendingStateChange" class="ml-2" />
                 </router-link>
             </div>
         </template>
     </SectionTopMenu>
-    <LogsShared :instance="instance" />
+
+    <LogsShared v-if="instance?.id" :instance="instance" />
+    <div v-else class="ff-no-data ff-no-data-large">
+        Select an instance to view live logs.
+    </div>
 </template>
 
 <script>
@@ -27,8 +31,6 @@ import SectionTopMenu from '../../components/SectionTopMenu'
 import LogsShared from '../instance/components/InstanceLogs'
 
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge'
-
-import ProjectApi from '@/api/project'
 
 export default {
     name: 'ProjectLogs',
@@ -39,46 +41,37 @@ export default {
     },
     inheritAttrs: false,
     props: {
-        project: {
-            type: Object,
+        instances: {
+            type: Array,
             required: true
         }
     },
-    emits: ['project-enable-polling', 'project-disable-polling'],
+    emits: ['instances-enable-polling', 'instances-disable-polling'],
     data () {
         return {
             input: {
-                instances: [],
-                instanceId: this.project.id
+                instanceId: this.instances[0]?.id
             }
         }
     },
     computed: {
         instance () {
-            return this.input.instances.find((instance) => instance.id === this.input.instanceId) || this.project
+            return this.instances.find((instance) => instance.id === this.input.instanceId)
         }
     },
     watch: {
-        project: 'projectChanged'
-    },
-    created () {
-        this.projectChanged()
+        instances: 'selectFirstInstance'
     },
     mounted () {
-        this.$emit('project-enable-polling')
+        this.$emit('instances-enable-polling')
+        this.selectFirstInstance()
     },
     unmounted () {
-        this.$emit('project-disable-polling')
+        this.$emit('instances-disable-polling')
     },
     methods: {
-        projectChanged () {
-            if (this.project.id) {
-                this.input.instanceId = this.project.id
-                this.loadInstances()
-            }
-        },
-        async loadInstances () {
-            this.input.instances = await ProjectApi.getProjectInstances(this.project.id)
+        selectFirstInstance () {
+            this.input.instanceId = this.instances[0]?.id
         }
     }
 }

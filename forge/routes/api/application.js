@@ -35,8 +35,9 @@ module.exports = async function (app) {
     app.post('/', {
         preHandler: [
             async (request, reply) => {
-                if (request.body?.teamId) {
-                    request.teamMembership = await request.session.User.getTeamMembership(request.body.teamId)
+                request.teamMembership = await request.session.User.getTeamMembership(request.body.teamId)
+                if (!request.teamMembership) {
+                    return reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
                 }
             },
             app.needsPermission('project:create') // TODO Using project level permissions
@@ -52,19 +53,22 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const name = request.body.name?.trim()
+        const team = await request.teamMembership.getTeam()
 
+        const name = request.body.name?.trim()
         if (name === '') {
-            reply.status(409).type('application/json').send({ code: 'invalid_application_name', error: 'name not allowed' })
+            reply.status(409).type('application/json').send({ code: 'invalid_application_name', error: 'name must be set' })
             return
         }
 
         let application
         try {
             application = await app.db.models.Application.create({
-                name
+                name,
+                TeamId: team.id
             })
         } catch (err) {
+            console.error(err)
             return reply.status(500).send({ code: 'unexpected_error', error: err.toString() })
         }
 
@@ -138,9 +142,10 @@ module.exports = async function (app) {
         // TODO: tidy up permissions
         preHandler: app.needsPermission('team:projects:list')
     }, async (request, reply) => {
-        const instances = await app.db.models.Project.byApplication(request.params.applicationId)
+        // Settings needed to be able to include the project URL in the response
+        const instances = await app.db.models.Project.byApplication(request.application.hashid, { includeSettings: true })
         if (instances) {
-            let result = await app.db.views.Project.teamProjectList(instances)
+            let result = await app.db.views.Project.instancesList(instances)
             if (request.session.ownerType === 'project') {
                 // This request is from a project token. Filter the list to return
                 // the minimal information needed
@@ -151,6 +156,27 @@ module.exports = async function (app) {
             reply.send({
                 count: result.length,
                 instances: result
+            })
+        } else {
+            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+    })
+
+    /**
+     * List Application instances statuses
+     * @name /api/v1/application/:id/instances/status
+     * @memberof forge.routes.api.application
+     */
+    app.get('/:applicationId/instances/status', {
+        // TODO: tidy up permissions
+        preHandler: app.needsPermission('team:projects:list')
+    }, async (request, reply) => {
+        const instances = await app.db.models.Project.byApplication(request.application.hashid)
+        if (instances) {
+            const instanceStatuses = await app.db.views.Application.instanceStatuses(instances)
+            reply.send({
+                count: instanceStatuses.length,
+                instances: instanceStatuses
             })
         } else {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })

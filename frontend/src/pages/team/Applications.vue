@@ -1,48 +1,55 @@
 <template>
-    <SectionTopMenu hero="Applications">
-    </SectionTopMenu>
+    <SectionTopMenu hero="Applications" />
     <div class="space-y-6">
         <ff-loading v-if="loading" message="Loading Applications..." />
         <template v-else>
-            <ff-data-table data-el="projects-table" :columns="columns" :rows="projects" :show-search="true" search-placeholder="Search Applications..."
-                           :rows-selectable="true" @row-selected="openProject"
+            <ff-data-table
+                data-el="projects-table" :columns="columns" :rows="applications" :show-search="true" search-placeholder="Search Applications..."
+                :rows-selectable="true" @row-selected="openApplication"
             >
                 <template #actions>
-                    <ff-button data-action="create-project-1"
-                               v-if="hasPermission('project:create')"
-                               kind="primary"
-                               to="./projects/create" data-nav="create-project">
-                        <template v-slot:icon-left>
+                    <ff-button
+                        v-if="hasPermission('project:create')"
+                        data-action="create-application"
+                        kind="primary"
+                        :to="{name: 'CreateTeamApplication'}"
+                    >
+                        <template #icon-left>
                             <PlusSmIcon />
                         </template>
                         Create Application
                     </ff-button>
                 </template>
-                <template v-if="projects.length == 0" #table>
+                <template v-if="applications.length == 0" #table>
                     <div class="ff-no-data ff-no-data-large">
                         You don't have any applications yet
                     </div>
                 </template>
-
             </ff-data-table>
         </template>
     </div>
+    <router-view />
 </template>
 
 <script>
-import permissionsMixin from '@/mixins/Permissions'
+import { PlusSmIcon } from '@heroicons/vue/outline'
 
 import teamApi from '@/api/team'
-import { PlusSmIcon } from '@heroicons/vue/outline'
 import SectionTopMenu from '@/components/SectionTopMenu'
+import permissionsMixin from '@/mixins/Permissions'
 
 export default {
-    name: 'TeamProjects',
+    name: 'TeamApplications',
+    components: {
+        PlusSmIcon,
+        SectionTopMenu
+    },
     mixins: [permissionsMixin],
+    props: ['team', 'teamMembership'],
     data () {
         return {
             loading: false,
-            projects: [],
+            applications: [],
             columns: [
                 { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true }
             ]
@@ -58,24 +65,19 @@ export default {
         fetchData: async function (newVal) {
             this.loading = true
             if (this.team.id) {
-                const data = await teamApi.getTeamProjects(this.team.id)
-                this.projects = data.projects
+                const data = await teamApi.getTeamApplications(this.team.id)
+                this.applications = data.applications
             }
             this.loading = false
         },
-        openProject (project) {
+        openApplication (application) {
             this.$router.push({
-                name: 'Project',
+                name: 'Application',
                 params: {
-                    id: project.id
+                    id: application.id
                 }
             })
         }
-    },
-    props: ['team', 'teamMembership'],
-    components: {
-        PlusSmIcon,
-        SectionTopMenu
     }
 }
 </script>

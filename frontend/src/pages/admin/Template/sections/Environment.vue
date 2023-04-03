@@ -47,9 +47,10 @@
                                 </template>
                             </ff-button>
                         </div>
-                        <div v-else-if="(item.deprecated === true)"
-                             class="flex justify-center "
-                             v-ff-tooltip:left="'This setting has been deprecated'">
+                        <div
+                            v-else-if="(item.deprecated === true)"
+                            class="flex justify-center "
+                            v-ff-tooltip:left="'This setting has been deprecated'">
                             <ExclamationIcon class="inline text-yellow-700 w-4" />
                         </div>
                         <div v-else-if="(item.platform === true)" class="flex justify-center ">

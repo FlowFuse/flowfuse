@@ -40,9 +40,9 @@ import { PlusSmIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import DaysSince from '../../project/Snapshots/components/cells/DaysSince'
-import DeviceCount from '../../project/Snapshots/components/cells/DeviceCount'
-import SnapshotName from '../../project/Snapshots/components/cells/SnapshotName'
+import DaysSince from '../../application/Snapshots/components/cells/DaysSince'
+import DeviceCount from '../../application/Snapshots/components/cells/DeviceCount'
+import SnapshotName from '../../application/Snapshots/components/cells/SnapshotName'
 
 import SnapshotCreateDialog from './dialogs/SnapshotCreateDialog'
 

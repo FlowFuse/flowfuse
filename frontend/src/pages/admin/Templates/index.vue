@@ -91,7 +91,6 @@ export default {
             this.loading = false
         },
         editTemplate (template) {
-            console.log(template)
             this.$router.push({
                 name: 'Admin Template',
                 params: { id: template.id }

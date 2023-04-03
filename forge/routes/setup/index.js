@@ -66,7 +66,7 @@ module.exports = async function (app) {
             reply.send({ status: 'okay' })
         } catch (err) {
             app.log.error(`Failed to create default ProjectStack: ${err.toString()}`)
-            console.log(err.stack)
+            console.error(err.stack)
             reply.code(500).send({ code: 'error', message: err.toString() })
         }
     })
@@ -167,7 +167,7 @@ module.exports = async function (app) {
             app.log.info('[SETUP] Applied settings')
             reply.send({ status: 'okay' })
         } catch (err) {
-            console.log(err)
+            console.error(err)
             const responseMessage = err.toString()
             reply.code(400).send({ error: responseMessage })
         }

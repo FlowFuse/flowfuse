@@ -41,7 +41,7 @@ module.exports = async (options = {}) => {
 
     server.addHook('onError', async (request, reply, error) => {
         // Useful for debugging when a route goes wrong
-        // console.log(error.stack)
+        // console.error(error.stack)
     })
 
     try {
@@ -104,6 +104,7 @@ module.exports = async (options = {}) => {
 
         return server
     } catch (err) {
+        console.error(err)
         server.log.error(`Failed to start: ${err.toString()}`)
         throw err
     }

@@ -75,7 +75,7 @@ module.exports = {
         { name: 'projects_safe_name_unique', fields: ['safeName'], unique: true }
     ],
     associations: function (M) {
-        this.belongsTo(M.Application)
+        this.belongsTo(M.Application, { foreignKey: { allowNull: false } })
         this.belongsTo(M.Team) // TODO redundant now there's an application link instead
         this.hasOne(M.AuthClient, {
             foreignKey: 'ownerId',
@@ -168,7 +168,7 @@ module.exports = {
             }
         }
     },
-    finders: function (M) {
+    finders: function (M, app) {
         return {
             instance: {
                 async refreshAuthTokens () {
@@ -242,6 +242,29 @@ module.exports = {
                         }
                     }
                     return credentialSecret
+                },
+
+                async liveState () {
+                    const storageFlow = await M.StorageFlow.byProject(this.id)
+                    const inflightState = Controllers.Project.getInflightState(this)
+
+                    const result = {
+                        flowLastUpdatedAt: storageFlow?.updatedAt // prop not set if storageFlow not found
+                    }
+
+                    if (inflightState) {
+                        result.meta = {
+                            state: inflightState
+                        }
+                    } else if (this.state === 'suspended') {
+                        result.meta = {
+                            state: 'suspended'
+                        }
+                    } else {
+                        result.meta = await app.containers.details(this) || { state: 'unknown' }
+                    }
+
+                    return result
                 }
             },
             static: {
@@ -320,24 +343,41 @@ module.exports = {
                         ]
                     })
                 },
-                byApplication: async (applicationHashId) => {
+                byApplication: async (applicationHashId, { includeSettings = false } = {}) => {
                     const applicationId = M.Application.decodeHashid(applicationHashId)
+
+                    const include = [
+                        {
+                            model: M.Team,
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                        },
+                        {
+                            model: M.Application,
+                            where: { id: applicationId },
+                            attributes: ['hashid', 'id', 'name', 'links']
+                        },
+                        {
+                            model: M.ProjectType,
+                            attributes: ['hashid', 'id', 'name']
+                        }
+                    ]
+
+                    // Needed for project.url (stored in ProjectSettings)
+                    if (includeSettings) {
+                        include.push({
+                            model: M.ProjectTemplate,
+                            attributes: ['hashid', 'id', 'name', 'links', 'settings', 'policy']
+                        })
+
+                        include.push({
+                            model: M.ProjectSettings,
+                            where: { key: KEY_SETTINGS },
+                            required: false
+                        })
+                    }
+
                     return this.findAll({
-                        include: [
-                            {
-                                model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links']
-                            },
-                            {
-                                model: M.Application,
-                                where: { id: applicationId },
-                                attributes: ['hashid', 'id', 'name', 'links']
-                            },
-                            {
-                                model: M.ProjectType,
-                                attributes: ['hashid', 'id', 'name']
-                            }
-                        ]
+                        include
                     })
                 },
                 byTeam: async (teamHashId) => {

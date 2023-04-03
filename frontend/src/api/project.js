@@ -1,3 +1,9 @@
+/**
+ * This file is deprecated
+ * New methods should only be added to ./application or ./instances
+ *
+ * All methods in this file should slowly be moved to  ./application or ./instances
+ */
 import client from './client'
 import daysSince from '@/utils/daysSince'
 import paginateUrl from '@/utils/paginateUrl'
@@ -15,10 +21,6 @@ const getProject = (projectId) => {
         res.data.flowLastUpdatedSince = daysSince(res.data.flowLastUpdatedAt)
         return res.data
     })
-}
-
-const deleteProject = async (projectId) => {
-    return client.delete(`/api/v1/projects/${projectId}`)
 }
 
 const getProjectAuditLog = async (projectId, params, cursor, limit) => {
@@ -72,25 +74,9 @@ const updateProjectDeviceSettings = async (projectId, settings) => {
     return client.post(`/api/v1/projects/${projectId}/devices/settings`, settings).then(res => res.data)
 }
 
-/**
- * TODO: Until there an application API, this just returns an array containing the requested project
- * @param {*} projectId
- * @param {*} cursor
- * @param {*} limit
- */
-const getProjectInstances = async (projectId, cursor, limit) => {
-    return [await client.get(`/api/v1/projects/${projectId}`).then(res => {
-        res.data.createdSince = daysSince(res.data.createdAt)
-        res.data.updatedSince = daysSince(res.data.updatedAt)
-        res.data.flowLastUpdatedSince = daysSince(res.data.flowLastUpdatedAt)
-        return res.data
-    })]
-}
-
 export default {
     create,
     getProject,
-    deleteProject,
     getProjectLogs,
     getProjectAuditLog,
     startProject,
@@ -102,6 +88,5 @@ export default {
     changeStack,
     importProject,
     getProjectDeviceSettings,
-    updateProjectDeviceSettings,
-    getProjectInstances
+    updateProjectDeviceSettings
 }

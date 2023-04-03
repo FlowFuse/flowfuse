@@ -1,13 +1,13 @@
 <template>
     <template v-if="id">
-        <router-link :to="{ name: 'Project', params: { id: id }}">{{ name }}</router-link>
+        <router-link :to="{ name: 'InstanceRemoteInstances', params: { id }}">{{ name }}</router-link>
     </template>
     <template v-else><span class="italic text-gray-500">Unassigned</span></template>
 </template>
 
 <script>
 export default {
-    name: 'ApplicationLink',
+    name: 'InstanceInstancesLink',
     inheritAttrs: false,
     props: {
         id: {

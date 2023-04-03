@@ -106,7 +106,6 @@ export default {
                 this.loading = false
                 usersApi.getUserTeams(this.$route.params.id).then((result) => {
                     this.teams = result.teams
-                    console.log(this.teams)
                 }).finally(() => {
                     this.loadingTeams = false
                 })

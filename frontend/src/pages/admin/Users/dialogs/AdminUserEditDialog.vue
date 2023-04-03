@@ -171,7 +171,7 @@ export default {
                     this.$emit('userUpdated', response)
                     this.$refs.dialog.close()
                 }).catch(err => {
-                    console.log(err.response.data)
+                    console.error(err.response.data)
                     if (err.response.data) {
                         let showAlert = true
                         if (/username/.test(err.response.data.error)) {

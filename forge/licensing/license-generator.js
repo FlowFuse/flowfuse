@@ -31,8 +31,8 @@ const promptly = require('promptly')
 const { v4: uuidv4 } = require('uuid')
 
 ;(async () => {
-    console.log('FlowForge EE License Generator')
-    console.log('------------------------------')
+    console.info('FlowForge EE License Generator')
+    console.info('------------------------------')
     try {
         const devLicense = await promptly.confirm('Is this a development-only license? (Y/n): ', { default: 'y' })
 
@@ -113,13 +113,13 @@ const { v4: uuidv4 } = require('uuid')
             { key, passphrase },
             { algorithm: 'ES256' }
         )
-        console.log()
-        console.log('License Details:')
-        console.log(JSON.stringify(licenseDetails, ' ', 4))
-        console.log('License:')
-        console.log('---')
-        console.log(licenseText)
-        console.log('---')
+        console.info()
+        console.info('License Details:')
+        console.info(JSON.stringify(licenseDetails, ' ', 4))
+        console.info('License:')
+        console.info('---')
+        console.info(licenseText)
+        console.info('---')
     } catch (err) {
         if (err.code === 'ERR_OSSL_EVP_BAD_DECRYPT') {
             console.warn('Error generating license: bad passphrase')

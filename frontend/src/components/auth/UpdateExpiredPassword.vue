@@ -61,7 +61,7 @@ export default {
                 this.$router.go()
             }).catch(e => {
                 this.errors.password_change = 'Password change failed'
-                console.log(e)
+                console.error(e)
             })
         },
         focusOldPassword () {

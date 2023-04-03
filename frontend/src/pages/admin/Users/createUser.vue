@@ -116,7 +116,7 @@ export default {
             usersApi.create(opts).then(result => {
                 this.$router.push({ path: '/admin/users' })
             }).catch(err => {
-                console.log(err.response.data)
+                console.error(err.response.data)
                 if (err.response.data) {
                     if (/username/.test(err.response.data.error)) {
                         this.errors.username = 'Username unavailable'

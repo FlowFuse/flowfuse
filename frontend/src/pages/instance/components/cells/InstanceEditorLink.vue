@@ -1,7 +1,7 @@
 <template>
     <div class="flex justify-end">
         <a
-            v-if="!disabled"
+            v-if="!disabled && url"
             :href="url"
             target="_blank"
             class="ff-btn ff-btn--secondary"
@@ -20,7 +20,7 @@
 import { ExternalLinkIcon } from '@heroicons/vue/solid'
 
 export default {
-    name: 'ProjectEditorLink',
+    name: 'InstanceEditorLink',
     components: { ExternalLinkIcon },
     inheritAttrs: false,
     props: {
@@ -29,7 +29,7 @@ export default {
             type: Boolean
         },
         url: {
-            required: true,
+            default: '',
             type: String
         }
     }

@@ -70,7 +70,7 @@ export default {
             }).catch(e => {
                 this.changeComplete = false
                 this.errors.password_change = 'Password change failed'
-                console.log(e)
+                console.error(e)
             }).finally(() => {
                 this.loading = false
             })

@@ -1,5 +1,10 @@
 <template>
-    <div class="forge-badge" :class="['forge-status-' + status,pendingStateChange ? 'opacity-40' : '']">
+    <div v-if="!status" class="forge-badge"><RefreshIcon class="w-4 h-4 animate-spin" /></div>
+    <div
+        v-else
+        class="forge-badge"
+        :class="['forge-status-' + status, pendingStateChange ? 'opacity-40' : '']"
+    >
         <ExclamationCircleIcon v-if="status === 'error'" class="w-4 h-4" />
         <ExclamationIcon v-if="status === 'suspended'" class="w-4 h-4" />
         <PlayIcon v-if="status === 'running'" class="w-4 h-4" />
@@ -14,13 +19,42 @@
 </template>
 
 <script>
-import { CloudDownloadIcon, CloudUploadIcon, DotsCircleHorizontalIcon, DownloadIcon, ExclamationCircleIcon, ExclamationIcon, PlayIcon, StopIcon, SupportIcon } from '@heroicons/vue/outline'
+import {
+    CloudDownloadIcon,
+    CloudUploadIcon,
+    DotsCircleHorizontalIcon,
+    DownloadIcon,
+    ExclamationCircleIcon,
+    ExclamationIcon,
+    PlayIcon,
+    RefreshIcon,
+    StopIcon,
+    SupportIcon
+} from '@heroicons/vue/outline'
 
 export default {
     name: 'InstanceStatusBadge',
     components: {
-        DownloadIcon, ExclamationIcon, ExclamationCircleIcon, PlayIcon, StopIcon, DotsCircleHorizontalIcon, SupportIcon, CloudDownloadIcon, CloudUploadIcon
+        CloudDownloadIcon,
+        CloudUploadIcon,
+        DotsCircleHorizontalIcon,
+        DownloadIcon,
+        ExclamationCircleIcon,
+        ExclamationIcon,
+        PlayIcon,
+        RefreshIcon,
+        StopIcon,
+        SupportIcon
     },
-    props: ['status', 'pendingStateChange']
+    props: {
+        status: {
+            type: String,
+            default: null
+        },
+        pendingStateChange: {
+            type: Boolean,
+            default: false
+        }
+    }
 }
 </script>

@@ -113,7 +113,7 @@ export default {
                     this.$emit('deviceUpdated', response)
                     alerts.emit('Device successfully updated.', 'confirmation')
                 }).catch(err => {
-                    console.log(err.response.data)
+                    console.error(err.response.data)
                     if (err.response.data) {
                         if (/name/.test(err.response.data.error)) {
                             this.errors.name = err.response.data.error
@@ -142,7 +142,7 @@ export default {
                     }
                 }).catch(err => {
                     this.$emit('deviceCreated', null)
-                    console.log(err.response.data)
+                    console.error(err.response.data)
                     if (err.response.data) {
                         if (/name/.test(err.response.data.error)) {
                             this.errors.name = err.response.data.error

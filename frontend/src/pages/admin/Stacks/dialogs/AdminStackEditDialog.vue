@@ -178,7 +178,7 @@ export default {
                     stacksApi.updateStack(this.stack.id, opts).then((response) => {
                         this.$emit('stackUpdated', response)
                     }).catch(err => {
-                        console.log(err.response.data)
+                        console.error(err.response.data)
                         if (err.response.data) {
                             if (/name/.test(err.response.data.error)) {
                                 this.errors.name = 'Name unavailable'
@@ -195,7 +195,7 @@ export default {
                         }
                         this.$emit('stackCreated', response, this.input.replaces)
                     }).catch(err => {
-                        console.log(err.response.data)
+                        console.error(err.response.data)
                         if (err.response.data) {
                             if (/name/.test(err.response.data.error)) {
                                 this.errors.name = 'Name unavailable'

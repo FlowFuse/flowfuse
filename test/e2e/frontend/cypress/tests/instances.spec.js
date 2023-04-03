@@ -28,25 +28,26 @@ describe('FlowForge - Instances', () => {
         cy.wait('@getInstanceTypes')
     })
 
-    it('can be navigated to from projects', () => {
-        cy.intercept('GET', '/api/*/projects/*').as('getProject')
+    it('can be navigated to from team page', () => {
+        cy.intercept('GET', '/api/*/projects/*').as('getInstance')
+        cy.intercept('GET', '/api/*/applications/*').as('getApplication')
 
         cy.visit('/')
 
-        cy.get('[data-nav="team-projects"]')
+        cy.get('[data-nav="team-applications"]')
 
-        cy.wait('@getTeamProjects')
+        cy.wait('@getTeamApplications')
 
-        cy.contains('project1').click()
+        cy.get('[data-action="view-application"]').contains('application-1').click()
 
-        cy.wait('@getProject')
+        cy.wait('@getApplication')
 
-        cy.get('[data-nav="project-overview"]').click()
-        cy.get('[data-el="cloud-instances"]').contains('project1').click()
+        cy.get('[data-el="cloud-instances"] tr').contains('instance-1-1').click()
+
+        cy.wait('@getInstance')
+
         cy.get('[data-el="instances-section"]').should('exist')
-
         cy.get('[data-el="banner-project-as-admin"]').should('not.exist')
-
         cy.get('[data-action="open-editor"]').should('exist')
         cy.get('[data-el="editor-link"]').should('exist')
     })
@@ -54,9 +55,9 @@ describe('FlowForge - Instances', () => {
     it('can be deleted', () => {
         const INSTANCE_NAME = `new-instance-${Math.random().toString(36).substring(2, 7)}`
 
-        cy.intercept('DELETE', '/api/*/projects/*').as('deleteProject')
+        cy.intercept('DELETE', '/api/*/projects/*').as('deleteInstance')
 
-        let team, template, stack, type
+        let team, application, template, stack, type
 
         cy.request('GET', 'api/v1/teams')
             .then((response) => {
@@ -69,6 +70,10 @@ describe('FlowForge - Instances', () => {
             })
             .then((response) => {
                 type = response.body.types[0]
+                return cy.request('GET', `api/v1/teams/${team.id}/applications`)
+            })
+            .then((response) => {
+                application = response.body.applications[0]
                 return cy.request('GET', `api/v1/stacks?projectType=${type.id}`)
             })
             .then((response) => {
@@ -79,15 +84,16 @@ describe('FlowForge - Instances', () => {
                     template: template.id,
                     billingConfirmation: false,
                     projectType: type.id,
-                    team: team.id
+                    team: team.id,
+                    applicationId: application.id
                 })
             })
             .then((response) => {
-                cy.intercept('GET', '/api/*/projects/*').as('getProject')
+                cy.intercept('GET', '/api/*/projects/*').as('getInstance')
 
                 const project = response.body
                 cy.visit(`/instance/${project.id}/settings`)
-                cy.wait('@getProject')
+                cy.wait('@getInstance')
 
                 cy.get('[data-el="delete-instance-dialog"]').should('not.be.visible')
                 cy.get('button[data-action="delete-instance"]').click()
@@ -106,23 +112,23 @@ describe('FlowForge - Instances', () => {
                         cy.get('button.ff-btn.ff-btn--danger').click()
                     })
 
-                cy.wait('@deleteProject')
+                cy.wait('@deleteInstance')
 
-                cy.url().should('include', `/team/${team.slug}/overview`)
+                cy.url().should('include', `/application/${application.id}/instances`)
             })
     })
 
     it('can be updated', () => {
-        cy.intercept('GET', '/api/*/projects/*').as('getProject')
+        cy.intercept('GET', '/api/*/projects/*').as('getInstance')
 
-        navigateToInstance('ATeam', 'project1')
+        navigateToInstance('ATeam', 'instance-1-1')
 
         cy.get('[data-nav="instance-settings"]').click()
         cy.get('[data-nav="general"]').click()
         cy.get('[data-nav="change-instance-settings"]').click()
 
-        cy.intercept('PUT', '/api/*/projects/*').as('updateProject')
-        cy.intercept('GET', '/api/*/projects/*').as('getProject')
+        cy.intercept('PUT', '/api/*/projects/*').as('updateInstance')
+        cy.intercept('GET', '/api/*/projects/*').as('getInstance')
 
         // Scoped as there are multiple dialogs on the page
         cy.get('[data-el="change-project"]').within(($form) => {
@@ -131,7 +137,7 @@ describe('FlowForge - Instances', () => {
 
             cy.get('[data-form="project-name"] input').should('be.disabled').should(($input) => {
                 const projectName = $input.val()
-                expect(projectName).to.equal('project1')
+                expect(projectName).to.equal('instance-1-1')
             })
 
             cy.get('[data-form="instance-stack"]').contains('stack2').click()
@@ -147,10 +153,10 @@ describe('FlowForge - Instances', () => {
             cy.get('[data-action="update-project"]').should('not.be.disabled').click()
         })
 
-        cy.wait('@updateProject')
-        cy.wait('@getProject')
+        cy.wait('@updateInstance')
+        cy.wait('@getInstance')
 
-        cy.contains('project1')
+        cy.contains('instance-1-1')
         cy.contains('type2 / stack1-for-type2')
 
         // Put it back how it was
@@ -163,23 +169,24 @@ describe('FlowForge - Instances', () => {
             cy.get('[data-action="update-project"]').click()
         })
 
-        cy.wait('@updateProject')
-        cy.wait('@getProject')
+        cy.wait('@updateInstance')
+        cy.wait('@getInstance')
 
-        cy.contains('project1')
+        cy.contains('instance-1-1')
         cy.contains('type1 / stack1')
     })
 
     it('can be copied', () => {
         // TODO needs work as currently lands user on Project Overview rather than Index View
-        cy.intercept('GET', '/api/*/projects/*').as('getProject')
+        cy.intercept('GET', '/api/*/projects/*').as('getInstance')
         cy.intercept('POST', '/api/*/projects').as('createProject')
+        cy.intercept('GET', '/api/*/applications/*/instances').as('getApplicationInstances')
 
         cy.visit('/')
 
-        navigateToInstance('ATeam', 'project1')
+        navigateToInstance('ATeam', 'instance-1-1')
 
-        cy.wait('@getProject')
+        cy.wait('@getInstance')
 
         cy.get('[data-nav="instance-settings"]').click()
         cy.get('[data-nav="general"]').click()
@@ -188,17 +195,17 @@ describe('FlowForge - Instances', () => {
         // Does not use same name
         cy.get('[data-form="project-name"] input').should(($input) => {
             const projectName = $input.val()
-            expect(projectName).not.to.be.equal('project1')
+            expect(projectName).not.to.be.equal('instance-1-1')
         })
 
         cy.get('[data-action="create-project"]').click()
-
         cy.wait('@createProject')
-        cy.wait('@getProject')
 
-        cy.get('[data-el="cloud-instances"] tbody tr').click()
+        cy.wait('@getApplicationInstances')
 
-        cy.wait('@getProject')
+        cy.get('[data-el="cloud-instances"] tr:last').click()
+
+        cy.wait('@getInstance')
 
         cy.contains('type1 / stack1')
     })

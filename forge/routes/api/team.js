@@ -168,21 +168,50 @@ module.exports = async function (app) {
     app.get('/:teamId/applications', {
         preHandler: app.needsPermission('team:projects:list') // TODO Using project level permissions
     }, async (request, reply) => {
-        const applications = await app.db.models.Application.byTeam(request.params.teamId)
+        const includeInstances = true
+        const applications = await app.db.models.Application.byTeam(request.params.teamId, { includeInstances })
 
-        // TODO Use a view
         reply.send({
             count: applications.length,
-            applications: app.db.views.Application.teamApplicationList(applications)
+            applications: await app.db.views.Application.teamApplicationList(applications, { includeInstances })
         })
     })
 
+    /**
+     * List team appplication instances statuses
+     * @name /api/v1/teams:teamId/applications/status
+     * @memberof forge.routes.api.application
+     */
+    app.get('/:teamId/applications/status', {
+        preHandler: app.needsPermission('team:projects:list') // TODO Using project level permissions
+    }, async (request, reply) => {
+        const applications = await app.db.models.Application.byTeam(request.params.teamId, { includeInstances: true })
+        if (!applications) {
+            return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+
+        const instancesByApplicationWithStatus = await Promise.all(applications.map(async (application) => {
+            return {
+                id: application.hashid,
+                instances: await app.db.views.Application.instanceStatuses(application.Instances)
+            }
+        }))
+
+        reply.send({
+            count: instancesByApplicationWithStatus.length,
+            applications: instancesByApplicationWithStatus
+        })
+    })
+
+    /**
+     * @deprecated Use /:teamId/applications, or /:applicationId/instances
+     */
     app.get('/:teamId/projects', {
         preHandler: app.needsPermission('team:projects:list')
     }, async (request, reply) => {
         const projects = await app.db.models.Project.byTeam(request.params.teamId)
         if (projects) {
-            let result = await app.db.views.Project.teamProjectList(projects)
+            let result = await app.db.views.Project.instancesList(projects)
             if (request.session.ownerType === 'project') {
                 // This request is from a project token. Filter the list to return
                 // the minimal information needed

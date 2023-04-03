@@ -1,6 +1,6 @@
 import Team from '@/pages/team/index.vue'
 import TeamOverview from '@/pages/team/Overview.vue'
-import TeamProjects from '@/pages/team/Projects.vue'
+import TeamApplications from '@/pages/team/Applications.vue'
 import TeamInstances from '@/pages/team/Instances.vue'
 import TeamDevices from '@/pages/team/Devices/index.vue'
 import TeamLibrary from '@/pages/team/Library.vue'
@@ -14,7 +14,7 @@ import TeamSettingsDanger from '@/pages/team/Settings/Danger.vue'
 import TeamSettingsDevices from '@/pages/team/Settings/Devices.vue'
 // import TeamSettingsPermissions from '@/pages/team/Settings/Permissions.vue'
 import CreateTeam from '@/pages/team/create.vue'
-import CreateProject from '@/pages/team/createProject.vue'
+import CreateApplication from '@/pages/team/createApplication'
 
 // EE Only
 import TeamBilling from '@/pages/team/Billing.vue'
@@ -44,11 +44,11 @@ export default [
         children: [
             { path: 'overview', component: TeamOverview },
             {
-                path: 'projects',
-                name: 'Projects',
-                component: TeamProjects,
+                path: 'applications',
+                name: 'Applications',
+                component: TeamApplications,
                 meta: {
-                    title: 'Team - Projects'
+                    title: 'Team - Applications'
                 }
             },
             {
@@ -123,14 +123,11 @@ export default [
         ]
     },
     {
-        path: '/team/:team_slug/projects/create',
-        name: 'CreateTeamProject',
-        component: CreateProject,
-        props: route => ({
-            sourceProjectId: route.query.sourceProject
-        }),
+        path: '/team/:team_slug/applications/create',
+        name: 'CreateTeamApplication',
+        component: CreateApplication,
         meta: {
-            title: 'Team - Create Project'
+            title: 'Team - Create Application'
         }
     }
 ]

@@ -88,7 +88,7 @@ export default {
                     }
                 } catch (err) {
                     // problem
-                    console.log(err)
+                    console.error(err)
                     this.parts.flows = undefined
                     this.errors.flows = 'Not JSON'
                 }
@@ -110,7 +110,7 @@ export default {
                     }
                 } catch (err) {
                     // problem
-                    console.log(err)
+                    console.error(err)
                     this.parts.credentials = undefined
                     this.errors.creds = 'Not JSON'
                 }

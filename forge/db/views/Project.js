@@ -1,7 +1,7 @@
 const { KEY_HOSTNAME, KEY_SETTINGS } = require('../models/ProjectSettings')
 
 module.exports = {
-    project: async function (app, project, includeSettings = true) {
+    project: async function (app, project, { includeSettings = true } = {}) {
         const proj = project.toJSON()
         const result = {
             id: proj.id,
@@ -31,10 +31,11 @@ module.exports = {
                 result.settings.palette = result.settings.palette || {}
                 result.settings.palette.modules = await app.db.controllers.StorageSettings.getProjectModules(project)
             }
+
+            const settingsHostnameRow = proj.ProjectSettings?.find((projectSettingsRow) => projectSettingsRow.key === KEY_HOSTNAME)
+            result.hostname = settingsHostnameRow?.value || ''
         }
 
-        const settingsHostnameRow = proj.ProjectSettings?.find((projectSettingsRow) => projectSettingsRow.key === KEY_HOSTNAME)
-        result.hostname = settingsHostnameRow?.value || ''
         if (proj.Application) {
             result.application = app.db.views.Application.applicationSummary(proj.Application)
         }
@@ -74,18 +75,17 @@ module.exports = {
         result.links = proj.links
         return result
     },
-    teamProjectList: async function (app, projectList) {
-        const result = new Array(projectList.length)
-        for (let i = 0; i < projectList.length; i++) {
-            const p = projectList[i]
-            const r = await app.db.views.Project.project(p, false)
-            // A limitation of how httpAdminRoot is applied to the url property
-            // means we can't return the raw url from a projectList that won't
-            // include the Template/Settings values with additional db lookups
-            delete r.url
-            result[i] = r
-        }
-        return result
+    instancesList: async function (app, instancesArray) {
+        return await Promise.all(instancesArray.map(async (instance) => {
+            // Full settings are not
+            const result = await app.db.views.Project.project(instance, { includeSettings: false })
+
+            if (!result.url) {
+                delete result.url
+            }
+
+            return result
+        }))
     },
     projectSummary: function (app, project) {
         return {

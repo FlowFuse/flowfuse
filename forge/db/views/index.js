@@ -11,19 +11,19 @@
  */
 
 const modelTypes = [
-    'User',
-    'Team',
-    'TeamType',
+    'AccessToken',
     'Application',
-    'Project',
+    'AuditLog',
     'Device',
     'Invitation',
-    'AuditLog',
-    'AccessToken',
-    'ProjectType',
+    'Project',
+    'ProjectSnapshot',
     'ProjectStack',
     'ProjectTemplate',
-    'ProjectSnapshot'
+    'ProjectType',
+    'Team',
+    'TeamType',
+    'User'
 ]
 
 async function init (app) {

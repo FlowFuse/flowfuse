@@ -53,8 +53,6 @@ module.exports = fp(async function (app, _opts, next) {
 
     const sequelize = new Sequelize(dbOptions)
 
-    // const R = async function(f) { console.log(JSON.stringify(await f," ",4)); }
-
     const db = {
         sequelize,
         models,
