@@ -71,7 +71,6 @@ export default {
                             m.date = `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`
                             this.logEntries.push(m)
                         } else {
-                            console.log('array')
                             m.forEach(row => {
                                 if (!isNaN(row.ts)) {
                                     row.ts = `${row.ts}`
