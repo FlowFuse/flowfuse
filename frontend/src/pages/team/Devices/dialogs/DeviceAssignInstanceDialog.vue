@@ -15,8 +15,8 @@
                 <FormRow
                     v-model="input.application"
                     :options="options.applications"
-                    :disabled="loading.applications"
-                    :placeholder="placeholder"
+                    :disabled="noApplications || loading.applications"
+                    placeholder="Select an application"
                     data-form="application"
                 >
                     Application
@@ -25,7 +25,7 @@
                     v-model="input.instance"
                     :options="options.instances"
                     :disabled="noInstances || loading.instances"
-                    :placeholder="placeholder"
+                    :placeholder="instancePlaceholder"
                     data-form="instance"
                 >
                     Node-RED Instance
@@ -38,11 +38,11 @@
 <script>
 import { mapState } from 'vuex'
 
-import FormRow from '@/components/FormRow'
-import alerts from '@/services/alerts'
-
 import ApplicationAPI from '@/api/application'
 import TeamAPI from '@/api/team'
+
+import FormRow from '@/components/FormRow'
+import alerts from '@/services/alerts'
 
 export default {
     name: 'DeviceAssignInstanceDialog',
@@ -74,19 +74,22 @@ export default {
             }
         }
     },
-    watch: {
-        'input.application': function () {
-            this.input.instance = null
-            this.loadInstances(this.input.application)
-        }
-    },
     computed: {
         ...mapState('account', ['team']),
         noInstances () {
             return !this.options.instances || this.options.instances?.length === 0
         },
-        disabled () {
-            return this.noInstances || this.loading.applications || this.loading.instances
+        noApplications () {
+            return !this.options.applications || this.options.applications?.length === 0
+        },
+        instancePlaceholder () {
+            return !this.input.application ? 'Select an application first' : 'Select an instance'
+        }
+    },
+    watch: {
+        'input.application': function () {
+            this.input.instance = null
+            this.loadInstances(this.input.application)
         }
     },
     mounted () {
@@ -102,6 +105,8 @@ export default {
             TeamAPI.getTeamApplications(this.team.id).then((data) => {
                 this.options.applications = data.applications.map(a => { return { value: a.id, label: a.name } })
                 this.loading.applications = false
+            }).catch((error) => {
+                console.error(error)
             })
         },
         loadInstances (applicationId) {
@@ -109,6 +114,8 @@ export default {
             ApplicationAPI.getApplicationInstances(applicationId).then((instances) => {
                 this.options.instances = instances?.map(d => { return { value: d.id, label: d.name } }) ?? []
                 this.loading.instances = false
+            }).catch((error) => {
+                console.error(error)
             })
         }
     }
