@@ -1,4 +1,4 @@
-import { Permissions } from '@core/lib/permissions'
+import { Permissions } from '../../../forge/lib/permissions'
 
 export default {
     methods: {

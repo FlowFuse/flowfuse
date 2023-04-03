@@ -18,9 +18,10 @@
 </template>
 
 <script>
-import { Roles } from '@core/lib/roles'
 import { useRoute } from 'vue-router'
 import { mapState } from 'vuex'
+
+import { Roles } from '../../../../forge/lib/roles'
 
 import Loading from '../../components/Loading'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'

@@ -49,9 +49,10 @@
 
 <script>
 // APIs
-import { Roles } from '@core/lib/roles'
 import { ChipIcon, CogIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
+
+import { Roles } from '../../../../forge/lib/roles'
 
 import deviceApi from '../../api/devices'
 

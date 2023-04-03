@@ -69,11 +69,12 @@
 </template>
 
 <script>
-import { Roles } from '@core/lib/roles'
 
 import { PlusSmIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
+
+import { Roles } from '../../../../forge/lib/roles'
 
 import SectionTopMenu from '../../components/SectionTopMenu'
 

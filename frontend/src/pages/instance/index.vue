@@ -68,10 +68,11 @@
 </template>
 
 <script>
-import { Roles } from '@core/lib/roles'
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
 import { ChevronLeftIcon, ChipIcon, ClockIcon, CogIcon, TemplateIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
+
+import { Roles } from '../../../../forge/lib/roles'
 
 import InstanceApi from '../../api/instances'
 import SnapshotApi from '../../api/projectSnapshots'

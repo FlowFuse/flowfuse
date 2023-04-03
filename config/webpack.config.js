@@ -122,10 +122,7 @@ module.exports = {
         new Dotenv()
     ],
     resolve: {
-        extensions: ['*', '.js', '.vue', '.json'],
-        alias: {
-            '@core': getPath('forge')
-        }
+        extensions: ['*', '.js', '.vue', '.json']
     },
     optimization: {
         moduleIds: 'deterministic',

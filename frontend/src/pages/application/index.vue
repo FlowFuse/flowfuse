@@ -55,10 +55,11 @@
 </template>
 
 <script>
-import { Roles } from '@core/lib/roles'
 import { CogIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
 
 import { mapState } from 'vuex'
+
+import { Roles } from '../../../../forge/lib/roles'
 
 import applicationApi from '../../api/application'
 import InstanceStatusHeader from '../../components/InstanceStatusHeader'

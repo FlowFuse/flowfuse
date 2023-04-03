@@ -27,7 +27,7 @@
 import { mapState } from 'vuex'
 import FormRow from '../../../components/FormRow'
 import teamApi from '../../../api/team'
-import { Roles } from '@core/lib/roles'
+import { Roles } from '../../../../../forge/lib/roles'
 
 import alerts from '../../../services/alerts'
 

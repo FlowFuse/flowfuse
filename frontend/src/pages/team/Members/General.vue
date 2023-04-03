@@ -34,7 +34,7 @@ import InviteMemberDialog from '../dialogs/InviteMemberDialog'
 import permissionsMixin from '../../../mixins/Permissions'
 import teamApi from '../../../api/team'
 import { PlusSmIcon } from '@heroicons/vue/outline'
-import { Roles } from '@core/lib/roles'
+import { Roles } from '../../../../../forge/lib/roles'
 
 export default {
     name: 'TeamUsersGeneral',

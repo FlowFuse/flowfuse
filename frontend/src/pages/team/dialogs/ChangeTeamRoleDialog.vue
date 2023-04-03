@@ -24,7 +24,7 @@
 import alerts from '../../../services/alerts'
 
 import teamApi from '../../../api/team'
-import { Roles } from '@core/lib/roles'
+import { Roles } from '../../../../../forge/lib/roles'
 
 export default {
     name: 'ChangeTeamRoleDialog',
