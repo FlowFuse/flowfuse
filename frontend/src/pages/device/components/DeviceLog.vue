@@ -56,7 +56,6 @@ export default {
             if (this.connection === null) {
                 try {
                     const protocol = location.protocol === 'http:' ? 'ws:' : 'wss:'
-                    console.log(`connecting to ${protocol}//${location.host}/api/v1/devices/${this.device.id}/logs`)
                     this.connection = new WebSocket(`${protocol}//${location.host}/api/v1/devices/${this.device.id}/logs`)
                     this.connection.onopen = () => {
                         this.loading = false
