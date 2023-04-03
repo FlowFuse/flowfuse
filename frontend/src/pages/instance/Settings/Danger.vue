@@ -109,12 +109,12 @@ import ChangeStackDialog from './dialogs/ChangeStackDialog'
 
 import ImportInstanceDialog from './dialogs/ImportInstanceDialog'
 
-import InstanceApi from '@/api/instances'
+import InstanceApi from '../../../api/instances'
 
-import FormHeading from '@/components/FormHeading'
-import permissionsMixin from '@/mixins/Permissions'
-import alerts from '@/services/alerts'
-import Dialog from '@/services/dialog'
+import FormHeading from '../../../components/FormHeading'
+import permissionsMixin from '../../../mixins/Permissions'
+import alerts from '../../../services/alerts'
+import Dialog from '../../../services/dialog'
 
 export default {
     name: 'InstanceSettingsDanger',

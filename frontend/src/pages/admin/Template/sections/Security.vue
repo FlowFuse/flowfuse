@@ -35,8 +35,8 @@
 </template>
 
 <script>
-import FormRow from '@/components/FormRow'
-import FormHeading from '@/components/FormHeading'
+import FormRow from '../../../../components/FormRow'
+import FormHeading from '../../../../components/FormHeading'
 import LockSetting from '../components/LockSetting'
 import ChangeIndicator from '../components/ChangeIndicator'
 export default {

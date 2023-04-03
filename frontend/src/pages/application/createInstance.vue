@@ -45,9 +45,9 @@ import { mapState } from 'vuex'
 import instanceApi from '../../api/instances'
 import InstanceForm from '../instance/components/InstanceForm'
 
-import NavItem from '@/components/NavItem'
-import SideNavigation from '@/components/SideNavigation'
-import Alerts from '@/services/alerts'
+import NavItem from '../../components/NavItem'
+import SideNavigation from '../../components/SideNavigation'
+import Alerts from '../../services/alerts'
 
 export default {
     name: 'ApplicationCreateInstance',

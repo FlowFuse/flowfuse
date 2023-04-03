@@ -12,12 +12,12 @@
 
 import { mapState } from 'vuex'
 
-import teamApi from '@/api/team'
+import teamApi from '../../../api/team'
 
-import TeamCell from '@/components/tables/cells/TeamCell'
+import TeamCell from '../../../components/tables/cells/TeamCell'
 import CreateTeamButton from '../components/CreateTeamButton'
-import alerts from '@/services/alerts'
-import Dialog from '@/services/dialog'
+import alerts from '../../../services/alerts'
+import Dialog from '../../../services/dialog'
 
 import { markRaw } from 'vue'
 

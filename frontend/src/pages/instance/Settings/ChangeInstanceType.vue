@@ -12,7 +12,7 @@ import InstanceApi from '../../../api/instances'
 
 import InstanceForm from '../components/InstanceForm'
 
-import Alerts from '@/services/alerts'
+import Alerts from '../../../services/alerts'
 
 export default {
     name: 'ChangeInstanceType',

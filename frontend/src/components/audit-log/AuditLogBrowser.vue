@@ -34,10 +34,10 @@
 <script>
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
-import FormHeading from '@/components/FormHeading'
-import AuditLog from '@/components/audit-log/AuditLog'
+import FormHeading from '../FormHeading'
+import AuditLog from './AuditLog'
 
-import AuditEventsService from '@/services/audit-events.js'
+import AuditEventsService from '../../services/audit-events.js'
 
 export default {
     name: 'AuditLogPage',

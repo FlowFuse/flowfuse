@@ -110,12 +110,12 @@
 </template>
 
 <script>
-import settingsApi from '@/api/settings'
-import instanceTypesApi from '@/api/instanceTypes'
-import Dialog from '@/services/dialog'
-import Alerts from '@/services/alerts'
-import FormRow from '@/components/FormRow'
-import FormHeading from '@/components/FormHeading'
+import settingsApi from '../../../api/settings'
+import instanceTypesApi from '../../../api/instanceTypes'
+import Dialog from '../../../services/dialog'
+import Alerts from '../../../services/alerts'
+import FormRow from '../../../components/FormRow'
+import FormHeading from '../../../components/FormHeading'
 import { mapState } from 'vuex'
 
 const validSettings = [

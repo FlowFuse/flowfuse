@@ -14,10 +14,10 @@
 
 <script>
 import { mapState } from 'vuex'
-import FormRow from '@/components/FormRow'
-import userApi from '@/api/user'
+import FormRow from '../../components/FormRow'
+import userApi from '../../api/user'
 
-import FFLayoutBox from '@/layouts/Box'
+import FFLayoutBox from '../../layouts/Box'
 
 export default {
     name: 'PasswordRequest',

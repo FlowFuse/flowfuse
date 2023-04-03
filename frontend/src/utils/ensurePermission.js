@@ -1,4 +1,4 @@
-import store from '@/store'
+import store from '../store'
 
 /**
  * A 'beforeEnter' router function that ensures the user has a particular permission

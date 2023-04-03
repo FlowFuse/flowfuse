@@ -25,11 +25,11 @@
 
 <script>
 import { mapState } from 'vuex'
-import FormRow from '@/components/FormRow'
-import teamApi from '@/api/team'
+import FormRow from '../../../components/FormRow'
+import teamApi from '../../../api/team'
 import { Roles } from '@core/lib/roles'
 
-import alerts from '@/services/alerts'
+import alerts from '../../../services/alerts'
 
 export default {
     name: 'InviteMemberDialog',

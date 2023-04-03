@@ -36,12 +36,12 @@
 </template>
 
 <script>
-import instanceTypesApi from '@/api/instanceTypes'
-import SectionTopMenu from '@/components/SectionTopMenu'
+import instanceTypesApi from '../../../api/instanceTypes'
+import SectionTopMenu from '../../../components/SectionTopMenu'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import Dialog from '@/services/dialog'
+import Dialog from '../../../services/dialog'
 
 import InstanceTypeEditDialog from './dialogs/InstanceTypeEditDialog'
 import InstanceTypeDescriptionCell from './components/InstanceTypeDescriptionCell'

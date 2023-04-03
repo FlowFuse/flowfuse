@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import SectionTopMenu from '@/components/SectionTopMenu'
+import SectionTopMenu from '../../../components/SectionTopMenu'
 import { mapState } from 'vuex'
 
 export default {

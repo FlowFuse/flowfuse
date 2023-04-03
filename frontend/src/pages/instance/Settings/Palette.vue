@@ -24,9 +24,9 @@ import {
     templateFields
 } from '../../admin/Template/utils'
 
-import InstanceApi from '@/api/instances'
-import permissionsMixin from '@/mixins/Permissions'
-import alerts from '@/services/alerts'
+import InstanceApi from '../../../api/instances'
+import permissionsMixin from '../../../mixins/Permissions'
+import alerts from '../../../services/alerts'
 
 export default {
     name: 'InstanceSettingsPalette',

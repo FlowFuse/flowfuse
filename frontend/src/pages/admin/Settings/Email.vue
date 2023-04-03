@@ -15,7 +15,7 @@
 </template>
 
 <script>
-import FormHeading from '@/components/FormHeading'
+import FormHeading from '../../../components/FormHeading'
 import { mapState } from 'vuex'
 export default {
     name: 'AdminSettingsEmail',

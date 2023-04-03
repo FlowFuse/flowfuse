@@ -71,10 +71,10 @@ import { mapState } from 'vuex'
 
 import InstanceStatusBadge from './components/InstanceStatusBadge'
 
-import InstanceApi from '@/api/instances'
-import FormHeading from '@/components/FormHeading'
-import AuditLog from '@/components/audit-log/AuditLog'
-import permissionsMixin from '@/mixins/Permissions'
+import InstanceApi from '../../api/instances'
+import FormHeading from '../../components/FormHeading'
+import AuditLog from '../../components/audit-log/AuditLog'
+import permissionsMixin from '../../mixins/Permissions'
 
 export default {
     name: 'InstanceOverview',

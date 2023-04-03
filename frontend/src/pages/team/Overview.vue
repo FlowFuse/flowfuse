@@ -28,11 +28,11 @@
 
 <script>
 
-import permissionsMixin from '@/mixins/Permissions'
+import permissionsMixin from '../../mixins/Permissions'
 
-import teamApi from '@/api/team'
+import teamApi from '../../api/team'
 
-import SectionTopMenu from '@/components/SectionTopMenu'
+import SectionTopMenu from '../../components/SectionTopMenu'
 import MemberSummaryList from './components/MemberSummaryList'
 import ProjectSummaryList from './components/ProjectSummaryList'
 import { PlusSmIcon } from '@heroicons/vue/outline'

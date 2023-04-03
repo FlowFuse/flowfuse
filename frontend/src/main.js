@@ -5,14 +5,14 @@ import ForgeUIComponents from '@flowforge/forge-ui-components'
 import '@flowforge/forge-ui-components/dist/forge-ui-components.css'
 import LottieAnimation from 'lottie-web-vue'
 
-import router from '@/routes'
-import Alerts from '@/services/alerts'
-import store from '@/store'
-import App from '@/App.vue'
+import router from './routes'
+import Alerts from './services/alerts'
+import store from './store'
+import App from './App.vue'
 import '@/index.css'
 
 // Globally available FF Components
-import Loading from '@/components/Loading'
+import Loading from './components/Loading'
 
 const app = createApp(App)
     .use(ForgeUIComponents)

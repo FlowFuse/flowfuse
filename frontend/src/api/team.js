@@ -1,7 +1,7 @@
 import client from './client'
-import daysSince from '@/utils/daysSince'
-import elapsedTime from '@/utils/elapsedTime'
-import paginateUrl from '@/utils/paginateUrl'
+import daysSince from '../utils/daysSince'
+import elapsedTime from '../utils/elapsedTime'
+import paginateUrl from '../utils/paginateUrl'
 import { RoleNames, Roles } from '@core/lib/roles'
 
 const getTeams = () => {

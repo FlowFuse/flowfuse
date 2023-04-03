@@ -10,8 +10,8 @@
 </template>
 
 <script>
-import FormRow from '@/components/FormRow'
-import FormHeading from '@/components/FormHeading'
+import FormRow from '../../../components/FormRow'
+import FormHeading from '../../../components/FormHeading'
 
 export default {
     name: 'TeamSettingsPermissions',

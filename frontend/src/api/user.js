@@ -1,6 +1,6 @@
 import client from './client'
-import daysSince from '@/utils/daysSince'
-import elapsedTime from '@/utils/elapsedTime'
+import daysSince from '../utils/daysSince'
+import elapsedTime from '../utils/elapsedTime'
 import { RoleNames, Roles } from '@core/lib/roles'
 
 const login = (username, password) => {

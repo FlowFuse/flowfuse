@@ -44,11 +44,11 @@
 </template>
 
 <script>
-import alerts from '@/services/alerts'
+import alerts from '../../../services/alerts'
 
-import teamApi from '@/api/team'
-import teamsApi from '@/api/teams'
-import FormRow from '@/components/FormRow'
+import teamApi from '../../../api/team'
+import teamsApi from '../../../api/teams'
+import FormRow from '../../../components/FormRow'
 
 export default {
     name: 'TeamSettingsGeneral',

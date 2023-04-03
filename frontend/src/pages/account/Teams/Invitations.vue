@@ -10,10 +10,10 @@
 </template>
 
 <script>
-import userApi from '@/api/user'
+import userApi from '../../../api/user'
 import { markRaw } from 'vue'
-import InviteUserCell from '@/components/tables/cells/InviteUserCell'
-import TeamCell from '@/components/tables/cells/TeamCell'
+import InviteUserCell from '../../../components/tables/cells/InviteUserCell'
+import TeamCell from '../../../components/tables/cells/TeamCell'
 
 export default {
     name: 'UserInviteTable',

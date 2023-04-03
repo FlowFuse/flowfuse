@@ -24,8 +24,8 @@ import FormHeading from '../../components/FormHeading'
 import SectionTopMenu from '../../components/SectionTopMenu'
 import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser'
 
-import InstanceApi from '@/api/instances'
-import TeamAPI from '@/api/team'
+import InstanceApi from '../../api/instances'
+import TeamAPI from '../../api/team'
 
 export default {
     name: 'ProjectAuditLog',

@@ -35,8 +35,8 @@
 
 <script>
 import { mapState, mapGetters } from 'vuex'
-import SideNavigation from '@/components/SideNavigation'
-import NavItem from '@/components/NavItem'
+import SideNavigation from '../../components/SideNavigation'
+import NavItem from '../../components/NavItem'
 
 import { ChevronLeftIcon, CogIcon, UserGroupIcon, LockClosedIcon } from '@heroicons/vue/solid'
 

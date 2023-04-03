@@ -25,14 +25,14 @@
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import UserCell from '@/components/tables/cells/UserCell'
-import UserRoleCell from '@/components/tables/cells/UserRoleCell'
+import UserCell from '../../../components/tables/cells/UserCell'
+import UserRoleCell from '../../../components/tables/cells/UserRoleCell'
 import ChangeTeamRoleDialog from '../dialogs/ChangeTeamRoleDialog'
 import ConfirmTeamUserRemoveDialog from '../dialogs/ConfirmTeamUserRemoveDialog'
 import InviteMemberDialog from '../dialogs/InviteMemberDialog'
 
-import permissionsMixin from '@/mixins/Permissions'
-import teamApi from '@/api/team'
+import permissionsMixin from '../../../mixins/Permissions'
+import teamApi from '../../../api/team'
 import { PlusSmIcon } from '@heroicons/vue/outline'
 import { Roles } from '@core/lib/roles'
 

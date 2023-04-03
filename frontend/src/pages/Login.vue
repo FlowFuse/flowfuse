@@ -29,9 +29,9 @@
 
 <script>
 import { mapState } from 'vuex'
-import Logo from '@/components/Logo'
+import Logo from '../components/Logo'
 
-import FFLayoutBox from '@/layouts/Box'
+import FFLayoutBox from '../layouts/Box'
 
 export default {
     name: 'LoginPage',

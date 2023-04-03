@@ -83,7 +83,7 @@ import InstanceEditorLink from '../instance/components/cells/InstanceEditorLink'
 import DeploymentName from './components/cells/DeploymentName.vue'
 import LastSeen from './components/cells/LastSeen.vue'
 
-import permissionsMixin from '@/mixins/Permissions'
+import permissionsMixin from '../../mixins/Permissions'
 
 export default {
     name: 'ProjectOverview',

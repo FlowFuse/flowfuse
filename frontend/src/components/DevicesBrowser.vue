@@ -160,14 +160,14 @@ import DeviceAssignInstanceDialog from '../pages/team/Devices/dialogs/DeviceAssi
 import DeviceCredentialsDialog from '../pages/team/Devices/dialogs/DeviceCredentialsDialog'
 import TeamDeviceCreateDialog from '../pages/team/Devices/dialogs/TeamDeviceCreateDialog'
 
-import deviceApi from '@/api/devices'
-import instanceApi from '@/api/instances'
-import teamApi from '@/api/team'
+import deviceApi from '../api/devices'
+import instanceApi from '../api/instances'
+import teamApi from '../api/team'
 
-import permissionsMixin from '@/mixins/Permissions'
+import permissionsMixin from '../mixins/Permissions'
 
-import Alerts from '@/services/alerts'
-import Dialog from '@/services/dialog'
+import Alerts from '../services/alerts'
+import Dialog from '../services/dialog'
 
 export default {
     name: 'ProjectOverview',

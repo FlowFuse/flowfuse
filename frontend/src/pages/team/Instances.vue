@@ -23,8 +23,8 @@ import { markRaw } from 'vue'
 import SectionTopMenu from '../../components/SectionTopMenu'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge'
 
-import teamApi from '@/api/team'
-import permissionsMixin from '@/mixins/Permissions'
+import teamApi from '../../api/team'
+import permissionsMixin from '../../mixins/Permissions'
 
 export default {
     name: 'TeamInstances',

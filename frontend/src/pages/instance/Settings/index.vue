@@ -18,9 +18,9 @@
 <script>
 import { mapState } from 'vuex'
 
-import SectionSideMenu from '@/components/SectionSideMenu'
-import SectionTopMenu from '@/components/SectionTopMenu'
-import permissionsMixin from '@/mixins/Permissions'
+import SectionSideMenu from '../../../components/SectionSideMenu'
+import SectionTopMenu from '../../../components/SectionTopMenu'
+import permissionsMixin from '../../../mixins/Permissions'
 
 export default {
     name: 'InstanceSettings',

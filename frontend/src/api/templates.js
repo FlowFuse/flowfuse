@@ -1,5 +1,5 @@
 import client from './client'
-import paginateUrl from '@/utils/paginateUrl'
+import paginateUrl from '../utils/paginateUrl'
 
 const getTemplates = async (cursor, limit) => {
     const url = paginateUrl('/api/v1/templates', cursor, limit)

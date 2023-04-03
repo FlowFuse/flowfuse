@@ -72,9 +72,9 @@ import ProjectIcon from '../../components/icons/Projects'
 
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 
-import teamApi from '@/api/team'
-import SectionTopMenu from '@/components/SectionTopMenu'
-import permissionsMixin from '@/mixins/Permissions'
+import teamApi from '../../api/team'
+import SectionTopMenu from '../../components/SectionTopMenu'
+import permissionsMixin from '../../mixins/Permissions'
 
 export default {
     name: 'TeamApplications',

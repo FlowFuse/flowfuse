@@ -12,8 +12,8 @@ import { mapState } from 'vuex'
 import SectionTopMenu from '../../components/SectionTopMenu'
 import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser'
 
-import AdminAPI from '@/api/admin'
-import UsersAPI from '@/api/users'
+import AdminAPI from '../../api/admin'
+import UsersAPI from '../../api/users'
 
 export default {
     name: 'PlatformAuditLog',

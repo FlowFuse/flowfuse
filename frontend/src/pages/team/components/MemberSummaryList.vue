@@ -8,7 +8,7 @@
 
 <script>
 
-import UserCell from '@/components/tables/cells/UserCell'
+import UserCell from '../../../components/tables/cells/UserCell'
 
 export default {
     name: 'MemberSummaryList',

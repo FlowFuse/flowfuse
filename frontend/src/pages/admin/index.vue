@@ -28,8 +28,8 @@
 
 <script>
 import { mapState } from 'vuex'
-import NavItem from '@/components/NavItem'
-import SideNavigation from '@/components/SideNavigation'
+import NavItem from '../../components/NavItem'
+import SideNavigation from '../../components/SideNavigation'
 
 import { ChevronLeftIcon, CollectionIcon, CogIcon, UsersIcon, UserGroupIcon, DesktopComputerIcon, TemplateIcon, ColorSwatchIcon, DatabaseIcon } from '@heroicons/vue/solid'
 

@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import daysSince from '@/utils/daysSince'
+import daysSince from '../../../../../utils/daysSince'
 
 export default {
     name: 'DaysSince',

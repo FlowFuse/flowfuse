@@ -95,10 +95,10 @@
 <script>
 
 // utilities
-import elapsedTime from '@/utils/elapsedTime'
+import elapsedTime from '../../utils/elapsedTime'
 
 // components
-import FormHeading from '@/components/FormHeading'
+import FormHeading from '../../components/FormHeading'
 
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge'

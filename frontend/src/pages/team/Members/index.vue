@@ -10,10 +10,10 @@
 <script>
 import { mapState } from 'vuex'
 
-import teamApi from '@/api/team'
+import teamApi from '../../../api/team'
 
-import SectionTopMenu from '@/components/SectionTopMenu'
-import permissionsMixin from '@/mixins/Permissions'
+import SectionTopMenu from '../../../components/SectionTopMenu'
+import permissionsMixin from '../../../mixins/Permissions'
 
 export default {
     name: 'TeamUsers',

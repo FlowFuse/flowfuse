@@ -56,9 +56,9 @@
 </template>
 
 <script>
-import adminApi from '@/api/admin'
-import SectionTopMenu from '@/components/SectionTopMenu'
-import Settings from '@/api/settings'
+import adminApi from '../../api/admin'
+import SectionTopMenu from '../../components/SectionTopMenu'
+import Settings from '../../api/settings'
 
 export default {
     name: 'AdminSettingsGeneral',

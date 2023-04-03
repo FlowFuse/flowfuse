@@ -46,14 +46,14 @@ import SnapshotName from '../../application/Snapshots/components/cells/SnapshotN
 
 import SnapshotCreateDialog from './dialogs/SnapshotCreateDialog'
 
-import InstanceApi from '@/api/instances'
-import SnapshotApi from '@/api/projectSnapshots'
+import InstanceApi from '../../../api/instances'
+import SnapshotApi from '../../../api/projectSnapshots'
 
-import SectionTopMenu from '@/components/SectionTopMenu.vue'
-import UserCell from '@/components/tables/cells/UserCell'
-import permissionsMixin from '@/mixins/Permissions'
-import Alerts from '@/services/alerts'
-import Dialog from '@/services/dialog'
+import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import UserCell from '../../../components/tables/cells/UserCell'
+import permissionsMixin from '../../../mixins/Permissions'
+import Alerts from '../../../services/alerts'
+import Dialog from '../../../services/dialog'
 
 export default {
     name: 'InstanceSnapshots',

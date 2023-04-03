@@ -9,7 +9,7 @@
     </div>
 </template>
 <script>
-import FormRow from '@/components/FormRow'
+import FormRow from '../../../../components/FormRow'
 import ChangeIndicator from './ChangeIndicator'
 import { LockClosedIcon } from '@heroicons/vue/outline'
 

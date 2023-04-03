@@ -21,9 +21,9 @@
 
 <script>
 
-import alerts from '@/services/alerts'
+import alerts from '../../../services/alerts'
 
-import teamApi from '@/api/team'
+import teamApi from '../../../api/team'
 import { Roles } from '@core/lib/roles'
 
 export default {

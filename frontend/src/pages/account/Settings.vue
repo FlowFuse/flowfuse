@@ -38,12 +38,12 @@
 </template>
 
 <script>
-import userApi from '@/api/user'
+import userApi from '../../api/user'
 
-import alerts from '@/services/alerts'
-import FormHeading from '@/components/FormHeading'
-import FormRow from '@/components/FormRow'
-import dialog from '@/services/dialog'
+import alerts from '../../services/alerts'
+import FormHeading from '../../components/FormHeading'
+import FormRow from '../../components/FormRow'
+import dialog from '../../services/dialog'
 
 export default {
     name: 'AccountSettings',
