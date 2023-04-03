@@ -225,6 +225,7 @@ export default {
             if (this.displayingTeam) {
                 columns.push(
                     ...statusColumns
+                    // TODO Restore application
                     // {
                     //     label: 'Application',
                     //     class: ['w-64'],
