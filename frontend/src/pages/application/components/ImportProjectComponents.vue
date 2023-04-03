@@ -21,6 +21,7 @@ export default {
         FormRow
     },
     props: ['modelValue'],
+    emits: ['update:modelValue'],
     data () {
         return {
             disableCredsSecret: true,

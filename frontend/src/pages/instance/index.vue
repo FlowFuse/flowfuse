@@ -25,19 +25,19 @@
                         <InstanceStatusBadge v-if="instance.meta" :status="instance.meta.state" :pendingStateChange="instance.pendingStateChange" />
                         <div class="w-full text-sm mt-1">
                             Application:
-                            <router-link :to="{name: 'Project', params: {id: instance.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ instance.name }}</router-link>
+                            <router-link :to="{name: 'Application', params: {id: instance.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ instance.application.name }}</router-link>
                         </div>
                     </div>
                 </template>
                 <template #tools>
                     <div class="space-x-2 flex align-center">
                         <div v-if="editorAvailable">
-                            <a v-if="!isVisitingAdmin" :href="instance.url" target="_blank" class="ff-btn ff-btn--secondary" data-action="open-editor">
-                                Open Editor
-                                <span class="ff-btn--icon ff-btn--icon-right">
+                            <ff-button v-if="!isVisitingAdmin" kind="secondary" data-action="open-editor" :disabled="instance.settings.disableEditor" @click="openEditor()">
+                                <template #icon-right>
                                     <ExternalLinkIcon />
-                                </span>
-                            </a>
+                                </template>
+                                {{ instance.settings.disableEditor ? 'Editor Disabled' : 'Open Editor' }}
+                            </ff-button>
                             <button v-else title="Unable to open editor when visiting as an admin" class="ff-btn ff-btn--secondary" disabled>
                                 Open Editor
                                 <span class="ff-btn--icon ff-btn--icon-right">

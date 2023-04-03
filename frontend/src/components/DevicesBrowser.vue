@@ -21,7 +21,7 @@
                 :columns="columns"
                 :rows="Array.from(devices.values())"
                 :show-search="true"
-                :search-placeholder="`Search ${displayingTeam ? 'Devices' : 'Remote Instances'}...`"
+                search-placeholder="Search Devices"
                 :show-load-more="!!nextCursor"
                 @load-more="loadMore"
             >
@@ -76,7 +76,7 @@
                     />
                     <ff-list-item
                         v-if="!row.instance && displayingTeam"
-                        label="Add to Application Instance"
+                        label="Add to Instance"
                         data-action="device-assign"
                         @click="deviceAction('assignToProject', row.id)"
                     />
@@ -140,7 +140,6 @@
     <DeviceAssignInstanceDialog
         v-if="displayingTeam"
         ref="deviceAssignInstanceDialog"
-        :instances="teamInstances"
         @assign-device="assignDevice"
     />
 </template>
@@ -151,7 +150,6 @@ import { PlusSmIcon } from '@heroicons/vue/solid'
 
 import { markRaw } from 'vue'
 
-import ApplicationLink from '../pages/application/components/cells/ApplicationLink'
 import DeviceLink from '../pages/application/components/cells/DeviceLink.vue'
 import InstanceInstancesLink from '../pages/application/components/cells/InstanceInstancesLink.vue'
 import Snapshot from '../pages/application/components/cells/Snapshot.vue'
@@ -226,20 +224,22 @@ export default {
 
             if (this.displayingTeam) {
                 columns.push(
-                    ...statusColumns,
-                    {
-                        label: 'Application',
-                        class: ['w-64'],
-                        key: 'project',
-                        sortable: true,
-                        component: {
-                            is: markRaw(ApplicationLink),
-                            map: {
-                                id: 'project.id',
-                                name: 'project.name'
-                            }
-                        }
-                    })
+                    ...statusColumns
+                    // TODO Restore application
+                    // {
+                    //     label: 'Application',
+                    //     class: ['w-64'],
+                    //     key: 'project',
+                    //     sortable: true,
+                    //     component: {
+                    //         is: markRaw(ApplicationLink),
+                    //         map: {
+                    //             id: 'project.id',
+                    //             name: 'project.name'
+                    //         }
+                    //     }
+                    // }
+                )
             }
 
             if (!this.displayingInstance) {
@@ -322,14 +322,16 @@ export default {
             this.devices.set(device.id, device)
         },
 
-        async assignDevice (device, projectId) {
-            const updatedDevice = await deviceApi.updateDevice(device.id, { project: projectId })
+        async assignDevice (device, instanceId) {
+            const updatedDevice = await deviceApi.updateDevice(device.id, { project: instanceId })
 
             // TODO Remove temporary duplication
             if (updatedDevice.project) {
                 device.project = updatedDevice.project
                 device.instance = updatedDevice.project
             }
+
+            this.devices.set(device.id, device)
         },
 
         async pollForData () {

@@ -10,16 +10,25 @@
         <template #default>
             <form class="space-y-6 mt-2 mb-2">
                 <p class="text-sm text-gray-500">
-                    Select the instance to add the device to:
+                    Select the Node-RED instance you want to bind the device to.
                 </p>
                 <FormRow
-                    v-model="input.project"
-                    :options="options"
-                    :disabled="disabled"
-                    :placeholder="placeholder"
+                    v-model="input.application"
+                    :options="options.applications"
+                    :disabled="noApplications || loading.applications"
+                    placeholder="Select an application"
+                    data-form="application"
+                >
+                    Application
+                </FormRow>
+                <FormRow
+                    v-model="input.instance"
+                    :options="options.instances"
+                    :disabled="noInstances || loading.instances"
+                    :placeholder="instancePlaceholder"
                     data-form="instance"
                 >
-                    Application Instance
+                    Node-RED Instance
                 </FormRow>
             </form>
         </template>
@@ -27,6 +36,11 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
+import ApplicationAPI from '@/api/application'
+import TeamAPI from '@/api/team'
+
 import FormRow from '@/components/FormRow'
 import alerts from '@/services/alerts'
 
@@ -34,12 +48,6 @@ export default {
     name: 'DeviceAssignInstanceDialog',
     components: {
         FormRow
-    },
-    props: {
-        instances: {
-            type: Array,
-            default: null
-        }
     },
     setup () {
         return {
@@ -52,43 +60,63 @@ export default {
     data () {
         return {
             device: null,
-            projects: [],
+            loading: {
+                applications: false,
+                instances: false
+            },
+            options: {
+                applications: null,
+                instances: null
+            },
             input: {
-                project: null
+                application: null,
+                instance: null
             }
         }
     },
     computed: {
-        options () {
-            return this.instances?.map(d => { return { value: d.id, label: d.name } }) ?? []
-        },
-
-        placeholder () {
-            if (this.loadingInstances) {
-                return 'Loading...'
-            } else if (this.noInstances) {
-                return 'No instances found.'
-            }
-
-            return undefined
-        },
-
+        ...mapState('account', ['team']),
         noInstances () {
-            return this.instances?.length === 0
+            return !this.options.instances || this.options.instances?.length === 0
         },
-
-        loadingInstances () {
-            return !this.instances
+        noApplications () {
+            return !this.options.applications || this.options.applications?.length === 0
         },
-
-        disabled () {
-            return this.noInstances || this.loadingInstances
+        instancePlaceholder () {
+            return !this.input.application ? 'Select an application first' : 'Select an instance'
         }
+    },
+    watch: {
+        'input.application': function () {
+            this.input.instance = null
+            this.loadInstances(this.input.application)
+        }
+    },
+    mounted () {
+        this.loadApplications()
     },
     methods: {
         assignDevice () {
-            this.$emit('assignDevice', this.device, this.input.project)
+            this.$emit('assignDevice', this.device, this.input.instance)
             alerts.emit('Device successfully assigned to instance.', 'confirmation')
+        },
+        loadApplications () {
+            this.loading.applications = true
+            TeamAPI.getTeamApplications(this.team.id).then((data) => {
+                this.options.applications = data.applications.map(a => { return { value: a.id, label: a.name } })
+                this.loading.applications = false
+            }).catch((error) => {
+                console.error(error)
+            })
+        },
+        loadInstances (applicationId) {
+            this.loading.instances = true
+            ApplicationAPI.getApplicationInstances(applicationId).then((instances) => {
+                this.options.instances = instances?.map(d => { return { value: d.id, label: d.name } }) ?? []
+                this.loading.instances = false
+            }).catch((error) => {
+                console.error(error)
+            })
         }
     }
 }

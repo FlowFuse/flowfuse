@@ -270,11 +270,10 @@ describe('Billing - Trial Housekeeper Task', function () {
         const trialTeam = await app.factory.createTeam({ name: 'noBillingTeam' })
         await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
 
-        // Start with a 30 day trial
-        const trialSub = await app.factory.createTrialSubscription(trialTeam, 30)
-
         // Generate the billing Url for later checking that emails contain it
         const billingUrl = `${app.config.base_url}/team/${trialTeam.slug}/billing`
+        // Start with a 30 day trial
+        const trialSub = await app.factory.createTrialSubscription(trialTeam, 30)
 
         await task(app)
 

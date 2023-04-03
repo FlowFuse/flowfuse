@@ -121,3 +121,14 @@ label {
 .ff-data-table--cell a:not(.ff-btn):hover {
     color: $ff-blue-600;
 }
+
+.ff-data-table--data .ff-data-table--row--nested .ff-data-table--cell {
+    background-color: $ff-grey-50;
+    &:first-child {
+        padding-left: 36px;
+    }
+}
+
+.ff-data-table--data .ff-data-table--row--nested.selectable:hover .ff-data-table--cell {
+    background-color: $ff-grey-100;
+}

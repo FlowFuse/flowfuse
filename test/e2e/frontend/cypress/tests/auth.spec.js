@@ -12,7 +12,7 @@ describe('FlowForge - Auth', () => {
         cy.get('div[label=username]').should('have.class', 'ff-input--error')
         cy.get('[data-el="errors-username"]').should('be.visible')
         // check where we are
-        cy.url().should('not.include', '/overview')
+        cy.url().should('not.include', '/applications')
     })
 
     it('requires a password', () => {
@@ -32,7 +32,7 @@ describe('FlowForge - Auth', () => {
         cy.get('div[label=password]').should('have.class', 'ff-input--error')
         cy.get('[data-el="errors-password"]').should('be.visible')
         // check where we are
-        cy.url().should('not.include', '/overview')
+        cy.url().should('not.include', '/applications')
     })
 
     it('prevents a user logging in with incorrect credentials', () => {
@@ -53,7 +53,7 @@ describe('FlowForge - Auth', () => {
         // display "Login Failed"
         cy.get('[data-el="errors-general"]').should('be.visible')
         // check where we are
-        cy.url().should('not.include', '/overview')
+        cy.url().should('not.include', '/applications')
     })
 
     it('allows a user to login', () => {
@@ -72,7 +72,7 @@ describe('FlowForge - Auth', () => {
         // click "login"
         cy.get('[data-action="login"]').click()
         // check where we are
-        cy.url().should('include', '/overview')
+        cy.url().should('include', '/applications')
     })
     it('prevent long password', () => {
         cy.visit('')
@@ -93,6 +93,6 @@ describe('FlowForge - Auth', () => {
         cy.get('div[label=password]').should('have.class', 'ff-input--error')
         cy.get('[data-el="errors-password"]').should('be.visible')
         // check where we are
-        cy.url().should('not.include', '/overview')
+        cy.url().should('not.include', '/applications')
     })
 })

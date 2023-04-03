@@ -2,7 +2,7 @@
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigationTeamOptions>
             <template #nested-menu>
-                <div class="ff-nested-title">{{ application.name ?? 'Application' }}</div>
+                <div class="ff-nested-title">Application</div>
                 <router-link v-for="route in navigation" :key="route.label" :to="route.path">
                     <nav-item :icon="route.icon" :label="route.label" :data-nav="route.tag" />
                 </router-link>
@@ -15,7 +15,7 @@
     <main v-else-if="!application?.id">
         <ff-loading message="Loading Application..." />
     </main>
-    <main v-else>
+    <main v-else class="ff-with-status-header">
         <ConfirmApplicationDeleteDialog ref="confirmApplicationDeleteDialog" @confirm="deleteApplication" />
         <Teleport v-if="mounted" to="#platform-banner">
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">
@@ -24,19 +24,33 @@
             <SubscriptionExpiredBanner :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
         </Teleport>
-        <router-view
-            :application="application"
-            :instances="Array.from(applicationInstances.values())"
-            :is-visiting-admin="isVisitingAdmin"
-            @application-delete="showConfirmDeleteApplicationDialog"
-            @application-updated="updateApplication"
-            @instance-delete="instanceShowConfirmDelete"
-            @instance-restart="instanceRestart"
-            @instance-start="instanceStart"
-            @instance-suspend="instanceSuspend"
-            @instances-disabled-polling="pollingWarning"
-            @instances-enable-polling="pollingWarning"
-        />
+        <div class="ff-instance-header">
+            <InstanceStatusHeader>
+                <template #hero>
+                    <div class="flex-grow space-x-6 items-center inline-flex" data-el="application-name">
+                        <div class="text-gray-800 text-xl font-bold">
+                            <div class="text-sm font-medium text-gray-500">Application:</div>
+                            {{ application.name }}
+                        </div>
+                    </div>
+                </template>
+            </InstanceStatusHeader>
+        </div>
+        <div class="px-3 py-3 md:px-6 md:py-6">
+            <router-view
+                :application="application"
+                :instances="Array.from(applicationInstances.values())"
+                :is-visiting-admin="isVisitingAdmin"
+                @application-delete="showConfirmDeleteApplicationDialog"
+                @application-updated="updateApplication"
+                @instance-delete="instanceShowConfirmDelete"
+                @instance-restart="instanceRestart"
+                @instance-start="instanceStart"
+                @instance-suspend="instanceSuspend"
+                @instances-disabled-polling="pollingWarning"
+                @instances-enable-polling="pollingWarning"
+            />
+        </div>
     </main>
 </template>
 
@@ -49,6 +63,7 @@ import { mapState } from 'vuex'
 import ConfirmApplicationDeleteDialog from './Settings/dialogs/ConfirmApplicationDeleteDialog'
 
 import applicationApi from '@/api/application'
+import InstanceStatusHeader from '@/components/InstanceStatusHeader'
 
 import NavItem from '@/components/NavItem'
 import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vue'
@@ -67,7 +82,8 @@ export default {
         NavItem,
         SideNavigationTeamOptions,
         SubscriptionExpiredBanner,
-        TeamTrialBanner
+        TeamTrialBanner,
+        InstanceStatusHeader
     },
     mixins: [permissionsMixin],
     data: function () {

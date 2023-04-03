@@ -3,12 +3,15 @@
         <div class="ff-side-navigation--primary">
             <!-- Team Options: General -->
             <ul class="ff-side-navigation--options">
-                <router-link v-for="route in routes.general" :key="route.label"
-                             :class="{'router-link-active': atNestedRoute(route)}"
-                             :to="'/team/' + team.slug + route.to" @click="$emit('option-selected')"
-                             :data-nav="route.tag">
-                    <nav-item :label="route.label" :icon="route.icon"></nav-item>
-                </router-link>
+                <div v-for="route in routes.general" :key="route.label">
+                    <router-link v-if="route.label"
+                                 :class="{'router-link-active': atNestedRoute(route)}"
+                                 :to="'/team/' + team.slug + route.to" @click="$emit('option-selected')"
+                                 :data-nav="route.tag">
+                        <nav-item :label="route.label" :icon="route.icon"></nav-item>
+                    </router-link>
+                    <div v-else class="ff-side-navigation-divider"></div>
+                </div>
             </ul>
             <span v-if="hasPermission('team:edit')" class="ff-navigation-divider">
                 <label>Team Admin Zone</label>
@@ -54,16 +57,11 @@ export default {
     data () {
         const routes = {
             general: [{
-                label: 'Overview',
-                to: '/overview',
-                tag: 'team-overview',
-                icon: TemplateIcon
-            }, {
                 label: 'Applications',
                 to: '/applications',
                 tag: 'team-applications',
-                icon: ProjectsIcon
-            }, {
+                icon: TemplateIcon
+            }, {}, {
                 label: 'Instances',
                 to: '/instances',
                 tag: 'team-instances',
@@ -73,7 +71,7 @@ export default {
                 to: '/devices',
                 tag: 'team-devices',
                 icon: ChipIcon
-            }, {
+            }, {}, {
                 label: 'Members',
                 to: '/members',
                 tag: 'team-members',
@@ -130,9 +128,9 @@ export default {
                 }
             }
             // the high-level route link to "/projects"
-            if (route.to === '/projects') {
+            if (route.to === '/applications') {
                 // highlight it if we are currently viewing a single project
-                if (this.$route.path.indexOf('/project') === 0) {
+                if (this.$route.path.indexOf('/application') === 0) {
                     return true
                 }
             }
@@ -147,7 +145,7 @@ export default {
         checkFeatures () {
             if (this.features['shared-library']) {
                 // insert billing in second slot of admin
-                this.routes.general.splice(4, 0, {
+                this.routes.general.splice(5, 0, {
                     label: 'Library',
                     to: '/library',
                     tag: 'shared-library',

@@ -1,0 +1,87 @@
+@import '~@flowforge/forge-ui-components/dist/scss/forge-colors.scss';
+
+.ff-applications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    > li {
+        background-color: white;
+        border-color: $ff-grey-300;
+        border-style: solid;
+        border-radius: 6px;
+    }
+    .ff-application-list--app {
+        display: flex;
+        justify-content: space-between;
+        padding: 18px;
+        border: 1px solid $ff-grey-300;
+        border-top-left-radius: 6px;
+        border-top-right-radius: 6px;
+        >span {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        &:hover {
+            cursor: pointer;
+            border-color: $ff-blue-600;
+        }
+    }
+    .ff-applications-list--instance {
+        display: flex;
+        flex-direction: column;
+        span {
+            color: $ff-grey-400;
+            font-size: 0.75rem;;
+        }
+    }
+}
+
+.ff-applications-list-instances {
+    background-color: $ff-grey-100;
+    border-width: 1px;
+    border-top-width: 0;
+    border-color: $ff-grey-300;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    padding: 12px;
+    padding-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    >label {
+        display: block;
+        font-size: 0.875rem;
+        color: $ff-grey-500;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        &::after {
+            content: '';
+            height: 1px;
+            flex-grow: 1;
+            background-color: $ff-grey-300;
+        }
+    }
+    > li {
+        background-color: white;
+        border-color: $ff-grey-300;
+        border-width: 1px;
+        border-style: solid;
+        border-radius: 6px;
+        padding: 12px;
+        display: grid;
+        align-items: center;
+        grid-template-columns: 40px 1fr 100px minmax(auto, 250px) 140px;
+        &:hover {
+            cursor: pointer;
+            border-color: $ff-blue-600;
+            .ff-application-list--instance {
+                color: $ff-blue-600;
+            }
+            .ff-icon {
+                color: $ff-blue-600;
+            }
+        }
+    }
+}

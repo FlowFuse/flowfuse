@@ -1,5 +1,4 @@
 import Team from '@/pages/team/index.vue'
-import TeamOverview from '@/pages/team/Overview.vue'
 import TeamApplications from '@/pages/team/Applications.vue'
 import TeamInstances from '@/pages/team/Instances.vue'
 import TeamDevices from '@/pages/team/Devices/index.vue'
@@ -34,7 +33,7 @@ export default [
     {
         path: '/team/:team_slug',
         redirect: to => {
-            return `/team/${to.params.team_slug}/overview`
+            return `/team/${to.params.team_slug}/applications`
         },
         name: 'Team',
         component: Team,
@@ -42,7 +41,6 @@ export default [
             title: 'Team - Overview'
         },
         children: [
-            { path: 'overview', component: TeamOverview },
             {
                 path: 'applications',
                 name: 'Applications',
