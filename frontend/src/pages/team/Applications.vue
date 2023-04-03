@@ -22,12 +22,12 @@
                     <div class="ff-application-list--app" data-action="view-application" @click="openApplication(application)">
                         <span class="flex justify-center"><TemplateIcon class="ff-icon text-gray-600" />{{ application.name }}</span>
                         <label class="italic text-gray-400 text-sm">
-                            {{ application.instances.length }} Instance{{ application.instances.length === 1 ? '' : 's' }}
+                            {{ application.instances.size }} Instance{{ application.instances.size === 1 ? '' : 's' }}
                         </label>
                     </div>
-                    <ul v-if="application.instances.length > 0" class="ff-applications-list-instances">
+                    <ul v-if="application.instances.size > 0" class="ff-applications-list-instances">
                         <label>Instances</label>
-                        <li v-for="instance in application.instances" :key="instance.id" @click.stop="openInstance(instance)">
+                        <li v-for="instance in Array.from(application.instances.values())" :key="instance.id" @click.stop="openInstance(instance)">
                             <span class="flex justify-center mr-3">
                                 <ProjectIcon class="ff-icon text-gray-600" />
                             </span>
@@ -35,19 +35,19 @@
                                 <label>{{ instance.name }}</label>
                                 <span>{{ instance.url }}</span>
                             </div>
-                            <div><InstanceStatusBadge :status="application.instancesMap.get(instance.id)?.meta?.state" /></div>
+                            <div><InstanceStatusBadge :status="instance.meta?.state" /></div>
                             <div class="text-sm">
-                                <span v-if="application.instancesMap.get(instance.id)?.flowLastUpdatedSince">
-                                    {{ application.instancesMap.get(instance.id).flowLastUpdatedSince }}
+                                <span v-if="instance.flowLastUpdatedSince">
+                                    {{ instance.flowLastUpdatedSince }}
                                 </span>
                                 <span v-else class="text-gray-400">
                                     never
                                 </span>
                             </div>
                             <div class="flex justify-end">
-                                <ff-button kind="secondary" :disabled="instance.settings.disableEditor" @click.stop="openEditor(instance)">
+                                <ff-button kind="secondary" :disabled="instance.settings?.disableEditor" @click.stop="openEditor(instance)">
                                     <template #icon-right><ExternalLinkIcon /></template>
-                                    {{ instance.settings.disableEditor ? 'Editor Disabled' : 'Open Editor' }}
+                                    {{ instance.settings?.disableEditor ? 'Editor Disabled' : 'Open Editor' }}
                                 </ff-button>
                             </div>
                         </li>
@@ -72,7 +72,6 @@ import ProjectIcon from '../../components/icons/Projects'
 
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 
-import applicationApi from '@/api/application'
 import teamApi from '@/api/team'
 import SectionTopMenu from '@/components/SectionTopMenu'
 import permissionsMixin from '@/mixins/Permissions'
@@ -105,29 +104,61 @@ export default {
         this.fetchData()
     },
     methods: {
-        fetchData: async function () {
+        async fetchData () {
             this.loading = true
             if (this.team.id) {
-                const data = await teamApi.getTeamApplications(this.team.id)
-                data.applications?.forEach((application) => {
-                    application.instancesMap = new Map()
-                    this.applications.set(application.id, application)
-                    this.loadInstancesStatuses(application)
+                this.applications = new Map()
+
+                const applicationsPromise = teamApi.getTeamApplications(this.team.id)
+
+                // Not waited for as it can resolve in any order
+                this.updateInstanceStatuses()
+
+                const applications = (await applicationsPromise).applications
+                applications.forEach((applicationData) => {
+                    const application = this.applications.get(applicationData.id) || {}
+                    if (!application.instances) {
+                        application.instances = new Map()
+                    }
+
+                    const { instances, ...applicationProps } = applicationData
+                    instances.forEach((instanceData) => {
+                        application.instances.set(instanceData.id, {
+                            ...application.instances.get(instanceData.id),
+                            ...instanceData
+                        })
+                    })
+
+                    this.applications.set(applicationData.id, {
+                        ...application,
+                        ...applicationProps
+                    })
                 })
             }
             this.loading = false
         },
-        loadInstancesStatuses (application) {
-            // TODO Swap to using the team API for instance statuses
-            applicationApi.getApplicationInstancesStatuses(application.id)
-                .then((instances) => {
-                    instances?.forEach((instance) => {
-                        this.applications.get(application.id).instancesMap.set(instance.id, instance)
+        async updateInstanceStatuses () {
+            const instanceStatusesByApplication = (await teamApi.getTeamApplicationsInstanceStatuses(this.team.id)).applications
+
+            instanceStatusesByApplication.forEach((applicationData) => {
+                const application = this.applications.get(applicationData.id) || {}
+                if (!application.instances) {
+                    application.instances = new Map()
+                }
+
+                const { instances: instanceStatuses, ...applicationProps } = applicationData
+                instanceStatuses.forEach((instanceStatusData) => {
+                    application.instances.set(instanceStatusData.id, {
+                        ...application.instances.get(instanceStatusData.id),
+                        ...instanceStatusData
                     })
                 })
-                .catch((error) => {
-                    console.error(error)
+
+                this.applications.set(applicationData.id, {
+                    ...application,
+                    ...applicationProps
                 })
+            })
         },
         openApplication (application) {
             this.$router.push({
