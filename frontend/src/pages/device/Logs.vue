@@ -1,16 +1,17 @@
 <template>
     <SectionTopMenu hero="Device Logs" help-header="FlowForge - Device Logs" info="Live logs from your FlowForge instances of Node-RED">
-        <template>
+        <!-- <template>
         </template>
         <template #tools>
-        </template>
+        </template> -->
     </SectionTopMenu>
-    <LogsShared :device="device" :instance="instance"/>
+    <LogsShared :device="device" :instance="instance" />
 </template>
 
 <script>
-import SectionTopMenu from '../../components/SectionTopMenu'
-import LogsShared from './components/DeviceLog'
+import SectionTopMenu from '../../components/SectionTopMenu.vue'
+
+import LogsShared from './components/DeviceLog.vue'
 
 export default {
     name: 'DeviceLogs',
@@ -18,10 +19,10 @@ export default {
         SectionTopMenu,
         LogsShared
     },
-    props: [
-        'device',
-        'instance'
-    ],
-    inheritAttrs: false
+    inheritAttrs: false,
+    props: {
+        device: { type: Object, required: true },
+        instance: { type: Object, required: true }
+    }
 }
 </script>

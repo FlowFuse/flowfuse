@@ -7,13 +7,13 @@
             <div class="flex-grow break-all whitespace-pre-wrap">{{ item.msg.replace(/^[\n]*/, '') }}</div>
         </div>
     </div>
-    <div v-else >
+    <div v-else>
         Logs unavailable
     </div>
 </template>
 
 <script>
-import DeviceApi from '@/api/devices'
+import DeviceApi from '../../../api/devices.js'
 
 export default {
     name: 'DeviceLogView',
@@ -81,7 +81,7 @@ export default {
                         }
                     }
                 } catch (e) {
-                    console.log(e)
+                    console.error(e)
                 }
             }
         },
