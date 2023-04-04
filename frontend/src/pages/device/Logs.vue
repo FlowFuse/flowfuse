@@ -1,9 +1,5 @@
 <template>
     <SectionTopMenu hero="Device Logs" help-header="FlowForge - Device Logs" info="Live logs from your FlowForge instances of Node-RED">
-        <!-- <template>
-        </template>
-        <template #tools>
-        </template> -->
     </SectionTopMenu>
     <LogsShared :device="device" :instance="instance" />
 </template>
