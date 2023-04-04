@@ -44,19 +44,17 @@ export default {
     methods: {
         dismiss: function () {
             this.capture('$interview-popup-dismissed')
-            this.actioned = true
+            this.action()
         },
         book: function () {
             this.capture('$interview-popup-book')
-            this.actioned = true
+            this.action()
             if (this.payload.bookingLink) {
                 window.open(this.payload.bookingLink)
             }
         },
         capture (event) {
             const timestamp = new Date().toISOString()
-
-            localStorage.setItem('ph-$interview-popup-seen', timestamp)
 
             window.posthog?.capture(event, {
                 $set: {
@@ -65,6 +63,10 @@ export default {
                 },
                 featureFlagName: this.flag
             })
+        },
+        action () {
+            localStorage.setItem('ph-$interview-popup-seen', timestamp)
+            this.actioned = true
         }
     }
 }
