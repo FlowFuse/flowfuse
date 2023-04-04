@@ -12,6 +12,7 @@
  */
 const fp = require('fastify-plugin')
 module.exports = fp(async function (app, opts, done) {
+    await app.register(require('@fastify/websocket'))
     await app.register(require('./auth'), { logLevel: app.config.logging.http })
     await app.register(require('./api'), { prefix: '/api/v1', logLevel: app.config.logging.http })
     await app.register(require('./ui'), { logLevel: app.config.logging.http })

@@ -57,6 +57,7 @@
         "@fastify/helmet": "^10.0.2",
         "@fastify/passport": "^2.2.0",
         "@fastify/static": "^6.5.0",
+        "@fastify/websocket": "^7.2.0",
         "@flowforge/forge-ui-components": "^0.5.5",
         "@flowforge/localfs": "^1.5.0",
         "@headlessui/vue": "1.7.12",

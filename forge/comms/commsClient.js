@@ -35,23 +35,33 @@ class CommsClient extends EventEmitter {
                 const topicParts = topic.split('/')
                 const ownerType = topicParts[3]
                 const ownerId = topicParts[4]
+                const messageType = topicParts[5]
                 if (ownerType === 'p') {
                     this.emit('status/project', {
                         id: ownerId,
                         status: message.toString()
                     })
                 } else if (ownerType === 'd') {
-                    this.emit('status/device', {
-                        id: ownerId,
-                        status: message.toString()
-                    })
+                    if (messageType === 'status') {
+                        this.emit('status/device', {
+                            id: ownerId,
+                            status: message.toString()
+                        })
+                    } else if (messageType === 'logs') {
+                        this.emit('logs/device', {
+                            id: ownerId,
+                            logs: message.toString()
+                        })
+                    }
                 }
             })
             this.client.subscribe([
                 // Launcher status
                 'ff/v1/+/l/+/status',
                 // Device status
-                'ff/v1/+/d/+/status'
+                'ff/v1/+/d/+/status',
+                // Device logs
+                'ff/v1/+/d/+/logs'
             ])
         }
     }
