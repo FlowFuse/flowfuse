@@ -121,9 +121,6 @@ module.exports = {
         }),
         new Dotenv()
     ],
-    resolve: {
-        extensions: ['*', '.js', '.vue', '.json']
-    },
     optimization: {
         moduleIds: 'deterministic',
         runtimeChunk: 'single',
