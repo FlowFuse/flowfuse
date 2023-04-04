@@ -15,24 +15,14 @@
     "ignorePatterns": ["frontend/dist/", "var/"],
     "plugins": ["promise"],
     "settings": {
-        "import/resolver": {
-            "node": {
-              "extensions": [
-                ".js",
-                ".vue",
-                "json"
-              ]
-            }
-        },
-        "import/core-modules": [ "lottie-web-vue" ],
+        "import/core-modules": [ "lottie-web-vue", "@heroicons/vue" ],
         "node": {
             "allowModules": [
                 "flowforge-test-utils", // exists at test/node_modules/flowforge-test-utils
-                "./config",
                 "promptly",
-                "lottie-web-vue"
+                "lottie-web-vue",
+                "@heroicons/vue"
             ],
-            "tryExtensions": [".js", ".json", ".vue"]
         }
     },
     "rules": {
@@ -57,10 +47,12 @@
                 "newlines-between": "always-and-inside-groups"
             }
         ],
-        "import/no-unresolved": "off",
+        "import/no-unresolved": "error",
 
         // plugin:n
-        "n/no-missing-import": "off"
+        "n/file-extension-in-import": "error",
+        "n/no-missing-import": "error",
+        "n/no-missing-require": "error"
     },
     "overrides": [
         // Frontend runs in the browser and builds with webpack
