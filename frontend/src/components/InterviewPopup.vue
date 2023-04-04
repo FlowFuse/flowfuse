@@ -65,6 +65,7 @@ export default {
             })
         },
         action () {
+            const timestamp = new Date().toISOString()
             localStorage.setItem('ph-$interview-popup-seen', timestamp)
             this.actioned = true
         }
