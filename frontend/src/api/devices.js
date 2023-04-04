@@ -64,7 +64,5 @@ export default {
     updateDevice,
     generateCredentials,
     getSettings,
-    updateSettings,
-    startLogs,
-    stopLogs
+    updateSettings
 }
