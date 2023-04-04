@@ -1,5 +1,5 @@
-import adjectives from './adjectives'
-import nouns from './nouns'
+import adjectives from './adjectives.js'
+import nouns from './nouns.js'
 
 function pickRandom (list) {
     return list[Math.floor(Math.random() * list.length)]

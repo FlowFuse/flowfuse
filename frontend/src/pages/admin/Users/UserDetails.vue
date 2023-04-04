@@ -59,17 +59,17 @@
 
 <script>
 
-import usersApi from '../../../api/users'
+import usersApi from '../../../api/users.js'
 import { ChevronRightIcon } from '@heroicons/vue/solid'
 
-import FormHeading from '../../../components/FormHeading'
+import FormHeading from '../../../components/FormHeading.vue'
 
-import AdminUserEditDialog from './dialogs/AdminUserEditDialog'
+import AdminUserEditDialog from './dialogs/AdminUserEditDialog.vue'
 
 import { mapState } from 'vuex'
-import TeamCell from '../../../components/tables/cells/TeamCell'
-import TeamTypeCell from '../../../components/tables/cells/TeamTypeCell'
-import UserRoleCell from '../../../components/tables/cells/UserRoleCell'
+import TeamCell from '../../../components/tables/cells/TeamCell.vue'
+import TeamTypeCell from '../../../components/tables/cells/TeamTypeCell.vue'
+import UserRoleCell from '../../../components/tables/cells/UserRoleCell.vue'
 import { markRaw } from 'vue'
 
 export default {

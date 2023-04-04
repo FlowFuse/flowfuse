@@ -10,11 +10,11 @@ import AccessRequest from './AccessRequest.vue'
 import AccessRequestEditor from './AccessRequestEditor.vue'
 import AccountCreate from './Create.vue'
 import VerifyEmail from './VerifyEmail.vue'
-import ForgotPassword from './ForgotPassword'
-import PasswordReset from './PasswordReset'
+import ForgotPassword from './ForgotPassword.vue'
+import PasswordReset from './PasswordReset.vue'
 
 import { CogIcon } from '@heroicons/vue/outline'
-import store from '../../store'
+import store from '../../store/index.js'
 
 export default [
     {

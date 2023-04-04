@@ -52,18 +52,18 @@
 import { ChipIcon, CogIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
-import { Roles } from '../../../../forge/lib/roles'
+import { Roles } from '../../../../forge/lib/roles.js'
 
-import deviceApi from '../../api/devices'
+import deviceApi from '../../api/devices.js'
 
-import InstanceStatusHeader from '../../components/InstanceStatusHeader'
-import NavItem from '../../components/NavItem'
-import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions'
+import InstanceStatusHeader from '../../components/InstanceStatusHeader.vue'
+import NavItem from '../../components/NavItem.vue'
+import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
-import InstanceStatusBadge from '../instance/components/InstanceStatusBadge'
+import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 
-import DeviceLastSeenBadge from './components/DeviceLastSeenBadge'
+import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
 
 export default {
     name: 'DevicePage',

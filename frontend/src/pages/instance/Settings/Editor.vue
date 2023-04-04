@@ -12,10 +12,10 @@
 import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
 
-import InstanceApi from '../../../api/instances'
-import permissionsMixin from '../../../mixins/Permissions'
-import alerts from '../../../services/alerts'
-import TemplateSettingsEditor from '../../admin/Template/sections/Editor'
+import InstanceApi from '../../../api/instances.js'
+import permissionsMixin from '../../../mixins/Permissions.js'
+import alerts from '../../../services/alerts.js'
+import TemplateSettingsEditor from '../../admin/Template/sections/Editor.vue'
 import {
     getObjectValue,
     getTemplateValue,
@@ -24,7 +24,7 @@ import {
     setTemplateValue,
     templateFields,
     templateValidators
-} from '../../admin/Template/utils'
+} from '../../admin/Template/utils.js'
 
 export default {
     name: 'InstanceSettingsEditor',

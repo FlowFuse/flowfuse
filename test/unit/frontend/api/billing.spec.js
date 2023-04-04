@@ -11,7 +11,7 @@ vi.mock('@/api/client', () => {
 })
 
 describe('Billing API', async () => {
-    const BillingAPI = await import('../../../../frontend/src/api/billing')
+    const BillingAPI = await import('../../../../frontend/src/api/billing.js')
     const teamid = 'teamid'
     test('toCustomerPortal', () => {
         window.open = vi.fn()

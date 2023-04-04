@@ -41,14 +41,14 @@
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
-import ApplicationApi from '../../api/application'
-import InstanceApi from '../../api/instances'
+import ApplicationApi from '../../api/application.js'
+import InstanceApi from '../../api/instances.js'
 
-import NavItem from '../../components/NavItem'
-import SideNavigation from '../../components/SideNavigation'
+import NavItem from '../../components/NavItem.vue'
+import SideNavigation from '../../components/SideNavigation.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
-import Alerts from '../../services/alerts'
-import InstanceForm from '../instance/components/InstanceForm'
+import Alerts from '../../services/alerts.js'
+import InstanceForm from '../instance/components/InstanceForm.vue'
 
 export default {
     name: 'CreateApplication',

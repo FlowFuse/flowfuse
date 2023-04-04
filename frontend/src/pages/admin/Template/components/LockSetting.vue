@@ -9,8 +9,8 @@
     </div>
 </template>
 <script>
-import FormRow from '../../../../components/FormRow'
-import ChangeIndicator from './ChangeIndicator'
+import FormRow from '../../../../components/FormRow.vue'
+import ChangeIndicator from './ChangeIndicator.vue'
 import { LockClosedIcon } from '@heroicons/vue/outline'
 
 function toBoolean (v) {

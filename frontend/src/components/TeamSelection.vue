@@ -26,7 +26,7 @@
 import { mapState } from 'vuex'
 
 import { PlusIcon } from '@heroicons/vue/solid'
-import NavItem from './NavItem'
+import NavItem from './NavItem.vue'
 
 export default {
     name: 'FFTeamSelection',

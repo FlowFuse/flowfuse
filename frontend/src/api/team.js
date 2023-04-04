@@ -1,8 +1,8 @@
-import client from './client'
-import daysSince from '../utils/daysSince'
-import elapsedTime from '../utils/elapsedTime'
-import paginateUrl from '../utils/paginateUrl'
-import { RoleNames, Roles } from '../../../forge/lib/roles'
+import client from './client.js'
+import daysSince from '../utils/daysSince.js'
+import elapsedTime from '../utils/elapsedTime.js'
+import paginateUrl from '../utils/paginateUrl.js'
+import { RoleNames, Roles } from '../../../forge/lib/roles.js'
 
 const getTeams = () => {
     return client.get('/api/v1/user/teams').then(res => {

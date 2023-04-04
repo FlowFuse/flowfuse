@@ -14,7 +14,7 @@
 </template>
 
 <script>
-import ImportInstanceComponents from '../../components/ImportInstanceComponents'
+import ImportInstanceComponents from '../../components/ImportInstanceComponents.vue'
 
 export default {
     name: 'ImportInstanceDialog',

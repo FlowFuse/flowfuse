@@ -25,16 +25,16 @@
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import UserCell from '../../../components/tables/cells/UserCell'
-import UserRoleCell from '../../../components/tables/cells/UserRoleCell'
-import ChangeTeamRoleDialog from '../dialogs/ChangeTeamRoleDialog'
-import ConfirmTeamUserRemoveDialog from '../dialogs/ConfirmTeamUserRemoveDialog'
-import InviteMemberDialog from '../dialogs/InviteMemberDialog'
+import UserCell from '../../../components/tables/cells/UserCell.vue'
+import UserRoleCell from '../../../components/tables/cells/UserRoleCell.vue'
+import ChangeTeamRoleDialog from '../dialogs/ChangeTeamRoleDialog.vue'
+import ConfirmTeamUserRemoveDialog from '../dialogs/ConfirmTeamUserRemoveDialog.vue'
+import InviteMemberDialog from '../dialogs/InviteMemberDialog.vue'
 
-import permissionsMixin from '../../../mixins/Permissions'
-import teamApi from '../../../api/team'
+import permissionsMixin from '../../../mixins/Permissions.js'
+import teamApi from '../../../api/team.js'
 import { PlusSmIcon } from '@heroicons/vue/outline'
-import { Roles } from '../../../../../forge/lib/roles'
+import { Roles } from '../../../../../forge/lib/roles.js'
 
 export default {
     name: 'TeamUsersGeneral',

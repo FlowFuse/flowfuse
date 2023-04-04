@@ -38,11 +38,11 @@
 <script>
 import { mapState } from 'vuex'
 
-import ApplicationAPI from '../../../../api/application'
-import TeamAPI from '../../../../api/team'
+import ApplicationAPI from '../../../../api/application.js'
+import TeamAPI from '../../../../api/team.js'
 
-import FormRow from '../../../../components/FormRow'
-import alerts from '../../../../services/alerts'
+import FormRow from '../../../../components/FormRow.vue'
+import alerts from '../../../../services/alerts.js'
 
 export default {
     name: 'DeviceAssignInstanceDialog',

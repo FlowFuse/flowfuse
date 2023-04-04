@@ -68,10 +68,10 @@
 <script>
 import { ExternalLinkIcon, PlusSmIcon, TemplateIcon } from '@heroicons/vue/outline'
 
-import teamApi from '../../api/team'
-import SectionTopMenu from '../../components/SectionTopMenu'
-import ProjectIcon from '../../components/icons/Projects'
-import permissionsMixin from '../../mixins/Permissions'
+import teamApi from '../../api/team.js'
+import SectionTopMenu from '../../components/SectionTopMenu.vue'
+import ProjectIcon from '../../components/icons/Projects.js'
+import permissionsMixin from '../../mixins/Permissions.js'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 
 export default {

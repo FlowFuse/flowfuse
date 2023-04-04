@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import Home from './pages/Home.vue'
-import PageNotFound from './pages/PageNotFound'
+import PageNotFound from './pages/PageNotFound.vue'
 
 import AdminRoutes from './pages/admin/routes.js'
 import DeviceRoutes from './pages/device/routes.js'

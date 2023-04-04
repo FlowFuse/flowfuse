@@ -21,9 +21,9 @@
 import { useRoute } from 'vue-router'
 import { mapState } from 'vuex'
 
-import { Roles } from '../../../../forge/lib/roles'
+import { Roles } from '../../../../forge/lib/roles.js'
 
-import Loading from '../../components/Loading'
+import Loading from '../../components/Loading.vue'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'

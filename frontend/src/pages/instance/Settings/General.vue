@@ -33,8 +33,8 @@
 
 <script>
 
-import FormHeading from '../../../components/FormHeading'
-import FormRow from '../../../components/FormRow'
+import FormHeading from '../../../components/FormHeading.vue'
+import FormRow from '../../../components/FormRow.vue'
 
 import DangerSettings from './Danger.vue'
 

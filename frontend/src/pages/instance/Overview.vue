@@ -69,12 +69,12 @@ import { ExternalLinkIcon, TemplateIcon, TrendingUpIcon } from '@heroicons/vue/o
 
 import { mapState } from 'vuex'
 
-import InstanceApi from '../../api/instances'
-import FormHeading from '../../components/FormHeading'
-import AuditLog from '../../components/audit-log/AuditLog'
-import permissionsMixin from '../../mixins/Permissions'
+import InstanceApi from '../../api/instances.js'
+import FormHeading from '../../components/FormHeading.vue'
+import AuditLog from '../../components/audit-log/AuditLog.vue'
+import permissionsMixin from '../../mixins/Permissions.js'
 
-import InstanceStatusBadge from './components/InstanceStatusBadge'
+import InstanceStatusBadge from './components/InstanceStatusBadge.vue'
 
 export default {
     name: 'InstanceOverview',

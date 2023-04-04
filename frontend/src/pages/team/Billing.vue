@@ -56,9 +56,9 @@ import { markRaw } from 'vue'
 
 import billingApi from '../../api/billing.js'
 
-import FormHeading from '../../components/FormHeading'
-import Loading from '../../components/Loading'
-import SectionTopMenu from '../../components/SectionTopMenu'
+import FormHeading from '../../components/FormHeading.vue'
+import Loading from '../../components/Loading.vue'
+import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import formatCurrency from '../../mixins/Currency.js'
 import formatDateMixin from '../../mixins/DateTime.js'
 

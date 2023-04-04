@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import InstanceApi from '../../../api/instances'
+import InstanceApi from '../../../api/instances.js'
 
 export default {
     name: 'LogsShared',

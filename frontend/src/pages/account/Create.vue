@@ -48,11 +48,11 @@
 <script>
 import { mapState } from 'vuex'
 
-import userApi from '../../api/user'
+import userApi from '../../api/user.js'
 
 import { useRoute } from 'vue-router'
 
-import FFLayoutBox from '../../layouts/Box'
+import FFLayoutBox from '../../layouts/Box.vue'
 
 export default {
     name: 'AccountCreate',

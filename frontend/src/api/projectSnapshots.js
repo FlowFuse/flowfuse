@@ -1,7 +1,7 @@
-import client from './client'
-import daysSince from '../utils/daysSince'
-import paginateUrl from '../utils/paginateUrl'
-import instanceApi from './instances'
+import client from './client.js'
+import daysSince from '../utils/daysSince.js'
+import paginateUrl from '../utils/paginateUrl.js'
+import instanceApi from './instances.js'
 
 /**
  * TODO: Currently hits project API

@@ -95,13 +95,13 @@
 <script>
 
 // utilities
-import elapsedTime from '../../utils/elapsedTime'
+import elapsedTime from '../../utils/elapsedTime.js'
 
 // components
-import FormHeading from '../../components/FormHeading'
+import FormHeading from '../../components/FormHeading.vue'
 
-import DeviceLastSeenBadge from './components/DeviceLastSeenBadge'
-import InstanceStatusBadge from '../instance/components/InstanceStatusBadge'
+import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
+import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 
 // icons
 import { CheckCircleIcon, ExclamationIcon, TemplateIcon, WifiIcon } from '@heroicons/vue/outline'

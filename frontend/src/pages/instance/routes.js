@@ -7,7 +7,7 @@ import InstanceLogs from './Logs.vue'
 import InstanceOverview from './Overview.vue'
 import InstanceRemoteInstances from './Devices.vue'
 import InstanceSettings from './Settings/index.vue'
-import InstanceSettingsRoutes from './Settings/routes'
+import InstanceSettingsRoutes from './Settings/routes.js'
 import InstanceSnapshots from './Snapshots/index.vue'
 import Instance from './index.vue'
 

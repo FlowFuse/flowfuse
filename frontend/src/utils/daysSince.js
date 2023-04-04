@@ -1,4 +1,4 @@
-import elapsedTime from './elapsedTime'
+import elapsedTime from './elapsedTime.js'
 
 export default function (dateString) {
     if (!dateString) {

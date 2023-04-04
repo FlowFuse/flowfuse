@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import httpClient from '../../api/client'
+import httpClient from '../../api/client.js'
 
 export default {
     name: 'SetupFinal',

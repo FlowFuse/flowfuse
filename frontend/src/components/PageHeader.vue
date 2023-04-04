@@ -52,12 +52,12 @@
 <script>
 import { ref } from 'vue'
 import { mapState, mapGetters } from 'vuex'
-import router from '../routes'
+import router from '../routes.js'
 
 import { MenuIcon, PlusIcon, QuestionMarkCircleIcon, AdjustmentsIcon, CogIcon, LogoutIcon } from '@heroicons/vue/solid'
 
-import NavItem from './NavItem'
-import TeamSelection from './TeamSelection'
+import NavItem from './NavItem.vue'
+import TeamSelection from './TeamSelection.vue'
 
 export default {
     name: 'NavBar',

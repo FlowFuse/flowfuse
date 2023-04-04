@@ -41,10 +41,10 @@
 </template>
 
 <script>
-import stacksApi from '../../../../api/stacks'
-import instanceTypesApi from '../../../../api/instanceTypes'
+import stacksApi from '../../../../api/stacks.js'
+import instanceTypesApi from '../../../../api/instanceTypes.js'
 
-import FormRow from '../../../../components/FormRow'
+import FormRow from '../../../../components/FormRow.vue'
 import { mapState } from 'vuex'
 
 export default {
