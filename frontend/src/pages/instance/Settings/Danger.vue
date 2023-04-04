@@ -105,15 +105,15 @@ import { useRouter } from 'vue-router'
 
 import { mapState } from 'vuex'
 
-import InstanceApi from '../../../api/instances'
+import InstanceApi from '../../../api/instances.js'
 
-import FormHeading from '../../../components/FormHeading'
-import permissionsMixin from '../../../mixins/Permissions'
-import alerts from '../../../services/alerts'
-import Dialog from '../../../services/dialog'
+import FormHeading from '../../../components/FormHeading.vue'
+import permissionsMixin from '../../../mixins/Permissions.js'
+import alerts from '../../../services/alerts.js'
+import Dialog from '../../../services/dialog.js'
 
-import ChangeStackDialog from './dialogs/ChangeStackDialog'
-import ImportInstanceDialog from './dialogs/ImportInstanceDialog'
+import ChangeStackDialog from './dialogs/ChangeStackDialog.vue'
+import ImportInstanceDialog from './dialogs/ImportInstanceDialog.vue'
 
 export default {
     name: 'InstanceSettingsDanger',

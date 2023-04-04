@@ -13,12 +13,12 @@ import TeamSettingsDanger from './Settings/Danger.vue'
 import TeamSettingsDevices from './Settings/Devices.vue'
 // import TeamSettingsPermissions from './Settings/Permissions.vue'
 import CreateTeam from './create.vue'
-import CreateApplication from './createApplication'
+import CreateApplication from './createApplication.vue'
 
 // EE Only
 import TeamBilling from './Billing.vue'
 
-import ensurePermission from '../../utils/ensurePermission'
+import ensurePermission from '../../utils/ensurePermission.js'
 
 export default [
     {

@@ -28,7 +28,7 @@
 </template>
 
 <script>
-import FormRow from '../../../components/FormRow'
+import FormRow from '../../../components/FormRow.vue'
 
 /**
  * flows

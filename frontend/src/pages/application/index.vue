@@ -59,22 +59,22 @@ import { CogIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
 
 import { mapState } from 'vuex'
 
-import { Roles } from '../../../../forge/lib/roles'
+import { Roles } from '../../../../forge/lib/roles.js'
 
-import applicationApi from '../../api/application'
-import InstanceStatusHeader from '../../components/InstanceStatusHeader'
+import applicationApi from '../../api/application.js'
+import InstanceStatusHeader from '../../components/InstanceStatusHeader.vue'
 
-import NavItem from '../../components/NavItem'
+import NavItem from '../../components/NavItem.vue'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 
-import ProjectsIcon from '../../components/icons/Projects'
-import permissionsMixin from '../../mixins/Permissions'
+import ProjectsIcon from '../../components/icons/Projects.js'
+import permissionsMixin from '../../mixins/Permissions.js'
 
-import alerts from '../../services/alerts'
+import alerts from '../../services/alerts.js'
 
-import ConfirmApplicationDeleteDialog from './Settings/dialogs/ConfirmApplicationDeleteDialog'
+import ConfirmApplicationDeleteDialog from './Settings/dialogs/ConfirmApplicationDeleteDialog.vue'
 
 export default {
     name: 'ProjectPage',

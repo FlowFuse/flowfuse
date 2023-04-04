@@ -72,25 +72,25 @@ import { ExternalLinkIcon } from '@heroicons/vue/outline'
 import { ChevronLeftIcon, ChipIcon, ClockIcon, CogIcon, TemplateIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
-import { Roles } from '../../../../forge/lib/roles'
+import { Roles } from '../../../../forge/lib/roles.js'
 
-import InstanceApi from '../../api/instances'
-import SnapshotApi from '../../api/projectSnapshots'
+import InstanceApi from '../../api/instances.js'
+import SnapshotApi from '../../api/projectSnapshots.js'
 
-import DropdownMenu from '../../components/DropdownMenu'
-import InstanceStatusHeader from '../../components/InstanceStatusHeader'
-import NavItem from '../../components/NavItem'
+import DropdownMenu from '../../components/DropdownMenu.vue'
+import InstanceStatusHeader from '../../components/InstanceStatusHeader.vue'
+import NavItem from '../../components/NavItem.vue'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 
-import permissionsMixin from '../../mixins/Permissions'
+import permissionsMixin from '../../mixins/Permissions.js'
 
-import alerts from '../../services/alerts'
-import Dialog from '../../services/dialog'
+import alerts from '../../services/alerts.js'
+import Dialog from '../../services/dialog.js'
 
-import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDeleteDialog'
-import InstanceStatusBadge from './components/InstanceStatusBadge'
+import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
+import InstanceStatusBadge from './components/InstanceStatusBadge.vue'
 
 const instanceTransitionStates = [
     'loading',

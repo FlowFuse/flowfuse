@@ -55,11 +55,11 @@
 </template>
 
 <script>
-import InstanceApi from '../../../../api/instances'
-import snapshotApi from '../../../../api/projectSnapshots'
+import InstanceApi from '../../../../api/instances.js'
+import snapshotApi from '../../../../api/projectSnapshots.js'
 
-import FormRow from '../../../../components/FormRow'
-import alerts from '../../../../services/alerts'
+import FormRow from '../../../../components/FormRow.vue'
+import alerts from '../../../../services/alerts.js'
 
 export default {
     name: 'SnapshotAssignDialog',

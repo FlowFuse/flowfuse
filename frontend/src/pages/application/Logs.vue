@@ -27,10 +27,10 @@
 </template>
 
 <script>
-import SectionTopMenu from '../../components/SectionTopMenu'
-import LogsShared from '../instance/components/InstanceLogs'
+import SectionTopMenu from '../../components/SectionTopMenu.vue'
+import LogsShared from '../instance/components/InstanceLogs.vue'
 
-import InstanceStatusBadge from '../instance/components/InstanceStatusBadge'
+import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 
 export default {
     name: 'ProjectLogs',

@@ -8,7 +8,7 @@
 </template>
 
 <script>
-import SectionSideMenu from '../../components/SectionSideMenu'
+import SectionSideMenu from '../../components/SectionSideMenu.vue'
 const sideNavigation = [
     { name: 'Password', path: '/account/security/password' }
     // { name: "Sessions", path: "/account/security/sessions" }

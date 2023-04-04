@@ -7,7 +7,7 @@
 <script>
 
 import { FolderIcon, CodeIcon } from '@heroicons/vue/solid'
-import ProjectIcon from '../../../components/icons/Projects'
+import ProjectIcon from '../../../components/icons/Projects.js'
 
 export default {
     name: 'LibraryEntryTypeIcon',

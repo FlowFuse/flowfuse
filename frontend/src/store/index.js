@@ -1,5 +1,5 @@
 import { createStore } from 'vuex'
-import account from './account'
+import account from './account.js'
 
 export default createStore({
     modules: {

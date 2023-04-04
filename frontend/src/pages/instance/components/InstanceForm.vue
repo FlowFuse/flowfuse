@@ -214,19 +214,19 @@
 import { RefreshIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
-import billingApi from '../../../api/billing'
-import instanceTypesApi from '../../../api/instanceTypes'
-import stacksApi from '../../../api/stacks'
-import templatesApi from '../../../api/templates'
+import billingApi from '../../../api/billing.js'
+import instanceTypesApi from '../../../api/instanceTypes.js'
+import stacksApi from '../../../api/stacks.js'
+import templatesApi from '../../../api/templates.js'
 
-import FormRow from '../../../components/FormRow'
-import SectionTopMenu from '../../../components/SectionTopMenu'
+import FormRow from '../../../components/FormRow.vue'
+import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 
-import NameGenerator from '../../../utils/name-generator'
+import NameGenerator from '../../../utils/name-generator/index.js'
 
-import ExportInstanceComponents from './ExportInstanceComponents'
-import InstanceChargesTable from './InstanceChargesTable'
-import InstanceCreditBanner from './InstanceCreditBanner'
+import ExportInstanceComponents from './ExportInstanceComponents.vue'
+import InstanceChargesTable from './InstanceChargesTable.vue'
+import InstanceCreditBanner from './InstanceCreditBanner.vue'
 
 export default {
     name: 'InstanceForm',

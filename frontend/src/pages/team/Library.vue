@@ -36,12 +36,12 @@
 
 import { ChevronRightIcon } from '@heroicons/vue/solid'
 
-import teamApi from '../../api/team'
+import teamApi from '../../api/team.js'
 import CodePreviewer from '../../components/CodePreviewer.vue'
-import SectionTopMenu from '../../components/SectionTopMenu'
+import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import formatDateMixin from '../../mixins/DateTime.js'
-import Alerts from '../../services/alerts'
-import Dialog from '../../services/dialog'
+import Alerts from '../../services/alerts.js'
+import Dialog from '../../services/dialog.js'
 
 import TypeIcon from './components/LibraryEntryTypeIcon.vue'
 

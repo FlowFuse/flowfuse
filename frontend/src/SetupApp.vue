@@ -7,17 +7,17 @@
 </template>
 
 <script>
-import httpClient from './api/client'
+import httpClient from './api/client.js'
 import { markRaw } from 'vue'
-import PageFooter from './components/PageFooter'
-import Logo from './components/Logo'
-import Start from './pages/setup/Start'
-import Options from './pages/setup/Options'
-import CreateAdminUser from './pages/setup/CreateAdminUser'
-import License from './pages/setup/License'
-import Final from './pages/setup/Final'
-import ErrorPage from './pages/setup/ErrorPage'
-import FFLayoutBox from './layouts/Box'
+import PageFooter from './components/PageFooter.vue'
+import Logo from './components/Logo.vue'
+import Start from './pages/setup/Start.vue'
+import Options from './pages/setup/Options.vue'
+import CreateAdminUser from './pages/setup/CreateAdminUser.vue'
+import License from './pages/setup/License.vue'
+import Final from './pages/setup/Final.vue'
+import ErrorPage from './pages/setup/ErrorPage.vue'
+import FFLayoutBox from './layouts/Box.vue'
 
 // To add more views in the setup dialogs, add them to this list.
 // Just make sure 'Final' and 'ErrorPage' are the last two

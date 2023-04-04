@@ -1,7 +1,7 @@
 const fastify = require('fastify')
 const db = require('./db')
 const routes = require('./routes')
-const config = require('./config')
+const config = require('./config') // eslint-disable-line n/no-unpublished-require
 const settings = require('./settings')
 const license = require('./licensing')
 const auditLog = require('./auditLog')

@@ -13,11 +13,11 @@
 
 <script>
 
-import teamApi from '../../../../api/team'
+import teamApi from '../../../../api/team.js'
 
-import alerts from '../../../../services/alerts'
+import alerts from '../../../../services/alerts.js'
 
-import FormRow from '../../../../components/FormRow'
+import FormRow from '../../../../components/FormRow.vue'
 
 export default {
     name: 'CreateProvisioningTokenDialog',

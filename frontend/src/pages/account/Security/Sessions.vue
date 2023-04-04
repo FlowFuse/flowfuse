@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import FormHeading from '../../../components/FormHeading'
+import FormHeading from '../../../components/FormHeading.vue'
 
 export default {
     name: 'AccountSecuritySessions',

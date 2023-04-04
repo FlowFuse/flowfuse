@@ -1,4 +1,4 @@
-import { Permissions } from '../../../forge/lib/permissions'
+import { Permissions } from '../../../forge/lib/permissions.js'
 
 export default {
     methods: {

@@ -12,10 +12,10 @@
 </template>
 
 <script>
-import adminApi from '../../../api/admin'
-import teamApi from '../../../api/team'
+import adminApi from '../../../api/admin.js'
+import teamApi from '../../../api/team.js'
 import { markRaw } from 'vue'
-import InviteUserCell from '../../../components/tables/cells/InviteUserCell'
+import InviteUserCell from '../../../components/tables/cells/InviteUserCell.vue'
 
 export default {
     name: 'UserInviteTable',

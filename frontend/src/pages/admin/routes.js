@@ -24,7 +24,7 @@ import AdminCreateUser from './Users/createUser.vue'
 import PlatformAuditLog from './AuditLog.vue'
 import { AdjustmentsIcon } from '@heroicons/vue/outline'
 
-import ensureAdmin from '../../utils/ensureAdmin'
+import ensureAdmin from '../../utils/ensureAdmin.js'
 
 export default [
     {

@@ -27,9 +27,9 @@
 
 <script>
 
-import stacksApi from '../../../../api/stacks'
+import stacksApi from '../../../../api/stacks.js'
 
-import FormRow from '../../../../components/FormRow'
+import FormRow from '../../../../components/FormRow.vue'
 
 export default {
     name: 'ChangeStackDialog',

@@ -34,11 +34,11 @@
 <script>
 import { mapState } from 'vuex'
 
-import permissionsMixin from '../mixins/Permissions'
+import permissionsMixin from '../mixins/Permissions.js'
 
-import ProjectsIcon from './icons/Projects'
+import ProjectsIcon from './icons/Projects.js'
 import { ChipIcon, UsersIcon, DatabaseIcon, TemplateIcon, CurrencyDollarIcon, CogIcon, FolderIcon } from '@heroicons/vue/solid'
-import NavItem from './NavItem'
+import NavItem from './NavItem.vue'
 
 export default {
     name: 'FFSideNavigationTeamOptions',

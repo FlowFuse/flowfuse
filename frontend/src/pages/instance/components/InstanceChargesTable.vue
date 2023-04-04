@@ -68,7 +68,7 @@
 
 <script>
 
-import FormRow from '../../../components/FormRow'
+import FormRow from '../../../components/FormRow.vue'
 
 import formatCurrency from '../../../mixins/Currency.js'
 

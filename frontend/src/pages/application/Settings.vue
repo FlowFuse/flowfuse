@@ -42,14 +42,15 @@
 
 <script>
 
-import ApplicationAPI from '../../api/application'
+import ApplicationAPI from '../../api/application.js'
 
-import FormHeading from '../../components/FormHeading'
-import FormRow from '../../components/FormRow'
-import SectionSideMenu from '../../components/SectionSideMenu'
-import SectionTopMenu from '../../components/SectionTopMenu'
-import permissionsMixin from '../../mixins/Permissions'
-import Alerts from '../../services/alerts'
+import FormHeading from '../../components/FormHeading.vue'
+import FormRow from '../../components/FormRow.vue'
+import SectionSideMenu from '../../components/SectionSideMenu.vue'
+import SectionTopMenu from '../../components/SectionTopMenu.vue'
+
+import permissionsMixin from '../../mixins/Permissions.js'
+import Alerts from '../../services/alerts.js'
 
 export default {
     name: 'ProjectSettings',

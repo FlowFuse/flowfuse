@@ -53,8 +53,8 @@
 <script>
 import { mapState } from 'vuex'
 import Login from './pages/Login.vue'
-import Loading from './components/Loading'
-import Offline from './components/Offline'
+import Loading from './components/Loading.vue'
+import Offline from './components/Offline.vue'
 import PasswordExpired from './pages/PasswordExpired.vue'
 import UnverifiedEmail from './pages/UnverifiedEmail.vue'
 import TermsAndConditions from './pages/TermsAndConditions.vue'

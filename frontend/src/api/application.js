@@ -1,6 +1,6 @@
-import daysSince from '../utils/daysSince'
+import daysSince from '../utils/daysSince.js'
 
-import client from './client'
+import client from './client.js'
 
 const createApplication = (options) => {
     return client.post('/api/v1/applications', options).then(res => {

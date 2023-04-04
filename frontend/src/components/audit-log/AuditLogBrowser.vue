@@ -35,9 +35,9 @@
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
 import AuditEventsService from '../../services/audit-events.js'
-import FormHeading from '../FormHeading'
+import FormHeading from '../FormHeading.vue'
 
-import AuditLog from './AuditLog'
+import AuditLog from './AuditLog.vue'
 
 export default {
     name: 'AuditLogPage',

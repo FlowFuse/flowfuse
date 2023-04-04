@@ -97,10 +97,10 @@
 
 <script>
 
-import FormRow from '../../../../components/FormRow'
-import FormHeading from '../../../../components/FormHeading'
-import LockSetting from '../components/LockSetting'
-import ChangeIndicator from '../components/ChangeIndicator'
+import FormRow from '../../../../components/FormRow.vue'
+import FormHeading from '../../../../components/FormHeading.vue'
+import LockSetting from '../components/LockSetting.vue'
+import ChangeIndicator from '../components/ChangeIndicator.vue'
 import { TrashIcon, PlusSmIcon, LockClosedIcon, ExclamationIcon } from '@heroicons/vue/outline'
 
 export default {

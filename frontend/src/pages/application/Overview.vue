@@ -74,13 +74,13 @@ import { PlusSmIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import { Roles } from '../../../../forge/lib/roles'
+import { Roles } from '../../../../forge/lib/roles.js'
 
-import SectionTopMenu from '../../components/SectionTopMenu'
+import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
-import permissionsMixin from '../../mixins/Permissions'
-import InstanceStatusBadge from '../instance/components/InstanceStatusBadge'
-import InstanceEditorLink from '../instance/components/cells/InstanceEditorLink'
+import permissionsMixin from '../../mixins/Permissions.js'
+import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
+import InstanceEditorLink from '../instance/components/cells/InstanceEditorLink.vue'
 
 import DeploymentName from './components/cells/DeploymentName.vue'
 import LastSeen from './components/cells/LastSeen.vue'

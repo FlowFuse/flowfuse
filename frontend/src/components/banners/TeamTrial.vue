@@ -39,7 +39,7 @@ import { ChevronRightIcon, ExclamationCircleIcon } from '@heroicons/vue/outline'
 
 import { mapState } from 'vuex'
 
-import permissionsMixin from '../../mixins/Permissions'
+import permissionsMixin from '../../mixins/Permissions.js'
 
 export default {
     name: 'TeamTrialBanner',

@@ -21,12 +21,12 @@
 </template>
 
 <script>
-import teamsApi from '../../api/teams'
+import teamsApi from '../../api/teams.js'
 
-import SectionTopMenu from '../../components/SectionTopMenu'
+import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
-import TeamCell from '../../components/tables/cells/TeamCell'
-import TeamTypeCell from '../../components/tables/cells/TeamTypeCell'
+import TeamCell from '../../components/tables/cells/TeamCell.vue'
+import TeamTypeCell from '../../components/tables/cells/TeamTypeCell.vue'
 import { markRaw } from 'vue'
 
 export default {

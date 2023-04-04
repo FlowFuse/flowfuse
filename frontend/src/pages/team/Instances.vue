@@ -20,10 +20,10 @@
 <script>
 import { markRaw } from 'vue'
 
-import teamApi from '../../api/team'
-import SectionTopMenu from '../../components/SectionTopMenu'
-import permissionsMixin from '../../mixins/Permissions'
-import InstanceStatusBadge from '../instance/components/InstanceStatusBadge'
+import teamApi from '../../api/team.js'
+import SectionTopMenu from '../../components/SectionTopMenu.vue'
+import permissionsMixin from '../../mixins/Permissions.js'
+import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 
 export default {
     name: 'TeamInstances',

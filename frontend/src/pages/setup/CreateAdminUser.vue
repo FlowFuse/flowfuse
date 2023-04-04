@@ -36,7 +36,7 @@
 </template>
 
 <script>
-import httpClient from '../../api/client'
+import httpClient from '../../api/client.js'
 import FormHeading from '../../components/FormHeading.vue'
 import FormRow from '../../components/FormRow.vue'
 export default {
