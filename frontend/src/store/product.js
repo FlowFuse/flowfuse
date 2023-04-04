@@ -30,7 +30,6 @@ const mutations = {
 // actions
 const actions = {
     async checkFlags (state) {
-        console.log('check flags')
         window.posthog?.onFeatureFlags((flags, values) => {
             const storeFlags = {}
             for (const flagName of flags) {
