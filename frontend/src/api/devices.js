@@ -52,10 +52,6 @@ const updateSettings = async (deviceId, settings) => {
     })
 }
 
-const startLogs = async (deviceId) => {}
-
-const stopLogs = async (deviceId) => {}
-
 export default {
     create,
     getDevice,
