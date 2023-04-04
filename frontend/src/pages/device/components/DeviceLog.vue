@@ -13,7 +13,6 @@
 </template>
 
 <script>
-import DeviceApi from '../../../api/devices.js'
 
 export default {
     name: 'DeviceLogView',
