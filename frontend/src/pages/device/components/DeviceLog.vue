@@ -82,7 +82,6 @@ export default {
             }
         },
         disconnect: async function () {
-            DeviceApi.stopLogs(this.device.id)
             if (this.connection) {
                 this.connection.close()
             }
