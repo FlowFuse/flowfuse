@@ -88,6 +88,7 @@ inviting new users to join.
 Option        | Description
 --------------|------------
 `email.enabled` | Enables the email sending functionality of the platform. Default: `false`
+`email.from` | Sets the address email will appear from. Default: `"FlowForge Platform" <donotreply@flowforge.com>`
 `email.smtp.host` | Hostname of the SMTP server to send email through. Default: `localhost`
 `email.smtp.port` | Port of the SMTP server to send email through. Default: `587` if `secure` is `false`, `465` otherwise
 `email.smtp.secure` | Whether to use TLS to connect to the SMTP server. Default: `false`
