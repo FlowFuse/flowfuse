@@ -29,10 +29,10 @@
 </template>
 
 <script>
-import Dialog from '@/services/dialog'
+import Dialog from '../../../services/dialog'
 
-import templateApi from '@/api/templates'
-import SectionSideMenu from '@/components/SectionSideMenu'
+import templateApi from '../../../api/templates'
+import SectionSideMenu from '../../../components/SectionSideMenu'
 import {
     setTemplateValue,
     setObjectValue,
@@ -40,7 +40,7 @@ import {
     prepareTemplateForEdit,
     templateValidators
 } from './utils'
-import alerts from '@/services/alerts'
+import alerts from '../../../services/alerts'
 import { ChevronRightIcon } from '@heroicons/vue/solid'
 
 const sideNavigation = [

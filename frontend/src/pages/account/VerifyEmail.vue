@@ -11,9 +11,9 @@
 <script>
 
 import { mapState } from 'vuex'
-import userApi from '@/api/user'
-import alerts from '@/services/alerts'
-import FFLayoutBox from '@/layouts/Box'
+import userApi from '../../api/user'
+import alerts from '../../services/alerts'
+import FFLayoutBox from '../../layouts/Box'
 
 export default {
     name: 'VerifyEmail',

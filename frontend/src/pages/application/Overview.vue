@@ -69,21 +69,21 @@
 </template>
 
 <script>
-import { Roles } from '@core/lib/roles'
 
 import { PlusSmIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
+import { Roles } from '../../../../forge/lib/roles'
+
 import SectionTopMenu from '../../components/SectionTopMenu'
 
+import permissionsMixin from '../../mixins/Permissions'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge'
 import InstanceEditorLink from '../instance/components/cells/InstanceEditorLink'
 
 import DeploymentName from './components/cells/DeploymentName.vue'
 import LastSeen from './components/cells/LastSeen.vue'
-
-import permissionsMixin from '@/mixins/Permissions'
 
 export default {
     name: 'ProjectOverview',

@@ -17,8 +17,8 @@
 <script>
 import DevicesBrowser from '../../../components/DevicesBrowser'
 
-import SectionTopMenu from '@/components/SectionTopMenu'
-import permissionsMixin from '@/mixins/Permissions'
+import SectionTopMenu from '../../../components/SectionTopMenu'
+import permissionsMixin from '../../../mixins/Permissions'
 
 export default {
     name: 'TeamDevices',

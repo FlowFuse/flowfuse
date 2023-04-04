@@ -1,5 +1,5 @@
 
-import AuditEventsGrouped from '@/data/audit-events.json'
+import AuditEventsGrouped from '../data/audit-events.json'
 
 /*
  Function set to make retrieving the formatted labels for audit events easier

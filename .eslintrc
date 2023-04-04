@@ -15,12 +15,22 @@
     "ignorePatterns": ["frontend/dist/", "var/"],
     "plugins": ["promise"],
     "settings": {
+        "import/resolver": {
+            "node": {
+              "extensions": [
+                ".js",
+                ".vue",
+                "json"
+              ]
+            }
+        },
+        "import/core-modules": [ "lottie-web-vue" ],
         "node": {
             "allowModules": [
                 "flowforge-test-utils", // exists at test/node_modules/flowforge-test-utils
                 "./config",
                 "promptly",
-                "@core"
+                "lottie-web-vue"
             ],
             "tryExtensions": [".js", ".json", ".vue"]
         }

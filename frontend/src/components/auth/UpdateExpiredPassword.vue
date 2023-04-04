@@ -14,9 +14,9 @@
 
 <script>
 import { mapState } from 'vuex'
-import FormRow from '@/components/FormRow'
-import userApi from '@/api/user'
-import store from '@/store'
+import FormRow from '../FormRow'
+import userApi from '../../api/user'
+import store from '../../store'
 
 export default {
     name: 'UpdateExpiredPassword',

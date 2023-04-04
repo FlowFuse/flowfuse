@@ -122,12 +122,7 @@ module.exports = {
         new Dotenv()
     ],
     resolve: {
-        extensions: ['*', '.js', '.vue', '.json'],
-        alias: {
-            vue: require.resolve('vue/dist/vue.esm-bundler.js'),
-            '@core': getPath('forge'),
-            '@': getPath('frontend/src')
-        }
+        extensions: ['*', '.js', '.vue', '.json']
     },
     optimization: {
         moduleIds: 'deterministic',

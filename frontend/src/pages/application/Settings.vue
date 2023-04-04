@@ -42,14 +42,14 @@
 
 <script>
 
-import ApplicationAPI from '@/api/application'
+import ApplicationAPI from '../../api/application'
 
-import FormHeading from '@/components/FormHeading'
-import FormRow from '@/components/FormRow'
-import SectionSideMenu from '@/components/SectionSideMenu'
-import SectionTopMenu from '@/components/SectionTopMenu'
-import permissionsMixin from '@/mixins/Permissions'
-import Alerts from '@/services/alerts'
+import FormHeading from '../../components/FormHeading'
+import FormRow from '../../components/FormRow'
+import SectionSideMenu from '../../components/SectionSideMenu'
+import SectionTopMenu from '../../components/SectionTopMenu'
+import permissionsMixin from '../../mixins/Permissions'
+import Alerts from '../../services/alerts'
 
 export default {
     name: 'ProjectSettings',

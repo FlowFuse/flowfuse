@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
-import FormRow from '@/components/FormRow.vue'
 import { expect, vi } from 'vitest'
+
+import FormRow from '../../../../frontend/src/components/FormRow.vue'
 
 describe('FormRow', () => {
     test('mounts with type="checkbox"', async () => {

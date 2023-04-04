@@ -22,11 +22,11 @@
 <script>
 import { mapState } from 'vuex'
 
-import devicesApi from '@/api/devices'
-import teamApi from '@/api/team'
+import devicesApi from '../../../../api/devices'
+import teamApi from '../../../../api/team'
 
-import FormRow from '@/components/FormRow'
-import alerts from '@/services/alerts'
+import FormRow from '../../../../components/FormRow'
+import alerts from '../../../../services/alerts'
 
 export default {
     name: 'TeamDeviceCreateDialog',

@@ -54,13 +54,13 @@
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 
-import billingApi from '@/api/billing.js'
+import billingApi from '../../api/billing.js'
 
-import FormHeading from '@/components/FormHeading'
-import Loading from '@/components/Loading'
-import SectionTopMenu from '@/components/SectionTopMenu'
-import formatCurrency from '@/mixins/Currency.js'
-import formatDateMixin from '@/mixins/DateTime.js'
+import FormHeading from '../../components/FormHeading'
+import Loading from '../../components/Loading'
+import SectionTopMenu from '../../components/SectionTopMenu'
+import formatCurrency from '../../mixins/Currency.js'
+import formatDateMixin from '../../mixins/DateTime.js'
 
 const priceCell = {
     name: 'PriceCell',

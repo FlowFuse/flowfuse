@@ -10,7 +10,7 @@
 
 <script>
 
-import formatCurrency from '@/mixins/Currency.js'
+import formatCurrency from '../../../mixins/Currency.js'
 
 export default {
     name: 'InstanceCreditBanner',

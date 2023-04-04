@@ -27,9 +27,9 @@
 
 <script>
 
-import stacksApi from '@/api/stacks'
+import stacksApi from '../../../../api/stacks'
 
-import FormRow from '@/components/FormRow'
+import FormRow from '../../../../components/FormRow'
 
 export default {
     name: 'ChangeStackDialog',

@@ -69,12 +69,12 @@ import { ExternalLinkIcon, TemplateIcon, TrendingUpIcon } from '@heroicons/vue/o
 
 import { mapState } from 'vuex'
 
-import InstanceStatusBadge from './components/InstanceStatusBadge'
+import InstanceApi from '../../api/instances'
+import FormHeading from '../../components/FormHeading'
+import AuditLog from '../../components/audit-log/AuditLog'
+import permissionsMixin from '../../mixins/Permissions'
 
-import InstanceApi from '@/api/instances'
-import FormHeading from '@/components/FormHeading'
-import AuditLog from '@/components/audit-log/AuditLog'
-import permissionsMixin from '@/mixins/Permissions'
+import InstanceStatusBadge from './components/InstanceStatusBadge'
 
 export default {
     name: 'InstanceOverview',
@@ -136,5 +136,5 @@ export default {
 </script>
 
 <style lang="scss">
-@import "@/stylesheets/pages/project.scss";
+@import "../../stylesheets/pages/project.scss";
 </style>

@@ -67,15 +67,15 @@
 <script>
 import { mapState } from 'vuex'
 
-import teamApi from '@/api/team'
-import teamTypesApi from '@/api/teamTypes'
-import teamsApi from '@/api/teams'
-import slugify from '@/utils/slugify'
-import FormRow from '@/components/FormRow'
-import FormHeading from '@/components/FormHeading'
+import teamApi from '../../api/team'
+import teamTypesApi from '../../api/teamTypes'
+import teamsApi from '../../api/teams'
+import slugify from '../../utils/slugify'
+import FormRow from '../../components/FormRow'
+import FormHeading from '../../components/FormHeading'
 
-import NavItem from '@/components/NavItem'
-import SideNavigation from '@/components/SideNavigation'
+import NavItem from '../../components/NavItem'
+import SideNavigation from '../../components/SideNavigation'
 
 import { ChevronLeftIcon, ExternalLinkIcon } from '@heroicons/vue/solid'
 

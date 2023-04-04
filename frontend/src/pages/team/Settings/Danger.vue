@@ -12,9 +12,9 @@
 </template>
 
 <script>
-import teamApi from '@/api/team'
+import teamApi from '../../../api/team'
 
-import FormHeading from '@/components/FormHeading'
+import FormHeading from '../../../components/FormHeading'
 import ConfirmTeamDeleteDialog from '../dialogs/ConfirmTeamDeleteDialog'
 
 export default {

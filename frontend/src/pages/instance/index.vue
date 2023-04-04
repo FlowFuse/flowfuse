@@ -68,29 +68,29 @@
 </template>
 
 <script>
-import { Roles } from '@core/lib/roles'
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
 import { ChevronLeftIcon, ChipIcon, ClockIcon, CogIcon, TemplateIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
+import { Roles } from '../../../../forge/lib/roles'
+
+import InstanceApi from '../../api/instances'
+import SnapshotApi from '../../api/projectSnapshots'
+
+import DropdownMenu from '../../components/DropdownMenu'
+import InstanceStatusHeader from '../../components/InstanceStatusHeader'
+import NavItem from '../../components/NavItem'
+import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
+import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
+import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
+
+import permissionsMixin from '../../mixins/Permissions'
+
+import alerts from '../../services/alerts'
+import Dialog from '../../services/dialog'
+
 import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDeleteDialog'
-
 import InstanceStatusBadge from './components/InstanceStatusBadge'
-
-import InstanceApi from '@/api/instances'
-import SnapshotApi from '@/api/projectSnapshots'
-
-import DropdownMenu from '@/components/DropdownMenu'
-import InstanceStatusHeader from '@/components/InstanceStatusHeader'
-import NavItem from '@/components/NavItem'
-import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vue'
-import SubscriptionExpiredBanner from '@/components/banners/SubscriptionExpired.vue'
-import TeamTrialBanner from '@/components/banners/TeamTrial.vue'
-
-import permissionsMixin from '@/mixins/Permissions'
-
-import alerts from '@/services/alerts'
-import Dialog from '@/services/dialog'
 
 const instanceTransitionStates = [
     'loading',

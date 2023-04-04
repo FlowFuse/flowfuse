@@ -2,7 +2,7 @@
     <DropdownMenu buttonClass="forge-button-inline px-2" alt="Open user menu" :options="options"></DropdownMenu>
 </template>
 <script>
-import DropdownMenu from '@/components/DropdownMenu'
+import DropdownMenu from '../../../components/DropdownMenu'
 export default {
     name: 'TeamUserEditButton',
     props: ['onselect'],

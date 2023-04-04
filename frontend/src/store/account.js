@@ -1,7 +1,7 @@
-import settingsApi from '@/api/settings'
-import userApi from '@/api/user'
-import teamApi from '@/api/team'
-import router from '@/routes'
+import settingsApi from '../api/settings'
+import userApi from '../api/user'
+import teamApi from '../api/team'
+import router from '../routes'
 import { nextTick } from 'vue'
 
 // initial state

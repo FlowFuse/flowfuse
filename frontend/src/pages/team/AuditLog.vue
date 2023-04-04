@@ -7,12 +7,11 @@
 </template>
 
 <script>
+import TeamAPI from '../../api/team'
 import SectionTopMenu from '../../components/SectionTopMenu'
 import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser'
 
-import TeamAPI from '@/api/team'
-
-import permissionsMixin from '@/mixins/Permissions'
+import permissionsMixin from '../../mixins/Permissions'
 
 export default {
     name: 'TeamAuditLog',

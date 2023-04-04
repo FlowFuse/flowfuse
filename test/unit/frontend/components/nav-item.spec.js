@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
-import NavItem from '@/components/NavItem.vue'
 import { expect } from 'vitest'
+
+import NavItem from '../../../../frontend/src/components/NavItem.vue'
 
 import { CogIcon } from '@heroicons/vue/solid'
 

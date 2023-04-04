@@ -1,7 +1,7 @@
 import axios from 'axios'
-import store from '@/store'
+import store from '../store'
 
-import Alerts from '@/services/alerts'
+import Alerts from '../services/alerts'
 
 const client = axios.create({
     headers: {

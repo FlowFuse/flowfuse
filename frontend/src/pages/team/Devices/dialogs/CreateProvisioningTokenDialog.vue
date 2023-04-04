@@ -13,11 +13,11 @@
 
 <script>
 
-import teamApi from '@/api/team'
+import teamApi from '../../../../api/team'
 
-import alerts from '@/services/alerts'
+import alerts from '../../../../services/alerts'
 
-import FormRow from '@/components/FormRow'
+import FormRow from '../../../../components/FormRow'
 
 export default {
     name: 'CreateProvisioningTokenDialog',

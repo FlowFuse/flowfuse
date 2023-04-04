@@ -55,25 +55,26 @@
 </template>
 
 <script>
-import { Roles } from '@core/lib/roles'
 import { CogIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
 
 import { mapState } from 'vuex'
 
+import { Roles } from '../../../../forge/lib/roles'
+
+import applicationApi from '../../api/application'
+import InstanceStatusHeader from '../../components/InstanceStatusHeader'
+
+import NavItem from '../../components/NavItem'
+import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
+import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
+import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
+
+import ProjectsIcon from '../../components/icons/Projects'
+import permissionsMixin from '../../mixins/Permissions'
+
+import alerts from '../../services/alerts'
+
 import ConfirmApplicationDeleteDialog from './Settings/dialogs/ConfirmApplicationDeleteDialog'
-
-import applicationApi from '@/api/application'
-import InstanceStatusHeader from '@/components/InstanceStatusHeader'
-
-import NavItem from '@/components/NavItem'
-import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vue'
-import SubscriptionExpiredBanner from '@/components/banners/SubscriptionExpired.vue'
-import TeamTrialBanner from '@/components/banners/TeamTrial.vue'
-
-import ProjectsIcon from '@/components/icons/Projects'
-import permissionsMixin from '@/mixins/Permissions'
-
-import alerts from '@/services/alerts'
 
 export default {
     name: 'ProjectPage',

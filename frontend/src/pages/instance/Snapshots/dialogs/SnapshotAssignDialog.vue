@@ -55,11 +55,11 @@
 </template>
 
 <script>
-import InstanceApi from '@/api/instances'
-import snapshotApi from '@/api/projectSnapshots'
+import InstanceApi from '../../../../api/instances'
+import snapshotApi from '../../../../api/projectSnapshots'
 
-import FormRow from '@/components/FormRow'
-import alerts from '@/services/alerts'
+import FormRow from '../../../../components/FormRow'
+import alerts from '../../../../services/alerts'
 
 export default {
     name: 'SnapshotAssignDialog',

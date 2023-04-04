@@ -1,10 +1,11 @@
 /**
  * TODO Mock instances API, that for now, just hits /projects
  */
-import client from './client'
 
-import daysSince from '@/utils/daysSince'
-import paginateUrl from '@/utils/paginateUrl'
+import daysSince from '../utils/daysSince'
+import paginateUrl from '../utils/paginateUrl'
+
+import client from './client'
 
 const create = async (options) => {
     return client.post('/api/v1/projects', options).then(res => {

@@ -17,7 +17,7 @@
 
 <script>
 
-import userApi from '@/api/user'
+import userApi from '../../api/user'
 import { mapState } from 'vuex'
 import { InboxInIcon, UserGroupIcon } from '@heroicons/vue/outline'
 

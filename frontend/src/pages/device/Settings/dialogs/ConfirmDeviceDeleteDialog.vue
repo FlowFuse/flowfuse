@@ -19,7 +19,7 @@
 
 <script>
 
-import FormRow from '@/components/FormRow'
+import FormRow from '../../../../components/FormRow'
 
 export default {
     name: 'ConfirmDeviceDeleteDialog',

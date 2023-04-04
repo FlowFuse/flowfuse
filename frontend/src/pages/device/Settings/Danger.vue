@@ -17,10 +17,10 @@
 import { mapState } from 'vuex'
 import { useRouter } from 'vue-router'
 
-import deviceApi from '@/api/devices'
-import permissionsMixin from '@/mixins/Permissions'
+import deviceApi from '../../../api/devices'
+import permissionsMixin from '../../../mixins/Permissions'
 
-import FormHeading from '@/components/FormHeading'
+import FormHeading from '../../../components/FormHeading'
 import ConfirmDeviceDeleteDialog from './dialogs/ConfirmDeviceDeleteDialog'
 
 export default {

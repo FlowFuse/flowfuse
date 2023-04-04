@@ -23,10 +23,10 @@
 </template>
 
 <script>
-import PageHeader from '@/components/PageHeader.vue'
+import PageHeader from '../components/PageHeader.vue'
 
-import alerts from '@/services/alerts.js'
-import dialog from '@/services/dialog.js'
+import alerts from '../services/alerts.js'
+import dialog from '../services/dialog.js'
 
 export default {
     name: 'ff-layout-platform',

@@ -413,7 +413,7 @@
 import { ChevronRightIcon, ChevronDownIcon } from '@heroicons/vue/solid'
 import AuditEntryUpdates from './AuditEntryUpdates.vue'
 
-import AuditEventsService from '@/services/audit-events.js'
+import AuditEventsService from '../../services/audit-events.js'
 
 export default {
     name: 'AuditEntryVerbose',

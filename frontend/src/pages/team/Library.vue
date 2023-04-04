@@ -36,14 +36,14 @@
 
 import { ChevronRightIcon } from '@heroicons/vue/solid'
 
-import TypeIcon from './components/LibraryEntryTypeIcon.vue'
+import teamApi from '../../api/team'
+import CodePreviewer from '../../components/CodePreviewer.vue'
+import SectionTopMenu from '../../components/SectionTopMenu'
+import formatDateMixin from '../../mixins/DateTime.js'
+import Alerts from '../../services/alerts'
+import Dialog from '../../services/dialog'
 
-import teamApi from '@/api/team'
-import CodePreviewer from '@/components/CodePreviewer.vue'
-import SectionTopMenu from '@/components/SectionTopMenu'
-import formatDateMixin from '@/mixins/DateTime.js'
-import Alerts from '@/services/alerts'
-import Dialog from '@/services/dialog'
+import TypeIcon from './components/LibraryEntryTypeIcon.vue'
 
 export default {
     name: 'SharedLibrary',

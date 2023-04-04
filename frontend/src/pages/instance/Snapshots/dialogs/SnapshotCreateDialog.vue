@@ -22,10 +22,10 @@
 
 import { QuestionMarkCircleIcon } from '@heroicons/vue/solid'
 
-import snapshotApi from '@/api/projectSnapshots'
+import snapshotApi from '../../../../api/projectSnapshots'
 
-import FormRow from '@/components/FormRow.vue'
-import alerts from '@/services/alerts'
+import FormRow from '../../../../components/FormRow.vue'
+import alerts from '../../../../services/alerts'
 
 export default {
     name: 'SnapshotCreateDialog',

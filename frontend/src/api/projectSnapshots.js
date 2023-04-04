@@ -1,7 +1,7 @@
 import client from './client'
-import daysSince from '@/utils/daysSince'
-import paginateUrl from '@/utils/paginateUrl'
-import instanceApi from '@/api/instances'
+import daysSince from '../utils/daysSince'
+import paginateUrl from '../utils/paginateUrl'
+import instanceApi from './instances'
 
 /**
  * TODO: Currently hits project API

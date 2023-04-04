@@ -32,13 +32,13 @@
 </template>
 
 <script>
-import usersApi from '@/api/users'
-import FormRow from '@/components/FormRow'
-import FormHeading from '@/components/FormHeading'
+import usersApi from '../../../api/users'
+import FormRow from '../../../components/FormRow'
+import FormHeading from '../../../components/FormHeading'
 import { mapState } from 'vuex'
 
-import NavItem from '@/components/NavItem'
-import SideNavigation from '@/components/SideNavigation'
+import NavItem from '../../../components/NavItem'
+import SideNavigation from '../../../components/SideNavigation'
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
 
 export default {

@@ -14,9 +14,9 @@
 </template>
 
 <script>
-import userApi from '@/api/user'
-import FormRow from '@/components/FormRow'
-import FormHeading from '@/components/FormHeading'
+import userApi from '../../../api/user'
+import FormRow from '../../../components/FormRow'
+import FormHeading from '../../../components/FormHeading'
 
 export default {
     name: 'AccountSecurityChangePassword',

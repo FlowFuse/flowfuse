@@ -9,7 +9,7 @@
             <div class="ff-layout--box--right">
                 <div class="ff-layout--box--content">
                     <div class="ff-logo">
-                        <img src="@/images/ff-logo--wordmark-caps--dark.png" />
+                        <img src="../images/ff-logo--wordmark-caps--dark.png" />
                     </div>
                     <slot></slot>
                 </div>
@@ -28,7 +28,7 @@
 </template>
 
 <script>
-import alerts from '@/services/alerts.js'
+import alerts from '../services/alerts.js'
 export default {
     name: 'ff-layout-box',
     data () {

@@ -52,15 +52,15 @@
 
 <script>
 import { mapState } from 'vuex'
-import Login from '@/pages/Login.vue'
-import Loading from '@/components/Loading'
-import Offline from '@/components/Offline'
-import PasswordExpired from '@/pages/PasswordExpired.vue'
-import UnverifiedEmail from '@/pages/UnverifiedEmail.vue'
-import TermsAndConditions from '@/pages/TermsAndConditions.vue'
-import FFLayoutPlatform from '@/layouts/Platform.vue'
-import FFLayoutBox from '@/layouts/Box.vue'
-import LicenseBanner from '@/components/banners/LicenseBanner.vue'
+import Login from './pages/Login.vue'
+import Loading from './components/Loading'
+import Offline from './components/Offline'
+import PasswordExpired from './pages/PasswordExpired.vue'
+import UnverifiedEmail from './pages/UnverifiedEmail.vue'
+import TermsAndConditions from './pages/TermsAndConditions.vue'
+import FFLayoutPlatform from './layouts/Platform.vue'
+import FFLayoutBox from './layouts/Box.vue'
+import LicenseBanner from './components/banners/LicenseBanner.vue'
 
 export default {
     name: 'App',

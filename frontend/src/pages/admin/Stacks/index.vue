@@ -40,13 +40,13 @@
 </template>
 
 <script>
-import stacksApi from '@/api/stacks'
-import instanceTypesApi from '@/api/instanceTypes'
+import stacksApi from '../../../api/stacks'
+import instanceTypesApi from '../../../api/instanceTypes'
 
-import Alerts from '@/services/alerts'
-import Dialog from '@/services/dialog'
+import Alerts from '../../../services/alerts'
+import Dialog from '../../../services/dialog'
 
-import FormHeading from '@/components/FormHeading'
+import FormHeading from '../../../components/FormHeading'
 
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'

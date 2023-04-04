@@ -49,21 +49,21 @@
 
 <script>
 // APIs
-import { Roles } from '@core/lib/roles'
 import { ChipIcon, CogIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
+import { Roles } from '../../../../forge/lib/roles'
+
+import deviceApi from '../../api/devices'
+
+import InstanceStatusHeader from '../../components/InstanceStatusHeader'
+import NavItem from '../../components/NavItem'
+import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions'
+import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
+import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge'
 
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge'
-
-import deviceApi from '@/api/devices'
-
-import InstanceStatusHeader from '@/components/InstanceStatusHeader'
-import NavItem from '@/components/NavItem'
-import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions'
-import SubscriptionExpiredBanner from '@/components/banners/SubscriptionExpired.vue'
-import TeamTrialBanner from '@/components/banners/TeamTrial.vue'
 
 export default {
     name: 'DevicePage',

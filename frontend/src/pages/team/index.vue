@@ -18,14 +18,15 @@
 </template>
 
 <script>
-import { Roles } from '@core/lib/roles'
 import { useRoute } from 'vue-router'
 import { mapState } from 'vuex'
 
-import Loading from '@/components/Loading'
-import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vue'
-import SubscriptionExpiredBanner from '@/components/banners/SubscriptionExpired.vue'
-import TeamTrialBanner from '@/components/banners/TeamTrial.vue'
+import { Roles } from '../../../../forge/lib/roles'
+
+import Loading from '../../components/Loading'
+import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
+import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
+import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 
 export default {
     name: 'TeamPage',

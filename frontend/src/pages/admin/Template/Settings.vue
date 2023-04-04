@@ -21,8 +21,8 @@
 
 <script>
 
-import FormRow from '@/components/FormRow'
-import FormHeading from '@/components/FormHeading'
+import FormRow from '../../../components/FormRow'
+import FormHeading from '../../../components/FormHeading'
 import ChangeIndicator from './components/ChangeIndicator'
 import TemplateSettingsEditor from './sections/Editor'
 

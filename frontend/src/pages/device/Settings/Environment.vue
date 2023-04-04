@@ -10,8 +10,8 @@
 <script>
 import { mapState } from 'vuex'
 
-import deviceApi from '@/api/devices'
-import permissionsMixin from '@/mixins/Permissions'
+import deviceApi from '../../../api/devices'
+import permissionsMixin from '../../../mixins/Permissions'
 import TemplateSettingsEnvironment from '../../admin/Template/sections/Environment'
 
 export default {

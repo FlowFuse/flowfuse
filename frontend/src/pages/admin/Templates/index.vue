@@ -28,15 +28,15 @@
 </template>
 
 <script>
-import templatesApi from '@/api/templates'
+import templatesApi from '../../../api/templates'
 
-import Dialog from '@/services/dialog'
+import Dialog from '../../../services/dialog'
 
-import SectionTopMenu from '@/components/SectionTopMenu'
+import SectionTopMenu from '../../../components/SectionTopMenu'
 
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
-import UserCell from '@/components/tables/cells/UserCell'
+import UserCell from '../../../components/tables/cells/UserCell'
 
 import { PlusSmIcon } from '@heroicons/vue/outline'
 

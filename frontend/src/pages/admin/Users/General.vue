@@ -32,9 +32,9 @@
 
 <script>
 
-import usersApi from '@/api/users'
+import usersApi from '../../../api/users'
 import { UserAddIcon } from '@heroicons/vue/outline'
-import UserCell from '@/components/tables/cells/UserCell'
+import UserCell from '../../../components/tables/cells/UserCell'
 import { markRaw } from 'vue'
 
 import AdminUserEditDialog from './dialogs/AdminUserEditDialog'

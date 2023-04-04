@@ -52,9 +52,9 @@
 </template>
 
 <script>
-import FormRow from '@/components/FormRow'
-import FormHeading from '@/components/FormHeading'
-import adminApi from '@/api/admin'
+import FormRow from '../../../components/FormRow'
+import FormHeading from '../../../components/FormHeading'
+import adminApi from '../../../api/admin'
 
 export default {
     name: 'AdminSettingsLicense',
