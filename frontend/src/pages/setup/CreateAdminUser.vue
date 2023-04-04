@@ -36,9 +36,9 @@
 </template>
 
 <script>
-import httpClient from '@/api/client'
-import FormHeading from '@/components/FormHeading.vue'
-import FormRow from '@/components/FormRow.vue'
+import httpClient from '../../api/client.js'
+import FormHeading from '../../components/FormHeading.vue'
+import FormRow from '../../components/FormRow.vue'
 export default {
     name: 'CreateAdminUser',
     data () {

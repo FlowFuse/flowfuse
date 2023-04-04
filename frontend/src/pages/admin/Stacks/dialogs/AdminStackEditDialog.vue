@@ -41,10 +41,10 @@
 </template>
 
 <script>
-import stacksApi from '@/api/stacks'
-import instanceTypesApi from '@/api/instanceTypes'
+import stacksApi from '../../../../api/stacks.js'
+import instanceTypesApi from '../../../../api/instanceTypes.js'
 
-import FormRow from '@/components/FormRow'
+import FormRow from '../../../../components/FormRow.vue'
 import { mapState } from 'vuex'
 
 export default {
@@ -178,7 +178,7 @@ export default {
                     stacksApi.updateStack(this.stack.id, opts).then((response) => {
                         this.$emit('stackUpdated', response)
                     }).catch(err => {
-                        console.log(err.response.data)
+                        console.error(err.response.data)
                         if (err.response.data) {
                             if (/name/.test(err.response.data.error)) {
                                 this.errors.name = 'Name unavailable'
@@ -195,7 +195,7 @@ export default {
                         }
                         this.$emit('stackCreated', response, this.input.replaces)
                     }).catch(err => {
-                        console.log(err.response.data)
+                        console.error(err.response.data)
                         if (err.response.data) {
                             if (/name/.test(err.response.data.error)) {
                                 this.errors.name = 'Name unavailable'

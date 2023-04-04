@@ -36,15 +36,15 @@
 </template>
 
 <script>
-import instanceTypesApi from '@/api/instanceTypes'
-import SectionTopMenu from '@/components/SectionTopMenu'
+import instanceTypesApi from '../../../api/instanceTypes.js'
+import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import Dialog from '@/services/dialog'
+import Dialog from '../../../services/dialog.js'
 
-import InstanceTypeEditDialog from './dialogs/InstanceTypeEditDialog'
-import InstanceTypeDescriptionCell from './components/InstanceTypeDescriptionCell'
+import InstanceTypeEditDialog from './dialogs/InstanceTypeEditDialog.vue'
+import InstanceTypeDescriptionCell from './components/InstanceTypeDescriptionCell.vue'
 import { PlusSmIcon } from '@heroicons/vue/outline'
 
 const marked = require('marked')

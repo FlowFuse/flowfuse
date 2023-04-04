@@ -73,11 +73,11 @@
 </template>
 
 <script>
-import usersApi from '@/api/users'
+import usersApi from '../../../../api/users.js'
 import { LockClosedIcon } from '@heroicons/vue/outline'
-import Alerts from '@/services/alerts'
-import FormHeading from '@/components/FormHeading'
-import FormRow from '@/components/FormRow'
+import Alerts from '../../../../services/alerts.js'
+import FormHeading from '../../../../components/FormHeading.vue'
+import FormRow from '../../../../components/FormRow.vue'
 
 export default {
     name: 'AdminUserEditDialog',
@@ -171,7 +171,7 @@ export default {
                     this.$emit('userUpdated', response)
                     this.$refs.dialog.close()
                 }).catch(err => {
-                    console.log(err.response.data)
+                    console.error(err.response.data)
                     if (err.response.data) {
                         let showAlert = true
                         if (/username/.test(err.response.data.error)) {

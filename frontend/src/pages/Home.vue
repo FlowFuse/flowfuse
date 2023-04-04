@@ -14,8 +14,8 @@
 <script>
 
 import { mapState } from 'vuex'
-import FlowForgeLogo from '@/components/Logo'
-import NoTeamsUser from './account/NoTeamsUser'
+import FlowForgeLogo from '../components/Logo.vue'
+import NoTeamsUser from './account/NoTeamsUser.vue'
 
 export default {
     name: 'HomePage',

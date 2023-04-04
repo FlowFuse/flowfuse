@@ -38,12 +38,12 @@
 </template>
 
 <script>
-import userApi from '@/api/user'
+import userApi from '../../api/user.js'
 
-import alerts from '@/services/alerts'
-import FormHeading from '@/components/FormHeading'
-import FormRow from '@/components/FormRow'
-import dialog from '@/services/dialog'
+import alerts from '../../services/alerts.js'
+import FormHeading from '../../components/FormHeading.vue'
+import FormRow from '../../components/FormRow.vue'
+import dialog from '../../services/dialog.js'
 
 export default {
     name: 'AccountSettings',

@@ -14,19 +14,18 @@ import { useRouter } from 'vue-router'
 
 import { mapState } from 'vuex'
 
-import TemplateSettingsPalette from '../../admin/Template/sections/Palette'
-import TemplatePaletteModulesEditor from '../../admin/Template/sections/PaletteModules'
+import InstanceApi from '../../../api/instances.js'
+import permissionsMixin from '../../../mixins/Permissions.js'
+import alerts from '../../../services/alerts.js'
+import TemplateSettingsPalette from '../../admin/Template/sections/Palette.vue'
+import TemplatePaletteModulesEditor from '../../admin/Template/sections/PaletteModules.vue'
 
 import {
     getTemplateValue,
     prepareTemplateForEdit,
     setTemplateValue,
     templateFields
-} from '../../admin/Template/utils'
-
-import InstanceApi from '@/api/instances'
-import permissionsMixin from '@/mixins/Permissions'
-import alerts from '@/services/alerts'
+} from '../../admin/Template/utils.js'
 
 export default {
     name: 'InstanceSettingsPalette',

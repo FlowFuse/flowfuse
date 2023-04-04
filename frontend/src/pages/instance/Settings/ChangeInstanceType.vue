@@ -8,11 +8,10 @@
 <script>
 import { mapState } from 'vuex'
 
-import InstanceApi from '../../../api/instances'
+import InstanceApi from '../../../api/instances.js'
 
-import InstanceForm from '../components/InstanceForm'
-
-import Alerts from '@/services/alerts'
+import Alerts from '../../../services/alerts.js'
+import InstanceForm from '../components/InstanceForm.vue'
 
 export default {
     name: 'ChangeInstanceType',

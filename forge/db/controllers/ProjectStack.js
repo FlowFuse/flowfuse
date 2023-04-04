@@ -1,7 +1,6 @@
 module.exports = {
     createDefaultProjectStack: async function (app, projectType) {
         const properties = app.containers.getDefaultStackProperties()
-        console.log(properties)
         let name = 'Default'
         let label = 'Default'
         if (properties.nodered) {

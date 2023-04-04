@@ -1,11 +1,11 @@
-import Device from '@/pages/device/index.vue'
-import DeviceOverview from '@/pages/device/Overview.vue'
-import DeviceSettings from '@/pages/device/Settings/index.vue'
-import DeviceLogs from '@/pages/device/Logs.vue'
+import Device from './index.vue'
+import DeviceOverview from './Overview.vue'
+import DeviceSettings from './Settings/index.vue'
+import DeviceLogs from './Logs.vue'
 
-import DeviceSettingsGeneral from '@/pages/device/Settings/General.vue'
-import DeviceSettingsEnvironment from '@/pages/device/Settings/Environment.vue'
-import DeviceSettingsDanger from '@/pages/device/Settings/Danger.vue'
+import DeviceSettingsGeneral from './Settings/General.vue'
+import DeviceSettingsEnvironment from './Settings/Environment.vue'
+import DeviceSettingsDanger from './Settings/Danger.vue'
 
 export default [
     {

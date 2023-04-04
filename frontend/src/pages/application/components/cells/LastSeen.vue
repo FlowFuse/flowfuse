@@ -1,0 +1,24 @@
+<template>
+    <span>
+        <span v-if="lastSeenSince">{{ lastSeenSince }}</span>
+        <span
+            v-else
+            class="italic text-gray-500"
+        >
+            never
+        </span>
+    </span>
+</template>
+
+<script>
+export default {
+    name: 'LastSeen',
+    inheritAttrs: false,
+    props: {
+        lastSeenSince: {
+            type: String,
+            default: ''
+        }
+    }
+}
+</script>

@@ -11,9 +11,9 @@
 <script>
 
 import { mapState } from 'vuex'
-import userApi from '@/api/user'
-import alerts from '@/services/alerts'
-import FFLayoutBox from '@/layouts/Box'
+import userApi from '../../api/user.js'
+import alerts from '../../services/alerts.js'
+import FFLayoutBox from '../../layouts/Box.vue'
 
 export default {
     name: 'VerifyEmail',
@@ -32,7 +32,7 @@ export default {
                     alerts.emit(`Unable to verify email. ${err.response.data.error}`, 'warning', timing)
                 } else {
                     alerts.emit('Unable to verify email. Check logs for details.', 'warning', timing)
-                    console.log(err)
+                    console.error(err)
                 }
             }
         }

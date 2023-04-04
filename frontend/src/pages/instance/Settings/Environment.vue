@@ -10,14 +10,13 @@
 <script>
 import { mapState } from 'vuex'
 
-import TemplateSettingsEnvironment from '../../admin/Template/sections/Environment'
+import InstanceApi from '../../../api/instances.js'
+import permissionsMixin from '../../../mixins/Permissions.js'
+import alerts from '../../../services/alerts.js'
+import TemplateSettingsEnvironment from '../../admin/Template/sections/Environment.vue'
 import {
     prepareTemplateForEdit
-} from '../../admin/Template/utils'
-
-import InstanceApi from '@/api/instances'
-import permissionsMixin from '@/mixins/Permissions'
-import alerts from '@/services/alerts'
+} from '../../admin/Template/utils.js'
 
 export default {
     name: 'InstanceSettingsEnvironment',

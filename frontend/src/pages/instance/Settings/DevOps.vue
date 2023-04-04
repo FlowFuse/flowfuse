@@ -25,13 +25,13 @@
 
 <script>
 
-import InstanceApi from '@/api/instances'
-import TeamAPI from '@/api/team'
+import InstanceApi from '../../../api/instances.js'
+import TeamAPI from '../../../api/team.js'
 
-import FormHeading from '@/components/FormHeading'
-import FormRow from '@/components/FormRow'
-import Alerts from '@/services/alerts'
-import Dialog from '@/services/dialog'
+import FormHeading from '../../../components/FormHeading.vue'
+import FormRow from '../../../components/FormRow.vue'
+import Alerts from '../../../services/alerts.js'
+import Dialog from '../../../services/dialog.js'
 
 export default {
     name: 'InstanceSettingsStages',

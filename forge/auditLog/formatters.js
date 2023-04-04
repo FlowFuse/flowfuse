@@ -141,7 +141,7 @@ const formatLogEntry = (auditLogDbRow) => {
                 formatted.body[key] = sanitiseObjectIds(value)
             }
         } catch (_err) {
-            // console.log('Error parsing audit log body', _err)
+            console.warn('Error parsing audit log body', _err)
         }
     }
     return formatted

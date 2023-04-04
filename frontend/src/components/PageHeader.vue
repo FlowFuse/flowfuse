@@ -5,7 +5,7 @@
             <MenuIcon class="ff-avatar" @click="$emit('menu-toggle')"/>
         </i>
         <!-- FlowForge Logo -->
-        <img class="ff-logo" src="@/images/ff-logo--wordmark-caps--dark.png" @click="home()"/>
+        <img class="ff-logo" src="../images/ff-logo--wordmark-caps--dark.png" @click="home()"/>
         <!-- Mobile: Toggle(User Options) -->
         <div class="flex" v-if="team">
             <i class="ff-header--mobile-usertoggle" :class="{'active': mobileTeamSelectionOpen}">
@@ -52,12 +52,12 @@
 <script>
 import { ref } from 'vue'
 import { mapState, mapGetters } from 'vuex'
-import router from '@/routes'
+import router from '../routes.js'
 
 import { MenuIcon, PlusIcon, QuestionMarkCircleIcon, AdjustmentsIcon, CogIcon, LogoutIcon } from '@heroicons/vue/solid'
 
-import NavItem from '@/components/NavItem'
-import TeamSelection from '@/components/TeamSelection'
+import NavItem from './NavItem.vue'
+import TeamSelection from './TeamSelection.vue'
 
 export default {
     name: 'NavBar',

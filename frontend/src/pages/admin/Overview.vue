@@ -56,9 +56,9 @@
 </template>
 
 <script>
-import adminApi from '@/api/admin'
-import SectionTopMenu from '@/components/SectionTopMenu'
-import Settings from '@/api/settings'
+import adminApi from '../../api/admin.js'
+import SectionTopMenu from '../../components/SectionTopMenu.vue'
+import Settings from '../../api/settings.js'
 
 export default {
     name: 'AdminSettingsGeneral',

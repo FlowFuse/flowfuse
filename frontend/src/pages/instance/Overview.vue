@@ -9,7 +9,7 @@
                         <td class="w-1/4 font-medium">Editor</td>
                         <td>
                             <div v-if="editorAvailable">
-                                <div v-if="isVisitingAdmin" class="my-2">
+                                <div v-if="isVisitingAdmin || instance.settings.disableEditor" class="my-2">
                                     {{ instance.url }}
                                 </div>
                                 <a v-else :href="instance.url" target="_blank" class="forge-button-secondary py-1 mb-1" data-el="editor-link">
@@ -69,12 +69,12 @@ import { ExternalLinkIcon, TemplateIcon, TrendingUpIcon } from '@heroicons/vue/o
 
 import { mapState } from 'vuex'
 
-import InstanceStatusBadge from './components/InstanceStatusBadge'
+import InstanceApi from '../../api/instances.js'
+import FormHeading from '../../components/FormHeading.vue'
+import AuditLog from '../../components/audit-log/AuditLog.vue'
+import permissionsMixin from '../../mixins/Permissions.js'
 
-import InstanceApi from '@/api/instances'
-import FormHeading from '@/components/FormHeading'
-import AuditLog from '@/components/audit-log/AuditLog'
-import permissionsMixin from '@/mixins/Permissions'
+import InstanceStatusBadge from './components/InstanceStatusBadge.vue'
 
 export default {
     name: 'InstanceOverview',
@@ -136,5 +136,5 @@ export default {
 </script>
 
 <style lang="scss">
-@import "@/stylesheets/pages/project.scss";
+@import "../../stylesheets/pages/project.scss";
 </style>

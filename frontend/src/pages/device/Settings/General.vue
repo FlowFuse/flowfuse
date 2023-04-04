@@ -16,11 +16,11 @@
 </template>
 
 <script>
-import deviceApi from '@/api/devices'
-import FormRow from '@/components/FormRow'
+import deviceApi from '../../../api/devices.js'
+import FormRow from '../../../components/FormRow.vue'
 
 import { mapState } from 'vuex'
-import permissionsMixin from '@/mixins/Permissions'
+import permissionsMixin from '../../../mixins/Permissions.js'
 
 export default {
     name: 'DeviceSettings',

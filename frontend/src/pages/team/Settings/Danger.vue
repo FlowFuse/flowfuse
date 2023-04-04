@@ -12,10 +12,10 @@
 </template>
 
 <script>
-import teamApi from '@/api/team'
+import teamApi from '../../../api/team.js'
 
-import FormHeading from '@/components/FormHeading'
-import ConfirmTeamDeleteDialog from '../dialogs/ConfirmTeamDeleteDialog'
+import FormHeading from '../../../components/FormHeading.vue'
+import ConfirmTeamDeleteDialog from '../dialogs/ConfirmTeamDeleteDialog.vue'
 
 export default {
     name: 'TeamSettingsDanger',

@@ -47,11 +47,11 @@
 </template>
 
 <script>
-import instanceTypesApi from '@/api/instanceTypes'
-import stacksApi from '@/api/stacks'
+import instanceTypesApi from '../../../../api/instanceTypes.js'
+import stacksApi from '../../../../api/stacks.js'
 
-import FormRow from '@/components/FormRow'
-import FormHeading from '@/components/FormHeading'
+import FormRow from '../../../../components/FormRow.vue'
+import FormHeading from '../../../../components/FormHeading.vue'
 
 import { mapState } from 'vuex'
 
@@ -114,7 +114,7 @@ export default {
                     instanceTypesApi.updateInstanceType(this.instanceType.id, opts).then((response) => {
                         this.$emit('instanceTypeUpdated', response)
                     }).catch(err => {
-                        console.log(err.response.data)
+                        console.error(err.response.data)
                         if (err.response.data) {
                             if (/name/.test(err.response.data.error)) {
                                 this.errors.name = 'Name unavailable'
@@ -125,7 +125,7 @@ export default {
                     instanceTypesApi.create(opts).then((response) => {
                         this.$emit('instanceTypeCreated', response)
                     }).catch(err => {
-                        console.log(err.response.data)
+                        console.error(err.response.data)
                         if (err.response.data) {
                             if (/name/.test(err.response.data.error)) {
                                 this.errors.name = 'Name unavailable'

@@ -1,6 +1,6 @@
 <template>
     <ff-loading v-if="loading" message="Loading Activity..." />
-    <div v-if="hasNoEntries && !loading" class="ff-no-data">
+    <div v-if="hasNoEntries && !loading" class="ff-no-data ff-no-data-large">
         No Activity Found
     </div>
     <ff-accordion v-for="(entries, date, $index) in logEntriesByDate" :key="date" :label="date" :set-open="$index < 3" data-el="accordion" :disabled="disableAccordion">
@@ -23,7 +23,7 @@
 /* eslint-disable no-template-curly-in-string */
 
 import AuditEntry from './AuditEntry.vue'
-import FFAccordion from '@/components/Accordion.vue'
+import FFAccordion from '../Accordion.vue'
 
 export default {
     name: 'AuditLog',
@@ -91,6 +91,6 @@ export default {
 </script>
 
 <style lang="scss">
-@import "@/stylesheets/components/audit-log.scss";
-@import "@/stylesheets/components/accordion.scss";
+@import "../../stylesheets/components/audit-log.scss";
+@import "../../stylesheets/components/accordion.scss";
 </style>

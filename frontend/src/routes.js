@@ -1,15 +1,15 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import Home from '@/pages/Home.vue'
-import PageNotFound from '@/pages/PageNotFound'
+import Home from './pages/Home.vue'
+import PageNotFound from './pages/PageNotFound.vue'
 
-import AdminRoutes from '@/pages/admin/routes.js'
-import DeviceRoutes from '@/pages/device/routes.js'
-import ProjectRoutes from '@/pages/project/routes.js'
-import InstanceRoutes from '@/pages/instance/routes.js'
-import TeamRoutes from '@/pages/team/routes.js'
-import AccountRoutes from '@/pages/account/routes.js'
-import HelpRoutes from '@/pages/help/routes.js'
+import AdminRoutes from './pages/admin/routes.js'
+import DeviceRoutes from './pages/device/routes.js'
+import ProjectRoutes from './pages/application/routes.js'
+import InstanceRoutes from './pages/instance/routes.js'
+import TeamRoutes from './pages/team/routes.js'
+import AccountRoutes from './pages/account/routes.js'
+import HelpRoutes from './pages/help/routes.js'
 
 const routes = [
     {

@@ -15,10 +15,10 @@
 </template>
 
 <script>
-import DevicesBrowser from '../../../components/DevicesBrowser'
+import DevicesBrowser from '../../../components/DevicesBrowser.vue'
 
-import SectionTopMenu from '@/components/SectionTopMenu'
-import permissionsMixin from '@/mixins/Permissions'
+import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import permissionsMixin from '../../../mixins/Permissions.js'
 
 export default {
     name: 'TeamDevices',

@@ -20,8 +20,8 @@
 
 <script>
 
-import alerts from '@/services/alerts'
-import teamApi from '@/api/team'
+import alerts from '../../../services/alerts.js'
+import teamApi from '../../../api/team.js'
 
 export default {
     name: 'ConfirmTeamUserRemoveDialog',

@@ -2,7 +2,6 @@
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigationTeamOptions>
             <template #nested-menu>
-                <!-- TODO Read instance.application or pass in application details as a prop -->
                 <div class="ff-nested-title">Instance</div>
                 <router-link v-for="route in navigation" :key="route.label" :to="route.path">
                     <nav-item :icon="route.icon" :label="route.label" :data-nav="route.tag" />
@@ -26,19 +25,19 @@
                         <InstanceStatusBadge v-if="instance.meta" :status="instance.meta.state" :pendingStateChange="instance.pendingStateChange" />
                         <div class="w-full text-sm mt-1">
                             Application:
-                            <router-link :to="{name: 'Project', params: {id: instance.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ instance.name }}</router-link>
+                            <router-link :to="{name: 'Application', params: {id: instance.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ instance.application.name }}</router-link>
                         </div>
                     </div>
                 </template>
                 <template #tools>
                     <div class="space-x-2 flex align-center">
                         <div v-if="editorAvailable">
-                            <a v-if="!isVisitingAdmin" :href="instance.url" target="_blank" class="ff-btn ff-btn--secondary" data-action="open-editor">
-                                Open Editor
-                                <span class="ff-btn--icon ff-btn--icon-right">
+                            <ff-button v-if="!isVisitingAdmin" kind="secondary" data-action="open-editor" :disabled="instance.settings.disableEditor" @click="openEditor()">
+                                <template #icon-right>
                                     <ExternalLinkIcon />
-                                </span>
-                            </a>
+                                </template>
+                                {{ instance.settings.disableEditor ? 'Editor Disabled' : 'Open Editor' }}
+                            </ff-button>
                             <button v-else title="Unable to open editor when visiting as an admin" class="ff-btn ff-btn--secondary" disabled>
                                 Open Editor
                                 <span class="ff-btn--icon ff-btn--icon-right">
@@ -69,29 +68,29 @@
 </template>
 
 <script>
-import { Roles } from '@core/lib/roles'
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
 import { ChevronLeftIcon, ChipIcon, ClockIcon, CogIcon, TemplateIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
-import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDeleteDialog'
+import { Roles } from '../../../../forge/lib/roles.js'
 
-import InstanceStatusBadge from './components/InstanceStatusBadge'
+import InstanceApi from '../../api/instances.js'
+import SnapshotApi from '../../api/projectSnapshots.js'
 
-import InstanceApi from '@/api/instances'
-import SnapshotApi from '@/api/projectSnapshots'
+import DropdownMenu from '../../components/DropdownMenu.vue'
+import InstanceStatusHeader from '../../components/InstanceStatusHeader.vue'
+import NavItem from '../../components/NavItem.vue'
+import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
+import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
+import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 
-import DropdownMenu from '@/components/DropdownMenu'
-import InstanceStatusHeader from '@/components/InstanceStatusHeader'
-import NavItem from '@/components/NavItem'
-import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions.vue'
-import SubscriptionExpiredBanner from '@/components/banners/SubscriptionExpired.vue'
-import TeamTrialBanner from '@/components/banners/TeamTrial.vue'
+import permissionsMixin from '../../mixins/Permissions.js'
 
-import permissionsMixin from '@/mixins/Permissions'
+import alerts from '../../services/alerts.js'
+import Dialog from '../../services/dialog.js'
 
-import alerts from '@/services/alerts'
-import Dialog from '@/services/dialog'
+import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
+import InstanceStatusBadge from './components/InstanceStatusBadge.vue'
 
 const instanceTransitionStates = [
     'loading',
@@ -308,10 +307,11 @@ export default {
             this.$refs.confirmInstanceDeleteDialog.show(this.instance)
         },
         deleteInstance () {
+            const applicationId = this.instance.application.id
             this.loading.deleting = true
             InstanceApi.deleteInstance(this.instance.id).then(async () => {
                 await this.$store.dispatch('account/refreshTeam')
-                this.$router.push({ name: 'Home' })
+                this.$router.push({ name: 'Application', params: { id: applicationId } })
                 alerts.emit('Instance successfully deleted.', 'confirmation')
             }).catch(err => {
                 console.warn(err)

@@ -21,7 +21,7 @@
                 :columns="columns"
                 :rows="Array.from(devices.values())"
                 :show-search="true"
-                :search-placeholder="`Search ${displayingTeam ? 'Devices' : 'Remote Instances'}...`"
+                search-placeholder="Search Devices"
                 :show-load-more="!!nextCursor"
                 @load-more="loadMore"
             >
@@ -76,7 +76,7 @@
                     />
                     <ff-list-item
                         v-if="!row.instance && displayingTeam"
-                        label="Add to Application Instance"
+                        label="Add to Instance"
                         data-action="device-assign"
                         @click="deviceAction('assignToProject', row.id)"
                     />
@@ -140,7 +140,6 @@
     <DeviceAssignInstanceDialog
         v-if="displayingTeam"
         ref="deviceAssignInstanceDialog"
-        :instances="teamInstances"
         @assign-device="assignDevice"
     />
 </template>
@@ -151,26 +150,22 @@ import { PlusSmIcon } from '@heroicons/vue/solid'
 
 import { markRaw } from 'vue'
 
-import DeviceLastSeenBadge from '../pages/device/components/DeviceLastSeenBadge'
-import SnapshotAssignDialog from '../pages/instance/Snapshots/dialogs/SnapshotAssignDialog'
+import deviceApi from '../api/devices.js'
+import instanceApi from '../api/instances.js'
+import teamApi from '../api/team.js'
+import permissionsMixin from '../mixins/Permissions.js'
+import DeviceLink from '../pages/application/components/cells/DeviceLink.vue'
+import InstanceInstancesLink from '../pages/application/components/cells/InstanceInstancesLink.vue'
+import Snapshot from '../pages/application/components/cells/Snapshot.vue'
+import DeviceLastSeenBadge from '../pages/device/components/DeviceLastSeenBadge.vue'
+import SnapshotAssignDialog from '../pages/instance/Snapshots/dialogs/SnapshotAssignDialog.vue'
+import InstanceStatusBadge from '../pages/instance/components/InstanceStatusBadge.vue'
+import DeviceAssignInstanceDialog from '../pages/team/Devices/dialogs/DeviceAssignInstanceDialog.vue'
+import DeviceCredentialsDialog from '../pages/team/Devices/dialogs/DeviceCredentialsDialog.vue'
+import TeamDeviceCreateDialog from '../pages/team/Devices/dialogs/TeamDeviceCreateDialog.vue'
 
-import ProjectStatusBadge from '../pages/project/components/ProjectStatusBadge'
-import ApplicationLink from '../pages/project/components/cells/ApplicationLink'
-import DeviceLink from '../pages/project/components/cells/DeviceLink.vue'
-import InstanceInstancesLink from '../pages/project/components/cells/InstanceInstancesLink.vue'
-import Snapshot from '../pages/project/components/cells/Snapshot.vue'
-import DeviceAssignInstanceDialog from '../pages/team/Devices/dialogs/DeviceAssignInstanceDialog'
-import DeviceCredentialsDialog from '../pages/team/Devices/dialogs/DeviceCredentialsDialog'
-import TeamDeviceCreateDialog from '../pages/team/Devices/dialogs/TeamDeviceCreateDialog'
-
-import deviceApi from '@/api/devices'
-import instanceApi from '@/api/instances'
-import teamApi from '@/api/team'
-
-import permissionsMixin from '@/mixins/Permissions'
-
-import Alerts from '@/services/alerts'
-import Dialog from '@/services/dialog'
+import Alerts from '../services/alerts.js'
+import Dialog from '../services/dialog.js'
 
 export default {
     name: 'ProjectOverview',
@@ -222,25 +217,27 @@ export default {
 
             const statusColumns = [
                 { label: 'Last Seen', key: 'lastSeenAt', class: ['w-32'], sortable: true, component: { is: markRaw(DeviceLastSeenBadge) } },
-                { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(ProjectStatusBadge) } }
+                { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(InstanceStatusBadge) } }
             ]
 
             if (this.displayingTeam) {
                 columns.push(
-                    ...statusColumns,
-                    {
-                        label: 'Application',
-                        class: ['w-64'],
-                        key: 'project',
-                        sortable: true,
-                        component: {
-                            is: markRaw(ApplicationLink),
-                            map: {
-                                id: 'project.id',
-                                name: 'project.name'
-                            }
-                        }
-                    })
+                    ...statusColumns
+                    // TODO Restore application
+                    // {
+                    //     label: 'Application',
+                    //     class: ['w-64'],
+                    //     key: 'project',
+                    //     sortable: true,
+                    //     component: {
+                    //         is: markRaw(ApplicationLink),
+                    //         map: {
+                    //             id: 'project.id',
+                    //             name: 'project.name'
+                    //         }
+                    //     }
+                    // }
+                )
             }
 
             if (!this.displayingInstance) {
@@ -323,14 +320,16 @@ export default {
             this.devices.set(device.id, device)
         },
 
-        async assignDevice (device, projectId) {
-            const updatedDevice = await deviceApi.updateDevice(device.id, { project: projectId })
+        async assignDevice (device, instanceId) {
+            const updatedDevice = await deviceApi.updateDevice(device.id, { project: instanceId })
 
             // TODO Remove temporary duplication
             if (updatedDevice.project) {
                 device.project = updatedDevice.project
                 device.instance = updatedDevice.project
             }
+
+            this.devices.set(device.id, device)
         },
 
         async pollForData () {

@@ -3,7 +3,7 @@ const {
     passwordTypes,
     defaultTemplateValues,
     defaultTemplatePolicy
-} = require('@core/lib/templates')
+} = require('../../../../../forge/lib/templates')
 
 // Functions to map template values to a string for editing
 //

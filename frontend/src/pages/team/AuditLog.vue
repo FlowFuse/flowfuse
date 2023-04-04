@@ -7,12 +7,11 @@
 </template>
 
 <script>
-import SectionTopMenu from '../../components/SectionTopMenu'
-import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser'
+import TeamAPI from '../../api/team.js'
+import SectionTopMenu from '../../components/SectionTopMenu.vue'
+import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser.vue'
 
-import TeamAPI from '@/api/team'
-
-import permissionsMixin from '@/mixins/Permissions'
+import permissionsMixin from '../../mixins/Permissions.js'
 
 export default {
     name: 'TeamAuditLog',

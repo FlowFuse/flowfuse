@@ -12,7 +12,7 @@ new Node-RED applications.
 
 Within FlowForge, users are members of _Teams_. Each team can create _Applications_
 that are collections of one or more _Node-RED instances_. Each instance is created
-from a _Template_ to provide its default settings and runs on a _Stack_ that deterines
+from a _Template_ to provide its default settings and runs on a _Stack_ that determines
 the Node-RED version, memory and CPU usage.
 
 _Devices_ can be assigned to an instance and have flows automatically deployed to

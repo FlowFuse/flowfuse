@@ -18,11 +18,11 @@
 
 <script>
 import { mapState } from 'vuex'
-import alerts from '@/services/alerts'
-import FormRow from '@/components/FormRow'
-import userApi from '@/api/user'
+import alerts from '../../services/alerts.js'
+import FormRow from '../../components/FormRow.vue'
+import userApi from '../../api/user.js'
 
-import FFLayoutBox from '@/layouts/Box'
+import FFLayoutBox from '../../layouts/Box.vue'
 
 export default {
     name: 'PasswordRequest',
@@ -66,7 +66,7 @@ export default {
                 this.complete = true
                 alerts.emit('Password successfully updated.', 'confirmation')
             }).catch(e => {
-                console.log(e)
+                console.error(e)
             })
         }
     },

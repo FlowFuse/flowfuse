@@ -40,20 +40,20 @@
 </template>
 
 <script>
-import stacksApi from '@/api/stacks'
-import instanceTypesApi from '@/api/instanceTypes'
+import stacksApi from '../../../api/stacks.js'
+import instanceTypesApi from '../../../api/instanceTypes.js'
 
-import Alerts from '@/services/alerts'
-import Dialog from '@/services/dialog'
+import Alerts from '../../../services/alerts.js'
+import Dialog from '../../../services/dialog.js'
 
-import FormHeading from '@/components/FormHeading'
+import FormHeading from '../../../components/FormHeading.vue'
 
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import AdminStackEditDialog from './dialogs/AdminStackEditDialog'
+import AdminStackEditDialog from './dialogs/AdminStackEditDialog.vue'
 
-import StackPropertiesCell from './components/StackPropertiesCell'
+import StackPropertiesCell from './components/StackPropertiesCell.vue'
 
 import { PlusSmIcon, DesktopComputerIcon } from '@heroicons/vue/outline'
 

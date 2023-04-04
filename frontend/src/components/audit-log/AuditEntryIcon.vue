@@ -22,8 +22,8 @@
 
 <script>
 
-import ProjectIcon from '@/components/icons/Projects'
-import NodeRedIcon from '@/components/icons/NodeRed'
+import ProjectIcon from '../icons/Projects.js'
+import NodeRedIcon from '../icons/NodeRed.js'
 import {
     DesktopComputerIcon, ClockIcon, ColorSwatchIcon,
     UserIcon, UserGroupIcon, LockClosedIcon,

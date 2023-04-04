@@ -7,7 +7,7 @@
 
 <script>
 
-import SectionTopMenu from '@/components/SectionTopMenu'
+import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 
 const sideNavigation = [
     { name: 'Users', path: './general' },

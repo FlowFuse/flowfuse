@@ -21,10 +21,10 @@
 
 <script>
 
-import alerts from '@/services/alerts'
+import alerts from '../../../services/alerts.js'
 
-import teamApi from '@/api/team'
-import { Roles } from '@core/lib/roles'
+import teamApi from '../../../api/team.js'
+import { Roles } from '../../../../../forge/lib/roles.js'
 
 export default {
     name: 'ChangeTeamRoleDialog',

@@ -10,6 +10,8 @@ const { isFQDN } = require('../../lib/validate')
 /**
  * Instance api routes
  *
+ * Of note: Instances were previously called projects
+ *
  * - /api/v1/project
  *
  * - Any route that has a :projectId parameter will:
@@ -72,7 +74,7 @@ module.exports = async function (app) {
     app.register(ProjectSnapshots, { prefix: '/:projectId/snapshots' })
 
     /**
-     * Get the details of a given project
+     * Get the details of a given instance
      * @name /api/v1/project/:projectId
      * @static
      * @memberof forge.routes.api.project
@@ -80,27 +82,13 @@ module.exports = async function (app) {
     app.get('/:projectId', {
         preHandler: app.needsPermission('project:read')
     }, async (request, reply) => {
-        const [result, projectFlow] = await Promise.all([
-            await app.db.views.Project.project(request.project),
-            await app.db.models.StorageFlow.byProject(request.project.id)
-        ])
-        const inflightState = app.db.controllers.Project.getInflightState(request.project)
+        const projectPromise = app.db.views.Project.project(request.project)
+        const projectStatePromise = request.project.liveState()
 
-        result.flowLastUpdatedAt = projectFlow?.updatedAt
+        const project = await projectPromise
+        const projectState = await projectStatePromise
 
-        if (inflightState) {
-            result.meta = {
-                state: inflightState
-            }
-        } else if (request.project.state === 'suspended') {
-            result.meta = {
-                state: 'suspended'
-            }
-        } else {
-            result.meta = await app.containers.details(request.project) || { state: 'unknown' }
-        }
-        // result.team = await app.db.views.Team.team(request.project.Team)
-        reply.send(result)
+        reply.send({ ...project, ...projectState })
     })
 
     /**
@@ -111,8 +99,14 @@ module.exports = async function (app) {
     app.post('/', {
         preHandler: [
             async (request, reply) => {
-                if (request.body && request.body.team) {
-                    request.teamMembership = await request.session.User.getTeamMembership(request.body.team)
+                request.application = await app.db.models.Application.byId(request.body.applicationId)
+                if (!request.application) {
+                    return reply.code(404).send({ code: 'not_found', error: 'application not found' })
+                }
+
+                request.teamMembership = await request.session.User.getTeamMembership(request.application.Team.id)
+                if (!request.teamMembership && !request.session.User.admin) {
+                    return reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
                 }
             },
             app.needsPermission('project:create')
@@ -120,10 +114,10 @@ module.exports = async function (app) {
         schema: {
             body: {
                 type: 'object',
-                required: ['name', 'team', 'projectType', 'stack', 'template'],
+                required: ['name', 'projectType', 'stack', 'template', 'applicationId'],
                 properties: {
                     name: { type: 'string' },
-                    team: { anyOf: [{ type: 'string' }, { type: 'number' }] },
+                    applicationId: { anyOf: [{ type: 'string' }, { type: 'number' }] },
                     projectType: { type: 'string' },
                     stack: { type: 'string' },
                     template: { type: 'string' },
@@ -138,16 +132,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const teamMembership = await request.session.User.getTeamMembership(request.body.team, true)
-        // Assume membership is enough to allow project creation.
-        // If we have roles that limit creation, that will need to be checked here.
-
-        if (!teamMembership) {
-            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
-            return
-        }
-
-        const team = teamMembership.get('Team')
+        const team = await request.teamMembership.getTeam()
 
         const projectType = await app.db.models.ProjectType.byId(request.body.projectType)
         if (!projectType) {
@@ -168,8 +153,11 @@ module.exports = async function (app) {
             if (!sourceProject) {
                 reply.code(400).send({ code: 'invalid_source_project', error: 'Source Project Not Found' })
                 return
-            } else if (sourceProject.Team.hashid !== request.body.team) {
+            } else if (sourceProject.Team.id !== team.id) {
                 reply.code(403).send({ code: 'invalid_source_project', error: 'Source Project Not in Same Team' })
+                return
+            } else if (sourceProject.Application.id !== request.application.id) {
+                reply.code(403).send({ code: 'invalid_source_project', error: 'Source Project Not in Same Application' })
                 return
             }
         }
@@ -209,10 +197,13 @@ module.exports = async function (app) {
         try {
             project = await app.db.models.Project.create({
                 name,
+                ApplicationId: request.application.id,
                 type: '',
                 url: ''
             })
         } catch (err) {
+            console.error(err)
+
             reply.status(400).type('application/json').send({ code: 'unexpected_error', error: err.message })
             return
         }
@@ -236,7 +227,7 @@ module.exports = async function (app) {
 
         if (sourceProject) {
             // need to copy values over
-            const settingsString = (await app.db.models.StorageSettings.byProject(sourceProject.id))?.settings
+            const settingsString = (await app.db.models.StorageSettings.byProject(sourceProject.id))?.settings ?? '{}'
             const newSettings = {
                 users: {}
             }
@@ -313,17 +304,10 @@ module.exports = async function (app) {
             await app.auditLog.Team.project.created(request.session.User, null, team, project)
         }
 
-        const result = await app.db.views.Project.project(project)
+        const projectViewPromise = app.db.views.Project.project(project)
+        const projectStatePromise = project.liveState()
 
-        if (project.state === 'suspended') {
-            result.meta = {
-                state: 'suspended'
-            }
-        } else {
-            result.meta = await app.containers.details(project) || { state: 'unknown' }
-        }
-
-        reply.send(result)
+        reply.send({ ...await projectViewPromise, ...await projectStatePromise })
     })
     /**
      * Delete a project
@@ -661,7 +645,7 @@ module.exports = async function (app) {
             const { resumeProject, targetState } = await suspendProject(targetProject)
 
             // Nodes
-            const sourceSettingsString = ((await app.db.models.StorageSettings.byProject(sourceProject.id))?.settings) || '{}'
+            const sourceSettingsString = ((await app.db.models.StorageSettings.byProject(sourceProject.id))?.settings) ?? '{}'
             const sourceSettings = JSON.parse(sourceSettingsString)
 
             let targetStorageSettings = await app.db.models.StorageSettings.byProject(targetProject.id)
@@ -871,7 +855,6 @@ module.exports = async function (app) {
         const paginationOptions = app.getPaginationOptions(request)
         const logEntries = await app.db.models.AuditLog.forProject(request.project.id, paginationOptions)
         const result = app.db.views.AuditLog.auditLog(logEntries)
-        // console.log(logEntries);
         reply.send(result)
     })
 

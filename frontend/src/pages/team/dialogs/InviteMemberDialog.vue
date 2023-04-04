@@ -25,11 +25,11 @@
 
 <script>
 import { mapState } from 'vuex'
-import FormRow from '@/components/FormRow'
-import teamApi from '@/api/team'
-import { Roles } from '@core/lib/roles'
+import FormRow from '../../../components/FormRow.vue'
+import teamApi from '../../../api/team.js'
+import { Roles } from '../../../../../forge/lib/roles.js'
 
-import alerts from '@/services/alerts'
+import alerts from '../../../services/alerts.js'
 
 export default {
     name: 'InviteMemberDialog',
@@ -99,7 +99,7 @@ export default {
                 if (err.response?.data) {
                     alerts.emit(`Unable to invite users: ${err.response.data.error}`)
                 } else {
-                    console.log(err)
+                    console.error(err)
                 }
             }
         }

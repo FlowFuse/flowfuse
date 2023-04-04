@@ -97,6 +97,7 @@ module.exports = async function (app) {
             if (subscription) {
                 result.billing.active = subscription.isActive()
                 result.billing.canceled = subscription.isCanceled()
+                result.billing.pastDue = subscription.isPastDue()
                 if (subscription.isTrial()) {
                     result.billing.trial = true
                     result.billing.trialEnded = subscription.isTrialEnded()
@@ -159,12 +160,58 @@ module.exports = async function (app) {
         }
     })
 
+    /**
+     * @name /api/v1/teams/:teamId/applications
+     * @static
+     * @memberof forge.routes.api.team
+     */
+    app.get('/:teamId/applications', {
+        preHandler: app.needsPermission('team:projects:list') // TODO Using project level permissions
+    }, async (request, reply) => {
+        const includeInstances = true
+        const applications = await app.db.models.Application.byTeam(request.params.teamId, { includeInstances })
+
+        reply.send({
+            count: applications.length,
+            applications: await app.db.views.Application.teamApplicationList(applications, { includeInstances })
+        })
+    })
+
+    /**
+     * List team appplication instances statuses
+     * @name /api/v1/teams:teamId/applications/status
+     * @memberof forge.routes.api.application
+     */
+    app.get('/:teamId/applications/status', {
+        preHandler: app.needsPermission('team:projects:list') // TODO Using project level permissions
+    }, async (request, reply) => {
+        const applications = await app.db.models.Application.byTeam(request.params.teamId, { includeInstances: true })
+        if (!applications) {
+            return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+
+        const instancesByApplicationWithStatus = await Promise.all(applications.map(async (application) => {
+            return {
+                id: application.hashid,
+                instances: await app.db.views.Application.instanceStatuses(application.Instances)
+            }
+        }))
+
+        reply.send({
+            count: instancesByApplicationWithStatus.length,
+            applications: instancesByApplicationWithStatus
+        })
+    })
+
+    /**
+     * @deprecated Use /:teamId/applications, or /:applicationId/instances
+     */
     app.get('/:teamId/projects', {
         preHandler: app.needsPermission('team:projects:list')
     }, async (request, reply) => {
         const projects = await app.db.models.Project.byTeam(request.params.teamId)
         if (projects) {
-            let result = await app.db.views.Project.teamProjectList(projects)
+            let result = await app.db.views.Project.instancesList(projects)
             if (request.session.ownerType === 'project') {
                 // This request is from a project token. Filter the list to return
                 // the minimal information needed
@@ -236,11 +283,7 @@ module.exports = async function (app) {
             const teamView = app.db.views.Team.team(team)
 
             if (app.license.active() && app.billing) {
-                let coupon
-                if (request.cookies.ff_coupon) {
-                    coupon = request.unsignCookie(request.cookies.ff_coupon)?.valid ? request.unsignCookie(request.cookies.ff_coupon).value : undefined
-                }
-                const session = await app.billing.createSubscriptionSession(team, coupon, request.session.User)
+                const session = await app.billing.createSubscriptionSession(team, request.session.User)
                 app.auditLog.Team.billing.session.created(request.session.User, null, team, session)
                 teamView.billingURL = session.url
             }
@@ -258,7 +301,6 @@ module.exports = async function (app) {
             } else {
                 responseMessage = err.toString()
             }
-            reply.clearCookie('ff_coupon', { path: '/' })
             reply.code(400).send({ code: 'unexpected_error', error: responseMessage })
         }
     })

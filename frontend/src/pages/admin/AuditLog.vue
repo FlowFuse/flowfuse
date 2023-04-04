@@ -9,11 +9,10 @@
 <script>
 import { mapState } from 'vuex'
 
-import SectionTopMenu from '../../components/SectionTopMenu'
-import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser'
-
-import AdminAPI from '@/api/admin'
-import UsersAPI from '@/api/users'
+import AdminAPI from '../../api/admin.js'
+import UsersAPI from '../../api/users.js'
+import SectionTopMenu from '../../components/SectionTopMenu.vue'
+import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser.vue'
 
 export default {
     name: 'PlatformAuditLog',

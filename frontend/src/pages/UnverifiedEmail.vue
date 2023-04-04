@@ -19,10 +19,10 @@
 
 <script>
 import { mapState } from 'vuex'
-import userApi from '@/api/user'
-import store from '@/store'
+import userApi from '../api/user.js'
+import store from '../store/index.js'
 
-import FFLayoutBox from '@/layouts/Box'
+import FFLayoutBox from '../layouts/Box.vue'
 
 export default {
     name: 'UnverifiedEmail',

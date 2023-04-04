@@ -1,10 +1,10 @@
 <template>
     <form
         class="space-y-6"
-        @submit.prevent="$emit('on-submit', input)"
+        @submit.prevent="$emit('on-submit', input, copyParts)"
     >
         <SectionTopMenu
-            :hero="creatingNew ? 'Create a new Application' : 'Update Instance'"
+            :hero="creatingNew ? (applicationFieldsVisible ? 'Create a new Application & Instance' : 'Create Instance') : 'Update Instance'"
         />
 
         <!-- Form title -->
@@ -20,6 +20,21 @@
         </div>
 
         <!-- Application Name -->
+        <div v-if="creatingNew && applicationFieldsVisible">
+            <FormRow
+                v-model="input.applicationName"
+                :error="errors.applicationName || submitErrors?.applicationName"
+                :disabled="!creatingNew || applicationFieldsLocked"
+                placeholder="My Application Name"
+                data-form="application-name"
+            >
+                <template #default>
+                    Application Name
+                </template>
+            </FormRow>
+        </div>
+
+        <!-- Instance Name -->
         <div>
             <FormRow
                 v-model="input.name"
@@ -28,14 +43,13 @@
                 data-form="project-name"
             >
                 <template #default>
-                    Application Name
+                    Instance Name
                 </template>
                 <template
                     v-if="creatingNew"
                     #description
                 >
-                    This will be shared by the application and it's first instance<br>
-                    Please note, currently, names cannot be changed once created
+                    The instance name is used to access the editor so must be suitable for using in a url. It is not currently possible to rename the instance after it has been created.
                 </template>
                 <template
                     v-if="creatingNew"
@@ -179,7 +193,8 @@
                 type="submit"
             >
                 <template v-if="creatingNew">
-                    Create Application
+                    <span v-if="applicationFieldsVisible">Create Application</span>
+                    <span v-else>Create Instance</span>
                 </template>
                 <template v-else>
                     Confirm Changes
@@ -199,19 +214,19 @@
 import { RefreshIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
-import ExportInstanceComponents from './ExportInstanceComponents'
-import InstanceChargesTable from './InstanceChargesTable'
-import InstanceCreditBanner from './InstanceCreditBanner'
+import billingApi from '../../../api/billing.js'
+import instanceTypesApi from '../../../api/instanceTypes.js'
+import stacksApi from '../../../api/stacks.js'
+import templatesApi from '../../../api/templates.js'
 
-import billingApi from '@/api/billing'
-import instanceTypesApi from '@/api/instanceTypes'
-import stacksApi from '@/api/stacks'
-import templatesApi from '@/api/templates'
+import FormRow from '../../../components/FormRow.vue'
+import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 
-import FormRow from '@/components/FormRow'
-import SectionTopMenu from '@/components/SectionTopMenu'
+import NameGenerator from '../../../utils/name-generator/index.js'
 
-import NameGenerator from '@/utils/name-generator'
+import ExportInstanceComponents from './ExportInstanceComponents.vue'
+import InstanceChargesTable from './InstanceChargesTable.vue'
+import InstanceCreditBanner from './InstanceCreditBanner.vue'
 
 export default {
     name: 'InstanceForm',
@@ -243,6 +258,15 @@ export default {
         submitErrors: {
             default: null,
             type: Object
+        },
+        // Todo: Move these to a separate component
+        applicationFieldsLocked: {
+            default: false,
+            type: Boolean
+        },
+        applicationFieldsVisible: {
+            default: false,
+            type: Boolean
         }
     },
     emits: ['on-submit'],
@@ -256,6 +280,8 @@ export default {
             subscription: null,
             input: {
                 billingConfirmation: false,
+
+                applicationName: '',
 
                 // Only read name from existing project, never source
                 name: this.instance?.name || NameGenerator(),

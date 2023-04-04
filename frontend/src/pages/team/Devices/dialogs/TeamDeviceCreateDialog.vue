@@ -22,11 +22,11 @@
 <script>
 import { mapState } from 'vuex'
 
-import devicesApi from '@/api/devices'
-import teamApi from '@/api/team'
+import devicesApi from '../../../../api/devices.js'
+import teamApi from '../../../../api/team.js'
 
-import FormRow from '@/components/FormRow'
-import alerts from '@/services/alerts'
+import FormRow from '../../../../components/FormRow.vue'
+import alerts from '../../../../services/alerts.js'
 
 export default {
     name: 'TeamDeviceCreateDialog',
@@ -113,7 +113,7 @@ export default {
                     this.$emit('deviceUpdated', response)
                     alerts.emit('Device successfully updated.', 'confirmation')
                 }).catch(err => {
-                    console.log(err.response.data)
+                    console.error(err.response.data)
                     if (err.response.data) {
                         if (/name/.test(err.response.data.error)) {
                             this.errors.name = err.response.data.error
@@ -142,7 +142,7 @@ export default {
                     }
                 }).catch(err => {
                     this.$emit('deviceCreated', null)
-                    console.log(err.response.data)
+                    console.error(err.response.data)
                     if (err.response.data) {
                         if (/name/.test(err.response.data.error)) {
                             this.errors.name = err.response.data.error

@@ -1,11 +1,11 @@
 <template>
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigationTeamOptions>
-            <template v-slot:nested-menu>
+            <template #nested-menu>
                 <div class="ff-nested-title">Device</div>
                 <!-- <div class="ff-nested-title">{{ project.name }}</div> -->
                 <router-link v-for="route in navigation" :key="route.label" :to="route.path" :data-nav="route.tag">
-                    <nav-item :icon="route.icon" :label="route.label"></nav-item>
+                    <nav-item :icon="route.icon" :label="route.label" />
                 </router-link>
             </template>
         </SideNavigationTeamOptions>
@@ -24,7 +24,7 @@
                             {{ device.name }}
                         </div>
                         <DeviceLastSeenBadge class="mr-6" :last-seen-at="device.lastSeenAt" :last-seen-ms="device.lastSeenMs" :last-seen-since="device.lastSeenSince" />
-                        <ProjectStatusBadge :status="device.status"/>
+                        <InstanceStatusBadge :status="device.status" />
                         <div class="w-full text-sm mt-1">
                             <div v-if="device?.project">
                                 Instance:
@@ -41,7 +41,7 @@
                 <div class="ff-banner" data-el="banner-device-as-admin">You are viewing this device as an Administrator</div>
             </Teleport>
             <div class="px-3 pb-3 md:px-6 md:pb-6">
-                <router-view :instance="device.project" :device="device" @device-updated="loadDevice()"></router-view>
+                <router-view :instance="device.project" :device="device" @device-updated="loadDevice()" />
             </div>
         </div>
     </main>
@@ -49,29 +49,28 @@
 
 <script>
 // APIs
-import deviceApi from '@/api/devices'
-
-import { mapState } from 'vuex'
-import { Roles } from '@core/lib/roles'
-
-// components
-import NavItem from '@/components/NavItem'
-import InstanceStatusHeader from '@/components/InstanceStatusHeader'
-import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
-import DeviceLastSeenBadge from '@/pages/device/components/DeviceLastSeenBadge'
-import SideNavigationTeamOptions from '@/components/SideNavigationTeamOptions'
-import SubscriptionExpiredBanner from '@/components/banners/SubscriptionExpired.vue'
-import TeamTrialBanner from '@/components/banners/TeamTrial.vue'
-
-// icons
 import { ChipIcon, CogIcon, TerminalIcon } from '@heroicons/vue/solid'
+import { mapState } from 'vuex'
+
+import { Roles } from '../../../../forge/lib/roles.js'
+
+import deviceApi from '../../api/devices.js'
+
+import InstanceStatusHeader from '../../components/InstanceStatusHeader.vue'
+import NavItem from '../../components/NavItem.vue'
+import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
+import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
+import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
+import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
+
+import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
 
 export default {
     name: 'DevicePage',
     components: {
         NavItem,
         InstanceStatusHeader,
-        ProjectStatusBadge,
+        InstanceStatusBadge,
         DeviceLastSeenBadge,
         SideNavigationTeamOptions,
         SubscriptionExpiredBanner,

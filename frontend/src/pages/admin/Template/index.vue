@@ -29,18 +29,18 @@
 </template>
 
 <script>
-import Dialog from '@/services/dialog'
+import Dialog from '../../../services/dialog.js'
 
-import templateApi from '@/api/templates'
-import SectionSideMenu from '@/components/SectionSideMenu'
+import templateApi from '../../../api/templates.js'
+import SectionSideMenu from '../../../components/SectionSideMenu.vue'
 import {
     setTemplateValue,
     setObjectValue,
     templateFields,
     prepareTemplateForEdit,
     templateValidators
-} from './utils'
-import alerts from '@/services/alerts'
+} from './utils.js'
+import alerts from '../../../services/alerts.js'
 import { ChevronRightIcon } from '@heroicons/vue/solid'
 
 const sideNavigation = [
@@ -198,7 +198,7 @@ export default {
                 this.editable = preparedTemplate.editable
                 this.original = preparedTemplate.original
             } catch (err) {
-                console.log(err)
+                console.error(err)
                 this.$router.push({
                     name: 'PageNotFound',
                     params: { pathMatch: this.$router.currentRoute.value.path.substring(1).split('/') },
@@ -271,7 +271,7 @@ export default {
                 } else {
                     alerts.emit('Unknown Error. Check logs.', 'warning')
                 }
-                console.log(err)
+                console.error(err)
             }
         },
         async createTemplate () {
@@ -309,7 +309,7 @@ export default {
                 } else {
                     alerts.emit('Unknown Error. Check logs.', 'warning')
                 }
-                console.log(err)
+                console.error(err)
             }
         }
     },

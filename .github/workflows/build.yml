@@ -11,12 +11,15 @@ on:
       - 'test/unit/**'
       - 'test/system/**'
       - 'package.json'
+      - '.eslintrc'
   pull_request:
     paths:
       - 'forge/**'
       - 'test/unit/**'
       - 'test/system/**'
       - 'package.json'
+      - '.eslintrc'
+      - '.github/workflows/build.yml'
 
 jobs:
   build:

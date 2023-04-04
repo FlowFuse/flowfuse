@@ -48,11 +48,11 @@
 <script>
 import { mapState } from 'vuex'
 
-import userApi from '@/api/user'
+import userApi from '../../api/user.js'
 
 import { useRoute } from 'vue-router'
 
-import FFLayoutBox from '@/layouts/Box'
+import FFLayoutBox from '../../layouts/Box.vue'
 
 export default {
     name: 'AccountCreate',
@@ -142,7 +142,7 @@ export default {
                     this.emailSent = true
                 }
             }).catch(err => {
-                console.log(err.response.data)
+                console.error(err.response.data)
                 if (err.response.data) {
                     if (/username/.test(err.response.data.error)) {
                         this.errors.username = 'Username unavailable'

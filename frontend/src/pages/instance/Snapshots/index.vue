@@ -40,20 +40,19 @@ import { PlusSmIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import DaysSince from '../../project/Snapshots/components/cells/DaysSince'
-import DeviceCount from '../../project/Snapshots/components/cells/DeviceCount'
-import SnapshotName from '../../project/Snapshots/components/cells/SnapshotName'
+import InstanceApi from '../../../api/instances.js'
+import SnapshotApi from '../../../api/projectSnapshots.js'
 
-import SnapshotCreateDialog from './dialogs/SnapshotCreateDialog'
+import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import UserCell from '../../../components/tables/cells/UserCell.vue'
+import permissionsMixin from '../../../mixins/Permissions.js'
+import Alerts from '../../../services/alerts.js'
+import Dialog from '../../../services/dialog.js'
+import DaysSince from '../../application/Snapshots/components/cells/DaysSince.vue'
+import DeviceCount from '../../application/Snapshots/components/cells/DeviceCount.vue'
+import SnapshotName from '../../application/Snapshots/components/cells/SnapshotName.vue'
 
-import InstanceApi from '@/api/instances'
-import SnapshotApi from '@/api/projectSnapshots'
-
-import SectionTopMenu from '@/components/SectionTopMenu.vue'
-import UserCell from '@/components/tables/cells/UserCell'
-import permissionsMixin from '@/mixins/Permissions'
-import Alerts from '@/services/alerts'
-import Dialog from '@/services/dialog'
+import SnapshotCreateDialog from './dialogs/SnapshotCreateDialog.vue'
 
 export default {
     name: 'InstanceSnapshots',

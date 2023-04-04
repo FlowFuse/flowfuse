@@ -1,7 +1,7 @@
-import client from './client'
-import daysSince from '@/utils/daysSince'
-import elapsedTime from '@/utils/elapsedTime'
-import { RoleNames, Roles } from '@core/lib/roles'
+import client from './client.js'
+import daysSince from '../utils/daysSince.js'
+import elapsedTime from '../utils/elapsedTime.js'
+import { RoleNames, Roles } from '../../../forge/lib/roles.js'
 
 const login = (username, password) => {
     return client.post('/account/login', {

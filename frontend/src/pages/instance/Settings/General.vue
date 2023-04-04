@@ -25,17 +25,18 @@
             Template
         </FormRow>
         <DangerSettings
-            :project="project"
+            :instance="project"
             @instance-confirm-delete="$emit('instance-confirm-delete')"
         />
     </div>
 </template>
 
 <script>
-import DangerSettings from './Danger.vue'
 
-import FormHeading from '@/components/FormHeading'
-import FormRow from '@/components/FormRow'
+import FormHeading from '../../../components/FormHeading.vue'
+import FormRow from '../../../components/FormRow.vue'
+
+import DangerSettings from './Danger.vue'
 
 export default {
     name: 'InstanceSettings',

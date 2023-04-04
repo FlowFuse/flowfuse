@@ -7,7 +7,7 @@
 
 <script>
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
-import LogsShared from './components/InstanceLogs'
+import LogsShared from './components/InstanceLogs.vue'
 
 export default {
     name: 'InstanceLogs',

@@ -350,14 +350,8 @@ module.exports = fp(async function (app, opts, done) {
                     }
                 )
             }
-            if (request.body.code) {
-                reply.setCookie('ff_coupon', request.body.code, {
-                    path: '/',
-                    maxAge: (60 * 60 * 24 * 7),
-                    sameSite: true,
-                    signed: true,
-                    secure: 'auto'
-                })
+            if (app.billing && request.body.code) {
+                await app.billing.setUserBillingCode(newUser, request.body.code)
             }
             await app.auditLog.User.account.register(userInfo, null, userInfo)
             reply.send(await app.db.views.User.userProfile(newUser))

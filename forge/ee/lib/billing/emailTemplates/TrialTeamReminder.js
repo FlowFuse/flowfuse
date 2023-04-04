@@ -3,6 +3,7 @@
 // - teamName
 // - endingInDuration
 // - billingSetup
+// - billingUrl
 
 module.exports = {
     subject: 'Your FlowForge trial ends soon',
@@ -25,6 +26,8 @@ suspend any trial projects you have created.
 If you want them to keep running, please setup billing before the trial ends. You
 will only get charged once the trial ends.
 {{/if}}
+
+You can mange your team's billing here: {{billingUrl}}
 
 Cheers!
 
@@ -50,6 +53,8 @@ suspend any trial projects you have created.</p>
 will only get charged once the trial ends.</p>
 {{/if}}
 </p>
+
+<p>You can mange your team's billing <a href="{{billingUrl}}">here</a></p>
 
 <p>Cheers!</p>
 

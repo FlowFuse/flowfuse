@@ -24,12 +24,12 @@
 </template>
 
 <script>
-import FormHeading from '@/components/FormHeading'
+import FormHeading from '../../../../components/FormHeading.vue'
 import { mapState } from 'vuex'
-import ssoApi from '@/api/sso'
+import ssoApi from '../../../../api/sso.js'
 import { PlusSmIcon } from '@heroicons/vue/outline'
-import Alerts from '@/services/alerts'
-import Dialog from '@/services/dialog'
+import Alerts from '../../../../services/alerts.js'
+import Dialog from '../../../../services/dialog.js'
 
 export default {
     name: 'AdminSettingsSSO',

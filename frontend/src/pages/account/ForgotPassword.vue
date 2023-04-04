@@ -14,10 +14,10 @@
 
 <script>
 import { mapState } from 'vuex'
-import FormRow from '@/components/FormRow'
-import userApi from '@/api/user'
+import FormRow from '../../components/FormRow.vue'
+import userApi from '../../api/user.js'
 
-import FFLayoutBox from '@/layouts/Box'
+import FFLayoutBox from '../../layouts/Box.vue'
 
 export default {
     name: 'PasswordRequest',
@@ -44,7 +44,7 @@ export default {
                 this.flash = 'We have sent you an email with instructions to reset your password'
             }).catch(e => {
                 this.errors.email = ''
-                console.log(e)
+                console.error(e)
             })
         }
     },

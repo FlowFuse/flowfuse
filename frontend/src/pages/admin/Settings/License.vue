@@ -52,9 +52,9 @@
 </template>
 
 <script>
-import FormRow from '@/components/FormRow'
-import FormHeading from '@/components/FormHeading'
-import adminApi from '@/api/admin'
+import FormRow from '../../../components/FormRow.vue'
+import FormHeading from '../../../components/FormHeading.vue'
+import adminApi from '../../../api/admin.js'
 
 export default {
     name: 'AdminSettingsLicense',
@@ -133,7 +133,7 @@ export default {
                 this.cancelEditLicense()
                 this.loading.updating = false
             } catch (err) {
-                console.log(err)
+                console.error(err)
                 if (err.response && err.response.data && err.response.data.error) {
                     this.errors.license = err.response.data.error
                 } else {

@@ -25,7 +25,7 @@ vi.mock('@/utils/paginateUrl', () => {
 })
 
 describe('Users API', async () => {
-    const UsersAPI = await import('@/api/users')
+    const UsersAPI = await import('../../../../frontend/src/api/users.js')
 
     afterEach(() => {
         mockGet.mockClear()

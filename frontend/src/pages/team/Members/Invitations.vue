@@ -13,11 +13,11 @@
 </template>
 
 <script>
-import teamApi from '@/api/team'
+import teamApi from '../../../api/team.js'
 import { markRaw } from 'vue'
-import InviteUserCell from '@/components/tables/cells/InviteUserCell'
+import InviteUserCell from '../../../components/tables/cells/InviteUserCell.vue'
 import { useRoute, useRouter } from 'vue-router'
-import permissionsMixin from '@/mixins/Permissions'
+import permissionsMixin from '../../../mixins/Permissions.js'
 
 export default {
     name: 'MemberInviteTable',

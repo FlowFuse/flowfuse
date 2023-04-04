@@ -106,9 +106,11 @@ describe('Project model', function () {
             should(settings).be.an.Object()
             settings.should.have.a.property('settings')
             settings.settings.should.have.a.property('env').of.Array()
-            settings.settings.env.length.should.equal(2)
-            settings.settings.env.find(e => e.name === 'FF_PROJECT_ID').should.have.a.property('value', project.id)
-            settings.settings.env.find(e => e.name === 'FF_PROJECT_NAME').should.have.a.property('value', 'testProject')
+            settings.settings.env.length.should.equal(4)
+            settings.settings.env.find(e => e.name === 'FF_PROJECT_ID').should.have.a.property('value', project.id) // deprecated in favour of FF_INSTANCE_ID as of 1.6.0
+            settings.settings.env.find(e => e.name === 'FF_PROJECT_NAME').should.have.a.property('value', 'testProject') // deprecated in favour of FF_INSTANCE_NAME as of 1.6.0
+            settings.settings.env.find(e => e.name === 'FF_INSTANCE_ID').should.have.a.property('value', project.id)
+            settings.settings.env.find(e => e.name === 'FF_INSTANCE_NAME').should.have.a.property('value', 'testProject')
         })
     })
 })

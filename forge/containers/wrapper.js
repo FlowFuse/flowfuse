@@ -63,6 +63,9 @@ class SubscriptionHandler {
 
         const subscription = await this.requireSubscription(project.Team)
         if (subscription.isCanceled()) {
+            // Mark this project state as 'not_billed' so that it will get
+            // added back to any future subscription
+            await this._app.billing.setProjectBillingState(project, this.BILLING_STATES.NOT_BILLED)
             this._app.log.warn(`Skipped removing project '${project.id}' from subscription for canceled subscription '${subscription.subscription}'`)
             return
         }

@@ -14,9 +14,9 @@
 </template>
 
 <script>
-import userApi from '@/api/user'
-import FormRow from '@/components/FormRow'
-import FormHeading from '@/components/FormHeading'
+import userApi from '../../../api/user.js'
+import FormRow from '../../../components/FormRow.vue'
+import FormHeading from '../../../components/FormHeading.vue'
 
 export default {
     name: 'AccountSecurityChangePassword',
@@ -70,7 +70,7 @@ export default {
             }).catch(e => {
                 this.changeComplete = false
                 this.errors.password_change = 'Password change failed'
-                console.log(e)
+                console.error(e)
             }).finally(() => {
                 this.loading = false
             })

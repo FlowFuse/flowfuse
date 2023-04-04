@@ -54,11 +54,11 @@
 <script>
 import { markRaw } from 'vue'
 import { KeyIcon, PlusSmIcon } from '@heroicons/vue/outline'
-import SectionTopMenu from '@/components/SectionTopMenu'
-import permissionsMixin from '@/mixins/Permissions'
-import Alerts from '@/services/alerts'
-import Dialog from '@/services/dialog'
-import teamApi from '@/api/team'
+import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import permissionsMixin from '../../../mixins/Permissions.js'
+import Alerts from '../../../services/alerts.js'
+import Dialog from '../../../services/dialog.js'
+import teamApi from '../../../api/team.js'
 
 import CreateProvisioningTokenDialog from '../Devices/dialogs/CreateProvisioningTokenDialog.vue'
 import ProvisioningCredentialsDialog from '../Devices/dialogs/ProvisioningCredentialsDialog.vue'

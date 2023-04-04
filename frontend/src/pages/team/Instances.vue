@@ -20,11 +20,10 @@
 <script>
 import { markRaw } from 'vue'
 
-import SectionTopMenu from '../../components/SectionTopMenu'
-import InstanceStatusBadge from '../instance/components/InstanceStatusBadge'
-
-import teamApi from '@/api/team'
-import permissionsMixin from '@/mixins/Permissions'
+import teamApi from '../../api/team.js'
+import SectionTopMenu from '../../components/SectionTopMenu.vue'
+import permissionsMixin from '../../mixins/Permissions.js'
+import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 
 export default {
     name: 'TeamInstances',
@@ -49,8 +48,8 @@ export default {
             columns: [
                 { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true },
                 { label: 'Status', class: ['w-44'], key: 'status', sortable: true, component: { is: markRaw(InstanceStatusBadge) } },
-                { label: 'Updated', class: ['w-44'], key: 'updatedSince', sortable: true },
-                { label: 'Application', class: ['flex-grow-[0.5]'], key: 'name', sortable: true } // Todo: Currently showing project name
+                { label: 'Updated', class: ['w-60'], key: 'updatedSince', sortable: true },
+                { label: 'Application', class: ['flex-grow-[0.25]'], key: 'application.name', sortable: true }
             ]
         }
     },

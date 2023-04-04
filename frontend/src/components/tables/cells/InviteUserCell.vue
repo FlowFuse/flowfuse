@@ -10,7 +10,7 @@
     </template>
 </template>
 <script>
-import UserCell from './UserCell'
+import UserCell from './UserCell.vue'
 import { UserCircleIcon } from '@heroicons/vue/solid'
 
 export default {

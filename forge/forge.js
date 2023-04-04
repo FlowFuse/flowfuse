@@ -1,7 +1,7 @@
 const fastify = require('fastify')
 const db = require('./db')
 const routes = require('./routes')
-const config = require('./config')
+const config = require('./config') // eslint-disable-line n/no-unpublished-require
 const settings = require('./settings')
 const license = require('./licensing')
 const auditLog = require('./auditLog')
@@ -41,7 +41,7 @@ module.exports = async (options = {}) => {
 
     server.addHook('onError', async (request, reply, error) => {
         // Useful for debugging when a route goes wrong
-        // console.log(error.stack)
+        // console.error(error.stack)
     })
 
     try {
@@ -104,6 +104,7 @@ module.exports = async (options = {}) => {
 
         return server
     } catch (err) {
+        console.error(err)
         server.log.error(`Failed to start: ${err.toString()}`)
         throw err
     }

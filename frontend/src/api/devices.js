@@ -1,6 +1,6 @@
-import client from './client'
-import paginateUrl from '@/utils/paginateUrl'
-import elapsedTime from '@/utils/elapsedTime'
+import client from './client.js'
+import paginateUrl from '../utils/paginateUrl.js'
+import elapsedTime from '../utils/elapsedTime.js'
 
 const getDevices = async (cursor, limit) => {
     const url = paginateUrl('/api/v1/devices', cursor, limit)

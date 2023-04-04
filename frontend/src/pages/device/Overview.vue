@@ -16,7 +16,7 @@
                 <tr class="border-b">
                     <td class="w-1/4 font-medium">Status</td>
                     <td class="py-2">
-                        <ProjectStatusBadge :status="device.status"/>
+                        <InstanceStatusBadge :status="device.status"/>
                     </td>
                 </tr>
             </table>
@@ -31,7 +31,7 @@
                 <tr class="border-b">
                     <td class="w-1/4 font-medium">Application</td>
                     <td class="py-2">
-                        <router-link v-if="device?.project" :to="{name: 'Project', params: { id: device.project.id }}">
+                        <router-link v-if="device?.project" :to="{name: 'Application', params: { id: device.project.id }}">
                             {{ device.project?.name }}
                         </router-link>
                         <span v-else>None</span>
@@ -95,12 +95,13 @@
 <script>
 
 // utilities
-import elapsedTime from '@/utils/elapsedTime'
+import elapsedTime from '../../utils/elapsedTime.js'
 
 // components
-import FormHeading from '@/components/FormHeading'
-import DeviceLastSeenBadge from '@/pages/device/components/DeviceLastSeenBadge'
-import ProjectStatusBadge from '@/pages/project/components/ProjectStatusBadge'
+import FormHeading from '../../components/FormHeading.vue'
+
+import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
+import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 
 // icons
 import { CheckCircleIcon, ExclamationIcon, TemplateIcon, WifiIcon } from '@heroicons/vue/outline'
@@ -110,8 +111,8 @@ export default {
     props: ['device'],
     components: {
         FormHeading,
+        InstanceStatusBadge,
         DeviceLastSeenBadge,
-        ProjectStatusBadge,
         CheckCircleIcon,
         ExclamationIcon,
         TemplateIcon,

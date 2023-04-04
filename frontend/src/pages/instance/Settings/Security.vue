@@ -12,7 +12,10 @@
 import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
 
-import TemplateSettingsSecurity from '../../admin/Template/sections/Security'
+import InstanceApi from '../../../api/instances.js'
+import permissionsMixin from '../../../mixins/Permissions.js'
+import alerts from '../../../services/alerts.js'
+import TemplateSettingsSecurity from '../../admin/Template/sections/Security.vue'
 import {
     getObjectValue,
     getTemplateValue,
@@ -21,11 +24,7 @@ import {
     setTemplateValue,
     templateFields,
     templateValidators
-} from '../../admin/Template/utils'
-
-import InstanceApi from '@/api/instances'
-import permissionsMixin from '@/mixins/Permissions'
-import alerts from '@/services/alerts'
+} from '../../admin/Template/utils.js'
 
 export default {
     name: 'InstanceSettingsSecurity',

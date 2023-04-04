@@ -13,11 +13,11 @@
 
 <script>
 
-import teamApi from '@/api/team'
+import teamApi from '../../../../api/team.js'
 
-import alerts from '@/services/alerts'
+import alerts from '../../../../services/alerts.js'
 
-import FormRow from '@/components/FormRow'
+import FormRow from '../../../../components/FormRow.vue'
 
 export default {
     name: 'CreateProvisioningTokenDialog',
@@ -65,7 +65,7 @@ export default {
                     alerts.emit('Device successfully updated.', 'confirmation')
                 }).catch(err => {
                     this.$emit('tokenUpdated', null)
-                    console.log(err.response.data)
+                    console.error(err.response.data)
                     if (err.response.data) {
                         if (/expiryAt/.test(err.response.data.error)) {
                             this.errors.expiryAt = err.response.data.error
@@ -83,7 +83,7 @@ export default {
                     alerts.emit('Provisioning Token successfully created.', 'confirmation')
                 }).catch(err => {
                     this.$emit('tokenCreated', null)
-                    console.log(err.response.data)
+                    console.error(err.response.data)
                     if (err.response.data) {
                         if (/expiryAt/.test(err.response.data.error)) {
                             this.errors.expiryAt = err.response.data.error

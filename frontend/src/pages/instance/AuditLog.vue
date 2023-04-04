@@ -8,11 +8,10 @@
 <script>
 import { mapState } from 'vuex'
 
+import InstanceApi from '../../api/instances.js'
+import TeamAPI from '../../api/team.js'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
-import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser'
-
-import InstanceApi from '@/api/instances'
-import TeamAPI from '@/api/team'
+import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser.vue'
 
 export default {
     name: 'InstanceAuditLog',

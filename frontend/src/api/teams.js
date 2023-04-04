@@ -1,5 +1,5 @@
-import client from './client'
-import paginateUrl from '@/utils/paginateUrl'
+import client from './client.js'
+import paginateUrl from '../utils/paginateUrl.js'
 
 const getTeams = async (cursor, limit, query) => {
     const url = paginateUrl('/api/v1/teams', cursor, limit, query)

@@ -102,7 +102,6 @@ describe('Team Devices API', function () {
             const result = response.json()
             result.should.have.property('tokens').and.be.an.Array()
             result.tokens.should.have.length(2)
-            console.log(result)
         })
         it('Non owner cannot get list of provisioning tokens', async function () {
             // /api/v1/team/:teamId/devices/provisioning

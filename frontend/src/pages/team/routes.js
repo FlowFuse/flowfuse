@@ -1,25 +1,24 @@
-import Team from '@/pages/team/index.vue'
-import TeamOverview from '@/pages/team/Overview.vue'
-import TeamProjects from '@/pages/team/Projects.vue'
-import TeamInstances from '@/pages/team/Instances.vue'
-import TeamDevices from '@/pages/team/Devices/index.vue'
-import TeamLibrary from '@/pages/team/Library.vue'
-import TeamMembers from '@/pages/team/Members/index.vue'
-import TeamMembersMembers from '@/pages/team/Members/General.vue'
-import TeamMembersInvitations from '@/pages/team/Members/Invitations.vue'
-import TeamAuditLog from '@/pages/team/AuditLog.vue'
-import TeamSettings from '@/pages/team/Settings/index.vue'
-import TeamSettingsGeneral from '@/pages/team/Settings/General.vue'
-import TeamSettingsDanger from '@/pages/team/Settings/Danger.vue'
-import TeamSettingsDevices from '@/pages/team/Settings/Devices.vue'
-// import TeamSettingsPermissions from '@/pages/team/Settings/Permissions.vue'
-import CreateTeam from '@/pages/team/create.vue'
-import CreateProject from '@/pages/team/createProject.vue'
+import Team from './index.vue'
+import TeamApplications from './Applications.vue'
+import TeamInstances from './Instances.vue'
+import TeamDevices from './Devices/index.vue'
+import TeamLibrary from './Library.vue'
+import TeamMembers from './Members/index.vue'
+import TeamMembersMembers from './Members/General.vue'
+import TeamMembersInvitations from './Members/Invitations.vue'
+import TeamAuditLog from './AuditLog.vue'
+import TeamSettings from './Settings/index.vue'
+import TeamSettingsGeneral from './Settings/General.vue'
+import TeamSettingsDanger from './Settings/Danger.vue'
+import TeamSettingsDevices from './Settings/Devices.vue'
+// import TeamSettingsPermissions from './Settings/Permissions.vue'
+import CreateTeam from './create.vue'
+import CreateApplication from './createApplication.vue'
 
 // EE Only
-import TeamBilling from '@/pages/team/Billing.vue'
+import TeamBilling from './Billing.vue'
 
-import ensurePermission from '@/utils/ensurePermission'
+import ensurePermission from '../../utils/ensurePermission.js'
 
 export default [
     {
@@ -34,7 +33,7 @@ export default [
     {
         path: '/team/:team_slug',
         redirect: to => {
-            return `/team/${to.params.team_slug}/overview`
+            return `/team/${to.params.team_slug}/applications`
         },
         name: 'Team',
         component: Team,
@@ -42,13 +41,12 @@ export default [
             title: 'Team - Overview'
         },
         children: [
-            { path: 'overview', component: TeamOverview },
             {
-                path: 'projects',
-                name: 'Projects',
-                component: TeamProjects,
+                path: 'applications',
+                name: 'Applications',
+                component: TeamApplications,
                 meta: {
-                    title: 'Team - Projects'
+                    title: 'Team - Applications'
                 }
             },
             {
@@ -123,14 +121,11 @@ export default [
         ]
     },
     {
-        path: '/team/:team_slug/projects/create',
-        name: 'CreateTeamProject',
-        component: CreateProject,
-        props: route => ({
-            sourceProjectId: route.query.sourceProject
-        }),
+        path: '/team/:team_slug/applications/create',
+        name: 'CreateTeamApplication',
+        component: CreateApplication,
         meta: {
-            title: 'Team - Create Project'
+            title: 'Team - Create Application'
         }
     }
 ]

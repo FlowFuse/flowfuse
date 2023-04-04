@@ -51,12 +51,6 @@
                             As this is your first FlowForge team, free credit will be applied to use for your first project.
                         </p>
                     </div>
-                    <div v-if="coupon">
-                        <div class="mb-8 text-sm text-gray-500 space-y-2">Will apply coupon code <span v-text="coupon"></span> at checkout</div>
-                    </div>
-                    <div v-if="errors.coupon">
-                        <div class="ml-9 text-red-400 inline text-xs">{{errors.coupon}}</div>
-                    </div>
                     <ff-button :disabled="!formValid" @click="createTeam()">
                         <template v-slot:icon-right><ExternalLinkIcon /></template>
                         Create team and setup payment details
@@ -73,17 +67,15 @@
 <script>
 import { mapState } from 'vuex'
 
-import teamApi from '@/api/team'
-import teamTypesApi from '@/api/teamTypes'
-import teamsApi from '@/api/teams'
-import slugify from '@/utils/slugify'
-import FormRow from '@/components/FormRow'
-import FormHeading from '@/components/FormHeading'
+import teamApi from '../../api/team.js'
+import teamTypesApi from '../../api/teamTypes.js'
+import teamsApi from '../../api/teams.js'
+import slugify from '../../utils/slugify.js'
+import FormRow from '../../components/FormRow.vue'
+import FormHeading from '../../components/FormHeading.vue'
 
-import NavItem from '@/components/NavItem'
-import SideNavigation from '@/components/SideNavigation'
-
-import Alerts from '@/services/alerts'
+import NavItem from '../../components/NavItem.vue'
+import SideNavigation from '../../components/SideNavigation.vue'
 
 import { ChevronLeftIcon, ExternalLinkIcon } from '@heroicons/vue/solid'
 
@@ -106,7 +98,6 @@ export default {
                 defaultSlug: '',
                 slugError: ''
             },
-            coupon: false,
             needsBilling: false,
             newTeam: null,
             errors: {},
@@ -157,7 +148,6 @@ export default {
 
         this.teamTypes = (await teamTypesPromise).types
         this.input.teamTypeId = this.teamTypes[0].id
-        this.coupon = (await window.cookieStore.get('ff_coupon'))?.value.split('.')[0]
     },
     mounted () {
         this.mounted = true
@@ -186,11 +176,6 @@ export default {
                 if (err.response.data) {
                     if (/slug/.test(err.response.data.error)) {
                         this.input.slugError = 'Slug already in use'
-                    }
-                    if (/promotion code/.test(err.response.data.error)) {
-                        Alerts.emit(`${this.coupon} coupon invalid`, 'warning', 7500)
-                        this.errors.coupon = `${this.coupon} is not a valid code. You will be able to provide an alternative code on the Stripe checkout page.`
-                        this.coupon = undefined
                     }
                 }
             }).finally(() => {

@@ -35,10 +35,10 @@
 </template>
 
 <script>
-// import devicesApi from '@/api/devices'
+// import devicesApi from '../../../../api/devices'
 
 import { mapState } from 'vuex'
-import deviceApi from '@/api/devices'
+import deviceApi from '../../../../api/devices.js'
 
 import { DocumentDownloadIcon } from '@heroicons/vue/outline'
 export default {

@@ -4,11 +4,11 @@
         <div class="flex-grow">
             <SectionTopMenu hero="Applications">
                 <template v-if="hasPermission('project:create')" v-slot:tools>
-                    <ff-button kind="primary" to="./projects/create" data-nav="create-project"><template v-slot:icon-left><PlusSmIcon /></template>Create Application</ff-button>
+                    <ff-button kind="primary" :to="{name: 'CreateTeamApplication'}" data-nav="create-project"><template v-slot:icon-left><PlusSmIcon /></template>Create Application</ff-button>
                 </template>
             </SectionTopMenu>
-            <template v-if="projectCount > 0">
-                <ProjectSummaryList :projects="projects" :team="team" />
+            <template v-if="applicationCount > 0">
+                <ProjectSummaryList :applications="applications" :team="team" />
             </template>
             <template v-else>
                 <div v-if="!showingMessage" class="flex text-gray-500 justify-center italic mb-4 p-8">
@@ -28,13 +28,13 @@
 
 <script>
 
-import permissionsMixin from '@/mixins/Permissions'
+import permissionsMixin from '../../mixins/Permissions.js'
 
-import teamApi from '@/api/team'
+import teamApi from '../../api/team.js'
 
-import SectionTopMenu from '@/components/SectionTopMenu'
-import MemberSummaryList from './components/MemberSummaryList'
-import ProjectSummaryList from './components/ProjectSummaryList'
+import SectionTopMenu from '../../components/SectionTopMenu.vue'
+import MemberSummaryList from './components/MemberSummaryList.vue'
+import ProjectSummaryList from './components/ProjectSummaryList.vue'
 import { PlusSmIcon } from '@heroicons/vue/outline'
 
 export default {
@@ -46,8 +46,8 @@ export default {
             loading: false,
             userCount: 0,
             users: null,
-            projectCount: 0,
-            projects: null,
+            applicationCount: 0,
+            applications: null,
             show: {
                 thankyou: false
             }
@@ -70,32 +70,25 @@ export default {
         fetchData: async function (newVal, oldVal) {
             this.loading = true
             if (this.team.slug) {
-                // Team Data
-                const data = await teamApi.getTeamProjects(this.team.id)
-                    .then((data) => {
-                        this.projectCount = data.count
-                        this.projects = data.projects
-                    }).catch(() => {})
+                const applicationsPromise = teamApi.getTeamApplications(this.team.id)
+                const membersPromise = await teamApi.getTeamMembers(this.team.id)
 
-                // Team Members
-                const members = await teamApi.getTeamMembers(this.team.id)
-                    .then((members) => {
-                        this.userCount = members.count
-                        this.users = members.members
-                    }).catch(() => {})
-
-                Promise.all([data, members]).finally(() => {
+                Promise.all([applicationsPromise, membersPromise]).finally(() => {
                     this.loading = false
                 })
+
+                // Applications
+                this.applicationCount = (await applicationsPromise).count
+                this.applications = (await applicationsPromise).applications
+
+                // Team Members
+                this.userCount = (await membersPromise).count
+                this.users = (await membersPromise).members
             }
         },
         // has the user navigated here directly from Stripe, having just completed payment details
         async checkBillingSession () {
             this.show.thankyou = 'billing_session' in this.$route.query
-            if (this.show.thankyou) {
-                // delete
-                document.cookie = 'ff_coupon=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-            }
         }
     },
     components: {

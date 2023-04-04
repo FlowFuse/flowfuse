@@ -39,12 +39,6 @@
             <div v-else>
                 Billing has not yet been configured for this team. Before proceeding further, you must continue to Stripe and complete this.
             </div>
-            <div v-if="coupon">
-                <div class="my-3 text-sm">Will apply coupon code <strong>{{ coupon }}</strong> at checkout</div>
-            </div>
-            <div v-else-if="errors.coupon">
-                <div class="my-3 text-red-400">{{ errors.coupon }}</div>
-            </div>
             <div class="mt-6">
                 <ff-button data-action="setup-payment-details" class="mx-auto mt-3" @click="setupBilling()">
                     <template #icon-right><ExternalLinkIcon /></template>
@@ -60,14 +54,13 @@
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 
-import billingApi from '@/api/billing.js'
+import billingApi from '../../api/billing.js'
 
-import FormHeading from '@/components/FormHeading'
-import Loading from '@/components/Loading'
-import SectionTopMenu from '@/components/SectionTopMenu'
-import formatCurrency from '@/mixins/Currency.js'
-import formatDateMixin from '@/mixins/DateTime.js'
-import Alerts from '@/services/alerts'
+import FormHeading from '../../components/FormHeading.vue'
+import Loading from '../../components/Loading.vue'
+import SectionTopMenu from '../../components/SectionTopMenu.vue'
+import formatCurrency from '../../mixins/Currency.js'
+import formatDateMixin from '../../mixins/DateTime.js'
 
 const priceCell = {
     name: 'PriceCell',
@@ -130,7 +123,6 @@ export default {
                     is: markRaw(totalPriceCell)
                 }
             }],
-            coupon: false,
             errors: {}
         }
     },
@@ -152,7 +144,6 @@ export default {
     watch: { },
     async mounted () {
         if (!this.billingSetUp) {
-            this.coupon = this.getCookie('ff_coupon')?.split('.')[0]
             return
         }
 
@@ -183,32 +174,10 @@ export default {
         async setupBilling () {
             let billingUrl = this.$route.query.billingUrl
             if (!billingUrl) {
-                try {
-                    const response = await billingApi.createSubscription(this.team.id)
-                    billingUrl = response.billingURL
-                } catch (err) {
-                    if (err.response.data.code === 'invalid_coupon') {
-                        Alerts.emit(`${this.coupon} coupon invalid`, 'warning', 7500)
-                        this.errors.coupon = `${this.coupon} is not a valid code. You will be able to provide an alternative code on the Stripe checkout page.`
-                        this.coupon = false
-                    } else {
-                        throw err
-                    }
-                }
+                const response = await billingApi.createSubscription(this.team.id)
+                billingUrl = response.billingURL
             }
             window.open(billingUrl, '_self')
-        },
-        getCookie (name) {
-            if (document.cookie) {
-                const cookies = document.cookie.split(';')
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i]
-                    if (cookie.split('=')[0].trim() === name) {
-                        return cookie.split('=')[1]
-                    }
-                }
-            }
-            return undefined
         }
     }
 }

@@ -71,8 +71,21 @@ module.exports.init = async function (app) {
         return await project.getSetting(KEY_BILLING_STATE)
     }
 
+    /**
+     * Convert a user-friendly promo code to its api id, if valid.
+     * @param {string} code The user-friendly promo code 'FREEDONUTS'
+     * @returns the promoCode id (`promo_xyz`) if valid, null otherwise
+     */
+    async function getPromotionCode (code) {
+        const promoCodes = await stripe.promotionCodes.list({ code, active: true })
+        if (promoCodes.data?.length === 1) {
+            return promoCodes.data[0]
+        }
+        return null
+    }
+
     return {
-        createSubscriptionSession: async (team, coupon = null, user = null) => {
+        createSubscriptionSession: async (team, user = null) => {
             const billingIds = getBillingIdsForTeam(team)
 
             const sub = {
@@ -91,13 +104,24 @@ module.exports.init = async function (app) {
                 },
                 custom_text: {
                     submit: {
-                        message: 'This sets up your team for billing. You are only charged when creating a Project.'
+                        message: 'This sets up your team for billing. You are only charged when creating an application instance.'
                     }
                 },
                 client_reference_id: team.hashid,
                 payment_method_types: ['card'],
                 success_url: `${app.config.base_url}/team/${team.slug}/overview?billing_session={CHECKOUT_SESSION_ID}`,
                 cancel_url: `${app.config.base_url}/team/${team.slug}/overview`
+            }
+
+            let userBillingCode
+            let promoCode
+            if (user) {
+                // Check to see if this user has a billingCode associated
+                userBillingCode = await app.billing.getUserBillingCode(user)
+                if (userBillingCode) {
+                    // Check to see if that is a valid stripe promotionCode
+                    promoCode = await getPromotionCode(userBillingCode.code)
+                }
             }
 
             // Use existing Stripe customer
@@ -109,15 +133,22 @@ module.exports.init = async function (app) {
                 sub.customer_update = {
                     name: 'auto'
                 }
-            }
 
-            // Apply a USER provided coupon
-            if (coupon) {
+                if (promoCode?.restrictions?.first_time_transaction) {
+                    // This promoCode has been configured for one use per customer
+                    // As this is an existing customer (ie Team Subscription)
+                    // we cannot proceed with this coupon. The only option is
+                    // to continue without the coupon.
+                    promoCode = null
+                }
+            }
+            if (promoCode?.id) {
                 sub.discounts = [
                     {
-                        promotion_code: coupon
+                        promotion_code: promoCode.id
                     }
                 ]
+                sub.custom_text.submit.message += ` We will apply the code ${userBillingCode.code} to your subscription.`
             } else {
                 sub.allow_promotion_codes = true
             }
@@ -133,9 +164,8 @@ module.exports.init = async function (app) {
 
                 sub.subscription_data.metadata.free_trial = eligibleForTrial
             }
-
             const session = await stripe.checkout.sessions.create(sub)
-            app.log.info(`Creating Subscription for team ${team.hashid}`)
+            app.log.info(`Creating Subscription for team ${team.hashid}` + (sub.discounts ? ` code='${userBillingCode.code}'` : ''))
             return session
         },
 
@@ -173,9 +203,7 @@ module.exports.init = async function (app) {
 
             if (projectItem) {
                 const metadata = existingSub.metadata ? existingSub.metadata : {}
-                // console.log('updating metadata', metadata)
                 metadata[project.id] = 'true'
-                // console.log(metadata)
                 const update = {
                     quantity: projectItem.quantity + 1,
                     proration_behavior: 'always_invoice'
@@ -336,7 +364,7 @@ module.exports.init = async function (app) {
                         app.log.info(update)
                         await stripe.subscriptions.update(subscription.subscription, update)
                     } catch (error) {
-                        console.log(error)
+                        console.error(error)
                         app.log.warn(`Problem adding first device to subscription\n${error.message}`)
                         throw error
                     }
@@ -462,6 +490,19 @@ module.exports.init = async function (app) {
             }
         },
         getProjectBillingState,
-        setProjectBillingState
+        setProjectBillingState,
+        getUserBillingCode: async (user) => {
+            return app.db.controllers.UserBillingCode.getUserCode(user)
+        },
+        setUserBillingCode: async (user, code) => {
+            // Validate this is an active code
+            const promoCode = await getPromotionCode(code)
+            if (promoCode?.id) {
+                // This is a valid code - store the original user-facing code rather
+                // than the underlying id. This will allow us to change the associated
+                // promo for this code rather than tying to exactly one.
+                return app.db.controllers.UserBillingCode.setUserCode(user, code)
+            }
+        }
     }
 }
