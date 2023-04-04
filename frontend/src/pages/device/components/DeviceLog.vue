@@ -49,7 +49,6 @@ export default {
     },
     methods: {
         connect: async function () {
-            await DeviceApi.startLogs(this.device.id)
             if (this.connection === null) {
                 try {
                     const protocol = location.protocol === 'http:' ? 'ws:' : 'wss:'
