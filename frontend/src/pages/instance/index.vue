@@ -309,7 +309,7 @@ export default {
         deleteInstance () {
             const applicationId = this.instance.application.id
             this.loading.deleting = true
-            InstanceApi.deleteInstance(this.instance.id).then(async () => {
+            InstanceApi.deleteInstance(this.instance.id, applicationId, this.team.id).then(async () => {
                 await this.$store.dispatch('account/refreshTeam')
                 this.$router.push({ name: 'Application', params: { id: applicationId } })
                 alerts.emit('Instance successfully deleted.', 'confirmation')

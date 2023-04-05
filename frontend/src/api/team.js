@@ -1,4 +1,5 @@
 import client from './client.js'
+import product from '../services/product.js'
 import daysSince from '../utils/daysSince.js'
 import elapsedTime from '../utils/elapsedTime.js'
 import paginateUrl from '../utils/paginateUrl.js'
@@ -22,11 +23,45 @@ const getTeam = (team) => {
     } else {
         url = `/api/v1/teams/${team}`
     }
-    return client.get(url).then(res => res.data)
+    return client.get(url).then((res) => {
+        // ensure posthog Team is upt-o-date
+        // this may be excessive to call _every_ get of the team,
+        // but its a start, and will ensure up to date data
+        const props = {
+            'team-name': res.data.name,
+            'created-at': res.data.createdAt,
+            'count-applications': res.data.projectCount,
+            'count-instances': res.data.projectCount,
+            'count-members': res.data.memberCount,
+            'billing-active': res.data.billing.active,
+            'billing-canceled': res.data.billing.canceled
+        }
+        if ('trial' in res.data.billing) {
+            props['billing-trial'] = res.data.billing.trial
+            props['billing-trial-ended'] = res.data.billing.trialEnded
+            props['billing-trial-ends-at'] = res.data.billing.trialEndsAt
+        }
+        product.groupUpdate('team', res.data.id, props)
+
+        return res.data
+    })
 }
 
 const deleteTeam = async (teamId) => {
-    return await client.delete(`/api/v1/teams/${teamId}`)
+    return await client.delete(`/api/v1/teams/${teamId}`).then(() => {
+        const timestamp = (new Date()).toISOString()
+        // capture deletion event
+        product.capture('$ff-team-deleted', {
+            'deleted-at': timestamp
+        }, {
+            team: teamId
+        })
+        // update the team "group"
+        product.groupUpdate('team', teamId, {
+            deleted: true,
+            'deleted-at': timestamp
+        })
+    })
 }
 
 /**
@@ -122,15 +157,43 @@ const createTeamInvitation = (teamId, userDetails, role) => {
         role
     }
     return client.post(`/api/v1/teams/${teamId}/invitations`, opts).then(res => {
+        product.capture('$ff-invite-sent', {
+            'invite-sent-to': userDetails,
+            'invite-role-assigned': role
+        }, {
+            team: teamId
+        })
         return res.data
     })
 }
 const removeTeamInvitation = (teamId, inviteId) => {
-    return client.delete(`/api/v1/teams/${teamId}/invitations/${inviteId}`)
+    return client.delete(`/api/v1/teams/${teamId}/invitations/${inviteId}`).then(() => {
+        product.capture('$ff-invite-removed', {
+            'invite-id': inviteId
+        }, {
+            team: teamId
+        })
+    })
 }
 
 const create = async (options) => {
     return client.post('/api/v1/teams/', options).then(res => {
+        // PostHog Event & Group Capture
+        product.capture('$ff-team-created', {
+            'team-name': options.name,
+            'created-at': res.data.createdAt
+        }, {
+            team: res.data.id
+        })
+        const props = {
+            'team-name': options.name,
+            'created-at': res.data.createdAt,
+            'count-applications': 0,
+            'count-instances': 0,
+            'count-devices': 0,
+            'count-members': res.data.memberCount
+        }
+        product.groupUpdate('team', res.data.id, props)
         return res.data
     })
 }
@@ -143,7 +206,14 @@ const changeTeamMemberRole = (teamId, userId, role) => {
 }
 
 const removeTeamMember = (teamId, userId) => {
-    return client.delete(`/api/v1/teams/${teamId}/members/${userId}`)
+    return client.delete(`/api/v1/teams/${teamId}/members/${userId}`).then(() => {
+        product.capture('$ff-team-created', {
+            'member-removed': userId,
+            'removed-at': (new Date()).toISOString()
+        }, {
+            team: teamId
+        })
+    })
 }
 
 const getTeamAuditLog = async (teamId, params, cursor, limit) => {

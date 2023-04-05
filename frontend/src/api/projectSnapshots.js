@@ -1,4 +1,5 @@
 import client from './client.js'
+import product from '../services/product.js'
 import daysSince from '../utils/daysSince.js'
 import paginateUrl from '../utils/paginateUrl.js'
 import instanceApi from './instances.js'
@@ -8,8 +9,17 @@ import instanceApi from './instances.js'
  */
 const create = async (projectId, options) => {
     return client.post(`/api/v1/projects/${projectId}/snapshots`, options).then(res => {
+        const props = {
+            'created-at': res.data.createdAt,
+            'snapshot-id': res.data.id,
+            'snapshot-name': options.name,
+            'snapshot-set-as-target': options.setAsTarget
+        }
         res.data.createdSince = daysSince(res.data.createdAt)
         res.data.updatedSince = daysSince(res.data.updatedAt)
+        product.capture('$ff-snapshot-created', props, {
+            instance: projectId
+        })
         return res.data
     })
 }
@@ -23,6 +33,12 @@ const rollbackSnapshot = async (projectId, snapshotId) => {
  */
 const deleteSnapshot = async (instanceId, snapshotId) => {
     return client.delete(`/api/v1/projects/${instanceId}/snapshots/${snapshotId}`).then(res => {
+        product.capture('$ff-snapshot-deleted', {
+            'snapshot-id': snapshotId,
+            'deleted-at': (new Date()).toISOString()
+        }, {
+            instance: instanceId
+        })
         return res.data
     })
 }

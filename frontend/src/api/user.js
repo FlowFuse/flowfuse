@@ -1,4 +1,5 @@
 import client from './client.js'
+import product from '../services/product.js'
 import daysSince from '../utils/daysSince.js'
 import elapsedTime from '../utils/elapsedTime.js'
 import { RoleNames, Roles } from '../../../forge/lib/roles.js'
@@ -19,20 +20,22 @@ const logout = () => {
 }
 
 const registerUser = async (options) => {
-    window.posthog?.identify(options.username, {
+    product.identify(options.username, {
         name: options.name,
         username: options.username,
-        email: options.email
+        email: options.email,
+        'ff-user': true
     })
     return client.post('/account/register', options).then(res => res.data)
 }
 
 const getUser = () => {
     return client.get('/api/v1/user/').then((res) => {
-        window.posthog?.identify(res.data.username, {
+        product.identify(res.data.username, {
             name: res.data.name,
             username: res.data.username,
-            email: res.data.email
+            email: res.data.email,
+            'ff-user': true
         })
         return res.data
     })
@@ -66,14 +69,26 @@ const getTeamInvitations = async () => {
         return res.data
     })
 }
-const acceptTeamInvitation = async (invitationId) => {
+const acceptTeamInvitation = async (invitationId, teamId) => {
     return client.patch('/api/v1/user/invitations/' + invitationId).then(res => {
+        // product.capture('$ff-invite-accepted', {
+        //     'invite-id': invitationId,
+        //     'accepted-at': (new Date()).toISOString()
+        // }, {
+        //     team: teamId
+        // })
         return res.data
     })
 }
 
-const rejectTeamInvitation = async (invitationId) => {
+const rejectTeamInvitation = async (invitationId, teamId) => {
     return client.delete('/api/v1/user/invitations/' + invitationId).then(res => {
+        // product.capture('$ff-invite-rejected', {
+        //     'invite-id': invitationId,
+        //     'rejected-at': (new Date()).toISOString()
+        // }, {
+        //     team: teamId
+        // })
         return res.data
     })
 }
