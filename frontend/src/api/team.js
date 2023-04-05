@@ -32,14 +32,17 @@ const getTeam = (team) => {
             'created-at': res.data.createdAt,
             'count-applications': res.data.projectCount,
             'count-instances': res.data.projectCount,
-            'count-members': res.data.memberCount,
-            'billing-active': res.data.billing.active,
-            'billing-canceled': res.data.billing.canceled
+            'count-members': res.data.memberCount
         }
-        if ('trial' in res.data.billing) {
-            props['billing-trial'] = res.data.billing.trial
-            props['billing-trial-ended'] = res.data.billing.trialEnded
-            props['billing-trial-ends-at'] = res.data.billing.trialEndsAt
+        if ('billing' in res.data) {
+            props['billing-active'] = res.data.billing.active
+            props['billing-canceled'] = res.data.billing.canceled
+
+            if ('trial' in res.data.billing) {
+                props['billing-trial'] = res.data.billing.trial
+                props['billing-trial-ended'] = res.data.billing.trialEnded
+                props['billing-trial-ends-at'] = res.data.billing.trialEndsAt
+            }
         }
         product.groupUpdate('team', res.data.id, props)
 

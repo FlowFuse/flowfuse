@@ -71,24 +71,24 @@ const getTeamInvitations = async () => {
 }
 const acceptTeamInvitation = async (invitationId, teamId) => {
     return client.patch('/api/v1/user/invitations/' + invitationId).then(res => {
-        // product.capture('$ff-invite-accepted', {
-        //     'invite-id': invitationId,
-        //     'accepted-at': (new Date()).toISOString()
-        // }, {
-        //     team: teamId
-        // })
+        product.capture('$ff-invite-accepted', {
+            'invite-id': invitationId,
+            'accepted-at': (new Date()).toISOString()
+        }, {
+            team: teamId
+        })
         return res.data
     })
 }
 
 const rejectTeamInvitation = async (invitationId, teamId) => {
     return client.delete('/api/v1/user/invitations/' + invitationId).then(res => {
-        // product.capture('$ff-invite-rejected', {
-        //     'invite-id': invitationId,
-        //     'rejected-at': (new Date()).toISOString()
-        // }, {
-        //     team: teamId
-        // })
+        product.capture('$ff-invite-rejected', {
+            'invite-id': invitationId,
+            'rejected-at': (new Date()).toISOString()
+        }, {
+            team: teamId
+        })
         return res.data
     })
 }
