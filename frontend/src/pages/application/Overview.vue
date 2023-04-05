@@ -38,19 +38,19 @@
                     #context-menu="{row}"
                 >
                     <ff-list-item
-                        :disabled="row.pendingStateChange || row.projectRunning"
+                        :disabled="row.pendingStateChange || row.running"
                         label="Start"
                         @click.stop="$emit('instance-start', row)"
                     />
 
                     <ff-list-item
-                        :disabled="!row.projectNotSuspended"
+                        :disabled="!row.notSuspended"
                         label="Restart"
                         @click.stop="$emit('instance-restart', row)"
                     />
 
                     <ff-list-item
-                        :disabled="!row.projectNotSuspended"
+                        :disabled="!row.notSuspended"
                         kind="danger"
                         label="Suspend"
                         @click.stop="$emit('instance-suspend', row)"

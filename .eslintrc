@@ -52,7 +52,10 @@
         // plugin:n
         "n/file-extension-in-import": "error",
         "n/no-missing-import": "error",
-        "n/no-missing-require": "error"
+        "n/no-missing-require": "error",
+
+        // plugin:promise
+        "promise/catch-or-return": ["error", { "allowFinally": true }]
     },
     "overrides": [
         // Frontend runs in the browser and builds with webpack
