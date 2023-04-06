@@ -1,5 +1,5 @@
 <template>
-    <TransitionGroup class="ff-notifications" name="notifications-list">
+    <TransitionGroup name="notifications-list">
         <div v-if="!actioned && isValidPayload" class="ff-notifications">
             <div class="ff-notification-interview">
                 <h3>{{ payload.invitationTitle }}</h3>
