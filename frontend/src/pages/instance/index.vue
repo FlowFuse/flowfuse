@@ -92,59 +92,10 @@ import permissionsMixin from '../../mixins/Permissions.js'
 import alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 
+import { InstanceStateMutator } from '../../utils/InstanceStateMutator.js'
+
 import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import InstanceStatusBadge from './components/InstanceStatusBadge.vue'
-
-class InstanceStateHandler {
-    constructor (instance) {
-        this.instance = instance
-    }
-
-    /**
-     * Assume server has processed state change
-     * @param {*} newState
-     */
-    setStateOptimistically (newState) {
-        this.instance.optimisticStateChange = true
-        this.instance.pendingStateChange = false
-
-        if (newState) {
-            this.prevState = this.instance.meta.state
-            this.instance.meta.state = newState
-        }
-    }
-
-    /**
-     * Load latest state from server
-     * @param {*} newState
-     */
-    setStateAsPendingFromServer (newState = null) {
-        this.instance.optimisticStateChange = false
-        this.instance.pendingStateChange = true
-
-        if (newState) {
-            this.prevState = this.instance.meta.state
-            this.instance.meta.state = newState
-        }
-    }
-
-    /**
-     * Return instance to original state
-     * @param {*} prevState
-     */
-    restoreState () {
-        this.clearState()
-        this.instance.meta.state = this.prevState
-    }
-
-    /**
-     * Clear all state flags
-     */
-    clearState () {
-        this.instance.optimisticStateChange = false
-        this.instance.pendingStateChange = false
-    }
-}
 
 export default {
     name: 'InstancePage',
@@ -232,7 +183,7 @@ export default {
     },
     methods: {
         instanceUpdated (newData) {
-            this.instanceStateHandler.clearState()
+            this.instanceStateMutator.clearState()
             this.instance = { ...this.instance, ...newData }
         },
 
@@ -259,7 +210,7 @@ export default {
             }
         },
         instanceChanged () {
-            this.instanceStateHandler = new InstanceStateHandler(this.instance)
+            this.instanceStateMutator = new InstanceStateMutator(this.instance)
 
             this.navigation = [
                 { label: 'Overview', path: `/instance/${this.instance.id}/overview`, tag: 'instance-overview', icon: TemplateIcon },
@@ -271,29 +222,29 @@ export default {
             ]
         },
         async startInstance () {
-            this.instanceStateHandler.setStateOptimistically('starting')
+            this.instanceStateMutator.setStateOptimistically('starting')
 
             const err = await InstanceApi.startInstance(this.instance.id)
             if (err) {
                 console.warn('Instance start failed.', err)
                 alerts.emit('Instance start failed.', 'warning')
 
-                this.instanceStateHandler.restoreState()
+                this.instanceStateMutator.restoreState()
             } else {
-                this.instanceStateHandler.setStateAsPendingFromServer()
+                this.instanceStateMutator.setStateAsPendingFromServer()
             }
         },
         async restartInstance () {
-            this.instanceStateHandler.setStateOptimistically('restarting')
+            this.instanceStateMutator.setStateOptimistically('restarting')
 
             const err = await InstanceApi.restartInstance(this.instance.id)
             if (err) {
                 console.warn('Instance restart failed.', err)
                 alerts.emit('Instance restart failed.', 'warning')
 
-                this.instanceStateHandler.restoreState()
+                this.instanceStateMutator.restoreState()
             } else {
-                this.instanceStateHandler.setStateAsPendingFromServer()
+                this.instanceStateMutator.setStateAsPendingFromServer()
             }
         },
         showConfirmDeleteDialog () {
@@ -314,22 +265,20 @@ export default {
             })
         },
         showConfirmSuspendDialog () {
-            debugger
-
             Dialog.show({
                 header: 'Suspend Instance',
                 text: 'Are you sure you want to suspend this instance?',
                 confirmLabel: 'Suspend',
                 kind: 'danger'
             }, () => {
-                this.instanceStateHandler.setStateOptimistically('suspending')
+                this.instanceStateMutator.setStateOptimistically('suspending')
                 InstanceApi.suspendInstance(this.instance.id).then(() => {
-                    this.instanceStateHandler.setStateAsPendingFromServer()
-                    alerts.emit('Instance suspend request succeeded', 'confirmation')
+                    this.instanceStateMutator.setStateAsPendingFromServer()
+                    alerts.emit('Instance suspend request succeeded.', 'confirmation')
                 }).catch(err => {
                     console.warn(err)
                     alerts.emit('Instance failed to suspend.', 'warning')
-                    this.instanceStateHandler.restoreState()
+                    this.instanceStateMutator.restoreState()
                 })
             })
         }

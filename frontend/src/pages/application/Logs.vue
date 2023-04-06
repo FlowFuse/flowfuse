@@ -46,7 +46,6 @@ export default {
             required: true
         }
     },
-    emits: ['instances-enable-polling', 'instances-disable-polling'],
     data () {
         return {
             input: {
@@ -63,11 +62,7 @@ export default {
         instances: 'selectFirstInstance'
     },
     mounted () {
-        this.$emit('instances-enable-polling')
         this.selectFirstInstance()
-    },
-    unmounted () {
-        this.$emit('instances-disable-polling')
     },
     methods: {
         selectFirstInstance () {

@@ -1,3 +1,5 @@
+<!-- eslint-disable vue/valid-template-root -->
+
 <script>
 import InstanceApi from '../api/instances.js'
 
@@ -65,7 +67,7 @@ export default {
             }
 
             // If instance is in a transition state, check for update
-            if (instanceTransitionStates.includes(instance.meta.state)) {
+            if (instance.meta?.state && instanceTransitionStates.includes(instance.meta.state)) {
                 return true
             }
 
@@ -80,4 +82,4 @@ export default {
 }
 </script>
 
-<template></template>
+<template />

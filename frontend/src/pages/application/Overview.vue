@@ -103,19 +103,21 @@ export default {
             required: true
         }
     },
-    emits: ['instance-delete', 'instance-suspend', 'instance-restart', 'instance-start', 'instances-enable-polling', 'instances-disable-polling'],
+    emits: ['instance-delete', 'instance-suspend', 'instance-restart', 'instance-start'],
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
         cloudColumns () {
             return [
                 { label: 'Name', class: ['w-64'], component: { is: markRaw(DeploymentName), map: { disabled: 'editorDisabled' } } },
                 { label: 'Last Deployed', class: ['w-48'], component: { is: markRaw(LastSeen), map: { lastSeenSince: 'flowLastUpdatedSince' } } },
-                { label: 'Deployment Status', class: ['w-48'], component: { is: markRaw(InstanceStatusBadge), map: { status: 'meta.state' } } },
+                { label: 'Deployment Status', class: ['w-48'], component: { is: markRaw(InstanceStatusBadge) } },
                 { label: '', class: ['w-20'], component: { is: markRaw(InstanceEditorLink), map: { disabled: 'editorDisabled' } } }
             ]
         },
         cloudRows () {
             return this.instances.map((instance) => {
+                instance.instance = instance // hack for InstanceStatusBadge
+
                 instance.running = instance.meta?.state === 'running'
                 instance.notSuspended = instance.meta?.state !== 'suspended'
 
@@ -127,12 +129,6 @@ export default {
         isVisitingAdmin () {
             return this.teamMembership.role === Roles.Admin
         }
-    },
-    mounted () {
-        this.$emit('instances-enable-polling')
-    },
-    unmounted () {
-        this.$emit('instances-disable-polling')
     },
     methods: {
         selectedCloudRow (cloudInstance) {

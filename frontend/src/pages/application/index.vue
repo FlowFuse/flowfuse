@@ -40,7 +40,7 @@
         <div class="px-3 py-3 md:px-6 md:py-6">
             <router-view
                 :application="application"
-                :instances="Array.from(applicationInstances.values())"
+                :instances="instancesArray"
                 :is-visiting-admin="isVisitingAdmin"
                 @application-updated="updateApplication"
                 @application-delete="showConfirmDeleteApplicationDialog"
@@ -48,9 +48,9 @@
                 @instance-restart="instanceRestart"
                 @instance-suspend="instanceShowConfirmSuspend"
                 @instance-delete="instanceShowConfirmDelete"
-                @instances-enable-polling="pollingWarning"
-                @instances-disabled-polling="pollingWarning"
             />
+
+            <InstanceStatusPolling v-for="instance in instancesArray" :key="instance.id" :instance="instance" @instance-updated="instanceUpdated" />
         </div>
     </main>
 </template>
@@ -66,6 +66,7 @@ import ApplicationApi from '../../api/application.js'
 import InstanceApi from '../../api/instances.js'
 
 import InstanceStatusHeader from '../../components/InstanceStatusHeader.vue'
+import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import NavItem from '../../components/NavItem.vue'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
@@ -77,6 +78,8 @@ import permissionsMixin from '../../mixins/Permissions.js'
 import alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 
+import { InstanceStateMutator } from '../../utils/InstanceStateMutator.js'
+
 import ConfirmInstanceDeleteDialog from '../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 
 import ConfirmApplicationDeleteDialog from './Settings/dialogs/ConfirmApplicationDeleteDialog.vue'
@@ -87,6 +90,7 @@ export default {
         ConfirmApplicationDeleteDialog,
         ConfirmInstanceDeleteDialog,
         InstanceStatusHeader,
+        InstanceStatusPolling,
         NavItem,
         SideNavigationTeamOptions,
         SubscriptionExpiredBanner,
@@ -119,6 +123,9 @@ export default {
                 { label: 'Audit Log', path: `/application/${this.application.id}/activity`, tag: 'project-activity', icon: ViewListIcon },
                 { label: 'Settings', path: `/application/${this.application.id}/settings`, tag: 'project-settings', icon: CogIcon }
             ]
+        },
+        instancesArray () {
+            return Array.from(this.applicationInstances.values())
         }
     },
     async created () {
@@ -177,6 +184,16 @@ export default {
             }
         },
 
+        instanceUpdated: function (newData) {
+            const mutator = new InstanceStateMutator(newData)
+            mutator.clearState()
+
+            this.applicationInstances.set(newData.id, {
+                ...this.applicationInstances.get(newData.id),
+                ...newData
+            })
+        },
+
         showConfirmDeleteApplicationDialog () {
             this.$refs.confirmApplicationDeleteDialog.show(this.application)
         },
@@ -200,36 +217,33 @@ export default {
             this.loading.deleting = false
         },
 
-        pollingWarning () {
-            console.warn('Polling yet be implemented')
-            // Logic here to poll for live statuses
-        },
-
         async instanceStart (instance) {
-            const prevState = instance.meta.state
-            const res = await InstanceApi.startInstance(instance.id)
+            const mutator = new InstanceStateMutator(instance)
+            mutator.setStateOptimistically('starting')
 
-            // check for successful start command before polling state
-            if (res) {
-                console.warn('Instance start failed.', res)
+            const err = await InstanceApi.startInstance(instance.id)
+            if (err) {
+                console.warn('Instance start failed.', err)
                 alerts.emit('Instance start failed.', 'warning')
+
+                mutator.restoreState()
             } else {
-                instance.pendingStatePrevious = prevState
-                instance.pendingStateChange = true
+                mutator.setStateAsPendingFromServer()
             }
         },
 
         async instanceRestart (instance) {
-            const prevState = instance.meta.state
-            const res = await InstanceApi.restartInstance(instance.id)
-            // check for successful restart command before polling state
-            if (res) {
-                console.warn('Instance restart failed.', res)
+            const mutator = new InstanceStateMutator(instance)
+            mutator.setStateOptimistically('restarting')
+
+            const err = await InstanceApi.restartInstance(instance.id)
+            if (err) {
+                console.warn('Instance restart failed.', err)
                 alerts.emit('Instance restart failed.', 'warning')
+
+                mutator.restoreState()
             } else {
-                instance.pendingStatePrevious = prevState
-                instance.pendingRestart = true
-                instance.pendingStateChange = true
+                mutator.setStateAsPendingFromServer()
             }
         },
 
@@ -240,14 +254,18 @@ export default {
                 confirmLabel: 'Suspend',
                 kind: 'danger'
             }, () => {
-                this.loading.suspend = true
+                const mutator = new InstanceStateMutator(instance)
+                mutator.setStateOptimistically('suspending')
+
                 InstanceApi.suspendInstance(instance.id).then(() => {
-                    alerts.emit('Instance successfully suspended.', 'confirmation')
+                    mutator.setStateAsPendingFromServer()
+
+                    alerts.emit('Instance suspend request succeeded.', 'confirmation')
                 }).catch(err => {
                     console.warn(err)
                     alerts.emit('Instance failed to suspend.', 'warning')
-                }).finally(() => {
-                    this.loading.suspend = false
+
+                    mutator.restoreState()
                 })
             })
         },
@@ -258,7 +276,6 @@ export default {
 
         deleteInstance (instance) {
             this.loading.deleting = true
-            debugger
             InstanceApi.deleteInstance(instance.id).then(async () => {
                 alerts.emit('Instance successfully deleted.', 'confirmation')
             }).catch(err => {

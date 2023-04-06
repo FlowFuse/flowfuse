@@ -69,7 +69,7 @@ export default {
             this.users = (await TeamAPI.getTeamMembers(this.team.id)).members
         },
         async loadEntries (params = new URLSearchParams(), cursor = undefined) {
-            const applicationId = this.application.id
+            const applicationId = this.application?.id
             if (applicationId) {
                 // TODO Currently this filter effectively does nothing as each application contains only one instance
                 // And the API only supports one set of instance logs at a time regardless
