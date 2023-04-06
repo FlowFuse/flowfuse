@@ -50,6 +50,8 @@
                                     {{ instance.settings?.disableEditor ? 'Editor Disabled' : 'Open Editor' }}
                                 </ff-button>
                             </div>
+
+                            <InstanceStatusPolling :instance="instance" @instance-updated="instanceUpdated" />
                         </li>
                     </ul>
                     <div v-else class="ff-no-data">
@@ -69,6 +71,7 @@
 import { ExternalLinkIcon, PlusSmIcon, TemplateIcon } from '@heroicons/vue/outline'
 
 import teamApi from '../../api/team.js'
+import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import ProjectIcon from '../../components/icons/Projects.js'
 import permissionsMixin from '../../mixins/Permissions.js'
@@ -77,12 +80,13 @@ import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 export default {
     name: 'TeamApplications',
     components: {
-        TemplateIcon,
         ExternalLinkIcon,
+        InstanceStatusBadge,
+        InstanceStatusPolling,
         PlusSmIcon,
         ProjectIcon,
         SectionTopMenu,
-        InstanceStatusBadge
+        TemplateIcon
     },
     mixins: [permissionsMixin],
     props: ['team', 'teamMembership'],
@@ -156,6 +160,13 @@ export default {
                     ...application,
                     ...applicationProps
                 })
+            })
+        },
+        instanceUpdated (instanceData) {
+            const application = this.applications.get(instanceData.application.id)
+            application.instances.set(instanceData.id, {
+                ...application.instances.get(instanceData.id),
+                ...instanceData
             })
         },
         openApplication (application) {
