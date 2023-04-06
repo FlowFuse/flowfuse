@@ -1,5 +1,3 @@
-<!-- eslint-disable vue/valid-template-root -->
-
 <script>
 import InstanceApi from '../api/instances.js'
 
@@ -82,4 +80,5 @@ export default {
 }
 </script>
 
+<!-- eslint-disable-next-line vue/valid-template-root -->
 <template />

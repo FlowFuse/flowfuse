@@ -53,7 +53,7 @@ export default {
             required: true
         }
     },
-    emits: ['instance-confirm-delete'],
+    emits: ['instance-confirm-delete', 'instance-confirm-suspend'],
     data () {
         return {
             editing: {
