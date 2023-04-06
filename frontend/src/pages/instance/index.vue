@@ -10,7 +10,6 @@
         </SideNavigationTeamOptions>
     </Teleport>
     <ff-loading v-if="loading.deleting" message="Deleting Instance..." />
-    <ff-loading v-else-if="loading.suspend" message="Suspending Instance..." />
     <main v-else-if="!instance?.id">
         <ff-loading message="Loading Instance..." />
     </main>
@@ -60,10 +59,13 @@
             <router-view
                 :instance="instance"
                 :is-visiting-admin="isVisitingAdmin"
-                @instance-updated="updateInstance"
+                @instance-updated="loadInstance"
                 @instance-confirm-delete="showConfirmDeleteDialog"
+                @instance-confirm-suspend="showConfirmSuspendDialog"
             />
         </div>
+
+        <InstanceStatusPolling :instance="instance" @instance-updated="instanceUpdated" />
     </main>
 </template>
 
@@ -79,6 +81,7 @@ import SnapshotApi from '../../api/projectSnapshots.js'
 
 import DropdownMenu from '../../components/DropdownMenu.vue'
 import InstanceStatusHeader from '../../components/InstanceStatusHeader.vue'
+import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import NavItem from '../../components/NavItem.vue'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
@@ -92,15 +95,56 @@ import Dialog from '../../services/dialog.js'
 import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import InstanceStatusBadge from './components/InstanceStatusBadge.vue'
 
-const instanceTransitionStates = [
-    'loading',
-    'installing',
-    'starting',
-    'stopping',
-    'restarting',
-    'suspending',
-    'importing'
-]
+class InstanceStateHandler {
+    constructor (instance) {
+        this.instance = instance
+    }
+
+    /**
+     * Assume server has processed state change
+     * @param {*} newState
+     */
+    setStateOptimistically (newState) {
+        this.instance.optimisticStateChange = true
+        this.instance.pendingStateChange = false
+
+        if (newState) {
+            this.prevState = this.instance.meta.state
+            this.instance.meta.state = newState
+        }
+    }
+
+    /**
+     * Load latest state from server
+     * @param {*} newState
+     */
+    setStateAsPendingFromServer (newState = null) {
+        this.instance.optimisticStateChange = false
+        this.instance.pendingStateChange = true
+
+        if (newState) {
+            this.prevState = this.instance.meta.state
+            this.instance.meta.state = newState
+        }
+    }
+
+    /**
+     * Return instance to original state
+     * @param {*} prevState
+     */
+    restoreState () {
+        this.clearState()
+        this.instance.meta.state = this.prevState
+    }
+
+    /**
+     * Clear all state flags
+     */
+    clearState () {
+        this.instance.optimisticStateChange = false
+        this.instance.pendingStateChange = false
+    }
+}
 
 export default {
     name: 'InstancePage',
@@ -150,14 +194,16 @@ export default {
         actionsDropdownOptions () {
             const flowActionsDisabled = !(this.instance.meta && this.instance.meta.state !== 'suspended')
 
+            const instanceStateChanging = this.instance.pendingStateChange || this.instance.optimisticStateChange
+
             const result = [
                 {
                     name: 'Start',
                     action: this.startInstance,
-                    disabled: this.instance.pendingStateChange || this.instanceRunning
+                    disabled: instanceStateChanging || this.instanceRunning
                 },
-                { name: 'Restart', action: this.restartInstance, disabled: flowActionsDisabled },
-                { name: 'Suspend', class: ['text-red-700'], action: this.showConfirmSuspendDialog, disabled: flowActionsDisabled }
+                { name: 'Restart', action: this.restartInstance, disabled: instanceStateChanging || flowActionsDisabled },
+                { name: 'Suspend', class: ['text-red-700'], action: this.showConfirmSuspendDialog, disabled: instanceStateChanging || flowActionsDisabled }
             ]
 
             if (this.hasPermission('project:delete')) {
@@ -169,45 +215,28 @@ export default {
         }
     },
     watch: {
-        instance: 'checkAccess',
-        teamMembership: 'checkAccess',
-        'instance.pendingStateChange': 'refreshInstance'
+        instance: 'instanceChanged'
     },
     async created () {
-        await this.updateInstance()
+        await this.loadInstance()
 
         this.$watch(
             () => this.$route.params.id,
             async () => {
-                await this.updateInstance()
+                await this.loadInstance()
             }
         )
     },
     mounted () {
         this.mounted = true
-
-        this.startPolling()
-    },
-    beforeUnmount () {
-        this.stopPolling()
     },
     methods: {
-        startPolling () {
-            this.checkWaitTime = 1000
-            if (this.instance.pendingRestart && !this.instanceTransitionStates.includes(this.instance.state)) {
-                this.instance.pendingRestart = false
-            }
-            this.checkAccess()
+        instanceUpdated (newData) {
+            this.instanceStateHandler.clearState()
+            this.instance = { ...this.instance, ...newData }
         },
-        stopPolling () {
-            // ensure timer and flags are cleared when navigating away from page
-            if (this.instance?.pendingStateChange || this.instance?.pendingRestart) {
-                this.instance.pendingStateChange = false
-                this.instance.pendingRestart = false
-            }
-            clearTimeout(this.checkInterval)
-        },
-        async updateInstance () {
+
+        async loadInstance () {
             const instanceId = this.$route.params.id
             try {
                 const data = await InstanceApi.getInstance(instanceId)
@@ -229,28 +258,9 @@ export default {
                 })
             }
         },
-        async refreshInstance () {
-            if (this.instance.pendingStateChange) {
-                clearTimeout(this.checkInterval)
-                this.checkInterval = setTimeout(async () => {
-                    this.checkWaitTime *= 1.1
+        instanceChanged () {
+            this.instanceStateHandler = new InstanceStateHandler(this.instance)
 
-                    if (this.instance.id) {
-                        const data = await InstanceApi.getInstance(this.instance.id)
-                        const wasPendingRestart = this.instance.pendingRestart
-                        const wasPendingStateChange = this.instance.pendingStateChange
-                        const wasPendingStatePrevious = this.instance.pendingStatePrevious
-                        this.instance = data
-                        if (wasPendingRestart && this.instance.meta.state !== 'running') {
-                            this.instance.pendingRestart = true
-                        }
-                        this.instance.pendingStatePrevious = wasPendingStatePrevious
-                        this.instance.pendingStateChange = wasPendingStateChange
-                    }
-                }, this.checkWaitTime)
-            }
-        },
-        checkAccess () {
             this.navigation = [
                 { label: 'Overview', path: `/instance/${this.instance.id}/overview`, tag: 'instance-overview', icon: TemplateIcon },
                 { label: 'Devices', path: `/instance/${this.instance.id}/devices`, tag: 'instance-remote', icon: ChipIcon },
@@ -259,49 +269,31 @@ export default {
                 { label: 'Node-RED Logs', path: `/instance/${this.instance.id}/logs`, tag: 'instance-logs', icon: TerminalIcon },
                 { label: 'Settings', path: `/instance/${this.instance.id}/settings`, tag: 'instance-settings', icon: CogIcon }
             ]
-            if (this.mounted && this.instance.meta) {
-                let doRefresh = false
-                if (this.instance.pendingStatePrevious && this.instance.pendingStatePrevious !== this.instance.meta.state) {
-                    // state has changed (i.e. something did occur) so reset pendingRestart
-                    // and rely on instanceTransitionStates to continue polling
-                    this.instance.pendingRestart = false
-                    doRefresh = true // refresh once more to get the new state
-                }
-                if (instanceTransitionStates.includes(this.instance.meta.state)) {
-                    doRefresh = true // refresh
-                }
-                this.instance.pendingStatePrevious = this.instance.meta.state
-                if (this.instance.pendingRestart || doRefresh) {
-                    this.instance.pendingStateChange = true
-                    this.refreshInstance()
-                } else {
-                    this.instance.pendingStateChange = false
-                }
-            }
         },
         async startInstance () {
-            const prevState = this.instance.meta.state
-            const res = await InstanceApi.startInstance(this.instance.id)
-            // check for successful start command before polling state
-            if (res) {
-                console.warn('Instance start failed.', res)
+            this.instanceStateHandler.setStateOptimistically('starting')
+
+            const err = await InstanceApi.startInstance(this.instance.id)
+            if (err) {
+                console.warn('Instance start failed.', err)
                 alerts.emit('Instance start failed.', 'warning')
+
+                this.instanceStateHandler.restoreState()
             } else {
-                this.instance.pendingStatePrevious = prevState
-                this.instance.pendingStateChange = true
+                this.instanceStateHandler.setStateAsPendingFromServer()
             }
         },
         async restartInstance () {
-            const prevState = this.instance.meta.state
-            const res = await InstanceApi.restartInstance(this.instance.id)
-            // check for successful restart command before polling state
-            if (res) {
-                console.warn('Instance restart failed.', res)
+            this.instanceStateHandler.setStateOptimistically('restarting')
+
+            const err = await InstanceApi.restartInstance(this.instance.id)
+            if (err) {
+                console.warn('Instance restart failed.', err)
                 alerts.emit('Instance restart failed.', 'warning')
+
+                this.instanceStateHandler.restoreState()
             } else {
-                this.instance.pendingStatePrevious = prevState
-                this.instance.pendingRestart = true
-                this.instance.pendingStateChange = true
+                this.instanceStateHandler.setStateAsPendingFromServer()
             }
         },
         showConfirmDeleteDialog () {
@@ -312,7 +304,7 @@ export default {
             this.loading.deleting = true
             InstanceApi.deleteInstance(this.instance.id).then(async () => {
                 await this.$store.dispatch('account/refreshTeam')
-                this.$router.push({ name: 'Application', params: { id: applicationId } })
+                this.$router.push({ name: 'ApplicationInstances', params: { id: applicationId } })
                 alerts.emit('Instance successfully deleted.', 'confirmation')
             }).catch(err => {
                 console.warn(err)
@@ -322,21 +314,22 @@ export default {
             })
         },
         showConfirmSuspendDialog () {
+            debugger
+
             Dialog.show({
                 header: 'Suspend Instance',
                 text: 'Are you sure you want to suspend this instance?',
                 confirmLabel: 'Suspend',
                 kind: 'danger'
             }, () => {
-                this.loading.suspend = true
+                this.instanceStateHandler.setStateOptimistically('suspending')
                 InstanceApi.suspendInstance(this.instance.id).then(() => {
-                    this.$router.push({ name: 'Home' })
-                    alerts.emit('Instance successfully suspended.', 'confirmation')
+                    this.instanceStateHandler.setStateAsPendingFromServer()
+                    alerts.emit('Instance suspend request succeeded', 'confirmation')
                 }).catch(err => {
                     console.warn(err)
                     alerts.emit('Instance failed to suspend.', 'warning')
-                }).finally(() => {
-                    this.loading.suspend = false
+                    this.instanceStateHandler.restoreState()
                 })
             })
         }

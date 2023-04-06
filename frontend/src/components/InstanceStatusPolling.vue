@@ -11,8 +11,6 @@ const instanceTransitionStates = [
     'importing'
 ]
 
-const instancesWithPendingStateChange = new Set()
-
 export default {
     props: {
         instance: {
@@ -40,12 +38,9 @@ export default {
     },
     methods: {
         checkForUpdateIfNeeded () {
-            console.log("Checking if ", this.instance.id, " needs to be updated...")
-
             clearTimeout(this.checkInterval)
-
             if (!this.shouldCheckForUpdate(this.instance)) {
-                instancesWithPendingStateChange.delete(this.instance.id)
+                this.checkWaitTime = 1000
                 return
             }
 
@@ -53,10 +48,8 @@ export default {
         },
 
         scheduleUpdate () {
-            console.log("Checking ", this.instance.id, " for update in " + this.checkWaitTime/1000 + "seconds...")
-
             this.checkInterval = setTimeout(async () => {
-                this.checkWaitTime *= 1.2
+                this.checkWaitTime *= 1.15
 
                 if (this.instance.id) {
                     const data = await InstanceApi.getInstance(this.instance.id)

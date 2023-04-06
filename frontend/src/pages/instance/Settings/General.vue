@@ -27,6 +27,7 @@
         <DangerSettings
             :instance="project"
             @instance-confirm-delete="$emit('instance-confirm-delete')"
+            @instance-confirm-suspend="$emit('instance-confirm-suspend')"
         />
     </div>
 </template>

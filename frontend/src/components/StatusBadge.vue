@@ -8,7 +8,8 @@
         <ExclamationCircleIcon v-if="status === 'error'" class="w-4 h-4" />
         <ExclamationIcon v-if="status === 'suspended'" class="w-4 h-4" />
         <PlayIcon v-if="status === 'running'" class="w-4 h-4" />
-        <StopIcon v-if="status === 'stopped'" class="w-4 h-4" />
+        <StopIcon v-if="status === 'stopping' || status === 'suspending'" class="w-4 h-4" />
+        <RefreshIcon v-if="status === 'restarting'" class="w-4 h-4" />
         <DownloadIcon v-if="status === 'importing'" class="w-4 h-4" />
         <DotsCircleHorizontalIcon v-if="status === 'starting'" class="w-4 h-4" />
         <CloudUploadIcon v-if="status === 'loading'" class="w-4 h-4" />
