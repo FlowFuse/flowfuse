@@ -16,7 +16,7 @@
                 <tr class="border-b">
                     <td class="w-1/4 font-medium">Status</td>
                     <td class="py-2">
-                        <InstanceStatusBadge :status="device.status"/>
+                        <StatusBadge :status="device.status"/>
                     </td>
                 </tr>
             </table>
@@ -99,9 +99,9 @@ import elapsedTime from '../../utils/elapsedTime.js'
 
 // components
 import FormHeading from '../../components/FormHeading.vue'
+import StatusBadge from '../../components/StatusBadge.vue'
 
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
-import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 
 // icons
 import { CheckCircleIcon, ExclamationIcon, TemplateIcon, WifiIcon } from '@heroicons/vue/outline'
@@ -110,11 +110,11 @@ export default {
     name: 'DeviceOverview',
     props: ['device'],
     components: {
-        FormHeading,
-        InstanceStatusBadge,
-        DeviceLastSeenBadge,
         CheckCircleIcon,
+        DeviceLastSeenBadge,
         ExclamationIcon,
+        FormHeading,
+        StatusBadge,
         TemplateIcon,
         WifiIcon
     },

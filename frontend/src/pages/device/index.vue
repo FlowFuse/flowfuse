@@ -24,7 +24,7 @@
                             {{ device.name }}
                         </div>
                         <DeviceLastSeenBadge class="mr-6" :last-seen-at="device.lastSeenAt" :last-seen-ms="device.lastSeenMs" :last-seen-since="device.lastSeenSince" />
-                        <InstanceStatusBadge :status="device.status" />
+                        <StatusBadge :status="device.status" />
                         <div class="w-full text-sm mt-1">
                             <div v-if="device?.project">
                                 Instance:
@@ -59,20 +59,20 @@ import deviceApi from '../../api/devices.js'
 import InstanceStatusHeader from '../../components/InstanceStatusHeader.vue'
 import NavItem from '../../components/NavItem.vue'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
+import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
-import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
 
 export default {
     name: 'DevicePage',
     components: {
-        NavItem,
-        InstanceStatusHeader,
-        InstanceStatusBadge,
         DeviceLastSeenBadge,
+        InstanceStatusHeader,
+        NavItem,
         SideNavigationTeamOptions,
+        StatusBadge,
         SubscriptionExpiredBanner,
         TeamTrialBanner
     },

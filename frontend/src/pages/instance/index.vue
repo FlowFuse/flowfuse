@@ -22,7 +22,7 @@
                         <div class="text-gray-800 text-xl font-bold mr-6">
                             {{ instance.name }}
                         </div>
-                        <InstanceStatusBadge v-if="instance.meta" :status="instance.meta.state" :pendingStateChange="instance.pendingStateChange" />
+                        <InstanceStatusBadge :instance="instance" />
                         <div class="w-full text-sm mt-1">
                             Application:
                             <router-link :to="{name: 'Application', params: {id: instance.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ instance.application.name }}</router-link>
@@ -108,6 +108,7 @@ export default {
         ConfirmInstanceDeleteDialog,
         DropdownMenu,
         ExternalLinkIcon,
+        InstanceStatusPolling,
         NavItem,
         InstanceStatusBadge,
         InstanceStatusHeader,

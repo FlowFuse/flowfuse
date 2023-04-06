@@ -35,7 +35,7 @@
                                 <label>{{ instance.name }}</label>
                                 <span>{{ instance.url }}</span>
                             </div>
-                            <div><InstanceStatusBadge :status="instance.meta?.state" /></div>
+                            <div><InstanceStatusBadge :instance="instance" /></div>
                             <div class="text-sm">
                                 <span v-if="instance.flowLastUpdatedSince">
                                     {{ instance.flowLastUpdatedSince }}
