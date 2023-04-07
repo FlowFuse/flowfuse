@@ -45,7 +45,7 @@
                                 </span>
                             </div>
                             <div class="flex justify-end">
-                                <ff-button kind="secondary" :disabled="instance.settings?.disableEditor" @click.stop="openEditor(instance)">
+                                <ff-button kind="secondary" :disabled="instance.settings?.disableEditor || instance.meta?.state !== 'running'" @click.stop="openEditor(instance)">
                                     <template #icon-right><ExternalLinkIcon /></template>
                                     {{ instance.settings?.disableEditor ? 'Editor Disabled' : 'Open Editor' }}
                                 </ff-button>
