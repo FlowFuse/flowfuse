@@ -1,18 +1,9 @@
 <template>
     <div class="flex justify-end">
-        <a
-            v-if="!disabled && url"
-            :href="url"
-            target="_blank"
-            class="ff-btn ff-btn--secondary"
-            data-action="open-editor"
-            @click.stop
-        >
+        <ff-button data-action="open-editor" kind="secondary" :disabled="disabled || !url" @click.stop="openEditor()">
+            <template #icon-right><ExternalLinkIcon /></template>
             Open Editor
-            <span class="ff-btn--icon ff-btn--icon-right">
-                <ExternalLinkIcon />
-            </span>
-        </a>
+        </ff-button>
     </div>
 </template>
 
@@ -31,6 +22,11 @@ export default {
         url: {
             default: '',
             type: String
+        }
+    },
+    methods: {
+        openEditor () {
+            window.open(this.url, '_blank')
         }
     }
 }
