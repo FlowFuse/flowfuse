@@ -21,7 +21,7 @@
                         <div class="text-gray-800 text-xl font-bold mr-6">
                             {{ instance.name }}
                         </div>
-                        <InstanceStatusBadge :instance="instance" />
+                        <InstanceStatusBadge :status="instance.meta?.state" :optimisticStateChange="instance.optimisticStateChange" :pendingStateChange="instance.pendingStateChange" />
                         <div class="w-full text-sm mt-1">
                             Application:
                             <router-link :to="{name: 'Application', params: {id: instance.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ instance.application.name }}</router-link>

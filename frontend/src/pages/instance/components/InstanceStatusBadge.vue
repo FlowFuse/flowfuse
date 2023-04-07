@@ -1,8 +1,8 @@
 <template>
     <StatusBadge
-        v-if="instance.meta"
-        :status="instance.meta.state"
-        :pendingChange="instance.optimisticStateChange || instance.pendingStateChange"
+        v-if="status"
+        :status="status"
+        :pendingChange="optimisticStateChange || pendingStateChange"
     />
 </template>
 
@@ -15,9 +15,17 @@ export default {
         StatusBadge
     },
     props: {
-        instance: {
-            type: Object,
-            required: true
+        status: {
+            type: String,
+            default: null
+        },
+        pendingStateChange: {
+            type: Boolean,
+            default: false
+        },
+        optimisticStateChange: {
+            type: Boolean,
+            default: false
         }
     }
 }
