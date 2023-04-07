@@ -329,7 +329,8 @@ export default {
             }, () => {
                 this.loading.suspend = true
                 InstanceApi.suspendInstance(this.instance.id).then(() => {
-                    this.$router.push({ name: 'Home' })
+                    // this.$router.push({ name: 'Home' })
+                    this.updateInstance()
                     alerts.emit('Instance successfully suspended.', 'confirmation')
                 }).catch(err => {
                     console.warn(err)
