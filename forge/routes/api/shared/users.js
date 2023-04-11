@@ -42,10 +42,19 @@ module.exports = {
             } else if (request.body.name === '') {
                 user.name = request.body.username || user.username
             }
-            if (request.body.email) {
-                if (user.sso_enabled && user.email !== request.body.email) {
+            if (request.body.email && user.email !== request.body.email) {
+                // SSO cannot change email address
+                // TODO: consider also making make field non-editable in frontend if sso_enabled
+                if (user.sso_enabled) {
                     const err = new Error('Cannot change password for sso-enabled user')
                     err.code = 'invalid_request'
+                    throw err
+                }
+                // ensure proposed change is not an existing email
+                const existingUser = await app.db.models.User.byEmail(request.body.email)
+                if (existingUser) {
+                    const err = new Error('Email address already in use')
+                    err.code = 'invalid_email'
                     throw err
                 }
                 if (request.body.email !== user.email) {
