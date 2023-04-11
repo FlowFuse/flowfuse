@@ -21,7 +21,6 @@ const logout = () => {
 
 const registerUser = async (options) => {
     return client.post('/account/register', options).then((res) => {
-        console.log(res)
         product.identify(options.username, {
             name: options.name,
             username: options.username,
