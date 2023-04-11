@@ -280,7 +280,7 @@ export default {
         },
         async startInstance () {
             const prevState = this.instance.meta.state
-            const res = await InstanceApi.startInstance(this.instance.id)
+            const res = await InstanceApi.startInstance(this.instance)
             // check for successful start command before polling state
             if (res) {
                 console.warn('Instance start failed.', res)
@@ -292,7 +292,7 @@ export default {
         },
         async restartInstance () {
             const prevState = this.instance.meta.state
-            const res = await InstanceApi.restartInstance(this.instance.id)
+            const res = await InstanceApi.restartInstance(this.instance)
             // check for successful restart command before polling state
             if (res) {
                 console.warn('Instance restart failed.', res)
@@ -328,7 +328,7 @@ export default {
                 kind: 'danger'
             }, () => {
                 this.loading.suspend = true
-                InstanceApi.suspendInstance(this.instance.id).then(() => {
+                InstanceApi.suspendInstance(this.instance).then(() => {
                     this.$router.push({ name: 'Home' })
                     alerts.emit('Instance successfully suspended.', 'confirmation')
                 }).catch(err => {

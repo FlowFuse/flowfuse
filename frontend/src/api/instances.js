@@ -60,14 +60,35 @@ const getInstanceLogs = async (instanceId, cursor, limit) => {
     const url = paginateUrl(`/api/v1/projects/${instanceId}/logs`, cursor, limit)
     return client.get(url).then(res => res.data)
 }
-const startInstance = async (instanceId) => {
-    return client.post(`/api/v1/projects/${instanceId}/actions/start`).then(res => res.data)
+const startInstance = async (instance) => {
+    return client.post(`/api/v1/projects/${instance.id}/actions/start`).then((res) => {
+        product.capture('$ff-instance-action:start', null, {
+            team: instance.team?.id,
+            application: instance.application?.id,
+            instance: instance.id
+        })
+        return res.data
+    })
 }
-const restartInstance = async (instanceId) => {
-    return client.post(`/api/v1/projects/${instanceId}/actions/restart`).then(res => res.data)
+const restartInstance = async (instance) => {
+    return client.post(`/api/v1/projects/${instanceId}/actions/restart`).then((res) => {
+        product.capture('$ff-instance-action:restart', null, {
+            team: instance.team?.id,
+            application: instance.application?.id,
+            instance: instance.id
+        })
+        return res.data
+    })
 }
-const suspendInstance = async (instanceId) => {
-    return client.post(`/api/v1/projects/${instanceId}/actions/suspend`).then(res => res.data)
+const suspendInstance = async (instance) => {
+    return client.post(`/api/v1/projects/${instanceId}/actions/suspend`).then((res) => {
+        product.capture('$ff-instance-action:suspend', null, {
+            team: instance.team?.id,
+            application: instance.application?.id,
+            instance: instance.id
+        })
+        return res.data
+    })
 }
 const updateInstance = async (instanceId, options) => {
     return client.put(`/api/v1/projects/${instanceId}`, options).then(res => {
