@@ -221,7 +221,7 @@ export default {
             const mutator = new InstanceStateMutator(instance)
             mutator.setStateOptimistically('starting')
 
-            const err = await InstanceApi.startInstance(instance.id)
+            const err = await InstanceApi.startInstance(instance)
             if (err) {
                 console.warn('Instance start failed.', err)
                 alerts.emit('Instance start failed.', 'warning')
@@ -236,7 +236,7 @@ export default {
             const mutator = new InstanceStateMutator(instance)
             mutator.setStateOptimistically('restarting')
 
-            const err = await InstanceApi.restartInstance(instance.id)
+            const err = await InstanceApi.restartInstance(instance)
             if (err) {
                 console.warn('Instance restart failed.', err)
                 alerts.emit('Instance restart failed.', 'warning')
@@ -257,7 +257,7 @@ export default {
                 const mutator = new InstanceStateMutator(instance)
                 mutator.setStateOptimistically('suspending')
 
-                InstanceApi.suspendInstance(instance.id).then(() => {
+                InstanceApi.suspendInstance(instance).then(() => {
                     mutator.setStateAsPendingFromServer()
 
                     alerts.emit('Instance suspend request succeeded.', 'confirmation')
@@ -276,7 +276,7 @@ export default {
 
         deleteInstance (instance) {
             this.loading.deleting = true
-            InstanceApi.deleteInstance(instance.id).then(async () => {
+            InstanceApi.deleteInstance(instance).then(async () => {
                 alerts.emit('Instance successfully deleted.', 'confirmation')
             }).catch(err => {
                 console.warn(err)

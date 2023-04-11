@@ -34,15 +34,15 @@ const getInstance = (instanceId) => {
     })
 }
 
-const deleteInstance = async (instanceId, applicationId, teamId) => {
-    return client.delete(`/api/v1/projects/${instanceId}`).then(res => {
+const deleteInstance = async (instanceId) => {
+    return client.delete(`/api/v1/projects/${instance.id}`).then(res => {
         const timestamp = (new Date()).toISOString()
         product.capture('$ff-instance-deleted', {
             'deleted-at': timestamp
         }, {
-            team: teamId,
-            application: applicationId,
-            instance: instanceId
+            team: instance.team?.id,
+            application: instance.application?.id,
+            instance: instance.id
         })
         product.groupUpdate('instance', instanceId, {
             deleted: true,
