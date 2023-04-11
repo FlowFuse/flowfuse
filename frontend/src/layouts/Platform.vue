@@ -14,6 +14,7 @@
                                        :type="a.type" :message="a.message"
                                        :countdown="a.countdown || 3000" @close="clear($index)"></ff-notification-toast>
             </TransitionGroup>
+            <interview-popup v-if="interview?.enabled" :flag="interview.flag" :payload="interview.payload"></interview-popup>
             <ff-dialog ref="dialog" data-el="platform-dialog" :header="dialog.header" :kind="dialog.kind" :disable-primary="dialog.disablePrimary" :confirm-label="dialog.confirmLabel" @cancel="clearDialog" @confirm="dialog.onConfirm">
                 <p v-if="dialog.text">{{ dialog.text }}</p>
                 <div class="space-y-2" v-html="dialog.html"></div>
@@ -23,6 +24,9 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
+import InterviewPopup from '../components/InterviewPopup.vue'
 import PageHeader from '../components/PageHeader.vue'
 
 import alerts from '../services/alerts.js'
@@ -31,7 +35,8 @@ import dialog from '../services/dialog.js'
 export default {
     name: 'ff-layout-platform',
     components: {
-        PageHeader
+        PageHeader,
+        InterviewPopup
     },
     data () {
         return {
@@ -48,6 +53,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('product', ['interview']),
         alertsReversed: function () {
             return [...this.alerts].reverse()
         }
