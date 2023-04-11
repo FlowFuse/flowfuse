@@ -8,8 +8,11 @@ class DeviceCommsHandler {
         this.app = app
         this.client = client
 
+        this.deviceLogClients = {}
+
         // Listen for any incoming device status events
         client.on('status/device', (status) => { this.handleStatus(status) })
+        client.on('logs/device', (log) => { this.forwardLog(log) })
     }
 
     async handleStatus (status) {
@@ -81,6 +84,42 @@ class DeviceCommsHandler {
             command,
             ...payload
         }))
+    }
+
+    /**
+     * Steam logs to web from devices
+     * @param {String} teamId
+     * @param {String} deviceId
+     * @param {WebSocket} socket
+     */
+    streamLogs (teamId, deviceId, socket) {
+        if (this.deviceLogClients[deviceId]) {
+            this.deviceLogClients[deviceId].counter++
+        } else {
+            this.deviceLogClients[deviceId] = {
+                counter: 1,
+                socket
+            }
+            this.sendCommand(teamId, deviceId, 'startLog', '')
+            this.app.log.info(`Enable device logging ${deviceId}`)
+        }
+
+        socket.on('close', () => {
+            if (this.deviceLogClients[deviceId]?.counter === 1) {
+                delete this.deviceLogClients[deviceId]
+                this.sendCommand(teamId, deviceId, 'stopLog', '')
+                this.app.log.info(`Disable device logging ${deviceId}`)
+            }
+        })
+    }
+
+    forwardLog (log) {
+        const dev = this.deviceLogClients[log.id]
+        if (dev) {
+            dev.socket.send(log.logs)
+        } else {
+            // socket not found
+        }
     }
 }
 

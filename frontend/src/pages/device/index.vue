@@ -41,7 +41,7 @@
                 <div class="ff-banner" data-el="banner-device-as-admin">You are viewing this device as an Administrator</div>
             </Teleport>
             <div class="px-3 pb-3 md:px-6 md:pb-6">
-                <router-view :device="device" @device-updated="loadDevice()" />
+                <router-view :instance="device.project" :device="device" @device-updated="loadDevice()" />
             </div>
         </div>
     </main>
@@ -49,7 +49,7 @@
 
 <script>
 // APIs
-import { ChipIcon, CogIcon } from '@heroicons/vue/solid'
+import { ChipIcon, CogIcon, TerminalIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
 import { Roles } from '../../../../forge/lib/roles.js'
@@ -79,6 +79,7 @@ export default {
     data: function () {
         const navigation = [
             { label: 'Overview', path: `/device/${this.$route.params.id}/overview`, tag: 'device-overview', icon: ChipIcon },
+            // { label: 'Device Logs', path: `/device/${this.$route.params.id}/logs`, tag: 'device-logs', icon: TerminalIcon },
             { label: 'Settings', path: `/device/${this.$route.params.id}/settings`, tag: 'device-settings', icon: CogIcon }
         ]
 
@@ -89,12 +90,13 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership', 'team']),
+        ...mapState('account', ['teamMembership', 'team', 'features']),
         isVisitingAdmin: function () {
             return this.teamMembership.role === Roles.Admin
         }
     },
     mounted () {
+        this.checkFeatures()
         this.mounted = true
         this.loadDevice()
     },
@@ -103,6 +105,16 @@ export default {
             const device = await deviceApi.getDevice(this.$route.params.id)
             this.device = device
             this.$store.dispatch('account/setTeam', this.device.team.slug)
+        },
+        checkFeatures: async function () {
+            if (this.features.projectComms) {
+                this.navigation.splice(1, 0, {
+                    label: 'Device Logs',
+                    path: `/device/${this.$route.params.id}/logs`,
+                    tag: 'device-logs',
+                    icon: TerminalIcon
+                })
+            }
         }
     }
 }

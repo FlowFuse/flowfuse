@@ -272,6 +272,9 @@ export default {
                     this.instanceStateMutator.restoreState()
                 })
             })
+        },
+        openEditor () {
+            window.open(this.instance.url, '_blank')
         }
     }
 }

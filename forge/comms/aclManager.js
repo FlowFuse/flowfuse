@@ -74,7 +74,9 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/[^/]+\/l\/[^/]+\/status$/ },
                 // Receive status events from devices
                 // - ff/v1/+/d/+/status
-                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/status$/ }
+                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/status$/ },
+                // - ff/v1/+/d/+/logs
+                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/logs$/ }
             ],
             pub: [
                 // Send commands to project launchers
@@ -112,7 +114,9 @@ module.exports = function (app) {
             pub: [
                 // Send status to the platform
                 // - ff/v1/<team>/d/<device>/status
-                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/status$/, verify: 'checkTeamAndObjectIds' }
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/status$/, verify: 'checkTeamAndObjectIds' },
+                // - ff/v1/<team>/d/<device/logs
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/logs$/, verify: 'checkTeamAndObjectIds' }
             ]
         }
     }
