@@ -22,7 +22,9 @@
                     </tr>
                     <tr class="border-b">
                         <td class="font-medium">Status</td>
-                        <td><div class="py-2"><InstanceStatusBadge :status="instance.meta?.state" :pendingStateChange="instance.pendingStateChange" /></div></td>
+                        <td><div class="py-2">
+                            <InstanceStatusBadge :status="instance.meta.state" :pendingStateChange="instance.pendingStateChange" :optimisticStateChange="instance.optimisticStateChange" /></div>
+                        </td>
                     </tr>
                     <tr class="border-b">
                         <td class="font-medium">Type</td>
