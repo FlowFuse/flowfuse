@@ -215,7 +215,7 @@ export default {
         async startInstance () {
             this.instanceStateMutator.setStateOptimistically('starting')
 
-            const err = await InstanceApi.startInstance(this.instance.id)
+            const err = await InstanceApi.startInstance(this.instance)
             if (err) {
                 console.warn('Instance start failed.', err)
                 alerts.emit('Instance start failed.', 'warning')
@@ -228,7 +228,7 @@ export default {
         async restartInstance () {
             this.instanceStateMutator.setStateOptimistically('restarting')
 
-            const err = await InstanceApi.restartInstance(this.instance.id)
+            const err = await InstanceApi.restartInstance(this.instance)
             if (err) {
                 console.warn('Instance restart failed.', err)
                 alerts.emit('Instance restart failed.', 'warning')
@@ -244,7 +244,7 @@ export default {
         deleteInstance () {
             const applicationId = this.instance.application.id
             this.loading.deleting = true
-            InstanceApi.deleteInstance(this.instance.id).then(async () => {
+            InstanceApi.deleteInstance(this.instance).then(async () => {
                 await this.$store.dispatch('account/refreshTeam')
                 this.$router.push({ name: 'ApplicationInstances', params: { id: applicationId } })
                 alerts.emit('Instance successfully deleted.', 'confirmation')
@@ -263,7 +263,7 @@ export default {
                 kind: 'danger'
             }, () => {
                 this.instanceStateMutator.setStateOptimistically('suspending')
-                InstanceApi.suspendInstance(this.instance.id).then(() => {
+                InstanceApi.suspendInstance(this.instance).then(() => {
                     this.instanceStateMutator.setStateAsPendingFromServer()
                     alerts.emit('Instance suspend request succeeded.', 'confirmation')
                 }).catch(err => {

@@ -1,9 +1,20 @@
+
+import product from '../services/product.js'
 import daysSince from '../utils/daysSince.js'
 
 import client from './client.js'
 
 const createApplication = (options) => {
     return client.post('/api/v1/applications', options).then(res => {
+        const props = {
+            'application-name': options.name,
+            'created-at': res.data.createdAt
+        }
+        product.capture('$ff-application-created', props, {
+            team: options.teamId,
+            application: res.data.id
+        })
+        product.groupUpdate('application', res.data.id, props)
         return res.data
     })
 }
@@ -21,8 +32,20 @@ const updateApplication = (applicationId, name) => {
 /**
  * @param {string} applicationId
  */
-const deleteApplication = (applicationId) => {
-    return client.delete(`/api/v1/applications/${applicationId}`)
+const deleteApplication = (applicationId, teamId) => {
+    return client.delete(`/api/v1/applications/${applicationId}`).then(() => {
+        const timestamp = (new Date()).toISOString()
+        product.capture('$ff-application-deleted', {
+            'deleted-at': timestamp
+        }, {
+            team: teamId,
+            application: applicationId
+        })
+        product.groupUpdate('application', applicationId, {
+            deleted: true,
+            'deleted-at': timestamp
+        })
+    })
 }
 
 /**

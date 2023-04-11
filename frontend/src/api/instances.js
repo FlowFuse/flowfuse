@@ -2,6 +2,7 @@
  * TODO Mock instances API, that for now, just hits /projects
  */
 
+import product from '../services/product.js'
 import daysSince from '../utils/daysSince.js'
 import paginateUrl from '../utils/paginateUrl.js'
 
@@ -9,6 +10,17 @@ import client from './client.js'
 
 const create = async (options) => {
     return client.post('/api/v1/projects', options).then(res => {
+        const props = {
+            'created-at': res.data.createdAt,
+            'instance-stack': res.data.stack.id,
+            'instance-template': res.data.template.id
+        }
+        product.capture('$ff-instance-created', props, {
+            team: res.data.team.id,
+            application: options.applicationId,
+            instance: res.data.id
+        })
+        product.groupUpdate('instance', res.data.id, props)
         return res.data
     })
 }
@@ -22,8 +34,21 @@ const getInstance = (instanceId) => {
     })
 }
 
-const deleteInstance = async (instanceId) => {
-    return client.delete(`/api/v1/projects/${instanceId}`)
+const deleteInstance = async (instance) => {
+    return client.delete(`/api/v1/projects/${instance.id}`).then(res => {
+        const timestamp = (new Date()).toISOString()
+        product.capture('$ff-instance-deleted', {
+            'deleted-at': timestamp
+        }, {
+            team: instance.team?.id,
+            application: instance.application?.id,
+            instance: instance.id
+        })
+        product.groupUpdate('instance', instance.id, {
+            deleted: true,
+            'deleted-at': timestamp
+        })
+    })
 }
 
 const getInstanceAuditLog = async (instanceId, params, cursor, limit) => {
@@ -35,14 +60,35 @@ const getInstanceLogs = async (instanceId, cursor, limit) => {
     const url = paginateUrl(`/api/v1/projects/${instanceId}/logs`, cursor, limit)
     return client.get(url).then(res => res.data)
 }
-const startInstance = async (instanceId) => {
-    return client.post(`/api/v1/projects/${instanceId}/actions/start`).then(res => res.data)
+const startInstance = async (instance) => {
+    return client.post(`/api/v1/projects/${instance.id}/actions/start`).then((res) => {
+        product.capture('$ff-instance-action:start', null, {
+            team: instance.team?.id,
+            application: instance.application?.id,
+            instance: instance.id
+        })
+        return res.data
+    })
 }
-const restartInstance = async (instanceId) => {
-    return client.post(`/api/v1/projects/${instanceId}/actions/restart`).then(res => res.data)
+const restartInstance = async (instance) => {
+    return client.post(`/api/v1/projects/${instance.id}/actions/restart`).then((res) => {
+        product.capture('$ff-instance-action:restart', null, {
+            team: instance.team?.id,
+            application: instance.application?.id,
+            instance: instance.id
+        })
+        return res.data
+    })
 }
-const suspendInstance = async (instanceId) => {
-    return client.post(`/api/v1/projects/${instanceId}/actions/suspend`).then(res => res.data)
+const suspendInstance = async (instance) => {
+    return client.post(`/api/v1/projects/${instance.id}/actions/suspend`).then((res) => {
+        product.capture('$ff-instance-action:suspend', null, {
+            team: instance.team?.id,
+            application: instance.application?.id,
+            instance: instance.id
+        })
+        return res.data
+    })
 }
 const updateInstance = async (instanceId, options) => {
     return client.put(`/api/v1/projects/${instanceId}`, options).then(res => {
@@ -51,6 +97,9 @@ const updateInstance = async (instanceId, options) => {
 }
 const changeStack = async (instanceId, stackId) => {
     return client.put(`/api/v1/projects/${instanceId}`, { stack: stackId }).then(res => {
+        product.groupUpdate('instance', instanceId, {
+            stack: stackId
+        })
         return res.data
     })
 }
