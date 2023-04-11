@@ -338,6 +338,9 @@ export default {
                     this.loading.suspend = false
                 })
             })
+        },
+        openEditor () {
+            window.open(this.instance.url, '_blank')
         }
     }
 }
