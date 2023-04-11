@@ -62,6 +62,12 @@
                 </li>
             </ul>
         </template>
+        <div v-else-if="justSetupBilling">
+            <div class=" mt-8 text-center text-lg">
+                <strong class="mb-2 block">Thank you for signing up to FlowForge!</strong>
+                You are now able to create applications, instances & devices.
+            </div>
+        </div>
         <div v-else class="ff-no-data">
             No Applications Created
         </div>
@@ -95,6 +101,7 @@ export default {
     props: ['team', 'teamMembership'],
     data () {
         return {
+            justSetupBilling: false,
             loading: false,
             applications: new Map(),
             columns: [
@@ -107,6 +114,7 @@ export default {
     },
     mounted () {
         this.fetchData()
+        this.checkBillingSession()
     },
     methods: {
         async fetchData () {
@@ -187,6 +195,9 @@ export default {
                     id: instance.id
                 }
             })
+        },
+        async checkBillingSession () {
+            this.justSetupBilling = 'billing_session' in this.$route.query
         }
     }
 }
