@@ -110,7 +110,7 @@ A Device runs a software agent that connects back to the platform to receive upd
 Users must [install the agent](./devices.md) on the devices.
 
 Devices are registered to a Team, and then assigned to an individual Node-RED instance within that team.
-A user can create a [snapshot](#snapshot) and then mark it as the
+A user can create a [snapshot](#instance-snapshot) and then mark it as the
 *target* snapshot for devices. The platform will then deploy that snapshot to
 all of the devices assigned to the instance.
 
