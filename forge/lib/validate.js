@@ -1,3 +1,5 @@
+const { Sequelize } = require('sequelize')
+
 module.exports = {
     /**
      * Validate a FQDN
@@ -19,6 +21,7 @@ module.exports = {
      * @returns {boolean} `true` if the email address is valid
      */
     isEmail (emailAddress) {
-        return emailAddress && typeof emailAddress === 'string' && /.+@.+/.test(emailAddress)
+        // use the same email validator as Sequelize
+        return !!emailAddress && typeof emailAddress === 'string' && Sequelize.Validator.isEmail(emailAddress)
     }
 }
