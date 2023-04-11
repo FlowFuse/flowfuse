@@ -102,6 +102,7 @@ export default [
         path: '/account/email_change/:token',
         props: true,
         meta: {
+            modal: true,
             requiresLogin: true
         },
         component: VerifyPendingEmailChange
