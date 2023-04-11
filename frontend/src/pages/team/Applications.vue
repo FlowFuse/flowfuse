@@ -37,11 +37,12 @@
                             </div>
                             <div><InstanceStatusBadge :status="instance.meta?.state" :optimisticStateChange="instance.optimisticStateChange" :pendingStateChange="instance.pendingStateChange" /></div>
                             <div class="text-sm">
-                                <span v-if="instance.flowLastUpdatedSince">
-                                    {{ instance.flowLastUpdatedSince }}
+                                <span v-if="instance.flowLastUpdatedSince" class="flex flex-col">
+                                    <label class="text-xs text-gray-400">Last Updated: </label>
+                                    {{ instance.flowLastUpdatedSince || 'never' }}
                                 </span>
-                                <span v-else class="text-gray-400">
-                                    never
+                                <span v-else class="text-gray-400 italic">
+                                    flows never deployed
                                 </span>
                             </div>
                             <div class="flex justify-end">
