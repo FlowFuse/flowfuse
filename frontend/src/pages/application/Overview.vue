@@ -80,7 +80,7 @@ import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
 import permissionsMixin from '../../mixins/Permissions.js'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
-import InstanceEditorLink from '../instance/components/cells/InstanceEditorLink.vue'
+import InstanceEditorLinkCell from '../instance/components/cells/InstanceEditorLink.vue'
 
 import DeploymentName from './components/cells/DeploymentName.vue'
 import LastSeen from './components/cells/LastSeen.vue'
@@ -108,10 +108,10 @@ export default {
         ...mapState('account', ['team', 'teamMembership']),
         cloudColumns () {
             return [
-                { label: 'Name', class: ['w-64'], component: { is: markRaw(DeploymentName), map: { disabled: 'editorDisabled' } } },
+                { label: 'Name', class: ['w-64'], component: { is: markRaw(DeploymentName) } },
                 { label: 'Instance Status', class: ['w-48'], component: { is: markRaw(InstanceStatusBadge), map: { status: 'meta.state' } } },
                 { label: 'Last Deployed', class: ['w-48'], component: { is: markRaw(LastSeen), map: { lastSeenSince: 'flowLastUpdatedSince' } } },
-                { label: '', class: ['w-20'], component: { is: markRaw(InstanceEditorLink), map: { disabled: 'editorDisabled' } } }
+                { label: '', class: ['w-20'], component: { is: markRaw(InstanceEditorLinkCell) } }
             ]
         },
         cloudRows () {
@@ -119,7 +119,7 @@ export default {
                 instance.running = instance.meta?.state === 'running'
                 instance.notSuspended = instance.meta?.state !== 'suspended'
 
-                instance.editorDisabled = !instance.running || this.isVisitingAdmin
+                instance.disabled = !instance.running || this.isVisitingAdmin
 
                 return instance
             })

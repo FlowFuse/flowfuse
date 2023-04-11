@@ -45,10 +45,11 @@
                                 </span>
                             </div>
                             <div class="flex justify-end">
-                                <ff-button kind="secondary" :disabled="instance.settings?.disableEditor" @click.stop="openEditor(instance)">
-                                    <template #icon-right><ExternalLinkIcon /></template>
-                                    {{ instance.settings?.disableEditor ? 'Editor Disabled' : 'Open Editor' }}
-                                </ff-button>
+                                <InstanceEditorLink
+                                    :url="instance.url"
+                                    :editorDisabled="instance.settings.disableEditor"
+                                    :disabled="instance.meta?.state !== 'running'"
+                                />
                             </div>
 
                             <InstanceStatusPolling :instance="instance" @instance-updated="instanceUpdated" />
@@ -68,19 +69,20 @@
 </template>
 
 <script>
-import { ExternalLinkIcon, PlusSmIcon, TemplateIcon } from '@heroicons/vue/outline'
+import { PlusSmIcon, TemplateIcon } from '@heroicons/vue/outline'
 
 import teamApi from '../../api/team.js'
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import ProjectIcon from '../../components/icons/Projects.js'
 import permissionsMixin from '../../mixins/Permissions.js'
+import InstanceEditorLink from '../instance/components/InstanceEditorLink.vue'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 
 export default {
     name: 'TeamApplications',
     components: {
-        ExternalLinkIcon,
+        InstanceEditorLink,
         InstanceStatusBadge,
         InstanceStatusPolling,
         PlusSmIcon,
@@ -184,9 +186,6 @@ export default {
                     id: instance.id
                 }
             })
-        },
-        openEditor (instance) {
-            window.open(instance.url, '_blank')
         }
     }
 }

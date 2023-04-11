@@ -30,20 +30,11 @@
                 </template>
                 <template #tools>
                     <div class="space-x-2 flex align-center">
-                        <div v-if="editorAvailable">
-                            <ff-button v-if="!isVisitingAdmin" kind="secondary" data-action="open-editor" :disabled="instance.settings.disableEditor" @click="openEditor()">
-                                <template #icon-right>
-                                    <ExternalLinkIcon />
-                                </template>
-                                {{ instance.settings.disableEditor ? 'Editor Disabled' : 'Open Editor' }}
-                            </ff-button>
-                            <button v-else title="Unable to open editor when visiting as an admin" class="ff-btn ff-btn--secondary" disabled>
-                                Open Editor
-                                <span class="ff-btn--icon ff-btn--icon-right">
-                                    <ExternalLinkIcon />
-                                </span>
-                            </button>
-                        </div>
+                        <InstanceEditorLink
+                            :url="instance.url"
+                            :editorDisabled="instance.settings.disableEditor"
+                            :disabled="!editorAvailable"
+                        />
                         <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
                     </div>
                 </template>
@@ -70,7 +61,6 @@
 </template>
 
 <script>
-import { ExternalLinkIcon } from '@heroicons/vue/outline'
 import { ChevronLeftIcon, ChipIcon, ClockIcon, CogIcon, TemplateIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
@@ -95,6 +85,7 @@ import Dialog from '../../services/dialog.js'
 import { InstanceStateMutator } from '../../utils/InstanceStateMutator.js'
 
 import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
+import InstanceEditorLink from './components/InstanceEditorLink.vue'
 import InstanceStatusBadge from './components/InstanceStatusBadge.vue'
 
 export default {
@@ -102,14 +93,14 @@ export default {
     components: {
         ConfirmInstanceDeleteDialog,
         DropdownMenu,
-        ExternalLinkIcon,
         InstanceStatusPolling,
         NavItem,
         InstanceStatusBadge,
         InstanceStatusHeader,
         SideNavigationTeamOptions,
         SubscriptionExpiredBanner,
-        TeamTrialBanner
+        TeamTrialBanner,
+        InstanceEditorLink
     },
     mixins: [permissionsMixin],
     data: function () {
