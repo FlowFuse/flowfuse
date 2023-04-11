@@ -20,13 +20,18 @@ const logout = () => {
 }
 
 const registerUser = async (options) => {
-    product.identify(options.username, {
-        name: options.name,
-        username: options.username,
-        email: options.email,
-        'ff-user': true
+    return client.post('/account/register', options).then((res) => {
+        console.log(res)
+        product.identify(options.username, {
+            name: options.name,
+            username: options.username,
+            email: options.email,
+            'ff-cloud-user': true,
+            'ff-cloud-joined': (new Date()).toUTCString()
+        })
+        product.capture('$ff-user-registered')
+        return res.data
     })
-    return client.post('/account/register', options).then(res => res.data)
 }
 
 const getUser = () => {
@@ -35,7 +40,7 @@ const getUser = () => {
             name: res.data.name,
             username: res.data.username,
             email: res.data.email,
-            'ff-user': true
+            'ff-cloud-user': true
         })
         return res.data
     })
