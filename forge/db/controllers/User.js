@@ -95,7 +95,7 @@ module.exports = {
         const TOKEN_EXPIRY = 1000 * 60 * 60 * 24 * 2 // 48 Hours
         const expiresAt = Math.floor((Date.now() + TOKEN_EXPIRY) / 1000) // 48 hours
         const signingHash = sha256(user.password)
-        return jwt.sign({ sub: user.email, change: newEmailAddress, exp: expiresAt }, signingHash)
+        return jwt.sign({ sub: user.email, id: user.hashid, change: newEmailAddress, aud: 'update-user-email', exp: expiresAt }, signingHash)
     },
 
     sendPendingEmailChangeEmail: async function (app, user, newEmailAddress) {
@@ -104,6 +104,8 @@ module.exports = {
             user,
             'PendingEmailChange',
             {
+                oldEmail: user.email,
+                newEmail: newEmailAddress,
                 confirmEmailLink: `${app.config.base_url}/account/email_change/${pendingEmailChangeToken}`
             }
         )
@@ -112,35 +114,39 @@ module.exports = {
     applyPendingEmailChange: async function (app, user, token) {
         // Get the email from the token (.sub)
         const peekToken = jwt.decode(token)
-        if (peekToken && peekToken.sub) {
-            // Get the corresponding user from the email in the token
-            const requestingUser = await app.db.models.User.byEmail(peekToken.sub)
-            // ensure the current user is the same as the one we are trying to change the email for
-            if (!requestingUser || user?.id !== requestingUser?.id) {
-                throw new Error('Invalid link')
-            }
-            // check that the users Email is the same as it was when the token was generated
-            // and that the token contains a new email address that is different to the current one
-            if (!requestingUser.email_verified || requestingUser.email !== peekToken.sub || user.email === peekToken.change) {
-                throw new Error('Invalid link')
-            }
+        if (!peekToken?.sub || peekToken?.aud !== 'update-user-email') {
+            throw new Error('Invalid link')
+        }
 
-            // Verify the token
-            const signingHash = sha256(requestingUser.password)
-            try {
-                const decodedToken = jwt.verify(token, signingHash)
-                if (decodedToken) {
-                    requestingUser.email = decodedToken.change // apply new Email Address
-                    requestingUser.email_verified = true
-                    await requestingUser.save()
-                    return requestingUser
-                }
-            } catch (err) {
-                if (err.name === 'TokenExpiredError') {
-                    throw new Error('Link expired')
-                } else {
-                    throw new Error('Invalid link')
-                }
+        // Get the corresponding user from the email in the token
+        const requestingUser = await app.db.models.User.byEmail(peekToken.sub)
+        // ensure the current user is the same as the one we are trying to change the email for
+        if (!requestingUser || user?.id !== requestingUser?.id) {
+            throw new Error('Invalid link')
+        }
+        if (user?.hashid !== peekToken?.id) {
+            throw new Error('Invalid link')
+        }
+        // check that the users Email is the same as it was when the token was generated
+        // and that the token contains a new email address that is different to the current one
+        if (!requestingUser.email_verified || requestingUser.email !== peekToken.sub || user.email === peekToken.change) {
+            throw new Error('Invalid link')
+        }
+
+        // Verify the token
+        const signingHash = sha256(requestingUser.password)
+        try {
+            const decodedToken = jwt.verify(token, signingHash)
+            if (!decodedToken) {
+                throw new Error('Invalid link')
+            }
+            requestingUser.email = decodedToken.change // apply new Email Address
+            requestingUser.email_verified = true
+            await requestingUser.save()
+            return requestingUser
+        } catch (err) {
+            if (err.name === 'TokenExpiredError') {
+                throw new Error('Link expired')
             }
         }
         throw new Error('Invalid link')
