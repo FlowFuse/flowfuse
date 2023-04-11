@@ -67,6 +67,7 @@ export default {
             type: String
         }
     },
+    emits: ['application-updated'],
     data () {
         return {
             icons: {
@@ -107,6 +108,8 @@ export default {
                 await this.createInstance(instanceFields, copyParts)
 
                 await this.$store.dispatch('account/refreshTeam')
+
+                this.$emit('application-updated')
 
                 this.$router.push({ name: 'ApplicationInstances', params: { id: this.application.id } })
             } catch (err) {
