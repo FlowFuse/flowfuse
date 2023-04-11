@@ -471,6 +471,37 @@ module.exports = fp(async function (app, opts, done) {
         }
     })
 
+    /**
+     * Perform pending email change
+     */
+    app.post('/account/email_change/:token', async (request, reply) => {
+        try {
+            let sessionUser
+            if (request.sid) {
+                request.session = await app.db.controllers.Session.getOrExpire(request.sid)
+                sessionUser = request.session?.User
+            }
+            let verifiedUser
+            try {
+                // update the users email address
+                verifiedUser = await app.db.controllers.User.applyPendingEmailChange(sessionUser, request.params.token)
+            } catch (err) {
+                const resp = { code: 'invalid_request', error: err.toString() }
+                await app.auditLog.User.account.changeEmailConfirmed(request.session?.User, resp)
+                reply.code(400).send(resp)
+                return
+            }
+
+            await app.auditLog.User.account.changeEmailConfirmed(request.session?.User || verifiedUser, null)
+            reply.send({ status: 'okay' })
+        } catch (err) {
+            app.log.error(`/account/verify/token error - ${err.toString()}`)
+            const resp = { code: 'unexpected_error', error: err.toString() }
+            await app.auditLog.User.account.changeEmailConfirmed(request.session?.User, resp)
+            reply.code(400).send(resp)
+        }
+    })
+
     app.post('/account/forgot_password', {
         schema: {
             body: {
