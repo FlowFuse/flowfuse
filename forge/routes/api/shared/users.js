@@ -49,7 +49,6 @@ module.exports = {
             }
             if (request.body.email && user.email !== request.body.email) {
                 // SSO cannot change email address
-                // TODO: consider also making make field non-editable in frontend if sso_enabled
                 if (user.sso_enabled) {
                     const err = new Error('Cannot change password for sso-enabled user')
                     err.code = 'invalid_request'
