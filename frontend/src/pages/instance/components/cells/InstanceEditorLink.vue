@@ -1,30 +1,22 @@
 <template>
     <div class="flex justify-end">
-        <a
-            v-if="!disabled && url"
-            :href="url"
-            target="_blank"
-            class="ff-btn ff-btn--secondary"
-            data-action="open-editor"
-            @click.stop
-        >
-            Open Editor
-            <span class="ff-btn--icon ff-btn--icon-right">
-                <ExternalLinkIcon />
-            </span>
-        </a>
+        <InstanceEditorLink :disabled="disabled" :editorDisabled="editorDisabled" :url="url" />
     </div>
 </template>
 
 <script>
-import { ExternalLinkIcon } from '@heroicons/vue/solid'
+import InstanceEditorLink from '../InstanceEditorLink.vue'
 
 export default {
-    name: 'InstanceEditorLink',
-    components: { ExternalLinkIcon },
+    name: 'InstanceEditorLinkCell',
+    components: { InstanceEditorLink },
     inheritAttrs: false,
     props: {
         disabled: {
+            default: false,
+            type: Boolean
+        },
+        editorDisabled: {
             default: false,
             type: Boolean
         },

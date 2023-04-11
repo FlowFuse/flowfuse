@@ -245,7 +245,7 @@ module.exports = {
             await this._subscriptionHandler.requireTrialProjectOrActiveSubscription(project)
         }
         if (this._driver.restartFlows) {
-            this._driver.restartFlows(project, options)
+            await this._driver.restartFlows(project, options)
         }
     },
     revokeUserToken: async (project, token) => { // logout:nodered(step-2)

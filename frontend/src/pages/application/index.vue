@@ -17,6 +17,7 @@
     </main>
     <main v-else class="ff-with-status-header">
         <ConfirmApplicationDeleteDialog ref="confirmApplicationDeleteDialog" @confirm="deleteApplication" />
+        <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="deleteInstance" />
         <Teleport v-if="mounted" to="#platform-banner">
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">
                 You are viewing this application as an Administrator
@@ -39,17 +40,17 @@
         <div class="px-3 py-3 md:px-6 md:py-6">
             <router-view
                 :application="application"
-                :instances="Array.from(applicationInstances.values())"
+                :instances="instancesArray"
                 :is-visiting-admin="isVisitingAdmin"
-                @application-delete="showConfirmDeleteApplicationDialog"
                 @application-updated="updateApplication"
-                @instance-delete="instanceShowConfirmDelete"
-                @instance-restart="instanceRestart"
+                @application-delete="showConfirmDeleteApplicationDialog"
                 @instance-start="instanceStart"
-                @instance-suspend="instanceSuspend"
-                @instances-disabled-polling="pollingWarning"
-                @instances-enable-polling="pollingWarning"
+                @instance-restart="instanceRestart"
+                @instance-suspend="instanceShowConfirmSuspend"
+                @instance-delete="instanceShowConfirmDelete"
             />
+
+            <InstanceStatusPolling v-for="instance in instancesArray" :key="instance.id" :instance="instance" @instance-updated="instanceUpdated" />
         </div>
     </main>
 </template>
@@ -61,18 +62,25 @@ import { mapState } from 'vuex'
 
 import { Roles } from '../../../../forge/lib/roles.js'
 
-import applicationApi from '../../api/application.js'
-import InstanceStatusHeader from '../../components/InstanceStatusHeader.vue'
+import ApplicationApi from '../../api/application.js'
+import InstanceApi from '../../api/instances.js'
 
+import InstanceStatusHeader from '../../components/InstanceStatusHeader.vue'
+import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import NavItem from '../../components/NavItem.vue'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
-
 import ProjectsIcon from '../../components/icons/Projects.js'
+
 import permissionsMixin from '../../mixins/Permissions.js'
 
 import alerts from '../../services/alerts.js'
+import Dialog from '../../services/dialog.js'
+
+import { InstanceStateMutator } from '../../utils/InstanceStateMutator.js'
+
+import ConfirmInstanceDeleteDialog from '../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 
 import ConfirmApplicationDeleteDialog from './Settings/dialogs/ConfirmApplicationDeleteDialog.vue'
 
@@ -80,11 +88,13 @@ export default {
     name: 'ProjectPage',
     components: {
         ConfirmApplicationDeleteDialog,
+        ConfirmInstanceDeleteDialog,
+        InstanceStatusHeader,
+        InstanceStatusPolling,
         NavItem,
         SideNavigationTeamOptions,
         SubscriptionExpiredBanner,
-        TeamTrialBanner,
-        InstanceStatusHeader
+        TeamTrialBanner
     },
     mixins: [permissionsMixin],
     data: function () {
@@ -113,6 +123,9 @@ export default {
                 { label: 'Audit Log', path: `/application/${this.application.id}/activity`, tag: 'project-activity', icon: ViewListIcon },
                 { label: 'Settings', path: `/application/${this.application.id}/settings`, tag: 'project-settings', icon: CogIcon }
             ]
+        },
+        instancesArray () {
+            return Array.from(this.applicationInstances.values())
         }
     },
     async created () {
@@ -133,8 +146,8 @@ export default {
             const applicationId = this.$route.params.id
             try {
                 this.applicationInstances = []
-                const applicationPromise = applicationApi.getApplication(applicationId)
-                const instancesPromise = applicationApi.getApplicationInstances(applicationId) // To-do needs to be enriched with instance state
+                const applicationPromise = ApplicationApi.getApplication(applicationId)
+                const instancesPromise = ApplicationApi.getApplicationInstances(applicationId) // To-do needs to be enriched with instance state
 
                 this.application = await applicationPromise
                 const applicationInstances = await instancesPromise
@@ -145,7 +158,7 @@ export default {
                 })
 
                 // Not waited for, as loading status is slightly slower
-                applicationApi
+                ApplicationApi
                     .getApplicationInstancesStatuses(applicationId)
                     .then((instanceStatuses) => {
                         instanceStatuses.forEach((instanceStatus) => {
@@ -171,6 +184,16 @@ export default {
             }
         },
 
+        instanceUpdated: function (newData) {
+            const mutator = new InstanceStateMutator(newData)
+            mutator.clearState()
+
+            this.applicationInstances.set(newData.id, {
+                ...this.applicationInstances.get(newData.id),
+                ...newData
+            })
+        },
+
         showConfirmDeleteApplicationDialog () {
             this.$refs.confirmApplicationDeleteDialog.show(this.application)
         },
@@ -179,7 +202,7 @@ export default {
             this.loading.deleting = true
 
             try {
-                await applicationApi.deleteApplication(this.application.id)
+                await ApplicationApi.deleteApplication(this.application.id, this.team.id)
                 await this.$store.dispatch('account/refreshTeam')
                 this.$router.push({ name: 'Home' })
                 alerts.emit('Application successfully deleted.', 'confirmation')
@@ -194,25 +217,74 @@ export default {
             this.loading.deleting = false
         },
 
-        pollingWarning () {
-            console.warn('Polling yet be implemented')
-            // Logic here to poll for live statuses
+        async instanceStart (instance) {
+            const mutator = new InstanceStateMutator(instance)
+            mutator.setStateOptimistically('starting')
+
+            const err = await InstanceApi.startInstance(instance)
+            if (err) {
+                console.warn('Instance start failed.', err)
+                alerts.emit('Instance start failed.', 'warning')
+
+                mutator.restoreState()
+            } else {
+                mutator.setStateAsPendingFromServer()
+            }
         },
 
-        instanceShowConfirmDelete () {
-            alert('Not implemented')
+        async instanceRestart (instance) {
+            const mutator = new InstanceStateMutator(instance)
+            mutator.setStateOptimistically('restarting')
+
+            const err = await InstanceApi.restartInstance(instance)
+            if (err) {
+                console.warn('Instance restart failed.', err)
+                alerts.emit('Instance restart failed.', 'warning')
+
+                mutator.restoreState()
+            } else {
+                mutator.setStateAsPendingFromServer()
+            }
         },
 
-        instanceRestart () {
-            alert('Not implemented')
+        instanceShowConfirmSuspend (instance) {
+            Dialog.show({
+                header: 'Suspend Instance',
+                text: `Are you sure you want to suspend ${instance.name}`,
+                confirmLabel: 'Suspend',
+                kind: 'danger'
+            }, () => {
+                const mutator = new InstanceStateMutator(instance)
+                mutator.setStateOptimistically('suspending')
+
+                InstanceApi.suspendInstance(instance).then(() => {
+                    mutator.setStateAsPendingFromServer()
+
+                    alerts.emit('Instance suspend request succeeded.', 'confirmation')
+                }).catch(err => {
+                    console.warn(err)
+                    alerts.emit('Instance failed to suspend.', 'warning')
+
+                    mutator.restoreState()
+                })
+            })
         },
 
-        instanceStart () {
-            alert('Not implemented')
+        instanceShowConfirmDelete (instance) {
+            this.$refs.confirmInstanceDeleteDialog.show(instance)
         },
 
-        instanceSuspend () {
-            alert('Not implemented')
+        deleteInstance (instance) {
+            this.loading.deleting = true
+            InstanceApi.deleteInstance(instance).then(async () => {
+                alerts.emit('Instance successfully deleted.', 'confirmation')
+                this.updateApplication()
+            }).catch(err => {
+                console.warn(err)
+                alerts.emit('Instance failed to delete.', 'warning')
+            }).finally(() => {
+                this.loading.deleting = false
+            })
         }
     }
 }

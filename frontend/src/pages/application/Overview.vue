@@ -38,19 +38,19 @@
                     #context-menu="{row}"
                 >
                     <ff-list-item
-                        :disabled="row.pendingStateChange || row.projectRunning"
+                        :disabled="row.pendingStateChange || row.running"
                         label="Start"
                         @click.stop="$emit('instance-start', row)"
                     />
 
                     <ff-list-item
-                        :disabled="!row.projectNotSuspended"
+                        :disabled="!row.notSuspended"
                         label="Restart"
                         @click.stop="$emit('instance-restart', row)"
                     />
 
                     <ff-list-item
-                        :disabled="!row.projectNotSuspended"
+                        :disabled="!row.notSuspended"
                         kind="danger"
                         label="Suspend"
                         @click.stop="$emit('instance-suspend', row)"
@@ -80,7 +80,7 @@ import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
 import permissionsMixin from '../../mixins/Permissions.js'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
-import InstanceEditorLink from '../instance/components/cells/InstanceEditorLink.vue'
+import InstanceEditorLinkCell from '../instance/components/cells/InstanceEditorLink.vue'
 
 import DeploymentName from './components/cells/DeploymentName.vue'
 import LastSeen from './components/cells/LastSeen.vue'
@@ -103,15 +103,15 @@ export default {
             required: true
         }
     },
-    emits: ['instance-delete', 'instance-suspend', 'instance-restart', 'instance-start', 'instances-enable-polling', 'instances-disable-polling'],
+    emits: ['instance-delete', 'instance-suspend', 'instance-restart', 'instance-start'],
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
         cloudColumns () {
             return [
-                { label: 'Name', class: ['w-64'], component: { is: markRaw(DeploymentName), map: { disabled: 'editorDisabled' } } },
+                { label: 'Name', class: ['w-64'], component: { is: markRaw(DeploymentName) } },
+                { label: 'Instance Status', class: ['w-48'], component: { is: markRaw(InstanceStatusBadge), map: { status: 'meta.state' } } },
                 { label: 'Last Deployed', class: ['w-48'], component: { is: markRaw(LastSeen), map: { lastSeenSince: 'flowLastUpdatedSince' } } },
-                { label: 'Deployment Status', class: ['w-48'], component: { is: markRaw(InstanceStatusBadge), map: { status: 'meta.state' } } },
-                { label: '', class: ['w-20'], component: { is: markRaw(InstanceEditorLink), map: { disabled: 'editorDisabled' } } }
+                { label: '', class: ['w-20'], component: { is: markRaw(InstanceEditorLinkCell) } }
             ]
         },
         cloudRows () {
@@ -119,7 +119,7 @@ export default {
                 instance.running = instance.meta?.state === 'running'
                 instance.notSuspended = instance.meta?.state !== 'suspended'
 
-                instance.editorDisabled = !instance.running || this.isVisitingAdmin
+                instance.disabled = !instance.running || this.isVisitingAdmin
 
                 return instance
             })
@@ -127,12 +127,6 @@ export default {
         isVisitingAdmin () {
             return this.teamMembership.role === Roles.Admin
         }
-    },
-    mounted () {
-        this.$emit('instances-enable-polling')
-    },
-    unmounted () {
-        this.$emit('instances-disable-polling')
     },
     methods: {
         selectedCloudRow (cloudInstance) {

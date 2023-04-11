@@ -1,4 +1,5 @@
 import client from './client.js'
+import product from '../services/product.js'
 import paginateUrl from '../utils/paginateUrl.js'
 import elapsedTime from '../utils/elapsedTime.js'
 
@@ -14,11 +15,28 @@ const getDevices = async (cursor, limit) => {
 
 const create = async (options) => {
     return client.post('/api/v1/devices/', options).then(res => {
+        const props = {
+            'device-type': options.type,
+            'created-at': res.data.createdAt
+        }
+        product.capture('$ff-device-created', props, {
+            team: res.data.team.id
+        })
+        product.groupUpdate('device', res.data.id, props)
         return res.data
     })
 }
-const deleteDevice = async (deviceId) => {
-    return await client.delete(`/api/v1/devices/${deviceId}`)
+const deleteDevice = async (deviceId, teamId) => {
+    return await client.delete(`/api/v1/devices/${deviceId}`).then(() => {
+        product.capture('$ff-device-deleted', {
+            'deleted-at': (new Date()).toISOString()
+        }, {
+            team: teamId
+        })
+        product.groupUpdate('device', deviceId, {
+            deleted: true
+        })
+    })
 }
 const getDevice = async (deviceId) => {
     return await client.get(`/api/v1/devices/${deviceId}`).then(res => {

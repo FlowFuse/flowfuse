@@ -56,7 +56,7 @@ export default {
         },
         async fetchData () {
             if (this.team.id) {
-                const data = await teamApi.getTeamProjects(this.team.id)
+                const data = await teamApi.getTeamProjectList(this.team.id)
                 this.projectCount = data.count
             }
         }

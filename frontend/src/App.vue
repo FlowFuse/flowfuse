@@ -107,6 +107,7 @@ export default {
     },
     mounted () {
         this.$store.dispatch('account/checkState')
+        this.$store.dispatch('product/checkFlags')
     }
 }
 </script>
