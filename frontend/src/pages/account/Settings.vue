@@ -15,7 +15,7 @@
         <template v-if="editing">
             <div class="flex space-x-4">
                 <ff-button :disabled="!formValid" @click="confirm">Save Changes</ff-button>
-                <ff-button kind="secondary" @click="cancelEdit">Cancel</ff-button>
+                <ff-button kind="secondary" @click="resetInputs">Cancel</ff-button>
             </div>
         </template>
         <template v-else>
@@ -113,7 +113,7 @@ export default {
                 this.errors.email = 'Cannot modify email for SSO enabled user'
             }
         },
-        cancelEdit () {
+        resetInputs () {
             this.input.username = this.user.username
             this.input.name = this.user.name
             this.input.email = this.user.email
@@ -148,10 +148,12 @@ export default {
             if (changed) {
                 userApi.updateUser(opts).then((response) => {
                     this.$store.dispatch('account/setUser', response)
+                    alerts.emit('User successfully updated.', 'confirmation', 3000)
                     if (response?.pendingEmailChange) {
-                        alerts.emit('An Email has been sent to your inbox to verify your new Email Address.', 'confirmation', 7000)
-                    } else {
-                        alerts.emit('User successfully updated.', 'confirmation')
+                        // delay next alert for visual separation of concerns
+                        setTimeout(() => {
+                            alerts.emit('Check your inbox for a link to verify your new Email Address.', 'confirmation', 7000)
+                        }, 800)
                     }
                     this.user = response
                     this.teams.forEach(team => {
@@ -160,7 +162,7 @@ export default {
                         }
                     })
                     this.changed = {}
-                    this.editing = false
+                    this.resetInputs()
                 }).catch(err => {
                     if (err.response.data) {
                         if (/username/.test(err.response.data.error)) {
@@ -172,9 +174,11 @@ export default {
                         if (/password/.test(err.response.data.error)) {
                             this.errors.password = 'Invalid username'
                         }
-                        if (err.response.data.error === 'email must be unique') {
+                        if (err.response.data.error === 'email must be unique' || err.response.data.error.includes('already in use')) {
                             this.errors.email = 'Email already registered'
                         }
+                    } else {
+                        alerts.emit('Error updating user', 'warning')
                     }
                 }).finally(() => {
                     this.loading = false
