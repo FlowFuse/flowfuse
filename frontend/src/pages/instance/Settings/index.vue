@@ -9,6 +9,7 @@
                 :project="instance"
                 :instance="instance"
                 @instance-updated="$emit('instance-updated')"
+                @instance-confirm-suspend="$emit('instance-confirm-suspend')"
                 @instance-confirm-delete="$emit('instance-confirm-delete')"
             />
         </div>
@@ -36,7 +37,7 @@ export default {
             required: true
         }
     },
-    emits: ['instance-updated', 'instance-confirm-delete'],
+    emits: ['instance-updated', 'instance-confirm-delete', 'instance-confirm-suspend'],
     data () {
         return {
             sideNavigation: []

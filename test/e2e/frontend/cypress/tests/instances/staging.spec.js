@@ -92,11 +92,11 @@ describe('FlowForge shows audit logs', () => {
 
     it('for when a project is pushed to next stage', () => {
         navigateToProjectActivity('BTeam', 'instance-2-1')
-        cy.get('.ff-audit-entry').contains('Project Copied')
+        cy.get('.ff-audit-entry').contains('Instance Copied')
     })
 
     it('for when a project is imported', () => {
         navigateToProjectActivity('BTeam', 'instance-2-with-devices')
-        cy.get('.ff-audit-entry').contains('Project Imported')
+        cy.get('.ff-audit-entry').contains('Instance Imported')
     })
 })

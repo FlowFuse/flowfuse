@@ -22,7 +22,20 @@
                     </tr>
                     <tr class="border-b">
                         <td class="font-medium">Status</td>
-                        <td><div class="py-2"><InstanceStatusBadge :status="instance.meta?.state" :pendingStateChange="instance.pendingStateChange" /></div></td>
+                        <td class="py-2">
+                            <InstanceStatusBadge :status="instance.meta.state" :pendingStateChange="instance.pendingStateChange" :optimisticStateChange="instance.optimisticStateChange" />
+                        </td>
+                    </tr>
+                    <tr class="border-b">
+                        <td class="font-medium">Last Updated</td>
+                        <td class="py-2">
+                            <template v-if="instance.flowLastUpdatedSince">
+                                {{ instance.flowLastUpdatedSince }}
+                            </template>
+                            <span v-else class="text-gray-400 italic">
+                                flows never deployed
+                            </span>
+                        </td>
                     </tr>
                     <tr class="border-b">
                         <td class="font-medium">Type</td>

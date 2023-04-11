@@ -56,7 +56,7 @@ export default {
         }
     },
     watch: {
-        project: function () {
+        'project.id': function () {
             this.loadProjects()
         }
     },
@@ -96,19 +96,21 @@ export default {
         },
         async loadProjects () {
             if (this.project && this.project.team) {
-                const projectList = await TeamAPI.getTeamProjects(this.project.team.id)
+                const projectList = await TeamAPI.getTeamProjectList(this.project.team.id)
                 this.projects = []
-                for (let i = 0; i < projectList.count; i++) {
-                    if (this.project.id !== projectList.projects[i].id) {
-                        this.projects.push({
-                            label: projectList.projects[i].name,
-                            value: {
-                                id: projectList.projects[i].id,
-                                name: projectList.projects[i].name
-                            }
-                        })
+                projectList.forEach((project) => {
+                    if (this.project.id === project.id) {
+                        return
                     }
-                }
+
+                    this.projects.push({
+                        label: project.name,
+                        value: {
+                            id: project.id,
+                            name: project.name
+                        }
+                    })
+                })
             }
         }
     }

@@ -95,9 +95,9 @@ describe('FlowForge shows audit logs', () => {
     })
 
     it('for when a snapshot is created', () => {
-        cy.get('.ff-audit-entry').contains('Project Snapshot Created')
+        cy.get('.ff-audit-entry').contains('Instance Snapshot Created')
     })
     it('for when a snapshot is deleted', () => {
-        cy.get('.ff-audit-entry').contains('Project Snapshot Deleted')
+        cy.get('.ff-audit-entry').contains('Instance Snapshot Deleted')
     })
 })
