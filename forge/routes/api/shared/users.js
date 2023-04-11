@@ -1,3 +1,5 @@
+const { isEmail } = require('../../../lib/validate')
+
 module.exports = {
 
     /**
@@ -26,6 +28,9 @@ module.exports = {
     updateUser: async (app, user, request, reply, eventBase) => {
         const noop = async () => {}
         const auditLog = app.auditLog.User[eventBase] || noop
+        const isAdmin = request.session.User.admin
+        const modifySelf = user.id === request.session.User.id
+        const modifyOtherUser = !modifySelf && isAdmin
         try {
             let pendingEmailChange = false
             const originalUser = {
@@ -57,9 +62,17 @@ module.exports = {
                     err.code = 'invalid_email'
                     throw err
                 }
-                if (request.body.email !== user.email) {
+                // ensure valid email address
+                if (!isEmail(request.body.email)) {
+                    const err = new Error('Invalid email address')
+                    err.code = 'invalid_email'
+                    throw err
+                }
+                if (modifySelf) {
                     await app.db.controllers.User.sendPendingEmailChangeEmail(user, request.body.email)
                     pendingEmailChange = true
+                } else {
+                    user.email = request.body.email
                 }
             }
             if (request.body.username) {
@@ -68,7 +81,7 @@ module.exports = {
             if (request.body.tcs_accepted) {
                 user.tcs_accepted = new Date()
             }
-            if (request.session.User.admin) {
+            if (isAdmin) {
                 // Settings only an admin can modify
                 if (request.body.email_verified !== undefined) {
                     user.email_verified = request.body.email_verified
@@ -83,7 +96,7 @@ module.exports = {
                 }
 
                 if (request.body.suspended !== undefined) {
-                    if (request.session.User.id !== user.id) {
+                    if (modifyOtherUser) {
                         if (request.body.suspended === true) {
                             await app.db.controllers.User.suspend(user)
                             if (app.postoffice.enabled()) {
@@ -139,8 +152,15 @@ module.exports = {
                     newUsername: user.username
                 })
             }
+            // an admin may have changed email address directly (bypassing the pending change email)
+            if (user.email !== originalUser.email) {
+                await app.postoffice.send(originalUser, 'EmailChanged', {
+                    oldEmail: originalUser.email,
+                    newEmail: user.email
+                })
+            }
             // re-send verification email if a user was previously verified and is now not verified
-            if (wasVerified && user.email_verified === false && request.session.User.id !== user.id) {
+            if (wasVerified && user.email_verified === false && modifyOtherUser) {
                 try {
                     const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
                     await app.postoffice.send(
