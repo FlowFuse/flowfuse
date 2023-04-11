@@ -34,7 +34,7 @@ const getInstance = (instanceId) => {
     })
 }
 
-const deleteInstance = async (instanceId) => {
+const deleteInstance = async (instance) => {
     return client.delete(`/api/v1/projects/${instance.id}`).then(res => {
         const timestamp = (new Date()).toISOString()
         product.capture('$ff-instance-deleted', {
@@ -44,7 +44,7 @@ const deleteInstance = async (instanceId) => {
             application: instance.application?.id,
             instance: instance.id
         })
-        product.groupUpdate('instance', instanceId, {
+        product.groupUpdate('instance', instance.id, {
             deleted: true,
             'deleted-at': timestamp
         })
@@ -71,7 +71,7 @@ const startInstance = async (instance) => {
     })
 }
 const restartInstance = async (instance) => {
-    return client.post(`/api/v1/projects/${instanceId}/actions/restart`).then((res) => {
+    return client.post(`/api/v1/projects/${instance.id}/actions/restart`).then((res) => {
         product.capture('$ff-instance-action:restart', null, {
             team: instance.team?.id,
             application: instance.application?.id,
@@ -81,7 +81,7 @@ const restartInstance = async (instance) => {
     })
 }
 const suspendInstance = async (instance) => {
-    return client.post(`/api/v1/projects/${instanceId}/actions/suspend`).then((res) => {
+    return client.post(`/api/v1/projects/${instance.id}/actions/suspend`).then((res) => {
         product.capture('$ff-instance-action:suspend', null, {
             team: instance.team?.id,
             application: instance.application?.id,

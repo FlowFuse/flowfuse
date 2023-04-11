@@ -278,6 +278,7 @@ export default {
             this.loading.deleting = true
             InstanceApi.deleteInstance(instance).then(async () => {
                 alerts.emit('Instance successfully deleted.', 'confirmation')
+                this.updateApplication()
             }).catch(err => {
                 console.warn(err)
                 alerts.emit('Instance failed to delete.', 'warning')
