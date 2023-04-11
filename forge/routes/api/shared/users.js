@@ -27,6 +27,7 @@ module.exports = {
         const noop = async () => {}
         const auditLog = app.auditLog.User[eventBase] || noop
         try {
+            let pendingEmailChange = false
             const originalUser = {
                 id: user.id,
                 hashid: user.hashid,
@@ -47,7 +48,10 @@ module.exports = {
                     err.code = 'invalid_request'
                     throw err
                 }
-                user.email = request.body.email
+                if (request.body.email !== user.email) {
+                    await app.db.controllers.User.sendPendingEmailChangeEmail(user, request.body.email)
+                    pendingEmailChange = true
+                }
             }
             if (request.body.username) {
                 user.username = request.body.username
@@ -126,12 +130,6 @@ module.exports = {
                     newUsername: user.username
                 })
             }
-            if (user.email !== originalUser.email) {
-                await app.postoffice.send(originalUser, 'EmailChanged', {
-                    oldEmail: originalUser.email,
-                    newEmail: user.email
-                })
-            }
             // re-send verification email if a user was previously verified and is now not verified
             if (wasVerified && user.email_verified === false && request.session.User.id !== user.id) {
                 try {
@@ -152,6 +150,9 @@ module.exports = {
             const updates = new app.auditLog.formatters.UpdatesCollection()
             updates.pushDifferences(oldProfile, newProfile)
             await auditLog.updatedUser(request.session.User, null, updates, user)
+            if (pendingEmailChange) {
+                newProfile.pendingEmailChange = true
+            }
             reply.send(newProfile)
         } catch (err) {
             let responseMessage
