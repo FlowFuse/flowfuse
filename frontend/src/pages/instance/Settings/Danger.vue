@@ -82,7 +82,7 @@
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="danger" :disabled="instance?.meta?.state === 'suspended'" @click="showConfirmSuspendDialog()">Suspend Instance</ff-button>
+                <ff-button kind="danger" :disabled="instance?.meta?.state === 'suspended'" @click="$emit('instance-confirm-suspend')">Suspend Instance</ff-button>
             </div>
         </div>
 
@@ -110,7 +110,6 @@ import InstanceApi from '../../../api/instances.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import alerts from '../../../services/alerts.js'
-import Dialog from '../../../services/dialog.js'
 
 import ChangeStackDialog from './dialogs/ChangeStackDialog.vue'
 import ImportInstanceDialog from './dialogs/ImportInstanceDialog.vue'
@@ -130,7 +129,7 @@ export default {
             required: true
         }
     },
-    emits: ['instance-updated', 'instance-confirm-delete'],
+    emits: ['instance-updated', 'instance-confirm-delete', 'instance-confirm-suspend'],
     data () {
         return {
             loading: {
@@ -157,25 +156,6 @@ export default {
             if (!this.hasPermission('project:edit')) {
                 useRouter().push({ replace: true, path: 'general' })
             }
-        },
-        showConfirmSuspendDialog () {
-            Dialog.show({
-                header: 'Suspend Instance',
-                text: 'Are you sure you want to suspend this instance?',
-                confirmLabel: 'Suspend',
-                kind: 'danger'
-            }, () => {
-                this.loading.suspend = true
-                InstanceApi.suspendInstance(this.instance.id).then(() => {
-                    this.$router.push({ name: 'Home' })
-                    alerts.emit('Instance successfully suspended.', 'confirmation')
-                }).catch(err => {
-                    console.warn(err)
-                    alerts.emit('Instance failed to suspend.', 'warning')
-                }).finally(() => {
-                    this.loading.suspend = false
-                })
-            })
         },
         showProjectChangeTypePage () {
             this.$router.push({

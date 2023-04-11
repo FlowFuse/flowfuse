@@ -1,6 +1,6 @@
 <template>
     <span
-        class="flex"
+        class="flex items-center"
     >
         <CloudIcon class="w-6 mr-2 text-gray-500" />
         <div class="flex flex-col space-y-1">

@@ -14,7 +14,7 @@
                     />
                 </ff-dropdown>
                 <router-link v-if="instance?.meta" :to="{ name: 'Instance', params: { id: instance.id }}">
-                    <InstanceStatusBadge :status="instance.meta?.state" :pendingStateChange="instance.pendingStateChange" class="ml-2" />
+                    <InstanceStatusBadge :instance="instance" class="ml-2" />
                 </router-link>
             </div>
         </template>
@@ -46,7 +46,6 @@ export default {
             required: true
         }
     },
-    emits: ['instances-enable-polling', 'instances-disable-polling'],
     data () {
         return {
             input: {
@@ -63,11 +62,7 @@ export default {
         instances: 'selectFirstInstance'
     },
     mounted () {
-        this.$emit('instances-enable-polling')
         this.selectFirstInstance()
-    },
-    unmounted () {
-        this.$emit('instances-disable-polling')
     },
     methods: {
         selectFirstInstance () {
