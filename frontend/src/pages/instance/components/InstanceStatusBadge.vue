@@ -1,6 +1,5 @@
 <template>
     <StatusBadge
-        v-if="status"
         :status="status"
         :pendingChange="optimisticStateChange || pendingStateChange"
     />
