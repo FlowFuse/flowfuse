@@ -158,7 +158,8 @@ describe('User API', async function () {
             const result = response.json()
             result.should.not.have.property('error')
             result.should.have.property('name', 'afkae presley')
-            result.should.have.property('email', 'afkae@example.com')
+            result.should.have.property('email', 'elvis@example.com') // Email should NOT be updated, instead a pending change email is sent
+            result.should.have.property('pendingEmailChange', true)
             result.should.have.property('username', 'afkae')
             // ensure audit log entry is made
             // TODO: re-introduce audit log tests below once #1183 is complete
@@ -184,7 +185,9 @@ describe('User API', async function () {
             response.statusCode.should.equal(400)
             const result = response.json()
             result.should.have.property('code', 'invalid_email')
-            result.should.have.property('error', 'Validation isEmail on email failed')
+            // check result.error is either 'Validation isEmail on email failed' or 'Error: Invalid email address'
+            // this is because the error message is different depending on if the validation was done by DB create fail or by internal validation
+            should(result.error).equalOneOf('Validation isEmail on email failed', 'Error: Invalid email address')
         })
         const ssoUserUpdateEmailTest = it('sso_enabled user cannot change email', async function () {
             await login('bob', 'bbPassword')
