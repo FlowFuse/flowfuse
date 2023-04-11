@@ -148,7 +148,11 @@ export default {
             if (changed) {
                 userApi.updateUser(opts).then((response) => {
                     this.$store.dispatch('account/setUser', response)
-                    alerts.emit('User successfully updated.', 'confirmation')
+                    if (response?.pendingEmailChange) {
+                        alerts.emit('An Email has been sent to your inbox to verify your new Email Address.', 'confirmation', 7000)
+                    } else {
+                        alerts.emit('User successfully updated.', 'confirmation')
+                    }
                     this.user = response
                     this.teams.forEach(team => {
                         if (team.value === this.user.defaultTeam) {

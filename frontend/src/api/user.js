@@ -97,6 +97,27 @@ const verifyEmailToken = async (token) => {
     })
 }
 /**
+ * Helper function to call runtime API to send a new pending email
+ * address change verification email
+ * @param {string} newEmailAddress The new email address
+ * @returns {Promise}
+ */
+const triggerPendingEmailChangeVerification = async (newEmailAddress) => {
+    return client.post('/account/email_change', newEmailAddress).then(res => {
+        return res.data
+    })
+}
+/**
+ * Helper function to call 'account' 'email_change' API
+ * @param {string} token The token provided in the users email
+ * @returns {Promise}
+ */
+const verifyPendingEmailChangeToken = async (token) => {
+    return client.post(`/account/email_change/${token}`).then(res => {
+        return res.data
+    })
+}
+/**
  * Helper function to request password reset.
  * See [routes/api/account.js](../../../forge/routes/auth/index.js)
  * @param {string} email The users email address
@@ -128,5 +149,7 @@ export default {
     triggerVerification,
     verifyEmailToken,
     requestPasswordReset,
-    resetPassword
+    resetPassword,
+    verifyPendingEmailChangeToken,
+    triggerPendingEmailChangeVerification
 }
