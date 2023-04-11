@@ -96,7 +96,7 @@ export default {
         },
         async loadProjects () {
             if (this.project && this.project.team) {
-                const projectList = await TeamAPI.getTeamProjects(this.project.team.id)
+                const projectList = await TeamAPI.getTeamProjectList(this.project.team.id)
                 this.projects = []
                 for (let i = 0; i < projectList.count; i++) {
                     if (this.project.id !== projectList.projects[i].id) {

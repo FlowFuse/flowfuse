@@ -205,8 +205,7 @@ export default {
             deletingDevice: false,
             nextCursor: null,
             devices: new Map(),
-            checkInterval: null,
-            teamInstances: null
+            checkInterval: null
         }
     },
     computed: {
@@ -380,10 +379,6 @@ export default {
             this.loading = false
         },
 
-        async updateTeamInstances () {
-            this.teamInstances = (await teamApi.getTeamProjects(this.team.id)).projects // TODO Currently fetches projects not instances
-        },
-
         deviceAction (action, deviceId) {
             const device = this.devices.get(deviceId)
             if (action === 'edit') {
@@ -428,7 +423,6 @@ export default {
                     Alerts.emit('Successfully removed the device from the instance.', 'confirmation')
                 })
             } else if (action === 'assignToProject') {
-                this.updateTeamInstances()
                 this.$refs.deviceAssignInstanceDialog.show(device)
             }
         }

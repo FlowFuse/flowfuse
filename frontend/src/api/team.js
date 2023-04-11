@@ -46,6 +46,7 @@ const getTeamProjects = async (teamId) => {
         r.link = { name: 'Application', params: { id: r.id } }
         promises.push(client.get(`/api/v1/projects/${r.id}`).then(p => {
             r.status = p.data.meta.state
+            r.flowLastUpdatedSince = daysSince(p.data.flowLastUpdatedAt)
         }).catch(err => {
             console.error('not found', err)
             r.status = 'stopped'
@@ -96,6 +97,13 @@ const getTeamApplications = async (teamId) => {
  */
 const getTeamApplicationsInstanceStatuses = async (teamId) => {
     const result = await client.get(`/api/v1/teams/${teamId}/applications/status`)
+
+    result.data.applications.forEach((application) => {
+        application.instances.forEach((instance) => {
+            instance.flowLastUpdatedSince = daysSince(instance.flowLastUpdatedAt)
+        })
+    })
+
     return result.data
 }
 
