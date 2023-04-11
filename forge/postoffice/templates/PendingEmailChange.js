@@ -1,5 +1,5 @@
 module.exports = {
-    subject: 'Pending Email Change Notification for FlowForge',
+    subject: 'Please confirm your email change request on FlowForge',
     text:
 `Hello
 
