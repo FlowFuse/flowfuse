@@ -100,8 +100,14 @@ module.exports = {
 
     sendPendingEmailChangeEmail: async function (app, user, newEmailAddress) {
         const pendingEmailChangeToken = await app.db.controllers.User.generatePendingEmailChangeToken(user, newEmailAddress)
+        const recipient = {
+            name: user.name,
+            email: newEmailAddress,
+            id: user.id,
+            hashid: user.hashid
+        }
         await app.postoffice.send(
-            user,
+            recipient,
             'PendingEmailChange',
             {
                 oldEmail: user.email,
