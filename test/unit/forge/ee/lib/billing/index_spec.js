@@ -42,8 +42,8 @@ describe('Billing', function () {
 
             result.should.have.property('mode', 'subscription')
             result.should.have.property('client_reference_id', newTeam.hashid)
-            result.should.have.property('success_url', 'http://localhost:3000/team/new-team/overview?billing_session={CHECKOUT_SESSION_ID}')
-            result.should.have.property('cancel_url', 'http://localhost:3000/team/new-team/overview')
+            result.should.have.property('success_url', 'http://localhost:3000/team/new-team/applications?billing_session={CHECKOUT_SESSION_ID}')
+            result.should.have.property('cancel_url', 'http://localhost:3000/team/new-team/applications')
             result.should.have.property('subscription_data')
             result.subscription_data.should.have.property('metadata')
             result.subscription_data.metadata.should.have.property('team', newTeam.hashid)

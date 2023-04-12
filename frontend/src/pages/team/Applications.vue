@@ -62,6 +62,12 @@
                 </li>
             </ul>
         </template>
+        <div v-else-if="justSetupBilling">
+            <div class=" mt-8 text-center text-lg">
+                <strong class="mb-2 block">Thank you for signing up to FlowForge!</strong>
+                You are now able to create applications, instances & devices.
+            </div>
+        </div>
         <div v-else class="ff-no-data">
             No Applications Created
         </div>
@@ -100,6 +106,11 @@ export default {
             columns: [
                 { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true }
             ]
+        }
+    },
+    computed: {
+        justSetupBilling () {
+            return 'billing_session' in this.$route.query
         }
     },
     watch: {
