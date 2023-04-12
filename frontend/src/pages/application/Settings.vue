@@ -95,6 +95,11 @@ export default {
             this.editing = true
             this.$refs.appName.focus()
         },
+        cancelEditName () {
+            this.editing = false
+            // reset the field if changed
+            this.input.projectName = this.application.name
+        },
         saveApplication () {
             ApplicationAPI.updateApplication(this.application.id, this.input.projectName)
                 .then(() => {
