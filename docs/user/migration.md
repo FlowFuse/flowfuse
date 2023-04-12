@@ -1,3 +1,7 @@
+---
+navTitle: Migrating a Node-RED project to FlowForge 
+---
+
 # Migrating a Node-RED application to FlowForge 
 
 This guide will help you to move an existing set of flows from Node-RED into 

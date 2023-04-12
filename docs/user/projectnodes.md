@@ -1,3 +1,7 @@
+---
+navTitle: FlowForge Project Nodes
+---
+
 # FlowForge Project Nodes
 
 Node-RED instances running within FlowForge include a set of nodes that make it

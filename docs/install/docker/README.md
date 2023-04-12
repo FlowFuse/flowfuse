@@ -1,3 +1,7 @@
+---
+navTitle: Docker install
+---
+
 # Docker Install
 
 This version of the FlowForge platform is intended for running in the Docker Container management system. Typically suited for small/medium on premise deployments.

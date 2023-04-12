@@ -1,3 +1,7 @@
+---
+navTitle: Invite External Users
+---
+
 # Invite External User Flow
 
 ```mermaid

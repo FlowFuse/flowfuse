@@ -1,3 +1,7 @@
+---
+navTitle: DNS Setup
+---
+
 # DNS Setup
 
 When running FlowForge on Docker or Kubernetes you will need to be able to setup an entry in a DNS server.

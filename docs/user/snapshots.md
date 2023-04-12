@@ -1,3 +1,7 @@
+---
+navTitle: Snapshots
+---
+
 # Snapshots
 
 A Snapshot is a point-in-time backup of a Node-RED instance. It captures the flows,

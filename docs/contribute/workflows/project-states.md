@@ -1,3 +1,7 @@
+---
+navTitle: Project states
+---
+
 # 0.4.0 
 ```mermaid
 stateDiagram-v2
