@@ -52,7 +52,7 @@ module.exports = {
                         includes.push({
                             model: M.Project,
                             as: 'Instances',
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'url'],
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'url', 'state'],
                             include: [
                                 // Need for project URL calculation (depends on httpAdminRoot)
                                 {
