@@ -14,7 +14,7 @@
                     />
                 </ff-dropdown>
                 <router-link v-if="instance?.meta" :to="{ name: 'Instance', params: { id: instance.id }}">
-                    <InstanceStatusBadge :instance="instance" class="ml-2" />
+                    <InstanceStatusBadge :status="instance.meta?.state" :pendingStateChange="instance?.pendingStateChange" :optimisticStateChange="instance.optimisticStateChange" class="ml-2" />
                 </router-link>
             </div>
         </template>
