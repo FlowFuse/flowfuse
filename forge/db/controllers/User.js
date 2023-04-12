@@ -158,6 +158,16 @@ module.exports = {
         throw new Error('Invalid link')
     },
 
+    sendEmailChangedEmail: async function (app, recipient, oldEmailAddress, newEmailAddress) {
+        await app.postoffice.send(recipient,
+            'EmailChanged',
+            {
+                oldEmail: oldEmailAddress,
+                newEmail: newEmailAddress
+            }
+        )
+    },
+
     suspend: async function (app, user) {
         user.suspended = true
         // log suspended user out of all projects they have access to
