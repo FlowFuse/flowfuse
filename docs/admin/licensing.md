@@ -2,7 +2,7 @@
 
 ## Open-Source
 
-FlowForge is Open Source and is free to use.
+FlowForge's open-source edition is free to use.
 It is licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
 
 ## Features
