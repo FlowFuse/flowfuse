@@ -330,7 +330,8 @@ export default {
             return this.input.name && !this.errors.name &&
               this.input.projectType && !this.errors.projectType &&
               this.input.stack && !this.errors.stack &&
-              (this.creatingNew ? (this.input.template && !this.errors.template) : true)
+              (this.creatingNew ? (this.input.template && !this.errors.template) : true) &&
+              ((this.creatingNew && this.applicationFieldsVisible) ? this.input.applicationName : true)
         },
         submitEnabled () {
             const billingConfirmed = !this.showBilling || this.team.billing?.trial || this.input.billingConfirmation
