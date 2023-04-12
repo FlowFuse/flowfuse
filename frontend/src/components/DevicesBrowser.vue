@@ -325,10 +325,12 @@ export default {
         async assignDevice (device, instanceId) {
             const updatedDevice = await deviceApi.updateDevice(device.id, { project: instanceId })
 
-            // TODO Remove temporary duplication
             if (updatedDevice.project) {
-                device.project = updatedDevice.project
                 device.instance = updatedDevice.project
+            }
+
+            if (updatedDevice.application) {
+                device.application = updatedDevice.application
             }
 
             this.devices.set(device.id, device)
@@ -415,9 +417,8 @@ export default {
                 }, async () => {
                     await deviceApi.updateDevice(device.id, { project: null })
 
-                    // TODO Remove temporary duplication
-                    delete device.project
                     delete device.instance
+                    delete device.application
 
                     if (this.displayingInstance) {
                         this.devices.delete(device.id)

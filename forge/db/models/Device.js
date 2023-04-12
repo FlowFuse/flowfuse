@@ -170,7 +170,11 @@ module.exports = {
                             },
                             {
                                 model: M.Project,
-                                attributes: ['id', 'name', 'links']
+                                attributes: ['id', 'name', 'links'],
+                                include: {
+                                    model: M.Application,
+                                    attributes: ['id', 'name', 'links']
+                                }
                             },
                             { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
                             { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
