@@ -4,7 +4,7 @@
         kind="secondary"
         data-action="open-editor"
         :disabled="editorDisabled || disabled || !url"
-        @click="openEditor()"
+        @click.stop="openEditor()"
     >
         <template #icon-right>
             <ExternalLinkIcon />
