@@ -8,7 +8,7 @@ export default {
      * Show a toast notification
      * @param {string} msg The message to show
      * @param {'info'|'confirmation'|'warning'} [type] Toast style
-     * @param {number} [countdown] How long to show (defaults to 3s)
+     * @param {number} [countdown] How long to show in ms (defaults to 3000ms)
      */
     emit: function (msg, type, countdown) {
         // type: 'info' | 'confirmation' | 'warning'
