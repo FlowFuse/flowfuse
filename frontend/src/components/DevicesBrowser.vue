@@ -153,10 +153,14 @@ import { markRaw } from 'vue'
 import deviceApi from '../api/devices.js'
 import instanceApi from '../api/instances.js'
 import teamApi from '../api/team.js'
+
 import permissionsMixin from '../mixins/Permissions.js'
+
+import ApplicationLink from '../pages/application/components/cells/ApplicationLink.vue'
 import DeviceLink from '../pages/application/components/cells/DeviceLink.vue'
 import InstanceInstancesLink from '../pages/application/components/cells/InstanceInstancesLink.vue'
 import Snapshot from '../pages/application/components/cells/Snapshot.vue'
+
 import DeviceLastSeenBadge from '../pages/device/components/DeviceLastSeenBadge.vue'
 import SnapshotAssignDialog from '../pages/instance/Snapshots/dialogs/SnapshotAssignDialog.vue'
 import InstanceStatusBadge from '../pages/instance/components/InstanceStatusBadge.vue'
@@ -221,21 +225,20 @@ export default {
 
             if (this.displayingTeam) {
                 columns.push(
-                    ...statusColumns
-                    // TODO Restore application
-                    // {
-                    //     label: 'Application',
-                    //     class: ['w-64'],
-                    //     key: 'project',
-                    //     sortable: true,
-                    //     component: {
-                    //         is: markRaw(ApplicationLink),
-                    //         map: {
-                    //             id: 'project.id',
-                    //             name: 'project.name'
-                    //         }
-                    //     }
-                    // }
+                    ...statusColumns,
+                    {
+                        label: 'Application',
+                        class: ['w-64'],
+                        key: 'application',
+                        sortable: true,
+                        component: {
+                            is: markRaw(ApplicationLink),
+                            map: {
+                                id: 'application.id',
+                                name: 'application.name'
+                            }
+                        }
+                    }
                 )
             }
 
@@ -322,10 +325,12 @@ export default {
         async assignDevice (device, instanceId) {
             const updatedDevice = await deviceApi.updateDevice(device.id, { project: instanceId })
 
-            // TODO Remove temporary duplication
             if (updatedDevice.project) {
-                device.project = updatedDevice.project
                 device.instance = updatedDevice.project
+            }
+
+            if (updatedDevice.application) {
+                device.application = updatedDevice.application
             }
 
             this.devices.set(device.id, device)
@@ -412,9 +417,8 @@ export default {
                 }, async () => {
                     await deviceApi.updateDevice(device.id, { project: null })
 
-                    // TODO Remove temporary duplication
-                    delete device.project
                     delete device.instance
+                    delete device.application
 
                     if (this.displayingInstance) {
                         this.devices.delete(device.id)

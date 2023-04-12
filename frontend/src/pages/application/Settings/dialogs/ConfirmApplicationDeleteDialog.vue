@@ -15,8 +15,7 @@
                         Are you sure you want to delete this application? Once deleted, there is no going back.
                     </p>
                     <p>
-                        Enter the application name to continue.
-                        <code class="block">{{ project?.name }}</code>
+                        Enter the application name <code>{{ application?.name }}</code> to continue.
                     </p>
                 </div>
                 <FormRow id="projectName" v-model="input.projectName" data-form="application-name">Name</FormRow>
@@ -37,9 +36,9 @@ export default {
     emits: ['confirm'],
     setup () {
         return {
-            show (project) {
+            show (application) {
                 this.$refs.dialog.show()
-                this.project = project
+                this.application = application
             }
         }
     },
@@ -49,13 +48,13 @@ export default {
                 projectName: ''
             },
             formValid: false,
-            project: null
+            application: null
         }
     },
     watch: {
         input: {
             handler: function (v) {
-                this.formValid = this.project.name === v.projectName
+                this.formValid = this.application.name === v.projectName
             },
             deep: true
         }

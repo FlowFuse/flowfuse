@@ -170,7 +170,11 @@ module.exports = {
                             },
                             {
                                 model: M.Project,
-                                attributes: ['id', 'name', 'links']
+                                attributes: ['id', 'name', 'links'],
+                                include: {
+                                    model: M.Application,
+                                    attributes: ['id', 'name', 'links']
+                                }
                             },
                             { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
                             { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
@@ -214,26 +218,37 @@ module.exports = {
                         ]
                     })
                 },
-                getAll: async (pagination = {}, where = {}) => {
+                getAll: async (pagination = {}, where = {}, { includeApplication = false } = {}) => {
                     const limit = parseInt(pagination.limit) || 1000
                     if (pagination.cursor) {
                         pagination.cursor = M.Device.decodeHashid(pagination.cursor)
                     }
+
+                    const projectInclude = {
+                        model: M.Project,
+                        attributes: ['id', 'name', 'links']
+                    }
+                    if (includeApplication) {
+                        projectInclude.include = {
+                            model: M.Application,
+                            attributes: ['id', 'name', 'links']
+                        }
+                    }
+
+                    const includes = [
+                        {
+                            model: M.Team,
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                        },
+                        projectInclude,
+                        { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
+                        { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
+                    ]
+
                     const [rows, count] = await Promise.all([
                         this.findAll({
                             where: buildPaginationSearchClause(pagination, where, ['Device.name', 'Device.type']),
-                            include: [
-                                {
-                                    model: M.Team,
-                                    attributes: ['hashid', 'id', 'name', 'slug', 'links']
-                                },
-                                {
-                                    model: M.Project,
-                                    attributes: ['id', 'name', 'links']
-                                },
-                                { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
-                                { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
-                            ],
+                            include: includes,
                             order: [['id', 'ASC']],
                             limit
                         }),
