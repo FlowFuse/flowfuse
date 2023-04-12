@@ -208,7 +208,7 @@ export default {
                 alerts.emit('Application successfully deleted.', 'confirmation')
             } catch (err) {
                 if (err.response.data.error) {
-                    alerts.emit(`Application failed to delete: ${err.response.data.error}`, 'warning')
+                    alerts.emit(`Application failed to delete: ${err.response.data.error}`, 'warning', 10)
                 } else {
                     alerts.emit('Application failed to delete', 'warning')
                 }
