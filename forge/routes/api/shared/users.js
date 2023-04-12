@@ -12,6 +12,10 @@ module.exports = {
      */
 
     /**
+     * @typedef {import('../../../db/controllers/User')} UserController
+     */
+
+    /**
      * Update a user
      * This is common code shared by:
      *  * `PUT /api/v1/user/`     (user.js)
