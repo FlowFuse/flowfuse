@@ -101,7 +101,6 @@ export default {
     props: ['team', 'teamMembership'],
     data () {
         return {
-            justSetupBilling: false,
             loading: false,
             applications: new Map(),
             columns: [
@@ -109,12 +108,16 @@ export default {
             ]
         }
     },
+    computed: {
+        justSetupBilling () {
+            return 'billing_session' in this.$route.query
+        }
+    },
     watch: {
         team: 'fetchData'
     },
     mounted () {
         this.fetchData()
-        this.checkBillingSession()
     },
     methods: {
         async fetchData () {
@@ -195,9 +198,6 @@ export default {
                     id: instance.id
                 }
             })
-        },
-        async checkBillingSession () {
-            this.justSetupBilling = 'billing_session' in this.$route.query
         }
     }
 }
