@@ -1,12 +1,22 @@
 const should = require('should') // eslint-disable-line
 const setup = require('../setup')
 const jwt = require('jsonwebtoken')
-
+// create jsdoc typedef for userController
+/**
+ * @typedef {import('../../../../../forge/db/controllers/User')} userController
+ * @typedef {import('flowforge-test-utils/forge/postoffice/localTransport.js')} localTransport
+ */
 describe('User controller', function () {
     // Use standard test data.
     let app
+    /** @type {userController} */
+    let userController = null
+    /** @type {localTransport} */
+    let inbox = null
     beforeEach(async function () {
         app = await setup()
+        userController = app.db.controllers.User
+        inbox = app.config.email.transport
     })
 
     afterEach(async function () {
@@ -67,6 +77,110 @@ describe('User controller', function () {
                 return
             }
             throw new Error('Password changed with invalid oldPassword')
+        })
+    })
+
+    describe('change email address', function () {
+        it('generates a token for Email Address change', async function () {
+            const newEmailAddress = 'alice2@example.com'
+            const alice = await app.db.models.User.byUsername('alice')
+            const token = await userController.generatePendingEmailChangeToken(alice, newEmailAddress)
+            const decodedToken = jwt.decode(token)
+            // decodedToken should have the following properties: sub, id, aud, change
+            decodedToken.should.have.property('sub', alice.email)
+            decodedToken.should.have.property('id', alice.hashid)
+            decodedToken.should.have.property('aud', 'update-user-email')
+            decodedToken.should.have.property('change', newEmailAddress)
+        })
+        it('sends and Email Address change Email', async function () {
+            const newEmailAddress = 'alice3@example.com'
+            const alice = await app.db.models.User.byUsername('alice')
+            await userController.sendPendingEmailChangeEmail(alice, newEmailAddress)
+            inbox.messages.should.have.length(1)
+            // ensure "Confirm Change" Email is sent to the NEW email address
+            const email = inbox.messages[0]
+            email.should.have.property('to', newEmailAddress)
+            email.text.should.containEql(alice.email)
+            email.text.should.containEql(newEmailAddress)
+            // email.text should contain a link and token
+            should(email.text).match(/account\/email_change\/[a-zA-Z0-9-_.]+/, 'Email should contain a link and token')
+        })
+        it('changes a users Email Address', async function () {
+            const newEmailAddress = 'alice4@example.com'
+            const alice = await app.db.models.User.byUsername('alice')
+            const token = await userController.generatePendingEmailChangeToken(alice, newEmailAddress)
+            await userController.applyPendingEmailChange(alice, token)
+            await alice.reload()
+            alice.email.should.equal(newEmailAddress)
+        })
+        it('fails if Email Address already in use', async function () {
+            const newEmailAddress = (await app.db.models.User.byUsername('bob')).email
+            const alice = await app.db.models.User.byUsername('alice')
+            const originalEmail = alice.email
+            const token = await userController.generatePendingEmailChangeToken(alice, newEmailAddress)
+            try {
+                await userController.applyPendingEmailChange(alice, token)
+            } catch (error) {
+                error.message.should.equal('Invalid link')
+            }
+            await alice.reload()
+            alice.email.should.eql(originalEmail) // should be unchanged
+        })
+        it('fails if Users Email Address has changed since token was issued', async function () {
+            const alice = await app.db.models.User.byUsername('alice')
+            const token = await userController.generatePendingEmailChangeToken(alice, 'alice3@example.com')
+            alice.email = 'alice2@example.com'
+            alice.email_verified = true
+            await alice.save()
+            try {
+                await userController.applyPendingEmailChange(alice, token)
+            } catch (error) {
+                error.message.should.equal('Invalid link')
+            }
+            await alice.reload()
+            alice.email.should.eql('alice2@example.com') // unchanged since before token was issued
+        })
+        it('fails if Users ID differs from the hashid embedded in the token', async function () {
+            const alice = await app.db.models.User.byUsername('alice')
+            const aliceEmail = alice.email
+            const bob = await app.db.models.User.byUsername('bob')
+            const bobEmail = bob.email
+
+            // generate pending email change token for alice (using alice's original email address)
+            const token = await userController.generatePendingEmailChangeToken(alice, 'alice3@example.com')
+
+            // swap alice and bob's email addresses
+            alice.email = 'temp@example.com'
+            alice.email_verified = true
+            await alice.save()
+
+            bob.email = aliceEmail
+            bob.email_verified = true
+            await bob.save()
+
+            alice.email = bobEmail
+            alice.email_verified = true
+            await alice.save()
+
+            // attempt to apply changes to alice (now with bob's original email) using the token
+            // should fail as alice now has a different email to what the token was generated with
+            try {
+                await userController.applyPendingEmailChange(alice, token)
+            } catch (error) {
+                error.message.should.equal('Invalid link')
+            }
+            await alice.reload()
+            alice.email.should.eql(bobEmail) // should not have changed to new email 'alice3@example.com'
+
+            // attempt to apply changes to bob (now with alice's original email) using the token
+            // should fail as bob has a different hashid to what the token was generated with
+            try {
+                await userController.applyPendingEmailChange(bob, token)
+            } catch (error) {
+                error.message.should.equal('Invalid link')
+            }
+            await bob.reload()
+            bob.email.should.eql(aliceEmail) // should not have changed to new email 'alice3@example.com'
         })
     })
 

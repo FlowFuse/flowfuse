@@ -4,7 +4,7 @@ const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localT
 
 describe('SSO Provider APIs', function () {
     let app
-    let inbox
+    /** @type {LocalTransport} */ let inbox
     const TestObjects = { tokens: {} }
 
     async function login (username, password) {

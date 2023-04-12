@@ -30,6 +30,12 @@ module.exports = {
                 async verifyToken (actionedBy, error) {
                     await log('account.verify.verify-token', actionedBy, generateBody({ error }))
                 }
+            },
+            async changeEmailRequest (actionedBy, error, user) {
+                await log('account.change-email-request', actionedBy, generateBody({ error, user }))
+            },
+            async changeEmailConfirmed (actionedBy, error, user) {
+                await log('account.change-email-confirmed', actionedBy, generateBody({ error, user }))
             }
         }
 
