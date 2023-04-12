@@ -30,6 +30,11 @@ const SESSION_COOKIE_OPTIONS = {
     maxAge: SESSION_MAX_AGE
 }
 
+// create jsdoc typedef for UserController
+/**
+ * @typedef {import('../../db/controllers/User')} UserController
+ */
+
 module.exports = fp(async function (app, opts, done) {
     await app.register(require('./oauth'), { logLevel: app.config.logging.http })
     await app.register(require('./permissions'))
@@ -447,6 +452,8 @@ module.exports = fp(async function (app, opts, done) {
      * Generate verification email
      */
     app.post('/account/verify', { preHandler: app.verifySession, config: { allowUnverifiedEmail: true } }, async (request, reply) => {
+        /** @type {UserController} */
+        const userController = app.db.controllers.User
         if (!app.postoffice.enabled()) {
             const resp = { code: 'invalid_request', error: 'email not configured' }
             await app.auditLog.User.account.verify.requestToken(request.session?.User, resp)
@@ -454,7 +461,7 @@ module.exports = fp(async function (app, opts, done) {
             return
         }
         if (!request.session.User.email_verified) {
-            const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(request.session.User)
+            const verificationToken = await userController.generateEmailVerificationToken(request.session.User)
             await app.postoffice.send(
                 request.session.User,
                 'VerifyEmail',
@@ -476,6 +483,8 @@ module.exports = fp(async function (app, opts, done) {
      */
     app.post('/account/email_change/:token', async (request, reply) => {
         try {
+            /** @type {UserController} */
+            const userController = app.db.controllers.User
             let sessionUser
             if (request.sid) {
                 request.session = await app.db.controllers.Session.getOrExpire(request.sid)
@@ -483,8 +492,17 @@ module.exports = fp(async function (app, opts, done) {
             }
             let verifiedUser
             try {
+                const originalEmail = sessionUser.email
                 // update the users email address
-                verifiedUser = await app.db.controllers.User.applyPendingEmailChange(sessionUser, request.params.token)
+                verifiedUser = await userController.applyPendingEmailChange(sessionUser, request.params.token)
+                // send the email changed confirmation email
+                const recipient = {
+                    name: verifiedUser.name,
+                    email: originalEmail,
+                    id: verifiedUser.id,
+                    hashid: verifiedUser.hashid
+                }
+                await userController.sendEmailChangedEmail(recipient, originalEmail, verifiedUser.email)
             } catch (err) {
                 const resp = { code: 'invalid_request', error: err.toString() }
                 await app.auditLog.User.account.changeEmailConfirmed(request.session?.User, resp)
