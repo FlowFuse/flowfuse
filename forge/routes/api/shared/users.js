@@ -35,6 +35,9 @@ module.exports = {
         const isAdmin = request.session.User.admin
         const modifySelf = user.id === request.session.User.id
         const modifyOtherUser = !modifySelf && isAdmin
+        /** @type {UserController} */
+        const userController = app.db.controllers.User
+
         try {
             let pendingEmailChange = false
             const originalUser = {
@@ -72,7 +75,7 @@ module.exports = {
                     throw err
                 }
                 if (modifySelf) {
-                    await app.db.controllers.User.sendPendingEmailChangeEmail(user, request.body.email)
+                    await userController.sendPendingEmailChangeEmail(user, request.body.email)
                     pendingEmailChange = true
                 } else {
                     user.email = request.body.email
@@ -101,7 +104,7 @@ module.exports = {
                 if (request.body.suspended !== undefined) {
                     if (modifyOtherUser) {
                         if (request.body.suspended === true) {
-                            await app.db.controllers.User.suspend(user)
+                            await userController.suspend(user)
                             if (app.postoffice.enabled()) {
                                 // Send email
                                 const context = {}
@@ -156,16 +159,14 @@ module.exports = {
                 })
             }
             // an admin may have changed email address directly (bypassing the pending change email)
+            // send an "Email Changed" email to the old email address
             if (user.email !== originalUser.email) {
-                await app.postoffice.send(originalUser, 'EmailChanged', {
-                    oldEmail: originalUser.email,
-                    newEmail: user.email
-                })
+                await userController.sendEmailChangedEmail(originalUser, originalUser.email, user.email)
             }
             // re-send verification email if a user was previously verified and is now not verified
             if (wasVerified && user.email_verified === false && modifyOtherUser) {
                 try {
-                    const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
+                    const verificationToken = await userController.generateEmailVerificationToken(user)
                     await app.postoffice.send(
                         user,
                         'VerifyEmail',
