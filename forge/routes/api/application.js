@@ -122,7 +122,7 @@ module.exports = async function (app) {
             // TODO need to stop all project containers and delete the projects
             // For now, error if there are any projects
             if (await request.application.projectCount() > 0) {
-                return reply.code(422).send({ code: 'invalid_application', error: 'All this applications projects must be deleted first' })
+                return reply.code(422).send({ code: 'invalid_application', error: 'Please delete the instances within the application first' })
             }
 
             await request.application.destroy()
