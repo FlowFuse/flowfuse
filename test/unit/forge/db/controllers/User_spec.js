@@ -97,11 +97,11 @@ describe('User controller', function () {
             const alice = await app.db.models.User.byUsername('alice')
             await userController.sendPendingEmailChangeEmail(alice, newEmailAddress)
             inbox.messages.should.have.length(1)
+            // ensure "Confirm Change" Email is sent to the NEW email address
             const email = inbox.messages[0]
-            email.should.have.property('to', alice.email)
+            email.should.have.property('to', newEmailAddress)
             email.text.should.containEql(alice.email)
             email.text.should.containEql(newEmailAddress)
-            // email.text.includes(newEmailAddress).should.be.true('Email should contain new email address')
             // email.text should contain a link and token
             should(email.text).match(/account\/email_change\/[a-zA-Z0-9-_.]+/, 'Email should contain a link and token')
         })
