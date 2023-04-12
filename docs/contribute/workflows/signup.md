@@ -1,5 +1,5 @@
 ---
-title: User Sign up Flow
+navTitle: User Sign up Flow
 ---
 
 # User Sign Up Flow

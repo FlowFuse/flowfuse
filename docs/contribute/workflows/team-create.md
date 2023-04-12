@@ -1,5 +1,5 @@
 ---
-title: Team creation Flow
+navTitle: Team creation Flow
 ---
 
 # Sequence For Team Creation

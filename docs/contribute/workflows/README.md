@@ -1,5 +1,5 @@
 ---
-title: State Flows
+navTitle: State Flows
 ---
 
 # Workflows
