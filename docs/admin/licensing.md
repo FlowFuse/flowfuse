@@ -14,9 +14,12 @@ The following features are available in the Open-Source version of FlowForge:
 * Maximum Projects: 50
 * Maximum Devices: 50
 
+Please note that the above limits are per instance of FlowForge and are subject to change.
+Please refer to https://flowforge.com/pricing/ for up-to-date information.
+
 ## Premium
 
-With a FlowForge Premium License, you get additional features and support.
+With a FlowForge Premium License, you get additional features and professional support.
 
 ### Features
 
@@ -44,3 +47,5 @@ The following features are available in FlowForge Premium:
 [^intercommunication]: FlowForge Project Nodes provide seamless passing of data and messages between your Node-RED instances.
 [^Context-Storage]: The Premium License permits the platform to store context data in a persistent database. This allows for the context data to be retained across Node-RED instance restarts.
 [^Support]: The Premium License provides ticketed support and long-term support. As part of this agreement, Telemetry for Premium Licensed instances is enabled by default and must remain enabled to satisfy the terms of the agreement.
+
+Please refer to https://flowforge.com/pricing/ for up-to-date information.
