@@ -13,6 +13,15 @@ import Instance from './index.vue'
 
 export default [
     {
+        path: '/project/:id/:remaining*',
+        redirect: to => {
+            if (to.params.remaining) {
+                return `/instance/${to.params.id}/${to.params.remaining.join('/')}`
+            }
+            return `/instance/${to.params.id}`
+        }
+    },
+    {
         path: '/instance/:id',
         redirect: to => {
             return `/instance/${to.params.id}/overview`
