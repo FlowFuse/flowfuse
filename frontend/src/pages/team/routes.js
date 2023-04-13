@@ -117,6 +117,12 @@ export default [
                 meta: {
                     title: 'Team - Billing'
                 }
+            },
+            {
+                path: 'overview',
+                redirect: to => {
+                    return `/team/${to.params.team_slug}/applications`
+                }
             }
         ]
     },
