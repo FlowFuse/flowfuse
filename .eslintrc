@@ -123,23 +123,6 @@
         //////////
         {
             "rules": {
-                "comma-dangle": "off"
-            },
-            "files": [
-                "config/babel.config.js",
-                "config/postcss.config.js"
-            ]
-        },
-        {
-            "rules": {
-                "comma-spacing": "off"
-            },
-            "files": [
-                "config/postcss.config.js"
-            ]
-        },
-        {
-            "rules": {
                 "cypress/require-data-selectors": "off"
             },
             "files": [
