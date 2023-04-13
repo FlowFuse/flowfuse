@@ -265,6 +265,22 @@
         <span v-else-if="!error">Update data not found in audit entry.</span>
     </template>
 
+    <template v-else-if="entry.event === 'application.created'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.application">Application {{ entry.body.application?.name }} was created {{ entry.body.team ? `in Team '${entry.body.team.name}'` : '' }}</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'application.updated'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.updates">The following updates have been made to the Application: <AuditEntryUpdates :updates="entry.body.updates" />.</span>
+        <span v-else-if="!error">Updates not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'application.deleted'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.application">Application {{ entry.body.application?.name }} was deleted {{ entry.body.team ? `in Team '${entry.body.team.name}'` : '' }}</span>
+        <span v-else-if="!error">Application data not found in audit entry.</span>
+    </template>
+
     <!-- Instance Events -->
     <template v-else-if="entry.event === 'project.created'">
         <label>{{ AuditEvents[entry.event] }}</label>
@@ -391,7 +407,7 @@
 
     <!-- Catch All -->
     <template v-else>
-        <label>{{ AuditEvents[entry.event] }}{{ entry.event }}</label>
+        <label>{{ AuditEvents[entry.event] }}: {{ entry.event }}</label>
         <span>We have no details available for this event type</span>
     </template>
 

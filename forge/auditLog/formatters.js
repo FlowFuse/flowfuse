@@ -10,7 +10,7 @@ const isObject = (obj) => {
  * @param {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType?, info? } == {}} objects objects to include in body
  * @returns {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType? info? }
  */
-const generateBody = ({ error, team, project, sourceProject, targetProject, device, user, stack, billingSession, subscription, license, updates, snapshot, role, projectType, info } = {}) => {
+const generateBody = ({ error, team, application, project, sourceProject, targetProject, device, user, stack, billingSession, subscription, license, updates, snapshot, role, projectType, info } = {}) => {
     const body = {}
 
     if (isObject(error) || typeof error === 'string') {
@@ -18,6 +18,9 @@ const generateBody = ({ error, team, project, sourceProject, targetProject, devi
     }
     if (isObject(team)) {
         body.team = teamObject(team)
+    }
+    if (isObject(application)) {
+        body.application = applicationObject(application)
     }
     if (isObject(project)) {
         body.project = projectObject(project)
@@ -111,6 +114,7 @@ const formatLogEntry = (auditLogDbRow) => {
             formatted.body = generateBody({
                 error: body?.error,
                 team: body?.team,
+                application: body?.application,
                 project: body?.project,
                 sourceProject: body?.sourceProject,
                 targetProject: body?.targetProject,
@@ -180,6 +184,12 @@ const userObject = (user, unknownValue = null) => {
         name: user?.name || name || unknownValue,
         username: id === 0 ? 'system' : (user?.username || unknownValue),
         email: user?.email || unknownValue
+    }
+}
+const applicationObject = (application, unknownValue = null) => {
+    return {
+        id: application?.id || null,
+        name: application?.name || unknownValue
     }
 }
 const projectObject = (project, unknownValue = null) => {

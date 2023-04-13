@@ -73,7 +73,7 @@ describe('FlowForge - Applications', () => {
         cy.get('[data-action="open-editor"]').should('exist')
     })
 
-    it('are not permitted to have a duplicate name during creation', () => {
+    it('are not permitted to have a duplicate project name during creation', () => {
         cy.request('GET', 'api/v1/teams', { failOnStatusCode: false }).then((response) => {
             const team = response.body.teams[0]
 
@@ -90,6 +90,56 @@ describe('FlowForge - Applications', () => {
 
             cy.get('[data-form="project-name"] [data-el="form-row-error"]').contains('name in use')
         })
+    })
+
+    it('can be updated', () => {
+        const START_APPLICATION_NAME = `new-application-${Math.random().toString(36).substring(2, 7)}`
+        const UPDATED_APPLICATION_NAME = `updated-application-${Math.random().toString(36).substring(2, 7)}`
+
+        let team
+        cy.request('GET', 'api/v1/teams')
+            .then((response) => {
+                team = response.body.teams[0]
+                return cy.request('POST', '/api/v1/applications', {
+                    name: START_APPLICATION_NAME,
+                    teamId: team.id
+                })
+            })
+            .then((response) => {
+                cy.intercept('GET', '/api/*/applications/*').as('getApplication')
+
+                cy.visit('/')
+
+                cy.get('[data-nav="team-applications"]')
+
+                cy.wait('@getTeamApplications')
+
+                cy.contains(START_APPLICATION_NAME).click()
+
+                cy.wait('@getApplication')
+
+                cy.get('[data-nav="application-settings"]').click()
+
+                cy.get('[data-el="application-settings"]').within(() => {
+                    cy.get('[data-action="application-edit"]').click()
+
+                    cy.get('[data-form="application-name"] input[type="text"]').clear()
+                    cy.get('[data-form="application-name"] input[type="text"]').type(UPDATED_APPLICATION_NAME)
+
+                    cy.get('[data-form="submit"]').click()
+                })
+
+                // Name updated on application page
+                cy.get('[data-el="application-name"]').contains(UPDATED_APPLICATION_NAME)
+
+                cy.get('[data-nav="team-applications"]').click()
+
+                // Name updated on team page
+                cy.wait('@getTeamApplications')
+
+                cy.contains(UPDATED_APPLICATION_NAME).should('exist')
+                cy.contains(START_APPLICATION_NAME).should('not.exist')
+            })
     })
 
     it('can be deleted', () => {
@@ -225,11 +275,15 @@ describe('FlowForge stores audit logs for an application', () => {
         cy.visit('/team/ateam/audit-log')
     })
 
-    it.skip('when it is created', () => {
+    it('when it is created', () => {
         cy.get('.ff-audit-entry').contains('Application Created')
     })
 
-    it.skip('when it is deleted', () => {
+    it('when it is updated', () => {
+        cy.get('.ff-audit-entry').contains('Application Modified')
+    })
+
+    it('when it is deleted', () => {
         cy.get('.ff-audit-entry').contains('Application Deleted')
     })
 })
