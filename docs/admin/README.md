@@ -138,5 +138,5 @@ applied the next time the instance is restarted.
 On FlowForge Cloud, but recommended on self-managed installs on Docker and Kubernetes,
 where certain nodes will not work so are excluded from being used by the template.
 
-When adding `31-tcpin.js,32-udp.js,10-file.js,23-watch.js,90-exec.js` to the `Exlude node by
+When adding `31-tcpin.js,32-udp.js,10-file.js,23-watch.js,90-exec.js` to the `Exclude node by
 filename` section of a template and locking this value users are prevented from using these.
