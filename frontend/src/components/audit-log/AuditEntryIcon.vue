@@ -18,6 +18,7 @@
     <LogoutIcon v-if="icon === 'logout'" class="ff-icon text-gray-600" />
     <ExclamationCircleIcon v-if="icon === 'error'" class="ff-icon text-red-500" />
     <TicketIcon v-if="icon === 'token'" class="ff-icon text-blue-500" />
+    <TemplateIcon v-if="icon === 'template'" class="ff-icon text-red-700" />
 </template>
 
 <script>
@@ -29,7 +30,7 @@ import {
     UserIcon, UserGroupIcon, LockClosedIcon,
     MailIcon, LoginIcon, LogoutIcon, KeyIcon,
     CurrencyDollarIcon, CogIcon, ExclamationCircleIcon,
-    ChipIcon, IdentificationIcon, TicketIcon
+    ChipIcon, IdentificationIcon, TicketIcon, TemplateIcon
 } from '@heroicons/vue/outline'
 
 const iconMap = {
@@ -42,6 +43,11 @@ const iconMap = {
         'settings.update',
         'flows.set',
         'library.set'
+    ],
+    template: [
+        'application.created',
+        'application.updated',
+        'application.deleted'
     ],
     project: [
         'project.created',
@@ -191,6 +197,7 @@ export default {
         LockClosedIcon,
         ProjectIcon,
         NodeRedIcon,
+        TemplateIcon,
         ChipIcon,
         ColorSwatchIcon,
         MailIcon,
