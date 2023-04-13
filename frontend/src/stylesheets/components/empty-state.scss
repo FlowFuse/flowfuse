@@ -1,0 +1,30 @@
+@import '~@flowforge/forge-ui-components/dist/scss/forge-colors.scss';
+
+.ff-empty-state {
+    text-align: center;
+    padding-top: 64px;
+    padding-bottom: 64px;
+    background-color: white;
+    border: 1px solid $ff-grey-200;
+    border-radius: 3px;
+    h1 {
+        font-size: 1.25rem;
+        line-height: 1.25rem;
+        margin-bottom: 1rem;
+    }
+    &--message {
+        max-width: 450px;
+        font-size: 1.1rem;
+        margin: auto;
+        margin-bottom: 1.2rem;
+        p {
+            margin-bottom: 0.75rem;
+            line-height: 1.5rem;
+            color: $ff-grey-800;
+        }
+    }
+    &--actions {
+        display: flex;
+        justify-content: center;
+    }
+}

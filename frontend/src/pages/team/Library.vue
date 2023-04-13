@@ -9,14 +9,14 @@
             <ff-button v-if="contents" @click="copyToClipboard()">Copy to Clipboard</ff-button>
         </template>
     </SectionTopMenu>
-    <div :class="{'ff-breadcrumbs': true, 'disable-last': !viewingFile}">
+    <div v-if="rows.length > 0" :class="{'ff-breadcrumbs': true, 'disable-last': !viewingFile}">
         <span v-for="(crumb, $index) in breadcrumbs" :key="$index" class="flex items-center">
             <label @click="entrySelected(crumb)">{{ crumb.name }}</label>
             <ChevronRightIcon v-if="breadcrumbs.length === 1 || $index !== breadcrumbs.length - 1" class="ff-icon" />
         </span>
     </div>
-    <div>
-        <ff-data-table v-if="!viewingFile " :columns="columns" :rows="rows">
+    <div v-if="rows.length > 0">
+        <ff-data-table v-if="!viewingFile && rows.length > 0" :columns="columns" :rows="rows">
             <template #rows>
                 <ff-data-table-row v-for="row in rows" :key="row" :selectable="true" @click="entrySelected(row)">
                     <ff-data-table-cell><TypeIcon :type="row.type" /></ff-data-table-cell>
@@ -30,6 +30,20 @@
         </ff-data-table>
         <ff-code-previewer v-else ref="code-preview" :snippet="contents" />
     </div>
+    <EmptyState v-else>
+        <template #header>Create your own Team Library</template>
+        <template #message>
+            <p>
+                Node-RED allows you to import and export flows and functions to a shared <a class="ff-link" href="https://flowforge.com/docs/user/shared-library/" target="_blank">Team Library</a>.
+            </p>
+            <p>
+                The contents of this Library are then available within all of your Node-RED instances on FlowForge.
+            </p>
+            <p>
+                You can see a video of how to get started with this feature <a class="ff-link" href="https://www.youtube.com/watch?v=B7XK3TUklUU" target="_blank">here</a>.
+            </p>
+        </template>
+    </EmptyState>
 </template>
 
 <script>
@@ -38,6 +52,7 @@ import { ChevronRightIcon } from '@heroicons/vue/solid'
 
 import teamApi from '../../api/team.js'
 import CodePreviewer from '../../components/CodePreviewer.vue'
+import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import formatDateMixin from '../../mixins/DateTime.js'
 import Alerts from '../../services/alerts.js'
@@ -51,7 +66,8 @@ export default {
         SectionTopMenu,
         ChevronRightIcon,
         'ff-code-previewer': CodePreviewer,
-        TypeIcon
+        TypeIcon,
+        EmptyState
     },
     mixins: [formatDateMixin],
     props: {

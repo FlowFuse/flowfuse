@@ -21,18 +21,13 @@
 
         <div class="space-y-6 mb-12">
             <ff-data-table
+                v-if="instances?.length > 0"
                 data-el="cloud-instances"
                 :columns="cloudColumns"
                 :rows="cloudRows"
                 :rows-selectable="true"
                 @row-selected="selectedCloudRow"
             >
-                <template v-if="instances?.length === 0" #table>
-                    <div class="ff-no-data ff-no-data-large">
-                        This application does not have any instances yet.
-                    </div>
-                </template>
-
                 <template
                     v-if="hasPermission('device:edit')"
                     #context-menu="{row}"
@@ -64,6 +59,27 @@
                     />
                 </template>
             </ff-data-table>
+            <EmptyState v-else>
+                <template #header>Add your Application's First Instance</template>
+                <template #message>
+                    <p>
+                        Applications in FlowForge are used to manage groups of Node-RED Instances.
+                    </p>
+                    <p>
+                        The FlowForge team also have more planned for Applications, including
+                        <a class="ff-link" href="https://github.com/flowforge/flowforge/issues/1734" target="_blank">
+                            shared settings across Instances</a>.
+                    </p>
+                </template>
+                <template #actions>
+                    <ff-button
+                        :to="{ name: 'ApplicationCreateInstance' }"
+                    >
+                        <template #icon-left><PlusSmIcon /></template>
+                        Add Instance
+                    </ff-button>
+                </template>
+            </EmptyState>
         </div>
     </div>
 </template>
@@ -76,6 +92,7 @@ import { mapState } from 'vuex'
 
 import { Roles } from '../../../../forge/lib/roles.js'
 
+import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
 import permissionsMixin from '../../mixins/Permissions.js'
@@ -89,7 +106,8 @@ export default {
     name: 'ProjectOverview',
     components: {
         PlusSmIcon,
-        SectionTopMenu
+        SectionTopMenu,
+        EmptyState
     },
     mixins: [permissionsMixin],
     inheritAttrs: false,

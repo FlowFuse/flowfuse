@@ -17,6 +17,7 @@
         />
         <template v-else>
             <ff-data-table
+                v-if="devices.size > 0"
                 data-el="devices-browser"
                 :columns="columns"
                 :rows="Array.from(devices.values())"
@@ -52,20 +53,6 @@
                         Add Device
                     </ff-button>
                 </template>
-                <template v-if="devices.size === 0" #table>
-                    <div class="ff-no-data ff-no-data-large">
-                        <span v-if="displayingTeam" data-el="team-no-devices">
-                            You don't have any devices yet
-                        </span>
-                        <span v-else-if="displayingInstance" data-el="instance-no-devices">
-                            You have not assigned any devices to this instance yet.
-                        </span>
-
-                        <span v-else data-el="no-devices">
-                            No devices found.
-                        </span>
-                    </div>
-                </template>
                 <template
                     v-if="hasPermission('device:edit')"
                     #context-menu="{row}"
@@ -99,6 +86,66 @@
                     />
                 </template>
             </ff-data-table>
+            <template v-else>
+                <template v-if="displayingTeam">
+                    <EmptyState data-el="team-no-devices">
+                        <template #header>Add your First Device</template>
+                        <template #message>
+                            <p>
+                                Devices in FlowForge allow you to manage Node-RED instances
+                                running on remote hardware.
+                            </p>
+                            <p>
+                                A Device runs the <a
+                                    class="ff-link" href="https://flowforge.com/docs/user/devices"
+                                    target="_blank"
+                                >FlowForge Device Agent</a>, and can be used to deploy and debug
+                                instances anywhere, from here, in FlowForge.
+                            </p>
+                        </template>
+                        <template #actions>
+                            <ff-button
+                                v-if="hasPermission('device:create')"
+                                class="font-normal"
+                                kind="primary"
+                                data-action="register-device"
+                                @click="showCreateDeviceDialog"
+                            >
+                                <template #icon-left>
+                                    <PlusSmIcon />
+                                </template>
+                                Add Device
+                            </ff-button>
+                        </template>
+                    </EmptyState>
+                </template>
+                <template v-else-if="displayingInstance">
+                    <EmptyState data-el="instance-no-devices">
+                        <template #header>Connect your First Device</template>
+                        <template #message>
+                            <p>
+                                Here, you will see a list of Devices connected to this Node-RED Instance.
+                            </p>
+                            <p>
+                                You can deploy Snapshots of this Instance to your connected Devices.
+                            </p>
+                            <p>
+                                A full list of your Team's Devices are available <router-link
+                                    class="ff-link"
+                                    :to="{name: 'TeamDevices', params: {team_slug: team.slug}}"
+                                >
+                                    here
+                                </router-link>.
+                            </p>
+                        </template>
+                    </EmptyState>
+                </template>
+                <div v-else class="ff-no-data ff-no-data-large">
+                    <span data-el="no-devices">
+                        No devices found.
+                    </span>
+                </div>
+            </template>
         </template>
     </div>
 
@@ -171,6 +218,8 @@ import TeamDeviceCreateDialog from '../pages/team/Devices/dialogs/TeamDeviceCrea
 import Alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 
+import EmptyState from './EmptyState.vue'
+
 export default {
     name: 'ProjectOverview',
     components: {
@@ -179,7 +228,8 @@ export default {
         DeviceCredentialsDialog,
         PlusSmIcon,
         SnapshotAssignDialog,
-        TeamDeviceCreateDialog
+        TeamDeviceCreateDialog,
+        EmptyState
     },
     mixins: [permissionsMixin],
     inheritAttrs: false,

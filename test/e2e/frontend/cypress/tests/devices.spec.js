@@ -16,7 +16,7 @@ describe('FlowForge - Devices', () => {
         })
 
         it('shows a placeholder message when no devices have been created', () => {
-            cy.get('main').contains('You don\'t have any devices yet')
+            cy.get('main').contains('Add your First Device')
         })
 
         it('provides functionality to register a device', () => {
@@ -63,7 +63,7 @@ describe('FlowForge - Devices', () => {
 
             cy.wait('@deleteDevice')
 
-            cy.get('main').contains('You don\'t have any devices yet')
+            cy.get('main').contains('Add your First Device')
         })
 
         it('can load multiple pages of devices when the API paginates', function () {
