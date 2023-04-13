@@ -30,7 +30,7 @@
         </ff-data-table>
         <ff-code-previewer v-else ref="code-preview" :snippet="contents" />
     </div>
-    <EmptyState>
+    <EmptyState v-else>
         <template #header>Create your own Team Library</template>
         <template #message>
             <p>
@@ -52,8 +52,8 @@ import { ChevronRightIcon } from '@heroicons/vue/solid'
 
 import teamApi from '../../api/team.js'
 import CodePreviewer from '../../components/CodePreviewer.vue'
-import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import EmptyState from '../../components/EmptyState.vue'
+import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import formatDateMixin from '../../mixins/DateTime.js'
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
