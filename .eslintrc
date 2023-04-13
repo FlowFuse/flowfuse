@@ -696,14 +696,6 @@
         },
         {
             "rules": {
-                "vue/no-lone-template": "off"
-            },
-            "files": [
-                "frontend/src/components/banners/LicenseBanner.vue"
-            ]
-        },
-        {
-            "rules": {
                 "vue/no-multi-spaces": "off"
             },
             "files": [
