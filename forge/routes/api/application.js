@@ -1,4 +1,3 @@
-
 module.exports = async function (app) {
     app.addHook('preHandler', async (request, reply) => {
         const applicationId = request.params.applicationId
@@ -114,7 +113,7 @@ module.exports = async function (app) {
 
         const team = request.application.Team
         if (team) {
-            await app.auditLog.Team.application.updated(request.session.User, null, team, request.application, changes)
+            await app.auditLog.Team.application.updated(request.session.User, null, team, request.application, updates)
         }
 
         reply.send(app.db.views.Application.application(request.application))

@@ -1,6 +1,6 @@
 <template>
     <SectionTopMenu hero="Application Settings" />
-    <div class="flex flex-col sm:flex-row mt-9 ml-6">
+    <div class="flex flex-col sm:flex-row mt-9 ml-6" data-el="application-settings">
         <SectionSideMenu :options="sideNavigation" />
         <div class="space-y-6">
             <FormHeading class="mb-6">Application Details</FormHeading>
@@ -9,18 +9,18 @@
                     Application ID
                 </FormRow>
 
-                <FormRow id="projectName" ref="appName" v-model="input.projectName" :type="editing ? 'text' : 'uneditable'">
+                <FormRow id="projectName" ref="appName" v-model="input.projectName" data-form="application-name" :type="editing ? 'text' : 'uneditable'">
                     Name
                 </FormRow>
             </div>
             <div class="space-x-4 whitespace-nowrap">
                 <template v-if="!editing">
-                    <ff-button kind="primary" @click="editName">Edit Application Name</ff-button>
+                    <ff-button kind="primary" data-action="application-edit" @click="editName">Edit Application Name</ff-button>
                 </template>
                 <template v-else>
                     <div class="flex gap-x-3">
                         <ff-button kind="secondary" @click="cancelEditName">Cancel</ff-button>
-                        <ff-button kind="primary" :disabled="!formValid" @click="saveApplication">Save</ff-button>
+                        <ff-button kind="primary" :disabled="!formValid" data-form="submit" @click="saveApplication">Save</ff-button>
                     </div>
                 </template>
             </div>
