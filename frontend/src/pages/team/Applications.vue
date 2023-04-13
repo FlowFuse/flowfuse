@@ -68,9 +68,6 @@
                 You are now able to create applications, instances & devices.
             </div>
         </div>
-        <div v-else class="ff-no-data">
-            No Applications Created
-        </div>
         <div v-else>
             <EmptyState>
                 <template #header>Get Started with your First Application</template>
