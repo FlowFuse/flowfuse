@@ -333,26 +333,10 @@
         },
         {
             "rules": {
-                "indent": "off"
-            },
-            "files": [
-                "config/babel.config.js"
-            ]
-        },
-        {
-            "rules": {
                 "n/no-process-exit": "off"
             },
             "files": [
                 "forge/app.js",
-                "test/e2e/frontend/test_environment.js"
-            ]
-        },
-        {
-            "rules": {
-                "n/shebang": "off"
-            },
-            "files": [
                 "test/e2e/frontend/test_environment.js"
             ]
         },
@@ -397,24 +381,6 @@
             },
             "files": [
                 "frontend/src/pages/team/Devices/dialogs/TeamDeviceCreateDialog.vue"
-            ]
-        },
-        {
-            "rules": {
-                "quotes": "off"
-            },
-            "files": [
-                "config/babel.config.js",
-                "config/postcss.config.js"
-            ]
-        },
-        {
-            "rules": {
-                "semi": "off"
-            },
-            "files": [
-                "config/babel.config.js",
-                "config/postcss.config.js"
             ]
         },
         {
