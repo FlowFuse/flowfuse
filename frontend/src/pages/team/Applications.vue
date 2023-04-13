@@ -75,8 +75,7 @@
                     <p>Applications in FlowForge are used to manage groups of Node-RED Instances</p>
                     <p>
                         Instances within Applications can be connected as
-                        <a class="ff-link" href="https://flowforge.com/docs/user/staged-deployments"
-                        target="_blank">Staged Deployments.</a>
+                        <a class="ff-link" href="https://flowforge.com/docs/user/staged-deployments" target="_blank">Staged Deployments.</a>
                     </p>
                     <p>
                         The FlowForge team also have more planned for Applications, including

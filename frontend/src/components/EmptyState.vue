@@ -1,20 +1,20 @@
 <template>
     <div class="ff-empty-state">
         <h1>
-            <slot name="header"></slot>
+            <slot name="header" />
         </h1>
         <div class="ff-empty-state--message">
-            <slot name="message"></slot>
+            <slot name="message" />
         </div>
         <div class="ff-empty-state--actions">
-            <slot name="actions"></slot>
+            <slot name="actions" />
         </div>
     </div>
 </template>
 
 <script>
 export default {
-    name: "EmptyState"
+    name: 'EmptyState'
 }
 </script>
 
