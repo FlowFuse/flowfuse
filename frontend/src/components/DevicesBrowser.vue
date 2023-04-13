@@ -116,10 +116,23 @@
                         </template>
                     </EmptyState>
                 </template>
-                <span v-else-if="displayingInstance" data-el="instance-no-devices">
-                    You have not assigned any devices to this instance yet.
-                </span>
-
+                <template v-else-if="displayingInstance" data-el="instance-no-devices">
+                    <EmptyState>
+                        <template #header>Connect your First Device</template>
+                        <template #message>
+                            <p>
+                                Here, you will see a list of Devices connected to this Node-RED Instance.
+                            </p>
+                            <p>
+                                You can deploy Snapshots of this Instance to your connected Devices.
+                            </p>
+                            <p>
+                                A full list of your Team's Devices are available <router-link class="ff-link"
+                                :to="{name: 'TeamDevices', params: {team_slug: team.slug}}">here</router-link>.
+                            </p>
+                        </template>
+                    </EmptyState>
+                </template>
                 <div v-else class="ff-no-data ff-no-data-large">
                     <span data-el="no-devices">
                         No devices found.
