@@ -333,15 +333,6 @@
         },
         {
             "rules": {
-                "n/no-process-exit": "off"
-            },
-            "files": [
-                "forge/app.js",
-                "test/e2e/frontend/test_environment.js"
-            ]
-        },
-        {
-            "rules": {
                 "promise/always-return": "off"
             },
             "files": [
