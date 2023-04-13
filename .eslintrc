@@ -12,7 +12,7 @@
     "parserOptions": {
         "ecmaVersion": 2022
     },
-    "ignorePatterns": ["frontend/dist/", "var/", "*.svg"],
+    "ignorePatterns": ["frontend/dist/", "var/", "*.svg", "*.xml"],
     "plugins": ["promise"],
     "settings": {
         "import/core-modules": [ "lottie-web-vue", "@heroicons/vue" ],
@@ -472,8 +472,6 @@
                 "vue/comment-directive": "off"
             },
             "files": [
-                "docs/contribute/images/ff-arch1.drawio.xml",
-                "docs/contribute/images/ff-project-arch.drawio.xml",
                 "frontend/dist-setup/setup.html",
                 "frontend/src/index.html",
                 "frontend/src/setup.html"
