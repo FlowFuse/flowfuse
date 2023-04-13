@@ -71,6 +71,33 @@
         <div v-else class="ff-no-data">
             No Applications Created
         </div>
+        <div v-else>
+            <EmptyState>
+                <template #header>Get Started with your First Application</template>
+                <template #message>
+                    <p>Applications in FlowForge are used to manage groups of Node-RED Instances</p>
+                    <p>
+                        Instances within Applications can share settings like <a class="ff-link"
+                        href="https://flowforge.com/docs/user/envvar/">Environment Variables</a>,
+                        and be connected as <a class="ff-link" href="https://flowforge.com/docs/user/staged-deployments"
+                        target="_blank">Staged Deployments.</a>
+                    </p>
+                </template>
+                <template #actions>
+                    <ff-button
+                        v-if="hasPermission('project:create')"
+                        data-action="create-application"
+                        kind="primary"
+                        :to="{name: 'CreateTeamApplication'}"
+                    >
+                        <template #icon-left>
+                            <PlusSmIcon />
+                        </template>
+                        Create Application
+                    </ff-button>
+                </template>
+            </EmptyState>
+        </div>
     </div>
     <router-view />
 </template>
@@ -79,6 +106,7 @@
 import { PlusSmIcon, TemplateIcon } from '@heroicons/vue/outline'
 
 import teamApi from '../../api/team.js'
+import EmptyState from '../../components/EmptyState.vue'
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import ProjectIcon from '../../components/icons/Projects.js'
@@ -89,6 +117,7 @@ import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 export default {
     name: 'TeamApplications',
     components: {
+        EmptyState,
         InstanceEditorLink,
         InstanceStatusBadge,
         InstanceStatusPolling,
