@@ -24,6 +24,8 @@ jobs:
       # Install NPM dependencies
       - name: Install Dependencies
         run: npm install
+      - name: Run Linting Tests
+        run: npm run lint
       # and run all Cypress tests
       - name: Run UI Unit Tests
         run: npm run test:unit:frontend
