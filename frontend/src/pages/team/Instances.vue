@@ -3,17 +3,21 @@
     <div class="space-y-6">
         <ff-loading v-if="loading" message="Loading Instances..." />
         <template v-else>
-            <ff-data-table v-if="instances.length > 0"
+            <ff-data-table
+                v-if="instances.length > 0"
                 data-el="instances-table" :columns="columns" :rows="instances" :show-search="true" search-placeholder="Search Instances..."
                 :rows-selectable="true" @row-selected="openInstance"
-            >
-            </ff-data-table>
+            />
             <EmptyState v-else>
                 <template #header>Get Started with your First Node-RED Instance</template>
                 <template #message>
                     <p>
-                        Instances are managed in FlowForge via <router-link class="ff-link"
-                        :to="{name:'Applications', params: {team_slug: team.slug}}">Applications</router-link> .
+                        Instances are managed in FlowForge via <router-link
+                            class="ff-link"
+                            :to="{name:'Applications', params: {team_slug: team.slug}}"
+                        >
+                            Applications
+                        </router-link> .
                     </p>
                     <p>
                         You can create your first Instance when creating your first Application.
@@ -37,8 +41,8 @@
 </template>
 
 <script>
-import { markRaw } from 'vue'
 import { PlusSmIcon } from '@heroicons/vue/outline'
+import { markRaw } from 'vue'
 
 import teamApi from '../../api/team.js'
 import EmptyState from '../../components/EmptyState.vue'
