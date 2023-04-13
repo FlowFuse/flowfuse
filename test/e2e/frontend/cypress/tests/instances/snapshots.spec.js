@@ -18,7 +18,7 @@ describe('FlowForge - Instance Snapshots', () => {
     })
 
     it('shows a placeholder message when no snapshots have been created', () => {
-        cy.get('main').contains('You have not created any snapshots yet')
+        cy.get('main').contains('Create your First Snapshot')
     })
 
     it('provides functionality to create a snapshot', () => {
@@ -67,7 +67,7 @@ describe('FlowForge - Instance Snapshots', () => {
 
         cy.wait('@deleteSnapshot')
 
-        cy.get('main').contains('You have not created any snapshots yet')
+        cy.get('main').contains('Create your First Snapshot')
     })
 })
 
