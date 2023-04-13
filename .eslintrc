@@ -571,15 +571,6 @@
         },
         {
             "rules": {
-                "vue/html-quotes": "off"
-            },
-            "files": [
-                "frontend/src/components/tables/cells/TeamCell.vue",
-                "frontend/src/pages/admin/InstanceTypes/components/InstanceTypeDescriptionCell.vue"
-            ]
-        },
-        {
-            "rules": {
                 "vue/html-self-closing": "off"
             },
             "files": [
