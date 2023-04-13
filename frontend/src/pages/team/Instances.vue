@@ -22,7 +22,6 @@
                 <template #actions>
                     <ff-button
                         v-if="hasPermission('project:create')"
-                        data-action="create-application"
                         kind="primary"
                         :to="{name: 'CreateTeamApplication'}"
                     >
