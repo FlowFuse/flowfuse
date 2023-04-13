@@ -368,14 +368,6 @@
         },
         {
             "rules": {
-                "promise/no-nesting": "off"
-            },
-            "files": [
-                "frontend/src/pages/team/Devices/dialogs/TeamDeviceCreateDialog.vue"
-            ]
-        },
-        {
-            "rules": {
                 "sort-imports": "off"
             },
             "files": [
