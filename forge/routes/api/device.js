@@ -357,6 +357,17 @@ module.exports = async function (app) {
         const team = await app.db.models.Team.byId(request.device.TeamId)
         app.comms.devices.streamLogs(team.hashid, request.device.hashid, connection.socket)
     })
+
+    app.post('/:deviceId/startEditor', async (request, reply) => {
+        const team = await app.db.models.Team.byId(request.device.TeamId)
+        app.comms.devices.startEditor(team.hashid, request.device.hashid)
+        reply.send({url: `http://localhost:3000/api/v1/remote/editor/${request.device.hashid}/`})
+    })
+
+    app.post('/:deviceId/stopEditor', async (request, reply) => {
+        const team = await app.db.models.Team.byId(request.device.TeamId)
+        app.comms.devices.startEditor(team.hashid, request.device.hashid)
+    })
 }
 async function assignDeviceToProject (device, project) {
     await device.setProject(project)

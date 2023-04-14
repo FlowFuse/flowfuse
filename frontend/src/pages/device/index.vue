@@ -34,6 +34,22 @@
                         </div>
                     </div>
                 </template>
+                <template #tools>
+                    <div class="space-x-2 flex align-center">
+                        <ff-button v-if="!isVisitingAdmin" kind="secondary" data-action="open-editor" :disabled="!editorAvailable()" @click="openEditor()">
+                            <template #icon-right>
+                                <ExternalLinkIcon />
+                            </template>
+                            {{ !device.status === 'running' ? 'Editor Not Available' : 'Open Editor' }}
+                        </ff-button>
+                        <button v-else title="Unable to open editor when visiting as an admin" class="ff-btn ff-btn--secondary">
+                            Open Editor
+                            <span class="ff-btn--icon ff-btn--icon-right">
+                                <ExternalLinkIcon />
+                            </span>
+                        </button>
+                    </div>
+                </template>
             </InstanceStatusHeader>
         </div>
         <div class="text-sm sm:px-6 mt-4 sm:mt-8">
@@ -49,7 +65,9 @@
 
 <script>
 // APIs
+import { ExternalLinkIcon } from '@heroicons/vue/outline'
 import { ChipIcon, CogIcon, TerminalIcon } from '@heroicons/vue/solid'
+import semver from 'semver'
 import { mapState } from 'vuex'
 
 import { Roles } from '../../../../forge/lib/roles.js'
@@ -61,6 +79,7 @@ import NavItem from '../../components/NavItem.vue'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
+import Dialog from '../../services/dialog.js'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
@@ -68,6 +87,7 @@ import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
 export default {
     name: 'DevicePage',
     components: {
+        ExternalLinkIcon,
         NavItem,
         InstanceStatusHeader,
         InstanceStatusBadge,
@@ -115,6 +135,23 @@ export default {
                     icon: TerminalIcon
                 })
             }
+        },
+        openEditor: async function () {
+            Dialog.show({
+                header: 'Notice',
+                text: 'The Device Editor is only for debugging, changes will not be stored to the snapshot'
+            }, async () => {
+                // open editor
+                const data = await deviceApi.startEditor(this.device.id)
+                console.error(data.url)
+                window.open(data.url, '_blank')
+            })
+        },
+        editorAvailable: function () {
+            if (this.features.projectComms) {
+                return this.device.status === 'running' && (this.device.agentVersion && semver.gt(this.device.agentVersion, '0.6.1'))
+            }
+            return false
         }
     }
 }

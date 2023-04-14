@@ -13,7 +13,8 @@ module.exports = {
                 activeSnapshot: app.db.views.ProjectSnapshot.snapshot(device.activeSnapshot),
                 targetSnapshot: app.db.views.ProjectSnapshot.snapshot(device.targetSnapshot),
                 links: result.links,
-                status: result.state || 'offline'
+                status: result.state || 'offline',
+                agentVersion: result.agentVersion
             }
             if (device.Team) {
                 filtered.team = app.db.views.Team.teamSummary(device.Team)

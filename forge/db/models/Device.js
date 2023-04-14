@@ -19,7 +19,8 @@ module.exports = {
         credentialSecret: { type: DataTypes.STRING, allowNull: false },
         state: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
         lastSeenAt: { type: DataTypes.DATE, allowNull: true },
-        settingsHash: { type: DataTypes.STRING, allowNull: true }
+        settingsHash: { type: DataTypes.STRING, allowNull: true },
+        agentVersion: { type: DataTypes.STRING, allowNull: true }
     },
     associations: function (M) {
         this.belongsTo(M.Team)

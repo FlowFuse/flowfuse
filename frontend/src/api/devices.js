@@ -52,6 +52,16 @@ const updateSettings = async (deviceId, settings) => {
     })
 }
 
+const startEditor = async (deviceId) => {
+    return client.post(`/api/v1/devices/${deviceId}/startEditor`).then(res => {
+        return res.data
+    })
+}
+
+const stopEditor = async (deviceId) => {
+    return client.post(`/api/v1/devices/${deviceId}/stopEditor`).then(res => {})
+}
+
 export default {
     create,
     getDevice,
@@ -60,5 +70,7 @@ export default {
     updateDevice,
     generateCredentials,
     getSettings,
-    updateSettings
+    updateSettings,
+    startEditor,
+    stopEditor
 }

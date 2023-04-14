@@ -121,6 +121,14 @@ class DeviceCommsHandler {
             // socket not found
         }
     }
+
+    startEditor (teamId, deviceId) {
+        this.sendCommand(teamId, deviceId, 'startEditor', '')
+    }
+
+    stopEditor (teamId, deviceId) {
+        this.sendCommand(teamId, deviceId, 'stopEditor', '')
+    }
 }
 
 module.exports = {

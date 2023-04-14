@@ -16,6 +16,7 @@ const Settings = require('./settings.js')
 const Stack = require('./stack.js')
 const Template = require('./template.js')
 const Device = require('./device.js')
+const DeviceEditor = require('./deviceEditor.js')
 const ProjectType = require('./projectType.js')
 
 module.exports = async function (app) {
@@ -39,6 +40,7 @@ module.exports = async function (app) {
     app.register(Stack, { prefix: '/stacks' })
     app.register(Template, { prefix: '/templates' })
     app.register(Device, { prefix: '/devices' })
+    app.register(DeviceEditor, { prefix: '/remote/editor' })
     app.register(ProjectType, { prefix: '/project-types' })
     app.get('*', function (request, reply) {
         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
