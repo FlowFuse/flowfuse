@@ -11,6 +11,11 @@ module.exports = fp(async function (app, _opts, next) {
     let poStartupCheck
     const isConfigured = EMAIL_ENABLED && (app.config.email.smtp || app.config.email.transport || app.config.email.ses)
     const mailDefaults = { from: app.config.email.from ? app.config.email.from : '"FlowForge Platform" <donotreply@flowforge.com>' }
+    app.addHook('onClose', async (_) => {
+        if (poStartupCheck) {
+            clearInterval(poStartupCheck)
+        }
+    })
 
     // Startup initialisation
     init(false, (err, connected) => {
