@@ -7,11 +7,11 @@ const crypto = require('crypto')
 describe('Project controller', function () {
     // Use standard test data.
     let app
-    beforeEach(async function () {
+    before(async function () {
         app = await setup()
     })
 
-    afterEach(async function () {
+    after(async function () {
         await app.close()
     })
 
@@ -69,7 +69,7 @@ describe('Project controller', function () {
     describe('getRuntimeSettings', function () {
         it('generates runtime settings object', async function () {
             const template = await app.db.models.ProjectTemplate.create({
-                name: 'defaultTemplate',
+                name: 'defaultTemplate-001',
                 active: true,
                 settings: {
                     disableEditor: true,
@@ -91,7 +91,7 @@ describe('Project controller', function () {
                 policy: {}
             })
             const project = await app.db.models.Project.create({
-                name: 'testProject',
+                name: 'testProject-001',
                 type: '',
                 url: ''
             })
@@ -137,19 +137,87 @@ describe('Project controller', function () {
             result.env.should.have.property('two', 'b')
             result.env.should.have.property('three', 'c')
             result.env.should.have.property('FF_PROJECT_ID', project.id) // deprecated in favour of FF_INSTANCE_ID as of V1.6.0
-            result.env.should.have.property('FF_PROJECT_NAME', 'testProject') // deprecated in favour of FF_INSTANCE_NAME as of V1.6.0
+            result.env.should.have.property('FF_PROJECT_NAME', 'testProject-001') // deprecated in favour of FF_INSTANCE_NAME as of V1.6.0
             result.env.should.have.property('FF_INSTANCE_ID', project.id)
-            result.env.should.have.property('FF_INSTANCE_NAME', 'testProject')
+            result.env.should.have.property('FF_INSTANCE_NAME', 'testProject-001')
             result.env.should.not.have.property('FF_PROJECT_VAR_TEST')
             result.env.should.not.have.property('FF_DEVICE_VAR_TEST')
             result.env.should.not.have.property('FF_RANDOM_XXX_123')
         })
     })
 
+    describe('addProjectModule', function () {
+        it('adds modules to existing project settings', async function () {
+            let project = await app.db.models.Project.create({
+                name: 'testProject-002',
+                type: '',
+                url: ''
+            })
+
+            project = await app.db.models.Project.byId(project.id)
+            await project.updateSetting('settings', {
+                palette: {
+                    modules: [
+                        { name: 'upgraded-module', version: '1', local: true },
+                        { name: 'another-module', version: '1', local: true }
+                    ]
+                }
+            })
+
+            await app.db.controllers.Project.addProjectModule(project, 'new-module', '1')
+            await app.db.controllers.Project.addProjectModule(project, 'upgraded-module', '2')
+
+            const updatedSettings = await project.getSetting('settings')
+            updatedSettings.palette.modules.should.have.length(3)
+            updatedSettings.palette.modules.sort((A, B) => A.name.localeCompare(B.name))
+
+            // 'another-module' left untouched
+            updatedSettings.palette.modules[0].should.have.property('name', 'another-module')
+            updatedSettings.palette.modules[0].should.have.property('version', '1')
+
+            // 'new-module' added
+            updatedSettings.palette.modules[1].should.have.property('name', 'new-module')
+            updatedSettings.palette.modules[1].should.have.property('version', '~1')
+
+            // 'upgraded-module' added
+            updatedSettings.palette.modules[2].should.have.property('name', 'upgraded-module')
+            updatedSettings.palette.modules[2].should.have.property('version', '~2')
+        })
+    })
+    describe('removeProjectModule', function () {
+        it('removes module from existing project settings', async function () {
+            let project = await app.db.models.Project.create({
+                name: 'testProject-003',
+                type: '',
+                url: ''
+            })
+
+            project = await app.db.models.Project.byId(project.id)
+            await project.updateSetting('settings', {
+                palette: {
+                    modules: [
+                        { name: 'upgraded-module', version: '1', local: true },
+                        { name: 'another-module', version: '1', local: true }
+                    ]
+                }
+            })
+
+            await app.db.controllers.Project.removeProjectModule(project, 'another-module', '1')
+
+            const updatedSettings = await project.getSetting('settings')
+            updatedSettings.palette.modules.should.have.length(1)
+            updatedSettings.palette.modules.sort((A, B) => A.name.localeCompare(B.name))
+
+            // 'upgraded-module' untouched
+            updatedSettings.palette.modules[0].should.have.property('name', 'upgraded-module')
+            updatedSettings.palette.modules[0].should.have.property('version', '1')
+        })
+    })
+
     describe('mergeProjectModules', function () {
         it('updates without project that has no modules currently', async function () {
             const project = await app.db.models.Project.create({
-                name: 'testProject',
+                name: 'testProject-004',
                 type: '',
                 url: ''
             })
@@ -173,9 +241,48 @@ describe('Project controller', function () {
             updatedSettings.palette.modules[1].should.have.property('version', '~2')
         })
 
-        it('updates project settings based on Node-RED module list', async function () {
+        it('adds new modules to project settings', async function () {
             const project = await app.db.models.Project.create({
-                name: 'testProject',
+                name: 'testProject-005',
+                type: '',
+                url: ''
+            })
+
+            await project.updateSetting('settings', {
+                palette: {
+                    modules: [
+                        { name: 'not-upgraded-module', version: '1', local: true },
+                        { name: 'another-module', version: '1', local: true }
+                    ]
+                }
+            })
+
+            const reloadedProject = await app.db.models.Project.byId(project.id)
+
+            await app.db.controllers.Project.mergeProjectModules(reloadedProject, [
+                { name: 'new-module', version: '1', local: true },
+                { name: 'not-upgraded-module', version: '2', local: true }
+            ])
+
+            const updatedSettings = await project.getSetting('settings')
+            updatedSettings.palette.modules.should.have.length(3)
+            updatedSettings.palette.modules.sort((A, B) => A.name.localeCompare(B.name))
+            // 'another-module' left untouched
+            updatedSettings.palette.modules[0].should.have.property('name', 'another-module')
+            updatedSettings.palette.modules[0].should.have.property('version', '1')
+
+            // 'new-module' added
+            updatedSettings.palette.modules[1].should.have.property('name', 'new-module')
+            updatedSettings.palette.modules[1].should.have.property('version', '~1')
+
+            // 'not-upgraded-module' untouched
+            updatedSettings.palette.modules[2].should.have.property('name', 'not-upgraded-module')
+            updatedSettings.palette.modules[2].should.have.property('version', '1')
+        })
+
+        it('updates existing modules in project settings', async function () {
+            const project = await app.db.models.Project.create({
+                name: 'testProject-006',
                 type: '',
                 url: ''
             })
@@ -194,7 +301,8 @@ describe('Project controller', function () {
             await app.db.controllers.Project.mergeProjectModules(reloadedProject, [
                 { name: 'new-module', version: '1', local: true },
                 { name: 'upgraded-module', version: '2', local: true }
-            ])
+            ],
+            true) // <-- flag to update existing)
 
             const updatedSettings = await project.getSetting('settings')
             updatedSettings.palette.modules.should.have.length(3)
@@ -207,7 +315,7 @@ describe('Project controller', function () {
             updatedSettings.palette.modules[1].should.have.property('name', 'new-module')
             updatedSettings.palette.modules[1].should.have.property('version', '~1')
 
-            // 'upgraded-module' upgraded
+            // 'not-upgraded-module' untouched
             updatedSettings.palette.modules[2].should.have.property('name', 'upgraded-module')
             updatedSettings.palette.modules[2].should.have.property('version', '~2')
         })
