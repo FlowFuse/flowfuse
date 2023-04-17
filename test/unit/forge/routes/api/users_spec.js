@@ -12,7 +12,8 @@ describe('Users API', async function () {
     //     const result = app.db.views.AuditLog.auditLog(logEntries)
     //     return { log: result.log, logRaw }
     // }
-    beforeEach(async function () {
+
+    before(async function () {
         app = await setup({
             features: { devices: true }
         })
@@ -22,6 +23,8 @@ describe('Users API', async function () {
         // chris (team owner)
         // dave <-- the only user who can be cleanly deleted
         // elvis <-- this user doesn't have email_verified
+
+        // fred <-- this user only gets created in the 'delete' tests. Do not add elsewhere
 
         // ATeam ( alice  (owner), bob (owner), chris)
         // BTeam ( bob (owner), chris, dave)
@@ -54,6 +57,7 @@ describe('Users API', async function () {
         await TestObjects.DTeam.addUser(TestObjects.elvis, { through: { role: Roles.Member } })
 
         TestObjects.tokens = {}
+
         await login('alice', 'aaPassword')
         await login('bob', 'bbPassword')
         await login('chris', 'ccPassword')
@@ -93,7 +97,7 @@ describe('Users API', async function () {
         return response.json()
     }
 
-    afterEach(async function () {
+    after(async function () {
         await app.close()
     })
     describe('List users', async function () {
@@ -170,6 +174,7 @@ describe('Users API', async function () {
             // TODO: response should be unauthorised
         })
     })
+
     describe('Update user settings', async function () {
         describe('Default Team', async function () {
             // PUT /api/v1/users/:userId
@@ -328,6 +333,17 @@ describe('Users API', async function () {
     describe('Delete a user', async function () {
         // DELETE /api/v1/users/:userId
 
+        beforeEach(async function () {
+            // Create a user just for the delete tests
+            const fred = await app.db.models.User.byUsername('fred')
+            if (!fred) {
+                TestObjects.fred = await app.db.models.User.create({ username: 'fred', name: 'Fred Binks', email: 'fred@example.com', email_verified: false, password: 'ffPassword' })
+                await login('fred', 'ffPassword')
+                await TestObjects.ATeam.addUser(TestObjects.fred, { through: { role: Roles.Member } })
+                await TestObjects.DTeam.addUser(TestObjects.fred, { through: { role: Roles.Member } })
+            }
+        })
+
         it('Cannot delete an admin user', async function () {
             // Alice cannot delete Bob
             const response = await app.inject({
@@ -381,32 +397,32 @@ describe('Users API', async function () {
             const response = await app.inject({
                 method: 'GET',
                 url: '/api/v1/user',
-                cookies: { sid: TestObjects.tokens.dave }
+                cookies: { sid: TestObjects.tokens.fred }
             })
             response.statusCode.should.equal(200)
             const deleteResult = await app.inject({
                 method: 'DELETE',
-                url: `/api/v1/users/${TestObjects.elvis.hashid}`,
+                url: `/api/v1/users/${TestObjects.fred.hashid}`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
             deleteResult.statusCode.should.equal(200)
             const postDeleteResponse = await app.inject({
                 method: 'GET',
                 url: '/api/v1/user',
-                cookies: { sid: TestObjects.tokens.elvis }
+                cookies: { sid: TestObjects.tokens.fred }
             })
             postDeleteResponse.statusCode.should.equal(401)
         })
 
         it('Deleting a user removes pending invites for them', async function () {
-            // Chris invites Elvis to TeamC
-            // Delete Elvis
+            // Chris invites Fred to TeamC
+            // Delete Fred
             const response = await app.inject({
                 method: 'POST',
                 url: `/api/v1/teams/${TestObjects.CTeam.hashid}/invitations`,
                 cookies: { sid: TestObjects.tokens.chris },
                 payload: {
-                    user: 'elvis'
+                    user: 'fred'
                 }
             })
             response.statusCode.should.equal(200)
@@ -418,7 +434,7 @@ describe('Users API', async function () {
             inviteListA.should.have.property('count', 1)
             const deleteResult = await app.inject({
                 method: 'DELETE',
-                url: `/api/v1/users/${TestObjects.elvis.hashid}`,
+                url: `/api/v1/users/${TestObjects.fred.hashid}`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
             deleteResult.statusCode.should.equal(200)
@@ -431,7 +447,7 @@ describe('Users API', async function () {
         })
 
         it('Deleting a user removes them from all teams they are in', async function () {
-            // elvis is in ATeam and DTeam
+            // fred is in ATeam and DTeam
             // - delete elvis - check the member lists
 
             const getTeamMembers = async (teamId) => {
@@ -443,25 +459,25 @@ describe('Users API', async function () {
             }
             const membersBeforeA = await getTeamMembers(TestObjects.ATeam.hashid)
             const membersBeforeD = await getTeamMembers(TestObjects.DTeam.hashid)
-            membersBeforeA.should.have.property('count', 4)
-            membersBeforeD.should.have.property('count', 3)
+            membersBeforeA.should.have.property('count', 5)
+            membersBeforeD.should.have.property('count', 4)
             // ensure elvis was actually added
-            membersBeforeA.members.filter(e => e.username === 'elvis').should.have.property('length', 1)
-            membersBeforeD.members.filter(e => e.username === 'elvis').should.have.property('length', 1)
+            membersBeforeA.members.filter(e => e.username === 'fred').should.have.property('length', 1)
+            membersBeforeD.members.filter(e => e.username === 'fred').should.have.property('length', 1)
 
             await app.inject({
                 method: 'DELETE',
-                url: `/api/v1/users/${TestObjects.elvis.hashid}`,
+                url: `/api/v1/users/${TestObjects.fred.hashid}`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
 
             const membersAfterA = await getTeamMembers(TestObjects.ATeam.hashid)
             const membersAfterD = await getTeamMembers(TestObjects.DTeam.hashid)
-            membersAfterA.should.have.property('count', 3)
-            membersAfterD.should.have.property('count', 2)
+            membersAfterA.should.have.property('count', 4)
+            membersAfterD.should.have.property('count', 3)
             // ensure elvis was actually removed
-            membersAfterA.members.filter(e => e.username === 'elvis').should.have.property('length', 0)
-            membersAfterA.members.filter(e => e.username === 'elvis').should.have.property('length', 0)
+            membersAfterA.members.filter(e => e.username === 'fred').should.have.property('length', 0)
+            membersAfterA.members.filter(e => e.username === 'fred').should.have.property('length', 0)
 
             // TODO: test audit log has 'users.delete-user'  { status: 'okay', user: request.user }
         })
@@ -517,6 +533,9 @@ describe('Users API', async function () {
             suspendResponse.should.have.property('statusCode', 200)
             suspendResponse.json().should.have.property('id', TestObjects.elvis.hashid)
             suspendResponse.json().should.have.property('suspended', true)
+
+            TestObjects.elvis.suspended = false
+            await TestObjects.elvis.save()
 
             // TODO: test audit log has { status: 'okay', old: originalValues, new: newValues, user: logUserInfo }
         })

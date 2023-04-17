@@ -6,8 +6,10 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 describe('Team Members API', function () {
     let app
     const TestObjects = {}
-    beforeEach(async function () {
-        app = await setup()
+
+    async function setupUsers () {
+        await app.db.models.TeamMember.destroy({ where: {} })
+        await app.db.models.User.destroy({ where: {} })
 
         // alice : admin
         // bob
@@ -19,13 +21,20 @@ describe('Team Members API', function () {
 
         // Alice create in setup()
         TestObjects.alice = await app.db.models.User.byUsername('alice')
+        if (!TestObjects.alice) {
+            TestObjects.alice = await app.db.models.User.create({
+                admin: true,
+                username: 'alice',
+                name: 'Alice Skywalker',
+                email: 'alice@example.com',
+                password: 'aaPassword',
+                email_verified: 'true'
+            })
+            await TestObjects.ATeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+        }
+
         TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
         TestObjects.chris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', email_verified: true, password: 'ccPassword' })
-
-        // ATeam create in setup()
-        TestObjects.ATeam = await app.db.models.Team.byName('ATeam')
-        TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: app.defaultTeamType.id })
-        TestObjects.CTeam = await app.db.models.Team.create({ name: 'CTeam', TeamTypeId: app.defaultTeamType.id })
 
         // Alice set as ATeam owner in setup()
         await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
@@ -40,8 +49,21 @@ describe('Team Members API', function () {
         await login('alice', 'aaPassword')
         await login('bob', 'bbPassword')
         await login('chris', 'ccPassword')
-    })
+    }
 
+    before(async function () {
+        app = await setup()
+        // ATeam create in setup()
+        TestObjects.ATeam = await app.db.models.Team.byName('ATeam')
+        TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: app.defaultTeamType.id })
+        TestObjects.CTeam = await app.db.models.Team.create({ name: 'CTeam', TeamTypeId: app.defaultTeamType.id })
+    })
+    after(async function () {
+        await app.close()
+    })
+    beforeEach(async function () {
+        await setupUsers()
+    })
     async function login (username, password) {
         const response = await app.inject({
             method: 'POST',
@@ -52,10 +74,6 @@ describe('Team Members API', function () {
         response.cookies[0].should.have.property('name', 'sid')
         TestObjects.tokens[username] = response.cookies[0].value
     }
-
-    afterEach(async function () {
-        await app.close()
-    })
 
     function verifyMembers (result, expectedMembers) {
         result.should.have.property('count', expectedMembers.length)
