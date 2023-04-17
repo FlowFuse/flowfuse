@@ -13,7 +13,7 @@ module.exports = fp(async function (app, _opts, next) {
     const mailDefaults = { from: app.config.email.from ? app.config.email.from : '"FlowForge Platform" <donotreply@flowforge.com>' }
     app.addHook('onClose', async (_) => {
         if (poStartupCheck) {
-            clearTimeout(poStartupCheck)
+            clearInterval(poStartupCheck)
         }
     })
 
