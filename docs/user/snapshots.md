@@ -7,7 +7,7 @@ navTitle: Snapshots
 A Snapshot is a point-in-time backup of a Node-RED instance. It captures:
 1. The flows
 2. Credentials
-3. Evironment variables
+3. Environment variables
 4. NPM packages, with locked versions
 5. Runtime settings.
 
