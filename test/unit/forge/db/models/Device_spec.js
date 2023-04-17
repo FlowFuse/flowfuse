@@ -5,14 +5,10 @@ describe('Device model', function () {
     // Use standard test data.
     let app
 
-    afterEach(async function () {
-        if (app) {
-            await app.close()
-            app = null
-        }
-    })
-
     describe('License limits', function () {
+        afterEach(async function () {
+            await app.close()
+        })
         it('Permits overage when licensed', async function () {
             // This license has limit of 2 devices
             const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
@@ -48,8 +44,13 @@ describe('Device model', function () {
         })
     })
     describe('Settings hash', function () {
-        it('is updated when the device name is changed', async function () {
+        before(async function () {
             app = await setup()
+        })
+        after(async function () {
+            await app.close()
+        })
+        it('is updated when the device name is changed', async function () {
             const device = await app.db.models.Device.create({ name: 'D1', type: 'PI', credentialSecret: '' })
             await device.save()
             const initialSettingsHash = device.settingsHash
@@ -59,7 +60,6 @@ describe('Device model', function () {
             device.settingsHash.should.not.equal(initialSettingsHash)
         })
         it('is updated when the device type is changed', async function () {
-            app = await setup()
             const device = await app.db.models.Device.create({ name: 'D1', type: 'PI', credentialSecret: '' })
             await device.save()
             const initialSettingsHash = device.settingsHash
@@ -69,7 +69,6 @@ describe('Device model', function () {
             device.settingsHash.should.not.equal(initialSettingsHash)
         })
         it('is updated when the device env vars are changed', async function () {
-            app = await setup()
             const device = await app.db.models.Device.create({ name: 'D1', type: 'PI', credentialSecret: '' })
             await device.save()
             const initialSettingsHash = device.settingsHash
