@@ -16,13 +16,17 @@ describe('Invitation controller', function () {
     */
 
     let app
-    beforeEach(async function () {
+    before(async function () {
         app = await setup()
         app.settings.set('team:user:invite:external', true)
     })
 
-    afterEach(async function () {
+    after(async function () {
         await app.close()
+    })
+
+    afterEach(async function () {
+        await app.db.models.Invitation.destroy({ where: {} })
     })
 
     function checkInvite (invite, invitorId, inviteeId, teamId) {

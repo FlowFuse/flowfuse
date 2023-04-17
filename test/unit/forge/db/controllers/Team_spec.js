@@ -16,12 +16,27 @@ describe('Team controller', function () {
     */
 
     let app
-    beforeEach(async function () {
+    let initialTeamMemberships
+    before(async function () {
         app = await setup()
+        // Record all of the team memberships created by setup so they can
+        // be restored between tests
+        initialTeamMemberships = (await app.db.models.TeamMember.findAll({ where: {} })).map(tm => {
+            return {
+                UserId: tm.UserId,
+                TeamId: tm.TeamId,
+                role: tm.role
+            }
+        })
+    })
+
+    after(async function () {
+        await app.close()
     })
 
     afterEach(async function () {
-        await app.close()
+        await app.db.models.TeamMember.destroy({ where: {} })
+        await app.db.models.TeamMember.bulkCreate(initialTeamMemberships)
     })
 
     describe('add team member', function () {
@@ -44,23 +59,34 @@ describe('Team controller', function () {
             } catch (err) {
             }
         })
+        describe('modified team user limit', function () {
+            // This applies a custom migration so needs a clean forge app to use
+            beforeEach(async function () {
+                await app.close()
+                app = await setup()
+            })
+            afterEach(async function () {
+                await app.close()
+                app = await setup()
+            })
+            it('prevents the team userLimit from being exceeded', async function () {
+                app = await setup()
+                // Use the migration to set userLimit to 3
+                const updateTeam = FF_UTIL.require('forge/db/migrations/20220905-01-update-default-team-type-limits')
+                await updateTeam.up(app.db.sequelize.getQueryInterface())
 
-        it('prevents the team userLimit from being exceeded', async function () {
-            // Use the migration to set userLimit to 3
-            const updateTeam = FF_UTIL.require('forge/db/migrations/20220905-01-update-default-team-type-limits')
-            await updateTeam.up(app.db.sequelize.getQueryInterface())
+                const userDave = await app.db.models.User.create({ username: 'dave', name: 'Dave Vader', email: 'dave@example.com', email_verified: true, password: 'ddPassword' })
+                const userChris = await app.db.models.User.byUsername('chris')
+                const team = await app.db.models.Team.byName('ATeam')
 
-            const userDave = await app.db.models.User.create({ username: 'dave', name: 'Dave Vader', email: 'dave@example.com', email_verified: true, password: 'ddPassword' })
-            const userChris = await app.db.models.User.byUsername('chris')
-            const team = await app.db.models.Team.byName('ATeam')
+                await app.db.controllers.Team.addUser(team, userChris, Roles.Member)
 
-            await app.db.controllers.Team.addUser(team, userChris, Roles.Member)
-
-            try {
-                await app.db.controllers.Team.addUser(team, userDave, Roles.Member)
-                return Promise.reject(new Error('allowed team user limit to be exceeded'))
-            } catch (err) {
-            }
+                try {
+                    await app.db.controllers.Team.addUser(team, userDave, Roles.Member)
+                    return Promise.reject(new Error('allowed team user limit to be exceeded'))
+                } catch (err) {
+                }
+            })
         })
     })
 
