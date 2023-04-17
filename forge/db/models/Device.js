@@ -102,7 +102,7 @@ module.exports = {
                 },
                 async getAccessToken () {
                     return M.AccessToken.findOne({
-                        where: { ownerId: '' + this.id }
+                        where: { ownerId: '' + this.id, ownerType: 'device' }
                     })
                 },
                 async updateSettingsHash (settings) {

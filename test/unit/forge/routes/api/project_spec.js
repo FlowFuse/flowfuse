@@ -24,11 +24,14 @@ function decryptCredentials (key, cipher) {
 
 describe('Project API', function () {
     let app
+    let projectInstanceCount = 0
+    const generateProjectName = () => 'test-project' + (projectInstanceCount++)
     const TestObjects = {}
-    beforeEach(async function () {
+
+    before(async function () {
         // Allow individual tests to provide custom settings via 'setup' property
         // set on the test case itself
-        app = await setup({ domain: 'flowforge.dev', ...(this.currentTest.setup || {}) })
+        app = await setup({ domain: 'flowforge.dev' })
 
         TestObjects.project1 = app.project
 
@@ -73,6 +76,10 @@ describe('Project API', function () {
         TestObjects.stack1 = app.stack
     })
 
+    after(async function () {
+        await app.close()
+    })
+
     async function login (username, password) {
         const response = await app.inject({
             method: 'POST',
@@ -83,10 +90,6 @@ describe('Project API', function () {
         response.cookies[0].should.have.property('name', 'sid')
         TestObjects.tokens[username] = response.cookies[0].value
     }
-
-    afterEach(async function () {
-        await app.close()
-    })
 
     async function addFlowsToProject (id, token, flows, creds, key, settings) {
         await app.inject({
@@ -123,12 +126,22 @@ describe('Project API', function () {
             cookies: { sid: TestObjects.tokens.alice }
         })
     }
+    async function createInstance () {
+        return app.factory.createInstance(
+            { name: generateProjectName() },
+            app.application,
+            app.stack,
+            app.template,
+            app.projectType,
+            { start: false }
+        )
+    }
     async function duplicateProject (srcId, team, template, stack, duplicateOpts, accessToken, name) {
         const responseCopiedProject = await app.inject({
             method: 'POST',
             url: '/api/v1/projects',
             payload: {
-                name: name || 'project2',
+                name: name || generateProjectName(),
                 applicationId: TestObjects.ApplicationA.hashid,
                 projectType: TestObjects.projectType1.hashid,
                 template,
@@ -159,7 +172,7 @@ describe('Project API', function () {
                 method: 'POST',
                 url: '/api/v1/projects',
                 payload: {
-                    name: 'test-project',
+                    name: generateProjectName(),
                     applicationId: TestObjects.ApplicationA.hashid,
                     projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
@@ -176,7 +189,7 @@ describe('Project API', function () {
                 method: 'POST',
                 url: '/api/v1/projects',
                 payload: {
-                    name: 'test-project',
+                    name: generateProjectName(),
                     applicationId: TestObjects.ApplicationC.hashid,
                     projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
@@ -192,7 +205,7 @@ describe('Project API', function () {
                 method: 'POST',
                 url: '/api/v1/projects',
                 payload: {
-                    name: 'test-project',
+                    name: generateProjectName(),
                     applicationId: TestObjects.ApplicationA.hashid,
                     projectType: TestObjects.projectType1.hashid,
                     template: 'doesnotexist',
@@ -210,7 +223,7 @@ describe('Project API', function () {
                 method: 'POST',
                 url: '/api/v1/projects',
                 payload: {
-                    name: 'test-project',
+                    name: generateProjectName(),
                     applicationId: TestObjects.ApplicationA.hashid,
                     projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
@@ -228,7 +241,7 @@ describe('Project API', function () {
                 method: 'POST',
                 url: '/api/v1/projects',
                 payload: {
-                    name: 'test-project',
+                    name: generateProjectName(),
                     applicationId: TestObjects.ApplicationA.hashid,
                     projectType: 'doesnotexist',
                     template: TestObjects.template1.hashid,
@@ -329,11 +342,12 @@ describe('Project API', function () {
         })
 
         it('Create a project', async function () {
+            const projectName = generateProjectName()
             const response = await app.inject({
                 method: 'POST',
                 url: '/api/v1/projects',
                 payload: {
-                    name: 'test-project',
+                    name: projectName,
                     applicationId: TestObjects.ApplicationA.hashid,
                     projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
@@ -344,8 +358,8 @@ describe('Project API', function () {
             response.statusCode.should.equal(200)
             const result = response.json()
             result.should.have.property('id')
-            result.should.have.property('name', 'test-project')
-            result.should.have.property('safeName', 'test-project')
+            result.should.have.property('name', projectName)
+            result.should.have.property('safeName', projectName)
             result.should.have.property('team')
             result.should.have.property('projectType')
             result.should.have.property('url')
@@ -367,19 +381,20 @@ describe('Project API', function () {
             })).json()
             runtimeSettings.should.have.property('settings')
             runtimeSettings.settings.should.have.property('header')
-            runtimeSettings.settings.header.should.have.property('title', 'test-project')
+            runtimeSettings.settings.header.should.have.property('title', projectName)
             runtimeSettings.should.have.property('env').which.have.property('FF_PROJECT_ID', result.id) // depreciated in favour of FF_INSTANCE_ID as of V1.6.0
-            runtimeSettings.should.have.property('env').which.have.property('FF_PROJECT_NAME', 'test-project') // depreciated in favour of FF_INSTANCE_NAME as of V1.6.0
+            runtimeSettings.should.have.property('env').which.have.property('FF_PROJECT_NAME', projectName) // depreciated in favour of FF_INSTANCE_NAME as of V1.6.0
             runtimeSettings.should.have.property('env').which.have.property('FF_INSTANCE_ID', result.id)
-            runtimeSettings.should.have.property('env').which.have.property('FF_INSTANCE_NAME', 'test-project')
+            runtimeSettings.should.have.property('env').which.have.property('FF_INSTANCE_NAME', projectName)
         })
 
         it('Create a project with upper case characters in name', async function () {
+            const projectName = 'Upper-Case-' + generateProjectName()
             const response = await app.inject({
                 method: 'POST',
                 url: '/api/v1/projects',
                 payload: {
-                    name: 'New-Project',
+                    name: projectName,
                     applicationId: TestObjects.ApplicationA.hashid,
                     projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
@@ -390,8 +405,8 @@ describe('Project API', function () {
             response.statusCode.should.equal(200)
             const result = response.json()
             result.should.have.property('id')
-            result.should.have.property('name', 'New-Project')
-            result.should.have.property('safeName', 'new-project')
+            result.should.have.property('name', projectName)
+            result.should.have.property('safeName', projectName.toLowerCase())
             result.should.have.property('team')
             result.should.have.property('projectType')
             result.projectType.should.have.property('id', TestObjects.projectType1.hashid)
@@ -411,7 +426,7 @@ describe('Project API', function () {
             })).json()
             runtimeSettings.should.have.property('settings')
             runtimeSettings.settings.should.have.property('header')
-            runtimeSettings.settings.header.should.have.property('title', 'New-Project')
+            runtimeSettings.settings.header.should.have.property('title', projectName)
         })
 
         describe('Copy project', function () {
@@ -435,7 +450,7 @@ describe('Project API', function () {
                     method: 'POST',
                     url: '/api/v1/projects',
                     payload: {
-                        name: 'test-project',
+                        name: generateProjectName(),
                         applicationId: TestObjects.ApplicationA.hashid,
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
@@ -482,7 +497,7 @@ describe('Project API', function () {
                 runtimeSettings.should.have.property('settings')
                 runtimeSettings.settings.should.have.property('header')
                 // ensure settings.header.title gets the project name set by default
-                runtimeSettings.settings.header.should.have.property('title', 'test-project')
+                runtimeSettings.settings.header.should.have.property('title', response.json().name)
                 runtimeSettings.settings.should.not.have.property('credentialSecret')
                 runtimeSettings.settings.should.have.property('httpAdminRoot', '/test-red')
                 runtimeSettings.settings.should.have.property('dashboardUI', '/test-dash')
@@ -511,7 +526,7 @@ describe('Project API', function () {
                     method: 'POST',
                     url: '/api/v1/projects',
                     payload: {
-                        name: 'test-project',
+                        name: generateProjectName(),
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
                         stack: TestObjects.stack1.hashid,
@@ -568,7 +583,7 @@ describe('Project API', function () {
                     method: 'POST',
                     url: '/api/v1/projects',
                     payload: {
-                        name: 'test-project',
+                        name: generateProjectName(),
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
                         stack: TestObjects.stack1.hashid,
@@ -625,7 +640,7 @@ describe('Project API', function () {
                     method: 'POST',
                     url: '/api/v1/projects',
                     payload: {
-                        name: 'test-project',
+                        name: generateProjectName(),
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
                         stack: TestObjects.stack1.hashid,
@@ -671,7 +686,7 @@ describe('Project API', function () {
                     method: 'POST',
                     url: '/api/v1/projects',
                     payload: {
-                        name: 'test-project',
+                        name: generateProjectName(),
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
                         stack: TestObjects.stack1.hashid,
@@ -720,7 +735,7 @@ describe('Project API', function () {
                     method: 'POST',
                     url: '/api/v1/projects',
                     payload: {
-                        name: 'test-project',
+                        name: generateProjectName(),
                         applicationId: TestObjects.ApplicationB.hashid,
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
@@ -744,7 +759,7 @@ describe('Project API', function () {
                     method: 'POST',
                     url: '/api/v1/projects',
                     payload: {
-                        name: 'test-project',
+                        name: generateProjectName(),
                         applicationId: TestObjects.ApplicationA.hashid,
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
@@ -768,7 +783,7 @@ describe('Project API', function () {
     describe('Update Project', function () {
         describe('Change project type', function () {
             it('Changes the type, stack, and restores the project to original state', async function () {
-                const project = TestObjects.project1
+                const project = await createInstance()
 
                 // Create a new project type
                 const projectTypeProperties = {
@@ -793,7 +808,7 @@ describe('Project API', function () {
 
                 const response = await app.inject({
                     method: 'PUT',
-                    url: `/api/v1/projects/${TestObjects.project1.id}`,
+                    url: `/api/v1/projects/${project.id}`,
                     payload: {
                         projectType: projectType.id,
                         stack: stack.id
@@ -843,12 +858,12 @@ describe('Project API', function () {
             })
 
             it('Can change only the stack, keeping the project type the same', async function () {
-                const project = TestObjects.project1
+                const project = await createInstance()
                 const projectType = project.ProjectType
 
                 // Create a new stack
                 const stackProperties = {
-                    name: 'stack-new',
+                    name: 'stack-new-02',
                     active: true,
                     properties: { nodered: '9.9.8' }
                 }
@@ -860,7 +875,7 @@ describe('Project API', function () {
 
                 const response = await app.inject({
                     method: 'PUT',
-                    url: `/api/v1/projects/${TestObjects.project1.id}`,
+                    url: `/api/v1/projects/${project.id}`,
                     payload: {
                         projectType: projectType.id,
                         stack: stack.id
@@ -973,13 +988,13 @@ describe('Project API', function () {
                 })
 
                 it('Cannot set to project-type that does not match existing stack', async function () {
-                    const project2 = await app.db.models.Project.create({ name: 'project2', type: '', url: '' })
+                    const project2 = await app.db.models.Project.create({ name: 'project-legacy-2', type: '', url: '' })
                     await TestObjects.ATeam.addProject(project2)
                     await project2.setProjectStack(TestObjects.stack1)
                     await project2.setProjectTemplate(TestObjects.template1)
 
                     const projectType = {
-                        name: 'projectType2',
+                        name: 'projectType2-01',
                         description: 'default project type',
                         active: true,
                         properties: { foo: 'bar' },
@@ -999,7 +1014,7 @@ describe('Project API', function () {
                 })
 
                 it('Can change only project-type (without stack) if not set', async function () {
-                    const project2 = await app.db.models.Project.create({ name: 'project2', type: '', url: '' })
+                    const project2 = await app.db.models.Project.create({ name: 'project-legacy-3', type: '', url: '' })
                     await TestObjects.ATeam.addProject(project2)
                     await project2.setProjectStack(TestObjects.stack1)
                     await project2.setProjectTemplate(TestObjects.template1)
@@ -1080,8 +1095,10 @@ describe('Project API', function () {
                     // A 0.2.0 project that does not have a Stack can have its
                     // stack set.
 
+                    const project = await createInstance()
+
                     // Setup some flows/credentials
-                    await addFlowsToProject(TestObjects.project1.id,
+                    await addFlowsToProject(project.id,
                         TestObjects.tokens.project,
                         [{ id: 'node1' }],
                         { testCreds: 'abc' },
@@ -1098,7 +1115,7 @@ describe('Project API', function () {
                     // NOTE: Cannot change stack on TestObjects.project1 as it errors
                     // when being stopped at `await app.containers.stop(request.project)`
                     const newProject = await duplicateProject(
-                        TestObjects.project1.id,
+                        project.id,
                         TestObjects.ATeam.hashid,
                         TestObjects.template1.hashid,
                         TestObjects.stack1.hashid,
@@ -1112,7 +1129,7 @@ describe('Project API', function () {
 
                     // create another stack
                     const stackProperties = {
-                        name: 'stack2',
+                        name: 'stack2-02',
                         active: true,
                         properties: { nodered: '999.998.997' }
                     }
@@ -1356,7 +1373,7 @@ describe('Project API', function () {
             })
 
             it('Requires the hostname to be unique case-insensitively', async function () {
-                const existingProject = await app.db.models.Project.create({ name: 'project2', type: '', url: '' })
+                const existingProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
                 existingProject.updateSetting(KEY_HOSTNAME, 'already-in-use.flowforge.com')
 
                 // call "Update a project" with a new hostname
@@ -1755,7 +1772,7 @@ describe('Project API', function () {
         it('Project token cannot get another project settings', async function () {
             const settingsURL = `/api/v1/projects/${app.project.id}/settings`
 
-            const project2 = await app.db.models.Project.create({ name: 'project2', type: '', url: '' })
+            const project2 = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
             await app.team.addProject(project2)
             const tokens2 = await project2.refreshAuthTokens()
             const response = await app.inject({
