@@ -8,7 +8,7 @@ describe('Storage API', function () {
     let project2
     let tokens2
 
-    beforeEach(async function () {
+    before(async function () {
         app = await setup()
         project = app.project
         tokens = await project.refreshAuthTokens()
@@ -35,7 +35,7 @@ describe('Storage API', function () {
         })
     })
 
-    afterEach(async function () {
+    after(async function () {
         await app.close()
     })
 
@@ -278,6 +278,10 @@ describe('Storage API', function () {
 
     describe('/library', function () {
         describeAuthTests('/library/functions', { name: 'test', meta: {}, body: 'foo' })
+
+        afterEach(async function () {
+            await app.db.models.StorageLibrary.destroy({ where: {} })
+        })
 
         it('Add to Library', async function () {
             this.timeout(10000)
