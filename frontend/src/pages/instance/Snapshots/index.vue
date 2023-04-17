@@ -24,12 +24,25 @@
             </ff-data-table>
         </template>
         <template v-else-if="!loading">
-            <div class="flex flex-col text-gray-500 items-center italic mb-4 p-8 space-y-6">
-                <div>You have not created any snapshots yet</div>
-                <template v-if="hasPermission('project:snapshot:create')">
-                    <ff-button kind="primary" size="small" data-action="create-snapshot" @click="showCreateSnapshotDialog"><template #icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
+            <EmptyState>
+                <template #header>Create your First Snapshot</template>
+                <template #message>
+                    <p>
+                        Snapshots are point-in-time backups of your Node-RED Instances
+                        and capture the flows, credentials and runtime settings.
+                    </p>
+                    <p>
+                        Snapshots are also used for deploying to your Devices. Devices have
+                        a set "Target Snapshot", which will roll out to all Devices connected
+                        to the respective Instance.
+                    </p>
                 </template>
-            </div>
+                <template v-if="hasPermission('project:snapshot:create')" #actions>
+                    <ff-button kind="primary" data-action="create-snapshot" @click="showCreateSnapshotDialog">
+                        <template #icon-left><PlusSmIcon /></template>Create Snapshot
+                    </ff-button>
+                </template>
+            </EmptyState>
         </template>
         <SnapshotCreateDialog ref="snapshotCreateDialog" data-el="dialog-create-snapshot" :project="instance" @snapshot-created="snapshotCreated" />
     </div>
@@ -43,6 +56,7 @@ import { mapState } from 'vuex'
 import InstanceApi from '../../../api/instances.js'
 import SnapshotApi from '../../../api/projectSnapshots.js'
 
+import EmptyState from '../../../components/EmptyState.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import UserCell from '../../../components/tables/cells/UserCell.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
@@ -58,6 +72,7 @@ export default {
     name: 'InstanceSnapshots',
     components: {
         SectionTopMenu,
+        EmptyState,
         SnapshotCreateDialog,
         PlusSmIcon
     },

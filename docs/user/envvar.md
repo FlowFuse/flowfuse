@@ -1,3 +1,7 @@
+---
+navTitle: Environment Variables
+---
+
 # Environment Variables
 
 Environment Variables allow you to manage variables used in your Node-RED flows from the FlowForge application, you can read more on how to access environment variables inside Node-RED [in the Node-RED Docs](https://nodered.org/docs/user-guide/environment-variables).

@@ -17,6 +17,7 @@
         />
         <template v-else>
             <ff-data-table
+                v-if="devices.size > 0"
                 data-el="devices-browser"
                 :columns="columns"
                 :rows="Array.from(devices.values())"
@@ -52,20 +53,6 @@
                         Add Device
                     </ff-button>
                 </template>
-                <template v-if="devices.size === 0" #table>
-                    <div class="ff-no-data ff-no-data-large">
-                        <span v-if="displayingTeam" data-el="team-no-devices">
-                            You don't have any devices yet
-                        </span>
-                        <span v-else-if="displayingInstance" data-el="instance-no-devices">
-                            You have not assigned any devices to this instance yet.
-                        </span>
-
-                        <span v-else data-el="no-devices">
-                            No devices found.
-                        </span>
-                    </div>
-                </template>
                 <template
                     v-if="hasPermission('device:edit')"
                     #context-menu="{row}"
@@ -99,6 +86,66 @@
                     />
                 </template>
             </ff-data-table>
+            <template v-else>
+                <template v-if="displayingTeam">
+                    <EmptyState data-el="team-no-devices">
+                        <template #header>Add your First Device</template>
+                        <template #message>
+                            <p>
+                                Devices in FlowForge allow you to manage Node-RED instances
+                                running on remote hardware.
+                            </p>
+                            <p>
+                                A Device runs the <a
+                                    class="ff-link" href="https://flowforge.com/docs/user/devices"
+                                    target="_blank"
+                                >FlowForge Device Agent</a>, and can be used to deploy and debug
+                                instances anywhere, from here, in FlowForge.
+                            </p>
+                        </template>
+                        <template #actions>
+                            <ff-button
+                                v-if="hasPermission('device:create')"
+                                class="font-normal"
+                                kind="primary"
+                                data-action="register-device"
+                                @click="showCreateDeviceDialog"
+                            >
+                                <template #icon-left>
+                                    <PlusSmIcon />
+                                </template>
+                                Add Device
+                            </ff-button>
+                        </template>
+                    </EmptyState>
+                </template>
+                <template v-else-if="displayingInstance">
+                    <EmptyState data-el="instance-no-devices">
+                        <template #header>Connect your First Device</template>
+                        <template #message>
+                            <p>
+                                Here, you will see a list of Devices connected to this Node-RED Instance.
+                            </p>
+                            <p>
+                                You can deploy Snapshots of this Instance to your connected Devices.
+                            </p>
+                            <p>
+                                A full list of your Team's Devices are available <router-link
+                                    class="ff-link"
+                                    :to="{name: 'TeamDevices', params: {team_slug: team.slug}}"
+                                >
+                                    here
+                                </router-link>.
+                            </p>
+                        </template>
+                    </EmptyState>
+                </template>
+                <div v-else class="ff-no-data ff-no-data-large">
+                    <span data-el="no-devices">
+                        No devices found.
+                    </span>
+                </div>
+            </template>
         </template>
     </div>
 
@@ -153,10 +200,14 @@ import { markRaw } from 'vue'
 import deviceApi from '../api/devices.js'
 import instanceApi from '../api/instances.js'
 import teamApi from '../api/team.js'
+
 import permissionsMixin from '../mixins/Permissions.js'
+
+import ApplicationLink from '../pages/application/components/cells/ApplicationLink.vue'
 import DeviceLink from '../pages/application/components/cells/DeviceLink.vue'
 import InstanceInstancesLink from '../pages/application/components/cells/InstanceInstancesLink.vue'
 import Snapshot from '../pages/application/components/cells/Snapshot.vue'
+
 import DeviceLastSeenBadge from '../pages/device/components/DeviceLastSeenBadge.vue'
 import SnapshotAssignDialog from '../pages/instance/Snapshots/dialogs/SnapshotAssignDialog.vue'
 import InstanceStatusBadge from '../pages/instance/components/InstanceStatusBadge.vue'
@@ -167,6 +218,8 @@ import TeamDeviceCreateDialog from '../pages/team/Devices/dialogs/TeamDeviceCrea
 import Alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 
+import EmptyState from './EmptyState.vue'
+
 export default {
     name: 'ProjectOverview',
     components: {
@@ -175,7 +228,8 @@ export default {
         DeviceCredentialsDialog,
         PlusSmIcon,
         SnapshotAssignDialog,
-        TeamDeviceCreateDialog
+        TeamDeviceCreateDialog,
+        EmptyState
     },
     mixins: [permissionsMixin],
     inheritAttrs: false,
@@ -205,8 +259,7 @@ export default {
             deletingDevice: false,
             nextCursor: null,
             devices: new Map(),
-            checkInterval: null,
-            teamInstances: null
+            checkInterval: null
         }
     },
     computed: {
@@ -222,21 +275,20 @@ export default {
 
             if (this.displayingTeam) {
                 columns.push(
-                    ...statusColumns
-                    // TODO Restore application
-                    // {
-                    //     label: 'Application',
-                    //     class: ['w-64'],
-                    //     key: 'project',
-                    //     sortable: true,
-                    //     component: {
-                    //         is: markRaw(ApplicationLink),
-                    //         map: {
-                    //             id: 'project.id',
-                    //             name: 'project.name'
-                    //         }
-                    //     }
-                    // }
+                    ...statusColumns,
+                    {
+                        label: 'Application',
+                        class: ['w-64'],
+                        key: 'application',
+                        sortable: true,
+                        component: {
+                            is: markRaw(ApplicationLink),
+                            map: {
+                                id: 'application.id',
+                                name: 'application.name'
+                            }
+                        }
+                    }
                 )
             }
 
@@ -323,10 +375,12 @@ export default {
         async assignDevice (device, instanceId) {
             const updatedDevice = await deviceApi.updateDevice(device.id, { project: instanceId })
 
-            // TODO Remove temporary duplication
             if (updatedDevice.project) {
-                device.project = updatedDevice.project
                 device.instance = updatedDevice.project
+            }
+
+            if (updatedDevice.application) {
+                device.application = updatedDevice.application
             }
 
             this.devices.set(device.id, device)
@@ -380,10 +434,6 @@ export default {
             this.loading = false
         },
 
-        async updateTeamInstances () {
-            this.teamInstances = (await teamApi.getTeamProjects(this.team.id)).projects // TODO Currently fetches projects not instances
-        },
-
         deviceAction (action, deviceId) {
             const device = this.devices.get(deviceId)
             if (action === 'edit') {
@@ -417,9 +467,8 @@ export default {
                 }, async () => {
                     await deviceApi.updateDevice(device.id, { project: null })
 
-                    // TODO Remove temporary duplication
-                    delete device.project
                     delete device.instance
+                    delete device.application
 
                     if (this.displayingInstance) {
                         this.devices.delete(device.id)
@@ -428,7 +477,6 @@ export default {
                     Alerts.emit('Successfully removed the device from the instance.', 'confirmation')
                 })
             } else if (action === 'assignToProject') {
-                this.updateTeamInstances()
                 this.$refs.deviceAssignInstanceDialog.show(device)
             }
         }

@@ -1,3 +1,7 @@
+---
+navTitle: Database migrations
+---
+
 # Database Migrations
 
 It is important that any changes made to the database models include migrations

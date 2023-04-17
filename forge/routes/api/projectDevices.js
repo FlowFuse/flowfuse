@@ -22,7 +22,7 @@ module.exports = async function (app) {
             ProjectId: request.project.id
         }
         const devices = await app.db.models.Device.getAll(paginationOptions, where)
-        devices.devices = devices.devices.map(d => app.db.views.Device.deviceSummary(d))
+        devices.devices = devices.devices.map(d => app.db.views.Device.device(d))
         reply.send(devices)
     })
 

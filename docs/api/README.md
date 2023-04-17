@@ -2,6 +2,7 @@
 navGroup: Overview
 navTitle: FlowForge API
 ---
+
 # FlowForge Platform API
 
 The platform provides a REST API that makes it possible to create integrations and

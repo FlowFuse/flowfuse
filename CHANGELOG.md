@@ -1,3 +1,55 @@
+#### 1.6.0: Release
+
+ - Redirect /project/xyz/* to /instance/xyz/* (#1996) @knolleary
+ - First pass Empty State (text/action only) (#1992) @joepavitt
+ - Multiple Instances: Application Audit Log Events (#1979) @Pezmc
+ - Redirect /team/overview to /team/applications (#1994) @knolleary
+ - Include 'state' as part of the Application byTeam model (#1975) @joepavitt
+ - Improve feedback when trying to delete non-empty application (#1976) @knolleary
+ - Navigate to instance settings from stack update button (#1970) @knolleary
+ - Implement the "cancel" function (#1968) @joepavitt
+ - Ensure Application Name is set before enabling Create App button (#1966) @knolleary
+ - Multiple Instances: Polish Tasks (#1962) @Pezmc
+ - Pending email change (#1954) @Steve-Mcl
+ - Update outdated InstanceStatusBadge on the Node-RED Logs screen (#1961) @joepavitt
+ - seo: Add title to all docs pages (#1750) @ZJvandeWeg
+ - Update Stripe redirect & add holding message (#1959) @joepavitt
+ - docs: Fix some broken anchors in links (#1957) @ZJvandeWeg
+ - removes excess console.log (sorry!) (#1956) @joepavitt
+ - Add "User Interview" prompts (#1894) @joepavitt
+ - PostHog events & groups first pass (#1922) @joepavitt
+ - Improved "last updated" labelling (#1952) @joepavitt
+ - Application Instances: Live statuses (#1926) @Pezmc
+ - s/Project/Instance where appropriate for Audit Logs (#1936) @joepavitt
+ - Define the missing openEditor function (#1930) @joepavitt
+ - Emit the application-updated event after creating Instance (#1941) @joepavitt
+ - Bump vitest from 0.29.8 to 0.30.0 (#1947) @dependabot
+ - Disable the "Open Editor" button if Instance not "running" (#1933) @joepavitt
+ - Add streaming logs from device agents (#1900) @hardillb
+ - Add email.from to email options (#1912) @hardillb
+ - Chore: Add file extensions to all imports (#1910) @Pezmc
+ - Chore: Re-write imports to be ES6 (#1909) @Pezmc
+ - Increase ESLint requirements for new files (#1846) @Pezmc
+ - Update Applications Table (#1903) @joepavitt
+ - Remove the ProjectAPI wrapper (#1905) @Pezmc
+ - Application Model: Use applications and instances API's (#1888) @Pezmc
+ - docs: Fix 404 for setup RDS (#1906) @ZJvandeWeg
+ - Application Model: Model Prep Only (#1896) @Pezmc
+ - Ensure coupons are applied for all team subscriptions (#1889) @knolleary
+ - Add Billing URL to reminder emails (#1877) @Steve-Mcl
+ - docs: List Digital Ocean Installer (#1883) @ZJvandeWeg
+ - docs: Fix broken links and anchors (#1884) @ZJvandeWeg
+ - Fix mosquitto plugin path for docker install (#1874) @hardillb
+ - fix deletion (call correct API function) (#1879) @Steve-Mcl
+ - Spelling corrections (#1875) @Steve-Mcl
+ - Deprecate FF_PROJECT_* in favour of FF_INSTANCE_* (#1864) @Steve-Mcl
+ - Fix default name for device.yml (#1871) @ZJvandeWeg
+ - Add theme choice (FF themes only) (#1857) @Steve-Mcl
+ - Possible fix for CI only test failure (#1862) @Pezmc
+ - Add new "Instances" top-level option (#1852) @joepavitt
+ - Better framing of "Application" & "Device" views (#1853) @joepavitt
+ - Update HTTPS docs to include updating the base_url (#1855) @hardillb
+
 #### 1.5.0: Release
 
  - Make mosquitto.conf path clearer (#1780)

@@ -10,6 +10,7 @@ import AccessRequest from './AccessRequest.vue'
 import AccessRequestEditor from './AccessRequestEditor.vue'
 import AccountCreate from './Create.vue'
 import VerifyEmail from './VerifyEmail.vue'
+import VerifyPendingEmailChange from './VerifyPendingEmailChange.vue'
 import ForgotPassword from './ForgotPassword.vue'
 import PasswordReset from './PasswordReset.vue'
 
@@ -95,6 +96,16 @@ export default [
             requiresLogin: false
         },
         component: VerifyEmail
+    },
+    {
+        name: 'VerifyPendingEmailChange',
+        path: '/account/email_change/:token',
+        props: true,
+        meta: {
+            modal: true,
+            requiresLogin: true
+        },
+        component: VerifyPendingEmailChange
     },
     {
         profileLink: true,

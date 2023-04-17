@@ -35,21 +35,25 @@
                                 <label>{{ instance.name }}</label>
                                 <span>{{ instance.url }}</span>
                             </div>
-                            <div><InstanceStatusBadge :status="instance.meta?.state" /></div>
+                            <div><InstanceStatusBadge :status="instance.meta?.state" :optimisticStateChange="instance.optimisticStateChange" :pendingStateChange="instance.pendingStateChange" /></div>
                             <div class="text-sm">
-                                <span v-if="instance.flowLastUpdatedSince">
-                                    {{ instance.flowLastUpdatedSince }}
+                                <span v-if="instance.flowLastUpdatedSince" class="flex flex-col">
+                                    <label class="text-xs text-gray-400">Last Updated: </label>
+                                    {{ instance.flowLastUpdatedSince || 'never' }}
                                 </span>
-                                <span v-else class="text-gray-400">
-                                    never
+                                <span v-else class="text-gray-400 italic">
+                                    flows never deployed
                                 </span>
                             </div>
                             <div class="flex justify-end">
-                                <ff-button kind="secondary" :disabled="instance.settings?.disableEditor" @click.stop="openEditor(instance)">
-                                    <template #icon-right><ExternalLinkIcon /></template>
-                                    {{ instance.settings?.disableEditor ? 'Editor Disabled' : 'Open Editor' }}
-                                </ff-button>
+                                <InstanceEditorLink
+                                    :url="instance.url"
+                                    :editorDisabled="instance.settings.disableEditor"
+                                    :disabled="instance.meta?.state !== 'running'"
+                                />
                             </div>
+
+                            <InstanceStatusPolling :instance="instance" @instance-updated="instanceUpdated" />
                         </li>
                     </ul>
                     <div v-else class="ff-no-data">
@@ -58,31 +62,69 @@
                 </li>
             </ul>
         </template>
-        <div v-else class="ff-no-data">
-            No Applications Created
+        <div v-else-if="justSetupBilling">
+            <div class=" mt-8 text-center text-lg">
+                <strong class="mb-2 block">Thank you for signing up to FlowForge!</strong>
+                You are now able to create applications, instances & devices.
+            </div>
+        </div>
+        <div v-else>
+            <EmptyState>
+                <template #header>Get Started with your First Application</template>
+                <template #message>
+                    <p>Applications in FlowForge are used to manage groups of Node-RED Instances</p>
+                    <p>
+                        Instances within Applications can be connected as
+                        <a class="ff-link" href="https://flowforge.com/docs/user/staged-deployments" target="_blank">Staged Deployments.</a>
+                    </p>
+                    <p>
+                        The FlowForge team also have more planned for Applications, including
+                        <a class="ff-link" href="https://github.com/flowforge/flowforge/issues/1734" target="_blank">
+                            shared settings across Instances</a>.
+                    </p>
+                </template>
+                <template #actions>
+                    <ff-button
+                        v-if="hasPermission('project:create')"
+                        data-action="create-application"
+                        kind="primary"
+                        :to="{name: 'CreateTeamApplication'}"
+                    >
+                        <template #icon-left>
+                            <PlusSmIcon />
+                        </template>
+                        Create Application
+                    </ff-button>
+                </template>
+            </EmptyState>
         </div>
     </div>
     <router-view />
 </template>
 
 <script>
-import { ExternalLinkIcon, PlusSmIcon, TemplateIcon } from '@heroicons/vue/outline'
+import { PlusSmIcon, TemplateIcon } from '@heroicons/vue/outline'
 
 import teamApi from '../../api/team.js'
+import EmptyState from '../../components/EmptyState.vue'
+import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import ProjectIcon from '../../components/icons/Projects.js'
 import permissionsMixin from '../../mixins/Permissions.js'
+import InstanceEditorLink from '../instance/components/InstanceEditorLink.vue'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 
 export default {
     name: 'TeamApplications',
     components: {
-        TemplateIcon,
-        ExternalLinkIcon,
+        EmptyState,
+        InstanceEditorLink,
+        InstanceStatusBadge,
+        InstanceStatusPolling,
         PlusSmIcon,
         ProjectIcon,
         SectionTopMenu,
-        InstanceStatusBadge
+        TemplateIcon
     },
     mixins: [permissionsMixin],
     props: ['team', 'teamMembership'],
@@ -93,6 +135,11 @@ export default {
             columns: [
                 { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true }
             ]
+        }
+    },
+    computed: {
+        justSetupBilling () {
+            return 'billing_session' in this.$route.query
         }
     },
     watch: {
@@ -158,6 +205,13 @@ export default {
                 })
             })
         },
+        instanceUpdated (instanceData) {
+            const application = this.applications.get(instanceData.application.id)
+            application.instances.set(instanceData.id, {
+                ...application.instances.get(instanceData.id),
+                ...instanceData
+            })
+        },
         openApplication (application) {
             this.$router.push({
                 name: 'Application',
@@ -173,9 +227,6 @@ export default {
                     id: instance.id
                 }
             })
-        },
-        openEditor (instance) {
-            window.open(instance.url, '_blank')
         }
     }
 }

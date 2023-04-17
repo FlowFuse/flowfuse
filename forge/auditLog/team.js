@@ -94,6 +94,18 @@ module.exports = {
             }
         }
 
+        const application = {
+            async created (actionedBy, error, team, application) {
+                await log('application.created', actionedBy, team?.id, generateBody({ error, team, application }))
+            },
+            async updated (actionedBy, error, team, application, updates) {
+                await log('application.updated', actionedBy, team?.id, generateBody({ error, team, application, updates }))
+            },
+            async deleted (actionedBy, error, team, application) {
+                await log('application.deleted', actionedBy, team?.id, generateBody({ error, team, application }))
+            }
+        }
+
         const billing = {
             session: {
                 async created (actionedBy, error, team, billingSession) {
@@ -137,6 +149,7 @@ module.exports = {
         }
         return {
             team,
+            application,
             project,
             billing
         }

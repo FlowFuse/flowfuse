@@ -18,7 +18,7 @@ describe('FlowForge - Instance Snapshots', () => {
     })
 
     it('shows a placeholder message when no snapshots have been created', () => {
-        cy.get('main').contains('You have not created any snapshots yet')
+        cy.get('main').contains('Create your First Snapshot')
     })
 
     it('provides functionality to create a snapshot', () => {
@@ -67,7 +67,7 @@ describe('FlowForge - Instance Snapshots', () => {
 
         cy.wait('@deleteSnapshot')
 
-        cy.get('main').contains('You have not created any snapshots yet')
+        cy.get('main').contains('Create your First Snapshot')
     })
 })
 
@@ -95,9 +95,9 @@ describe('FlowForge shows audit logs', () => {
     })
 
     it('for when a snapshot is created', () => {
-        cy.get('.ff-audit-entry').contains('Project Snapshot Created')
+        cy.get('.ff-audit-entry').contains('Instance Snapshot Created')
     })
     it('for when a snapshot is deleted', () => {
-        cy.get('.ff-audit-entry').contains('Project Snapshot Deleted')
+        cy.get('.ff-audit-entry').contains('Instance Snapshot Deleted')
     })
 })

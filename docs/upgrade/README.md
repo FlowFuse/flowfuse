@@ -2,6 +2,7 @@
 navGroup: Running FlowForge
 navTitle: Upgrading FlowForge
 ---
+
 # Upgrading FlowForge
 
 If you are upgrading an existing FlowForge installation, this page will list any
@@ -79,8 +80,7 @@ have access to the hosts filesystem).
 Details of how to configure this can be found at the following links:
 
 - [LocalFS](../install/file-storage/README.md#localfs)
-- [Docker](../install/file-storage/README.md#docker-compose)
-- [Kubernetes](../install/file-storage/README.md#kubernetes-helm)
+- [Docker and Kubernetes](../install/file-storage/README.md#configuring)
 
 ### Upgrading to 0.8
 

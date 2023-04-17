@@ -1,3 +1,7 @@
+---
+navTitle: Changing the Stack
+---
+
 # Changing the Stack
 
 [Stacks](concepts.md#stack) define various aspects of how Node-RED instances run - including the version of Node-RED being used.

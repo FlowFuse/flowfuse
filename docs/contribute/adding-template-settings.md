@@ -1,3 +1,7 @@
+---
+navTitle: Adding Template Settings
+---
+
 # Adding Template Settings
 
 Within FlowForge, each Node-RED instance is created from a Template. The Template defines

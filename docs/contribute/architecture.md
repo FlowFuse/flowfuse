@@ -1,3 +1,7 @@
+---
+navTitle: FlowForge Architecture
+---
+
 # FlowForge Architecture
 
 A FlowForge install is made up of 2 main components

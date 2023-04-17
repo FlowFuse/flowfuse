@@ -15,11 +15,10 @@
                         Are you sure you want to delete this instance and the application that contains it? Once deleted, there is no going back.
                     </p>
                     <p>
-                        Enter the instance name to continue.
-                        <code class="block">{{ project?.name }}</code>
+                        Enter the instance name <code>{{ instance?.name }}</code> to continue.
                     </p>
                 </div>
-                <FormRow id="projectName" v-model="input.projectName" data-form="instance-name">Name</FormRow>
+                <FormRow v-model="input.instanceName" data-form="instance-name">Name</FormRow>
             </form>
         </template>
     </ff-dialog>
@@ -37,33 +36,29 @@ export default {
     emits: ['confirm'],
     setup () {
         return {
-            show (project) {
+            show (instance) {
+                this.instance = instance
                 this.$refs.dialog.show()
-                this.project = project
             }
         }
     },
     data () {
         return {
             input: {
-                projectName: ''
+                instanceName: ''
             },
-            formValid: false,
-            project: null
+            instance: null
         }
     },
-    watch: {
-        input: {
-            handler: function (v) {
-                this.formValid = this.project.name === v.projectName
-            },
-            deep: true
+    computed: {
+        formValid () {
+            return this.instance?.name && this.input.instanceName === this.instance.name
         }
     },
     methods: {
         confirm () {
             if (this.formValid) {
-                this.$emit('confirm')
+                this.$emit('confirm', this.instance)
             }
         }
     }

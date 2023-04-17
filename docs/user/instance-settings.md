@@ -1,3 +1,7 @@
+---
+navTitle: Instance Settings
+---
+
 # Instance Settings
 
 The Instance Settings allow you to customize many aspects of your Node-RED runtime.

@@ -21,36 +21,31 @@
 
         <div class="space-y-6 mb-12">
             <ff-data-table
+                v-if="instances?.length > 0"
                 data-el="cloud-instances"
                 :columns="cloudColumns"
                 :rows="cloudRows"
                 :rows-selectable="true"
                 @row-selected="selectedCloudRow"
             >
-                <template v-if="instances?.length === 0" #table>
-                    <div class="ff-no-data ff-no-data-large">
-                        This application does not have any instances yet.
-                    </div>
-                </template>
-
                 <template
                     v-if="hasPermission('device:edit')"
                     #context-menu="{row}"
                 >
                     <ff-list-item
-                        :disabled="row.pendingStateChange || row.projectRunning"
+                        :disabled="row.pendingStateChange || row.running"
                         label="Start"
                         @click.stop="$emit('instance-start', row)"
                     />
 
                     <ff-list-item
-                        :disabled="!row.projectNotSuspended"
+                        :disabled="!row.notSuspended"
                         label="Restart"
                         @click.stop="$emit('instance-restart', row)"
                     />
 
                     <ff-list-item
-                        :disabled="!row.projectNotSuspended"
+                        :disabled="!row.notSuspended"
                         kind="danger"
                         label="Suspend"
                         @click.stop="$emit('instance-suspend', row)"
@@ -64,6 +59,27 @@
                     />
                 </template>
             </ff-data-table>
+            <EmptyState v-else>
+                <template #header>Add your Application's First Instance</template>
+                <template #message>
+                    <p>
+                        Applications in FlowForge are used to manage groups of Node-RED Instances.
+                    </p>
+                    <p>
+                        The FlowForge team also have more planned for Applications, including
+                        <a class="ff-link" href="https://github.com/flowforge/flowforge/issues/1734" target="_blank">
+                            shared settings across Instances</a>.
+                    </p>
+                </template>
+                <template #actions>
+                    <ff-button
+                        :to="{ name: 'ApplicationCreateInstance' }"
+                    >
+                        <template #icon-left><PlusSmIcon /></template>
+                        Add Instance
+                    </ff-button>
+                </template>
+            </EmptyState>
         </div>
     </div>
 </template>
@@ -76,11 +92,12 @@ import { mapState } from 'vuex'
 
 import { Roles } from '../../../../forge/lib/roles.js'
 
+import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
 import permissionsMixin from '../../mixins/Permissions.js'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
-import InstanceEditorLink from '../instance/components/cells/InstanceEditorLink.vue'
+import InstanceEditorLinkCell from '../instance/components/cells/InstanceEditorLink.vue'
 
 import DeploymentName from './components/cells/DeploymentName.vue'
 import LastSeen from './components/cells/LastSeen.vue'
@@ -89,7 +106,8 @@ export default {
     name: 'ProjectOverview',
     components: {
         PlusSmIcon,
-        SectionTopMenu
+        SectionTopMenu,
+        EmptyState
     },
     mixins: [permissionsMixin],
     inheritAttrs: false,
@@ -103,15 +121,15 @@ export default {
             required: true
         }
     },
-    emits: ['instance-delete', 'instance-suspend', 'instance-restart', 'instance-start', 'instances-enable-polling', 'instances-disable-polling'],
+    emits: ['instance-delete', 'instance-suspend', 'instance-restart', 'instance-start'],
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
         cloudColumns () {
             return [
-                { label: 'Name', class: ['w-64'], component: { is: markRaw(DeploymentName), map: { disabled: 'editorDisabled' } } },
+                { label: 'Name', class: ['w-64'], component: { is: markRaw(DeploymentName) } },
+                { label: 'Instance Status', class: ['w-48'], component: { is: markRaw(InstanceStatusBadge), map: { status: 'meta.state' } } },
                 { label: 'Last Deployed', class: ['w-48'], component: { is: markRaw(LastSeen), map: { lastSeenSince: 'flowLastUpdatedSince' } } },
-                { label: 'Deployment Status', class: ['w-48'], component: { is: markRaw(InstanceStatusBadge), map: { status: 'meta.state' } } },
-                { label: '', class: ['w-20'], component: { is: markRaw(InstanceEditorLink), map: { disabled: 'editorDisabled' } } }
+                { label: '', class: ['w-20'], component: { is: markRaw(InstanceEditorLinkCell) } }
             ]
         },
         cloudRows () {
@@ -119,7 +137,7 @@ export default {
                 instance.running = instance.meta?.state === 'running'
                 instance.notSuspended = instance.meta?.state !== 'suspended'
 
-                instance.editorDisabled = !instance.running || this.isVisitingAdmin
+                instance.disabled = !instance.running || this.isVisitingAdmin
 
                 return instance
             })
@@ -127,12 +145,6 @@ export default {
         isVisitingAdmin () {
             return this.teamMembership.role === Roles.Admin
         }
-    },
-    mounted () {
-        this.$emit('instances-enable-polling')
-    },
-    unmounted () {
-        this.$emit('instances-disable-polling')
     },
     methods: {
         selectedCloudRow (cloudInstance) {

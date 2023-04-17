@@ -1,3 +1,7 @@
+---
+navTitle: Staged Deployments
+---
+
 # Staged Deployments
 
 In FlowForge it is possible to configure a DevOps pipeline for your Node-RED instances.

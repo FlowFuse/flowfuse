@@ -15,11 +15,6 @@
 
         <FormRow v-model="input.stackDescription" type="uneditable">
             Stack
-            <template #append>
-                <div v-if="project.stack && project.stack.replacedBy">
-                    <ff-button size="small" to="./danger">Update</ff-button>
-                </div>
-            </template>
         </FormRow>
         <FormRow v-model="input.templateName" type="uneditable">
             Template
@@ -27,6 +22,7 @@
         <DangerSettings
             :instance="project"
             @instance-confirm-delete="$emit('instance-confirm-delete')"
+            @instance-confirm-suspend="$emit('instance-confirm-suspend')"
         />
     </div>
 </template>
@@ -52,7 +48,7 @@ export default {
             required: true
         }
     },
-    emits: ['instance-confirm-delete'],
+    emits: ['instance-confirm-delete', 'instance-confirm-suspend'],
     data () {
         return {
             editing: {

@@ -56,7 +56,7 @@ export default {
         },
         deleteDevice () {
             this.loading.deleting = true
-            deviceApi.deleteDevice(this.device.id).then(() => {
+            deviceApi.deleteDevice(this.device.id, this.team.id).then(() => {
                 this.$router.push({ name: 'TeamDevices', params: { team_slug: this.team.slug } })
             }).catch(err => {
                 console.warn(err)

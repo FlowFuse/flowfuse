@@ -77,12 +77,12 @@
     </template>
     <template v-else-if="entry.event === 'team.device.assigned'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.device">Device '{{ entry.body.device?.name }}' has been assigned from the Project '{{ entry.body.project?.name }}'.</span>
+        <span v-if="!error && entry.body?.device">Device '{{ entry.body.device?.name }}' has been assigned from the Instance '{{ entry.body.project?.name }}'.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'team.device.unassigned'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.device">Device '{{ entry.body.device?.name }}' has been unassigned from the Project '{{ entry.body.project?.name }}'.</span>
+        <span v-if="!error && entry.body?.device">Device '{{ entry.body.device?.name }}' has been unassigned from the Instance '{{ entry.body.project?.name }}'.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'team.device.credentials-generated' || entry.event === 'team.device.credentialsGenerated'">
@@ -265,106 +265,122 @@
         <span v-else-if="!error">Update data not found in audit entry.</span>
     </template>
 
-    <!-- Project Events -->
+    <template v-else-if="entry.event === 'application.created'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.application">Application {{ entry.body.application?.name }} was created {{ entry.body.team ? `in Team '${entry.body.team.name}'` : '' }}</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'application.updated'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.updates">The following updates have been made to the Application: <AuditEntryUpdates :updates="entry.body.updates" />.</span>
+        <span v-else-if="!error">Updates not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'application.deleted'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.application">Application {{ entry.body.application?.name }} was deleted {{ entry.body.team ? `in Team '${entry.body.team.name}'` : '' }}</span>
+        <span v-else-if="!error">Application data not found in audit entry.</span>
+    </template>
+
+    <!-- Instance Events -->
     <template v-else-if="entry.event === 'project.created'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project">Project {{ entry.body.project?.name }} was created {{ entry.body.team ? `in Team '${entry.body.team.name}'` : '' }}</span>
-        <span v-else-if="!error">Project data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.project">Instance {{ entry.body.project?.name }} was created {{ entry.body.team ? `in Team '${entry.body.team.name}'` : '' }}</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.deleted'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project">Project {{ entry.body.project?.name }} was deleted {{ entry.body.team ? `in Team '${entry.body.team.name}'` : '' }}</span>
-        <span v-else-if="!error">Project data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.project">Instance {{ entry.body.project?.name }} was deleted {{ entry.body.team ? `in Team '${entry.body.team.name}'` : '' }}</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.duplicated'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.sourceProject && entry.body.project">Project '{{ entry.body.sourceProject?.name }}' was duplicated to a new Project '{{ entry.body.project.name }}'</span>
-        <span v-else-if="!error">Project data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.sourceProject && entry.body.project">Instance '{{ entry.body.sourceProject?.name }}' was duplicated to a new Instance '{{ entry.body.project.name }}'</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.started'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project">Project '{{ entry.body.project?.name }}' was started.</span>
-        <span v-else-if="!error">Project data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.project">Instance '{{ entry.body.project?.name }}' was started.</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.start-failed'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project">Something went wrong, and we were unable to start Project '{{ entry.body.project.name }}'. Please check the logs to find out more.</span>
-        <span v-else-if="!error">Project data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.project">Something went wrong, and we were unable to start Instance '{{ entry.body.project.name }}'. Please check the logs to find out more.</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.stopped'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project">Project '{{ entry.body.project.name }}' was stopped.</span>
-        <span v-else-if="!error">Project data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.project">Instance '{{ entry.body.project.name }}' was stopped.</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.restarted'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project">Project '{{ entry.body.project.name }}' was restarted.</span>
-        <span v-else-if="!error">Project data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.project">Instance '{{ entry.body.project.name }}' was restarted.</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.suspended'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project">Project '{{ entry.body.project.name }}' was suspended.</span>
-        <span v-else-if="!error">Project data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.project">Instance '{{ entry.body.project.name }}' was suspended.</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.copied'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project && entry.body?.targetProject">Project '{{ entry.body.project.name }}' was copied to '{{ entry.body.targetProject.name }}'</span>
-        <span v-else-if="!error">Project data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.project && entry.body?.targetProject">Instance '{{ entry.body.project.name }}' was copied to '{{ entry.body.targetProject.name }}'</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.imported'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project && entry.body?.sourceProject">Project '{{ entry.body.sourceProject.name }}' was copied to '{{ entry.body.project.name }}'</span>
-        <span v-else-if="!error">Project data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.project && entry.body?.sourceProject">Instance '{{ entry.body.sourceProject.name }}' was copied to '{{ entry.body.project.name }}'</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.device.assigned'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project">Device '{{ entry.body.device?.name }}' was assigned to Project '{{ entry.body.project?.name }}'</span>
-        <span v-else-if="!error">Project data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.project">Device '{{ entry.body.device?.name }}' was assigned to Instance '{{ entry.body.project?.name }}'</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.device.unassigned'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project">Device '{{ entry.body.device?.name }}' was unassigned from Project '{{ entry.body.project?.name }}'</span>
-        <span v-else-if="!error">Project data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.project">Device '{{ entry.body.device?.name }}' was unassigned from Instance '{{ entry.body.project?.name }}'</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.type.changed'">
         <label>Instance Type Changed</label>
-        <span v-if="!error && entry.body?.project">The type for Project '{{ entry.body.project?.name }}' has been changed to Type '{{ entry.body.projectType?.name }}'</span>
-        <span v-else-if="!error">Project data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.project">The type for Instance '{{ entry.body.project?.name }}' has been changed to Type '{{ entry.body.projectType?.name }}'</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.stack.changed'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project">The stack for Project '{{ entry.body.project?.name }}' has been changed to Stack '{{ entry.body.stack?.name }}'</span>
-        <span v-else-if="!error">Project data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.project">The stack for Instance '{{ entry.body.project?.name }}' has been changed to Stack '{{ entry.body.stack?.name }}'</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.stack.restart'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project">The stack for Project '{{ entry.body.project?.name }}' has been restarted</span>
-        <span v-else-if="!error">Project data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.project">The stack for Instance '{{ entry.body.project?.name }}' has been restarted</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.settings.updated'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project">Project '{{ entry.body.project?.name }}' has had the following changes made to its settings: <AuditEntryUpdates :updates="entry.body.updates" /></span>
-        <span v-else-if="!error">Project data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.project">Instance '{{ entry.body.project?.name }}' has had the following changes made to its settings: <AuditEntryUpdates :updates="entry.body.updates" /></span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.snapshot.created'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project && entry.body.snapshot">A new Snapshot '{{ entry.body.snapshot?.name }}' has been created for Project '{{ entry.body.project?.name }}'.</span>
-        <span v-else-if="!error">Project data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.project && entry.body.snapshot">A new Snapshot '{{ entry.body.snapshot?.name }}' has been created for Instance '{{ entry.body.project?.name }}'.</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.snapshot.rolled-back' || entry.event === 'project.snapshot.rollback'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project && entry.body.snapshot">Project '{{ entry.body.project?.name }}' has been rolled back to the Snapshot '{{ entry.body.snapshot?.name }}'.</span>
-        <span v-else-if="!error">Project data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.project && entry.body.snapshot">Instance '{{ entry.body.project?.name }}' has been rolled back to the Snapshot '{{ entry.body.snapshot?.name }}'.</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.snapshot.deleted'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been deleted in Project '{{ entry.body.project?.name }}'.</span>
-        <span v-else-if="!error">Project data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.project && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been deleted in Instance '{{ entry.body.project?.name }}'.</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.snapshot.device-target-set' || entry.event === 'project.snapshot.deviceTarget'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been set as the device target for Project '{{ entry.body.project?.name }}'.</span>
-        <span v-else-if="!error">Project data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.project && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been set as the device target for Instance '{{ entry.body.project?.name }}'.</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
 
     <!-- Node-RED Events -->
@@ -391,7 +407,7 @@
 
     <!-- Catch All -->
     <template v-else>
-        <label>{{ AuditEvents[entry.event] }}{{ entry.event }}</label>
+        <label>{{ AuditEvents[entry.event] }}: {{ entry.event }}</label>
         <span>We have no details available for this event type</span>
     </template>
 

@@ -1,4 +1,3 @@
-
 module.exports = async function (app) {
     app.addHook('preHandler', async (request, reply) => {
         const applicationId = request.params.applicationId
@@ -72,6 +71,8 @@ module.exports = async function (app) {
             return reply.status(500).send({ code: 'unexpected_error', error: err.toString() })
         }
 
+        await app.auditLog.Team.application.created(request.session.User, null, team, application)
+
         reply.send(app.db.views.Application.application(application))
     })
 
@@ -95,8 +96,11 @@ module.exports = async function (app) {
     app.put('/:applicationId', {
         preHandler: app.needsPermission('project:edit') // TODO For now sharing project permissions
     }, async (request, reply) => {
+        const updates = new app.auditLog.formatters.UpdatesCollection()
+
         try {
             const reqName = request.body.name?.trim()
+            updates.push('name', request.application.name, reqName)
             request.application.name = reqName
 
             await request.application.save()
@@ -105,6 +109,11 @@ module.exports = async function (app) {
             app.log.error(error)
 
             return reply.code(500).send({ code: 'unexpected_error', error: error.toString() })
+        }
+
+        const team = request.application.Team
+        if (team) {
+            await app.auditLog.Team.application.updated(request.session.User, null, team, request.application, updates)
         }
 
         reply.send(app.db.views.Application.application(request.application))
@@ -122,10 +131,11 @@ module.exports = async function (app) {
             // TODO need to stop all project containers and delete the projects
             // For now, error if there are any projects
             if (await request.application.projectCount() > 0) {
-                return reply.code(422).send({ code: 'invalid_application', error: 'All this applications projects must be deleted first' })
+                return reply.code(422).send({ code: 'invalid_application', error: 'Please delete the instances within the application first' })
             }
 
             await request.application.destroy()
+            await app.auditLog.Team.application.deleted(request.session.User, null, request.application.Team, request.application)
 
             reply.send({ status: 'okay' })
         } catch (err) {

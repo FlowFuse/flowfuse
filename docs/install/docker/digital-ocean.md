@@ -1,3 +1,7 @@
+---
+navTitle: Docker on Digital Ocean
+---
+
 # 1-Click Digital Ocean Droplet Install
 
 We have packaged the Docker Compose build of FlowForge as a Digital Ocean Droplet. It can be found in the Digital Ocean Market Place [here](https://marketplace.digitalocean.com/apps/flowforge?refcode=fb23e438a477)

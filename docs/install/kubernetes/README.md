@@ -1,3 +1,7 @@
+---
+navTitle: Install FlowForge on Kubernetes
+---
+
 # Kubernetes Install
 
 This version of the FlowForge platform is intended for running in the Kubernetes (sometimes referred to as K8s)

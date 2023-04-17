@@ -1,5 +1,4 @@
 const crypto = require('crypto')
-const semver = require('semver')
 
 const { KEY_SETTINGS } = require('../models/ProjectSettings')
 
@@ -284,10 +283,42 @@ module.exports = {
     },
 
     /**
+     * Add a module to the list of project modules.
+     */
+    addProjectModule: async function (app, project, module, version) {
+        return app.db.controllers.Project.mergeProjectModules(project, [{
+            name: module,
+            version,
+            local: true
+        }], true)
+    },
+    /**
+     * Remove a module from the list of project modules.
+     */
+    removeProjectModule: async function (app, project, module) {
+        let changed = false
+        let newProjectModuleList
+        const currentProjectSettings = await project.getSetting('settings') || {}
+        if (currentProjectSettings?.palette?.modules) {
+            newProjectModuleList = currentProjectSettings?.palette?.modules.filter(m => {
+                if (m.name === module) {
+                    changed = true
+                    return false
+                }
+                return true
+            })
+        }
+        if (changed) {
+            currentProjectSettings.palette = currentProjectSettings.palette || {}
+            currentProjectSettings.palette.modules = newProjectModuleList
+            await project.updateSetting('settings', currentProjectSettings)
+        }
+    },
+    /**
      * Updates the project settings.palette.modules value based on the
      * module list Node-RED has provided to the StorageSettings api.
      */
-    mergeProjectModules: async function (app, project, moduleList) {
+    mergeProjectModules: async function (app, project, moduleList, updateExisting = false) {
         let changed = false
         let newProjectModuleList
         const currentProjectSettings = await project.getSetting('settings') || {}
@@ -301,6 +332,11 @@ module.exports = {
             // will not be included.
             // So we don't want to remove anything from the current list just
             // because it isn't listed in what moduleList provides.
+            // We use the nodes.remove audit event to remove entries relating
+            // to node modules.
+            // For modules we already know about, we only update the recorded
+            // version if explicitly asked to. That only happens when triggered
+            // by the 'nodes.install' audit event.
 
             // This is the list of modules from ProjectSettings
             const existingModulesList = currentProjectSettings?.palette?.modules
@@ -310,21 +346,12 @@ module.exports = {
             const newModules = {}
             moduleList.forEach(m => {
                 newModules[m.name] = m
-                if (!existingModules[m.name]) {
-                    // Newly installed module - add to the list
+                if (!existingModules[m.name] || updateExisting) {
                     changed = true
                     existingModules[m.name] = m
                     if (/^\d/.test(m.version)) {
                         m.version = `~${m.version}`
                     }
-                } else if (!semver.satisfies(m.version, existingModules[m.name].version)) {
-                    // The installed version does not match what we thought semver wanted.
-                    // Defer to what has been installed - but with '~' prepended
-                    // as is the default Node-RED/npm behaviour
-                    if (/^\d/.test(m.version)) {
-                        m.version = `~${m.version}`
-                    }
-                    existingModules[m.name] = m
                 }
             })
             newProjectModuleList = Object.values(existingModules)

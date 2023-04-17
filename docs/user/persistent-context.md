@@ -1,3 +1,7 @@
+---
+navTitle: FlowForge Persistent Context
+---
+
 # FlowForge Persistent Context
 
 Some Node-RED flows need a way to persist context values between restarts and FlowForge stack 

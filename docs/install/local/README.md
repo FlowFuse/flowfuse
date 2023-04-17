@@ -1,3 +1,7 @@
+---
+navTitle: Local Install
+---
+
 # Local Install
 
 This version of the FlowForge platform is intended for running on a single machine

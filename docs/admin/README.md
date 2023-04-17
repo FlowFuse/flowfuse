@@ -121,11 +121,22 @@ documentation of your chosen deployment model:
 
  - [Local Stacks](../install/local/stacks.md)
  - [Docker Stacks](../install/docker/stacks.md)
- - Kubernetes Stacks - *coming soon*
+ - [Kubernetes Stacks](../install/kubernetes/stacks.md)
 
 ### Managing Templates
 
 The Templates page can be used to create and edit the template on the platform.
+With templates administrators can apply Node-RED configuration options as default.
+For these options, the administrator can lock the selected value so users cannot change
+them, or keep them editable by end-users.
 
 If you edit a template that is being used by an Application Instance, those changes will get
 applied the next time the instance is restarted.
+
+#### Disallow using nodes
+
+On FlowForge Cloud, but recommended on self-managed installs on Docker and Kubernetes,
+where certain nodes will not work so are excluded from being used by the template.
+
+When adding `31-tcpin.js,32-udp.js,10-file.js,23-watch.js,90-exec.js` to the `Exlude node by
+filename` section of a template and locking this value users are prevented from using these.

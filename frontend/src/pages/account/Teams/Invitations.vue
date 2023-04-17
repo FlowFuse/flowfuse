@@ -3,7 +3,7 @@
         <ff-data-table data-el="table" :columns="inviteColumns" :rows="invitations">
             <template v-slot:context-menu="{row}">
                 <ff-list-item data-action="accept" label="Accept" @click="acceptInvite(row)"/>
-                <ff-list-item data-action="reject" label="Reject" kind="danger" @click="rejectInvite(row.id)"/>
+                <ff-list-item data-action="reject" label="Reject" kind="danger" @click="rejectInvite(row)"/>
             </template>
         </ff-data-table>
     </div>
@@ -35,7 +35,7 @@ export default {
     },
     methods: {
         async acceptInvite (invite) {
-            await userApi.acceptTeamInvitation(invite.id)
+            await userApi.acceptTeamInvitation(invite.id, invite.team.id)
             await this.fetchData()
             await this.$store.dispatch('account/refreshTeams')
             // navigate to team dashboad once invite accepted
@@ -46,8 +46,8 @@ export default {
                 }
             })
         },
-        async rejectInvite (inviteId) {
-            await userApi.rejectTeamInvitation(inviteId)
+        async rejectInvite (invite) {
+            await userApi.rejectTeamInvitation(invite.id, invite.team.id)
             await this.fetchData()
         },
         async fetchData () {

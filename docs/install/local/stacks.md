@@ -1,3 +1,7 @@
+---
+navTitle: Local Project Stacks
+---
+
 # Local Stacks
 
 A Stack defines a set of platform configuration options that will get
