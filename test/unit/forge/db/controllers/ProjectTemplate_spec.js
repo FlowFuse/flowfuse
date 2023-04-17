@@ -6,11 +6,11 @@ const setup = require('../setup')
 describe('Project Template controller', function () {
     // Use standard test data.
     let app
-    beforeEach(async function () {
+    before(async function () {
         app = await setup()
     })
 
-    afterEach(async function () {
+    after(async function () {
         await app.close()
     })
 
