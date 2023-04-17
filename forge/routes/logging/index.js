@@ -20,6 +20,7 @@ module.exports = async function (app) {
         const project = await app.db.models.Project.byId(id)
         if (project && request.session.ownerType === 'project' && request.session.ownerId === id) {
             // Project exists and the auth token is for this project
+            request.project = project
             return
         }
         response.status(404).send({ code: 'not_found', error: 'Not Found' })
@@ -27,7 +28,6 @@ module.exports = async function (app) {
     app.post('/:projectId/audit', async (request, response) => {
         const projectId = request.params.projectId
         const auditEvent = request.body
-
         const event = auditEvent.event
         const error = auditEvent.error
         const userId = auditEvent.user ? app.db.models.User.decodeHashid(auditEvent.user) : undefined
@@ -48,6 +48,11 @@ module.exports = async function (app) {
                 event,
                 auditEvent
             )
+        }
+        if (event === 'nodes.install') {
+            await app.db.controllers.Project.addProjectModule(request.project, auditEvent.module, auditEvent.version)
+        } else if (event === 'nodes.remove') {
+            await app.db.controllers.Project.removeProjectModule(request.project, auditEvent.module)
         }
         response.status(200).send()
     })
