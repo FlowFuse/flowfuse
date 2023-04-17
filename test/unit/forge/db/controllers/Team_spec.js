@@ -70,7 +70,6 @@ describe('Team controller', function () {
                 app = await setup()
             })
             it('prevents the team userLimit from being exceeded', async function () {
-                app = await setup()
                 // Use the migration to set userLimit to 3
                 const updateTeam = FF_UTIL.require('forge/db/migrations/20220905-01-update-default-team-type-limits')
                 await updateTeam.up(app.db.sequelize.getQueryInterface())
