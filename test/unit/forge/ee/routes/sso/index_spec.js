@@ -18,7 +18,7 @@ describe('SSO Provider APIs', function () {
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
-    beforeEach(async function () {
+    before(async function () {
         inbox = new LocalTransport()
         app = await setup({
             email: {
@@ -32,6 +32,17 @@ describe('SSO Provider APIs', function () {
         await login('bob', 'bbPassword')
 
         app.samlProviders = {}
+        await addDefaultProviders()
+    })
+
+    after(async function () {
+        await app.close()
+    })
+    afterEach(async function () {
+        await app.db.models.SAMLProvider.destroy({ where: {} })
+        await addDefaultProviders()
+    })
+    async function addDefaultProviders () {
         app.samlProviders.provider1 = await app.db.models.SAMLProvider.create({
             name: 'example.com',
             domainFilter: '@example.com',
@@ -74,14 +85,7 @@ d
     e`
             }
         })
-    })
-
-    afterEach(async function () {
-        if (app) {
-            await app.close()
-            app = null
-        }
-    })
+    }
     async function countProviders () {
         return await app.db.models.SAMLProvider.count()
     }
