@@ -9,7 +9,10 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 describe('Application API', function () {
     let app
     const TestObjects = {}
-    beforeEach(async function () {
+    let objectCount = 0
+    const generateName = (root = 'object') => `${root}-${objectCount++}`
+
+    before(async function () {
         app = await setup()
 
         // ATeam ( alice  (owner), bob )
@@ -49,7 +52,7 @@ describe('Application API', function () {
         return response.cookies[0].value
     }
 
-    afterEach(async function () {
+    after(async function () {
         await app.close()
     })
 
@@ -304,10 +307,10 @@ describe('Application API', function () {
 
         it('Admin: Deletes the application', async function () {
             const sid = await login('alice', 'aaPassword')
-
+            const application = await app.factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
             const response = await app.inject({
                 method: 'DELETE',
-                url: `/api/v1/applications/${TestObjects.application.hashid}`,
+                url: `/api/v1/applications/${application.hashid}`,
                 cookies: { sid }
             })
 
@@ -316,10 +319,10 @@ describe('Application API', function () {
 
         it('Owner: Deletes the application', async function () {
             const sid = await login('bob', 'bbPassword')
-
+            const application = await app.factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
             const response = await app.inject({
                 method: 'DELETE',
-                url: `/api/v1/applications/${TestObjects.application.hashid}`,
+                url: `/api/v1/applications/${application.hashid}`,
                 cookies: { sid }
             })
 
@@ -328,10 +331,11 @@ describe('Application API', function () {
 
         it('Member: Errors if the user only has read access to the application', async function () {
             const sid = await login('chris', 'ccPassword') // member not owner
+            const application = await app.factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
 
             const response = await app.inject({
                 method: 'DELETE',
-                url: `/api/v1/applications/${TestObjects.application.hashid}`,
+                url: `/api/v1/applications/${application.hashid}`,
                 cookies: { sid }
             })
 
@@ -344,11 +348,12 @@ describe('Application API', function () {
 
         it('None: Errors if the user is not a member of the application', async function () {
             const sid = await login('dave', 'ddPassword') // not connected
+            const application = await app.factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
 
             // Bob (non-admin)
             const response = await app.inject({
                 method: 'DELETE',
-                url: `/api/v1/applications/${TestObjects.application.hashid}`,
+                url: `/api/v1/applications/${application.hashid}`,
                 cookies: { sid }
             })
 
@@ -364,9 +369,11 @@ describe('Application API', function () {
         it('Returns application instances - empty list', async function () {
             const sid = await login('bob', 'bbPassword')
 
+            const application = await app.factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
+
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/applications/${TestObjects.application.hashid}/instances`,
+                url: `/api/v1/applications/${application.hashid}/instances`,
                 cookies: { sid }
             })
 
@@ -379,17 +386,19 @@ describe('Application API', function () {
 
         it('Returns application instances - non-empty list', async function () {
             const sid = await login('bob', 'bbPassword')
-            const instance = await app.factory.createInstance({ name: 'main-instance' }, TestObjects.application, app.stack, app.template, app.projectType, { start: true })
+            const application = await app.factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
+
+            const instance = await app.factory.createInstance({ name: 'main-instance' }, application, app.stack, app.template, app.projectType, { start: true })
             await instance.updateSetting(KEY_SETTINGS, { httpAdminRoot: '/editor' })
 
             // Create another project *not* in the Application
             // to verify it doesn't get included in the list
-            const otherApplication = await app.factory.createApplication({ name: 'other-application' }, TestObjects.BTeam)
-            await app.factory.createInstance({ name: 'other-instance' }, otherApplication, app.stack, app.template, app.projectType, { start: false })
+            const otherApplication = await app.factory.createApplication({ name: generateName('other-application') }, TestObjects.BTeam)
+            await app.factory.createInstance({ name: generateName('other-instance') }, otherApplication, app.stack, app.template, app.projectType, { start: false })
 
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/applications/${TestObjects.application.hashid}/instances`,
+                url: `/api/v1/applications/${application.hashid}/instances`,
                 cookies: { sid }
             })
 
@@ -404,12 +413,15 @@ describe('Application API', function () {
 
         it('Includes each instances URL accounting for httpAdminRoot', async function () {
             const sid = await login('bob', 'bbPassword')
-            const instance = await app.factory.createInstance({ name: 'main-instance' }, TestObjects.application, app.stack, app.template, app.projectType, { start: true })
+            const application = await app.factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
+
+            const name = generateName('main-instance')
+            const instance = await app.factory.createInstance({ name }, application, app.stack, app.template, app.projectType, { start: true })
             await instance.updateSetting(KEY_SETTINGS, { httpAdminRoot: '/editor' })
 
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/applications/${TestObjects.application.hashid}/instances`,
+                url: `/api/v1/applications/${application.hashid}/instances`,
                 cookies: { sid }
             })
 
@@ -419,15 +431,16 @@ describe('Application API', function () {
             result.should.have.property('instances')
             result.instances.should.have.length(1)
             result.instances[0].should.have.property('id', instance.id)
-            result.instances[0].should.have.property('url', 'http://main-instance.example.com/editor') // from stub driver
+            result.instances[0].should.have.property('url', `http://${name}.example.com/editor`) // from stub driver
         })
     })
 
     describe('List instances statuses', async function () {
         it('Returns application instance statuses & meta', async function () {
-            const instance1 = await app.factory.createInstance({ name: 'instance-b-1' }, TestObjects.application, app.stack, app.template, app.projectType, { start: false })
-            const instance2 = await app.factory.createInstance({ name: 'instance-b-2' }, TestObjects.application, app.stack, app.template, app.projectType)
-            const instance3 = await app.factory.createInstance({ name: 'instance-b-3' }, TestObjects.application, app.stack, app.template, app.projectType, { start: false })
+            const application = await app.factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
+            const instance1 = await app.factory.createInstance({ name: generateName('instance-b') }, application, app.stack, app.template, app.projectType, { start: false })
+            const instance2 = await app.factory.createInstance({ name: generateName('instance-b') }, application, app.stack, app.template, app.projectType)
+            const instance3 = await app.factory.createInstance({ name: generateName('instance-b') }, application, app.stack, app.template, app.projectType, { start: false })
 
             // Started
             const startResult = await app.containers.start(instance1)
@@ -440,7 +453,7 @@ describe('Application API', function () {
 
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/applications/${TestObjects.application.hashid}/instances/status`,
+                url: `/api/v1/applications/${application.hashid}/instances/status`,
                 cookies: { sid }
             })
 
