@@ -7,7 +7,10 @@ const { Op } = require('sequelize')
 describe('Stack API', function () {
     let app
     const TestObjects = {}
-    beforeEach(async function () {
+    let stackInstanceCount = 0
+    const generateStackName = () => `stack-${stackInstanceCount++}`
+
+    before(async function () {
         app = await setup()
 
         // Alice create in setup()
@@ -20,6 +23,25 @@ describe('Stack API', function () {
         await login('alice', 'aaPassword')
         await login('bob', 'bbPassword')
     })
+    after(async function () {
+        await app.close()
+    })
+
+    async function createStack (stackName) {
+        return (await app.inject({
+            method: 'POST',
+            url: '/api/v1/stacks',
+            cookies: { sid: TestObjects.tokens.alice },
+            payload: {
+                name: stackName,
+                active: true,
+                projectType: TestObjects.projectType1.hashid,
+                properties: {
+                    foo: 'bar'
+                }
+            }
+        })).json()
+    }
 
     async function login (username, password) {
         const response = await app.inject({
@@ -32,20 +54,17 @@ describe('Stack API', function () {
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
-    afterEach(async function () {
-        await app.close()
-    })
-
     describe('Create stacks', async function () {
         // POST /api/v1/stacks
         // - Must be admin or team owner/member
         it('Create a simple stack', async function () {
+            const stackName = generateStackName()
             const response = await app.inject({
                 method: 'POST',
                 url: '/api/v1/stacks',
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
-                    name: 'stack2',
+                    name: stackName,
                     active: true,
                     projectType: TestObjects.projectType1.hashid,
                     properties: {
@@ -55,7 +74,7 @@ describe('Stack API', function () {
             })
             const result = response.json()
             result.should.have.property('id')
-            result.should.have.property('name', 'stack2')
+            result.should.have.property('name', stackName)
             result.should.have.property('active', true)
             result.should.have.property('projectType', TestObjects.projectType1.hashid)
             result.should.have.property('projectCount', 0)
@@ -76,15 +95,19 @@ describe('Stack API', function () {
             response.json().should.have.property('error')
         })
         it('Creates a stack to replace an existing one', async function () {
+            const stackName = generateStackName()
+            const originalStack = await createStack(stackName)
+
+            const newStackName = generateStackName()
             const response = await app.inject({
                 method: 'POST',
                 url: '/api/v1/stacks',
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
-                    name: 'stack2',
+                    name: newStackName,
                     active: true,
                     projectType: TestObjects.projectType1.hashid,
-                    replace: TestObjects.stack1.hashid,
+                    replace: originalStack.id,
                     properties: {
                         foo: 'bar'
                     }
@@ -95,7 +118,7 @@ describe('Stack API', function () {
 
             const stack1Request = await app.inject({
                 method: 'GET',
-                url: `/api/v1/stacks/${TestObjects.stack1.hashid}`,
+                url: `/api/v1/stacks/${originalStack.id}`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
             const stack1 = stack1Request.json()
@@ -121,6 +144,8 @@ describe('Stack API', function () {
         })
 
         it('Fails to create a stack when replacing an already replaced stack', async function () {
+            const originalStack = await createStack(generateStackName())
+
             const response = await app.inject({
                 method: 'POST',
                 url: '/api/v1/stacks',
@@ -129,7 +154,7 @@ describe('Stack API', function () {
                     name: 'stack2',
                     active: true,
                     projectType: TestObjects.projectType1.hashid,
-                    replace: TestObjects.stack1.hashid,
+                    replace: originalStack.id,
                     properties: {
                         foo: 'bar'
                     }
@@ -137,7 +162,7 @@ describe('Stack API', function () {
             })
             response.statusCode.should.equal(200)
 
-            // Try to replace stack1 again
+            // Try to replace originalStack again
             const response2 = await app.inject({
                 method: 'POST',
                 url: '/api/v1/stacks',
@@ -146,7 +171,7 @@ describe('Stack API', function () {
                     name: 'stack3',
                     active: true,
                     projectType: TestObjects.projectType1.hashid,
-                    replace: TestObjects.stack1.hashid,
+                    replace: originalStack.id,
                     properties: {
                         foo: 'bar'
                     }
@@ -157,16 +182,21 @@ describe('Stack API', function () {
             result.should.have.property('error')
         })
         it('Updates previously replaced stacks to point to latest', async function () {
-            // stack1 gets replaced by stack2
+            const stackName = generateStackName()
+            const originalStack = await createStack(stackName)
+
+            const newStackName = generateStackName()
+
+            // originalStack gets replaced by newStack
             const response2 = await app.inject({
                 method: 'POST',
                 url: '/api/v1/stacks',
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
-                    name: 'stack2',
+                    name: newStackName,
                     active: true,
                     projectType: TestObjects.projectType1.hashid,
-                    replace: TestObjects.stack1.hashid,
+                    replace: originalStack.id,
                     properties: {
                         foo: 'bar'
                     }
@@ -176,17 +206,18 @@ describe('Stack API', function () {
 
             const initialStack1Request = await app.inject({
                 method: 'GET',
-                url: `/api/v1/stacks/${TestObjects.stack1.hashid}`,
+                url: `/api/v1/stacks/${originalStack.id}`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
             initialStack1Request.json().should.have.property('replacedBy', stack2.id)
 
+            const newStackName2 = generateStackName()
             const response3 = await app.inject({
                 method: 'POST',
                 url: '/api/v1/stacks',
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
-                    name: 'stack3',
+                    name: newStackName2,
                     active: true,
                     projectType: TestObjects.projectType1.hashid,
                     replace: stack2.id,
@@ -199,7 +230,7 @@ describe('Stack API', function () {
 
             const stack1Request = await app.inject({
                 method: 'GET',
-                url: `/api/v1/stacks/${TestObjects.stack1.hashid}`,
+                url: `/api/v1/stacks/${originalStack.id}`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
             stack1Request.json().should.have.property('replacedBy', stack3.id)
@@ -281,6 +312,16 @@ describe('Stack API', function () {
             result.should.have.property('name', 'stack1')
             result.should.have.property('active', false)
             result.should.have.property('projectCount', 1)
+
+            // Restore the flag for later tests
+            await app.inject({
+                method: 'PUT',
+                url: `/api/v1/stacks/${TestObjects.stack1.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    active: true // stack1 created in setup
+                }
+            })
         })
         it('Cannot change projectType for stack that already has one', async function () {
             const projectType2 = await app.db.models.ProjectType.create({
@@ -354,7 +395,7 @@ describe('Stack API', function () {
                 url: '/api/v1/stacks',
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
-                    name: 'stack2',
+                    name: generateStackName(),
                     active: true,
                     properties: {
                         foo: 'bar'
@@ -418,6 +459,7 @@ describe('Stack API', function () {
     describe('List stacks', async function () {
         let stack3
         beforeEach(async function () {
+            await app.db.models.ProjectStack.destroy({ where: { name: { [Op.not]: 'stack1' } } })
             await app.inject({
                 method: 'POST',
                 url: '/api/v1/stacks',

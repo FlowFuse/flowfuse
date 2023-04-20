@@ -10,19 +10,12 @@ function encryptCredentials (key, plain) {
     const cipher = crypto.createCipheriv('aes-256-ctr', key, initVector)
     return { $: initVector.toString('hex') + cipher.update(JSON.stringify(plain), 'utf8', 'base64') + cipher.final('base64') }
 }
-// function decryptCredentials (key, cipher) {
-//     let flows = cipher.$
-//     const initVector = Buffer.from(flows.substring(0, 32), 'hex')
-//     flows = flows.substring(32)
-//     const decipher = crypto.createDecipheriv('aes-256-ctr', key, initVector)
-//     const decrypted = decipher.update(flows, 'base64', 'utf8') + decipher.final('utf8')
-//     return JSON.parse(decrypted)
-// }
 
 describe('Project Snapshots API', function () {
     let app
     const TestObjects = {}
-    beforeEach(async function () {
+
+    before(async function () {
         app = await setup()
 
         TestObjects.project1 = app.project
@@ -67,7 +60,7 @@ describe('Project Snapshots API', function () {
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
-    afterEach(async function () {
+    after(async function () {
         await app.close()
     })
 
@@ -399,8 +392,8 @@ describe('Project Snapshots API', function () {
             response.statusCode.should.equal(200)
 
             const snapshotList = (await listProjectSnapshots(TestObjects.project1.id, TestObjects.tokens.alice)).json()
-            snapshotList.should.have.property('snapshots')
-            snapshotList.snapshots.should.have.lengthOf(0)
+            const snapshot = snapshotList.snapshots.filter(snap => snap.id === result.id)
+            snapshot.should.have.lengthOf(0)
         })
     })
 })
