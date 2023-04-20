@@ -79,6 +79,8 @@ describe('Team Members API', function () {
         result.should.have.property('count', expectedMembers.length)
         result.should.have.property('members')
         result.members.should.have.lengthOf(expectedMembers.length)
+        result.members.sort((A, B) => { return A.id.localeCompare(B.id) })
+        expectedMembers.sort((A, B) => { return A.id.localeCompare(B.id) })
         for (let i = 0; i < expectedMembers.length; i++) {
             result.members[i].should.have.property('id', expectedMembers[i].id)
             result.members[i].should.have.property('role', expectedMembers[i].role)
