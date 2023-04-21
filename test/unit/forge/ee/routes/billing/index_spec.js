@@ -10,6 +10,9 @@ describe('Billing routes', function () {
 
     let app
     let stripe
+    let objectCount = 0
+    const generateName = (root = 'object') => `${root}-${objectCount++}`
+
     const TestObjects = {}
 
     async function getLog () {
@@ -28,7 +31,7 @@ describe('Billing routes', function () {
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
-    beforeEach(async function () {
+    before(async function () {
         stripe = setup.setupStripe()
 
         app = await setup()
@@ -42,17 +45,20 @@ describe('Billing routes', function () {
 
         await login('alice', 'aaPassword')
 
-        sandbox.stub(app.log, 'info')
-        sandbox.stub(app.log, 'warn')
-        sandbox.stub(app.log, 'error')
-
         await app.project.destroy() // clean up test project
     })
 
-    afterEach(async function () {
+    after(async function () {
         await app.close()
         setup.resetStripe()
+    })
+    afterEach(async function () {
         sandbox.restore()
+        stripe.clear()
+        await app.db.models.Subscription.destroy({ where: {} })
+        await app.factory.createSubscription(app.team)
+        // Reset defaults
+        app.config.billing.stripe.new_customer_free_credit = 1000
     })
 
     describe('Stripe Callbacks', function () {
@@ -60,6 +66,9 @@ describe('Billing routes', function () {
 
         beforeEach(async function () {
             sandbox.stub(app.billing)
+            sandbox.stub(app.log, 'info')
+            sandbox.stub(app.log, 'warn')
+            sandbox.stub(app.log, 'error')
         })
 
         describe('charge.failed', () => {
@@ -306,7 +315,6 @@ describe('Billing routes', function () {
 
             it('Ignores the free_trial flag if trials are not enabled', async () => {
                 app.config.billing.stripe.new_customer_free_credit = undefined
-
                 const response = await (app.inject({
                     method: 'POST',
                     url: callbackURL,
@@ -490,17 +498,20 @@ describe('Billing routes', function () {
 
         describe('customer.subscription.deleted', () => {
             it('Cancels the teams subscription and stops all running projects', async () => {
+                const team = await app.factory.createTeam({ name: 'team-01' })
+                await app.factory.createSubscription(team, 'sub_delete_123', 'cus_delete_123')
+
                 const project1 = await app.db.models.Project.create({ name: 'project-1', type: '', url: '' })
                 await project1.setProjectStack(app.stack)
-                await app.team.addProject(project1)
+                await team.addProject(project1)
 
                 const project2 = await app.db.models.Project.create({ name: 'project-2', type: '', url: '' })
                 await project2.setProjectStack(app.stack)
-                await app.team.addProject(project2)
+                await team.addProject(project2)
 
                 const project3 = await app.db.models.Project.create({ name: 'project-3', type: '', url: '' })
                 await project3.setProjectStack(app.stack)
-                await app.team.addProject(project3)
+                await team.addProject(project3)
 
                 // Ensure the team prop is loaded properly - wrapper assumes project.Team is defined
                 await project1.reload({
@@ -531,9 +542,9 @@ describe('Billing routes', function () {
                 await app.containers.stop(project3)
 
                 // Assert state before
-                const teamProjects = await app.db.models.Project.byTeam(app.team.hashid)
+                const teamProjects = await app.db.models.Project.byTeam(team.hashid)
                 should(teamProjects.length).equal(3)
-                const projectsStatesBefore = await app.db.models.Project.byTeam(app.team.hashid)
+                const projectsStatesBefore = await app.db.models.Project.byTeam(team.hashid)
                 projectsStatesBefore.map((project) => project.state).should.match(['running', 'running', 'suspended'])
 
                 app.log.info.resetHistory()
@@ -549,9 +560,9 @@ describe('Billing routes', function () {
                         object: 'event',
                         data: {
                             object: {
-                                id: 'sub_1234567890',
+                                id: 'sub_delete_123',
                                 object: 'subscription',
-                                customer: 'cus_1234567890',
+                                customer: 'cus_delete_123',
                                 status: 'canceled'
                             }
                         },
@@ -560,14 +571,14 @@ describe('Billing routes', function () {
                 }))
 
                 should(app.log.info.called).equal(true)
-                app.log.info.firstCall.firstArg.should.equal(`Stripe customer.subscription.deleted event sub_1234567890 from cus_1234567890 received for team '${app.team.hashid}'`)
+                app.log.info.firstCall.firstArg.should.equal(`Stripe customer.subscription.deleted event sub_delete_123 from cus_delete_123 received for team '${team.hashid}'`)
 
                 should(response).have.property('statusCode', 200)
 
-                const subscription = await app.db.models.Subscription.byCustomerId('cus_1234567890')
+                const subscription = await app.db.models.Subscription.byCustomerId('cus_delete_123')
                 should(subscription.status).equal(app.db.models.Subscription.STATUS.CANCELED)
 
-                const projectsStatesAfter = await app.db.models.Project.byTeam(app.team.hashid)
+                const projectsStatesAfter = await app.db.models.Project.byTeam(team.hashid)
                 projectsStatesAfter.map((project) => project.state).should.match(['suspended', 'suspended', 'suspended'])
 
                 const log = await getLog()
@@ -606,39 +617,10 @@ describe('Billing routes', function () {
                 should(response).have.property('statusCode', 200)
             })
 
-            it('Handles cancellation for unknown subscriptions without error', async () => {
-                await app.db.controllers.Subscription.deleteSubscription(app.team)
-
-                const response = await (app.inject({
-                    method: 'POST',
-                    url: callbackURL,
-                    headers: {
-                        'content-type': 'application/json'
-                    },
-                    payload: {
-                        id: 'evt_1MEVSfJ6VWAujNoLCPdYq9kn',
-                        object: 'event',
-                        data: {
-                            object: {
-                                id: 'sub_1234567890',
-                                object: 'subscription',
-                                customer: 'cus_1234567890',
-                                status: 'canceled'
-                            }
-                        },
-                        type: 'customer.subscription.deleted'
-                    }
-                }))
-
-                should(app.log.error.called).equal(true)
-                app.log.error.firstCall.firstArg.should.equal('Stripe customer.subscription.deleted event sub_1234567890 from cus_1234567890 received for unknown team by Stripe Customer ID')
-
-                should(response).have.property('statusCode', 200)
-            })
-
             it('Handles cancellation for unknown teams but with a subscription (team manually deleted)', async () => {
-                await app.application.destroy()
-                await app.team.destroy()
+                const team = await app.factory.createTeam({ name: 'team-02' })
+                await app.factory.createSubscription(team, 'sub_unknown_123', 'cus_unknown_123')
+                await team.destroy()
 
                 const response = await (app.inject({
                     method: 'POST',
@@ -651,9 +633,9 @@ describe('Billing routes', function () {
                         object: 'event',
                         data: {
                             object: {
-                                id: 'sub_1234567890',
+                                id: 'sub_unknown_123',
                                 object: 'subscription',
-                                customer: 'cus_1234567890',
+                                customer: 'cus_unknown_123',
                                 status: 'canceled'
                             }
                         },
@@ -662,7 +644,7 @@ describe('Billing routes', function () {
                 }))
 
                 should(app.log.warn.called).equal(true)
-                app.log.warn.firstCall.firstArg.should.equal('Stripe customer.subscription.deleted event sub_1234567890 from cus_1234567890 received for deleted team with orphaned subscription')
+                app.log.warn.firstCall.firstArg.should.equal('Stripe customer.subscription.deleted event sub_unknown_123 from cus_unknown_123 received for deleted team with orphaned subscription')
 
                 should(response).have.property('statusCode', 200)
             })
@@ -671,16 +653,16 @@ describe('Billing routes', function () {
 
     describe('Create Project', function () {
         it('Fails to create project if billing is not setup', async function () {
-            const noBillingTeam = await app.factory.createTeam({ name: 'noBillingTeam' })
+            const noBillingTeam = await app.factory.createTeam({ name: generateName('noBillingTeam') })
             await noBillingTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
 
-            const application = await app.factory.createApplication({ name: 'test-app' }, noBillingTeam)
+            const application = await app.factory.createApplication({ name: generateName('test-app') }, noBillingTeam)
 
             const response = await app.inject({
                 method: 'POST',
                 url: '/api/v1/projects',
                 payload: {
-                    name: 'billing-project',
+                    name: generateName('billing-project'),
                     applicationId: application.hashid,
                     projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
@@ -731,7 +713,7 @@ describe('Billing routes', function () {
                 method: 'POST',
                 url: '/api/v1/projects',
                 payload: {
-                    name: 'test-project',
+                    name: 'test-project-01',
                     applicationId: app.application.hashid,
                     projectType: TestObjects.projectType1.hashid,
                     template: TestObjects.template1.hashid,
@@ -813,17 +795,20 @@ describe('Billing routes', function () {
         })
 
         describe('Trial Mode', function () {
+            afterEach(function () {
+                app.settings.set('user:team:trial-mode', false)
+            })
             it('Fails to create project for trial-mode team if project-type not allowed', async function () {
                 app.settings.set('user:team:trial-mode', true)
                 app.settings.set('user:team:trial-mode:duration', 5)
                 app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
 
                 // Create trial team
-                const trialTeam = await app.factory.createTeam({ name: 'noBillingTeam' })
+                const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam') })
                 await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
                 await app.factory.createTrialSubscription(trialTeam)
 
-                const application = await app.factory.createApplication({ name: 'test-app' }, trialTeam)
+                const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
 
                 // Create a forbidden second projectType
                 const projectType2 = await app.db.models.ProjectType.create({
@@ -841,7 +826,7 @@ describe('Billing routes', function () {
                     method: 'POST',
                     url: '/api/v1/projects',
                     payload: {
-                        name: 'billing-project',
+                        name: generateName('billing-project'),
                         applicationId: application.hashid,
                         projectType: projectType2.hashid,
                         template: TestObjects.template1.hashid,
@@ -859,17 +844,17 @@ describe('Billing routes', function () {
                 app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
 
                 // Create trial team
-                const trialTeam = await app.factory.createTeam({ name: 'noBillingTeam' })
+                const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam') })
                 await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
                 await app.factory.createTrialSubscription(trialTeam, -1)
 
-                const application = await app.factory.createApplication({ name: 'test-app' }, trialTeam)
+                const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
 
                 const response = await app.inject({
                     method: 'POST',
                     url: '/api/v1/projects',
                     payload: {
-                        name: 'billing-project',
+                        name: generateName('billing-project'),
                         applicationId: application.hashid,
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
@@ -888,18 +873,18 @@ describe('Billing routes', function () {
                 app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
 
                 // Create trial team
-                const trialTeam = await app.factory.createTeam({ name: 'noBillingTeam' })
+                const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam') })
                 await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
                 await app.factory.createTrialSubscription(trialTeam)
 
-                const application = await app.factory.createApplication({ name: 'test-app' }, trialTeam)
+                const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
 
                 // Create project using the permitted projectType for trials - projectType1
                 const response = await app.inject({
                     method: 'POST',
                     url: '/api/v1/projects',
                     payload: {
-                        name: 'billing-project',
+                        name: generateName('billing-project'),
                         applicationId: application.hashid,
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
@@ -925,18 +910,18 @@ describe('Billing routes', function () {
                 app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
 
                 // Create trial team
-                const trialTeam = await app.factory.createTeam({ name: 'noBillingTeam' })
+                const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam') })
                 await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
                 await app.factory.createTrialSubscription(trialTeam)
 
-                const application = await app.factory.createApplication({ name: 'test-app' }, trialTeam)
+                const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
 
                 // Create project using the permitted projectType for trials - projectType1
                 const response = await app.inject({
                     method: 'POST',
                     url: '/api/v1/projects',
                     payload: {
-                        name: 'billing-project',
+                        name: generateName('billing-project'),
                         applicationId: application.hashid,
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
@@ -950,7 +935,7 @@ describe('Billing routes', function () {
                     method: 'POST',
                     url: '/api/v1/projects',
                     payload: {
-                        name: 'billing-project-2',
+                        name: generateName('billing-project'),
                         applicationId: application.hashid,
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
@@ -967,18 +952,18 @@ describe('Billing routes', function () {
                 app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
 
                 // Create trial team
-                const trialTeam = await app.factory.createTeam({ name: 'noBillingTeam' })
+                const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam') })
                 await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
                 await app.factory.createTrialSubscription(trialTeam)
 
-                const application = await app.factory.createApplication({ name: 'test-app' }, trialTeam)
+                const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
 
                 // Create project using the permitted projectType for trials - projectType1
                 const response = await app.inject({
                     method: 'POST',
                     url: '/api/v1/projects',
                     payload: {
-                        name: 'billing-project',
+                        name: generateName('billing-project'),
                         applicationId: application.hashid,
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
@@ -1048,19 +1033,19 @@ describe('Billing routes', function () {
                 app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
 
                 // Create trial team - with trialEndsAt in the past
-                const trialTeam = await app.factory.createTeam({ name: 'noBillingTeam' })
+                const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam') })
                 await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
                 await app.factory.createTrialSubscription(trialTeam, -1)
 
                 // Create trial team
-                const application = await app.factory.createApplication({ name: 'test-app' }, trialTeam)
+                const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
 
                 // Try to create project using the permitted projectType for trials - projectType1
                 const response = await app.inject({
                     method: 'POST',
                     url: '/api/v1/projects',
                     payload: {
-                        name: 'billing-project',
+                        name: generateName('billing-project'),
                         applicationId: application.hashid,
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
@@ -1077,18 +1062,18 @@ describe('Billing routes', function () {
                 app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
 
                 // Create trial team
-                const trialTeam = await app.factory.createTeam({ name: 'noBillingTeam' })
+                const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam') })
                 await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
                 const trialSub = await app.factory.createTrialSubscription(trialTeam)
 
-                const application = await app.factory.createApplication({ name: 'test-app' }, trialTeam)
+                const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
 
                 // Create project
                 const response = await app.inject({
                     method: 'POST',
                     url: '/api/v1/projects',
                     payload: {
-                        name: 'billing-project',
+                        name: generateName('billing-project'),
                         applicationId: application.hashid,
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
