@@ -24,8 +24,8 @@ const create = async (projectId, options) => {
     })
 }
 
-const rollbackSnapshot = async (projectId, snapshotId) => {
-    return instanceApi.rollbackInstance(projectId, snapshotId)
+const rollbackSnapshot = async (instanceId, snapshotId) => {
+    return instanceApi.rollbackInstance(instanceId, snapshotId)
 }
 
 /**
