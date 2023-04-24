@@ -70,7 +70,8 @@ You can optionally enabled Basic Authentication, with a single hardcoded usernam
 and password.
 
 Alternatively you can require anyone accessing those routes to be logged into
-FlowForge.
+FlowForge. The hosted pages or API endpoints are only available for users that
+have access to your team and the cloud instance.
 
 ## Palette
 
