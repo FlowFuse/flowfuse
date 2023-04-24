@@ -33,11 +33,13 @@ module.exports = {
      */
     sendDeviceUpdateCommand: function (app, device) {
         if (app.comms) {
-            app.comms.devices.sendCommand(device.Team.hashid, device.hashid, 'update', {
+            const payload = {
                 project: device.Project?.id || null,
                 snapshot: device.targetSnapshot?.hashid || null,
-                settings: device.settingsHash || null
-            })
+                settings: device.settingsHash || null,
+                mode: device.mode
+            }
+            app.comms.devices.sendCommand(device.Team.hashid, device.hashid, 'update', payload)
         }
     },
     /**
@@ -68,6 +70,23 @@ module.exports = {
         result.push(makeVar('FF_DEVICE_TYPE', device.type || ''))
         result.push(...app.db.controllers.Device.removePlatformSpecificEnvVars(envVars))
         return result
+    },
+
+    /**
+     * Export a device config for snapshotting back up to the forge
+     * @param {import('../../forge').forge} app Forge app instance
+     * @param {Object} device The device to export the config from
+     */
+    exportConfig: async function (app, device) {
+        // request config and flows from device
+        if (app.comms) {
+            app.comms.devices.sendCommand(device.Team.hashid, device.hashid, 'ping', { serverTime: Date.now() })
+            const config = await app.comms.devices.sendCommandAwaitReply(device.Team.hashid, device.hashid, 'upload', { timeout: 10000 })
+            if (config) {
+                return config
+            }
+        }
+        return null
     }
 
 }

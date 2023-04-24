@@ -63,6 +63,8 @@ const Permissions = {
     'device:delete': { description: 'Delete a Device', role: Roles.Owner },
     'device:edit': { description: 'Edit a Device', role: Roles.Owner },
     'device:edit-env': { description: 'Edit Device Environment Variables', role: Roles.Member },
+    'device:change-mode': { description: 'Set the Device Mode', role: Roles.Owner },
+    'device:editor': { description: 'Enabled or Disable the Device Editor access', role: Roles.Owner },
     // Project Types
     'project-type:create': { description: 'Create a ProjectType', role: Roles.Admin },
     'project-type:list': { description: 'List all ProjectTypes' },

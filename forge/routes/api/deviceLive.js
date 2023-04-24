@@ -66,7 +66,8 @@ module.exports = async function (app) {
         reply.send({
             project: request.device.Project?.id || null,
             snapshot: request.device.targetSnapshot?.hashid || null,
-            settings: request.device.settingsHash || null
+            settings: request.device.settingsHash || null,
+            mode: request.device.mode || null
         })
     })
 

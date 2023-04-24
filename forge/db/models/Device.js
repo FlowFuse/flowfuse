@@ -20,7 +20,8 @@ module.exports = {
         state: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
         lastSeenAt: { type: DataTypes.DATE, allowNull: true },
         settingsHash: { type: DataTypes.STRING, allowNull: true },
-        agentVersion: { type: DataTypes.STRING, allowNull: true }
+        agentVersion: { type: DataTypes.STRING, allowNull: true },
+        mode: { type: DataTypes.STRING, allowNull: true, defaultValue: 'active' }
     },
     associations: function (M) {
         this.belongsTo(M.Team)

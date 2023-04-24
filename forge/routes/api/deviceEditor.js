@@ -1,119 +1,92 @@
 /**
- * Device Editor access
- *
+ * Device Editor access /api/v1/remote/editor/
+ * @typedef {import('../../forge').FastifyInstance} FastifyInstance
+ * @param {FastifyInstance} app Fastify app
  * @namespace devices
  * @memberof forge.routes.api
  */
 module.exports = async function (app) {
-    const devices = {}
+    // #region Helpers
+    /** @typedef {import('../../comms/DeviceTunnelManager').DeviceTunnelManager} DeviceTunnelManager */
 
-    app.get('/inboundWS/:deviceId', {
+    /**
+     * Get the device tunnel manager for the app
+     * @returns {DeviceTunnelManager}
+     */
+    function getTunnelManager () {
+        return app.comms.devices.tunnelManager
+    }
+    // #endregion
+
+    /**
+     * Initiate inbound websocket connection from device
+     * @name /api/v1/remote/editor/inboundWS/:getDeviceProjectId
+     */
+    app.get('/inboundWS/:deviceId/:token', {
         config: { allowAnonymous: true },
         websocket: true
     }, (connection, request) => {
-        const device = request.params.deviceId
-        if (!devices[device]) {
-            devices[device] = {
-                counter: 0,
-                socket: connection.socket,
-                requests: {},
-                forwardedWS: {}
-            }
-        }
-        connection.socket.on('message', msg => {
-            const response = JSON.parse(msg.toString())
-            if (response.id !== undefined) {
-                const reply = devices[device].requests[response.id]
-                if (reply) {
-                    reply.headers(response.headers ? response.headers: {})
-                    reply.code(response.status)
-                    if (response.body) {
-                        reply.send(Buffer.from(response.body))
-                    } else {
-                        reply.send()
-                    }
-                } else if (response.ws) {
-                    const wsSocket = devices[device].forwardedWS[response.id]
-                    wsSocket.send(response.body)
-                } else {
-                    console.log('no reply')
+        // * Enable Device Editor (Step 9) - (device:WS->forge) websocket connect request from device
+        // This is the inbound websocket connection from the device
+        const deviceId = request.params.deviceId
+        const token = request.params.token
+        const tunnelManager = getTunnelManager()
+        const tunnelInfo = tunnelManager.getTunnelStatus(deviceId)
+        if (tunnelInfo.exists) {
+            if (tunnelManager.verifyToken(deviceId, token)) {
+                const tunnelSetupOK = tunnelManager.initTunnel(deviceId, token, connection)
+                if (!tunnelSetupOK) {
+                    connection.socket.close(1008, 'Tunnel setup failed') // TODO: need to pick the right status code here
                 }
             } else {
-                console.log('no id')
+                connection.socket.close(1008, 'Invalid token') // TODO: need to pick the right status code here
             }
-        })
-
-        connection.socket.on('close', () => {
-            // should delete devices entry
-            delete devices[device]
-        })
+        } else {
+            connection.socket.close(1008, 'No tunnel')
+        }
     })
 
+    /**
+     * HTTP GET and WS requests from device
+     * @name /api/v1/remote/editor/:deviceId
+     */
     app.route({
+        config: { allowAnonymous: true },
         method: 'GET',
         url: '/:deviceId/*',
         handler: (request, reply) => {
-            const device = request.params.deviceId
-            if (!devices[device]) {
-                // need to pick the right status code here
-                reply.code(503)
-                reply.send()
-            } else {
-                const id = devices[device].counter++
-                devices[device].requests[id] = reply
-                devices[device].socket.send(JSON.stringify({
-                    id,
-                    method: 'GET',
-                    headers: request.headers,
-                    url: request.url.substring(`/api/v1/remote/editor/${device}`.length)
-                }))
+            // Handle HTTP GET requests from the device
+            const tunnelManager = getTunnelManager()
+            if (tunnelManager.handleHTTP(request.params.deviceId, request, reply)) {
+                return
             }
+            reply.code(503).send() // TODO: need to pick the right status code here
         },
         wsHandler: (connection, request) => {
-            const device = request.params.deviceId
-            if (devices[device]) {
-                const id = devices[device].counter++
-                devices[device].socket.send(JSON.stringify({
-                    id,
-                    ws: true,
-                    url: '/comms'
-                }))
-                devices[device].forwardedWS[id] = connection.socket
-
-                connection.socket.on('message', msg => {
-                    devices[device].socket.send(JSON.stringify({
-                        id,
-                        ws: true,
-                        body: msg.toString()
-                    }))
-                })
-
-                connection.on('close', () => {
-                    delete devices[device].forwardedWS[id]
-                })
+            // Handle WS connection from the device
+            const tunnelManager = getTunnelManager()
+            if (tunnelManager.handleWS(request.params.deviceId, connection, request)) {
+                return // handled
             }
+            // not handled
+            connection.socket.close(1008, 'No tunnel') // TODO: need to pick the right status code here
         }
     })
 
+    /**
+     * HTTP POST, DELETE, PUT requests from device
+     * @name /api/v1/remote/editor/:deviceId
+     */
     app.route({
         method: ['POST', 'DELETE', 'PUT'],
         url: '/:deviceId/*',
         handler: (request, reply) => {
-            const device = request.params.deviceId
-            if (!devices[device]) {
-                reply.code(503)
-                reply.send()
-            } else {
-                const id = devices[device].counter++
-                devices[device].requests[id] = reply
-                devices[device].socket.send(JSON.stringify({
-                    id,
-                    method: request.method,
-                    headers: request.headers,
-                    url: request.url.substring(`/api/v1/remote/editor/${device}`.length),
-                    body: request.body ? JSON.stringify(request.body) : undefined
-                }))
+            const tunnelManager = getTunnelManager()
+            if (tunnelManager.handleHTTP(request.params.deviceId, request, reply)) {
+                return // handled
             }
+            // not handled
+            reply.code(503).send() // TODO: need to pick the right status code here
         }
     })
 }
