@@ -130,7 +130,12 @@ const getInstanceDeviceSettings = async (instanceId) => {
 const updateInstanceDeviceSettings = async (instanceId, settings) => {
     return client.post(`/api/v1/projects/${instanceId}/devices/settings`, settings).then(res => res.data)
 }
-
+const rollbackInstance = async (instanceId, snapshotId) => {
+    const data = {
+        snapshot: snapshotId
+    }
+    return client.post(`/api/v1/projects/${instanceId}/actions/rollback`, data).then(res => res.data)
+}
 export default {
     create,
     getInstance,
@@ -145,5 +150,6 @@ export default {
     importInstance,
     getInstanceDevices,
     getInstanceDeviceSettings,
-    updateInstanceDeviceSettings
+    updateInstanceDeviceSettings,
+    rollbackInstance
 }

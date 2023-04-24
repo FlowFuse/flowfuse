@@ -2,6 +2,7 @@ import client from './client.js'
 import product from '../services/product.js'
 import paginateUrl from '../utils/paginateUrl.js'
 import elapsedTime from '../utils/elapsedTime.js'
+import daysSince from '../utils/daysSince.js'
 
 const getDevices = async (cursor, limit) => {
     const url = paginateUrl('/api/v1/devices', cursor, limit)
@@ -70,14 +71,62 @@ const updateSettings = async (deviceId, settings) => {
     })
 }
 
-const startEditor = async (deviceId) => {
-    return client.post(`/api/v1/devices/${deviceId}/startEditor`).then(res => {
+const enableEditorTunnel = async (deviceId) => {
+    // * Enable Device Editor (Step 2) - (frontendApi->forge:HTTP) {put} /api/v1/devices/{deviceId}/editor { tunnel: 'enable' }
+    return client.put(`/api/v1/devices/${deviceId}/editor`, { tunnel: 'enable' }).then(res => {
+        // * Enable Device Editor (Step 12) - (frontendApi->browser) return result step 1 (THE END)
         return res.data
     })
 }
 
-const stopEditor = async (deviceId) => {
-    return client.post(`/api/v1/devices/${deviceId}/stopEditor`).then(res => {})
+const disableEditorTunnel = async (deviceId) => {
+    // (api->forge) {put} /api/v1/devices/{deviceId}/editor { tunnel: 'disable' }
+    return client.put(`/api/v1/devices/${deviceId}/editor`, { tunnel: 'disable' }).then(res => {
+        return res.data
+    })
+}
+
+const getMode = async (deviceId) => {
+    const device = await getDevice(deviceId)
+    return device?.mode
+}
+
+const setMode = async (deviceId, mode) => {
+    return client.put(`/api/v1/devices/${deviceId}/mode`, { mode }).then(res => {
+        return res.data
+    })
+}
+
+/**
+ * create a snapshot from a device
+ * @param {string} projectId - the project id
+ * @param {string} deviceId - the device id
+ * @param {object} options - the options
+ * @param {string} options.name - the name of the snapshot
+ * @param {string} [options.description] - the description of the snapshot
+ * @param {boolean} [options.setAsTarget] - set the snapshot as the new target for all devices
+ * @see https://docs.flowforge.io/api/#operation/createSnapshot
+ */
+const createSnapshot = async (projectId, deviceId, options) => {
+    const data = {
+        name: options.name, // name of the snapshot
+        description: options.description, // description of the snapshot
+        setAsTarget: options.setAsTarget // set the snapshot as the new target for all devices
+    }
+    return client.post(`/api/v1/devices/${deviceId}/snapshot`, data).then(res => {
+        const props = {
+            'created-at': res.data.createdAt,
+            'snapshot-id': res.data.id,
+            'snapshot-name': options.name,
+            'snapshot-set-as-target': options.setAsTarget
+        }
+        res.data.createdSince = daysSince(res.data.createdAt)
+        res.data.updatedSince = daysSince(res.data.updatedAt)
+        product.capture('$ff-snapshot-device', props, {
+            instance: projectId
+        })
+        return res.data
+    })
 }
 
 export default {
@@ -89,6 +138,9 @@ export default {
     generateCredentials,
     getSettings,
     updateSettings,
-    startEditor,
-    stopEditor
+    enableEditorTunnel,
+    disableEditorTunnel,
+    getMode,
+    setMode,
+    createSnapshot
 }

@@ -221,7 +221,7 @@ import Dialog from '../services/dialog.js'
 import EmptyState from './EmptyState.vue'
 
 export default {
-    name: 'ProjectOverview',
+    name: 'DevicesBrowser',
     components: {
         ClockIcon,
         DeviceAssignInstanceDialog,
