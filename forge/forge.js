@@ -15,6 +15,25 @@ const monitor = require('./monitor')
 const housekeeper = require('./housekeeper')
 const ee = require('./ee')
 
+// type defs for JSDoc and VSCode Intellisense
+
+/**
+ * @typedef {fastify.FastifyInstance} FastifyInstance
+ * @typedef {fastify.FastifyRequest} FastifyRequest
+ * @typedef {fastify.FastifyReply} FastifyReply
+ */
+
+/**
+ * The Forge/fastify app instance.
+ * @typedef {FastifyInstance} ForgeApplication
+ * @alias app - The Fastify app instance
+ */
+
+function isInDebugMode () {
+    return inspector.url() !== undefined || process.env.NODE_ENV === 'development'
+}
+
+/** @type {ForgeApplication} */
 module.exports = async (options = {}) => {
     // TODO: Defer logger configuration until after `config` module is registered
     //       so that we can pull it from user-provided config

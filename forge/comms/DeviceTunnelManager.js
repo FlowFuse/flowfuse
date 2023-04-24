@@ -24,7 +24,7 @@
 /**
  * @typedef {import('@fastify/websocket')} fastifyWebsocket
  * @typedef {import('@fastify/websocket').SocketStream} SocketStream
- * @typedef {import('../forge').FastifyInstance} FastifyInstance
+ * @typedef {import('../forge').ForgeApplication} ForgeApplication
  * @typedef {import('../forge').FastifyRequest} FastifyRequest
  * @typedef {import('../forge').FastifyReply} FastifyReply
  * @typedef {(request: FastifyRequest, reply: FastifyReply) => void} httpHandler
@@ -37,13 +37,13 @@ class DeviceTunnelManager {
 
     /**
      * Create a new DeviceTunnelManager
-     * @param {FastifyInstance} app Fastify app
+     * @param {ForgeApplication} app Forge application (Fastify app)
      * @constructor
      * @memberof module:comms
      * @alias DeviceTunnelManager
      */
     constructor (app) {
-        /** @type {FastifyInstance} */
+        /** @type {ForgeApplication}  Forge application (Fastify app) */
         this.app = app
         this.#tunnels = new Map()
     }
@@ -291,7 +291,7 @@ class DeviceTunnelManager {
 
     /**
      * Create new tunnel manager
-     * @param {import("../forge").FastifyInstance} app Fastify app
+     * @param {ForgeApplication} app Forge Application (fastify app)
      * @returns {DeviceTunnelManager}
      * @memberof DeviceTunnelManager
      * @static

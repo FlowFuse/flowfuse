@@ -1,23 +1,10 @@
 /**
  * Device Editor access /api/v1/remote/editor/
- * @typedef {import('../../forge').FastifyInstance} FastifyInstance
- * @param {FastifyInstance} app Fastify app
+ * @param {import('../../forge').ForgeApplication} app - forge application
  * @namespace devices
  * @memberof forge.routes.api
  */
 module.exports = async function (app) {
-    // #region Helpers
-    /** @typedef {import('../../comms/DeviceTunnelManager').DeviceTunnelManager} DeviceTunnelManager */
-
-    /**
-     * Get the device tunnel manager for the app
-     * @returns {DeviceTunnelManager}
-     */
-    function getTunnelManager () {
-        return app.comms.devices.tunnelManager
-    }
-    // #endregion
-
     /**
      * Initiate inbound websocket connection from device
      * @name /api/v1/remote/editor/inboundWS/:getDeviceProjectId
@@ -51,7 +38,7 @@ module.exports = async function (app) {
      * @name /api/v1/remote/editor/:deviceId
      */
     app.route({
-        config: { allowAnonymous: true },
+        // config: { allowAnonymous: true },
         method: 'GET',
         url: '/:deviceId/*',
         handler: (request, reply) => {
@@ -89,4 +76,14 @@ module.exports = async function (app) {
             reply.code(503).send() // TODO: need to pick the right status code here
         }
     })
+
+    // #region Helpers
+    /**
+     * Get the device tunnel manager for the app
+     * @returns {import('../../comms/DeviceTunnelManager').DeviceTunnelManager}
+     */
+    function getTunnelManager () {
+        return app.comms.devices.tunnelManager
+    }
+    // #endregion
 }

@@ -46,13 +46,12 @@ Object.freeze(CommandMessageTemplate)
 class DeviceCommsHandler {
     /**
      * New DeviceCommsHandler instance
-     * @param {import('../forge').FastifyInstance} app Fastify app
+     * @param {import('../forge').ForgeApplication} app Fastify app
      * @param {import('./commsClient').CommsClient} client Comms Client
      */
     constructor (app, client) {
         this.app = app
         this.client = client
-        /** @type {DeviceTunnelManager} */
         this.tunnelManager = new DeviceTunnelManager(app)
         this.deviceLogClients = {}
         /** @type {Object.<string, typeof CommandResponseMonitor>} */
