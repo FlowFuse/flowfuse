@@ -132,11 +132,11 @@ const updateInstanceDeviceSettings = async (instanceId, settings) => {
     return client.post(`/api/v1/projects/${instanceId}/devices/settings`, settings).then(res => res.data)
 }
 
-const rollbackInstance = async (projectId, snapshotId) => {
+const rollbackInstance = async (instanceId, snapshotId) => {
     const data = {
         snapshot: snapshotId
     }
-    return client.post(`/api/v1/projects/${projectId}/actions/rollback`, data).then(res => res.data)
+    return client.post(`/api/v1/projects/${instanceId}/actions/rollback`, data).then(res => res.data)
 }
 
 export default {
