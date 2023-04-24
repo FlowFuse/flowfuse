@@ -3,16 +3,65 @@
  * for sending commands to devices.
  */
 
+const { v4: uuidv4 } = require('uuid')
+
+const { DeviceTunnelManager } = require('./DeviceTunnelManager')
+const noop = () => {}
+const DEFAULT_TIMEOUT = 5000
+
+// declare command and response monitor types (and freeze them)
+const CommandMonitorTemplate = {
+    resolve: () => Promise.resolve({}),
+    reject: () => Promise.reject(new Error('Command rejected')),
+    resolved: false,
+    rejected: false,
+    createdAt: 0,
+    expiresAt: 0,
+    command: '',
+    deviceId: '',
+    teamId: '',
+    correlationData: ''
+}
+Object.freeze(CommandMonitorTemplate)
+
+const CommandMessageTemplate = {
+    command: '',
+    deviceId: '',
+    teamId: '',
+    correlationData: '',
+    createdAt: 0,
+    expiresAt: 0,
+    payload: Object()
+}
+Object.freeze(CommandMessageTemplate)
+
+/** @typedef {typeof CommandMonitorTemplate} ResponseMonitor */
+/** @typedef {typeof CommandMessageTemplate} CommandMessage */
+
+/**
+ * DeviceCommsHandler
+ * @class DeviceCommsHandler
+ * @memberof forge.comms
+ */
 class DeviceCommsHandler {
+    /**
+     * New DeviceCommsHandler instance
+     * @param {import('../forge').FastifyInstance} app Fastify app
+     * @param {import('./commsClient').CommsClient} client Comms Client
+     */
     constructor (app, client) {
         this.app = app
         this.client = client
-
+        /** @type {DeviceTunnelManager} */
+        this.tunnelManager = new DeviceTunnelManager(app)
         this.deviceLogClients = {}
+        /** @type {Object.<string, typeof CommandResponseMonitor>} */
+        this.inFlightCommands = {}
 
         // Listen for any incoming device status events
         client.on('status/device', (status) => { this.handleStatus(status) })
         client.on('logs/device', (log) => { this.forwardLog(log) })
+        client.on('response/device', (response) => { this.handleCommandResponse(response) })
     }
 
     async handleStatus (status) {
@@ -56,6 +105,43 @@ class DeviceCommsHandler {
     }
 
     /**
+     * Handle a command response message from a device
+     * Typically this will be a response to a command sent by the forge platform
+     * @param {Object} response Reply from the device
+     * @returns {Promise<void>}
+     * @see sendCommandAwaitReply
+     */
+    async handleCommandResponse (response) {
+        // Check it looks like a valid response to a command
+        // The response part should have the following:
+        // * id: the device id
+        // * message: the structured response (see below)
+        // the message part should have the following:
+        // * teamId: for message routing and verification
+        // * deviceId: for message routing and verification
+        // * command: // for command response verification
+        // * correlationData: for correlating response with request
+        // * payload: the actual response payload
+        if (response.id && typeof response.message === 'string') {
+            const message = JSON.parse(response.message)
+            if (!message.command || !message.correlationData || !message.payload) {
+                return // Not a valid response
+            }
+            const deviceId = response.id
+            const device = await this.app.db.models.Device.byId(deviceId)
+            if (!device) {
+                return // Not a valid device
+            }
+
+            const inFlightCommand = this.inFlightCommands[message.correlationData]
+            if (inFlightCommand && inFlightCommand.command === message.command) {
+                inFlightCommand.resolve(message.payload)
+                delete this.inFlightCommands[response.correlationData]
+            }
+        }
+    }
+
+    /**
      * Send a command to all devices assigned to a project using the broadcast
      * topic.
      * @param {String} teamId
@@ -77,13 +163,135 @@ class DeviceCommsHandler {
      * @param {String} deviceId
      * @param {String} command
      * @param {Object} payload
+     * @param {import('mqtt').IClientPublishOptions} [options]
+     * @param {import('mqtt').PacketCallback} [callback]
      */
-    sendCommand (teamId, deviceId, command, payload) {
+    sendCommand (teamId, deviceId, command, payload, options, callback) {
+        if (typeof options === 'function') {
+            callback = options
+            options = {}
+        }
+        callback = callback || noop
         const topic = `ff/v1/${teamId}/d/${deviceId}/command`
         this.client.publish(topic, JSON.stringify({
             command,
             ...payload
-        }))
+        }),
+        options,
+        callback)
+    }
+
+    async sendCommandAsync (teamId, deviceId, command, payload, options) {
+        return new Promise((resolve, reject) => {
+            this.sendCommand(teamId, deviceId, command, payload, options, (err, packet) => {
+                if (err) {
+                    reject(err)
+                } else {
+                    resolve()
+                }
+            })
+        })
+    }
+
+    /**
+     * Send a command to a specific device using its command topic and wait for a response.
+     * The response will be received by [handleCommandResponse]{@link handleCommandResponse}
+     * @param {String} teamId The team Id this device belongs to
+     * @param {String} deviceId The device Id
+     * @param {String} command The command to send to the device
+     * @param {Any} payload The payload to send to the device
+     * @param {Object} options Options
+     * @param {Number} options.timeout The timeout in milliseconds to wait for a response
+     * @returns {Promise<Any>} The response payload
+     * @see handleCommandResponse
+     */
+    async sendCommandAwaitReply (teamId, deviceId, command, payload, options = { timeout: DEFAULT_TIMEOUT }) {
+        // sanitise the options object
+        options = options || {}
+        options.timeout = (typeof options.timeout === 'number' && options.timeout > 0) ? options.timeout : DEFAULT_TIMEOUT
+
+        const inFlightCommand = DeviceCommsHandler.newResponseMonitor(command, deviceId, teamId, options)
+
+        const promise = new Promise((resolve, reject) => {
+            inFlightCommand.resolve = (payload) => {
+                inFlightCommand.resolved = true
+                clearTimeout(inFlightCommand.timer)
+                resolve(payload)
+                delete this.inFlightCommands[inFlightCommand.correlationData]
+            }
+            inFlightCommand.reject = (err) => {
+                inFlightCommand.rejected = true
+                clearTimeout(inFlightCommand.timer)
+                reject(err)
+                delete this.inFlightCommands[inFlightCommand.correlationData]
+            }
+        })
+
+        // create a promise with timeout
+        inFlightCommand.timer = setTimeout(() => {
+            if (inFlightCommand.resolved) return
+            if (inFlightCommand.rejected) return
+            inFlightCommand.reject(new Error('Command timed out'))
+        }, options.timeout)
+
+        this.inFlightCommands[inFlightCommand.correlationData] = inFlightCommand
+
+        // Generate suitable MQTT options
+        /** @type {import('mqtt').IClientPublishOptions} */
+        const mqttOptions = {}
+
+        // add response topic, correlation data and user properties to the payload
+        const commandData = DeviceCommsHandler.newCommandMessage(inFlightCommand)
+        // send command, return the promise and await response
+        this.sendCommand(teamId, deviceId, command, commandData, mqttOptions)
+        return promise
+    }
+
+    /**
+     * Build a new command message object for sending to a device
+     * @param {ResponseMonitor} cmr The `ResponseMonitor` object to build this new command message from
+     * @param {Object} payload The payload to send to the device
+     * @returns {CommandMessage}
+     */
+    static newCommandMessage (cmr, payload) {
+        // clone the CommandMessage type object
+        /** @type {CommandMessage} */
+        const commandMessage = Object.assign({}, CommandMessageTemplate)
+        commandMessage.command = cmr.command
+        commandMessage.createdAt = cmr.createdAt
+        commandMessage.expiresAt = cmr.expiresAt
+        commandMessage.deviceId = cmr.deviceId
+        commandMessage.teamId = cmr.teamId
+        commandMessage.correlationData = cmr.correlationData
+        commandMessage.responseTopic = `ff/v1/${cmr.teamId}/d/${cmr.deviceId}/response`
+        commandMessage.payload = payload
+        return commandMessage
+    }
+
+    /**
+     * Build a new ResponseMonitor object for correlating with the response from a device
+     * @param {String} command The command
+     * @param {String} deviceId The device Id
+     * @param {String} teamId The team Id
+     * @param {Object} [options={ timeout: DEFAULT_TIMEOUT }] Options
+     * @returns {ResponseMonitor}
+     */
+    static newResponseMonitor (command, deviceId, teamId, options = { timeout: DEFAULT_TIMEOUT }) {
+        const now = Date.now()
+        const correlationData = uuidv4() // generate a random correlation data (uuid)
+        /** @type {ResponseMonitor} */
+        const responseMonitor = Object.assign({}, CommandMonitorTemplate)
+        responseMonitor.command = command
+        responseMonitor.resolve = null
+        responseMonitor.reject = null
+        responseMonitor.resolved = false
+        responseMonitor.rejected = false
+        responseMonitor.createdAt = now
+        responseMonitor.expiresAt = now + options?.timeout || DEFAULT_TIMEOUT
+        responseMonitor.deviceId = deviceId
+        responseMonitor.teamId = teamId
+        responseMonitor.correlationData = correlationData
+        return responseMonitor
     }
 
     /**
