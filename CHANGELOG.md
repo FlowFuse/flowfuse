@@ -1,3 +1,12 @@
+#### 1.6.1: Release
+
+ - restore rollbackSnapshot (backport #2030) (#2037) @github-actions
+ - Use application list to determine if team is empty (backport #2035) (#2036) @github-actions
+ - doc: Update security for instance (backport #2033) (#2034) @github-actions
+ - Remove unneeded step for upgrading (backport #2024) (#2028) @github-actions
+ - docs: More explicit content of Snapshots (backport #2009) (#2010) @github-actions
+ - docs: Update template documentation (backport #2001) (#2003) @github-actions
+
 #### 1.6.0: Release
 
  - Redirect /project/xyz/* to /instance/xyz/* (#1996) @knolleary
