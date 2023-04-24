@@ -127,7 +127,7 @@ can evaluate what will be required to enable it.
 
 ## Removing your account
 
-Before you can delete your account, teams you own must either be deleted or have at least 1 other owner
+Before you can delete your account, teams you own must either be deleted or have at least 1 other owner.
 Once this is done, you can remove your account by going to the "User Settings" page and clicking the "Delete Account" button.
 
 See also: [cancelling your subscription](./billing.md#cancelling-your-subscription).
