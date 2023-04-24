@@ -194,5 +194,6 @@ forge:
 
 ## Upgrade
 
+- Run `helm repo update flowforge` to pull the latest version
 - Check the [README.md](https://github.com/flowforge/helm/blob/main/helm/flowforge/README.md) for any new options to configure in `customization.yml`
 - Run the `helm upgrade --install flowforge flowforge -f customization.yml`
