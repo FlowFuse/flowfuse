@@ -330,12 +330,23 @@ class DeviceCommsHandler {
         }
     }
 
-    startEditor (teamId, deviceId) {
-        this.sendCommand(teamId, deviceId, 'startEditor', '')
+    /**
+     * Enable the Node-RED editor on a device
+     * @param {String} teamId Team id of the device
+     * @param {String} deviceId Device id
+     */
+    async enableEditor (teamId, deviceId, token) {
+        // * Enable Device Editor (Step 5) - (forge->device:MQTT) send command "startEditor" with payload { token }
+        return await this.sendCommandAwaitReply(teamId, deviceId, 'startEditor', { token }) // returns true if successful
     }
 
-    stopEditor (teamId, deviceId) {
-        this.sendCommand(teamId, deviceId, 'stopEditor', '')
+    /**
+     * Disable the Node-RED editor on a device
+     * @param {String} teamId Team id of the device
+     * @param {String} deviceId Device id
+     */
+    async disableEditor (teamId, deviceId) {
+        await this.sendCommandAsync(teamId, deviceId, 'stopEditor', '')
     }
 }
 
