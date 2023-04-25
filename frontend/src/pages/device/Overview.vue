@@ -254,8 +254,9 @@ export default {
             this.device.tunnelUrlWithToken = result.urlWithToken
             // eslint-disable-next-line vue/no-mutating-props
             this.device.tunnelEnabled = !!result.url
-
-            this.$emit('device-updated')
+            setTimeout(() => {
+                this.$emit('device-updated')
+            }, 500)
         },
         async closeTunnel () {
             const result = await deviceApi.disableEditorTunnel(this.device.id)
