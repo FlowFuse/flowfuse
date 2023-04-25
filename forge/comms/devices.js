@@ -198,7 +198,7 @@ class DeviceCommsHandler {
      * @param {String} teamId The team Id this device belongs to
      * @param {String} deviceId The device Id
      * @param {String} command The command to send to the device
-     * @param {Any} payload The payload to send to the device
+     * @param {Object} payload The payload to send to the device
      * @param {Object} options Options
      * @param {Number} options.timeout The timeout in milliseconds to wait for a response
      * @returns {Promise<Any>} The response payload
@@ -240,7 +240,7 @@ class DeviceCommsHandler {
         const mqttOptions = {}
 
         // add response topic, correlation data and user properties to the payload
-        const commandData = DeviceCommsHandler.newCommandMessage(inFlightCommand)
+        const commandData = DeviceCommsHandler.newCommandMessage(inFlightCommand, payload)
         // send command, return the promise and await response
         this.sendCommand(teamId, deviceId, command, commandData, mqttOptions)
         return promise
