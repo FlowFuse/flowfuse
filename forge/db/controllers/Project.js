@@ -60,7 +60,7 @@ module.exports = {
                 })
             }
         }
-        const projectSettingsRow = project.ProjectSettings.find((projectSetting) => projectSetting.key === KEY_SETTINGS)
+        const projectSettingsRow = project.ProjectSettings?.find((projectSetting) => projectSetting.key === KEY_SETTINGS)
         if (projectSettingsRow) {
             const projectSettings = projectSettingsRow.value
             result = app.db.controllers.ProjectTemplate.mergeSettings(result, projectSettings)

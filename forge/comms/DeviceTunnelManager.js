@@ -118,7 +118,7 @@ class DeviceTunnelManager {
         const tunnel = this.#getTunnel(deviceId)
         if (tunnel) {
             if (includeToken) {
-                return `/api/v1/remote/editor/${deviceId}/?token=${tunnel.token}`
+                return `/api/v1/remote/editor/${deviceId}/?access_token=${tunnel.token}`
             }
             return `/api/v1/remote/editor/${deviceId}/`
         }
@@ -195,14 +195,14 @@ class DeviceTunnelManager {
             tunnel.requests[id] = reply
             tunnel.socket.send(JSON.stringify({
                 id,
-                method: 'GET',
+                method: request.method,
                 headers: request.headers,
                 url: request.url.substring(`/api/v1/remote/editor/${tunnel.deviceId}`.length)
             }))
         }
 
         tunnel._handleHTTP = (request, reply) => {
-            if (request.method === 'GET') {
+            if (request.method === 'GET' || request.method === 'HEAD' || request.method === 'OPTIONS') {
                 tunnel._handleHTTPGet(request, reply)
                 return
             }

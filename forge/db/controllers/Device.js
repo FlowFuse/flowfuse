@@ -80,7 +80,6 @@ module.exports = {
     exportConfig: async function (app, device) {
         // request config and flows from device
         if (app.comms) {
-            app.comms.devices.sendCommand(device.Team.hashid, device.hashid, 'ping', { serverTime: Date.now() })
             const config = await app.comms.devices.sendCommandAwaitReply(device.Team.hashid, device.hashid, 'upload', { timeout: 10000 })
             if (config) {
                 return config
@@ -88,5 +87,4 @@ module.exports = {
         }
         return null
     }
-
 }

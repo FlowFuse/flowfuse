@@ -9,14 +9,14 @@ module.exports = async function (app) {
      * Initiate inbound websocket connection from device
      * @name /api/v1/remote/editor/inboundWS/:getDeviceProjectId
      */
-    app.get('/inboundWS/:deviceId/:token', {
+    app.get('/inboundWS/:deviceId/:access_token', {
         config: { allowAnonymous: true },
         websocket: true
     }, (connection, request) => {
         // * Enable Device Editor (Step 9) - (device:WS->forge) websocket connect request from device
         // This is the inbound websocket connection from the device
         const deviceId = request.params.deviceId
-        const token = request.params.token
+        const token = request.params.access_token
         const tunnelManager = getTunnelManager()
         const tunnelInfo = tunnelManager.getTunnelStatus(deviceId)
         if (tunnelInfo.exists) {
@@ -35,19 +35,23 @@ module.exports = async function (app) {
 
     /**
      * HTTP GET and WS requests from device
-     * @name /api/v1/remote/editor/:deviceId
+     * @name /api/v1/remote/editor/:deviceId/*
      */
     app.route({
-        // config: { allowAnonymous: true },
-        method: 'GET',
+        config: { allowAnonymous: true },
+        method: 'GET', // only GET is permitted for WS
         url: '/:deviceId/*',
         handler: (request, reply) => {
             // Handle HTTP GET requests from the device
             const tunnelManager = getTunnelManager()
             if (tunnelManager.handleHTTP(request.params.deviceId, request, reply)) {
                 return
+            } else if (tunnelManager.getTunnelStatus(request.params.deviceId).exists) {
+                reply.code(502).send() // Bad Gateway (tunnel exists but it has lost connection or is in an intermediate state)
+                return
             }
-            reply.code(503).send() // TODO: need to pick the right status code here
+            // tunnel does not exist
+            reply.code(503).send() // Service Unavailable
         },
         wsHandler: (connection, request) => {
             // Handle WS connection from the device
@@ -56,24 +60,27 @@ module.exports = async function (app) {
                 return // handled
             }
             // not handled
-            connection.socket.close(1008, 'No tunnel') // TODO: need to pick the right status code here
+            connection.socket.close(1008, 'No tunnel established')
         }
     })
 
     /**
      * HTTP POST, DELETE, PUT requests from device
-     * @name /api/v1/remote/editor/:deviceId
+     * @name /api/v1/remote/editor/:deviceId/*
      */
     app.route({
-        method: ['POST', 'DELETE', 'PUT'],
+        method: ['POST', 'DELETE', 'PUT', 'HEAD', 'OPTIONS'],
         url: '/:deviceId/*',
         handler: (request, reply) => {
             const tunnelManager = getTunnelManager()
             if (tunnelManager.handleHTTP(request.params.deviceId, request, reply)) {
                 return // handled
+            } else if (tunnelManager.getTunnelStatus(request.params.deviceId).exists) {
+                reply.code(502).send() // Bad Gateway (tunnel exists but it has lost connection or is in an intermediate state)
+                return
             }
-            // not handled
-            reply.code(503).send() // TODO: need to pick the right status code here
+            // tunnel does not exist
+            reply.code(503).send() // Service Unavailable
         }
     })
 

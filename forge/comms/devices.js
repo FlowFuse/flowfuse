@@ -335,7 +335,7 @@ class DeviceCommsHandler {
      * @param {String} deviceId Device id
      */
     async enableEditor (teamId, deviceId, token) {
-        // * Enable Device Editor (Step 5) - (forge->device:MQTT) send command "startEditor" with payload { token }
+        // * Enable Device Editor (Step 5) - (forge->device:MQTT) send command "startEditor" and the token in the payload
         return await this.sendCommandAwaitReply(teamId, deviceId, 'startEditor', { token }) // returns true if successful
     }
 

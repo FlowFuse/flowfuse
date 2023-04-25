@@ -50,7 +50,34 @@ module.exports = fp(async function (app, opts, done) {
      * @memberof forge
      */
     async function verifySession (request, reply) {
-        if (request.sid) {
+        if (request.ws && request.routeConfig?.url === '/api/v1/remote/editor/inboundWS/:deviceId/:access_token') {
+            /** @type {DeviceTunnelManager} */
+            const tunnelManager = app.comms.devices.tunnelManager
+            if (tunnelManager.verifyToken(request.params.deviceId, request.headers['x-access-token']) === true) {
+                return
+            }
+            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+        } else if (!request.ws && request.routeConfig?.url === '/api/v1/remote/editor/:deviceId/*') {
+            /** @type {DeviceTunnelManager} */
+            const tunnelManager = app.comms.devices.tunnelManager
+            if (request.query.access_token) {
+                request.headers['x-access-token'] = request.query.access_token
+            } else if (request.headers?.authorization?.indexOf('Bearer ffde_') >= 0) {
+                request.headers['x-access-token'] = request.headers.authorization.split(' ')[1]
+                delete request.headers?.authorization
+            } else if (request.routeConfig.allowAnonymous) {
+                return
+            } else {
+                reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+            }
+            if (request.headers['x-access-token']) {
+                if (tunnelManager.verifyToken(request.params.deviceId, request.headers['x-access-token']) === true) {
+                    return
+                }
+                reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+            }
+            return
+        } else if (request.sid) {
             request.session = await app.db.controllers.Session.getOrExpire(request.sid)
             if (request.session && request.session.User) {
                 const emailVerified = !app.postoffice.enabled() || request.session.User.email_verified || request.routeConfig.allowUnverifiedEmail
