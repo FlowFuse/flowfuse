@@ -133,8 +133,7 @@ export default {
             return this.device && this.agentSupportsDeviceAccess && this.developerMode && this.device.status === 'running' && this.deviceEditorURL
         },
         deviceEditorURL: function () {
-            return this.device.tunnelUrl || ''
-            // return this.device.tunnelUrlWithToken || ''
+            return this.device.tunnelUrlWithToken || ''
         }
     },
     mounted () {
