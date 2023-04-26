@@ -12,3 +12,16 @@ body:
   attributes:
     label: Description
     description: Describe the epic
+- type: dropdown
+  id: estimation
+  attributes:
+    label: Have you provided an initial effort estimate for this issue?
+    description: See our [handbook](https://flowforge.com/handbook/development/releases/planning/#effort-estimation) for more details.
+    multiple: false
+    options:
+      - I have provided an initial effort estimate
+      - I am no FlowForge team member
+      - I can not provide an initial effort estimate
+      - All subtasks of this epic have an effort estimate
+  validations:
+      required: true

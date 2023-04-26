@@ -16,3 +16,15 @@ body:
     label: Epic/Story
     description: Is this task part of an existing epic or story?
     placeholder: '#123'
+- type: dropdown
+  id: estimation
+  attributes:
+    label: Have you provided an initial effort estimate for this issue?
+    description: See our [handbook](https://flowforge.com/handbook/development/releases/planning/#effort-estimation) for more details.
+    multiple: false
+    options:
+      - I have provided an initial effort estimate
+      - I am no FlowForge team member
+      - I can not provide an initial effort estimate
+  validations:
+      required: true
