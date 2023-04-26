@@ -61,6 +61,7 @@ import Loading from '../../components/Loading.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import formatCurrency from '../../mixins/Currency.js'
 import formatDateMixin from '../../mixins/DateTime.js'
+import permissionsMixin from '../../mixins/Permissions.js'
 
 const priceCell = {
     name: 'PriceCell',
@@ -94,7 +95,7 @@ export default {
         ExternalLinkIcon,
         SectionTopMenu
     },
-    mixins: [formatDateMixin, formatCurrency],
+    mixins: [formatDateMixin, formatCurrency, permissionsMixin],
     props: ['billingUrl', 'team', 'teamMembership'],
     data () {
         return {
@@ -145,6 +146,10 @@ export default {
     async mounted () {
         if (!this.billingSetUp) {
             return
+        }
+
+        if (!this.hasPermission('team:edit')) {
+            return this.$router.push({ path: `/team/${this.team.slug}/overview` })
         }
 
         this.loading = true
