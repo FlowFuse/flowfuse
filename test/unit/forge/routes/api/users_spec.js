@@ -272,7 +272,7 @@ describe('Users API', async function () {
                     },
                     cookies: { sid: TestObjects.tokens.dave }
                 })
-                response.statusCode.should.equal(401)
+                response.statusCode.should.equal(403)
                 const result = response.json()
                 result.should.have.property('error')
             })
@@ -281,11 +281,13 @@ describe('Users API', async function () {
                     method: 'PUT',
                     url: `/api/v1/users/${TestObjects.elvis.hashid}`,
                     payload: {
-                        email_verified: true
+                        email_verified: false
                     },
                     cookies: { sid: TestObjects.tokens.elvis }
                 })
-                response.statusCode.should.equal(401)
+                // This is a 400 because they are operating on themselves, but
+                // making an invalid request.
+                response.statusCode.should.equal(400)
                 const result = response.json()
                 result.should.have.property('error')
             })
@@ -298,7 +300,8 @@ describe('Users API', async function () {
                     },
                     cookies: { sid: TestObjects.tokens.chris }
                 })
-                response.statusCode.should.equal(401)
+                // 403 because they are forbidden from updating another user
+                response.statusCode.should.equal(403)
                 const result = response.json()
                 result.should.have.property('error')
             })
@@ -311,7 +314,7 @@ describe('Users API', async function () {
                     },
                     cookies: { sid: TestObjects.tokens.bob }
                 })
-                response.statusCode.should.equal(401)
+                response.statusCode.should.equal(403)
                 const result = response.json()
                 result.should.have.property('error')
             })
@@ -388,7 +391,7 @@ describe('Users API', async function () {
                 url: `/api/v1/users/${TestObjects.dave.hashid}`,
                 cookies: { sid: TestObjects.tokens.chris }
             })
-            response.statusCode.should.equal(401)
+            response.statusCode.should.equal(403)
             const result = response.json()
             result.should.have.property('error', 'unauthorized')
         })
@@ -553,6 +556,48 @@ describe('Users API', async function () {
 
             // TODO: test audit log has { code: 'invalid_request', error: 'cannot suspend self' }
             // Consider also testing response has code: 'invalid_request' ?
+        })
+    })
+
+    describe('User teams', async function () {
+        it('lists a users teams - as admin', async function () {
+            await login('alice', 'aaPassword')
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/users/${TestObjects.bob.hashid}/teams`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('count', 2)
+            result.should.have.property('teams')
+            result.teams.should.have.length(2)
+            result.teams[0].should.have.property('id', TestObjects.ATeam.hashid)
+            result.teams[1].should.have.property('id', TestObjects.BTeam.hashid)
+        })
+        it('lists a users teams - as self', async function () {
+            await login('bob', 'bbPassword')
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/users/${TestObjects.bob.hashid}/teams`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('count', 2)
+            result.should.have.property('teams')
+            result.teams.should.have.length(2)
+            result.teams[0].should.have.property('id', TestObjects.ATeam.hashid)
+            result.teams[1].should.have.property('id', TestObjects.BTeam.hashid)
+        })
+        it('non-admin cannot list another users teams', async function () {
+            await login('chris', 'ccPassword')
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/users/${TestObjects.bob.hashid}/teams`,
+                cookies: { sid: TestObjects.tokens.chris }
+            })
+            response.statusCode.should.equal(403)
         })
     })
 })

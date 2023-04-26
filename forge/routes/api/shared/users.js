@@ -38,6 +38,21 @@ module.exports = {
         /** @type {UserController} */
         const userController = app.db.controllers.User
 
+        if (!isAdmin) {
+            let resp
+            // Check if this is trying to modify anything on admin users can touch
+            if (Object.hasOwn(request.body, 'email_verified') && user.email_verified !== request.body.email_verified) {
+                resp = { code: 'invalid_request', error: 'cannot verified own email' }
+            } else if (Object.hasOwn(request.body, 'admin') && user.admin !== request.body.admin) {
+                resp = { code: 'invalid_request', error: 'cannot change admin status' }
+            }
+            if (resp) {
+                await auditLog.updatedUser(request.session.User, resp, null, user)
+                reply.code(400).send(resp)
+                return
+            }
+        }
+
         try {
             let pendingEmailChange = false
             const originalUser = {

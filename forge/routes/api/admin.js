@@ -1,8 +1,6 @@
 
 module.exports = async function (app) {
-    app.addHook('preHandler', app.verifyAdmin)
-
-    app.get('/stats', async (request, reply) => {
+    app.get('/stats', { preHandler: app.needsPermission('platform:stats') }, async (request, reply) => {
         const userCount = await app.db.models.User.count({ attributes: ['admin'], group: 'admin' })
         const projectStateCounts = await app.db.models.Project.count({ attributes: ['state'], group: 'state' })
         const license = await app.license.get() || app.license.defaults
@@ -30,15 +28,15 @@ module.exports = async function (app) {
             result.projectCount += projectState.count
             result.projectsByState[projectState.state] = projectState.count
         })
-
         reply.send(result)
     })
 
-    app.get('/license', async (request, reply) => {
+    app.get('/license', { preHandler: app.needsPermission('license:read') }, async (request, reply) => {
         reply.send(app.license.get() || {})
     })
 
     app.put('/license', {
+        preHandler: app.needsPermission('license:edit'),
         schema: {
             body: {
                 type: 'object',
@@ -78,7 +76,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.get('/invitations', async (request, reply) => {
+    app.get('/invitations', { preHandler: app.needsPermission('invitation:list') }, async (request, reply) => {
         // TODO: Pagination
         const invitations = await app.db.models.Invitation.get()
         const result = app.db.views.Invitation.invitationList(invitations)
@@ -89,10 +87,10 @@ module.exports = async function (app) {
         })
     })
 
-    app.get('/db-migrations', async (request, reply) => {
+    app.get('/debug/db-migrations', { preHandler: app.needsPermission('platform:debug') }, async (request, reply) => {
         reply.send((await app.db.sequelize.query('select * from "MetaVersions"'))[0])
     })
-    app.get('/db-schema', async (request, reply) => {
+    app.get('/debug/db-schema', { preHandler: app.needsPermission('platform:debug') }, async (request, reply) => {
         const result = {}
         let tables
         if (app.config.db.type === 'postgres') {
@@ -120,7 +118,7 @@ module.exports = async function (app) {
      * @name /api/v1/admin/audit-log
      * @memberof forge.routes.api.admin
      */
-    app.get('/audit-log', async (request, reply) => {
+    app.get('/audit-log', { preHandler: app.needsPermission('platform:audit-log') }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const logEntries = await app.db.models.AuditLog.forPlatform(paginationOptions)
         const result = app.db.views.AuditLog.auditLog(logEntries)
