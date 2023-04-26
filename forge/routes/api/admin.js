@@ -1,6 +1,6 @@
 
 module.exports = async function (app) {
-    app.get('/stats', { preHandler: app.needsPermission('platform:stats') }, async (request, reply) => {
+    async function getStats () {
         const userCount = await app.db.models.User.count({ attributes: ['admin'], group: 'admin' })
         const projectStateCounts = await app.db.models.Project.count({ attributes: ['state'], group: 'state' })
         const license = await app.license.get() || app.license.defaults
@@ -28,7 +28,69 @@ module.exports = async function (app) {
             result.projectCount += projectState.count
             result.projectsByState[projectState.state] = projectState.count
         })
-        reply.send(result)
+        return result
+    }
+
+    /**
+     * Converts a JSON Object to a flattened object with key names more aligned
+     * with OpemMetrics format
+     * ```
+     * {
+     *    propertyOne: 1,
+     *    propertyTwo: {
+     *       colour: 'red'
+     *    }
+     * }
+     * ```
+     * becomes
+     * ```
+     * {
+     *    property_one: 1,
+     *    property_two_colour: 'red'
+     * }
+     * ```
+     * @param {string} root the root of the new key name to apply
+     * @param {Object} obj the object to flatten
+     * @returns a flattened object
+     */
+    function flattenObject (root, obj) {
+        let result = {}
+        const rootKey = root ? `${root}_` : ''
+        for (const [key, value] of Object.entries(obj)) {
+            const formattedKey = `${rootKey}${key}`.replace(/[A-Z]/g, m => {
+                return '_' + m.toLowerCase()
+            })
+            if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+                result[formattedKey] = value
+            } else {
+                const values = flattenObject(formattedKey, obj[key])
+                result = { ...result, ...values }
+            }
+        }
+        return result
+    }
+    /**
+     * Stringifies a JSON Object to OpenMetrics format
+     * @param {Object} stats the object to conver
+     * @returns a OpenMetrics formatted version of the object
+     */
+    function convertToOpenMetrics (stats) {
+        const result = flattenObject('flowforge', stats)
+        const lines = Object.entries(result).map(m => `${m[0]} ${m[1]}`)
+        return lines.join('\n') + '\n'
+    }
+
+    app.get('/stats', { preHandler: app.needsPermission('platform:stats') }, async (request, reply) => {
+        const stats = await getStats()
+        const acceptTypes = request.accepts().types()
+        // request.accepts().type(...) can be used to check if it accepts a given type
+        // A default browser request includes '*/*' which matches everything, but
+        // we don't want that to match openmetrics. So we check the list of types ourselves
+        if (acceptTypes.includes('application/openmetrics-text')) {
+            reply.send(convertToOpenMetrics(stats))
+        } else {
+            reply.send(stats)
+        }
     })
 
     app.get('/license', { preHandler: app.needsPermission('license:read') }, async (request, reply) => {
