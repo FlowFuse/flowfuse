@@ -28,6 +28,13 @@ module.exports = async function (app) {
             result.projectCount += projectState.count
             result.projectsByState[projectState.state] = projectState.count
         })
+        if (app.billing) {
+            const teamStateCounts = await app.db.models.Subscription.count({ attributes: ['status'], group: 'status' })
+            result.teamsByBillingState = {}
+            teamStateCounts.forEach(teamState => {
+                result.teamsByBillingState[teamState.status] = teamState.count
+            })
+        }
         return result
     }
 
