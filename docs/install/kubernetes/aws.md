@@ -87,24 +87,68 @@ Add oidc provider for the Load Balancer and IAM roles
 eksctl utils associate-iam-oidc-provider --cluster flowforge --approve
 ```
 
-Add AWS Load balancer (remember to update `[aws id]`)
+## Ingress Controller
+
+### Nginx Ingress
+
+It is recommended to run the Nginx Ingress controller even on AWS EKS (The AWS ALB load balancer currently appears to only support up to 100 Ingress Targets which limits the number of Instance/Projects that can be run).
+
+Create a `nginx-values.ymal` file to pass to values to the nginx helm file.
+
+You will need to replace the arn for the SSL certificate created earlier
+
+```yaml
+controller:
+  # publishService required to Allow ELB Alias for DNS registration w/ external-dns
+  publishService:
+    enabled: true
+  tcp:
+    configNameSpace: $(POD_NAMESPACE)/tcp-services
+  udp:
+    configNameSpace: $(POD_NAMESPACE)/udp-services
+  service:
+    # AWS Annotations for LoadBalaner with Certificate ARN
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:us-west-2:XXXXXXXXXXXX:certificate/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+      service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
+      service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+      service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+      service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "120"
+    # TLS (https) terminated at ELB, so internal endpoint is 'http'
+    targetPorts:
+      https: http
+
+```
+
+Add the ingress-nginx helm repo
+
 ```bash
-curl -o iam_policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.2.0/docs/install/iam_policy.json
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+```
 
-aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document file://iam_policy.json
-eksctl create iamserviceaccount --cluster=flowforge --namespace=kube-system --name=aws-load-balancer-controller --attach-policy-arn=arn:aws:iam::[aws id]:policy/AWSLoadBalancerControllerIAMPolicy --override-existing-serviceaccounts --approve
+Then install with
 
-helm repo add eks https://aws.github.io/eks-charts
-kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
+```bash
+helm install \
+  ingress-nginx \
+  --values nginx-values.yaml \
+  ingress-nginx/ingress-nginx
+```
 
-K8S_VPC_ID=$(aws ec2 describe-vpcs --filters "Name=tag:eksctl.cluster.k8s.io/v1alpha1/cluster-name,Values=flowforge" | jq -r '.Vpcs[].VpcId')
-helm install aws-load-balancer-controller eks/aws-load-balancer-controller --set clusterName=flowforge --set serviceAccount.create=false --set region=eu-west-1 --set vpcId=$K8S_VPC_ID --set serviceAccount.name=aws-load-balancer-controller -n kube-system
+You will also want to mark the new ingressclass as the default so it is picked up by default without the need for special annotations.
+
+```bash
+kubectl annotate ingressclass nginx ingressclass.kubernetes.io/is-default-class=true
 ```
 
 ### References
 
-https://aws.amazon.com/premiumsupport/knowledge-center/eks-alb-ingress-controller-fargate/
+https://joachim8675309.medium.com/adding-ingress-with-amazon-eks-6c4379803b2
 
+
+## AWS ALB Ingress
+
+AWS ALB has a hard limit of 100 Ingress endpoints which limits the number of Projects/Instances that can be deployed.
 ## Setup AWS SES for email
 
 https://eu-west-1.console.aws.amazon.com/ses/home?region=eu-west-1#/homepage
