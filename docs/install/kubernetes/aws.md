@@ -91,7 +91,7 @@ It is recommended to run the Nginx Ingress controller even on AWS EKS (The AWS A
 
 Create a `nginx-values.ymal` file to pass the values to the nginx helm file.
 
-You will need to replace the arn for the SSL certificate created earlier
+You will need to replace the ARN for the SSL certificate created earlier
 
 ```yaml
 controller:
