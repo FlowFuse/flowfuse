@@ -93,7 +93,7 @@ eksctl utils associate-iam-oidc-provider --cluster flowforge --approve
 
 It is recommended to run the Nginx Ingress controller even on AWS EKS (The AWS ALB load balancer currently appears to only support up to 100 Ingress Targets which limits the number of Instance/Projects that can be run).
 
-Create a `nginx-values.ymal` file to pass to values to the nginx helm file.
+Create a `nginx-values.ymal` file to pass the values to the nginx helm file.
 
 You will need to replace the arn for the SSL certificate created earlier
 
