@@ -78,7 +78,7 @@ nodeGroups:
       allow: false
 ```
 
-Add oidc provider for the Load Balancer and IAM roles
+Add OIDC provider for the Load Balancer and IAM roles
 ```bash
 eksctl utils associate-iam-oidc-provider --cluster flowforge --approve
 ```
@@ -145,6 +145,7 @@ https://joachim8675309.medium.com/adding-ingress-with-amazon-eks-6c4379803b2
 ## AWS ALB Ingress
 
 AWS ALB has a hard limit of 100 Ingress endpoints which limits the number of Projects/Instances that can be deployed.
+
 ## Setup AWS SES for email
 
 https://eu-west-1.console.aws.amazon.com/ses/home?region=eu-west-1#/homepage
