@@ -1,0 +1,20 @@
+name: 🎨 Art Request
+description: Creates a request for a designer to pick up. Used to ask for blog tile images, graphics for the website, diagrams for presentations, etc.
+labels: [design, artwork, task]
+body:
+- type: input
+  attributes:
+    label: Related Issue
+    description: What task or piece of content is this request for?
+    placeholder: '#123'
+- type: textarea
+  attributes:
+    label: Description
+    description: Describe what you need in the artwork, link to any similar images you've seen that you like that may help to inspire the designer, if appropriate.
+    value: |
+      **Considerations:**
+      - Where will the image be displayed/shared, product? blog post? social media? presentation? website?
+      
+      **Inspirations:**
+      - <link here>
+      - <link here>
