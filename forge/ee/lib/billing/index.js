@@ -292,7 +292,7 @@ module.exports.init = async function (app) {
                     }
 
                     await setProjectBillingState(project, BILLING_STATES.BILLED)
-                    app.log.warn(`failed removing project from subscription\n${err.message}`)
+                    app.log.warn(`Failed removing project from subscription\n${err.message}`)
                     throw err
                 }
             } else {
