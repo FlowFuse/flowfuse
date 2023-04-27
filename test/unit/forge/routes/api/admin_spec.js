@@ -90,5 +90,80 @@ describe('Admin API', async function () {
             // Check we have a newline at the end
             result.should.match(/\n$/)
         })
+
+        describe('access token management', () => {
+            async function getStatsAccessTokens () {
+                return app.db.models.AccessToken.findAll({ where: { scope: 'platform:stats' } })
+            }
+            async function checkStatsAccess (token) {
+                return await app.inject({
+                    method: 'GET',
+                    url: '/api/v1/admin/stats',
+                    headers: {
+                        authorization: `Bearer ${token}`
+                    }
+                })
+            }
+            it('generates a new stats token, replacing any existing one', async function () {
+                await login('alice', 'aaPassword')
+                // Validate the starting point
+                ;(await getStatsAccessTokens()).should.have.length(0)
+                app.settings.get('platform:stats:token').should.be.false()
+
+                // 1. Create an initial token
+                let response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/admin/stats-token',
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                const initialToken = response.json()
+                initialToken.should.have.property('token')
+                app.settings.get('platform:stats:token').should.be.true()
+
+                // Check the token works
+                ;(await checkStatsAccess(initialToken.token)).statusCode.should.equal(200)
+
+                const generatedTokens = await getStatsAccessTokens()
+                generatedTokens.should.have.length(1)
+
+                // Create a new token - check it replaces the initial token
+                response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/admin/stats-token',
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                const newToken = response.json()
+                newToken.should.have.property('token')
+                app.settings.get('platform:stats:token').should.be.true()
+                initialToken.token.should.not.equal(newToken.token)
+
+                // Check initial token no longer works
+                ;(await checkStatsAccess(initialToken.token)).statusCode.should.equal(401)
+
+                // Check new token works
+                ;(await checkStatsAccess(newToken.token)).statusCode.should.equal(200)
+
+                const newGeneratedTokens = await getStatsAccessTokens()
+                newGeneratedTokens.should.have.length(1)
+
+                generatedTokens[0].token.should.not.equal(newGeneratedTokens[0].token)
+
+                // Delete the token
+                response = await app.inject({
+                    method: 'DELETE',
+                    url: '/api/v1/admin/stats-token',
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                // Check its all cleared
+                ;(await getStatsAccessTokens()).should.have.length(0)
+                app.settings.get('platform:stats:token').should.be.false()
+
+                // Check new token no longer works
+                ;(await checkStatsAccess(newToken.token)).statusCode.should.equal(401)
+            })
+        })
     })
 })

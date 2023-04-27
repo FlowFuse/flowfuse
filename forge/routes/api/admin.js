@@ -193,4 +193,13 @@ module.exports = async function (app) {
         const result = app.db.views.AuditLog.auditLog(logEntries)
         reply.send(result)
     })
+
+    app.post('/stats-token', { preHandler: app.needsPermission('platform:stats:token') }, async (request, reply) => {
+        const token = await app.db.controllers.AccessToken.generatePlatformStatisticsToken(request.session.User)
+        reply.send(token)
+    })
+    app.delete('/stats-token', { preHandler: app.needsPermission('platform:stats:token') }, async (request, reply) => {
+        await app.db.controllers.AccessToken.removePlatformStatisticsToken()
+        reply.send({ status: 'okay' })
+    })
 }
