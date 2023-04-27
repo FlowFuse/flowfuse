@@ -7,7 +7,21 @@
                 v-if="instances.length > 0"
                 data-el="instances-table" :columns="columns" :rows="instances" :show-search="true" search-placeholder="Search Instances..."
                 :rows-selectable="true" @row-selected="openInstance"
-            />
+            >
+                <template #actions>
+                    <ff-button
+                        v-if="hasPermission('project:create')"
+                        data-action="create-project"
+                        kind="primary"
+                        :to="{name: 'CreateInstance'}"
+                    >
+                        <template #icon-left>
+                            <PlusSmIcon />
+                        </template>
+                        Create Instance
+                    </ff-button>
+                </template>
+            </ff-data-table>
             <EmptyState v-else>
                 <template #header>Get Started with your First Node-RED Instance</template>
                 <template #message>
@@ -27,7 +41,7 @@
                     <ff-button
                         v-if="hasPermission('project:create')"
                         kind="primary"
-                        :to="{name: 'CreateTeamApplication'}"
+                        :to="{name: 'CreateInstance'}"
                     >
                         <template #icon-left>
                             <PlusSmIcon />

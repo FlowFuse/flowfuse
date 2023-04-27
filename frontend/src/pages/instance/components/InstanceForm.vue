@@ -4,13 +4,16 @@
         @submit.prevent="$emit('on-submit', input, copyParts)"
     >
         <SectionTopMenu
-            :hero="creatingNew ? (applicationFieldsVisible ? 'Create a new Application & Instance' : 'Create Instance') : 'Update Instance'"
+            :hero="creatingNew ? (creatingApplication ? 'Create a new Application & Instance' : 'Create Instance') : 'Update Instance'"
         />
 
         <!-- Form title -->
         <div class="mb-8 text-sm text-gray-500">
             <template v-if="creatingNew">
-                <template v-if="!isCopyProject">
+                <template v-if="applicationSelection">
+                    Let's get your new Node-RED instance setup in no time.
+                </template>
+                <template v-else-if="!isCopyProject">
                     Let's get your new Node-RED application and first instance setup in no time.
                 </template>
             </template>
@@ -19,8 +22,21 @@
             </template>
         </div>
 
-        <!-- Application Name -->
-        <div v-if="creatingNew && applicationFieldsVisible">
+        <!-- Application Selection -->
+        <div v-if="applicationSelection && applications.length > 0">
+            <FormRow
+                v-model="input.applicationId"
+                :options="applications"
+                :error="errors.applicationId || submitErrors?.applicationId"
+                data-form="application-name"
+            >
+                <template #default>
+                    Application
+                </template>
+            </FormRow>
+        </div>
+        <!-- No Existing Applications, or we are creating a new one -->
+        <div v-else-if="creatingApplication">
             <FormRow
                 v-model="input.applicationName"
                 :error="errors.applicationName || submitErrors?.applicationName"
@@ -259,6 +275,15 @@ export default {
             default: null,
             type: Object
         },
+        // do we want to show a selection of Applications?
+        applications: {
+            default: null,
+            type: Array
+        },
+        applicationSelection: {
+            default: false,
+            type: Boolean
+        },
         // Todo: Move these to a separate component
         applicationFieldsLocked: {
             default: false,
@@ -282,6 +307,7 @@ export default {
                 billingConfirmation: false,
 
                 applicationName: '',
+                applicationId: '',
 
                 // Only read name from existing project, never source
                 name: this.instance?.name || NameGenerator(),
@@ -308,6 +334,9 @@ export default {
     },
     computed: {
         ...mapState('account', ['settings']),
+        creatingApplication () {
+            return (this.applicationSelection && !this.applications.length) || (this.creatingNew && this.applicationFieldsVisible)
+        },
         creatingNew () {
             return !this.instance?.id
         },
@@ -331,7 +360,8 @@ export default {
               this.input.projectType && !this.errors.projectType &&
               this.input.stack && !this.errors.stack &&
               (this.creatingNew ? (this.input.template && !this.errors.template) : true) &&
-              ((this.creatingNew && this.applicationFieldsVisible) ? this.input.applicationName : true)
+              ((this.creatingNew && this.applicationFieldsVisible) ? this.input.applicationName : true) &&
+              (this.applicationSelection ? this.input.applicationId : true)
         },
         submitEnabled () {
             const billingConfirmed = !this.showBilling || this.team.billing?.trial || this.input.billingConfirmation
