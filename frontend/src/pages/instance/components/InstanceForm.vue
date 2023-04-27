@@ -28,7 +28,7 @@
                 v-model="input.applicationId"
                 :options="applications"
                 :error="errors.applicationId || submitErrors?.applicationId"
-                data-form="application-name"
+                data-form="application-id"
             >
                 <template #default>
                     Application
