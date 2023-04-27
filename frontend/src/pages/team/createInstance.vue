@@ -127,7 +127,6 @@ export default {
 
             try {
                 const instance = await this.createInstance(applicationId, instanceFields, copyParts)
-                console.log(instance)
 
                 await this.$store.dispatch('account/refreshTeam')
 
