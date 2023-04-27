@@ -53,21 +53,26 @@ export default {
     },
     computed: {
         buckets () {
-            const devices = this.devices.map((d) => {
-                return {
-                    id: d.id,
-                    status: DeviceStatus.lastSeenStatus(d.lastSeenAt, d.lastSeenMs)
-                }
-            })
+            let devices = []
+            if (this.property === 'status') {
+                devices = this.devices.map((d) => {
+                    return {
+                        id: d.id,
+                        bucket: DeviceStatus.lastSeenStatus(d.lastSeenAt, d.lastSeenMs)
+                    }
+                })
+            } else {
+                throw Error(`Do not know how to filter on the property '${this.property}'`)
+            }
             const buckets = {}
             devices.forEach((d) => {
-                if (!buckets[d.status.class]) {
-                    buckets[d.status.class] = {
-                        label: d.status.label,
+                if (!buckets[d.bucket.class]) {
+                    buckets[d.bucket.class] = {
+                        label: d.bucket.label,
                         devices: []
                     }
                 }
-                buckets[d.status.class].devices.push(d.id)
+                buckets[d.bucket.class].devices.push(d.id)
             })
             return buckets
         }
