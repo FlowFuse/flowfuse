@@ -1,6 +1,6 @@
 <template>
     <div
-        class="space-y-6"
+        class="space-y-2"
         data-el="devices-section"
     >
         <ff-loading
@@ -16,11 +16,12 @@
             message="Deleting Device..."
         />
         <template v-else>
+            <DevicesStatusBar :devices="Array.from(devices.values())" property="lastSeenSince" @filter-selected="applyFilter" />
             <ff-data-table
                 v-if="devices.size > 0"
                 data-el="devices-browser"
                 :columns="columns"
-                :rows="Array.from(devices.values())"
+                :rows="filteredDevices"
                 :show-search="true"
                 search-placeholder="Search Devices"
                 :show-load-more="!!nextCursor"
@@ -219,6 +220,7 @@ import Alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 
 import EmptyState from './EmptyState.vue'
+import DevicesStatusBar from './charts/DeviceStatusBar.vue'
 
 export default {
     name: 'ProjectOverview',
@@ -229,7 +231,8 @@ export default {
         PlusSmIcon,
         SnapshotAssignDialog,
         TeamDeviceCreateDialog,
-        EmptyState
+        EmptyState,
+        DevicesStatusBar
     },
     mixins: [permissionsMixin],
     inheritAttrs: false,
@@ -255,10 +258,12 @@ export default {
     data () {
         return {
             loading: true,
+            filter: null,
             creatingDevice: false,
             deletingDevice: false,
             nextCursor: null,
             devices: new Map(),
+            filteredDevices: null,
             checkInterval: null
         }
     },
@@ -342,6 +347,19 @@ export default {
         clearInterval(this.checkInterval)
     },
     methods: {
+        applyFilter (filter) {
+            this.filter = filter
+
+            let filteredDevices = []
+            if (!this.filter) {
+                filteredDevices = Array.from(this.devices.values())
+            } else {
+                filteredDevices = Array.from(this.devices.values()).filter((d) => {
+                    return filter.devices.includes(d.id)
+                })
+            }
+            this.filteredDevices = filteredDevices
+        },
         showCreateDeviceDialog () {
             this.$refs.teamDeviceCreateDialog.show(null, this.instance, this.application)
         },
@@ -430,6 +448,8 @@ export default {
             if (!polled) {
                 this.nextCursor = data.meta.next_cursor
             }
+
+            this.applyFilter(this.filter)
 
             this.loading = false
         },

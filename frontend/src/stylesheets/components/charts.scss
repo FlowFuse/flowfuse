@@ -1,0 +1,59 @@
+
+@import '~@flowforge/forge-ui-components/dist/scss/forge-colors.scss';
+
+.ff-chart {
+    padding: 12px 18px;
+    border: 1px solid $ff-grey-300;
+    border-radius: 6px;
+    background-color: white;
+    h3 {
+        margin: 0;
+    }
+}
+
+.ff-chart-device-status {
+    display: flex;
+    gap: 4px;
+    label {
+        display: block;
+    }
+    .ff-chart-bar {
+        text-align: right;
+        border-right: 1px solid;
+        >div, >label {
+            padding: 3px 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        &:hover {
+            cursor: pointer;
+        }
+        &--error {
+            > div {
+                background-color: $ff-red-200;
+            }
+            border-color: $ff-red-400;
+            color: $ff-red-600;
+            &:hover {
+                > div {
+                    background-color: $ff-red-300;
+                }
+            }
+        }
+        &--never {
+            > div {
+                background-color: $ff-grey-200;
+            }
+            border-color: $ff-grey-400;
+            color: $ff-grey-600;
+            &:hover {
+                > div {
+                    background-color: $ff-grey-300;
+                }
+            }
+        }
+        &.ghost {
+            opacity: 0.15;
+        }
+    }
+}   
