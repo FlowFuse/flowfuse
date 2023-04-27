@@ -287,8 +287,12 @@ module.exports.init = async function (app) {
                         metadata
                     })
                 } catch (err) {
+                    if (err.rawType === 'invalid_request_error' && err.code === 'resource_missing' && err.param === 'subscription') {
+                        return this._app.log.warn(`Subscription was not found in Stripe, but continuing removal: ${err}`)
+                    }
+
                     await setProjectBillingState(project, BILLING_STATES.BILLED)
-                    app.log.warn(`failed removing project from subscription\n${err.message}`)
+                    app.log.warn(`Failed removing project from subscription\n${err.message}`)
                     throw err
                 }
             } else {
