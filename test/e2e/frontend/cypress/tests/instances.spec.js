@@ -37,7 +37,7 @@ describe('FlowForge - Instances', () => {
         cy.wait('@getInstanceTypes')
     })
 
-    it.skip('can be navigated to from team page', () => {
+    it('can be navigated to from team page', () => {
         cy.intercept('GET', '/api/*/projects/*').as('getInstance')
         cy.intercept('GET', '/api/*/applications/*').as('getApplication')
 
@@ -61,7 +61,7 @@ describe('FlowForge - Instances', () => {
         cy.get('[data-el="editor-link"]').should('exist')
     })
 
-    it.skip('can be deleted', () => {
+    it('can be deleted', () => {
         const INSTANCE_NAME = `new-instance-${Math.random().toString(36).substring(2, 7)}`
 
         cy.intercept('DELETE', '/api/*/projects/*').as('deleteInstance')
@@ -127,7 +127,7 @@ describe('FlowForge - Instances', () => {
             })
     })
 
-    it.skip('can be updated', () => {
+    it('can be updated', () => {
         cy.intercept('GET', '/api/*/projects/*').as('getInstance')
 
         navigateToInstance('ATeam', 'instance-1-1')
@@ -185,7 +185,7 @@ describe('FlowForge - Instances', () => {
         cy.contains('type1 / stack1')
     })
 
-    it.skip('can be copied', () => {
+    it('can be copied', () => {
         // TODO needs work as currently lands user on Project Overview rather than Index View
         cy.intercept('GET', '/api/*/projects/*').as('getInstance')
         cy.intercept('POST', '/api/*/projects').as('createProject')
