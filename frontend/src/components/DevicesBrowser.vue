@@ -264,14 +264,14 @@ export default {
             deletingDevice: false,
             nextCursor: null,
             devices: new Map(),
-            filteredDevices: null,
             checkInterval: null
         }
     },
     computed: {
         columns () {
             const columns = [
-                { label: 'Device', key: 'name', class: ['w-64'], sortable: true, component: { is: markRaw(DeviceLink) } }
+                { label: 'Device', key: 'name', class: ['w-64'], sortable: true, component: { is: markRaw(DeviceLink) } },
+                { label: 'Type', key: 'type', class: ['w-48'], sortable: true }
             ]
 
             const statusColumns = [
@@ -284,7 +284,7 @@ export default {
                     ...statusColumns,
                     {
                         label: 'Application',
-                        class: ['w-64'],
+                        class: ['w-48'],
                         key: 'application',
                         sortable: true,
                         component: {
@@ -302,7 +302,7 @@ export default {
                 columns.push({
                     label: 'Instance',
                     key: 'instance',
-                    class: ['w-64'],
+                    class: ['w-48'],
                     sortable: true,
                     component: {
                         is: markRaw(InstanceInstancesLink),
@@ -322,6 +322,17 @@ export default {
             }
 
             return columns
+        },
+        filteredDevices () {
+            let filteredDevices = []
+            if (!this.filter) {
+                filteredDevices = Array.from(this.devices.values())
+            } else {
+                filteredDevices = Array.from(this.devices.values()).filter((d) => {
+                    return this.filter.devices.includes(d.id)
+                })
+            }
+            return filteredDevices
         },
         displayingInstance () {
             return this.instance !== null
@@ -350,16 +361,6 @@ export default {
     methods: {
         applyFilter (filter) {
             this.filter = filter
-
-            let filteredDevices = []
-            if (!this.filter) {
-                filteredDevices = Array.from(this.devices.values())
-            } else {
-                filteredDevices = Array.from(this.devices.values()).filter((d) => {
-                    return filter.devices.includes(d.id)
-                })
-            }
-            this.filteredDevices = filteredDevices
         },
         showCreateDeviceDialog () {
             this.$refs.teamDeviceCreateDialog.show(null, this.instance, this.application)
@@ -384,6 +385,7 @@ export default {
                     this.$refs.deviceCredentialsDialog.show(device)
                 }, 500)
                 this.devices.set(device.id, device)
+                this.applyFilter()
             }
         },
 
