@@ -123,8 +123,6 @@ export default {
             // Drop applicationId & applicationName from the payload
             const { applicationId, applicationName, ...instanceFields } = formData
 
-            // if we have applicationName, a new application needs to be created first
-
             try {
                 const instance = await this.createInstance(applicationId, instanceFields, copyParts)
 
