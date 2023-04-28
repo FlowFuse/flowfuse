@@ -16,7 +16,8 @@
             message="Deleting Device..."
         />
         <template v-else>
-            <DevicesStatusBar :devices="Array.from(devices.values())" property="status" @filter-selected="applyFilter" />
+            <DevicesStatusBar data-el="devicestatus-lastseen" label="Last Seen" :devices="Array.from(devices.values())" property="lastseen" :filter="filter" @filter-selected="applyFilter" />
+            <DevicesStatusBar data-el="devicestatus-status" label="Last Known Status" :devices="Array.from(devices.values())" property="status" :filter="filter" @filter-selected="applyFilter" />
             <ff-data-table
                 v-if="devices.size > 0"
                 data-el="devices-browser"

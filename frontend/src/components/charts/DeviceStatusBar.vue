@@ -1,7 +1,13 @@
 <template>
     <div class="ff-chart space-y-2">
         <div class="flex items-center justify-between">
-            <h3>Last Seen</h3>
+            <div class="flex items-center gap-4">
+                <h3>{{ label }}</h3>
+                <label v-if="filter?.property === property" class="flex items-center gap-1 opacity-50">
+                    <FilterIcon class="ff-icon ff-icon-sm" />
+                    Filter Applied - {{ filter?.devices.length }} Device<template v-if="filter?.devices.length > 1">s</template>
+                </label>
+            </div>
             <button class="ff-btn ff-btn--tertiary" @click="toggle()">
                 <EyeIcon v-if="visible" class="ff-icon" />
                 <EyeOffIcon v-else class="ff-icon" />
@@ -10,7 +16,7 @@
         <div v-if="visible" class="ff-chart-device-status">
             <div
                 v-for="(bucket, b) in buckets" :key="b"
-                :class="'ff-chart-bar ff-chart-bar--' + b + ' ' + ((activeFilter.bucket && activeFilter.bucket !== b) ? 'ghost' : '')"
+                :class="'ff-chart-bar ff-chart-bar--' + b + ' ' + (((filter?.property === property) && (filter?.bucket && filter?.bucket !== b)) ? 'ghost' : '')"
                 :style="{width: 100 * (bucket.devices.length/devices.length) + '%'}"
                 @click="selected(b, bucket.devices)"
             >
@@ -22,7 +28,7 @@
 </template>
 
 <script>
-import { EyeIcon, EyeOffIcon } from '@heroicons/vue/outline'
+import { EyeIcon, EyeOffIcon, FilterIcon } from '@heroicons/vue/outline'
 
 import DeviceStatus from '../../services/device-status.js'
 
@@ -30,9 +36,14 @@ export default {
     name: 'DeviceStatusBar',
     components: {
         EyeIcon,
-        EyeOffIcon
+        EyeOffIcon,
+        FilterIcon
     },
     props: {
+        label: {
+            required: true,
+            type: String
+        },
         devices: {
             required: true,
             type: Array
@@ -40,25 +51,36 @@ export default {
         property: {
             required: true,
             type: String
+        },
+        filter: {
+            required: true,
+            type: [null, Object]
         }
     },
     emits: ['filter-selected'],
     data () {
         return {
-            visible: true,
-            activeFilter: {
-                bucket: null
-            }
+            visible: true
         }
     },
     computed: {
         buckets () {
             let devices = []
-            if (this.property === 'status') {
+            if (this.property === 'lastseen') {
                 devices = this.devices.map((d) => {
                     return {
                         id: d.id,
                         bucket: DeviceStatus.lastSeenStatus(d.lastSeenAt, d.lastSeenMs)
+                    }
+                })
+            } else if (this.property === 'status') {
+                devices = this.devices.map((d) => {
+                    return {
+                        id: d.id,
+                        bucket: {
+                            class: d.status,
+                            label: d.status
+                        }
                     }
                 })
             } else {
@@ -79,13 +101,11 @@ export default {
     },
     methods: {
         selected (bucket, devices) {
-            if (this.activeFilter.bucket === bucket) {
-                this.activeFilter.bucket = null
+            if (this.filter?.bucket === bucket) {
                 this.$emit('filter-selected', null)
             } else {
-                this.activeFilter.bucket = bucket
                 this.$emit('filter-selected', {
-                    bucket, devices
+                    property: this.property, bucket, devices
                 })
             }
         },
