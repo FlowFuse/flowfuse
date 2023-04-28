@@ -62,11 +62,11 @@
             --bar-border: #{$ff-grey-300};
             --text-color: #{$ff-grey-600};
         }
-        // &--safe {
-        //     --bar-bg: #{$ff-yellow-200};
-        //     --bar-border: #{$ff-yellow-300};
-        //     --text-color: #{$ff-yellow-600};
-        // }
+        &--safe {
+            --bar-bg: #{$ff-yellow-200};
+            --bar-border: #{$ff-yellow-300};
+            --text-color: #{$ff-yellow-600};
+        }
         &--running {
             --bar-bg: #{$ff-green-200};
             --bar-border: #{$ff-green-300};
