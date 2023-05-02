@@ -60,6 +60,10 @@ export default function (to, from) {
         parts.push(reportTime('month', periods.months))
         fineGrained = false
     }
+    if (periods.weeks > 0) {
+        parts.push(reportTime('week', periods.weeks))
+        fineGrained = false
+    }
     if (periods.days > 0) {
         parts.push(reportTime('day', periods.days))
         fineGrained = false

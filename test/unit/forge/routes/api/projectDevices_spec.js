@@ -6,6 +6,9 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 describe('Project/Device API', async function () {
     let app
     const TestObjects = {}
+    let projectInstanceCount = 0
+    const generateProjectName = () => 'test-project' + (projectInstanceCount++)
+    const generateDeviceName = () => 'test-device' + (projectInstanceCount++)
 
     async function createDevice (options) {
         const response = await app.inject({
@@ -21,7 +24,7 @@ describe('Project/Device API', async function () {
         return response.json()
     }
 
-    beforeEach(async function () {
+    before(async function () {
         app = await setup({ features: { devices: true } })
 
         // alice : admin
@@ -54,6 +57,9 @@ describe('Project/Device API', async function () {
         await login('bob', 'bbPassword')
         await login('chris', 'ccPassword')
     })
+    after(async function () {
+        await app.close()
+    })
 
     async function login (username, password) {
         const response = await app.inject({
@@ -66,7 +72,7 @@ describe('Project/Device API', async function () {
         TestObjects.tokens[username] = response.cookies[0].value
     }
     async function setupProjectWithSnapshot () {
-        TestObjects.deviceProject = await app.db.models.Project.create({ name: 'deviceProject', type: '', url: '' })
+        TestObjects.deviceProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
         TestObjects.deviceProject.setTeam(TestObjects.ATeam)
         // Create a snapshot
         TestObjects.deviceProjectSnapshot = (await createSnapshot(TestObjects.deviceProject.id, 'test-snapshot', TestObjects.tokens.alice)).json()
@@ -99,10 +105,6 @@ describe('Project/Device API', async function () {
         })
     }
 
-    afterEach(async function () {
-        await app.close()
-    })
-
     describe('Get list of devices assigned to a project', async function () {
         // GET /api/v1/project/:projectId/devices
         // - Admin/Owner/Member
@@ -120,7 +122,7 @@ describe('Project/Device API', async function () {
             // Setup device project
             await setupProjectWithSnapshot(false)
             // Setup a second project
-            const deviceProject2 = await app.db.models.Project.create({ name: 'deviceProject2', type: '', url: '' })
+            const deviceProject2 = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
             deviceProject2.setTeam(TestObjects.ATeam)
             // Create a snapshot
             const otherSnapshot = (await createSnapshot(deviceProject2.id, 'test-snapshot-2', TestObjects.tokens.alice)).json()
@@ -142,7 +144,7 @@ describe('Project/Device API', async function () {
             // Create a project - but do not activate snapshot
             await setupProjectWithSnapshot(false)
 
-            const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const device = await createDevice({ name: generateDeviceName(), type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
             const response = await app.inject({
                 method: 'PUT',
                 url: `/api/v1/devices/${device.id}`,
@@ -157,7 +159,7 @@ describe('Project/Device API', async function () {
             result.project.should.have.property('id', TestObjects.deviceProject.id)
 
             // Create a second device not in this project
-            const device2 = await createDevice({ name: 'Ad2', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const device2 = await createDevice({ name: generateDeviceName(), type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
 
             await setProjectActiveSnapshot(TestObjects.deviceProject.id, TestObjects.deviceProjectSnapshot.id, TestObjects.tokens.alice)
 

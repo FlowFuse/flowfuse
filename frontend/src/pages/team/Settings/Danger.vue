@@ -4,7 +4,7 @@
         <div>
             <div class="max-w-sm pr-2">{{deleteDescription}}</div>
             <div class="mt-2">
-                <ff-button kind="danger" :disabled="!deleteActive" @click="showConfirmDeleteDialog()">Delete Team</ff-button>
+                <ff-button kind="danger" data-action="delete-team" :disabled="!deleteActive" @click="showConfirmDeleteDialog()">Delete Team</ff-button>
                 <ConfirmTeamDeleteDialog @deleteTeam="deleteTeam" ref="confirmTeamDeleteDialog"/>
             </div>
         </div>
@@ -22,16 +22,16 @@ export default {
     props: ['team'],
     data () {
         return {
-            projectCount: -1
+            applicationCount: -1
         }
     },
     computed: {
         deleteActive () {
-            return this.projectCount === 0
+            return this.applicationCount === 0
         },
         deleteDescription () {
-            if (this.projectCount > 0) {
-                return 'You cannot delete a team that still owns projects.'
+            if (this.applicationCount > 0) {
+                return 'You cannot delete a team that still owns applications.'
             } else {
                 return 'Deleting the team cannot be undone. Take care.'
             }
@@ -56,8 +56,8 @@ export default {
         },
         async fetchData () {
             if (this.team.id) {
-                const data = await teamApi.getTeamProjectList(this.team.id)
-                this.projectCount = data.count
+                const applicationList = await teamApi.getTeamApplications(this.team.id)
+                this.applicationCount = applicationList.count
             }
         }
     },

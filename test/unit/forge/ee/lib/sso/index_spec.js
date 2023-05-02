@@ -5,7 +5,7 @@ const fastify = require('fastify')
 describe('SSO Providers', function () {
     let app
 
-    beforeEach(async function () {
+    before(async function () {
         app = await setup()
 
         app.samlProviders = {}
@@ -53,7 +53,7 @@ d
         })
     })
 
-    afterEach(async function () {
+    after(async function () {
         if (app) {
             await app.close()
             app = null

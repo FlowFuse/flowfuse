@@ -4,30 +4,37 @@ const setup = require('../setup')
 describe('Project model', function () {
     // Use standard test data.
     let app
-
-    afterEach(async function () {
-        if (app) {
-            await app.close()
-            app = null
-        }
+    before(async function () {
+        app = await setup()
+    })
+    after(async function () {
+        await app.close()
     })
 
     describe('License limits', function () {
-        it('Permits overage when licensed', async function () {
-            app = await setup({
-                // license has projects limit set to 2
-                license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNDIyNDAwLCJleHAiOjc5ODY5MDIzOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjIsImRldmljZXMiOjUwLCJkZXYiOnRydWUsImlhdCI6MTY2MjQ4NDgzNn0.akS_SIeRNK_mQZyPXGVbg1odqoRRAi62xOyDS3jHnUVhSLvwZIpWBZu799PXCXRS0fV98GxVWjZm7i1YbuxlUg'
+        describe('Licensed', function () {
+            before(async function () {
+                await app.close()
+                app = await setup({
+                    // license has projects limit set to 2
+                    license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNDIyNDAwLCJleHAiOjc5ODY5MDIzOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjIsImRldmljZXMiOjUwLCJkZXYiOnRydWUsImlhdCI6MTY2MjQ4NDgzNn0.akS_SIeRNK_mQZyPXGVbg1odqoRRAi62xOyDS3jHnUVhSLvwZIpWBZu799PXCXRS0fV98GxVWjZm7i1YbuxlUg'
+                })
             })
-            ;(await app.db.models.Project.count()).should.equal(0)
-            await app.db.models.Project.create({ name: 'p1', type: '', url: '' })
-            ;(await app.db.models.Project.count()).should.equal(1)
-            await app.db.models.Project.create({ name: 'p2', type: '', url: '' })
-            ;(await app.db.models.Project.count()).should.equal(2)
-            await app.db.models.Project.create({ name: 'p3', type: '', url: '' })
-            ;(await app.db.models.Project.count()).should.equal(3)
+            after(async function () {
+                await app.close()
+                app = await setup()
+            })
+            it('Permits overage when licensed', async function () {
+                ;(await app.db.models.Project.count()).should.equal(0)
+                await app.db.models.Project.create({ name: 'p1', type: '', url: '' })
+                ;(await app.db.models.Project.count()).should.equal(1)
+                await app.db.models.Project.create({ name: 'p2', type: '', url: '' })
+                ;(await app.db.models.Project.count()).should.equal(2)
+                await app.db.models.Project.create({ name: 'p3', type: '', url: '' })
+                ;(await app.db.models.Project.count()).should.equal(3)
+            })
         })
         it('Does not permit overage when unlicensed', async function () {
-            app = await setup({ })
             app.license.defaults.projects = 2 // override default
             ;(await app.db.models.Project.count()).should.equal(0)
             await app.db.models.Project.create({ name: 'p1', type: '', url: '' })
@@ -46,18 +53,14 @@ describe('Project model', function () {
     })
 
     describe('Project Type', function () {
-        beforeEach(async function () {
-            app = await setup()
-        })
-
         it('has a project type', async function () {
             const project = await app.db.models.Project.create({
-                name: 'testProject',
+                name: 'testProject-01',
                 type: '',
                 url: ''
             })
             const projectType = await app.db.models.ProjectType.create({
-                name: 'default-project-type',
+                name: 'default-project-type-01',
                 properties: {},
                 active: true
             })
@@ -66,17 +69,13 @@ describe('Project model', function () {
             const reloadedProject = await app.db.models.Project.byId(project.id)
             const pt = await reloadedProject.getProjectType()
 
-            pt.name.should.equal('default-project-type')
+            pt.name.should.equal('default-project-type-01')
         })
     })
     describe('Project Settings', function () {
-        beforeEach(async function () {
-            app = await setup()
-        })
-
         it('can get project settings in one query', async function () {
             const project = await app.db.models.Project.create({
-                name: 'testProject',
+                name: 'testProject-02',
                 type: '',
                 url: ''
             })
@@ -98,7 +97,7 @@ describe('Project model', function () {
 
         it('includes platform specific env vars', async function () {
             const project = await app.db.models.Project.create({
-                name: 'testProject',
+                name: 'testProject-03',
                 type: '',
                 url: ''
             })
@@ -108,9 +107,9 @@ describe('Project model', function () {
             settings.settings.should.have.a.property('env').of.Array()
             settings.settings.env.length.should.equal(4)
             settings.settings.env.find(e => e.name === 'FF_PROJECT_ID').should.have.a.property('value', project.id) // deprecated in favour of FF_INSTANCE_ID as of 1.6.0
-            settings.settings.env.find(e => e.name === 'FF_PROJECT_NAME').should.have.a.property('value', 'testProject') // deprecated in favour of FF_INSTANCE_NAME as of 1.6.0
+            settings.settings.env.find(e => e.name === 'FF_PROJECT_NAME').should.have.a.property('value', 'testProject-03') // deprecated in favour of FF_INSTANCE_NAME as of 1.6.0
             settings.settings.env.find(e => e.name === 'FF_INSTANCE_ID').should.have.a.property('value', project.id)
-            settings.settings.env.find(e => e.name === 'FF_INSTANCE_NAME').should.have.a.property('value', 'testProject')
+            settings.settings.env.find(e => e.name === 'FF_INSTANCE_NAME').should.have.a.property('value', 'testProject-03')
         })
     })
 })

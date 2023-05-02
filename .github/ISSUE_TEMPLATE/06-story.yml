@@ -31,8 +31,7 @@ body:
     multiple: false
     options:
       - All Users, (CE)
-      - Specific Project Types (EE)
-      - Specific Team Tiers (EE)
+      - Licensed Edition (EE)
       - Other (See comments)
 
 
@@ -46,3 +45,16 @@ body:
       - [ ] criteria 2
       - [ ] criteria 3
       - ...
+
+- type: dropdown
+  id: estimation
+  attributes:
+    label: Have you provided an initial effort estimate for this issue?
+    description: See our [handbook](https://flowforge.com/handbook/development/releases/planning/#effort-estimation) for more details.
+    multiple: false
+    options:
+      - I have provided an initial effort estimate
+      - I am not a FlowForge team member
+      - I can not provide an initial effort estimate
+  validations:
+      required: true

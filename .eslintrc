@@ -155,6 +155,7 @@
                 "test/e2e/frontend/cypress/tests/instances/snapshots.spec.js",
                 "test/e2e/frontend/cypress/tests/instances/staging.spec.js",
                 "test/e2e/frontend/cypress/tests/invitations.spec.js",
+                "test/e2e/frontend/cypress/tests/team/team.spec.js",
                 "test/e2e/frontend/cypress/tests/team/audit-log.spec.js",
                 "test/e2e/frontend/cypress/tests/team/team-membership.spec.js",
                 "test/e2e/frontend/cypress/tests/terms-and-conditions.spec.js"
