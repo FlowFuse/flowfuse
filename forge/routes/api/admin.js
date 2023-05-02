@@ -83,7 +83,7 @@ module.exports = async function (app) {
      */
     function convertToOpenMetrics (stats) {
         const result = flattenObject('flowforge', stats)
-        const lines = Object.entries(result).map(m => `${m[0]} ${m[1]}`)
+        const lines = Object.entries(result).map(([key, value]) => `${key} ${value}`)
         return lines.join('\n') + '\n'
     }
 
