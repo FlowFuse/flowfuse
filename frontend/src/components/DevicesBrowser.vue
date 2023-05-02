@@ -359,6 +359,16 @@ export default {
         clearInterval(this.checkInterval)
     },
     methods: {
+        /**
+         * filter: Object containing keys:
+         *  - devices: an array of device ids
+         *  - property: which filter row is being applied, e.g. status or lastseen
+         *  - bucket: which value of this property are we filtering on from the buckets in the status bar
+         *
+         * We store these in order to apply the filter of devices to the table, and handle
+         * the situation where we switch between filters, property/bucket are checked against local
+         * values inside the StatusBar
+        */
         applyFilter (filter) {
             this.filter = filter
         },
