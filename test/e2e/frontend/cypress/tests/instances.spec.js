@@ -3,6 +3,15 @@
  * As such some tests may be out of date
  */
 describe('FlowForge - Instances', () => {
+    function navigateToInstances (teamName) {
+        cy.request('GET', '/api/v1/user/teams')
+            .then((response) => {
+                const team = response.body.teams.find(
+                    (team) => team.name === teamName
+                )
+                cy.visit(`/team/${team.slug}/instances`)
+            })
+    }
     function navigateToInstance (teamName, projectName) {
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {
@@ -208,5 +217,58 @@ describe('FlowForge - Instances', () => {
         cy.wait('@getInstance')
 
         cy.contains('type1 / stack1')
+    })
+
+    it('can be created', () => {
+        cy.intercept('POST', '/api/*/projects').as('createInstance')
+        const INSTANCE_NAME = `new-instance-${Math.random().toString(36).substring(2, 7)}`
+
+        navigateToInstances('ATeam')
+        cy.get('[data-action="create-project"]').click()
+        cy.url().should('include', '/ateam/instances/create')
+
+        cy.get('[data-action="create-project"]').should('be.disabled')
+
+        // select application
+        cy.get('[data-form="application-id"]').click()
+        cy.get('[data-form="application-id"] .ff-dropdown-options').should('be.visible')
+        cy.get('[data-form="application-id"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+
+        // give instance a name
+        cy.get('[data-form="project-name"] input').clear()
+        cy.get('[data-form="project-name"] input').type(INSTANCE_NAME)
+
+        // select instance type
+        cy.get('[data-form="project-type"]').contains('type1').click()
+
+        // select stack
+        cy.get('[data-form="instance-stack"]').contains('stack1').click() // de-select
+        cy.get('[data-action="create-project"]').should('be.disabled')
+        cy.get('[data-form="instance-stack"]').contains('stack1').click() // re-select
+
+        cy.get('[data-form="project-template"]').should('exist') // template section visible for create
+
+        cy.get('[data-action="create-project"]').should('not.be.disabled').click()
+
+        cy.wait('@createInstance')
+            .then((interception) => {
+                const instanceid = interception.response.body.id
+
+                cy.url().should('include', `/instance/${instanceid}/overview`)
+
+                cy.contains(INSTANCE_NAME)
+                cy.contains('application-1')
+            })
+    })
+
+    it('redirects to "Create Application" when a user clicks "Create Instance" and no applications are yet created', () => {
+        cy.intercept('GET', '/api/*/teams/*/applications', {
+            applications: []
+        }).as('getApplications')
+
+        navigateToInstances('ATeam')
+
+        cy.get('[data-action="create-project"]').click()
+        cy.url().should('include', '/ateam/applications/create')
     })
 })
