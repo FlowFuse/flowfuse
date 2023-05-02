@@ -328,8 +328,8 @@ export default {
             if (!this.filter) {
                 filteredDevices = Array.from(this.devices.values())
             } else {
-                filteredDevices = Array.from(this.devices.values()).filter((d) => {
-                    return this.filter.devices.includes(d.id)
+                this.filter.devices.forEach((device) => {
+                    filteredDevices.push(this.devices.get(device.id))
                 })
             }
             return filteredDevices
