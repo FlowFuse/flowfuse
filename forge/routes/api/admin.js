@@ -40,7 +40,7 @@ module.exports = async function (app) {
 
     /**
      * Converts a JSON Object to a flattened object with key names more aligned
-     * with OpemMetrics format
+     * with OpenMetrics format
      * ```
      * {
      *    propertyOne: 1,
