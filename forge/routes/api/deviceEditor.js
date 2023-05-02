@@ -7,7 +7,7 @@
 module.exports = async function (app) {
     /**
      * Initiate inbound websocket connection from device
-     * @name /api/v1/remote/editor/inboundWS/:getDeviceProjectId
+     * @name /api/v1/remote/editor/inboundWS/:deviceId/:access_token
      */
     app.get('/inboundWS/:deviceId/:access_token', {
         config: { allowAnonymous: true },
@@ -34,11 +34,27 @@ module.exports = async function (app) {
     })
 
     /**
+     * HTTP GET: verify adminAuth token
+     * As this will be called by NR auth, this endpoint cannot be protected by the
+     * normal forge auth middleware
+     * @name /api/v1/remote/editor/
+     */
+    app.get('/', {
+        config: { allowAnonymous: true }
+    }, async (request, reply) => {
+        const tunnelManager = getTunnelManager()
+        if (tunnelManager.verifyToken(request.headers['x-device-id'], request.headers['x-access-token'])) {
+            reply.code(200).send({ username: 'forge', permissions: '*' })
+            return
+        }
+        reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+    })
+
+    /**
      * HTTP GET and WS requests from device
      * @name /api/v1/remote/editor/:deviceId/*
      */
     app.route({
-        config: { allowAnonymous: true },
         method: 'GET', // only GET is permitted for WS
         url: '/:deviceId/*',
         handler: (request, reply) => {
