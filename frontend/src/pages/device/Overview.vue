@@ -87,37 +87,39 @@
                         </template>
                     </td>
                 </tr>
-                <tr class="border-b">
+                <tr v-if="developerMode" class="border-b">
                     <td class="w-1/4 font-medium">Device Mode</td>
                     <td class="py-2">
                         <span class="flex space-x-2 pr-2">
-                            <BeakerIcon class="text-yellow-600 w-4" v-if="device?.mode === 'developer'" />
-                            <LinkIcon class="text-green-700 w-4" v-else />
-                            <span> {{ device?.mode }} </span>
+                            <BeakerIcon class="text-yellow-600 w-4" />
+                            <span> Developer Mode </span>
                         </span>
                     </td>
                 </tr>
             </table>
         </div>
-        <div v-if="developerMode" class="border rounded p-4">
+        <div v-if="developerMode && isLicensed" class="border rounded p-4">
             <FormHeading>
                 <AdjustmentsIcon class="w-6 h-6 mr-2 inline text-gray-400" />
-                Developer Options
+                Device Options <span class="w-full font-normal mb-1 ml-2 text-gray-500"> (Developer Mode Only)</span>
             </FormHeading>
             <table class="table-fixed w-full" v-if="device">
                 <tr class="border-b">
-                    <td class="w-1/2 font-medium">Device Editor Access</td>
+                    <td class="w-1/3 font-medium">Editor Access</td>
+                    <td class="w-1/4 font-medium uppercase"><span v-if="editorEnabled" class="text-green-800">Enabled</span><span v-else class="text-red-800">Disabled</span></td>
                     <td class="py-2">
                         <div class="space-x-2 flex align-center">
                             <ff-button
+                                v-if="editorEnabled"
                                 :disabled="busy || !editorEnabled"
-                                kind="danger"
+                                kind="primary"
                                 class="mr-2"
                                 @click="closeTunnel"
                             >
                                 Disable
                             </ff-button>
                             <ff-button
+                                v-if="!editorEnabled"
                                 :disabled="busy || editorEnabled"
                                 kind="danger"
                                 class="mr-2"
@@ -129,7 +131,8 @@
                     </td>
                 </tr>
                 <tr class="border-b">
-                    <td class="w-1/2 font-medium">Device Flows</td>
+                    <td class="w-1/3 font-medium">Device Flows</td>
+                    <td class="w-1/4 font-medium">&nbsp;</td>
                     <td class="py-2">
                         <ff-button
                             :disabled="busy"
@@ -150,10 +153,10 @@
 <script>
 
 // utilities
-import { mixin as VueTimers } from 'vue-timers'
-
-import deviceApi from '../../api/devices.js'
 import semver from 'semver'
+
+// api
+import deviceApi from '../../api/devices.js'
 
 // components
 import FormHeading from '../../components/FormHeading.vue'
@@ -161,9 +164,10 @@ import StatusBadge from '../../components/StatusBadge.vue'
 import SnapshotCreateDialog from './dialogs/SnapshotCreateDialog.vue'
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
 import alerts from '../../services/alerts.js'
+import { mapState } from 'vuex'
 
 // icons
-import { AdjustmentsIcon, BeakerIcon, CheckCircleIcon, ExclamationIcon, LinkIcon, TemplateIcon, WifiIcon } from '@heroicons/vue/outline'
+import { AdjustmentsIcon, BeakerIcon, CheckCircleIcon, ExclamationIcon, TemplateIcon, WifiIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'DeviceOverview',
@@ -174,7 +178,6 @@ export default {
         BeakerIcon,
         CheckCircleIcon,
         ExclamationIcon,
-        LinkIcon,
         WifiIcon,
         TemplateIcon,
         DeviceLastSeenBadge,
@@ -183,20 +186,23 @@ export default {
         SnapshotCreateDialog
     },
     computed: {
+        ...mapState('account', ['settings']),
         targetSnapshotDeployed: function () {
             return this.device.activeSnapshot?.id === this.device.targetSnapshot?.id
+        },
+        isLicensed () {
+            return !!this.settings['platform:licensed']
         },
         developerMode: function () {
             return this.device?.mode === 'developer'
         },
         editorAvailable: function () {
-            return this.agentSupportsDeviceAccess && this.developerMode && this.device?.status === 'running'
+            return this.isLicensed && this.agentSupportsDeviceAccess && this.developerMode && this.device?.status === 'running'
         },
         editorEnabled: function () {
             return !!this.device?.tunnelEnabled
         }
     },
-    mixins: [VueTimers],
     data () {
         return {
             agentSupportsDeviceAccess: false,

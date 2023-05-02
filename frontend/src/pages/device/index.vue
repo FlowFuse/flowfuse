@@ -33,7 +33,7 @@
                         </div>
                     </div>
                 </template>
-                <template #tools>
+                <template v-if="isLicensed" #tools>
                     <div class="space-x-2 flex align-center">
                         <a v-if="editorAvailable && !isVisitingAdmin" class="ff-btn ff-btn--secondary" :href="deviceEditorURL" :target="`device-editor-${device.id}`" data-action="device-editor">
                             Device Editor
@@ -70,14 +70,13 @@
 </template>
 
 <script>
-// APIs
+
 import { AdjustmentsIcon, ExternalLinkIcon } from '@heroicons/vue/outline'
 import { ChipIcon, CogIcon, TerminalIcon } from '@heroicons/vue/solid'
 import semver from 'semver'
 import { mapState } from 'vuex'
 
 import { Roles } from '../../../../forge/lib/roles.js'
-
 import deviceApi from '../../api/devices.js'
 import InstanceStatusHeader from '../../components/InstanceStatusHeader.vue'
 import NavItem from '../../components/NavItem.vue'
@@ -120,17 +119,19 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership', 'team', 'features']),
+        ...mapState('account', ['teamMembership', 'team', 'features', 'settings']),
         isVisitingAdmin: function () {
             // return true
             return this.teamMembership.role === Roles.Admin
+        },
+        isLicensed: function () {
+            return !!this.settings['platform:licensed']
         },
         developerMode: function () {
             return this.device && this.agentSupportsDeviceAccess && this.device.mode === 'developer'
         },
         editorAvailable: function () {
-            // return false
-            return this.device && this.agentSupportsDeviceAccess && this.developerMode && this.device.status === 'running' && this.deviceEditorURL
+            return this.isLicensed && this.device && this.agentSupportsDeviceAccess && this.developerMode && this.device.status === 'running' && this.deviceEditorURL
         },
         deviceEditorURL: function () {
             return this.device.tunnelUrlWithToken || ''

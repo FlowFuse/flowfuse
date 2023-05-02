@@ -3,9 +3,11 @@
         :to="{ name: 'Device', params: { id: id } }"
         class="flex"
     >
-        <span v-ff-tooltip="mode" class="flex flex-col space-y-2">
-            <BeakerIcon v-if="mode === 'developer'" class="text-yellow-600 w-6 mr-2 flex-auto" />
-            <ChipIcon v-else class="text-gray-500 w-6 mr-2 flex-auto" />
+        <span v-if="mode === 'developer'" v-ff-tooltip="'Developer Mode'" class="flex flex-col space-y-2">
+            <BeakerIcon class="text-yellow-600 w-6 mr-2 flex-auto" />
+        </span>
+        <span v-else class="flex flex-col space-y-2">
+            <ChipIcon class="text-gray-500 w-6 mr-2 flex-auto" />
         </span>
         <div class="flex flex-col space-y-1">
             <span class="text-lg">{{ name }}</span>
