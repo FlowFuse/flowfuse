@@ -40,7 +40,7 @@ module.exports = {
 
         if (!isAdmin) {
             let resp
-            // Check if this is trying to modify anything on admin users can touch
+            // Check if this is trying to modify anything only admin users can touch
             if (Object.hasOwn(request.body, 'email_verified') && user.email_verified !== request.body.email_verified) {
                 resp = { code: 'invalid_request', error: 'cannot verified own email' }
             } else if (Object.hasOwn(request.body, 'admin') && user.admin !== request.body.admin) {
