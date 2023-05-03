@@ -92,11 +92,25 @@ const getApplicationInstancesStatuses = async (applicationId, cursor, limit) => 
     return instances
 }
 
+/**
+ * @param {string} applicationId
+ * @param {string} cursor
+ * @param {string} limit
+ */
+const getApplicationPipelines = async (applicationId, cursor, limit) => {
+    const result = await client.get(`/api/v1/applications/${applicationId}/pipelines`)
+
+    const instances = result.data.pipelines
+
+    return instances
+}
+
 export default {
     createApplication,
     updateApplication,
     deleteApplication,
     getApplication,
     getApplicationInstances,
-    getApplicationInstancesStatuses
+    getApplicationInstancesStatuses,
+    getApplicationPipelines
 }

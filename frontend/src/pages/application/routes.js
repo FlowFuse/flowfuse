@@ -7,6 +7,7 @@
 import ApplicationActivity from './Activity.vue'
 import ApplicationLogs from './Logs.vue'
 import ApplicationOverview from './Overview.vue'
+import ApplicationPipelines from './Pipelines.vue'
 import ApplicationSettings from './Settings.vue'
 import ApplicationCreateInstance from './createInstance.vue'
 import ApplicationIndex from './index.vue'
@@ -40,6 +41,13 @@ export default [
                 }),
                 meta: {
                     title: 'Application - Instances - Create'
+                }
+            },
+            {
+                path: 'pipelines',
+                component: ApplicationPipelines,
+                meta: {
+                    title: 'Application - Pipelines'
                 }
             },
             {
