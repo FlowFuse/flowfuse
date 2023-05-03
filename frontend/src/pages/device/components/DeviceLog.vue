@@ -74,7 +74,7 @@ export default {
                                 }
                                 const d = new Date(parseInt(row.ts.substring(0, row.ts.length - 4)))
                                 row.date = `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`
-                                if (typeof row.msg === 'object') {
+                                if (typeof row.msg !== 'string') {
                                     row.msg = JSON.stringify(row.msg)
                                 }
                                 this.logEntries.push(row)
