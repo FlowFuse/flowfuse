@@ -16,17 +16,21 @@ function decryptCreds (key, cipher) {
 describe('ProjectSnapshot controller', function () {
     // Use standard test data.
     let app
-    beforeEach(async function () {
+    let projectInstanceCount = 0
+
+    before(async function () {
         app = await setup()
     })
 
-    afterEach(async function () {
+    after(async function () {
         await app.close()
     })
-
+    afterEach(async function () {
+        await app.db.models.ProjectSnapshot.destroy({ where: {} })
+    })
     describe('createSnapshot', function () {
         async function createProject () {
-            let project = await app.db.models.Project.create({ name: 'project1', type: '', url: '' })
+            let project = await app.db.models.Project.create({ name: 'project-' + (projectInstanceCount++), type: '', url: '' })
             await project.updateSetting('credentialSecret', crypto.randomBytes(32).toString('hex'))
             // Reload to ensure all models are attached
             project = await app.db.models.Project.byId(project.id)
@@ -56,7 +60,6 @@ describe('ProjectSnapshot controller', function () {
                 description: 'a snapshot'
             }
             const snapshot = await app.db.controllers.ProjectSnapshot.createSnapshot(project, user, options)
-            snapshot.should.have.property('id', 1)
             snapshot.should.have.property('name', 'snapshot1')
             snapshot.should.have.property('description', 'a snapshot')
             snapshot.should.have.property('description', 'a snapshot')
@@ -86,7 +89,6 @@ describe('ProjectSnapshot controller', function () {
                 }
             }
             const snapshot = await app.db.controllers.ProjectSnapshot.createSnapshot(project, user, options)
-            snapshot.should.have.property('id', 1)
             snapshot.should.have.property('name', 'snapshot1')
             snapshot.should.have.property('description', 'a snapshot')
             snapshot.should.have.property('description', 'a snapshot')

@@ -13,14 +13,36 @@ describe('User controller', function () {
     let userController = null
     /** @type {localTransport} */
     let inbox = null
-    beforeEach(async function () {
+    before(async function () {
         app = await setup()
         userController = app.db.controllers.User
         inbox = app.config.email.transport
     })
-
-    afterEach(async function () {
+    after(async function () {
         await app.close()
+    })
+    afterEach(async function () {
+        // Reset user details
+        // - need to move bob's email sideways so alice can reclaim hers
+        // - then restore bob's
+        const bob = await app.db.models.User.byUsername('bob')
+        bob.email = 'bob-temp@example.com'
+        bob.password_expired = false
+        await bob.save()
+
+        const alice = await app.db.models.User.byUsername('alice')
+        alice.password = 'aaPassword'
+        alice.email = 'alice@example.com'
+        alice.password_expired = false
+        await alice.save()
+
+        bob.email = 'bob@example.com'
+        await bob.save()
+
+        const chris = await app.db.models.User.byUsername('chris')
+        chris.password_expired = false
+        chris.email_verified = false
+        await chris.save()
     })
 
     describe('authenticateCredentials', function () {
@@ -204,6 +226,11 @@ describe('User controller', function () {
 
             const otherUser = await app.db.models.User.byUsername('bob')
             otherUser.password_expired.should.be.true()
+        })
+        after(async function () {
+            const bob = await app.db.models.User.byUsername('bob')
+            bob.password_expired = false
+            await bob.save()
         })
     })
 

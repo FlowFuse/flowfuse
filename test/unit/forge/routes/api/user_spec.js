@@ -6,27 +6,23 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 describe('User API', async function () {
     let app
     const TestObjects = {}
-    const TCS_REQUIRED = 'user:tcs-required'
-    const TCS_UPDATE_REQ = 'user:tcs-updated'
-    const TCS_URL = 'user:tcs-url'
-    const TCS_DATE = 'user:tcs-date'
-    const enableTermsAndConditions = async () => {
-        await app.settings.set(TCS_REQUIRED, true)
-        await app.settings.set(TCS_URL, 'http://a.a.a.a')
-    }
-    const getTcsSettings = async () => {
-        return {
-            tcsRequired: await app.settings.get(TCS_REQUIRED),
-            tcsUrl: await app.settings.get(TCS_URL),
-            tcsDate: await app.settings.get(TCS_DATE)
-        }
-    }
-    beforeEach(async function () {
+
+    async function setupApp (license) {
         const setupConfig = { features: { devices: true } }
-        if (this.currentTest.license) {
-            setupConfig.license = this.currentTest.license
+        if (license) {
+            setupConfig.license = license
         }
         app = await setup(setupConfig)
+        // ATeam create in setup()
+        TestObjects.ATeam = await app.db.models.Team.byName('ATeam')
+        TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: app.defaultTeamType.id })
+        TestObjects.Project1 = app.project
+        TestObjects.tokens = {}
+        await setupUsers()
+    }
+    async function setupUsers () {
+        await app.db.models.TeamMember.destroy({ where: {} })
+        await app.db.models.User.destroy({ where: {} })
 
         // alice : admin, team owner
         // bob: (sso_enabled)
@@ -41,16 +37,23 @@ describe('User API', async function () {
 
         // Alice create in setup()
         TestObjects.alice = await app.db.models.User.byUsername('alice')
+        if (!TestObjects.alice) {
+            TestObjects.alice = await app.db.models.User.create({
+                admin: true,
+                username: 'alice',
+                name: 'Alice Skywalker',
+                email: 'alice@example.com',
+                password: 'aaPassword',
+                email_verified: 'true'
+            })
+            await TestObjects.ATeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+        }
         TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword', admin: true, sso_enabled: true })
         TestObjects.chris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', password: 'ccPassword' })
         TestObjects.dave = await app.db.models.User.create({ username: 'dave', name: 'Dave Vader', email: 'dave@example.com', password: 'ddPassword', email_verified: true, password_expired: true })
         TestObjects.elvis = await app.db.models.User.create({ username: 'elvis', name: 'Elvis Dooku', email: 'elvis@example.com', email_verified: true, password: 'eePassword' })
         TestObjects.frank = await app.db.models.User.create({ username: 'frank', name: 'Frank Stein', email: 'frank@example.com', email_verified: true, password: 'ffPassword' })
         TestObjects.grace = await app.db.models.User.create({ username: 'grace', name: 'Grace Hut', email: 'grace@example.com', email_verified: true, password: 'ggPassword' })
-
-        // ATeam create in setup()
-        TestObjects.ATeam = await app.db.models.Team.byName('ATeam')
-        TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: app.defaultTeamType.id })
 
         // Alice set as ATeam owner in setup()
         await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
@@ -61,10 +64,13 @@ describe('User API', async function () {
         await TestObjects.BTeam.addUser(TestObjects.dave, { through: { role: Roles.Member } })
         await TestObjects.BTeam.addUser(TestObjects.frank, { through: { role: Roles.Owner } })
         await TestObjects.BTeam.addUser(TestObjects.grace, { through: { role: Roles.Member } })
+    }
 
-        TestObjects.Project1 = app.project
-
-        TestObjects.tokens = {}
+    before(async function () {
+        return setupApp()
+    })
+    after(async function () {
+        await app.close()
     })
 
     async function login (username, password) {
@@ -78,11 +84,17 @@ describe('User API', async function () {
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
-    afterEach(async function () {
-        await app.close()
-    })
-
     describe('User settings', async function () {
+        afterEach(async function () {
+            // restore elvis
+            await TestObjects.elvis.reload()
+            TestObjects.elvis.username = 'elvis'
+            TestObjects.elvis.name = 'Elvis Dooku'
+            TestObjects.elvis.email = 'elvis@example.com'
+            TestObjects.elvis.email_verified = true
+            TestObjects.elvis.password = 'eePassword'
+            await TestObjects.elvis.save()
+        })
         // TODO: re-introduce the below once #1183 is complete
         // async function getAuditLog (limit = 1) {
         //     const logEntries = await app.db.models.AuditLog.forPlatform({ limit: limit || 1 })
@@ -114,33 +126,57 @@ describe('User API', async function () {
             result.should.have.property('email', TestObjects.alice.email)
             result.should.not.have.property('sso_enabled')
         })
-        const ssoUserInfoTest = it('return user info for logged in user - sso enabled', async function () {
-            // Check !sso_enabled
-            await login('alice', 'aaPassword')
-            const response = await app.inject({
-                method: 'GET',
-                url: '/api/v1/user',
-                cookies: { sid: TestObjects.tokens.alice }
+        describe('sso', function () {
+            before(async function () {
+                await app.close()
+                return setupApp('eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A')
             })
-            response.statusCode.should.equal(200)
-            const result = response.json()
-            result.should.have.property('id', TestObjects.alice.hashid)
-            result.should.have.property('username', TestObjects.alice.username)
-            result.should.have.property('email', TestObjects.alice.email)
-            result.should.have.property('sso_enabled', false)
+            after(async function () {
+                await app.close()
+                return setupApp()
+            })
+            it('return user info for logged in user - sso enabled', async function () {
+                // Check !sso_enabled
+                await login('alice', 'aaPassword')
+                const response = await app.inject({
+                    method: 'GET',
+                    url: '/api/v1/user',
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('id', TestObjects.alice.hashid)
+                result.should.have.property('username', TestObjects.alice.username)
+                result.should.have.property('email', TestObjects.alice.email)
+                result.should.have.property('sso_enabled', false)
 
-            // Check sso_enabled
-            await login('bob', 'bbPassword')
-            const response2 = await app.inject({
-                method: 'GET',
-                url: '/api/v1/user',
-                cookies: { sid: TestObjects.tokens.bob }
+                // Check sso_enabled
+                await login('bob', 'bbPassword')
+                const response2 = await app.inject({
+                    method: 'GET',
+                    url: '/api/v1/user',
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response2.statusCode.should.equal(200)
+                const result2 = response2.json()
+                result2.should.have.property('sso_enabled', true)
             })
-            response2.statusCode.should.equal(200)
-            const result2 = response2.json()
-            result2.should.have.property('sso_enabled', true)
+            it('sso_enabled user cannot change email', async function () {
+                await login('bob', 'bbPassword')
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/user',
+                    cookies: { sid: TestObjects.tokens.bob },
+                    payload: {
+                        email: 'new-email@example.com' // user setting
+                    }
+                })
+                response.statusCode.should.equal(400)
+                const result = response.json()
+                result.should.have.property('code', 'invalid_request')
+                result.error.should.match(/Cannot change password/)
+            })
         })
-        ssoUserInfoTest.license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
 
         it('member user can modify non admin settings (name, email, username)', async function () {
             await login('elvis', 'eePassword')
@@ -172,7 +208,9 @@ describe('User API', async function () {
             // auditLogs.log[0].body.should.have.a.property('updates')
             // auditLogs.log[0].body.updates.should.have.a.property('length', 4)
         })
+
         it('member user cannot set invalid email', async function () {
+            await TestObjects.elvis.reload()
             await login('elvis', 'eePassword')
             const response = await app.inject({
                 method: 'PUT',
@@ -189,22 +227,6 @@ describe('User API', async function () {
             // this is because the error message is different depending on if the validation was done by DB create fail or by internal validation
             should(result.error).equalOneOf('Validation isEmail on email failed', 'Error: Invalid email address')
         })
-        const ssoUserUpdateEmailTest = it('sso_enabled user cannot change email', async function () {
-            await login('bob', 'bbPassword')
-            const response = await app.inject({
-                method: 'PUT',
-                url: '/api/v1/user',
-                cookies: { sid: TestObjects.tokens.bob },
-                payload: {
-                    email: 'new-email@example.com' // user setting
-                }
-            })
-            response.statusCode.should.equal(400)
-            const result = response.json()
-            result.should.have.property('code', 'invalid_request')
-            result.error.should.match(/Cannot change password/)
-        })
-        ssoUserUpdateEmailTest.license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
 
         it('member user cannot modify admin settings (email_verified, admin)', async function () {
             await login('elvis', 'eePassword')
@@ -237,6 +259,11 @@ describe('User API', async function () {
             response.statusCode.should.equal(200)
             const result = response.json()
             result.should.not.have.property('error')
+
+            await TestObjects.dave.reload()
+            TestObjects.dave.password = 'ddPassword'
+            await TestObjects.dave.save()
+
             // ensure audit log entry is made
             // TODO: re-introduce audit log tests below once #1183 is complete
             // const auditLogs = await getAuditLog(1)
@@ -328,7 +355,25 @@ describe('User API', async function () {
             })
         })
         describe('Terms and Conditions', async function () {
+            const TCS_REQUIRED = 'user:tcs-required'
+            const TCS_UPDATE_REQ = 'user:tcs-updated'
+            const TCS_URL = 'user:tcs-url'
+            const TCS_DATE = 'user:tcs-date'
+            const enableTermsAndConditions = async () => {
+                await app.settings.set(TCS_REQUIRED, true)
+                await app.settings.set(TCS_URL, 'http://a.a.a.a')
+            }
+            const getTcsSettings = async () => {
+                return {
+                    tcsRequired: await app.settings.get(TCS_REQUIRED),
+                    tcsUrl: await app.settings.get(TCS_URL),
+                    tcsDate: await app.settings.get(TCS_DATE)
+                }
+            }
             // PUT /api/v1/user
+            afterEach(async function () {
+                await app.settings.set(TCS_REQUIRED, false)
+            })
             it('admin can enable Terms and Conditions', async function () {
                 await login('alice', 'aaPassword')
                 const initial = await getTcsSettings()
@@ -458,6 +503,11 @@ describe('User API', async function () {
                 response.statusCode.should.equal(200)
                 const result = response.json()
                 result.should.have.property('status', 'okay')
+
+                await TestObjects.dave.reload()
+                TestObjects.dave.password = 'ddPassword'
+                TestObjects.dave.password_expired = true
+                await TestObjects.dave.save()
             })
 
             it('cannot access other parts of api', async function () {
@@ -481,6 +531,9 @@ describe('User API', async function () {
         })
     })
     describe('User deletes own account', async function () {
+        beforeEach(async function () {
+            await setupUsers()
+        })
         // alice : admin, team owner
         // bob: (sso_enabled)
         // chris : (unverified_email)

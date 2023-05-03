@@ -1,5 +1,5 @@
 const { Authenticator } = require('@fastify/passport')
-const { MultiSamlStrategy } = require('passport-saml')
+const { MultiSamlStrategy } = require('@node-saml/passport-saml')
 const fp = require('fastify-plugin')
 
 module.exports = fp(async function (app, opts, done) {

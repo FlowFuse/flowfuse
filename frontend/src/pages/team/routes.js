@@ -14,6 +14,7 @@ import TeamSettingsDevices from './Settings/Devices.vue'
 // import TeamSettingsPermissions from './Settings/Permissions.vue'
 import CreateTeam from './create.vue'
 import CreateApplication from './createApplication.vue'
+import CreateInstance from './createInstance.vue'
 
 // EE Only
 import TeamBilling from './Billing.vue'
@@ -132,6 +133,14 @@ export default [
         component: CreateApplication,
         meta: {
             title: 'Team - Create Application'
+        }
+    },
+    {
+        path: '/team/:team_slug/instances/create',
+        name: 'CreateInstance',
+        component: CreateInstance,
+        meta: {
+            title: 'Team - Create Instance'
         }
     }
 ]

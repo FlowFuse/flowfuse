@@ -7,16 +7,12 @@ describe('User model', function () {
     // Use standard test data.
     let app
 
-    afterEach(async function () {
-        if (app) {
-            await app.close()
-            app = null
-        }
-    })
-
     describe('Model properties', function () {
-        beforeEach(async function () {
+        before(async function () {
             app = await setup()
+        })
+        after(async function () {
+            await app.close()
         })
 
         it('Username must be case-insensitive unique', async function () {
@@ -146,8 +142,11 @@ describe('User model', function () {
     })
 
     describe('Class Finders', function () {
-        beforeEach(async function () {
+        before(async function () {
             app = await setup()
+        })
+        after(async function () {
+            await app.close()
         })
 
         it('User.admins returns all admin users', async function () {
@@ -200,6 +199,10 @@ describe('User model', function () {
     })
 
     describe('License limits', function () {
+        afterEach(async function () {
+            await app.close()
+        })
+
         it('Permits overage when licensed', async function () {
             // This license has limit of 5 users (3 created by default test setup)
             const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTA4ODAwLCJleHAiOjc5ODY5ODg3OTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjo1LCJ0ZWFtcyI6NTAsInByb2plY3RzIjo1MCwiZGV2aWNlcyI6NTAsImRldiI6dHJ1ZSwiaWF0IjoxNjYyNTQ4NjAyfQ.vvSw6pm-NP5e0NUL7yMOG-w0AgB8H3NRGGN7b5Dw_iW5DiIBbVQ4HVLEi3dyy9fk7WgKnloiCCkIFJvN79fK_g'

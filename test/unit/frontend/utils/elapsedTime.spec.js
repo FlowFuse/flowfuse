@@ -9,6 +9,13 @@ describe('elapsedTime', () => {
         expect(elapsedTime(new Date(Date.UTC(2020, 0, 4, 5, 6, 7)), new Date(Date.UTC(2020, 0, 1, 0, 0, 0)))).toBe('3 days')
     })
 
+    test('reports the number of weeks for periods longer than seven days', () => {
+        // month is 0 indexed
+        expect(elapsedTime(new Date(Date.UTC(2021, 2, 14, 5, 6, 7)), new Date(Date.UTC(2020, 0, 1, 0, 0, 0)))).toBe('1 year, 2 months, 1 week, 6 days')
+        expect(elapsedTime(new Date(Date.UTC(2020, 2, 15, 5, 6, 7)), new Date(Date.UTC(2020, 0, 1, 0, 0, 0)))).toBe('2 months, 2 weeks')
+        expect(elapsedTime(new Date(Date.UTC(2020, 0, 30, 5, 6, 7)), new Date(Date.UTC(2020, 0, 1, 0, 0, 0)))).toBe('4 weeks, 1 day')
+    })
+
     test('reports the number of hours, minutes for periods less than one day apart', () => {
         expect(elapsedTime(new Date(Date.UTC(2020, 0, 1, 4, 5, 6)), new Date(Date.UTC(2020, 0, 1, 0, 0, 0)))).toBe('4 hours, 5 minutes')
         expect(elapsedTime(new Date(Date.UTC(2020, 0, 1, 23, 55, 6)), new Date(Date.UTC(2020, 0, 1, 0, 0, 0)))).toBe('23 hours, 55 minutes')

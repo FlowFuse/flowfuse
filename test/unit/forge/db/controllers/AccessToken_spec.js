@@ -8,47 +8,46 @@ describe('AccessToken controller', function () {
     let AccessTokenController
     const TestObjects = {}
 
-    beforeEach(async function () {
+    before(async function () {
         app = await setup()
         AccessTokenController = app.db.controllers.AccessToken
         TestObjects.alice = await app.db.models.User.byUsername('alice')
+        TestObjects.team = await app.db.models.Team.byName('ATeam')
+        TestObjects.project = await app.db.models.Project.create({ name: 'project', type: '', url: '' })
+        await TestObjects.team.addProject(TestObjects.project)
+    })
+
+    after(async function () {
+        await app.close()
     })
 
     afterEach(async function () {
-        await app.close()
+        await app.db.models.AccessToken.destroy({ where: {} })
     })
 
     describe('Project Tokens', function () {
         it('creates a token for a project', async function () {
-            const team = await app.db.models.Team.byName('ATeam')
-            const project = await app.db.models.Project.create({ name: 'project', type: '', url: '' })
-            await team.addProject(project)
-
             ;(await app.db.models.AccessToken.count()).should.equal(0)
-            const result = await app.db.controllers.AccessToken.createTokenForProject(project, Date.now() + 5000, 'test:scope')
+            const result = await app.db.controllers.AccessToken.createTokenForProject(TestObjects.project, Date.now() + 5000, 'test:scope')
             ;(await app.db.models.AccessToken.count()).should.equal(1)
             result.should.have.property('token')
 
             const token = await app.db.controllers.AccessToken.getOrExpire(result.token)
             should.exist(token)
             token.should.have.property('scope', ['test:scope'])
-            token.should.have.property('ownerId', project.id)
+            token.should.have.property('ownerId', TestObjects.project.id)
             token.should.have.property('ownerType', 'project')
         })
 
         it('replaces a token for a project', async function () {
-            const team = await app.db.models.Team.byName('ATeam')
-            const project = await app.db.models.Project.create({ name: 'project', type: '', url: '' })
-            await team.addProject(project)
-
             // Setup the inital token
             ;(await app.db.models.AccessToken.count()).should.equal(0)
-            const result = await app.db.controllers.AccessToken.createTokenForProject(project, Date.now() + 5000, 'test:scope')
+            const result = await app.db.controllers.AccessToken.createTokenForProject(TestObjects.project, Date.now() + 5000, 'test:scope')
             ;(await app.db.models.AccessToken.count()).should.equal(1)
             result.should.have.property('token')
 
             // Renew the token
-            const renewResult = await app.db.controllers.AccessToken.createTokenForProject(project, Date.now() + 5000, 'test:scope')
+            const renewResult = await app.db.controllers.AccessToken.createTokenForProject(TestObjects.project, Date.now() + 5000, 'test:scope')
             // Check we don't have two tokens in the database
             ;(await app.db.models.AccessToken.count()).should.equal(1)
             renewResult.should.have.property('token')
@@ -59,53 +58,43 @@ describe('AccessToken controller', function () {
             const token = await app.db.controllers.AccessToken.getOrExpire(renewResult.token)
             should.exist(token)
             token.should.have.property('scope', ['test:scope'])
-            token.should.have.property('ownerId', project.id)
+            token.should.have.property('ownerId', TestObjects.project.id)
             token.should.have.property('ownerType', 'project')
         })
     })
 
     describe('Device Provisioning Tokens', function () {
         it('creates a provisioning token for a team', async function () {
-            const team = await app.db.models.Team.byName('ATeam')
-
             ;(await app.db.models.AccessToken.count()).should.equal(0)
-            const result = await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 1', team, null, Date.now() + 5000)
+            const result = await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 1', TestObjects.team, null, Date.now() + 5000)
             ;(await app.db.models.AccessToken.count()).should.equal(1)
             result.should.have.property('token')
 
             const token = await AccessTokenController.getOrExpire(result.token)
             should.exist(token)
             token.should.have.property('scope', ['device:provision', 'name:Provisioning Token 1'])
-            token.should.have.property('ownerId', '' + team.id)
+            token.should.have.property('ownerId', '' + TestObjects.team.id)
             token.should.have.property('ownerType', 'team')
             token.should.have.property('id') // AccessToken table now has an id column
         })
 
         it('creates a provisioning token for a teams project', async function () {
-            const team = await app.db.models.Team.byName('ATeam')
-            const project = await app.db.models.Project.create({ name: 'project', type: '', url: '' })
-            await team.addProject(project)
-
             ;(await app.db.models.AccessToken.count()).should.equal(0)
-            const result = await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 2', team, project, Date.now() + 5000)
+            const result = await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 2', TestObjects.team, TestObjects.project, Date.now() + 5000)
             ;(await app.db.models.AccessToken.count()).should.equal(1)
             result.should.have.property('token')
 
             const token = await AccessTokenController.getOrExpire(result.token)
             should.exist(token)
-            token.should.have.property('scope', ['device:provision', 'name:Provisioning Token 2', 'project:' + project.id])
-            token.should.have.property('ownerId', '' + team.id)
+            token.should.have.property('scope', ['device:provision', 'name:Provisioning Token 2', 'project:' + TestObjects.project.id])
+            token.should.have.property('ownerId', '' + TestObjects.team.id)
             token.should.have.property('ownerType', 'team')
             token.should.have.property('id') // AccessToken table now has an id column
         })
 
         it('edits a provisioning token to set the project', async function () {
-            const team = await app.db.models.Team.byName('ATeam')
-            const project = await app.db.models.Project.create({ name: 'project', type: '', url: '' })
-            await team.addProject(project)
-
             ;(await app.db.models.AccessToken.count()).should.equal(0)
-            const result = await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token', team, null, Date.now() + 5000)
+            const result = await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token', TestObjects.team, null, Date.now() + 5000)
             ;(await app.db.models.AccessToken.count()).should.equal(1)
             result.should.have.property('token')
 
@@ -113,26 +102,22 @@ describe('AccessToken controller', function () {
             should.exist(token)
             token.should.have.property('scope', ['device:provision', 'name:Provisioning Token'])
 
-            await AccessTokenController.updateTokenForTeamDeviceProvisioning(token, project) // update the token to have a project
+            await AccessTokenController.updateTokenForTeamDeviceProvisioning(token, TestObjects.project) // update the token to have a project
             ;(await app.db.models.AccessToken.count()).should.equal(1) // should still have only 1 token
             const editedToken = await AccessTokenController.getOrExpire(result.token)
             should.exist(editedToken)
-            editedToken.should.have.property('scope', ['device:provision', 'name:Provisioning Token', 'project:' + project.id])
+            editedToken.should.have.property('scope', ['device:provision', 'name:Provisioning Token', 'project:' + TestObjects.project.id])
         })
 
         it('edits a provisioning token to remove the project', async function () {
-            const team = await app.db.models.Team.byName('ATeam')
-            const project = await app.db.models.Project.create({ name: 'project', type: '', url: '' })
-            await team.addProject(project)
-
             ;(await app.db.models.AccessToken.count()).should.equal(0)
-            const result = await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token', team, project, Date.now() + 5000)
+            const result = await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token', TestObjects.team, TestObjects.project, Date.now() + 5000)
             ;(await app.db.models.AccessToken.count()).should.equal(1)
             result.should.have.property('token')
 
             const token = await AccessTokenController.getOrExpire(result.token)
             should.exist(token)
-            token.should.have.property('scope', ['device:provision', 'name:Provisioning Token', 'project:' + project.id])
+            token.should.have.property('scope', ['device:provision', 'name:Provisioning Token', 'project:' + TestObjects.project.id])
 
             await AccessTokenController.updateTokenForTeamDeviceProvisioning(token, null) // update the token to have a project
             ;(await app.db.models.AccessToken.count()).should.equal(1) // should still have only 1 token
@@ -199,13 +184,9 @@ describe('AccessToken controller', function () {
 
     describe('getOrExpire', function () {
         it('does not return expired tokens', async function () {
-            const team = await app.db.models.Team.byName('ATeam')
-            const project = await app.db.models.Project.create({ name: 'project', type: '', url: '' })
-            await team.addProject(project)
-
             ;(await app.db.models.AccessToken.count()).should.equal(0)
             // Create the token with an already-expired time
-            const result = await app.db.controllers.AccessToken.createTokenForProject(project, Date.now() - 5000, 'test:scope')
+            const result = await app.db.controllers.AccessToken.createTokenForProject(TestObjects.project, Date.now() - 5000, 'test:scope')
             ;(await app.db.models.AccessToken.count()).should.equal(1)
             should.not.exist(await app.db.controllers.AccessToken.getOrExpire(result.token))
         })
@@ -213,12 +194,8 @@ describe('AccessToken controller', function () {
 
     describe('destroyToken', function () {
         it('removes token', async function () {
-            const team = await app.db.models.Team.byName('ATeam')
-            const project = await app.db.models.Project.create({ name: 'project', type: '', url: '' })
-            await team.addProject(project)
-
             ;(await app.db.models.AccessToken.count()).should.equal(0)
-            const result = await app.db.controllers.AccessToken.createTokenForProject(project, Date.now() + 5000, 'test:scope')
+            const result = await app.db.controllers.AccessToken.createTokenForProject(TestObjects.project, Date.now() + 5000, 'test:scope')
             ;(await app.db.models.AccessToken.count()).should.equal(1)
 
             // Now destroy the token

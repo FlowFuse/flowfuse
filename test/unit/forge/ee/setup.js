@@ -76,9 +76,10 @@ async function setup (config = {}) {
 }
 
 setup.setupStripe = (testSpecificMock = {}) => {
-    const stripeData = {}
-    const stripeItems = {}
+    let stripeData = {}
+    let stripeItems = {}
     let stripeItemCounter = 0
+    const sandbox = sinon.createSandbox()
 
     const mock = {
         _: {
@@ -91,7 +92,7 @@ setup.setupStripe = (testSpecificMock = {}) => {
             }
         },
         customers: {
-            createBalanceTransaction: sinon.stub().resolves({ status: 'ok' })
+            createBalanceTransaction: sandbox.stub().resolves({ status: 'ok' })
         },
         subscriptions: {
             create: (subId) => {
@@ -99,13 +100,13 @@ setup.setupStripe = (testSpecificMock = {}) => {
                     stripeData[subId] = { metadata: {}, items: { data: [] } }
                 }
             },
-            retrieve: sinon.stub().callsFake(async function (subId) {
+            retrieve: sandbox.stub().callsFake(async function (subId) {
                 if (!stripeData[subId]) {
                     stripeData[subId] = { metadata: {}, items: { data: [] } }
                 }
                 return stripeData[subId]
             }),
-            update: sinon.stub().callsFake(async function (subId, update) {
+            update: sandbox.stub().callsFake(async function (subId, update) {
                 if (!stripeData[subId]) {
                     throw new Error('unknown subscription')
                 }
@@ -128,7 +129,7 @@ setup.setupStripe = (testSpecificMock = {}) => {
             })
         },
         subscriptionItems: {
-            update: sinon.stub().callsFake(async function (itemId, update) {
+            update: sandbox.stub().callsFake(async function (itemId, update) {
                 if (!stripeItems[itemId]) {
                     throw new Error('unknown item')
                 }
@@ -154,6 +155,14 @@ setup.setupStripe = (testSpecificMock = {}) => {
         }
     }
 
+    mock.clear = () => {
+        stripeData = {}
+        stripeItems = {}
+        stripeItemCounter = 0
+        mock._.data = stripeData
+        mock._.items = stripeItems
+        sandbox.resetHistory()
+    }
     return mock
 }
 setup.resetStripe = () => {

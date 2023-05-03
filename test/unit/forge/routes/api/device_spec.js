@@ -8,6 +8,8 @@ describe('Device API', async function () {
     let app
     /** @type {import('../../../../../forge/db/controllers/AccessToken') */
     let AccessTokenController
+    let projectInstanceCount = 0
+    const generateProjectName = () => 'test-project' + (projectInstanceCount++)
 
     const TestObjects = {}
 
@@ -25,10 +27,10 @@ describe('Device API', async function () {
         return response.json()
     }
 
-    beforeEach(async function () {
+    async function setupApp (license) {
         const setupConfig = { }
-        if (this.currentTest.license) {
-            setupConfig.license = this.currentTest.license
+        if (license) {
+            setupConfig.license = license
         }
         app = await setup(setupConfig)
         AccessTokenController = app.db.controllers.AccessToken
@@ -70,6 +72,17 @@ describe('Device API', async function () {
         await login('alice', 'aaPassword')
         await login('bob', 'bbPassword')
         await login('chris', 'ccPassword')
+    }
+
+    before(async function () {
+        await setupApp()
+    })
+    after(async function () {
+        await app.close()
+    })
+    afterEach(async function () {
+        await app.db.models.Device.destroy({ where: {} })
+        await app.db.models.AccessToken.destroy({ where: { scope: 'device' } })
     })
 
     async function login (username, password) {
@@ -94,9 +107,6 @@ describe('Device API', async function () {
         })
     }
 
-    afterEach(async function () {
-        await app.close()
-    })
     describe('Create device', async function () {
         // POST /api/v1/devices
         // - Admin/Owner
@@ -259,60 +269,72 @@ describe('Device API', async function () {
             result.should.have.property('code', 'unauthorized')
         })
 
-        it('limits how many devices can be added to a team according to TeamType', async function () {
-            // Set TeamType deviceLimit = 2
-            const existingTeamTypeProps = TestObjects.defaultTeamType.properties
-            existingTeamTypeProps.deviceLimit = 2
-            TestObjects.defaultTeamType.properties = existingTeamTypeProps
-            await TestObjects.defaultTeamType.save()
+        describe('limits', function () {
+            beforeEach(async function () {
+                // Close down the default app
+                await app.close()
+                await setupApp()
+            })
+            after(async function () {
+                // Once all done, create the clean app for later tests
+                await app.close()
+                await setupApp()
+            })
+            it('limits how many devices can be added to a team according to TeamType', async function () {
+                // Set TeamType deviceLimit = 2
+                const existingTeamTypeProps = TestObjects.defaultTeamType.properties
+                existingTeamTypeProps.deviceLimit = 2
+                TestObjects.defaultTeamType.properties = existingTeamTypeProps
+                await TestObjects.defaultTeamType.save()
 
-            ;(await TestObjects.ATeam.deviceCount()).should.equal(0)
-            for (let i = 0; i < 2; i++) {
-                const response = await createDevice({ name: `D${i + 1}`, type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
-                response.should.have.property('id')
-            }
-            ;(await TestObjects.ATeam.deviceCount()).should.equal(2)
+                ;(await TestObjects.ATeam.deviceCount()).should.equal(0)
+                for (let i = 0; i < 2; i++) {
+                    const response = await createDevice({ name: `D${i + 1}`, type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                    response.should.have.property('id')
+                }
+                ;(await TestObjects.ATeam.deviceCount()).should.equal(2)
 
-            const response = await createDevice({ name: 'D3', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
-            response.should.have.property('error')
-            response.error.should.match(/limit reached/)
-        })
+                const response = await createDevice({ name: 'D3', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                response.should.have.property('error')
+                response.error.should.match(/limit reached/)
+            })
 
-        it('Does not limit how many devices can be created when licensed', async function () {
-            // Limited to 2 devices
-            await app.license.apply('eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A')
-            // Check we're at the starting point we expect
-            ;(await app.db.models.Device.count()).should.equal(0)
+            it('Does not limit how many devices can be created when licensed', async function () {
+                // Limited to 2 devices
+                await app.license.apply('eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A')
+                // Check we're at the starting point we expect
+                ;(await app.db.models.Device.count()).should.equal(0)
 
-            for (let i = 0; i < 3; i++) {
-                const response = await createDevice({ name: `D${i + 1}`, type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
-                response.should.not.have.property('error')
-                response.should.have.property('id')
-            }
-            ;(await app.db.models.Device.count()).should.equal(3)
-        })
-        it('Limits how many devices can be created when unlicensed', async function () {
-            // Limited to 2 devices
-            app.license.defaults.devices = 2
-            // Check we're at the starting point we expect
-            ;(await app.db.models.Device.count()).should.equal(0)
+                for (let i = 0; i < 3; i++) {
+                    const response = await createDevice({ name: `D${i + 1}`, type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                    response.should.not.have.property('error')
+                    response.should.have.property('id')
+                }
+                ;(await app.db.models.Device.count()).should.equal(3)
+            })
+            it('Limits how many devices can be created when unlicensed', async function () {
+                // Limited to 2 devices
+                app.license.defaults.devices = 2
+                // Check we're at the starting point we expect
+                ;(await app.db.models.Device.count()).should.equal(0)
 
-            for (let i = 0; i < 2; i++) {
-                const response = await createDevice({ name: `D${i + 1}`, type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
-                response.should.have.property('id')
-            }
+                for (let i = 0; i < 2; i++) {
+                    const response = await createDevice({ name: `D${i + 1}`, type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                    response.should.have.property('id')
+                }
 
-            ;(await app.db.models.Device.count()).should.equal(2)
+                ;(await app.db.models.Device.count()).should.equal(2)
 
-            const response = await createDevice({ name: 'D3', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
-            response.should.have.property('error')
-            response.error.should.match(/license limit/)
+                const response = await createDevice({ name: 'D3', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                response.should.have.property('error')
+                response.error.should.match(/license limit/)
+            })
         })
     })
     describe('Get device details', async function () {
         it('provides device details including project and team', async function () {
             TestObjects.deviceOne = await app.db.models.Device.create({ name: 'deviceOne', type: 'something', credentialSecret: 'deviceKey' })
-            TestObjects.deviceProject = await app.db.models.Project.create({ name: 'deviceProject', type: '', url: '' })
+            TestObjects.deviceProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
             await TestObjects.deviceOne.setTeam(TestObjects.ATeam)
             await TestObjects.deviceOne.setProject(TestObjects.deviceProject)
 
@@ -336,7 +358,7 @@ describe('Device API', async function () {
 
         it('provides device details - unassigned project', async function () {
             TestObjects.deviceOne = await app.db.models.Device.create({ name: 'deviceOne', type: 'something', credentialSecret: 'deviceKey' })
-            TestObjects.deviceProject = await app.db.models.Project.create({ name: 'deviceProject', type: '', url: '' })
+            TestObjects.deviceProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
             await TestObjects.deviceOne.setTeam(TestObjects.ATeam)
 
             const response = await app.inject({
@@ -399,7 +421,7 @@ describe('Device API', async function () {
         })
         describe('assign to project', function () {
             async function setupProjectWithSnapshot (setActive) {
-                TestObjects.deviceProject = await app.db.models.Project.create({ name: 'deviceProject', type: '', url: '' })
+                TestObjects.deviceProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
                 TestObjects.deviceProject.setTeam(TestObjects.ATeam)
                 // Create a snapshot
                 TestObjects.deviceProjectSnapshot = (await createSnapshot(TestObjects.deviceProject.id, 'test-snapshot', TestObjects.tokens.alice)).json()
@@ -487,7 +509,7 @@ describe('Device API', async function () {
 
             it('non-owner cannot assign to a project', async function () {
                 // Chris (member) cannot assign to project
-                TestObjects.deviceProject = await app.db.models.Project.create({ name: 'deviceProject', type: '', url: '' })
+                TestObjects.deviceProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
                 TestObjects.deviceProject.setTeam(TestObjects.ATeam)
 
                 const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
@@ -503,7 +525,7 @@ describe('Device API', async function () {
             })
             it('cannot assign to a project in a different team', async function () {
                 // Device (ATeam) cannot be assign to Project (BTeam)
-                TestObjects.deviceProject = await app.db.models.Project.create({ name: 'deviceProject', type: '', url: '' })
+                TestObjects.deviceProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
                 TestObjects.deviceProject.setTeam(TestObjects.BTeam)
 
                 const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
@@ -614,7 +636,7 @@ describe('Device API', async function () {
 
     describe('Device Checkin', async function () {
         async function setupProjectWithSnapshot (setActive) {
-            TestObjects.deviceProject = await app.db.models.Project.create({ name: 'deviceProject', type: '', url: '' })
+            TestObjects.deviceProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
             TestObjects.deviceProject.setTeam(TestObjects.ATeam)
             // Create a snapshot
             TestObjects.deviceProjectSnapshot = (await createSnapshot(TestObjects.deviceProject.id, 'test-snapshot', TestObjects.tokens.alice)).json()

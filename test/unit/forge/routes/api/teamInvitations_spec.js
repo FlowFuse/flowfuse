@@ -7,7 +7,7 @@ describe('Team Invitations API', function () {
     let app
     const TestObjects = {}
 
-    beforeEach(async function () {
+    before(async function () {
         app = await setup()
 
         // alice : admin
@@ -35,6 +35,13 @@ describe('Team Invitations API', function () {
         await login('bob', 'bbPassword')
         await login('chris', 'ccPassword')
     })
+    after(async function () {
+        await app.close()
+    })
+    afterEach(async function () {
+        app.config.email.transport.empty()
+        await app.db.models.Invitation.destroy({ where: {} })
+    })
 
     async function login (username, password) {
         const response = await app.inject({
@@ -46,10 +53,6 @@ describe('Team Invitations API', function () {
         response.cookies[0].should.have.property('name', 'sid')
         TestObjects.tokens[username] = response.cookies[0].value
     }
-
-    afterEach(async function () {
-        await app.close()
-    })
 
     describe('Create an invitation', async function () {
         // POST /api/v1/teams/:teamId/invitations

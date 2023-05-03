@@ -8,17 +8,24 @@ describe('Library Storage API', function () {
     let project2
     let tokens2
 
-    beforeEach(async function () {
+    let objectCount = 0
+    const generateName = (root = 'object') => `${root}-${objectCount++}`
+
+    before(async function () {
         app = await setup()
         project = app.project
         tokens = await project.refreshAuthTokens()
-        project2 = await app.db.models.Project.create({ name: 'project2', type: '', url: '' })
+        project2 = await app.db.models.Project.create({ name: generateName('project'), type: '', url: '' })
         await app.team.addProject(project2)
         tokens2 = await project2.refreshAuthTokens()
     })
 
-    afterEach(async function () {
+    after(async function () {
         await app.close()
+    })
+
+    afterEach(async function () {
+        await app.db.models.StorageSharedLibrary.destroy({ where: {} })
     })
 
     describe('/library', function () {
@@ -89,9 +96,9 @@ describe('Library Storage API', function () {
         async function createExtraTeamAndProject () {
             // Create a new team, add a project to it and return that project's auth tokens
             const defaultTeamType = await app.db.models.TeamType.findOne()
-            const team3 = await app.db.models.Team.create({ name: 'CTeam', TeamTypeId: defaultTeamType.id })
+            const team3 = await app.db.models.Team.create({ name: generateName('team'), TeamTypeId: defaultTeamType.id })
             await team3.reload({ include: [{ model: app.db.models.TeamType }] })
-            const project3 = await app.db.models.Project.create({ name: 'project3', type: '', url: '' })
+            const project3 = await app.db.models.Project.create({ name: generateName('project'), type: '', url: '' })
             await team3.addProject(project3)
             return await project3.refreshAuthTokens()
         }

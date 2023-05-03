@@ -4,18 +4,18 @@ const setup = require('../setup')
 describe('Storage Settings controller', function () {
     // Use standard test data.
     let app
-    beforeEach(async function () {
+    before(async function () {
         app = await setup()
     })
 
-    afterEach(async function () {
+    after(async function () {
         await app.close()
     })
 
     describe('getProjectModules', function () {
         it('returns the modules Node-RED has discovered and stored in settings', async function () {
             const project = await app.db.models.Project.create({
-                name: 'testProject',
+                name: 'testProject-01',
                 type: '',
                 url: ''
             })
@@ -34,7 +34,7 @@ describe('Storage Settings controller', function () {
         })
         it('returns an empty list if Node-RED has not stored anything', async function () {
             const project = await app.db.models.Project.create({
-                name: 'testProject',
+                name: 'testProject-02',
                 type: '',
                 url: ''
             })
