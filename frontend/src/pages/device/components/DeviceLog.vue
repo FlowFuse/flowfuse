@@ -63,7 +63,7 @@ export default {
                             }
                             const d = new Date(parseInt(m.ts.substring(0, m.ts.length - 4)))
                             m.date = `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`
-                            if (typeof m.msg === 'object') {
+                            if (typeof m.msg !== 'string') {
                                 m.msg = JSON.stringify(m.msg)
                             }
                             this.logEntries.push(m)
