@@ -71,7 +71,7 @@
         "hashids": "^2.2.10",
         "jsonwebtoken": "^9.0.0",
         "lottie-web-vue": "^2.0.6",
-        "lru-cache": "^8.0.0",
+        "lru-cache": "^9.1.1",
         "marked": "^4.1.1",
         "mqtt": "^4.3.7",
         "nodemailer": "^6.8.0",

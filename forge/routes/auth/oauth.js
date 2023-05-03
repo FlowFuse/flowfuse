@@ -1,10 +1,10 @@
 const { URL } = require('url')
 const querystring = require('querystring')
 
-const LRU = require('lru-cache') // https://www.npmjs.com/package/lru-cache
+const { LRUCache } = require('lru-cache') // https://www.npmjs.com/package/lru-cache
 const crypto = require('crypto')
 
-const requestCache = new LRU({
+const requestCache = new LRUCache({
     ttl: 1000 * 60 * 10, // 10 minutes,
     max: 100
 })
