@@ -271,15 +271,7 @@ export default {
             try {
                 // * Enable Device Editor (Step 1) - (browser->frontendApi) User clicks button to "Enable Editor"
                 const result = await deviceApi.enableEditorTunnel(this.device.id)
-                // TODO: this is a hack to get the tunnel URL into the device object
-                //       so that the editor can use it.  This should be refactored
-                //       to use a Vuex store or something.
-                // eslint-disable-next-line vue/no-mutating-props
-                this.device.tunnelUrl = result.url
-                // eslint-disable-next-line vue/no-mutating-props
-                this.device.tunnelUrlWithToken = result.urlWithToken
-                // eslint-disable-next-line vue/no-mutating-props
-                this.device.tunnelEnabled = !!result.url
+                this.updateTunnelStatus(result)
                 setTimeout(() => {
                     this.$emit('device-updated')
                 }, 500)
@@ -291,20 +283,23 @@ export default {
             this.closingTunnel = true
             try {
                 const result = await deviceApi.disableEditorTunnel(this.device.id)
-                // TODO: this is a hack to get the tunnel URL into the device object
-                //       so that the editor can use it.  This should be refactored
-                //       to use a Vuex store or something.
-                // eslint-disable-next-line vue/no-mutating-props
-                this.device.tunnelUrl = result.url
-                // eslint-disable-next-line vue/no-mutating-props
-                this.device.tunnelUrlWithToken = result.tunnelUrlWithToken
-                // eslint-disable-next-line vue/no-mutating-props
-                this.device.tunnelEnabled = !!result.url
-                // use the tunnel-changed event to notify the parent component
+                this.updateTunnelStatus(result)
                 this.$emit('device-updated')
             } finally {
-                this.openingTunnel = false
+                this.closingTunnel = false
             }
+        },
+        updateTunnelStatus (status) {
+            // TODO: this is a hack to get the tunnel URL into the device object
+            //       so that the editor can use it.  This should be refactored
+            //       to use a Vuex store or something.
+            // eslint-disable-next-line vue/no-mutating-props
+            this.device.tunnelUrl = status.url
+            // eslint-disable-next-line vue/no-mutating-props
+            this.device.tunnelUrlWithToken = status.tunnelUrlWithToken
+            // eslint-disable-next-line vue/no-mutating-props
+            this.device.tunnelEnabled = !!status.url
+            // use the tunnel-changed event to notify the parent component
         }
     }
 }
