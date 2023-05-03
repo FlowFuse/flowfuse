@@ -2,8 +2,10 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="border rounded p-4">
             <FormHeading>
-                <WifiIcon class="w-6 h-6 mr-2 inline text-gray-400" />
-                Connection
+                <div class="mb-2">
+                    <WifiIcon class="w-6 h-6 mr-2 inline text-gray-400" />
+                    Connection
+                </div>
             </FormHeading>
 
             <table class="table-fixed w-full" v-if="device">
@@ -23,8 +25,10 @@
         </div>
         <div class="border rounded p-4">
             <FormHeading>
-                <TemplateIcon class="w-6 h-6 mr-2 inline text-gray-400" />
-                Deployment
+                <div class="mb-2">
+                    <TemplateIcon class="w-6 h-6 mr-2 inline text-gray-400" />
+                    Deployment
+                </div>
             </FormHeading>
 
             <table class="table-fixed w-full" v-if="device">
@@ -100,20 +104,29 @@
         </div>
         <div v-if="developerMode && isLicensed" class="border rounded p-4">
             <FormHeading>
-                <AdjustmentsIcon class="w-6 h-6 mr-2 inline text-gray-400" />
-                Device Options <span class="w-full font-normal mb-1 ml-2 text-gray-500"> (Developer Mode Only)</span>
+                <div class="flex flex-wrap mb-2">
+                    <div>
+                        <AdjustmentsIcon class="w-6 h-6 mr-2 inline text-gray-400" />
+                        Device Options
+                    </div>
+                    <div class="font-normal text-sm pt-1.5 ml-9 text-gray-500 flex-col">Developer Mode Only</div>
+                </div>
             </FormHeading>
             <table class="table-fixed w-full" v-if="device">
                 <tr class="border-b">
-                    <td class="w-1/3 font-medium">Editor Access</td>
-                    <td class="w-1/4 font-medium uppercase"><span v-if="editorEnabled" class="text-green-800">Enabled</span><span v-else class="text-red-800">Disabled</span></td>
-                    <td class="py-2">
+                    <td class="w-1/4 font-medium">Editor Access</td>
+                    <td class="w-26 font-medium uppercase">
+                        <div class="forge-badge" :class="'forge-status-' + (editorEnabled ? 'running' : 'stopped')">
+                            <span v-if="editorEnabled">Enabled</span><span v-else>Disabled</span>
+                        </div>
+                    </td>
+                    <td class="w-38 py-2">
                         <div class="space-x-2 flex align-center">
                             <ff-button
                                 v-if="editorEnabled"
                                 :disabled="busy || !editorEnabled"
                                 kind="primary"
-                                class="mr-2"
+                                class="sm:w-36 w-20"
                                 @click="closeTunnel"
                             >
                                 Disable
@@ -122,27 +135,29 @@
                                 v-if="!editorEnabled"
                                 :disabled="busy || editorEnabled"
                                 kind="danger"
-                                class="mr-2"
+                                class="sm:w-36 w-20"
                                 @click="openTunnel"
                             >
                                 Enable
                             </ff-button>
                         </div>
                     </td>
+                    <td class="w-1/4 md:w-1/3">&nbsp;</td>
                 </tr>
                 <tr class="border-b">
-                    <td class="w-1/3 font-medium">Device Flows</td>
-                    <td class="w-1/4 font-medium">&nbsp;</td>
-                    <td class="py-2">
+                    <td class="w-1/4 font-medium">Device Flows</td>
+                    <td class="w-26 font-medium">&nbsp;</td>
+                    <td class="w-38 py-2">
                         <ff-button
                             :disabled="busy"
                             kind="secondary"
-                            class="mr-2"
+                            class="sm:w-36 w-20"
                             @click="showCreateSnapshotDialog"
                         >
                             Create Snapshot
                         </ff-button>
                     </td>
+                    <td class="w-1/4 md:w-1/3">&nbsp;</td>
                 </tr>
             </table>
             <SnapshotCreateDialog ref="snapshotCreateDialog" data-el="dialog-create-device-snapshot" :device="device" @device-upload-success="onSnapshotCreated" @device-upload-failed="onSnapshotFailed" @canceled="onSnapshotCancel" />
