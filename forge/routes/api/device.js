@@ -381,10 +381,24 @@ module.exports = async function (app) {
             // prepare the tunnel but dont start it (the remote device will initiate the connection)
             // * Enable Device Editor (Step 3) - (frontendApi:HTTP->forge) Create Tunnel
             tunnelManager.newTunnel(deviceId, accessToken)
-            // * Enable Device Editor (Step 4) - (forge) Enable Editor Request. This call resolves after steps 5 ~ 10
-            await app.comms.devices.enableEditor(teamId, request.device.hashid, accessToken)
-            // * Enable Device Editor (Step 11) - (forge:HTTP->frontendApi) Send tunnel status
-            reply.send(tunnelManager.getTunnelStatus(request.device))
+            let err = null
+            try {
+                // * Enable Device Editor (Step 4) - (forge) Enable Editor Request. This call resolves after steps 5 ~ 10
+                await app.comms.devices.enableEditor(teamId, request.device.hashid, accessToken)
+            } catch (error) {
+                // ensure any attempt to enable the editor is cleaned up if an error occurs
+                tunnelManager.closeTunnel(deviceId)
+                err = error
+            }
+            // * Enable Device Editor (Step 11) - (forge:HTTP->frontendApi) Send tunnel status back to frontend
+            const tunnelStatus = tunnelManager.getTunnelStatus(request.device)
+            if (err) {
+                tunnelStatus.error = err.message
+                tunnelStatus.code = err.code || 'enable_editor_failed'
+                reply.code(503).send(tunnelStatus) // Service Unavailable
+            } else {
+                reply.send(tunnelStatus)
+            }
         } else if (mode === 'disable') {
             await app.comms.devices.disableEditor(teamId, deviceId)
             tunnelManager.closeTunnel(deviceId)

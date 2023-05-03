@@ -124,21 +124,23 @@
                         <div class="space-x-2 flex align-center">
                             <ff-button
                                 v-if="editorEnabled"
-                                :disabled="busy || !editorEnabled"
+                                :disabled="closingTunnel || !editorEnabled"
                                 kind="primary"
                                 class="sm:w-36 w-20"
                                 @click="closeTunnel"
                             >
-                                Disable
+                                <span v-if="closingTunnel">Disabling...</span>
+                                <span v-else>Disable</span>
                             </ff-button>
                             <ff-button
                                 v-if="!editorEnabled"
-                                :disabled="busy || editorEnabled"
+                                :disabled="openingTunnel || editorEnabled"
                                 kind="danger"
                                 class="sm:w-36 w-20"
                                 @click="openTunnel"
                             >
-                                Enable
+                                <span v-if="openingTunnel">Enabling...</span>
+                                <span v-else>Enable</span>
                             </ff-button>
                         </div>
                     </td>
@@ -149,7 +151,6 @@
                     <td class="w-26 font-medium">&nbsp;</td>
                     <td class="w-38 py-2">
                         <ff-button
-                            :disabled="busy"
                             kind="secondary"
                             class="sm:w-36 w-20"
                             @click="showCreateSnapshotDialog"
@@ -222,6 +223,8 @@ export default {
         return {
             agentSupportsDeviceAccess: false,
             busy: false,
+            openingTunnel: false,
+            closingTunnel: false,
             lastSeenAt: this.device?.lastSeenAt || '',
             lastSeenMs: this.device?.lastSeenMs || 0,
             lastSeenSince: this.device?.lastSeenSince || ''
@@ -264,36 +267,45 @@ export default {
             this.busy = false
         },
         async openTunnel () {
-            // * Enable Device Editor (Step 1) - (browser->frontendApi) User clicks button to "Enable Editor"
-            const result = await deviceApi.enableEditorTunnel(this.device.id)
-            // TODO: this is a hack to get the tunnel URL into the device object
-            //       so that the editor can use it.  This should be refactored
-            //       to use a Vuex store or something.
-            // eslint-disable-next-line vue/no-mutating-props
-            this.device.tunnelUrl = result.url
-            // eslint-disable-next-line vue/no-mutating-props
-            this.device.tunnelUrlWithToken = result.urlWithToken
-            // eslint-disable-next-line vue/no-mutating-props
-            this.device.tunnelEnabled = !!result.url
-            setTimeout(() => {
-                this.$emit('device-updated')
-            }, 500)
+            this.openingTunnel = true
+            try {
+                // * Enable Device Editor (Step 1) - (browser->frontendApi) User clicks button to "Enable Editor"
+                const result = await deviceApi.enableEditorTunnel(this.device.id)
+                console.log('enableEditorTunnel result', result)
+                // TODO: this is a hack to get the tunnel URL into the device object
+                //       so that the editor can use it.  This should be refactored
+                //       to use a Vuex store or something.
+                // eslint-disable-next-line vue/no-mutating-props
+                this.device.tunnelUrl = result.url
+                // eslint-disable-next-line vue/no-mutating-props
+                this.device.tunnelUrlWithToken = result.urlWithToken
+                // eslint-disable-next-line vue/no-mutating-props
+                this.device.tunnelEnabled = !!result.url
+                setTimeout(() => {
+                    this.$emit('device-updated')
+                }, 500)
+            } finally {
+                this.openingTunnel = false
+            }
         },
         async closeTunnel () {
-            const result = await deviceApi.disableEditorTunnel(this.device.id)
-
-            // TODO: this is a hack to get the tunnel URL into the device object
-            //       so that the editor can use it.  This should be refactored
-            //       to use a Vuex store or something.
-            // eslint-disable-next-line vue/no-mutating-props
-            this.device.tunnelUrl = result.url
-            // eslint-disable-next-line vue/no-mutating-props
-            this.device.tunnelUrlWithToken = result.tunnelUrlWithToken
-            // eslint-disable-next-line vue/no-mutating-props
-            this.device.tunnelEnabled = !!result.url
-
-            // use the tunnel-changed event to notify the parent component
-            this.$emit('device-updated')
+            this.closingTunnel = true
+            try {
+                const result = await deviceApi.disableEditorTunnel(this.device.id)
+                // TODO: this is a hack to get the tunnel URL into the device object
+                //       so that the editor can use it.  This should be refactored
+                //       to use a Vuex store or something.
+                // eslint-disable-next-line vue/no-mutating-props
+                this.device.tunnelUrl = result.url
+                // eslint-disable-next-line vue/no-mutating-props
+                this.device.tunnelUrlWithToken = result.tunnelUrlWithToken
+                // eslint-disable-next-line vue/no-mutating-props
+                this.device.tunnelEnabled = !!result.url
+                // use the tunnel-changed event to notify the parent component
+                this.$emit('device-updated')
+            } finally {
+                this.openingTunnel = false
+            }
         }
     }
 }
