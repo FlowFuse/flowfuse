@@ -271,7 +271,6 @@ export default {
             try {
                 // * Enable Device Editor (Step 1) - (browser->frontendApi) User clicks button to "Enable Editor"
                 const result = await deviceApi.enableEditorTunnel(this.device.id)
-                console.log('enableEditorTunnel result', result)
                 // TODO: this is a hack to get the tunnel URL into the device object
                 //       so that the editor can use it.  This should be refactored
                 //       to use a Vuex store or something.
