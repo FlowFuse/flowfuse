@@ -16,8 +16,8 @@
             message="Deleting Device..."
         />
         <template v-else>
-            <DevicesStatusBar data-el="devicestatus-lastseen" label="Last Seen" :devices="Array.from(devices.values())" property="lastseen" :filter="filter" @filter-selected="applyFilter" />
-            <DevicesStatusBar data-el="devicestatus-status" label="Last Known Status" :devices="Array.from(devices.values())" property="status" :filter="filter" @filter-selected="applyFilter" />
+            <DevicesStatusBar v-if="devices.size > 0" data-el="devicestatus-lastseen" label="Last Seen" :devices="Array.from(devices.values())" property="lastseen" :filter="filter" @filter-selected="applyFilter" />
+            <DevicesStatusBar v-if="devices.size > 0" data-el="devicestatus-status" label="Last Known Status" :devices="Array.from(devices.values())" property="status" :filter="filter" @filter-selected="applyFilter" />
             <ff-data-table
                 v-if="devices.size > 0"
                 data-el="devices-browser"
@@ -328,8 +328,8 @@ export default {
             if (!this.filter) {
                 filteredDevices = Array.from(this.devices.values())
             } else {
-                this.filter.devices.forEach((device) => {
-                    filteredDevices.push(this.devices.get(device.id))
+                this.filter.devices.forEach((deviceId) => {
+                    filteredDevices.push(this.devices.get(deviceId))
                 })
             }
             return filteredDevices
