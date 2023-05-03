@@ -63,6 +63,9 @@ export default {
                             }
                             const d = new Date(parseInt(m.ts.substring(0, m.ts.length - 4)))
                             m.date = `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`
+                            if (typeof m.msg === 'object') {
+                                m.msg = JSON.stringify(m.msg)
+                            }
                             this.logEntries.push(m)
                         } else {
                             m.forEach(row => {
@@ -71,6 +74,9 @@ export default {
                                 }
                                 const d = new Date(parseInt(row.ts.substring(0, row.ts.length - 4)))
                                 row.date = `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`
+                                if (typeof row.msg === 'object') {
+                                    row.msg = JSON.stringify(row.msg)
+                                }
                                 this.logEntries.push(row)
                             })
                         }
