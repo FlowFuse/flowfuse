@@ -29,10 +29,6 @@ const ee = require('./ee')
  * @alias app - The Fastify app instance
  */
 
-function isInDebugMode () {
-    return inspector.url() !== undefined || process.env.NODE_ENV === 'development'
-}
-
 /** @type {ForgeApplication} */
 module.exports = async (options = {}) => {
     // TODO: Defer logger configuration until after `config` module is registered
