@@ -53,7 +53,13 @@ To set the **Device Target**:
 This will cause the snapshot to be pushed out to any connected devices the
 next time they check in.
 
-## Creating a Snapshot locally
+## Creating a Snapshot from a device
+
+It is possible to create a Snapshot from a device that is connected to the platform.
+The device must be set to Developer Mode for this to work.
+See [Working with Devices](./devices.md#editing-the-node-red-flows-directly-on-a-device) for more information.
+
+## Creating a Snapshot locally
 
 Using the [Node-RED Tools Plugin](./node-red-tools.md) it is also possible to create
 Snapshots in a local copy of Node-RED and push them back into your FlowForge

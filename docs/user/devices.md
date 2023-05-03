@@ -29,17 +29,26 @@ docker run --mount /path/to/device.yml:/opt/flowforge/device.yml -p 1880:1880 fl
 
 ## Configuration
 
-### Execution directory
+### Working directory
 
-By default the agent uses `/opt/flowforge-device` as its working directory. 
+By default the agent uses `/opt/flowforge-device` or `c:\opt\flowforge-device` as its working directory. 
 This can be overridden with the `-d/--dir` option.
 
 The directory must exist and be accessible to the user that will be
 running the agent.
 
+#### Linux
+
+```bash
 ```bash
 sudo mkdir /opt/flowforge-device
 sudo chown -R $USER /opt/flowforge-device
+```
+
+#### Windows
+
+```bash
+mkdir c:\opt\flowforge-device
 ```
 
 ### Listen Port
@@ -98,7 +107,7 @@ the configuration file locally.
 
 ### Using Device Credentials
 Copy the **Device Credentials** information into a file called `device.yml` in
-the device configuration directory (`/opt/flowforge-device` or whatever is set
+the devices [Working Directory](#working-directory) (or whatever is set
 with the `-d` option).
 
 The agent can then be started with the command: [^global-install]
@@ -112,7 +121,7 @@ to the platform to check what it should be running.
 
 ### Using Provisioning Credentials
 Copy the **Device Provisioning Credentials** information into a file called `device.yml` in
-the device configuration directory (`/opt/flowforge-device` or whatever is set
+the devices [Working Directory](#working-directory) (or whatever is set
 with the `-d` option).
 
 The agent can then be started with the command: [^global-install]
@@ -146,6 +155,33 @@ backup of the Node-RED flows and configuration.
 
 This model allows you to develop your flows in FlowForge and only push it out
 to the registered devices when you're happy with what you've created.
+
+## Editing the Node-RED flows directly on a device
+
+You can edit the flows directly on the device. This is useful for debugging 
+and testing. Additionally, once your edits are complete, you can, optionally, make 
+a snapshot of the changes and upload it to the platform to be shared with other devices.
+
+1. Go to your teams's **Devices** page.
+2. Select the device you want to edit by clicking its name.
+3. Click the **Mode** button and enable "Developer Mode".
+   1. This will cause the device to run isolated from snapshot changes.
+   1. An additional panel named **Device Options** will be displayed, allowing you to edit the flows directly on the device.
+4. In the **Device Options** panel, click the "Editor Access" **Enable** button to establish a connection to the device.
+   1. This will enable the **Device Editor** button.
+5. Click the **Device Editor** button to open the Node-RED editor in a new browser tab.
+6. Make your changes to the flows and deploy them to the device.
+7. When you're happy with the changes, you can save the changes in a snapshot 
+   1. In the **Device Options** panel, click the **Create Snapshot** button.
+   1. You will be prompted to give the snapshot a name and description.  See [Snapshots](snapshots.md) for more information.
+   1. Click **Create** to save the snapshot.
+8. In the **Device Options** panel, click the "Editor Access" **Disable** button to disable the connection to the device.
+
+### Important Notes
+* The device will not be able to receive any updates from the platform while in Developer Mode.
+* Disabling Developer Mode will cause the device to re-connected to the platform and any change to the target snapshot will cause the device to be updated. This will overwrite any changes made in Developer Mode. Therefore, it is recommended to create a snapshot of the changes before disabling Developer Mode.
+* The device must be online and connected to the platform to enable "Editor Access".
+* To minimise server and device resources, it is recommended to disable "Editor Access" when not actively developing flows on a device.
 
 ## Remove a device from a Node-RED instance
 
@@ -197,8 +233,8 @@ set of modules.
 
 You can enable this mode by adding `-m` to the command line adding `moduleCache: true` 
 to the `device.yml` file. This will cause the Device Agent to load the modules from the 
-`module_cache` directory in the Device Agents Configuration directory as described above.
-By default this will be `/opt/flowforge-device/module_cache`.
+`module_cache` directory in the Device Agents [Working Directory](#working-directory) (or whatever is set
+with the `-d` option) (e.g. `/opt/flowforge-device/module_cache`.).
 
 ### Creating a module cache
 
