@@ -249,13 +249,13 @@ export default {
         this.platformStatsToken = ''
     },
     watch: {
-        platformStatsTokenEnabled: function (v) {
+        platformStatsTokenEnabled: function (newValue) {
             if (this.platformStatsToken === null) {
                 // This is the initial setting of the value - ignore it
                 this.platformStatsToken = ''
                 return
             }
-            if (v) {
+            if (newValue) {
                 this.showGenerateStatsToken()
             } else {
                 this.showDisableStatsToken()
