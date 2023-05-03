@@ -13,7 +13,7 @@
         <template #actions>
             <!-- <ff-button kind="secondary" @click="$refs['device-mode-dialog'].close();doSecondaryAction1()">Secondary 1</ff-button> -->
             <ff-button kind="secondary" @click="$refs['device-mode-dialog'].close()">Cancel</ff-button>
-            <ff-button kind="danger" :disabled="device.mode === modeSelect" @click="applyMode()">Confirm</ff-button>
+            <ff-button kind="danger" @click="applyMode()">Confirm</ff-button>
         </template>
     </ff-dialog>
 </template>
