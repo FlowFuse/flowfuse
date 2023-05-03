@@ -2,10 +2,6 @@ module.exports = {
     device: function (app, device) {
         if (device) {
             const result = device.toJSON()
-            /** @type {import("../../comms/DeviceTunnelManager").DeviceTunnelManager} */
-            const tunnelManager = app.comms.devices.tunnelManager
-            const { exists, url, urlWithToken, enabled, connected } = tunnelManager.getTunnelStatus(result.hashid)
-
             const filtered = {
                 id: result.hashid,
                 name: result.name,
@@ -19,12 +15,7 @@ module.exports = {
                 links: result.links,
                 status: result.state || 'offline',
                 agentVersion: result.agentVersion,
-                mode: result.mode || 'autonomous',
-                tunnelExists: exists,
-                tunnelEnabled: enabled,
-                tunnelConnected: connected,
-                tunnelUrl: url,
-                tunnelUrlWithToken: urlWithToken
+                mode: result.mode || 'autonomous'
             }
             if (device.Team) {
                 filtered.team = app.db.views.Team.teamSummary(device.Team)
@@ -34,6 +25,16 @@ module.exports = {
                 if (device.Project.Application) {
                     filtered.application = app.db.views.Application.applicationSummary(device.Project.Application)
                 }
+            }
+            if (app.comms?.devices?.tunnelManager) {
+                /** @type {import("../../comms/DeviceTunnelManager").DeviceTunnelManager} */
+                const tunnelManager = app.comms?.devices.tunnelManager
+                const { exists, url, urlWithToken, enabled, connected } = tunnelManager.getTunnelStatus(result.hashid) || {}
+                filtered.tunnelExists = exists || false
+                filtered.tunnelEnabled = enabled || false
+                filtered.tunnelConnected = connected || false
+                filtered.tunnelUrl = url || null
+                filtered.tunnelUrlWithToken = urlWithToken || null
             }
 
             return filtered
