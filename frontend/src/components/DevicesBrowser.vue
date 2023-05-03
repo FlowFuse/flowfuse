@@ -1,6 +1,6 @@
 <template>
     <div
-        class="space-y-6"
+        class="space-y-2"
         data-el="devices-section"
     >
         <ff-loading
@@ -16,11 +16,13 @@
             message="Deleting Device..."
         />
         <template v-else>
+            <DevicesStatusBar v-if="devices.size > 0" data-el="devicestatus-lastseen" label="Last Seen" :devices="Array.from(devices.values())" property="lastseen" :filter="filter" @filter-selected="applyFilter" />
+            <DevicesStatusBar v-if="devices.size > 0" data-el="devicestatus-status" label="Last Known Status" :devices="Array.from(devices.values())" property="status" :filter="filter" @filter-selected="applyFilter" />
             <ff-data-table
                 v-if="devices.size > 0"
                 data-el="devices-browser"
                 :columns="columns"
-                :rows="Array.from(devices.values())"
+                :rows="filteredDevices"
                 :show-search="true"
                 search-placeholder="Search Devices"
                 :show-load-more="!!nextCursor"
@@ -219,6 +221,7 @@ import Alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 
 import EmptyState from './EmptyState.vue'
+import DevicesStatusBar from './charts/DeviceStatusBar.vue'
 
 export default {
     name: 'ProjectOverview',
@@ -229,7 +232,8 @@ export default {
         PlusSmIcon,
         SnapshotAssignDialog,
         TeamDeviceCreateDialog,
-        EmptyState
+        EmptyState,
+        DevicesStatusBar
     },
     mixins: [permissionsMixin],
     inheritAttrs: false,
@@ -255,6 +259,7 @@ export default {
     data () {
         return {
             loading: true,
+            filter: null,
             creatingDevice: false,
             deletingDevice: false,
             nextCursor: null,
@@ -265,7 +270,8 @@ export default {
     computed: {
         columns () {
             const columns = [
-                { label: 'Device', key: 'name', class: ['w-64'], sortable: true, component: { is: markRaw(DeviceLink) } }
+                { label: 'Device', key: 'name', class: ['w-64'], sortable: true, component: { is: markRaw(DeviceLink) } },
+                { label: 'Type', key: 'type', class: ['w-48'], sortable: true }
             ]
 
             const statusColumns = [
@@ -278,7 +284,7 @@ export default {
                     ...statusColumns,
                     {
                         label: 'Application',
-                        class: ['w-64'],
+                        class: ['w-48'],
                         key: 'application',
                         sortable: true,
                         component: {
@@ -296,7 +302,7 @@ export default {
                 columns.push({
                     label: 'Instance',
                     key: 'instance',
-                    class: ['w-64'],
+                    class: ['w-48'],
                     sortable: true,
                     component: {
                         is: markRaw(InstanceInstancesLink),
@@ -316,6 +322,17 @@ export default {
             }
 
             return columns
+        },
+        filteredDevices () {
+            let filteredDevices = []
+            if (!this.filter) {
+                filteredDevices = Array.from(this.devices.values())
+            } else {
+                this.filter.devices.forEach((deviceId) => {
+                    filteredDevices.push(this.devices.get(deviceId))
+                })
+            }
+            return filteredDevices
         },
         displayingInstance () {
             return this.instance !== null
@@ -342,6 +359,19 @@ export default {
         clearInterval(this.checkInterval)
     },
     methods: {
+        /**
+         * filter: Object containing keys:
+         *  - devices: an array of device ids
+         *  - property: which filter row is being applied, e.g. status or lastseen
+         *  - bucket: which value of this property are we filtering on from the buckets in the status bar
+         *
+         * We store these in order to apply the filter of devices to the table, and handle
+         * the situation where we switch between filters, property/bucket are checked against local
+         * values inside the StatusBar
+        */
+        applyFilter (filter) {
+            this.filter = filter
+        },
         showCreateDeviceDialog () {
             this.$refs.teamDeviceCreateDialog.show(null, this.instance, this.application)
         },
@@ -365,6 +395,7 @@ export default {
                     this.$refs.deviceCredentialsDialog.show(device)
                 }, 500)
                 this.devices.set(device.id, device)
+                this.applyFilter()
             }
         },
 
@@ -430,6 +461,8 @@ export default {
             if (!polled) {
                 this.nextCursor = data.meta.next_cursor
             }
+
+            this.applyFilter(this.filter)
 
             this.loading = false
         },

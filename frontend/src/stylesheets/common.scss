@@ -1,6 +1,7 @@
 @import '~@flowforge/forge-ui-components/dist/scss/forge-colors.scss';
 
 @import "./layouts.scss";
+@import "./components/charts.scss";
 
 #ff-app {
     background-color: $ff-grey-300;

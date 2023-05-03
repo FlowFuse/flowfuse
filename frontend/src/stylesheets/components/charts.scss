@@ -1,0 +1,79 @@
+
+@import '~@flowforge/forge-ui-components/dist/scss/forge-colors.scss';
+
+.ff-chart {
+    padding: 12px 18px;
+    border: 1px solid $ff-grey-300;
+    border-radius: 6px;
+    background-color: white;
+    h3 {
+        margin: 0;
+    }
+}
+
+.ff-chart-device-status {
+    display: flex;
+    gap: 4px;
+    label {
+        display: block;
+    }
+    .ff-chart-bar {
+        text-align: right;
+        border-right: 1px solid;
+        border-color: var(--bar-border);
+        color: var(--text-color);
+        transition: 0.3s opacity;
+        >div, >label {
+            padding: 3px 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        > div {
+            border-width: 1px 0px 1px 1px;
+            border-style: solid;
+            background-color: var(--bar-bg);
+            border-color: var(--bar-border);
+            transition: 0.3s background-color, 0.3s color, 0.3s opacity;
+        }
+        &:hover {
+            >div {
+                background-color: var(--bar-border);
+            }
+        }
+        label {
+            text-transform: capitalize;
+        }
+        &:hover {
+            cursor: pointer;
+        }
+        &--error {
+            --bar-bg: #{$ff-red-200};
+            --bar-border: #{$ff-red-300};
+            --text-color: #{$ff-red-600};
+        }
+        &--never,
+        &--stopped {
+            --bar-bg: #{$ff-grey-200};
+            --bar-border: #{$ff-grey-300};
+            --text-color: #{$ff-grey-600};
+        }
+        &--offline {
+            --bar-bg: #{$ff-grey-50};
+            --bar-border: #{$ff-grey-300};
+            --text-color: #{$ff-grey-600};
+        }
+        &--safe {
+            --bar-bg: #{$ff-yellow-200};
+            --bar-border: #{$ff-yellow-300};
+            --text-color: #{$ff-yellow-600};
+        }
+        &--running {
+            --bar-bg: #{$ff-green-200};
+            --bar-border: #{$ff-green-300};
+            --text-color: #{$ff-green-600};
+        }
+        &.ghost {
+            opacity: 0.15;
+        }
+    }
+}   

@@ -1,4 +1,5 @@
 import deviceOffline from '../fixtures/device-offline.json'
+import deviceRunning from '../fixtures/device-running.json'
 
 describe('FlowForge - Devices', () => {
     describe('team with no devices', () => {
@@ -113,6 +114,64 @@ describe('FlowForge - Devices', () => {
                     cy.visit(`/team/${team.slug}/devices`)
                     cy.wait('@getDevices')
                 })
+        })
+
+        it('can filter the device browser by "last seen" values', () => {
+            // ensure we have something "last seen" in the past 1.5 mins
+            deviceRunning.lastSeenAt = (new Date()).toISOString()
+            cy.intercept('GET', '/api/v1/teams/*/devices', {
+                count: 2,
+                meta: { next_cursor: 'next' },
+                devices: [deviceOffline, deviceRunning]
+            }).as('getDevicesNextPage')
+
+            cy.visit('/team/bteam/devices')
+            cy.contains('device-1')
+            cy.contains('device-2')
+
+            // apply filter
+            cy.get('[data-el="devicestatus-lastseen"] .ff-chart-bar.ff-chart-bar--never').click()
+            cy.contains('device-1')
+            cy.contains('device-2').should('not.exist')
+
+            // select different filter value
+            cy.get('[data-el="devicestatus-lastseen"] .ff-chart-bar.ff-chart-bar--running').click()
+            cy.contains('device-1').should('not.exist')
+            cy.contains('device-2')
+
+            // reverse the filter
+            cy.get('[data-el="devicestatus-lastseen"] .ff-chart-bar.ff-chart-bar--running').click()
+            cy.contains('device-1')
+            cy.contains('device-2')
+        })
+
+        it('can filter the device browser by "status" values', () => {
+            // ensure we have something "last seen" in the past 1.5 mins
+            deviceRunning.lastSeenAt = (new Date()).toISOString()
+            cy.intercept('GET', '/api/v1/teams/*/devices', {
+                count: 2,
+                meta: { next_cursor: 'next' },
+                devices: [deviceOffline, deviceRunning]
+            }).as('getDevicesNextPage')
+
+            cy.visit('/team/bteam/devices')
+            cy.contains('device-1')
+            cy.contains('device-2')
+
+            // apply filter
+            cy.get('[data-el="devicestatus-status"] .ff-chart-bar.ff-chart-bar--offline').click()
+            cy.contains('device-1')
+            cy.contains('device-2').should('not.exist')
+
+            // select different filter value
+            cy.get('[data-el="devicestatus-status"] .ff-chart-bar.ff-chart-bar--running').click()
+            cy.contains('device-1').should('not.exist')
+            cy.contains('device-2')
+
+            // reverse the filter
+            cy.get('[data-el="devicestatus-status"] .ff-chart-bar.ff-chart-bar--running').click()
+            cy.contains('device-1')
+            cy.contains('device-2')
         })
 
         it('can assign and unassign devices to instances', () => {
