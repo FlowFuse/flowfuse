@@ -1,8 +1,6 @@
 
 module.exports = async function (app) {
-    app.addHook('preHandler', app.verifyAdmin)
-
-    app.get('/stats', async (request, reply) => {
+    async function getStats () {
         const userCount = await app.db.models.User.count({ attributes: ['admin'], group: 'admin' })
         const projectStateCounts = await app.db.models.Project.count({ attributes: ['state'], group: 'state' })
         const license = await app.license.get() || app.license.defaults
@@ -30,15 +28,84 @@ module.exports = async function (app) {
             result.projectCount += projectState.count
             result.projectsByState[projectState.state] = projectState.count
         })
+        if (app.billing) {
+            const teamStateCounts = await app.db.models.Subscription.count({ attributes: ['status'], group: 'status' })
+            result.teamsByBillingState = {}
+            teamStateCounts.forEach(teamState => {
+                result.teamsByBillingState[teamState.status] = teamState.count
+            })
+        }
+        return result
+    }
 
-        reply.send(result)
+    /**
+     * Converts a JSON Object to a flattened object with key names more aligned
+     * with OpenMetrics format
+     * ```
+     * {
+     *    propertyOne: 1,
+     *    propertyTwo: {
+     *       colour: 'red'
+     *    }
+     * }
+     * ```
+     * becomes
+     * ```
+     * {
+     *    property_one: 1,
+     *    property_two_colour: 'red'
+     * }
+     * ```
+     * @param {string} root the root of the new key name to apply
+     * @param {Object} obj the object to flatten
+     * @returns a flattened object
+     */
+    function flattenObject (root, obj) {
+        let result = {}
+        const rootKey = root ? `${root}_` : ''
+        for (const [key, value] of Object.entries(obj)) {
+            const formattedKey = `${rootKey}${key}`.replace(/[A-Z]/g, m => {
+                return '_' + m.toLowerCase()
+            })
+            if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+                result[formattedKey] = value
+            } else {
+                const values = flattenObject(formattedKey, obj[key])
+                result = { ...result, ...values }
+            }
+        }
+        return result
+    }
+    /**
+     * Stringifies a JSON Object to OpenMetrics format
+     * @param {Object} stats the object to conver
+     * @returns a OpenMetrics formatted version of the object
+     */
+    function convertToOpenMetrics (stats) {
+        const result = flattenObject('flowforge', stats)
+        const lines = Object.entries(result).map(([key, value]) => `${key} ${value}`)
+        return lines.join('\n') + '\n'
+    }
+
+    app.get('/stats', { preHandler: app.needsPermission('platform:stats') }, async (request, reply) => {
+        const stats = await getStats()
+        const acceptTypes = request.accepts().types()
+        // request.accepts().type(...) can be used to check if it accepts a given type
+        // A default browser request includes '*/*' which matches everything, but
+        // we don't want that to match openmetrics. So we check the list of types ourselves
+        if (acceptTypes.includes('application/openmetrics-text')) {
+            reply.send(convertToOpenMetrics(stats))
+        } else {
+            reply.send(stats)
+        }
     })
 
-    app.get('/license', async (request, reply) => {
+    app.get('/license', { preHandler: app.needsPermission('license:read') }, async (request, reply) => {
         reply.send(app.license.get() || {})
     })
 
     app.put('/license', {
+        preHandler: app.needsPermission('license:edit'),
         schema: {
             body: {
                 type: 'object',
@@ -78,7 +145,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.get('/invitations', async (request, reply) => {
+    app.get('/invitations', { preHandler: app.needsPermission('invitation:list') }, async (request, reply) => {
         // TODO: Pagination
         const invitations = await app.db.models.Invitation.get()
         const result = app.db.views.Invitation.invitationList(invitations)
@@ -89,10 +156,10 @@ module.exports = async function (app) {
         })
     })
 
-    app.get('/db-migrations', async (request, reply) => {
+    app.get('/debug/db-migrations', { preHandler: app.needsPermission('platform:debug') }, async (request, reply) => {
         reply.send((await app.db.sequelize.query('select * from "MetaVersions"'))[0])
     })
-    app.get('/db-schema', async (request, reply) => {
+    app.get('/debug/db-schema', { preHandler: app.needsPermission('platform:debug') }, async (request, reply) => {
         const result = {}
         let tables
         if (app.config.db.type === 'postgres') {
@@ -120,10 +187,19 @@ module.exports = async function (app) {
      * @name /api/v1/admin/audit-log
      * @memberof forge.routes.api.admin
      */
-    app.get('/audit-log', async (request, reply) => {
+    app.get('/audit-log', { preHandler: app.needsPermission('platform:audit-log') }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const logEntries = await app.db.models.AuditLog.forPlatform(paginationOptions)
         const result = app.db.views.AuditLog.auditLog(logEntries)
         reply.send(result)
+    })
+
+    app.post('/stats-token', { preHandler: app.needsPermission('platform:stats:token') }, async (request, reply) => {
+        const token = await app.db.controllers.AccessToken.generatePlatformStatisticsToken(request.session.User)
+        reply.send(token)
+    })
+    app.delete('/stats-token', { preHandler: app.needsPermission('platform:stats:token') }, async (request, reply) => {
+        await app.db.controllers.AccessToken.removePlatformStatisticsToken()
+        reply.send({ status: 'okay' })
     })
 }

@@ -10,7 +10,6 @@ const sharedUser = require('./shared/users')
  */
 module.exports = async function (app) {
     // Lets assume all apis that access bulk users are admin only.
-    app.addHook('preHandler', app.verifyAdmin)
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.userId !== undefined) {
             if (request.params.userId) {
@@ -34,7 +33,7 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.users
      */
-    app.get('/', async (request, reply) => {
+    app.get('/', { preHandler: app.needsPermission('user:list') }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const users = await app.db.models.User.getAll(paginationOptions)
         users.users = users.users.map(u => app.db.views.User.userProfile(u))
@@ -47,7 +46,7 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.users
      */
-    app.get('/:userId', async (request, reply) => {
+    app.get('/:userId', { preHandler: app.needsPermission('user:read') }, async (request, reply) => {
         reply.send(app.db.views.User.userProfile(request.user))
     })
 
@@ -57,7 +56,7 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.users
      */
-    app.put('/:userId', async (request, reply) => {
+    app.put('/:userId', { preHandler: app.needsPermission('user:edit') }, async (request, reply) => {
         await sharedUser.updateUser(app, request.user, request, reply, 'users')
     })
 
@@ -68,6 +67,7 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.users
      */
     app.post('/', {
+        preHandler: app.needsPermission('user:create'),
         schema: {
             body: {
                 type: 'object',
@@ -150,7 +150,7 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.users
      */
-    app.delete('/:userId', async (request, reply) => {
+    app.delete('/:userId', { preHandler: app.needsPermission('user:delete') }, async (request, reply) => {
         try {
             await request.user.destroy()
             await app.auditLog.User.users.userDeleted(request.session.User, null, request.user)
@@ -163,12 +163,12 @@ module.exports = async function (app) {
     })
 
     /**
-     * Get the teams of the current logged in user
+     * Get the teams of a user
      * @name /api/v1/user/teams
      * @static
      * @memberof forge.routes.api.user
      */
-    app.get('/:userId/teams', async (request, reply) => {
+    app.get('/:userId/teams', { preHandler: app.needsPermission('user:team:list') }, async (request, reply) => {
         const teams = await app.db.models.Team.forUser(request.user)
         const result = await app.db.views.Team.userTeamList(teams)
         reply.send({

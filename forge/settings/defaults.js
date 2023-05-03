@@ -47,5 +47,8 @@ module.exports = {
     'user:team:trial-mode:projectType': null, // Project type that is included in the trial - required if trials enabled
 
     'branding:account:signUpTopBanner': null,
-    'branding:account:signUpLeftBanner': null
+    'branding:account:signUpLeftBanner': null,
+
+    // Has a stats monitoring token been created?
+    'platform:stats:token': false
 }

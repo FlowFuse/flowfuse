@@ -1,9 +1,12 @@
 const { Roles } = require('./roles.js')
 const Permissions = {
     // User Actions
-    'user:read': { description: 'View user Information', self: true },
-    'user:edit': { description: 'Edit User Information', self: true },
-    'user:delete': { description: 'Delete User', self: true },
+    'user:create': { description: 'Create User', role: Roles.Admin },
+    'user:list': { description: 'List platform users', role: Roles.Admin },
+    'user:read': { description: 'View user Information', role: Roles.Admin, self: true },
+    'user:edit': { description: 'Edit User Information', role: Roles.Admin, self: true },
+    'user:delete': { description: 'Delete User', role: Roles.Admin, self: true },
+    'user:team:list': { description: 'List a Users teams', role: Roles.Admin, self: true },
     // Team Scoped Actions
     'team:create': { description: 'Create Team' },
     'team:read': { description: 'View a Team', role: Roles.Viewer },
@@ -68,7 +71,18 @@ const Permissions = {
     'project-type:list': { description: 'List all ProjectTypes' },
     'project-type:read': { description: 'View a ProjectType' },
     'project-type:delete': { description: 'Delete a ProjectType', role: Roles.Admin },
-    'project-type:edit': { description: 'Edit a ProjectType', role: Roles.Admin }
+    'project-type:edit': { description: 'Edit a ProjectType', role: Roles.Admin },
+
+    'settings:edit': { description: 'Edit platform settings', role: Roles.Admin },
+    'license:read': { description: 'View license information', role: Roles.Admin },
+    'license:edit': { description: 'Edit license information', role: Roles.Admin },
+
+    'invitation:list': { description: 'List all invitations', role: Roles.Admin },
+
+    'platform:debug': { description: 'View platform debug information', role: Roles.Admin },
+    'platform:stats': { description: 'View platform stats information', role: Roles.Admin },
+    'platform:stats:token': { description: 'Create/Delete platform stats token', role: Roles.Admin },
+    'platform:audit-log': { description: 'View platform audit log', role: Roles.Admin }
 }
 
 module.exports = {

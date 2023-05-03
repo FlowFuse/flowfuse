@@ -37,11 +37,11 @@
                 </div>
             </div>
             <div v-if="error" data-el="form-row-error" class="ml-9 text-red-400 inline text-xs">{{error}}</div>
-            <div v-if="hasDescription" data-el="form-row-description" class="mt-1 text-xs text-gray-400 mb-2 ml-9 space-y-1"><slot name="description"></slot></div>
+            <div v-if="hasDescription" data-el="form-row-description" class="mt-1 ff-description mb-2 ml-9 space-y-1"><slot name="description"></slot></div>
         </template>
         <template v-else>
             <label data-el="form-row-title" v-if="hasTitle" :for="inputId" :class="(disabled ? 'text-gray-400' : 'text-gray-800')" class="block text-sm font-medium mb-1"><slot></slot></label>
-            <div v-if="hasDescription" data-el="form-row-description" class="text-xs text-gray-400 mb-2 space-y-1"><slot name="description"></slot></div>
+            <div v-if="hasDescription" data-el="form-row-description" class="ff-description mb-2 space-y-1"><slot name="description"></slot></div>
             <div :class="(wrapperClass ? wrapperClass : 'flex flex-col sm:flex-row relative')">
                 <!-- Dropdown -->
                 <template v-if="options && type !== 'uneditable'">
