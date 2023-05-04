@@ -39,15 +39,22 @@ module.exports = async function (app) {
         // TODO: What permissions are required here?
         preHandler: app.needsPermission('team:projects:list')
     }, async (request, reply) => {
-        const name = request.body.name?.trim()
+        const name = request.body.name?.trim() // name of the stage
+        const instance = request.body.instance // instance id
 
         let stage
         try {
-            console.log(request.pipeline.id)
-            stage = await app.db.models.PipelineStage.create({
+            const options = {
                 name,
-                PipelineId: request.pipeline.id
-            })
+                instance
+            }
+            if (request.body.source) {
+                options.source = request.body.source
+            }
+            stage = await app.db.controllers.Pipeline.addPipelineStage(
+                request.pipeline,
+                options
+            )
         } catch (err) {
             console.error(err)
             return reply.status(500).send({ code: 'unexpected_error', error: err.toString() })

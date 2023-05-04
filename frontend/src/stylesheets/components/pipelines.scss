@@ -53,4 +53,10 @@
             border-color: $ff-blue-600;
         }
     }
+    .ff-pipeline-stage-row {
+        padding: 6px 18px;
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+    }
 }

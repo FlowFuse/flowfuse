@@ -7,9 +7,13 @@ import client from './client.js'
  * @param {string} pipelineId
  * @param {string} name
  */
-const addPipelineStage = async (pipelineId, name) => {
+const addPipelineStage = async (pipelineId, stage) => {
     const options = {
-        name
+        name: stage.name,
+        instance: stage.instance
+    }
+    if (stage.source) {
+        options.source = stage.source
     }
     return client.post(`/api/v1/pipelines/${pipelineId}/stages`, options)
         .then(res => {

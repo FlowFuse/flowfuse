@@ -49,13 +49,19 @@ export default {
         addStage: function () {
             console.log('add stage')
             console.log(this.$route.params)
-            this.$router.push({
+            const route = {
                 name: 'CreatePipelineStage',
                 params: {
                     applicationId: this.$route.params.id,
                     pipelineId: this.pipeline.id
                 }
-            })
+            }
+            if (this.pipeline.stages.length > 0) {
+                route.query = {
+                    sourceStage: this.pipeline.stages[this.pipeline.stages.length - 1].id
+                }
+            }
+            this.$router.push(route)
         }
     }
 }
