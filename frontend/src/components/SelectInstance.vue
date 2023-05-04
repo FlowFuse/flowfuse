@@ -89,8 +89,12 @@ export default {
         loadInstances (applicationId) {
             this.loading.instances = true
             ApplicationAPI.getApplicationInstances(applicationId).then((instances) => {
-                this.options.instances = instances?.map(d => { return { value: d.id, label: d.name } }) ?? []
+                this.options.instances = instances?.map(instance => { return { value: instance, label: instance.name } }) ?? []
                 this.loading.instances = false
+
+                if (this.options.instances.length === 1) {
+                    this.localValue = this.options.instances[0].value
+                }
             }).catch((error) => {
                 console.error(error)
             })
