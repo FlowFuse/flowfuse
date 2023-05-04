@@ -108,7 +108,7 @@ export default {
             instances: [],
             input: {
                 name,
-                instance
+                instance: null
             }
         }
     },
@@ -134,10 +134,15 @@ export default {
                 }
             })
         },
-        loadInstances () {
+        async loadInstances () {
             const application = this.$route.params.applicationId
-            const instances = ApplicationAPI.getApplicationInstances(application)
-            this.instances = instances
+            const instances = await ApplicationAPI.getApplicationInstances(application)
+            this.instances = instances.map((instance) => {
+                return {
+                    label: instance.name,
+                    value: instance.id
+                }
+            })
         }
     }
 }

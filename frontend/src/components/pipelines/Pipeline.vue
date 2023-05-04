@@ -9,9 +9,9 @@
             </div>
         </div>
         <div v-if="pipeline.stages.length" class="ff-pipeline-stages">
-            <template v-for="stage in pipeline.stages" :key="stage.id" class="flex">
+            <template v-for="stage in pipeline.stages" :key="stage.id">
                 <PipelineStage :stage="stage" />
-                <ChevronRightIcon class="ff-icon mt-4" />
+                <ChevronRightIcon class="ff-icon mt-4 flex-shrink-0" />
             </template>
             <PipelineStage @click="addStage" />
         </div>
