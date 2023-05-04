@@ -101,8 +101,11 @@ export default {
             for (let i = 0; i < this.options.length; i++) {
                 if (this.options[i].value === this.modelValue) {
                     this.selected = this.options[i]
+                    return
                 }
             }
+
+            this.selected = null
         }
     }
 }
