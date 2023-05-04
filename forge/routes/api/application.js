@@ -192,4 +192,51 @@ module.exports = async function (app) {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
     })
+
+    /**
+     * List Application instances statuses
+     * @name /api/v1/application/:id/pipelines
+     * @memberof forge.routes.api.application
+     */
+    app.get('/:applicationId/pipelines', {
+        // TODO: What permissions are required here?
+        preHandler: app.needsPermission('team:projects:list')
+    }, async (request, reply) => {
+        const pipelines = await app.db.models.Pipeline.byApplicationId(request.application.hashid)
+        if (pipelines) {
+            reply.send({
+                count: pipelines.length,
+                pipelines: await app.db.views.Pipeline.pipelineList(pipelines)
+            })
+        } else {
+            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+    })
+
+    /**
+     * List Application instances statuses
+     * @name /api/v1/application/:id/pipelines
+     * @memberof forge.routes.api.application
+     */
+    app.post('/:applicationId/pipelines', {
+        // TODO: What permissions are required here?
+        preHandler: app.needsPermission('team:projects:list')
+    }, async (request, reply) => {
+        const name = request.body.name?.trim()
+
+        let pipeline
+        try {
+            pipeline = await app.db.models.Pipeline.create({
+                name,
+                ApplicationId: request.application.id
+            })
+        } catch (err) {
+            console.error(err)
+            return reply.status(500).send({ code: 'unexpected_error', error: err.toString() })
+        }
+
+        // await app.auditLog.Team.application.created(request.session.User, null, team, application)
+
+        reply.send(app.db.views.Pipeline.pipeline(pipeline))
+    })
 }
