@@ -30,11 +30,16 @@ describe('FlowForge - Instance Settings - DevOps', () => {
         cy.get('[data-action="view-target-project"]').should('be.disabled')
 
         cy.get('[data-el="target-project"] .ff-dropdown-options').should('not.be.visible')
-        cy.get('[data-el="target-project"] .ff-dropdown').click()
-        cy.get('[data-el="target-project"] .ff-dropdown-options').should('be.visible')
 
-        cy.get('[data-el="target-project"] .ff-dropdown-options > .ff-dropdown-option').eq(0).contains('instance-2-with-devices').should('be.visible')
-        cy.get('[data-el="target-project"] .ff-dropdown-options > .ff-dropdown-option').eq(0).click()
+        cy.get('[data-form="application"] .ff-dropdown').click()
+        cy.get('[data-form="application"] .ff-dropdown-options').should('be.visible')
+        cy.get('[data-form="application"] .ff-dropdown-options > .ff-dropdown-option').eq(0).contains('application-2').should('be.visible')
+        cy.get('[data-form="application"] .ff-dropdown-options > .ff-dropdown-option').eq(0).click()
+
+        cy.get('[data-form="instance"] .ff-dropdown').click()
+        cy.get('[data-form="instance"] .ff-dropdown-options').should('be.visible')
+        cy.get('[data-form="instance"] .ff-dropdown-options > .ff-dropdown-option').eq(0).contains('instance-2-with-devices').should('be.visible')
+        cy.get('[data-form="instance"] .ff-dropdown-options > .ff-dropdown-option').eq(0).click()
 
         cy.get('[data-action="push-stage"]').should('not.be.disabled')
         cy.get('[data-action="view-target-project"]').should('not.be.disabled')
@@ -52,12 +57,15 @@ describe('FlowForge - Instance Settings - DevOps', () => {
         cy.get('[data-action="push-stage"]').should('be.disabled')
         cy.get('[data-action="view-target-project"]').should('be.disabled')
 
-        cy.get('[data-el="target-project"] .ff-dropdown-options').should('not.be.visible')
-        cy.get('[data-el="target-project"] .ff-dropdown').click()
-        cy.get('[data-el="target-project"] .ff-dropdown-options').should('be.visible')
+        cy.get('[data-form="application"] .ff-dropdown').click()
+        cy.get('[data-form="application"] .ff-dropdown-options').should('be.visible')
+        cy.get('[data-form="application"] .ff-dropdown-options > .ff-dropdown-option').eq(0).contains('application-2').should('be.visible')
+        cy.get('[data-form="application"] .ff-dropdown-options > .ff-dropdown-option').eq(0).click()
 
-        cy.get('[data-el="target-project"] .ff-dropdown-options > .ff-dropdown-option').eq(0).contains('instance-2-with-devices').should('be.visible')
-        cy.get('[data-el="target-project"] .ff-dropdown-options > .ff-dropdown-option').eq(0).click()
+        cy.get('[data-form="instance"] .ff-dropdown').click()
+        cy.get('[data-form="instance"] .ff-dropdown-options').should('be.visible')
+        cy.get('[data-form="instance"] .ff-dropdown-options > .ff-dropdown-option').eq(0).contains('instance-2-with-devices').should('be.visible')
+        cy.get('[data-form="instance"] .ff-dropdown-options > .ff-dropdown-option').eq(0).click()
 
         cy.get('[data-action="push-stage"]').should('not.be.disabled')
         cy.get('[data-action="view-target-project"]').should('not.be.disabled')
