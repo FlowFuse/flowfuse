@@ -51,7 +51,7 @@ export default {
     },
     methods: {
         assignDevice () {
-            this.$emit('assignDevice', this.device, this.input.instance)
+            this.$emit('assignDevice', this.device, this.input.instance.id)
             alerts.emit('Device successfully assigned to instance.', 'confirmation')
         }
     }

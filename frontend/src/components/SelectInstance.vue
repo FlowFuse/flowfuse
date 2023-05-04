@@ -34,6 +34,10 @@ export default {
         team: {
             type: Object,
             required: true
+        },
+        modelValue: {
+            type: Object,
+            default: null
         }
     },
     emits: ['update:modelValue'],
@@ -70,7 +74,7 @@ export default {
     watch: {
         'input.application': function () {
             this.localValue = null
-            this.loadInstances(this.input.application)
+            this.loadInstances(this.input.application.id)
         }
     },
     mounted () {
@@ -80,7 +84,7 @@ export default {
         loadApplications () {
             this.loading.applications = true
             TeamAPI.getTeamApplications(this.team.id).then((data) => {
-                this.options.applications = data.applications.map(a => { return { value: a.id, label: a.name } })
+                this.options.applications = data.applications.map(application => { return { value: application, label: application.name } })
                 this.loading.applications = false
             }).catch((error) => {
                 console.error(error)
