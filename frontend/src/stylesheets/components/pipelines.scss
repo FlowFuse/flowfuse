@@ -4,30 +4,38 @@
     width: 100%;
     border: 1px solid $ff-grey-300;
     border-radius: 6px;
-    .ff-pipeline-banner {
+    .ff-pipeline-banner,
+    .ff-pipeline-stage-banner {
         padding: 12px 18px;
         display: flex;
         justify-content: space-between;
         border-bottom: 1px solid $ff-grey-300;
         background-color: $ff-grey-100;
+        border-top-left-radius: 6px;
+        border-top-right-radius: 6px;
+        gap: 48px;
+    }
+    .ff-pipeline-stage-banner {
+        background-color: $ff-grey-50;
+    }
+    .ff-pipeline-actions {
+        display: flex;
+        gap: 6px;
     }
     .ff-pipeline-stages {
         padding: 24px;
         border-bottom-left-radius: 6px;
         border-bottom-right-radius: 6px;
         display: flex;
-    }
-    .ff-empty-state {
-        border-width: 0;
-        border-radius: 0;
-        border-bottom-left-radius: 6px;
-        border-bottom-right-radius: 6px;
+        align-items: flex-start;
+        gap: 16px;
     }
 }
 
 .ff-pipeline-stage {
     border-radius: 6px;
     border: 1px solid $ff-grey-400;
+    min-width: 200px;
     &.ff-pipeline-stage-ghost {
         border-style: dashed;
         padding: 48px 64px;

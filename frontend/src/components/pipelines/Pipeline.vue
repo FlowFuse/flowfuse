@@ -9,25 +9,30 @@
             </div>
         </div>
         <div v-if="pipeline.stages.length" class="ff-pipeline-stages">
-            <PipelineStage v-for="stage in pipeline.stages" :key="stage.id" />
+            <template v-for="stage in pipeline.stages" :key="stage.id" class="flex">
+                <PipelineStage :stage="stage" />
+                <ChevronRightIcon class="ff-icon mt-4" />
+            </template>
+            <PipelineStage @click="addStage" />
         </div>
         <div v-else class="ff-pipeline-stages">
-            <PipelineStageGhost @click="addStage" />
+            <PipelineStage @click="addStage" />
         </div>
     </div>
 </template>
 
 <script>
 
-import { CogIcon } from '@heroicons/vue/outline'
+import { ChevronRightIcon, CogIcon } from '@heroicons/vue/outline'
 
-import PipelineStageGhost from './StageGhost.vue'
+import PipelineStage from './Stage.vue'
 
 export default {
     name: 'PipelineRow',
     components: {
+        ChevronRightIcon,
         CogIcon,
-        PipelineStageGhost
+        PipelineStage
     },
     props: {
         pipeline: {
@@ -42,7 +47,15 @@ export default {
     mounted () { },
     methods: {
         addStage: function () {
-
+            console.log('add stage')
+            console.log(this.$route.params)
+            this.$router.push({
+                name: 'CreatePipelineStage',
+                params: {
+                    applicationId: this.$route.params.id,
+                    pipelineId: this.pipeline.id
+                }
+            })
         }
     }
 }

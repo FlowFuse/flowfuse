@@ -2,8 +2,6 @@ const {
     DataTypes
 } = require('sequelize')
 
-const PipelineStage = require('./PipelineStage')
-
 module.exports = {
     name: 'Pipeline',
     schema: {
@@ -25,6 +23,15 @@ module.exports = {
                 }
             },
             static: {
+                byId: async function (idOrHash) {
+                    let id = idOrHash
+                    if (typeof idOrHash === 'string') {
+                        id = M.Pipeline.decodeHashid(idOrHash)
+                    }
+                    return this.findOne({
+                        where: { id }
+                    })
+                },
                 byApplicationId: async function (applicationId) {
                     if (typeof applicationId === 'string') {
                         applicationId = M.Application.decodeHashid(applicationId)

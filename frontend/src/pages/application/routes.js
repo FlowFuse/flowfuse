@@ -8,6 +8,7 @@ import ApplicationActivity from './Activity.vue'
 import ApplicationLogs from './Logs.vue'
 import ApplicationOverview from './Overview.vue'
 import ApplicationPipeline from './Pipeline/edit.vue'
+import ApplicationPipelineStage from './PipelineStage/edit.vue'
 import ApplicationPipelines from './Pipelines.vue'
 import ApplicationSettings from './Settings.vue'
 import ApplicationCreateInstance from './createInstance.vue'
@@ -77,7 +78,7 @@ export default [
         ]
     },
     {
-        path: '/application/:id/pipelines/create',
+        path: '/application/:applicationId/pipelines/create',
         name: 'CreatePipeline',
         component: ApplicationPipeline,
         meta: {
@@ -85,11 +86,19 @@ export default [
         }
     },
     {
-        path: '/application/:id/pipelines/:pipelineid',
+        path: '/application/:applicationId/pipelines/:pipelineId',
         name: 'EditPipeline',
         component: ApplicationPipeline,
         meta: {
             title: 'Pipeline - Edit'
+        }
+    },
+    {
+        path: '/application/:applicationId/pipelines/:pipelineId/stages/create',
+        name: 'CreatePipelineStage',
+        component: ApplicationPipelineStage,
+        meta: {
+            title: 'Pipeline Stage - Create'
         }
     }
 ]

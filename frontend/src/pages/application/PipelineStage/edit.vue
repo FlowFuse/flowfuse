@@ -17,7 +17,7 @@
     <main>
         <ff-loading
             v-if="loading"
-            message="Loading Devices..."
+            message="Creating Pipeline Stage..."
         />
         <form
             v-else
@@ -25,22 +25,33 @@
             @submit.prevent="create"
         >
             <SectionTopMenu
-                :hero="'Create DevOps Pipeline'"
+                :hero="'Add Pipeline Stage'"
             />
 
             <!-- Form Description -->
             <div class="mb-8 text-sm text-gray-500">
-                Create a DevOps Piepline for linking Node-RED Instances together.
+                Create a DevOps Pipeline for linking Node-RED Instances together.
             </div>
 
-            <!-- Pipeline Options -->
+            <!-- Stage Name -->
             <FormRow
                 v-model="input.name"
                 type="text"
-                data-form="pipeline-name"
+                data-form="stage-name"
             >
                 <template #default>
-                    Pipeline name
+                    Stage name
+                </template>
+            </FormRow>
+
+            <!-- Instance -->
+            <FormRow
+                v-model="input.instance"
+                :options="instances"
+                data-form="stage-instance"
+            >
+                <template #default>
+                    Choose Instance
                 </template>
             </FormRow>
 
@@ -57,7 +68,7 @@
                     :data-action="'create-pipeline'"
                     type="submit"
                 >
-                    Create Pipeline
+                    Add Stage
                 </ff-button>
             </div>
         </form>
@@ -67,7 +78,9 @@
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
 
-import ApplicationsAPI from '../../../api/application.js'
+import ApplicationAPI from '../../../api/application.js'
+import PipelinesAPI from '../../../api/pipeline.js'
+
 import FormRow from '../../../components/FormRow.vue'
 import NavItem from '../../../components/NavItem.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
@@ -92,8 +105,10 @@ export default {
             },
             mounted: false,
             loading: false,
+            instances: [],
             input: {
-                name
+                name,
+                instance
             }
         }
     },
@@ -104,19 +119,25 @@ export default {
     },
     async mounted () {
         this.mounted = true
+        this.loadInstances()
     },
     methods: {
         async create () {
             this.loading = true
-            await ApplicationsAPI.createPipeline(this.$route.params.id, this.input.name)
-            Alerts.emit('Pipeline successfully created.', 'confirmation')
+            await PipelinesAPI.addPipelineStage(this.$route.params.pipelineId, this.input.name)
+            Alerts.emit('Pipeline stage successfully added.', 'confirmation')
             this.loading = false
             this.$router.push({
                 name: 'ApplicationPipelines',
                 params: {
-                    id: this.$route.params.id
+                    id: this.$route.params.applicationId
                 }
             })
+        },
+        loadInstances () {
+            const application = this.$route.params.applicationId
+            const instances = ApplicationAPI.getApplicationInstances(application)
+            this.instances = instances
         }
     }
 }
