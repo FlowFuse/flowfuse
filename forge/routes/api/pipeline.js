@@ -15,8 +15,6 @@ module.exports = async function (app) {
                 return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             }
 
-            console.log(request.pipeline)
-
             const application = await app.db.models.Application.byId(request.pipeline.ApplicationId)
 
             if (request.session.User) {
@@ -63,5 +61,18 @@ module.exports = async function (app) {
         // await app.auditLog.Team.application.created(request.session.User, null, team, application)
 
         reply.send(app.db.views.PipelineStage.stage(stage))
+    })
+
+    /**
+     * Get details of a single stage within a pipeline
+     * @name /api/v1/pipeline/:pipelineId/stages/:stageId
+     * @memberof forge.routes.api.pipeline
+     */
+    app.get('/:pipelineId/stages/:stageId', {
+        // TODO: What permissions are required here?
+        preHandler: app.needsPermission('team:projects:list')
+    }, async (request, reply) => {
+        const stage = await app.db.models.PipelineStage.byId(request.params.stageId)
+        reply.send(await app.db.views.PipelineStage.stage(stage))
     })
 }

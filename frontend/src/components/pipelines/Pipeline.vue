@@ -9,8 +9,8 @@
             </div>
         </div>
         <div v-if="pipeline.stages.length" class="ff-pipeline-stages">
-            <template v-for="stage in pipeline.stages" :key="stage.id">
-                <PipelineStage :stage="stage" />
+            <template v-for="(stage, $index) in pipeline.stages" :key="stage.id">
+                <PipelineStage :pipeline-id="pipeline.id" :stage="stage" :play-enabled="$index < pipeline.stages.length - 1" />
                 <ChevronRightIcon class="ff-icon mt-4 flex-shrink-0" />
             </template>
             <PipelineStage @click="addStage" />
@@ -47,8 +47,6 @@ export default {
     mounted () { },
     methods: {
         addStage: function () {
-            console.log('add stage')
-            console.log(this.$route.params)
             const route = {
                 name: 'CreatePipelineStage',
                 params: {

@@ -30,6 +30,12 @@
         align-items: flex-start;
         gap: 16px;
         overflow-x: auto;
+        .ff-icon {
+            cursor: pointer;
+            &:hover {
+                color: $ff-blue-600;
+            }
+        }
     }
 }
 

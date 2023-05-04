@@ -5,6 +5,17 @@ import client from './client.js'
 
 /**
  * @param {string} pipelineId
+ * @param {string} stageId
+ */
+const getPipelineStage = async (pipelineId, stageId) => {
+    return client.get(`/api/v1/pipelines/${pipelineId}/stages/${stageId}`)
+        .then(res => {
+            return res.data
+        })
+}
+
+/**
+ * @param {string} pipelineId
  * @param {string} name
  */
 const addPipelineStage = async (pipelineId, stage) => {
@@ -30,5 +41,6 @@ const addPipelineStage = async (pipelineId, stage) => {
 }
 
 export default {
+    getPipelineStage,
     addPipelineStage
 }

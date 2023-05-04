@@ -10,7 +10,7 @@ module.exports = {
             allowNull: false
         },
         target: {
-            type: DataTypes.STRING,
+            type: DataTypes.INTEGER,
             allowNull: true
         }
     },
@@ -29,7 +29,13 @@ module.exports = {
                         id = M.PipelineStage.decodeHashid(idOrHash)
                     }
                     return this.findOne({
-                        where: { id }
+                        where: { id },
+                        include: [
+                            {
+                                model: M.Project,
+                                attributes: ['hashid', 'id', 'name', 'url', 'updatedAt']
+                            }
+                        ]
                     })
                 },
                 byPipeline: async function (pipelineId) {

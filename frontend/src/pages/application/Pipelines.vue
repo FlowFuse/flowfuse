@@ -5,7 +5,7 @@
             <p>Use this to debug issues if your application will not start correctly.</p>
         </template>
         <template #tools>
-            <ff-button :to="{name: 'CreatePipeline'}">
+            <ff-button :to="{name: 'CreatePipeline', params: {applicationId: $route.params.id}}">
                 <template #icon-left>
                     <PlusSmIcon />
                 </template>

@@ -11,6 +11,11 @@ module.exports = {
             filtered.instance = await app.db.views.Project.project(project, { includeSettings: false })
         }
 
+        if (stage.target) {
+            const target = await app.db.models.PipelineStage.byId(result.target)
+            filtered.targetStage = target.hashid
+        }
+
         return filtered
     },
     async stageList (app, stages) {
