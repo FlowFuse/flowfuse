@@ -96,12 +96,12 @@ export default {
         },
         async loadProjects () {
             if (this.project && this.project.team) {
-                const projectList = await TeamAPI.getTeamProjectList(this.project.team.id)
                 this.projects = []
                 projectList.forEach((project) => {
                     if (this.project.id === project.id) {
                         return
                     }
+                const instanceList = await TeamAPI.getTeamInstancesList(this.instance.team.id)
 
                     this.projects.push({
                         label: project.name,
