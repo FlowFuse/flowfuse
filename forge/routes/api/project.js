@@ -12,7 +12,7 @@ const { isFQDN } = require('../../lib/validate')
  *
  * Of note: Instances were previously called projects
  *
- * - /api/v1/project
+ * - /api/v1/projects
  *
  * - Any route that has a :projectId parameter will:
  *    - Ensure the session user is either admin or has a role on the corresponding team
@@ -75,7 +75,7 @@ module.exports = async function (app) {
 
     /**
      * Get the details of a given instance
-     * @name /api/v1/project/:projectId
+     * @name /api/v1/projects/:projectId
      * @static
      * @memberof forge.routes.api.project
      */
@@ -311,7 +311,7 @@ module.exports = async function (app) {
     })
     /**
      * Delete a project
-     * @name /api/v1/project/:id
+     * @name /api/v1/projects/:id
      * @memberof forge.routes.api.project
      */
     app.delete('/:projectId', { preHandler: app.needsPermission('project:delete') }, async (request, reply) => {
@@ -335,7 +335,7 @@ module.exports = async function (app) {
 
     /**
      * Update a project
-     * @name /api/v1/project/:id
+     * @name /api/v1/projects/:id
      * @memberof forge.routes.api.project
      */
     app.put('/:projectId', {
@@ -753,7 +753,7 @@ module.exports = async function (app) {
     /**
      * Provide Project specific settings.js
      *
-     * @name /api/v1/project/:id/settings
+     * @name /api/v1/projects/:id/settings
      * @memberof forge.routes.api.project
      */
     app.get('/:projectId/settings', {
@@ -794,7 +794,7 @@ module.exports = async function (app) {
      *  - returns most recent 30 entries
      *  - ?cursor= can be used to set the 'most recent log entry' to query from
      *  - ?limit= can be used to modify how many entries to return
-     * @name /api/v1/project/:id/log
+     * @name /api/v1/projects/:id/log
      * @memberof forge.routes.api.project
      */
     app.get('/:projectId/logs', {
@@ -848,7 +848,7 @@ module.exports = async function (app) {
 
     /**
      * TODO: Add support for filtering by instance param when this is migrated to application API
-     * @name /api/v1/project/:id/audit-log
+     * @name /api/v1/projects/:id/audit-log
      * @memberof forge.routes.api.project
      */
     app.get('/:projectId/audit-log', { preHandler: app.needsPermission('project:audit-log') }, async (request, reply) => {
@@ -860,7 +860,7 @@ module.exports = async function (app) {
 
     /**
      *
-     * @name /api/v1/project/:id/import
+     * @name /api/v1/projects/:id/import
      * @memberof forge.routes.api.project
      */
     app.post('/:projectId/import', {
