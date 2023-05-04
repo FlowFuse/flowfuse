@@ -48,7 +48,8 @@ module.exports = async function (app) {
             TeamId: request.team.id
         }
         const devices = await app.db.models.Device.getAll(paginationOptions, where, { includeApplication: true })
-        devices.devices = devices.devices.map(d => app.db.views.Device.device(d))
+        const includeTunnelInfo = app.hasPermission(request.teamMembership, 'device:editor')
+        devices.devices = devices.devices.map(d => app.db.views.Device.device(d, { includeTunnelInfo }))
         reply.send(devices)
     })
 

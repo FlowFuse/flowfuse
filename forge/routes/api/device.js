@@ -61,7 +61,8 @@ module.exports = async function (app) {
     app.get('/:deviceId', {
         preHandler: app.needsPermission('device:read')
     }, async (request, reply) => {
-        reply.send(app.db.views.Device.device(request.device))
+        const includeTunnelInfo = app.hasPermission(request.teamMembership, 'device:editor')
+        reply.send(app.db.views.Device.device(request.device, { includeTunnelInfo }))
     })
 
     /**
@@ -314,7 +315,8 @@ module.exports = async function (app) {
         if (sendDeviceUpdate) {
             app.db.controllers.Device.sendDeviceUpdateCommand(updatedDevice)
         }
-        reply.send(app.db.views.Device.device(updatedDevice))
+        const includeTunnelInfo = app.hasPermission(request.teamMembership, 'device:editor')
+        reply.send(app.db.views.Device.device(updatedDevice, { includeTunnelInfo }))
     })
 
     app.post('/:deviceId/generate_credentials', {
@@ -369,6 +371,12 @@ module.exports = async function (app) {
     app.put('/:deviceId/editor', {
         preHandler: app.needsPermission('device:editor')
     }, async (request, reply) => {
+        // setting up device editor tunnel is only valid for licensed platforms
+        const isLicensed = app.license.active()
+        if (isLicensed !== true) {
+            reply.code(400).send({ code: 'not_licensed', error: 'Device editor can only be used on licensed platforms' })
+            return
+        }
         const mode = request.body.tunnel || 'disable'
         const team = await app.db.models.Team.byId(request.device.TeamId)
         /** @type {DeviceTunnelManager} */
@@ -413,7 +421,9 @@ module.exports = async function (app) {
      * @name /api/v1/devices/:deviceId/editor
      * @memberof module:forge/routes/api/device
      */
-    app.get('/:deviceId/editor', async (request, reply) => {
+    app.get('/:deviceId/editor', {
+        preHandler: app.needsPermission('device:editor')
+    }, async (request, reply) => {
         /** @type {DeviceTunnelManager} */
         const tunnelManager = app.comms.devices.tunnelManager
         reply.send(tunnelManager.getTunnelStatus(request.device))
@@ -427,6 +437,12 @@ module.exports = async function (app) {
     app.put('/:deviceId/mode', {
         preHandler: app.needsPermission('device:change-mode')
     }, async (request, reply) => {
+        // setting device mode is only valid for licensed platforms
+        const isLicensed = app.license.active()
+        if (isLicensed !== true) {
+            reply.code(400).send({ code: 'not_licensed', error: 'Device mode can only be set for licensed platforms' })
+            return
+        }
         const mode = request.body.mode || 'autonomous'
         if (mode !== 'autonomous' && mode !== 'developer') {
             reply.code(400).send({ code: 'invalid_mode', error: 'Expected device mode option to be either "autonomous" or "developer"' })

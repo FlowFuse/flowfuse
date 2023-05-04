@@ -13,6 +13,11 @@ module.exports = async function (app) {
         config: { allowAnonymous: true },
         websocket: true
     }, (connection, request) => {
+        // first, ensure platform is licensed for device editor
+        if (!app.license.active()) {
+            connection.socket.close(1008, 'License not valid for device editor')
+            return
+        }
         // * Enable Device Editor (Step 9) - (device:WS->forge) websocket connect request from device
         // This is the inbound websocket connection from the device
         const deviceId = request.params.deviceId
@@ -23,10 +28,10 @@ module.exports = async function (app) {
             if (tunnelManager.verifyToken(deviceId, token)) {
                 const tunnelSetupOK = tunnelManager.initTunnel(deviceId, token, connection)
                 if (!tunnelSetupOK) {
-                    connection.socket.close(1008, 'Tunnel setup failed') // TODO: need to pick the right status code here
+                    connection.socket.close(1008, 'Tunnel setup failed')
                 }
             } else {
-                connection.socket.close(1008, 'Invalid token') // TODO: need to pick the right status code here
+                connection.socket.close(1008, 'Invalid token')
             }
         } else {
             connection.socket.close(1008, 'No tunnel')
@@ -42,6 +47,11 @@ module.exports = async function (app) {
     app.get('/', {
         config: { allowAnonymous: true }
     }, async (request, reply) => {
+        // ensure platform is licensed for device editor
+        if (!app.license.active()) {
+            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+            return
+        }
         const tunnelManager = getTunnelManager()
         if (tunnelManager.verifyToken(request.headers['x-device-id'], request.headers['x-access-token'])) {
             reply.code(200).send({ username: 'forge', permissions: '*' })
