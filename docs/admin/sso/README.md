@@ -93,9 +93,22 @@ by ticking the `active` checkbox and clicking `Update configuration`.
 The following is a non-exhaustive list of the providers that are known to work
 with FlowForge SAML SSO.
 
- - Azure AD
+ - [Azure AD](#azure-ad)
  - [Google Workspace](#google-workspace)
  - [OneLogin](#onelogin)
+
+### Azure AD
+
+Microsoft provide a guide for creating a custom SAML Application [here](https://learn.microsoft.com/en-us/azure/active-directory/manage-apps/add-application-portal).
+
+The following table maps the Azure terminology to the FlowForge settings.
+
+FlowForge Setting | Azure Setting
+----|----
+`ACS URL` | `Reply URL (Assertion Consumer Service URL)`
+`Identity Provider Single Sign-On URL` | `App Federation Metadata Url`
+`Identity Provider Issuer ID / URL` | `Entity ID`
+`X.509 Certificate Public Key` | `Certificate (Base64)`
 
 ### Google Workspace
 
