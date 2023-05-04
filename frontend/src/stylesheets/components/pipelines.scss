@@ -1,0 +1,47 @@
+@import '~@flowforge/forge-ui-components/dist/scss/forge-colors.scss';
+
+.ff-pipeline {
+    width: 100%;
+    border: 1px solid $ff-grey-300;
+    border-radius: 6px;
+    .ff-pipeline-banner {
+        padding: 12px 18px;
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid $ff-grey-300;
+        background-color: $ff-grey-100;
+    }
+    .ff-pipeline-stages {
+        padding: 24px;
+        border-bottom-left-radius: 6px;
+        border-bottom-right-radius: 6px;
+        display: flex;
+    }
+    .ff-empty-state {
+        border-width: 0;
+        border-radius: 0;
+        border-bottom-left-radius: 6px;
+        border-bottom-right-radius: 6px;
+    }
+}
+
+.ff-pipeline-stage {
+    border-radius: 6px;
+    border: 1px solid $ff-grey-400;
+    &.ff-pipeline-stage-ghost {
+        border-style: dashed;
+        padding: 48px 64px;
+        gap: 6px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: $ff-grey-400;
+        &:hover {
+            border-style: solid;
+            cursor: pointer;
+            color: $ff-blue-600;
+            border-color: $ff-blue-600;
+        }
+    }
+}

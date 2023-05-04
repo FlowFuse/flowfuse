@@ -14,9 +14,8 @@
         </template>
     </SectionTopMenu>
 
-    <div v-if="pipelines?.length > 0">
-        Pipelines go here
-        {{ pipelines }}
+    <div v-if="pipelines?.length > 0" class="pt-4">
+        <Pipeline v-for="p in pipelines" :key="p.id" :pipeline="p" />
     </div>
     <div v-else class="ff-no-data ff-no-data-large">
         Empty State for Pipelines
@@ -29,11 +28,14 @@ import { PlusSmIcon } from '@heroicons/vue/outline'
 import ApplicationAPI from '../../api/application.js'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
+import Pipeline from '../../components/pipelines/Pipeline.vue'
+
 export default {
     name: 'ApplicationPipelines',
     components: {
         SectionTopMenu,
-        PlusSmIcon
+        PlusSmIcon,
+        Pipeline
     },
     props: {
         instances: {
@@ -67,3 +69,7 @@ export default {
     }
 }
 </script>
+
+<style lang="scss">
+@import "../../stylesheets/components/pipelines.scss";
+</style>
