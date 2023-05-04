@@ -48,8 +48,6 @@ export default {
         this.checkInterval = setInterval(() => {
             if (this.instance.meta && this.instance.meta.state !== 'suspended') {
                 this.loadNext()
-            } else {
-                clearInterval(this.checkInterval)
             }
         }, 5000)
     },
@@ -63,7 +61,8 @@ export default {
                     await this.loadItems(this.instance.id)
                     this.loading = false
                 } else {
-                    clearInterval(this.checkInterval)
+                    this.logEntries = []
+                    this.prevCursor = null
                 }
             }
         },
@@ -76,6 +75,7 @@ export default {
         loadItems: async function (instanceId, cursor) {
             const entries = await InstanceApi.getInstanceLogs(instanceId, cursor)
             if (!cursor) {
+                this.prevCursor = null
                 this.logEntries = []
             }
             const toPrepend = []
