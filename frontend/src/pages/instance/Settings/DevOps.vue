@@ -18,7 +18,7 @@
             Select the Node-RED instance you want push to.
         </p>
 
-        <SelectInstance v-model="input.target" :team="instance.team" />
+        <SelectInstance v-model="input.target" :team="instance.team" :excludeInstanceIds="[instance.id]" />
 
         <div class="mt-6 flex gap-4">
             <ff-button :disabled="!input.target || deploying" data-action="push-stage" @click="deploy()">

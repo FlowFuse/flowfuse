@@ -38,6 +38,10 @@ export default {
         modelValue: {
             type: Object,
             default: null
+        },
+        excludeInstanceIds: {
+            type: Array,
+            default: () => []
         }
     },
     emits: ['update:modelValue'],
@@ -93,7 +97,8 @@ export default {
         loadInstances (applicationId) {
             this.loading.instances = true
             ApplicationAPI.getApplicationInstances(applicationId).then((instances) => {
-                this.options.instances = instances?.map(instance => { return { value: instance, label: instance.name } }) ?? []
+                this.options.instances = instances?.filter((instance) => !this.excludeInstanceIds.includes(instance.id))
+                    .map(instance => { return { value: instance, label: instance.name } }) ?? []
                 this.loading.instances = false
 
                 if (this.options.instances.length === 1) {
