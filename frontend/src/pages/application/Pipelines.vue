@@ -5,7 +5,7 @@
             <p>Use this to debug issues if your application will not start correctly.</p>
         </template>
         <template #tools>
-            <ff-button>
+            <ff-button :to="{name: 'CreatePipeline'}">
                 <template #icon-left>
                     <PlusSmIcon />
                 </template>
@@ -14,8 +14,9 @@
         </template>
     </SectionTopMenu>
 
-    <div v-if="pipelines">
+    <div v-if="pipelines?.length > 0">
         Pipelines go here
+        {{ pipelines }}
     </div>
     <div v-else class="ff-no-data ff-no-data-large">
         Empty State for Pipelines
@@ -25,6 +26,7 @@
 <script>
 import { PlusSmIcon } from '@heroicons/vue/outline'
 
+import ApplicationAPI from '../../api/application.js'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
 export default {
@@ -40,13 +42,28 @@ export default {
         }
     },
     data () {
-        return { }
+        return {
+            pipelines: []
+        }
     },
     computed: {
 
     },
     mounted () {
-
+        this.loadPipelines()
+    },
+    methods: {
+        async loadPipelines () {
+            ApplicationAPI.getPipelines(this.$route.params.id)
+                .then((pipelines) => {
+                    console.log(pipelines)
+                    this.pipelines = pipelines
+                })
+                .catch((err) => {
+                    console.log('err')
+                    console.error(err)
+                })
+        }
     }
 }
 </script>

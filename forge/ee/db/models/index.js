@@ -6,7 +6,9 @@ const modelTypes = [
     'Subscription',
     'SAMLProvider',
     'StorageSharedLibrary',
-    'UserBillingCode'
+    'UserBillingCode',
+    'Pipeline',
+    'PipelineStage'
 ]
 
 async function init (app) {

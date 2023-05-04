@@ -7,6 +7,7 @@
 import ApplicationActivity from './Activity.vue'
 import ApplicationLogs from './Logs.vue'
 import ApplicationOverview from './Overview.vue'
+import ApplicationPipeline from './Pipeline/edit.vue'
 import ApplicationPipelines from './Pipelines.vue'
 import ApplicationSettings from './Settings.vue'
 import ApplicationCreateInstance from './createInstance.vue'
@@ -45,6 +46,7 @@ export default [
             },
             {
                 path: 'pipelines',
+                name: 'ApplicationPipelines',
                 component: ApplicationPipelines,
                 meta: {
                     title: 'Application - Pipelines'
@@ -73,5 +75,21 @@ export default [
             }
             // { path: 'debug', component: ApplicationDebug }
         ]
+    },
+    {
+        path: '/application/:id/pipelines/create',
+        name: 'CreatePipeline',
+        component: ApplicationPipeline,
+        meta: {
+            title: 'Pipeline - Create'
+        }
+    },
+    {
+        path: '/application/:id/pipelines/:pipelineid',
+        name: 'EditPipeline',
+        component: ApplicationPipeline,
+        meta: {
+            title: 'Pipeline - Edit'
+        }
     }
 ]

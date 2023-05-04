@@ -97,12 +97,36 @@ const getApplicationInstancesStatuses = async (applicationId, cursor, limit) => 
  * @param {string} cursor
  * @param {string} limit
  */
-const getApplicationPipelines = async (applicationId, cursor, limit) => {
+const getPipelines = async (applicationId, cursor, limit) => {
     const result = await client.get(`/api/v1/applications/${applicationId}/pipelines`)
-
+    console.log('result')
+    console.log(result)
     const instances = result.data.pipelines
 
     return instances
+}
+
+/**
+ * @param {string} applicationId
+ * @param {string} cursor
+ * @param {string} limit
+ */
+const createPipeline = async (applicationId, name, cursor, limit) => {
+    const options = {
+        name
+    }
+    return client.post(`/api/v1/applications/${applicationId}/pipelines`, options)
+        .then(res => {
+            const props = {
+                'application-name': options.name,
+                'created-at': res.data.createdAt
+            }
+            product.capture('$ff-pipeline-created', props, {
+                team: options.teamId,
+                application: res.data.id
+            })
+            return res.data
+        })
 }
 
 export default {
@@ -112,5 +136,6 @@ export default {
     getApplication,
     getApplicationInstances,
     getApplicationInstancesStatuses,
-    getApplicationPipelines
+    getPipelines,
+    createPipeline
 }
