@@ -12,7 +12,8 @@ module.exports = {
     up: async (context) => {
         await context.addColumn('Devices', 'mode', {
             type: DataTypes.STRING,
-            allowNull: true
+            allowNull: true,
+            defaultValue: 'autonomous'
         })
     },
     down: async (context) => {
