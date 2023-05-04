@@ -227,4 +227,9 @@ fileStore:
     ```bash
     sudo cp -r docker-compose-x.x.x/db docker-compose-y.y.y/db
     ```
-- Start the new version in the new directory `docker-compose -p flowforge up`
+- Compare the old `docker-compose.yml` to the version supplied with the new version, copy over any changes made, 
+e.g. enabling HTTPS/TLS Certificates and setting the `VIRUAL_HOST` environment variables.
+- Start the new version in the new directory 
+   ```bash
+   docker-compose -p flowforge up
+   ```
