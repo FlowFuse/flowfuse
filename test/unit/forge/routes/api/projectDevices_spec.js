@@ -104,10 +104,112 @@ describe('Project/Device API', async function () {
             cookies: { sid: token }
         })
     }
-
+    async function addDeviceToProject (device, project, userToken) {
+        const response = await app.inject({
+            method: 'PUT',
+            url: `/api/v1/devices/${device.id}`,
+            body: {
+                project: project.id
+            },
+            cookies: { sid: userToken }
+        })
+        return response.json()
+    }
     describe('Get list of devices assigned to a project', async function () {
-        // GET /api/v1/project/:projectId/devices
+        // GET /api/v1/projects/:projectId/devices
         // - Admin/Owner/Member
+        let projectA, projectB
+        before(async function () {
+            const device1 = await createDevice({ name: 'test-device-1', type: 'test-type', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const device2 = await createDevice({ name: 'test-device-2', type: 'test-type', team: TestObjects.BTeam.hashid, as: TestObjects.tokens.bob })
+            projectA = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
+            projectB = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
+            projectA.setTeam(TestObjects.ATeam)
+            projectB.setTeam(TestObjects.BTeam)
+            await addDeviceToProject(device1, projectA, TestObjects.tokens.alice)
+            await addDeviceToProject(device2, projectB, TestObjects.tokens.bob)
+        })
+
+        after(async function () {
+            await app.db.models.Device.destroy({ where: { name: 'test-device-1' } })
+            await app.db.models.Device.destroy({ where: { name: 'test-device-2' } })
+            projectA.destroy()
+            projectB.destroy()
+        })
+
+        it('fails for unknown project', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/projects/ABC-123-UNKNOWN-XYZ-456/devices',
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(404)
+        })
+        it('fails for project not in team', async function () {
+            const deviceProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${deviceProject.id}/devices`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(404)
+        })
+        it('returns a list of devices for team owner', async function () {
+            // Get list of devices
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${projectB.id}/devices`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.devices.should.have.length(1)
+            result.devices[0].should.have.property('name', 'test-device-2')
+            result.devices[0].should.have.property('type', 'test-type')
+        })
+        it('Team Owner should see device mode but NOT tunnel info (unlicensed)', async function () {
+            // Get list of devices
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${projectB.id}/devices`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.devices.should.have.length(1)
+            result.devices[0].should.have.property('mode', 'autonomous') // by default, devices are in autonomous mode & still returned even when unlicensed
+            result.devices[0].should.not.have.properties(['tunnelExists', 'tunnelEnabled', 'tunnelConnected', 'tunnelUrl', 'tunnelUrlWithToken']) // tunnel info should not be returned for unlicensed platform
+        })
+        it('Team Owner should see device mode and tunnel info (licensed)', async function () {
+            // add a license to the project (Limited to 2 devices)
+            await app.license.apply('eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A')
+            // Get list of devices
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${projectB.id}/devices`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.devices.should.have.length(1)
+            result.devices[0].should.have.property('mode', 'autonomous') // by default, devices are in autonomous mode
+            result.devices[0].should.have.properties(['tunnelExists', 'tunnelEnabled', 'tunnelConnected', 'tunnelUrl', 'tunnelUrlWithToken']) // tunnel info should be returned for licensed platform
+        })
+        it('team member should see device mode but not tunnel info', async function () {
+            // add a license to the project (Limited to 2 devices)
+            await app.license.apply('eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A')
+            // Get list of devices
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${projectA.id}/devices`,
+                cookies: { sid: TestObjects.tokens.chris }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.devices.should.have.length(1)
+            result.devices[0].should.have.property('mode', 'autonomous') // by default, devices are in autonomous mode
+            result.devices[0].should.not.have.properties(['tunnelExists', 'tunnelEnabled', 'tunnelConnected', 'tunnelUrl', 'tunnelUrlWithToken'])
+        })
     })
 
     describe('Get project device settings', async function () {

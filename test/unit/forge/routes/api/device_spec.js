@@ -599,6 +599,108 @@ describe('Device API', async function () {
                 settings.should.not.have.property('invalid')
             })
         })
+
+        describe('device remote editor (unlicensed)', function () {
+            it('details of a device does not includes tunnel info', async function () {
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/devices/${device.id}`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('mode', 'autonomous') // while device mode is a licensed feature, it is still returned for unlicensed platforms (for device status)
+                result.should.not.have.properties(['tunnelExists', 'tunnelEnabled', 'tunnelConnected', 'tunnelUrl', 'tunnelUrlWithToken']) // tunnel info is not returned
+            })
+            it('team owner can not set device to developer mode', async function () {
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}/mode`,
+                    body: {
+                        mode: 'developer'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(400)
+                const body = response.json()
+                body.should.have.property('code', 'not_licensed')
+
+                const settingsResponse = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/devices/${device.id}`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                const settings = settingsResponse.json()
+                settings.should.have.property('mode', 'autonomous') // mode is not changed
+            })
+        })
+        describe('device editor (licenced)', function () {
+            this.beforeEach(async function () {
+                const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
+                await app.license.apply(license)
+            })
+            it('details of a device includes mode and tunnel info', async function () {
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/devices/${device.id}`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('mode', 'autonomous') // by default, devices are in autonomous mode
+                result.should.have.properties(['tunnelExists', 'tunnelEnabled', 'tunnelConnected', 'tunnelUrl', 'tunnelUrlWithToken'])
+            })
+            it('team member cannot access tunnel info', async function () {
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/devices/${device.id}`,
+                    cookies: { sid: TestObjects.tokens.chris }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('mode', 'autonomous') // by default, devices are in autonomous mode
+                result.should.not.have.properties(['tunnelExists', 'tunnelEnabled', 'tunnelConnected', 'tunnelUrl', 'tunnelUrlWithToken'])
+            })
+            it('team owner can set device to developer mode', async function () {
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}/mode`,
+                    body: {
+                        mode: 'developer'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                response.json().should.have.property('mode', 'developer')
+
+                const settingsResponse = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/devices/${device.id}`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                const settings = settingsResponse.json()
+                settings.should.have.property('mode', 'developer')
+            })
+            it('team member can not set device to developer mode', async function () {
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}/mode`,
+                    body: {
+                        mode: 'developer'
+                    },
+                    cookies: { sid: TestObjects.tokens.chris }
+                })
+                response.statusCode.should.equal(403)
+            })
+        })
     })
 
     describe('Delete device', async function () {

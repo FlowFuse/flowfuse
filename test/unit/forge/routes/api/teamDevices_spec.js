@@ -19,6 +19,8 @@ describe('Team Devices API', function () {
         TestObjects.alice = await app.db.models.User.byUsername('alice')
         TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
         TestObjects.chris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', email_verified: true, password: 'ccPassword' })
+        // non admin, not in any team
+        TestObjects.dave = await app.db.models.User.create({ username: 'dave', name: 'Dave Vader', email: 'dave@example.com', password: 'ddPassword', email_verified: true, password_expired: false })
 
         TestObjects.ATeam = app.team
         TestObjects.Project1 = app.project
@@ -31,6 +33,14 @@ describe('Team Devices API', function () {
         await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
         // set chris as a member of ATeam
         await TestObjects.ATeam.addUser(TestObjects.chris, { through: { role: Roles.Member } })
+
+        // create 1 device for ATeam
+        TestObjects.Device1 = await app.db.models.Device.create({
+            name: 'device 1',
+            type: 'test device',
+            credentialSecret: ''
+        })
+        await TestObjects.ATeam.addDevice(TestObjects.Device1)
 
         TestObjects.tokens = {}
         await login('alice', 'aaPassword')
@@ -55,23 +65,23 @@ describe('Team Devices API', function () {
         }
     })
     describe('Team Devices', function () {
-        it('Get a list of devices owned by this team', async function () {
-            // GET /api/v1/team/:teamId/devices
-            // needsPermission('team:device:list')
+        // GET /api/v1/team/:teamId/devices
+        // needsPermission('team:device:list')
 
-            // first ensure we have 0 devices
+        it('Get a list of devices owned by this team', async function () {
+            // first ensure we have 1 device (added in beforeEach)
             const currentDeviceCount = await app.db.models.Device.count()
-            should(currentDeviceCount).equal(0)
+            should(currentDeviceCount).equal(1)
 
             // add 2 devices
             const device1 = await app.db.models.Device.create({
-                name: 'device 1',
+                name: 'device 2',
                 type: 'test device',
                 credentialSecret: ''
             })
             await TestObjects.ATeam.addDevice(device1)
             const device2 = await app.db.models.Device.create({
-                name: 'device 2',
+                name: 'device 3',
                 type: 'test device',
                 credentialSecret: ''
             })
@@ -86,7 +96,63 @@ describe('Team Devices API', function () {
             response.statusCode.should.equal(200)
             const result = response.json()
             result.should.have.property('devices').and.be.an.Array()
-            result.devices.should.have.a.property('length', 2)
+            result.devices.should.have.a.property('length', 3)
+        })
+        it('Team owner does not get device editor tunnel info in the list of devices (unlicensed)', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('devices').and.be.an.Array()
+            result.devices.should.have.a.property('length', 1)
+            result.devices[0].should.have.property('mode', 'autonomous')
+            result.devices[0].should.not.have.properties(['tunnelExists', 'tunnelEnabled', 'tunnelConnected', 'tunnelUrl', 'tunnelUrlWithToken'])
+        })
+        it('Team owner gets device editor tunnel info in the list of devices (licensed)', async function () {
+            // This license has limit of 2 devices
+            const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
+            app.license.apply(license)
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('devices').and.be.an.Array()
+            result.devices.should.have.a.property('length', 1)
+            result.devices[0].should.have.property('mode', 'autonomous')
+            result.devices[0].should.have.properties(['tunnelExists', 'tunnelEnabled', 'tunnelConnected', 'tunnelUrl', 'tunnelUrlWithToken'])
+        })
+        it('Team member does not get device editor tunnel info in the list of devices', async function () {
+            // This license has limit of 2 devices
+            const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
+            app.license.apply(license)
+            await login('chris', 'ccPassword')
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices`,
+                cookies: { sid: TestObjects.tokens.chris }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('devices').and.be.an.Array()
+            result.devices.should.have.a.property('length', 1)
+            result.devices[0].should.have.property('mode', 'autonomous')
+            result.devices[0].should.not.have.properties(['tunnelExists', 'tunnelEnabled', 'tunnelConnected', 'tunnelUrl', 'tunnelUrlWithToken'])
+        })
+        it('Non member does not get a list of devices', async function () {
+            // GET /api/v1/team/:teamId/devices
+            await login('dave', 'ddPassword')
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices`,
+                cookies: { sid: TestObjects.tokens.dave }
+            })
+            response.statusCode.should.equal(404) // not found
         })
     })
     describe('Provisioning Tokens', function () {
