@@ -39,6 +39,7 @@
     border-radius: 6px;
     border: 1px solid $ff-grey-400;
     min-width: 200px;
+    background-color: white;
     &.ff-pipeline-stage-ghost {
         border-style: dashed;
         padding: 48px 64px;
@@ -59,7 +60,11 @@
         padding: 6px 18px;
         display: flex;
         justify-content: space-between;
-        gap: 16px;
+        gap: 24px;
+        font-size: 0.9rem;    
+        label {
+            color: $ff-grey-500;
+        }
     }
 }
 

@@ -14,7 +14,7 @@
             </div>
             <div class="ff-pipeline-stage-row">
                 <label>URL:</label>
-                <span>{{ stage.instance.url }}</span>
+                <a class="ff-link" :href="stage.instance.url" :target="stage.instance.name">{{ stage.instance.url }}</a>
             </div>
             <div class="ff-pipeline-stage-row">
                 <label>Last Deployed:</label>
