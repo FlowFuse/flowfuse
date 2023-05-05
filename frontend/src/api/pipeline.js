@@ -16,7 +16,7 @@ const getPipelineStage = async (pipelineId, stageId) => {
 
 /**
  * @param {string} pipelineId
- * @param {string} name
+ * @param {object} stage
  */
 const addPipelineStage = async (pipelineId, stage) => {
     const options = {
@@ -28,14 +28,14 @@ const addPipelineStage = async (pipelineId, stage) => {
     }
     return client.post(`/api/v1/pipelines/${pipelineId}/stages`, options)
         .then(res => {
-            // const props = {
-            //     'pipeline-stage-name': options.name,
-            //     'created-at': res.data.createdAt
-            // }
-            // product.capture('$ff-pipeline-stage-added', props, {
-            //     team: options.teamId,
-            //     application: res.data.id
-            // })
+            const props = {
+                'pipeline-id': pipelineId,
+                'pipeline-stage-name': options.name,
+                'created-at': res.data.createdAt
+            }
+            product.capture('$ff-pipeline-stage-added', props, {
+                instance: stage.instance
+            })
             return res.data
         })
 }

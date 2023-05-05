@@ -112,14 +112,13 @@ const createPipeline = async (applicationId, name) => {
     }
     return client.post(`/api/v1/applications/${applicationId}/pipelines`, options)
         .then(res => {
-            // const props = {
-            //     'pipeline-name': options.name,
-            //     'created-at': res.data.createdAt
-            // }
-            // product.capture('$ff-pipeline-created', props, {
-            //     team: options.teamId,
-            //     application: res.data.id
-            // })
+            const props = {
+                'pipeline-id': res.data.id,
+                'created-at': res.data.createdAt
+            }
+            product.capture('$ff-pipeline-created', props, {
+                application: applicationId
+            })
             return res.data
         })
 }
@@ -131,14 +130,13 @@ const createPipeline = async (applicationId, name) => {
 const deletePipeline = async (applicationId, pipelineId) => {
     return client.delete(`/api/v1/applications/${applicationId}/pipelines/${pipelineId}`)
         .then(res => {
-            // const props = {
-            //     'pipeline-name': options.name,
-            //     'created-at': res.data.createdAt
-            // }
-            // product.capture('$ff-pipeline-created', props, {
-            //     team: options.teamId,
-            //     application: res.data.id
-            // })
+            const props = {
+                'pipeline-id': pipelineId,
+                'created-at': res.data.createdAt
+            }
+            product.capture('$ff-pipeline-deleted', props, {
+                application: applicationId
+            })
             return res.data
         })
 }
