@@ -35,7 +35,7 @@ module.exports = {
                 await log('project.flow-imported', actionedBy, project?.id, generateBody({ error, project }))
             },
             async assignedToPipelineStage (actionedBy, error, project, pipeline, pipelineStage) {
-                await log('project.flow-imported', actionedBy, project?.id, generateBody({ error, project, pipeline, pipelineStage }))
+                await log('project.assigned-to-pipeline-stage', actionedBy, project?.id, generateBody({ error, project, pipeline, pipelineStage }))
             },
             device: {
                 async unassigned (actionedBy, error, project, device) {

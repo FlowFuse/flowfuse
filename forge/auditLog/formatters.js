@@ -133,7 +133,9 @@ const formatLogEntry = (auditLogDbRow) => {
                 updates: body?.updates,
                 device: body?.device,
                 projectType: body?.projectType,
-                info: body?.info
+                info: body?.info,
+                pipeline: body?.pipeline,
+                pipelineStage: body?.pipelineStage
             })
             const roleObj = body?.role && roleObject(body.role)
             if (roleObj) {

@@ -41,13 +41,13 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const team = await request.teamMembership.getTeam()
         const name = request.body.name?.trim() // name of the stage
-        const instance = request.body.instance // instance id
+        const instanceId = request.body.instance // instance id
 
         let stage
         try {
             const options = {
                 name,
-                instance
+                instance: instanceId
             }
             if (request.body.source) {
                 options.source = request.body.source
@@ -60,9 +60,9 @@ module.exports = async function (app) {
             console.error(err)
             return reply.status(500).send({ code: 'unexpected_error', error: err.toString() })
         }
-
-        await app.auditLog.Team.application.pipeline.stageAdded(request.session.User, null, team, request.application, request.pipeline)
-        await app.auditLog.Project.assignedToPipelineStage(request.session.User, null, instance, request.pipeline, stage)
+        const instance = await app.db.models.Project.byId(instanceId)
+        await app.auditLog.Team.application.pipeline.stageAdded(request.session.User, null, team, request.application, request.pipeline, stage)
+        await app.auditLog.Project.project.assignedToPipelineStage(request.session.User, null, instance, request.pipeline, stage)
 
         reply.send(app.db.views.PipelineStage.stage(stage))
     })
