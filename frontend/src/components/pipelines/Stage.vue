@@ -5,7 +5,6 @@
             <div class="ff-pipeline-actions">
                 <PlayIcon v-if="playEnabled && !deploying" class="ff-icon ff-clickable" @click="runStage" />
                 <SpinnerIcon v-if="deploying" class="ff-icon" />
-                <!-- <CogIcon class="ff-icon" /> -->
             </div>
         </div>
         <div v-if="stage.instance" class="py-3">
@@ -37,7 +36,7 @@
 </template>
 
 <script>
-import { CogIcon, PlayIcon, PlusCircleIcon } from '@heroicons/vue/outline'
+import { PlayIcon, PlusCircleIcon } from '@heroicons/vue/outline'
 
 import InstancesAPI from '../../api/instances.js'
 import PipelineAPI from '../../api/pipeline.js'
@@ -50,7 +49,6 @@ import SpinnerIcon from '../icons/Spinner.js'
 export default {
     name: 'PipelineStage',
     components: {
-        CogIcon,
         SpinnerIcon,
         PlayIcon,
         PlusCircleIcon,
@@ -64,6 +62,10 @@ export default {
         stage: {
             default: null,
             type: Object
+        },
+        deploying: {
+            defaut: false,
+            type: Boolean
         },
         status: {
             default: null,
@@ -97,7 +99,6 @@ export default {
             }
 
             Dialog.show(msg, async () => {
-                this.deploying = true
                 this.$emit('stage-started')
 
                 // settings for when we deploy to a new stage
@@ -117,9 +118,8 @@ export default {
 
                 await InstancesAPI.updateInstance(target.instance.id, { sourceProject: source })
 
-                this.deploying = false
                 this.$emit('stage-complete')
-                Alerts.emit(`Instance successfully pushed "${this.stage.name}" to "${target.name}".`, 'confirmation')
+                Alerts.emit(`Deployment from "${this.stage.name}" to "${target.name}" has started.`, 'confirmation')
             })
         }
     }

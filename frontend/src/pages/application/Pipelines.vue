@@ -15,7 +15,7 @@
     </SectionTopMenu>
 
     <div v-if="pipelines?.length > 0" class="pt-4 space-y-6">
-        <Pipeline v-for="p in pipelines" :key="p.id" :pipeline="p" :status-map="instanceStatusMap" @deploy-complete="loadPipelines" @pipeline-deleted="loadPipelines" />
+        <Pipeline v-for="p in pipelines" :key="p.id" :pipeline="p" :status-map="instanceStatusMap" @deploy-started="beginPolling" @deploy-complete="loadPipelines" @pipeline-deleted="loadPipelines" />
     </div>
     <div v-else class="ff-no-data ff-no-data-large">
         Empty State for Pipelines
@@ -29,6 +29,7 @@ import ApplicationAPI from '../../api/application.js'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
 import Pipeline from '../../components/pipelines/Pipeline.vue'
+import Alerts from '../../services/alerts.js'
 
 export default {
     name: 'ApplicationPipelines',
@@ -36,6 +37,9 @@ export default {
         SectionTopMenu,
         PlusSmIcon,
         Pipeline
+    },
+    beforeRouteLeave () {
+        clearInterval(this.polling)
     },
     props: {
         instances: {
@@ -46,17 +50,18 @@ export default {
     data () {
         return {
             pipelines: [],
-            instanceStatusMap: null
+            instanceStatusMap: null,
+            polling: null
         }
-    },
-    computed: {
-
     },
     mounted () {
         this.loadPipelines()
         this.loadInstanceStatus()
     },
     methods: {
+        beginPolling () {
+            this.polling = setInterval(this.loadInstanceStatus, 5000)
+        },
         async loadPipelines () {
             this.loadInstanceStatus()
             ApplicationAPI.getPipelines(this.$route.params.id)
@@ -70,6 +75,19 @@ export default {
         async loadInstanceStatus () {
             ApplicationAPI.getApplicationInstancesStatuses(this.$route.params.id)
                 .then((instances) => {
+                    if (this.polling) {
+                        let allRunning = true
+                        for (const instance of instances) {
+                            if (instance.meta.state !== 'running') {
+                                allRunning = false
+                            }
+                        }
+                        // we were polling for status (triggered by deploy) but now everything is "running"
+                        if (this.polling && allRunning) {
+                            clearInterval(this.polling)
+                            Alerts.emit('Deployment of stage successful.', 'confirmation')
+                        }
+                    }
                     this.instanceStatusMap = new Map(instances.map((obj) => [obj.id, obj.meta]))
                 })
                 .catch((err) => {
