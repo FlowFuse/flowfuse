@@ -68,56 +68,6 @@ const deleteTeam = async (teamId) => {
 }
 
 /**
- * Get a list of projects for a team.
- * The status of each project will be added to the project object.
- * @param {string} teamId The Team ID (hash) to get projects for
- * @deprecated
- */
-const getTeamProjects = async (teamId) => {
-    console.warn('This method is deprecated.')
-
-    const res = await client.get(`/api/v1/teams/${teamId}/projects`)
-    const promises = []
-    res.data.projects = res.data.projects.map(r => {
-        r.createdSince = daysSince(r.createdAt)
-        r.updatedSince = daysSince(r.updatedAt)
-        r.link = { name: 'Application', params: { id: r.id } }
-        promises.push(client.get(`/api/v1/projects/${r.id}`).then(p => {
-            r.status = p.data.meta.state
-            r.flowLastUpdatedSince = daysSince(p.data.flowLastUpdatedAt)
-        }).catch(err => {
-            console.error('not found', err)
-            r.status = 'stopped'
-        }))
-
-        return r
-    })
-    await Promise.all(promises)
-    return res.data
-}
-
-/**
- * Get a list of projects (names & id  only)
- * This function does not get project status
- * @param {string} teamId The Team ID (hash) to get projects for
- * @see getTeamProjects
- * @returns {[{id: string, name: string}]} An array of project objects containing name and id
- * @deprecated
- */
-const getTeamProjectList = async (teamId) => {
-    console.warn('This method is deprecated.')
-
-    const res = await client.get(`/api/v1/teams/${teamId}/projects`)
-    const list = res.data.projects.map(r => {
-        return {
-            id: r.id,
-            name: r.name
-        }
-    })
-    return list
-}
-
-/**
  * Get a list of applications
  * This function does not get instance status
  * @param {string} teamId The Team ID (hash) to get applications and instances for
@@ -143,6 +93,56 @@ const getTeamApplicationsInstanceStatuses = async (teamId) => {
     })
 
     return result.data
+}
+
+/**
+ * Get a list of ALL instances within a team regardless of application
+ * The status of each instance will be added to the instance object.
+ * @param {string} teamId The Team ID (hash) to get instances for
+ * @deprecated This is a leftover from before the application model was introduced
+ */
+const getTeamInstances = async (teamId) => {
+    const res = await client.get(`/api/v1/teams/${teamId}/projects`)
+    const promises = []
+    res.data.projects = res.data.projects.map(r => {
+        r.createdSince = daysSince(r.createdAt)
+        r.updatedSince = daysSince(r.updatedAt)
+        r.link = { name: 'Application', params: { id: r.id } }
+        promises.push(client.get(`/api/v1/projects/${r.id}`).then(p => {
+            r.status = p.data.meta.state
+            r.flowLastUpdatedSince = daysSince(p.data.flowLastUpdatedAt)
+        }).catch(err => {
+            console.error('not found', err)
+            r.status = 'stopped'
+        }))
+
+        return r
+    })
+    await Promise.all(promises)
+    return res.data
+}
+
+/**
+ * Get a the name and id of of ALL instances within a team regardless of application
+ * This function does not include instance status
+ * @param {string} teamId The Team ID (hash) to get instance for
+ * @see getTeamInstances
+ * @returns {[{id: string, name: string, application: {id: string, name: string}}]} An array of objects containing instance summary
+ * @deprecated This is a leftover from before the application model was introduced
+ */
+const getTeamInstancesList = async (teamId) => {
+    const res = await client.get(`/api/v1/teams/${teamId}/projects`)
+    const list = res.data.projects.map(r => {
+        return {
+            id: r.id,
+            name: r.name,
+            application: {
+                id: r.application.id,
+                name: r.application.name
+            }
+        }
+    })
+    return list
 }
 
 const getTeamMembers = (teamId) => {
@@ -355,8 +355,8 @@ export default {
     getTeams,
     getTeamApplications,
     getTeamApplicationsInstanceStatuses,
-    getTeamProjects,
-    getTeamProjectList,
+    getTeamInstances,
+    getTeamInstancesList,
     getTeamMembers,
     changeTeamMemberRole,
     removeTeamMember,

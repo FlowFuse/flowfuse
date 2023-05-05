@@ -104,7 +104,7 @@ export default {
         fetchData: async function (newVal) {
             this.loading = true
             if (this.team.id) {
-                this.instances = (await teamApi.getTeamProjects(this.team.id)).projects
+                this.instances = (await teamApi.getTeamInstances(this.team.id)).projects
             }
             this.loading = false
         },

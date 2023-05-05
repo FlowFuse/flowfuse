@@ -111,7 +111,7 @@ export default {
                     this.input.name = token.name
                     this.input.project = token.project
                 }
-                const result = await teamApi.getTeamProjectList(this.team.id)
+                const result = await teamApi.getTeamInstancesList(this.team.id)
                 this.projects = result?.map(d => { return { value: d.id, label: d.name } }) || []
                 this.projects.unshift({ value: '', label: 'None' })
                 this.$refs.dialog.show()
