@@ -51,6 +51,17 @@
     }
 }
 
+.ff-icon.ff-clickable {
+    cursor: pointer;
+    path, circle, rect {
+        transition: 0.3s color, 0.3s stroke, 0.3s fill;
+        -webkit-transition: 0.3s color, 0.3s stroke, 0.3s fill;
+    }
+    &:hover {
+        color: $ff-blue-600;
+    }
+}
+
 .ff-icon-lg {
     width: 48px;
     height: 48px;

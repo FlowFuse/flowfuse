@@ -124,6 +124,25 @@ const createPipeline = async (applicationId, name) => {
         })
 }
 
+/**
+ * @param {string} applicationId
+ * @param {string} name
+ */
+const deletePipeline = async (applicationId, pipelineId) => {
+    return client.delete(`/api/v1/applications/${applicationId}/pipelines/${pipelineId}`)
+        .then(res => {
+            // const props = {
+            //     'pipeline-name': options.name,
+            //     'created-at': res.data.createdAt
+            // }
+            // product.capture('$ff-pipeline-created', props, {
+            //     team: options.teamId,
+            //     application: res.data.id
+            // })
+            return res.data
+        })
+}
+
 export default {
     createApplication,
     updateApplication,
@@ -132,5 +151,6 @@ export default {
     getApplicationInstances,
     getApplicationInstancesStatuses,
     getPipelines,
-    createPipeline
+    createPipeline,
+    deletePipeline
 }

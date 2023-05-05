@@ -14,8 +14,8 @@
         </template>
     </SectionTopMenu>
 
-    <div v-if="pipelines?.length > 0" class="pt-4">
-        <Pipeline v-for="p in pipelines" :key="p.id" :pipeline="p" @deploy-complete="loadPipelines" />
+    <div v-if="pipelines?.length > 0" class="pt-4 space-y-6">
+        <Pipeline v-for="p in pipelines" :key="p.id" :pipeline="p" :status-map="instanceStatusMap" @deploy-complete="loadPipelines" @pipeline-deleted="loadPipelines" />
     </div>
     <div v-else class="ff-no-data ff-no-data-large">
         Empty State for Pipelines
@@ -45,7 +45,8 @@ export default {
     },
     data () {
         return {
-            pipelines: []
+            pipelines: [],
+            instanceStatusMap: null
         }
     },
     computed: {
@@ -53,13 +54,23 @@ export default {
     },
     mounted () {
         this.loadPipelines()
+        this.loadInstanceStatus()
     },
     methods: {
         async loadPipelines () {
-            console.log('load pipelines')
+            this.loadInstanceStatus()
             ApplicationAPI.getPipelines(this.$route.params.id)
                 .then((pipelines) => {
                     this.pipelines = pipelines
+                })
+                .catch((err) => {
+                    console.error(err)
+                })
+        },
+        async loadInstanceStatus () {
+            ApplicationAPI.getApplicationInstancesStatuses(this.$route.params.id)
+                .then((instances) => {
+                    this.instanceStatusMap = new Map(instances.map((obj) => [obj.id, obj.meta]))
                 })
                 .catch((err) => {
                     console.error(err)

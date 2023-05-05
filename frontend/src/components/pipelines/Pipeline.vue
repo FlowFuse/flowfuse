@@ -4,16 +4,17 @@
             <label>
                 {{ pipeline.name }}
             </label>
-            <div v-if="pipeline.stages.length" class="flex gap-2">
+            <div class="flex gap-2">
                 <CogIcon v-if="!editing" class="ff-icon ff-clickable" @click="edit" />
                 <template v-else>
+                    <ff-button kind="danger" @click="deletePipeline">Delete</ff-button>
                     <ff-button kind="secondary" @click="cancel">Save</ff-button>
                 </template>
             </div>
         </div>
         <div v-if="pipeline.stages.length" class="ff-pipeline-stages">
             <template v-for="(stage, $index) in pipeline.stages" :key="stage.id">
-                <PipelineStage :pipeline-id="pipeline.id" :stage="stage" :play-enabled="$index < pipeline.stages.length - 1" @stage-started="stageStarted($index)" @stage-complete="stageComplete($index)" />
+                <PipelineStage :pipeline-id="pipeline.id" :stage="stage" :status="statusMap.get(stage.instance.id)?.state" :play-enabled="$index < pipeline.stages.length - 1" @stage-started="stageStarted($index)" @stage-complete="stageComplete($index)" />
                 <Transition name="fade">
                     <ChevronRightIcon
                         v-if="($index < pipeline.stages.length - 1) || ($index === pipeline.stages.length -1 && editing)"
@@ -35,6 +36,10 @@
 
 import { ChevronRightIcon, CogIcon } from '@heroicons/vue/outline'
 
+import ApplicationAPI from '../../api/application.js'
+import Alerts from '../../services/alerts.js'
+import Dialog from '../../services/dialog.js'
+
 import PipelineStage from './Stage.vue'
 
 export default {
@@ -48,10 +53,15 @@ export default {
         pipeline: {
             required: true,
             type: Object
+        },
+        statusMap: {
+            required: true,
+            type: Map
         }
     },
     emits: [
-        'deploy-complete'
+        'deploy-complete',
+        'pipeline-deleted'
     ],
     data () {
         return {
@@ -87,6 +97,21 @@ export default {
         stageComplete (stageIndex) {
             this.deploying = null
             this.$emit('deploy-complete')
+        },
+        deletePipeline () {
+            const msg = {
+                header: 'Delete Pipeline',
+                kind: 'danger',
+                confirmLabel: 'Delete',
+                html: `<p>Are you sure you want to delete the pipeline "${this.pipeline.name}"?</p>`
+            }
+            Dialog.show(msg, async () => {
+                await ApplicationAPI.deletePipeline(this.$route.params.id, this.pipeline.id)
+
+                this.deploying = false
+                this.$emit('pipeline-deleted')
+                Alerts.emit('Pipeline successfully deleted', 'confirmation')
+            })
         }
     }
 }

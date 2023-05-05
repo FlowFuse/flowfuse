@@ -194,7 +194,7 @@ module.exports = async function (app) {
     })
 
     /**
-     * List Application instances statuses
+     * List all pipelines within an Application
      * @name /api/v1/application/:id/pipelines
      * @memberof forge.routes.api.application
      */
@@ -214,7 +214,7 @@ module.exports = async function (app) {
     })
 
     /**
-     * List Application instances statuses
+     * Create a new Pipeline within an Application
      * @name /api/v1/application/:id/pipelines
      * @memberof forge.routes.api.application
      */
@@ -238,5 +238,31 @@ module.exports = async function (app) {
         // await app.auditLog.Team.application.created(request.session.User, null, team, application)
 
         reply.send(app.db.views.Pipeline.pipeline(pipeline))
+    })
+
+    /**
+     * Delete a Pipeline from an Application
+     * @name /api/v1/application/:id/pipelines
+     * @memberof forge.routes.api.application
+     */
+    app.delete('/:applicationId/pipelines/:pipelineId', {
+        // TODO: What permissions are required here?
+        preHandler: app.needsPermission('team:projects:list')
+    }, async (request, reply) => {
+        const pipelineId = request.params.pipelineId
+        const pipeline = await app.db.models.Pipeline.byId(pipelineId)
+        const stages = await pipeline.stages()
+
+        if (stages.length > 0) {
+            // delete stages too
+            for (let i = 0; i < stages.length; i++) {
+                stages[i].destroy()
+            }
+        }
+
+        await pipeline.destroy()
+        // await app.auditLog.Team.application.deleted(request.session.User, null, request.application.Team, request.application)
+
+        reply.send({ status: 'okay' })
     })
 }

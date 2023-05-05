@@ -4,12 +4,6 @@
     width: 100%;
     border: 1px solid $ff-grey-300;
     border-radius: 6px;
-    .ff-icon.ff-clickable {
-        cursor: pointer;
-        &:hover {
-            color: $ff-blue-600;
-        }
-    }
     .ff-pipeline-banner,
     .ff-pipeline-stage-banner {
         padding: 0 18px;

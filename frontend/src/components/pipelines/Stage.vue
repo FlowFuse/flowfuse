@@ -23,7 +23,7 @@
             </div>
             <div class="ff-pipeline-stage-row">
                 <label>Status:</label>
-                <InstanceStatusBadge status="TODO" />
+                <InstanceStatusBadge :status="status" />
             </div>
         </div>
         <div v-else class="flex justify-center py-6">
@@ -64,6 +64,10 @@ export default {
         stage: {
             default: null,
             type: Object
+        },
+        status: {
+            default: null,
+            type: String
         },
         playEnabled: {
             default: true,
