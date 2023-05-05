@@ -10,7 +10,7 @@ const isObject = (obj) => {
  * @param {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType?, info? } == {}} objects objects to include in body
  * @returns {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType? info? }
  */
-const generateBody = ({ error, team, application, project, sourceProject, targetProject, device, user, stack, billingSession, subscription, license, updates, snapshot, role, projectType, info } = {}) => {
+const generateBody = ({ error, team, application, project, sourceProject, targetProject, device, user, stack, billingSession, subscription, license, updates, snapshot, pipeline, pipelineStage, role, projectType, info } = {}) => {
     const body = {}
 
     if (isObject(error) || typeof error === 'string') {
@@ -56,6 +56,12 @@ const generateBody = ({ error, team, application, project, sourceProject, target
     }
     if (isObject(snapshot)) {
         body.snapshot = snapshotObject(snapshot)
+    }
+    if (isObject(pipeline)) {
+        body.pipeline = pipelineObject(pipeline)
+    }
+    if (isObject(pipelineStage)) {
+        body.pipelineStage = pipelineStageObject(pipelineStage)
     }
     if (isObject(role) || typeof role === 'number') {
         body.role = roleObject(role)
@@ -236,6 +242,20 @@ const snapshotObject = (snapshot) => {
         id: snapshot?.id || null,
         hashid: snapshot?.hashid || null,
         name: snapshot?.name || null
+    }
+}
+const pipelineObject = (pipeline) => {
+    return {
+        id: pipeline?.id || null,
+        hashid: pipeline?.hashid || null,
+        name: pipeline?.name || null
+    }
+}
+const pipelineStageObject = (stage) => {
+    return {
+        id: stage?.id || null,
+        hashid: stage?.hashid || null,
+        name: stage?.name || null
     }
 }
 const roleObject = (role) => {

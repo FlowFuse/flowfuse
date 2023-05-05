@@ -17,6 +17,8 @@ module.exports = async function (app) {
 
             const application = await app.db.models.Application.byId(request.pipeline.ApplicationId)
 
+            request.application = application
+
             if (request.session.User) {
                 request.teamMembership = await request.session.User.getTeamMembership(application.Team.id)
                 if (!request.teamMembership && !request.session.User.admin) {
@@ -37,6 +39,7 @@ module.exports = async function (app) {
         // TODO: What permissions are required here?
         preHandler: app.needsPermission('team:projects:list')
     }, async (request, reply) => {
+        const team = await request.teamMembership.getTeam()
         const name = request.body.name?.trim() // name of the stage
         const instance = request.body.instance // instance id
 
@@ -58,7 +61,8 @@ module.exports = async function (app) {
             return reply.status(500).send({ code: 'unexpected_error', error: err.toString() })
         }
 
-        // await app.auditLog.Team.application.created(request.session.User, null, team, application)
+        await app.auditLog.Team.application.pipeline.stageAdded(request.session.User, null, team, request.application, request.pipeline)
+        await app.auditLog.Project.assignedToPipelineStage(request.session.User, null, instance, request.pipeline, stage)
 
         reply.send(app.db.views.PipelineStage.stage(stage))
     })

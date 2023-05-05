@@ -222,6 +222,7 @@ module.exports = async function (app) {
         // TODO: What permissions are required here?
         preHandler: app.needsPermission('team:projects:list')
     }, async (request, reply) => {
+        const team = await request.teamMembership.getTeam()
         const name = request.body.name?.trim()
 
         let pipeline
@@ -235,7 +236,7 @@ module.exports = async function (app) {
             return reply.status(500).send({ code: 'unexpected_error', error: err.toString() })
         }
 
-        // await app.auditLog.Team.application.created(request.session.User, null, team, application)
+        await app.auditLog.Team.application.pipeline.created(request.session.User, null, team, request.application, pipeline)
 
         reply.send(app.db.views.Pipeline.pipeline(pipeline))
     })
@@ -249,6 +250,7 @@ module.exports = async function (app) {
         // TODO: What permissions are required here?
         preHandler: app.needsPermission('team:projects:list')
     }, async (request, reply) => {
+        const team = await request.teamMembership.getTeam()
         const pipelineId = request.params.pipelineId
         const pipeline = await app.db.models.Pipeline.byId(pipelineId)
         const stages = await pipeline.stages()
@@ -261,7 +263,7 @@ module.exports = async function (app) {
         }
 
         await pipeline.destroy()
-        // await app.auditLog.Team.application.deleted(request.session.User, null, request.application.Team, request.application)
+        await app.auditLog.Team.application.pipeline.deleted(request.session.User, null, team, request.application, pipeline)
 
         reply.send({ status: 'okay' })
     })
