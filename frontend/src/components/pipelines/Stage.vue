@@ -3,13 +3,14 @@
         <div class="ff-pipeline-stage-banner">
             <label>{{ stage.name }}</label>
             <div class="ff-pipeline-actions">
-                <PlayIcon v-if="playEnabled" class="ff-icon" @click="runStage" />
+                <PlayIcon v-if="playEnabled && !deploying" class="ff-icon ff-clickable" @click="runStage" />
+                <SpinnerIcon v-if="deploying" class="ff-icon" />
                 <!-- <CogIcon class="ff-icon" /> -->
             </div>
         </div>
         <div v-if="stage.instance" class="py-3">
             <div class="ff-pipeline-stage-row">
-                <label>Name:</label>
+                <label>Instance:</label>
                 <span>{{ stage.instance.name }}</span>
             </div>
             <div class="ff-pipeline-stage-row">
@@ -18,7 +19,7 @@
             </div>
             <div class="ff-pipeline-stage-row">
                 <label>Last Deployed:</label>
-                <span>{{ stage.instance.updatedAt }}</span>
+                <span>{{ lastDeployed }} ago</span>
             </div>
             <div class="ff-pipeline-stage-row">
                 <label>Status:</label>
@@ -43,11 +44,14 @@ import PipelineAPI from '../../api/pipeline.js'
 import InstanceStatusBadge from '../../pages/instance/components/InstanceStatusBadge.vue'
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
+import elapsedTime from '../../utils/elapsedTime.js'
+import SpinnerIcon from '../icons/Spinner.js'
 
 export default {
     name: 'PipelineStage',
     components: {
         CogIcon,
+        SpinnerIcon,
         PlayIcon,
         PlusCircleIcon,
         InstanceStatusBadge
@@ -66,6 +70,15 @@ export default {
             type: Boolean
         }
     },
+    emits: [
+        'stage-started',
+        'stage-complete'
+    ],
+    computed: {
+        lastDeployed: function () {
+            return elapsedTime(this.stage.instance.updatedAt, new Date())
+        }
+    },
     methods: {
         runStage: async function () {
             // get target stage
@@ -81,6 +94,7 @@ export default {
 
             Dialog.show(msg, async () => {
                 this.deploying = true
+                this.$emit('stage-started')
 
                 // settings for when we deploy to a new stage
                 this.parts = {
@@ -100,6 +114,7 @@ export default {
                 await InstancesAPI.updateInstance(target.instance.id, { sourceProject: source })
 
                 this.deploying = false
+                this.$emit('stage-complete')
                 Alerts.emit(`Instance successfully pushed "${this.stage.name}" to "${target.name}".`, 'confirmation')
             })
         }

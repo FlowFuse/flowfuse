@@ -4,16 +4,26 @@
             <label>
                 {{ pipeline.name }}
             </label>
-            <div class="">
-                <CogIcon class="ff-icon" />
+            <div v-if="pipeline.stages.length" class="flex gap-2">
+                <CogIcon v-if="!editing" class="ff-icon ff-clickable" @click="edit" />
+                <template v-else>
+                    <ff-button kind="secondary" @click="cancel">Save</ff-button>
+                </template>
             </div>
         </div>
         <div v-if="pipeline.stages.length" class="ff-pipeline-stages">
             <template v-for="(stage, $index) in pipeline.stages" :key="stage.id">
-                <PipelineStage :pipeline-id="pipeline.id" :stage="stage" :play-enabled="$index < pipeline.stages.length - 1" />
-                <ChevronRightIcon class="ff-icon mt-4 flex-shrink-0" />
+                <PipelineStage :pipeline-id="pipeline.id" :stage="stage" :play-enabled="$index < pipeline.stages.length - 1" @stage-started="stageStarted($index)" @stage-complete="stageComplete($index)" />
+                <Transition name="fade">
+                    <ChevronRightIcon
+                        v-if="($index < pipeline.stages.length - 1) || ($index === pipeline.stages.length -1 && editing)"
+                        class="ff-icon mt-4 flex-shrink-0" :class="{'animate-deploying': deploying === $index}"
+                    />
+                </Transition>
             </template>
-            <PipelineStage @click="addStage" />
+            <Transition name="fade">
+                <PipelineStage v-if="editing" @click="addStage" />
+            </Transition>
         </div>
         <div v-else class="ff-pipeline-stages">
             <PipelineStage @click="addStage" />
@@ -40,11 +50,15 @@ export default {
             type: Object
         }
     },
+    emits: [
+        'deploy-complete'
+    ],
     data () {
-        return { }
+        return {
+            editing: false,
+            deploying: null
+        }
     },
-    computed: { },
-    mounted () { },
     methods: {
         addStage: function () {
             const route = {
@@ -60,6 +74,19 @@ export default {
                 }
             }
             this.$router.push(route)
+        },
+        edit () {
+            this.editing = true
+        },
+        cancel () {
+            this.editing = false
+        },
+        stageStarted (stageIndex) {
+            this.deploying = stageIndex
+        },
+        stageComplete (stageIndex) {
+            this.deploying = null
+            this.$emit('deploy-complete')
         }
     }
 }

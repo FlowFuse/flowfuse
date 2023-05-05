@@ -4,11 +4,19 @@
     width: 100%;
     border: 1px solid $ff-grey-300;
     border-radius: 6px;
+    .ff-icon.ff-clickable {
+        cursor: pointer;
+        &:hover {
+            color: $ff-blue-600;
+        }
+    }
     .ff-pipeline-banner,
     .ff-pipeline-stage-banner {
-        padding: 12px 18px;
+        padding: 0 18px;
+        height: 46px;
         display: flex;
         justify-content: space-between;
+        align-items: center;
         border-bottom: 1px solid $ff-grey-300;
         background-color: $ff-grey-100;
         border-top-left-radius: 6px;
@@ -30,12 +38,6 @@
         align-items: flex-start;
         gap: 16px;
         overflow-x: auto;
-        .ff-icon {
-            cursor: pointer;
-            &:hover {
-                color: $ff-blue-600;
-            }
-        }
     }
 }
 
@@ -64,5 +66,29 @@
         display: flex;
         justify-content: space-between;
         gap: 16px;
+    }
+}
+
+.animate-deploying {
+    animation-name: left-to-right;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+    color: $ff-blue-600;
+}
+
+@keyframes left-to-right {
+    0% {
+        transform: translate(-24px, 0);
+        opacity: 0;
+    }
+    40% {
+        opacity: 1;
+    }
+    75% {
+        opacity: 0;
+    }
+    100% {
+        transform: translate(24px, 0);
+        opacity: 0;
     }
 }

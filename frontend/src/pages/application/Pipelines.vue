@@ -15,7 +15,7 @@
     </SectionTopMenu>
 
     <div v-if="pipelines?.length > 0" class="pt-4">
-        <Pipeline v-for="p in pipelines" :key="p.id" :pipeline="p" />
+        <Pipeline v-for="p in pipelines" :key="p.id" :pipeline="p" @deploy-complete="loadPipelines" />
     </div>
     <div v-else class="ff-no-data ff-no-data-large">
         Empty State for Pipelines
@@ -56,13 +56,12 @@ export default {
     },
     methods: {
         async loadPipelines () {
+            console.log('load pipelines')
             ApplicationAPI.getPipelines(this.$route.params.id)
                 .then((pipelines) => {
-                    console.log(pipelines)
                     this.pipelines = pipelines
                 })
                 .catch((err) => {
-                    console.log('err')
                     console.error(err)
                 })
         }
