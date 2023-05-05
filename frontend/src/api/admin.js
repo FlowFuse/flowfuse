@@ -45,6 +45,16 @@ const getPlatformAuditLog = async (params, cursor, limit) => {
     return client.get(url, { params }).then(res => res.data)
 }
 
+const generateStatsAccessToken = async () => {
+    return client.post('/api/v1/admin/stats-token', {}).then(res => {
+        return res.data
+    })
+}
+const deleteStatsAccessToken = async () => {
+    return client.delete('/api/v1/admin/stats-token').then(res => {
+        return res.data
+    })
+}
 /**
  * Calls api routes in admin.js
  * See [routes/api/admin.js](../../../forge/routes/api/admin.js)
@@ -54,5 +64,7 @@ export default {
     getLicenseDetails,
     updateLicense,
     getInvitations,
-    getPlatformAuditLog
+    getPlatformAuditLog,
+    generateStatsAccessToken,
+    deleteStatsAccessToken
 }

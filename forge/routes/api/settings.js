@@ -11,7 +11,8 @@ module.exports = async function (app) {
         // - For an admin user, this includes more detailed settings they are able
         //   to change via the UI
 
-        if (request.session && request.session.User) {
+        // Logged in session user (not using an access token)
+        if (request.session && request.session.User && !request.session.scope) {
             const isLicensed = app.license.active()
             const response = {
                 'team:user:invite:external': app.settings.get('team:user:invite:external') && app.postoffice.enabled(),
@@ -56,6 +57,7 @@ module.exports = async function (app) {
                         response[prop] = value
                     }
                 })
+                response['platform:stats:token'] = app.settings.get('platform:stats:token')
             }
             reply.send(response)
         } else {
@@ -91,7 +93,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.put('/', { preHandler: app.verifyAdmin }, async (request, reply) => {
+    app.put('/', { preHandler: app.needsPermission('settings:edit') }, async (request, reply) => {
         if (request.body) {
             const updates = new app.auditLog.formatters.UpdatesCollection()
             for (let [key, value] of Object.entries(request.body)) {

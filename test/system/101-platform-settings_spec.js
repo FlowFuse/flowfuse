@@ -156,7 +156,7 @@ describe('Platform Settings', function () {
             }
         })
 
-        put1.should.have.property('statusCode', 401) // 401: {error: 'unauthorized'} from app.verifyAdmin
+        put1.should.have.property('statusCode', 403) // 403: {error: 'unauthorized'}
 
         const pass1 = getTcsSettings()
         pass1.should.have.property('tcsRequired', true) // unchanged

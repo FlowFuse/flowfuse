@@ -1,6 +1,6 @@
 const fp = require('fastify-plugin')
 const { Permissions } = require('../../lib/permissions')
-
+const { Roles } = require('../../lib/roles.js')
 // For device/project tokens, list the scopes they implicitly have.
 // This will allow us to add scopes to existing tokens without having to update
 // them (as that requires reprovisioning of devices and restaging of projects)
@@ -29,7 +29,7 @@ module.exports = fp(async function (app, opts, done) {
         return async (request, reply) => {
             if (!request.session.scope && request.session.User && request.session.User.admin) {
                 // Admins get to have all the fun - as long as they are logged in and not
-                // using an access-token
+                // using an access-token which has a reduced scope
                 return
             }
             // A user has permission based on:
@@ -39,16 +39,15 @@ module.exports = fp(async function (app, opts, done) {
             // For all Team based permissions, the request should already have
             // request.team and request.teamMembership set
             const permission = Permissions[scope]
-            if (permission.admin) {
-                // Requires admin user - which would have already been approved
-                // if they were an admin
+            if (permission.role === Roles.Admin && !request.session.User.admin && !permission.self) {
+                // Requires admin user
                 reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
                 throw new Error()
             } else if (app.settings.get(scope) === false) {
                 // Permission disabled via admin settings
                 reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
                 throw new Error()
-            } else if (permission.role && (!request.session.scope || request.session.ownerType === 'user')) {
+            } else if (permission.role && permission.role !== Roles.Admin && (!request.session.scope || request.session.ownerType === 'user')) {
                 // The user is required to have a role in the team associated with
                 // this request
                 if (!request.teamMembership) {
@@ -64,11 +63,18 @@ module.exports = fp(async function (app, opts, done) {
                     throw new Error()
                 }
             } else if (permission.self) {
-                // A request outside the context of a team. Currently this covers
-                // /api/v1/user/* routes
+                // A request outside the context of a team.
                 if (!request.session.User) {
                     reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
                     throw new Error()
+                }
+                if (request.user) {
+                    // This request is in the context of a user. Ensure it is the
+                    // session user
+                    if (request.user.id !== request.session.User?.id) {
+                        reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
+                        throw new Error()
+                    }
                 }
             }
             if (request.session.scope) {

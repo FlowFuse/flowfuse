@@ -10,6 +10,7 @@ const comms = require('./comms')
 const cookie = require('@fastify/cookie')
 const csrf = require('@fastify/csrf-protection')
 const helmet = require('@fastify/helmet')
+const accepts = require('@fastify/accepts')
 const postoffice = require('./postoffice')
 const monitor = require('./monitor')
 const housekeeper = require('./housekeeper')
@@ -38,7 +39,7 @@ module.exports = async (options = {}) => {
             level: loggerLevel
         }
     })
-
+    server.register(accepts)
     server.addHook('onError', async (request, reply, error) => {
         // Useful for debugging when a route goes wrong
         // console.error(error.stack)

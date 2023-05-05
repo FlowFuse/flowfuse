@@ -88,7 +88,51 @@
                     sent to that email address.</p>
             </template>
         </FormRow>
-        <FormHeading v-if="!isLicensed">Platform</FormHeading>
+        <FormHeading>Platform</FormHeading>
+        <FormRow v-model="platformStatsTokenEnabled" type="checkbox">
+            Allow token-based access to platform statistics
+            <template #description>
+                <p>
+                    This can be used to enable remote monitoring of the platform
+                    without providing full access to the admin API.
+                </p>
+                <p>
+                    The token is generated when this option is enabled. Once
+                    enabled, the token cannot be retrieved.
+                </p>
+                <p>
+                    To regenerate the token, disable, then re-enable this option.
+                </p>
+            </template>
+        </FormRow>
+        <ff-dialog ref="enablePlatformStatsToken" header="Allow token-based access to platform statistics">
+            <template #default>
+                <ff-loading v-if="platformStatsTokenGenerating" message="Generating token..."/>
+                <template v-else>
+                    <p>The following token can be used to access the platform statistics api.</p>
+                    <code class="block my-2">{{platformStatsToken}}</code>
+                    <p>
+                        This is the only time this token will be shared. Make sure you save it
+                        before closing this dialog.
+                    </p>
+                </template>
+            </template>
+            <template #actions>
+                <ff-button v-if="!platformStatsTokenGenerating" @click="$refs['enablePlatformStatsToken'].close()">Close</ff-button>
+                <span v-else>&nbsp;</span>
+            </template>
+        </ff-dialog>
+        <ff-dialog ref="disablePlatformStatsToken" header="Disable token-based access to platform statistics">
+            <template #default>
+                <p>This will delete the active token used to access the platform statistics.</p>
+                <p>Are you sure?</p>
+            </template>
+            <template #actions>
+                <ff-button @click="cancelDisablePlatformStatsToken">Cancel</ff-button>
+                <ff-button @click="disableStatsToken" kind="danger">Disable</ff-button>
+            </template>
+        </ff-dialog>
+
         <FormRow v-model="input['telemetry:enabled']" type="checkbox" v-if="!isLicensed">
             Enable collection of anonymous statistics
             <template #description>
@@ -102,7 +146,8 @@
                 </p>
             </template>
         </FormRow>
-        <div>
+
+        <div class="pt-8">
             <ff-button :disabled="!saveEnabled" @click="saveChanges" data-action="save-settings">Save settings</ff-button>
         </div>
 
@@ -110,6 +155,7 @@
 </template>
 
 <script>
+import adminApi from '../../../api/admin.js'
 import settingsApi from '../../../api/settings.js'
 import instanceTypesApi from '../../../api/instanceTypes.js'
 import Dialog from '../../../services/dialog.js'
@@ -132,7 +178,8 @@ const validSettings = [
     'user:team:trial-mode:duration',
     'user:team:trial-mode:projectType',
     'branding:account:signUpTopBanner',
-    'branding:account:signUpLeftBanner'
+    'branding:account:signUpLeftBanner',
+    'platform:stats:token'
 ]
 
 export default {
@@ -142,11 +189,14 @@ export default {
             loading: false,
             input: {
             },
+            platformStatsTokenEnabled: false,
+            platformStatsToken: null,
             errors: {
                 requiresEmail: null,
                 termsAndConditions: null
             },
-            instanceTypes: []
+            instanceTypes: [],
+            platformStatsTokenGenerating: false
         }
     },
     computed: {
@@ -194,6 +244,23 @@ export default {
                 label: pt.name
             }
         })
+
+        this.platformStatsTokenEnabled = this.input['platform:stats:token']
+        this.platformStatsToken = ''
+    },
+    watch: {
+        platformStatsTokenEnabled: function (newValue) {
+            if (this.platformStatsToken === null) {
+                // This is the initial setting of the value - ignore it
+                this.platformStatsToken = ''
+                return
+            }
+            if (newValue) {
+                this.showGenerateStatsToken()
+            } else {
+                this.showDisableStatsToken()
+            }
+        }
     },
     methods: {
         validate () {
@@ -268,6 +335,28 @@ export default {
                     this.loading = false
                 }
             })
+        },
+
+        showGenerateStatsToken () {
+            this.platformStatsTokenGenerating = true
+            this.$refs.enablePlatformStatsToken.show()
+            adminApi.generateStatsAccessToken().then(result => {
+                this.platformStatsToken = result.token
+                this.platformStatsTokenGenerating = false
+            })
+        },
+        showDisableStatsToken () {
+            this.$refs.disablePlatformStatsToken.show()
+        },
+        cancelDisablePlatformStatsToken () {
+            this.$refs.disablePlatformStatsToken.close()
+            this.platformStatsToken = null
+            this.platformStatsTokenEnabled = true
+        },
+        disableStatsToken () {
+            this.$refs.disablePlatformStatsToken.close()
+            this.platformStatsToken = ''
+            adminApi.deleteStatsAccessToken().then(result => {})
         }
     },
     components: {

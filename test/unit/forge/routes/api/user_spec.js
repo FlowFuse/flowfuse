@@ -84,6 +84,24 @@ describe('User API', async function () {
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
+    describe('User teams', async function () {
+        it('lists the logged in user teams', async function () {
+            await login('bob', 'bbPassword')
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user/teams',
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('count', 2)
+            result.should.have.property('teams')
+            result.teams.should.have.length(2)
+            result.teams[0].should.have.property('id', TestObjects.ATeam.hashid)
+            result.teams[1].should.have.property('id', TestObjects.BTeam.hashid)
+        })
+    })
+
     describe('User settings', async function () {
         afterEach(async function () {
             // restore elvis
@@ -239,12 +257,22 @@ describe('User API', async function () {
                     admin: true // admin only setting
                 }
             })
-            response.statusCode.should.equal(200)
-            const result = response.json()
-            result.should.not.have.property('error')
-            result.should.have.property('email_verified', true) // unchanged
-            result.should.have.property('admin', false) // unchanged
+            response.statusCode.should.equal(400)
         })
+        it('member user can provide admin-only settings if they are unchanged (email_verified, admin)', async function () {
+            await login('elvis', 'eePassword')
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.elvis },
+                payload: {
+                    email_verified: true, // admin only setting
+                    admin: false // admin only setting
+                }
+            })
+            response.statusCode.should.equal(200)
+        })
+
         it('user can change password', async function () {
             await login('dave', 'ddPassword')
             const response = await app.inject({

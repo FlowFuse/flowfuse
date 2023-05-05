@@ -14,6 +14,7 @@ navTitle: Administering FlowForge
  - [Usage Telemetry](/docs/admin/telemetry.md)
  - [Single-Sign On](/docs/admin/sso/README.md)
  - [User management](/docs/admin/user_management.md)
+ - [Platform Monitoring](/docs/admin/monitoring.md)
 
 ## Administering FlowForge
 

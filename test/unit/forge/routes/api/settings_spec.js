@@ -11,6 +11,15 @@ describe('Settings API', function () {
         TestObjects.alice = await app.db.models.User.byUsername('alice')
         TestObjects.tokens = {}
         await login('alice', 'aaPassword')
+
+        TestObjects.bob = await app.factory.createUser({
+            admin: false,
+            username: 'bob',
+            name: 'Bob',
+            email: 'bob@example.com',
+            password: 'bbPassword'
+        })
+        await login('bob', 'bbPassword')
     })
 
     afterEach(async function () {
@@ -60,6 +69,17 @@ describe('Settings API', function () {
     })
     describe('Telemetry Setting', function () {
         const TELEMETRY_KEY = 'telemetry:enabled'
+        it('Non-admin user cannot modify settings', async function () {
+            const result = await app.inject({
+                method: 'PUT',
+                url: settingsURL,
+                cookies: { sid: TestObjects.tokens.bob },
+                payload: {
+                    [TELEMETRY_KEY]: false
+                }
+            })
+            result.statusCode.should.equal(403)
+        })
         it('Can disable telemetry when unlicensed', async function () {
             app.settings.set(TELEMETRY_KEY, true)
             app.settings.get(TELEMETRY_KEY).should.be.true()

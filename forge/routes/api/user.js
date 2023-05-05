@@ -74,7 +74,7 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.user
      */
     app.get('/teams', {
-        preHandler: app.needsPermission('user:read')
+        preHandler: app.needsPermission('user:team:list')
     }, async (request, reply) => {
         const teams = await app.db.models.Team.forUser(request.session.User)
         const result = await app.db.views.Team.userTeamList(teams)

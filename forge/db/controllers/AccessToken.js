@@ -135,6 +135,25 @@ module.exports = {
         return { token: token.id }
     },
 
+    generatePlatformStatisticsToken: async function (app, user) {
+        // Clear any existing platform:stats token
+        await app.db.controllers.AccessToken.removePlatformStatisticsToken()
+        await app.settings.set('platform:stats:token', true)
+        return app.db.controllers.AccessToken.createTokenForUser(user, null, ['platform:stats'])
+    },
+    removePlatformStatisticsToken: async function (app) {
+        // This assumes we only have this one path for creating such a token.
+        // In the future, if we support Personal Access Tokens, it will be
+        // possible to have multiple tokens with just this scope - so this
+        // logic will need changing
+        await app.db.models.AccessToken.destroy({
+            where: {
+                scope: 'platform:stats'
+            }
+        })
+        await app.settings.set('platform:stats:token', false)
+    },
+
     refreshToken: async function (app, refreshToken) {
         const existingToken = await app.db.models.AccessToken.byRefreshToken(refreshToken)
         if (existingToken) {

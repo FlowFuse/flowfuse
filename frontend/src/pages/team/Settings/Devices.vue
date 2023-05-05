@@ -113,7 +113,7 @@ export default {
         },
         async fetchData (nextCursor = null, polled = false) {
             // load project names into local cache (TODO: consider moving this to a vuex store for global access)
-            this.projectNames = await teamApi.getTeamProjectList(this.team.id)
+            this.projectNames = await teamApi.getTeamInstancesList(this.team.id)
             // get the tokens
             const data = await teamApi.getTeamDeviceProvisioningTokens(this.team.id, nextCursor)
 
