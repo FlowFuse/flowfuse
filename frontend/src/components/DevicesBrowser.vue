@@ -91,7 +91,10 @@
             <template v-else>
                 <template v-if="displayingTeam">
                     <EmptyState data-el="team-no-devices">
-                        <template #header>Add your First Device</template>
+                        <template #img>
+                            <img src="../images/empty-states/team-devices.png">
+                        </template>
+                        <template #header>Connect your First Device</template>
                         <template #message>
                             <p>
                                 Devices in FlowForge allow you to manage Node-RED instances
@@ -123,13 +126,16 @@
                 </template>
                 <template v-else-if="displayingInstance">
                     <EmptyState data-el="instance-no-devices">
+                        <template #img>
+                            <img src="../images/empty-states/instance-devices.png">
+                        </template>
                         <template #header>Connect your First Device</template>
                         <template #message>
                             <p>
                                 Here, you will see a list of Devices connected to this Node-RED Instance.
                             </p>
                             <p>
-                                You can deploy Snapshots of this Instance to your connected Devices.
+                                You can deploy <router-link class="ff-link" :to="{name: 'InstanceSnapshots', params: {id: instance.id}}">Snapshots</router-link> of this Instance to your connected Devices.
                             </p>
                             <p>
                                 A full list of your Team's Devices are available <router-link
