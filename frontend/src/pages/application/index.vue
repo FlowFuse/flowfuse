@@ -110,7 +110,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership', 'team']),
+        ...mapState('account', ['teamMembership', 'team', 'features']),
         isVisitingAdmin () {
             return this.teamMembership.role === Roles.Admin
         },
@@ -118,13 +118,21 @@ export default {
             return this.loading.deleting || this.loading.suspend
         },
         navigation () {
-            return [
+            const routes = [
                 { label: 'Node-RED Instances', path: `/application/${this.application.id}/instances`, tag: 'application-overview', icon: ProjectsIcon },
-                { label: 'DevOps Pipelines', path: `/application/${this.application.id}/pipelines`, tag: 'application-pipelines', icon: PipelinesIcon },
                 { label: 'Node-RED Logs', path: `/application/${this.application.id}/logs`, tag: 'application-logs', icon: TerminalIcon },
                 { label: 'Audit Log', path: `/application/${this.application.id}/activity`, tag: 'application-activity', icon: ViewListIcon },
                 { label: 'Settings', path: `/application/${this.application.id}/settings`, tag: 'application-settings', icon: CogIcon }
             ]
+            if (this.features && this.features['devops-pipelines']) {
+                routes.splice(1, 0, {
+                    label: 'DevOps Pipelines',
+                    path: `/application/${this.application.id}/pipelines`,
+                    tag: 'application-pipelines',
+                    icon: PipelinesIcon
+                })
+            }
+            return routes
         },
         instancesArray () {
             return Array.from(this.applicationInstances.values())

@@ -12,7 +12,7 @@
             </p>
         </template>
         <template #tools>
-            <ff-button :to="{name: 'CreatePipeline', params: {applicationId: $route.params.id}}">
+            <ff-button data-action="pipeline-add" :to="{name: 'CreatePipeline', params: {applicationId: $route.params.id}}">
                 <template #icon-left>
                     <PlusSmIcon />
                 </template>
@@ -50,6 +50,7 @@
 
 <script>
 import { PlusSmIcon } from '@heroicons/vue/outline'
+import { mapState } from 'vuex'
 
 import ApplicationAPI from '../../api/application.js'
 import EmptyState from '../../components/EmptyState.vue'
@@ -82,9 +83,21 @@ export default {
             polling: null
         }
     },
+    computed: {
+        ...mapState('account', ['features'])
+    },
     mounted () {
-        this.loadPipelines()
-        this.loadInstanceStatus()
+        if (this.features['devops-pipelines']) {
+            this.loadPipelines()
+            this.loadInstanceStatus()
+        } else {
+            this.$router.push({
+                name: 'Application',
+                params: {
+                    id: this.$route.params.id
+                }
+            })
+        }
     },
     methods: {
         beginPolling () {
