@@ -33,7 +33,8 @@ module.exports = fp(async function (app, opts, done) {
     })
 
     fastifyPassport.use(new MultiSamlStrategy({
-        passReqToCallback: true, // makes req available in callback
+        passReqToCallback: true, // makes req available in callback,
+        wantAssertionsSigned: false, // TODO: allow this to be set per provider
         async getSamlOptions (request, done) {
             if (request.body?.RelayState) {
                 // This is an in-flight request. We previously stored the SAML provider
