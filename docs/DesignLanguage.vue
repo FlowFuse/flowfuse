@@ -503,7 +503,7 @@
                 <div class="examples">
                     <div class="example">
                         <h5>Example 1: Horizontal</h5>
-                        <ff-radio-group ref="radio-group-input" v-model="models.radio0" :options="[{label: 'Option 1', value: 1, checked: false}, {label: 'Option 2', value: 2}]"></ff-radio-group>
+                        <ff-radio-group ref="radio-group-input" v-model="models.radio0" :options="[{label: 'Option 1', value: 1}, {label: 'Option 2', value: 2}]"></ff-radio-group>
                         {{ models.radio0 }}
                         <code>{{ cGroups['input'].components[3].examples[0].code }}</code>
                     </div>
