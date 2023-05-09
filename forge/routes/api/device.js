@@ -1,6 +1,5 @@
 // eslint-disable-next-line no-unused-vars
-const { DeviceTunnelManager } = require('../../comms/DeviceTunnelManager')
-const { generateToken } = require('../../db/utils')
+const { DeviceTunnelManager } = require('../../ee/lib/deviceEditor/DeviceTunnelManager')
 const { Roles } = require('../../lib/roles')
 const DeviceLive = require('./deviceLive')
 
@@ -61,8 +60,7 @@ module.exports = async function (app) {
     app.get('/:deviceId', {
         preHandler: app.needsPermission('device:read')
     }, async (request, reply) => {
-        const includeTunnelInfo = app.hasPermission(request.teamMembership, 'device:editor')
-        reply.send(app.db.views.Device.device(request.device, { includeTunnelInfo }))
+        reply.send(app.db.views.Device.device(request.device))
     })
 
     /**
@@ -315,8 +313,7 @@ module.exports = async function (app) {
         if (sendDeviceUpdate) {
             app.db.controllers.Device.sendDeviceUpdateCommand(updatedDevice)
         }
-        const includeTunnelInfo = app.hasPermission(request.teamMembership, 'device:editor')
-        reply.send(app.db.views.Device.device(updatedDevice, { includeTunnelInfo }))
+        reply.send(app.db.views.Device.device(updatedDevice))
     })
 
     app.post('/:deviceId/generate_credentials', {
@@ -364,78 +361,12 @@ module.exports = async function (app) {
     })
 
     /**
-     * Enable/Disable device editor
-     * @name /api/v1/devices/:deviceId/editor
-     * @memberof module:forge/routes/api/device
-     */
-    app.put('/:deviceId/editor', {
-        preHandler: app.needsPermission('device:editor')
-    }, async (request, reply) => {
-        // setting up device editor tunnel is only valid for licensed platforms
-        const isLicensed = app.license.active()
-        if (isLicensed !== true) {
-            reply.code(400).send({ code: 'not_licensed', error: 'Device editor can only be used on licensed platforms' })
-            return
-        }
-        const mode = request.body.tunnel || 'disable'
-        const team = await app.db.models.Team.byId(request.device.TeamId)
-        /** @type {DeviceTunnelManager} */
-        const tunnelManager = app.comms.devices.tunnelManager
-        const deviceId = request.device.hashid
-        const teamId = team.hashid
-        if (mode === 'enable') {
-            // Generate a random access token for editor, open a tunnel and start the editor
-            const accessToken = await generateToken(16, `ffde_${deviceId}`)
-            // prepare the tunnel but dont start it (the remote device will initiate the connection)
-            // * Enable Device Editor (Step 3) - (frontendApi:HTTP->forge) Create Tunnel
-            tunnelManager.newTunnel(deviceId, accessToken)
-            let err = null
-            try {
-                // * Enable Device Editor (Step 4) - (forge) Enable Editor Request. This call resolves after steps 5 ~ 10
-                await app.comms.devices.enableEditor(teamId, request.device.hashid, accessToken)
-            } catch (error) {
-                // ensure any attempt to enable the editor is cleaned up if an error occurs
-                tunnelManager.closeTunnel(deviceId)
-                err = error
-            }
-            // * Enable Device Editor (Step 11) - (forge:HTTP->frontendApi) Send tunnel status back to frontend
-            const tunnelStatus = tunnelManager.getTunnelStatus(request.device)
-            if (err) {
-                tunnelStatus.error = err.message
-                tunnelStatus.code = err.code || 'enable_editor_failed'
-                reply.code(503).send(tunnelStatus) // Service Unavailable
-            } else {
-                reply.send(tunnelStatus)
-            }
-        } else if (mode === 'disable') {
-            await app.comms.devices.disableEditor(teamId, deviceId)
-            tunnelManager.closeTunnel(deviceId)
-            reply.send(tunnelManager.getTunnelStatus(request.device))
-        } else {
-            reply.code(400).send({ code: 'invalid_request', error: 'Expected device editor tunnel mode option to be either "enabled" or "disabled"' })
-        }
-    })
-
-    /**
-     * Get device editor state and url
-     * @name /api/v1/devices/:deviceId/editor
-     * @memberof module:forge/routes/api/device
-     */
-    app.get('/:deviceId/editor', {
-        preHandler: app.needsPermission('device:editor')
-    }, async (request, reply) => {
-        /** @type {DeviceTunnelManager} */
-        const tunnelManager = app.comms.devices.tunnelManager
-        reply.send(tunnelManager.getTunnelStatus(request.device))
-    })
-
-    /**
      * Set device operating mode
      * @name /api/v1/devices/:deviceId/mode
      * @memberof module:forge/routes/api/device
      */
     app.put('/:deviceId/mode', {
-        preHandler: app.needsPermission('device:change-mode')
+        preHandler: app.needsPermission('device:edit')
     }, async (request, reply) => {
         // setting device mode is only valid for licensed platforms
         const isLicensed = app.license.active()

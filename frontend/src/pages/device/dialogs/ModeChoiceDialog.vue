@@ -1,19 +1,41 @@
 <template>
-    <ff-dialog ref="device-mode-dialog" header="Device Developer Mode">
+    <ff-dialog ref="device-mode-dialog" :header="(developerMode?'Disable':'Enable') + ' Developer Mode'">
         <template #default>
-            <div class="mb-6">
-                Developer mode is for developing flows directly on the device. When a device is in this mode, it will not be automatically updated if the target snapshot changes. Any changes made to this device can be uploaded as a snapshot. You can switch off developer mode at any time.
+            <div class="mb-6 space-y-2">
+                <template v-if="!developerMode">
+                    <p>
+                        When a device is in developer mode its editor can be enabled
+                        and accessed remotely.
+                    </p>
+                    <p>
+                        This allows you to develop your flows
+                        on a real device before creating a snapshot to deploy across
+                        your other devices.
+                    </p>
+                    <p>
+                        Whilst in this mode, the device will no longer automatically
+                        update when new snapshots are deployed.
+                    </p>
+                </template>
+                <template v-else>
+                    <p>
+                        Disabling developer mode will turn off access to the editor and deploy
+                        the current target snapshot to the device.
+                    </p>
+                    <p>
+                        Any changes made to the device whilst in developer mode will be lost.
+                    </p>
+                    <p>
+                        To save changes, use the 'create snapshot' developer mode option before
+                        disabling developer mode.
+                    </p>
+                </template>
             </div>
-            <ff-checkbox
-                v-model="developerMode"
-                label="Enable Developer Mode"
-                :disabled="busy"
-            />
         </template>
         <template #actions>
             <!-- <ff-button kind="secondary" @click="$refs['device-mode-dialog'].close();doSecondaryAction1()">Secondary 1</ff-button> -->
             <ff-button kind="secondary" @click="$refs['device-mode-dialog'].close()">Cancel</ff-button>
-            <ff-button kind="danger" @click="applyMode()">Confirm</ff-button>
+            <ff-button kind="danger" @click="applyMode()"><span v-if="developerMode">Disable</span><span v-else>Enable</span></ff-button>
         </template>
     </ff-dialog>
 </template>
@@ -31,28 +53,24 @@ export default {
     emits: ['mode-change'],
     setup () {
         return {
-            show (application) {
+            show () {
+                this.developerMode = this.device?.mode === 'developer'
                 this.$refs['device-mode-dialog'].show()
-                this.application = application
             }
         }
     },
     data () {
         return {
-            deviceLocal: this.device,
             developerMode: false,
             busy: false
         }
-    },
-    mounted () {
-        this.developerMode = this.device?.mode === 'developer'
     },
     methods: {
         async applyMode () {
             this.busy = true
             try {
                 // perform the mode change to the selected mode. @see DevicePage.setDeviceMode
-                this.$emit('mode-change', this.developerMode ? 'developer' : 'autonomous')
+                this.$emit('mode-change', !this.developerMode ? 'developer' : 'autonomous')
                 this.$refs['device-mode-dialog'].close()
             } catch (error) {
                 console.error(error)

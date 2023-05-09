@@ -98,52 +98,6 @@ describe('Team Devices API', function () {
             result.should.have.property('devices').and.be.an.Array()
             result.devices.should.have.a.property('length', 3)
         })
-        it('Team owner does not get device editor tunnel info in the list of devices (unlicensed)', async function () {
-            const response = await app.inject({
-                method: 'GET',
-                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices`,
-                cookies: { sid: TestObjects.tokens.alice }
-            })
-            response.statusCode.should.equal(200)
-            const result = response.json()
-            result.should.have.property('devices').and.be.an.Array()
-            result.devices.should.have.a.property('length', 1)
-            result.devices[0].should.have.property('mode', 'autonomous')
-            result.devices[0].should.not.have.properties(['tunnelExists', 'tunnelEnabled', 'tunnelConnected', 'tunnelUrl', 'tunnelUrlWithToken'])
-        })
-        it('Team owner gets device editor tunnel info in the list of devices (licensed)', async function () {
-            // This license has limit of 2 devices
-            const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
-            app.license.apply(license)
-            const response = await app.inject({
-                method: 'GET',
-                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices`,
-                cookies: { sid: TestObjects.tokens.alice }
-            })
-            response.statusCode.should.equal(200)
-            const result = response.json()
-            result.should.have.property('devices').and.be.an.Array()
-            result.devices.should.have.a.property('length', 1)
-            result.devices[0].should.have.property('mode', 'autonomous')
-            result.devices[0].should.have.properties(['tunnelExists', 'tunnelEnabled', 'tunnelConnected', 'tunnelUrl', 'tunnelUrlWithToken'])
-        })
-        it('Team member does not get device editor tunnel info in the list of devices', async function () {
-            // This license has limit of 2 devices
-            const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
-            app.license.apply(license)
-            await login('chris', 'ccPassword')
-            const response = await app.inject({
-                method: 'GET',
-                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices`,
-                cookies: { sid: TestObjects.tokens.chris }
-            })
-            response.statusCode.should.equal(200)
-            const result = response.json()
-            result.should.have.property('devices').and.be.an.Array()
-            result.devices.should.have.a.property('length', 1)
-            result.devices[0].should.have.property('mode', 'autonomous')
-            result.devices[0].should.not.have.properties(['tunnelExists', 'tunnelEnabled', 'tunnelConnected', 'tunnelUrl', 'tunnelUrlWithToken'])
-        })
         it('Non member does not get a list of devices', async function () {
             // GET /api/v1/team/:teamId/devices
             await login('dave', 'ddPassword')

@@ -106,27 +106,26 @@
             <FormHeading>
                 <div class="flex flex-wrap mb-2">
                     <div>
-                        <AdjustmentsIcon class="w-6 h-6 mr-2 inline text-gray-400" />
-                        Device Options
+                        <BeakerIcon class="w-6 h-6 mr-2 inline text-gray-400" />
+                        Developer Mode Options
                     </div>
-                    <div class="font-normal text-sm pt-1.5 ml-9 text-gray-500 flex-col">Developer Mode Only</div>
                 </div>
             </FormHeading>
             <table class="table-fixed w-full" v-if="device">
                 <tr class="border-b">
                     <td class="w-1/4 font-medium">Editor Access</td>
-                    <td class="w-26 font-medium uppercase">
+                    <td class="w-26 font-medium">
                         <div class="forge-badge" :class="'forge-status-' + (editorEnabled ? 'running' : 'stopped')">
-                            <span v-if="editorEnabled">Enabled</span><span v-else>Disabled</span>
+                            <span v-if="editorEnabled">enabled</span><span v-else>disabled</span>
                         </div>
                     </td>
-                    <td class="w-38 py-2">
+                    <td class="py-2">
                         <div class="space-x-2 flex align-center">
                             <ff-button
                                 v-if="editorEnabled"
                                 :disabled="closingTunnel || !editorEnabled"
                                 kind="primary"
-                                class="sm:w-36 w-20"
+                                size="small"
                                 @click="closeTunnel"
                             >
                                 <span v-if="closingTunnel">Disabling...</span>
@@ -136,7 +135,7 @@
                                 v-if="!editorEnabled"
                                 :disabled="openingTunnel || editorEnabled"
                                 kind="danger"
-                                class="sm:w-36 w-20"
+                                size="small"
                                 @click="openTunnel"
                             >
                                 <span v-if="openingTunnel">Enabling...</span>
@@ -149,10 +148,11 @@
                 <tr class="border-b">
                     <td class="w-1/4 font-medium">Device Flows</td>
                     <td class="w-26 font-medium">&nbsp;</td>
-                    <td class="w-38 py-2">
+                    <td class="py-2">
                         <ff-button
                             kind="secondary"
                             class="sm:w-36 w-20"
+                            size="small"
                             @click="showCreateSnapshotDialog"
                         >
                             Create Snapshot
@@ -183,14 +183,13 @@ import alerts from '../../services/alerts.js'
 import { mapState } from 'vuex'
 
 // icons
-import { AdjustmentsIcon, BeakerIcon, CheckCircleIcon, ExclamationIcon, TemplateIcon, WifiIcon } from '@heroicons/vue/outline'
+import { BeakerIcon, CheckCircleIcon, ExclamationIcon, TemplateIcon, WifiIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'DeviceOverview',
     emits: ['device-updated', 'device-refresh'],
     props: ['device'],
     components: {
-        AdjustmentsIcon,
         BeakerIcon,
         CheckCircleIcon,
         ExclamationIcon,
@@ -216,7 +215,7 @@ export default {
             return this.isLicensed && this.agentSupportsDeviceAccess && this.developerMode && this.device?.status === 'running'
         },
         editorEnabled: function () {
-            return !!this.device?.tunnelEnabled
+            return !!this.device?.editor?.enabled
         }
     },
     data () {
@@ -294,11 +293,11 @@ export default {
             //       so that the editor can use it.  This should be refactored
             //       to use a Vuex store or something.
             // eslint-disable-next-line vue/no-mutating-props
-            this.device.tunnelUrl = status.url
+            this.device.editor = this.device.editor || {}
             // eslint-disable-next-line vue/no-mutating-props
-            this.device.tunnelUrlWithToken = status.tunnelUrlWithToken
+            this.device.editor.url = status.url
             // eslint-disable-next-line vue/no-mutating-props
-            this.device.tunnelEnabled = !!status.url
+            this.device.editor.enabled = !!status.enabled
             // use the tunnel-changed event to notify the parent component
         }
     }

@@ -611,7 +611,7 @@ describe('Device API', async function () {
                 response.statusCode.should.equal(200)
                 const result = response.json()
                 result.should.have.property('mode', 'autonomous') // while device mode is a licensed feature, it is still returned for unlicensed platforms (for device status)
-                result.should.not.have.properties(['tunnelExists', 'tunnelEnabled', 'tunnelConnected', 'tunnelUrl', 'tunnelUrlWithToken']) // tunnel info is not returned
+                result.should.not.have.property('editor')
             })
             it('team owner can not set device to developer mode', async function () {
                 const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
@@ -638,11 +638,17 @@ describe('Device API', async function () {
             })
         })
         describe('device editor (licenced)', function () {
-            this.beforeEach(async function () {
+            before(async function () {
                 const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
-                await app.license.apply(license)
+                await app.close()
+                await setupApp(license)
             })
-            it('details of a device includes mode and tunnel info', async function () {
+            after(async function () {
+                // After this set of tests, close the app and recreate (ie remove the license)
+                await app.close()
+                await setupApp()
+            })
+            it('details of a device includes mode but not tunnel info', async function () {
                 const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
                 const response = await app.inject({
                     method: 'GET',
@@ -652,19 +658,7 @@ describe('Device API', async function () {
                 response.statusCode.should.equal(200)
                 const result = response.json()
                 result.should.have.property('mode', 'autonomous') // by default, devices are in autonomous mode
-                result.should.have.properties(['tunnelExists', 'tunnelEnabled', 'tunnelConnected', 'tunnelUrl', 'tunnelUrlWithToken'])
-            })
-            it('team member cannot access tunnel info', async function () {
-                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
-                const response = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/devices/${device.id}`,
-                    cookies: { sid: TestObjects.tokens.chris }
-                })
-                response.statusCode.should.equal(200)
-                const result = response.json()
-                result.should.have.property('mode', 'autonomous') // by default, devices are in autonomous mode
-                result.should.not.have.properties(['tunnelExists', 'tunnelEnabled', 'tunnelConnected', 'tunnelUrl', 'tunnelUrlWithToken'])
+                result.should.not.have.property('editor')
             })
             it('team owner can set device to developer mode', async function () {
                 const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
@@ -687,6 +681,7 @@ describe('Device API', async function () {
 
                 const settings = settingsResponse.json()
                 settings.should.have.property('mode', 'developer')
+                settings.should.have.property('editor')
             })
             it('team member can not set device to developer mode', async function () {
                 const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
