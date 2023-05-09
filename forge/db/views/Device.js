@@ -4,7 +4,6 @@ module.exports = {
             return null
         }
         options = options || {
-            includeTunnelInfo: false
             // future options here
         }
         const result = device.toJSON()
@@ -32,16 +31,10 @@ module.exports = {
                 filtered.application = app.db.views.Application.applicationSummary(device.Project.Application)
             }
         }
-        // check if we should include tunnel info (including whether this is an enterprise edition of the platform)
-        if (options.includeTunnelInfo && app.comms?.devices?.tunnelManager && app.license.active()) {
-            /** @type {import("../../comms/DeviceTunnelManager").DeviceTunnelManager} */
+        if (app.license.active() && result.mode === 'developer') {
+            /** @type {import("../../ee/lib/deviceEditor/DeviceTunnelManager").DeviceTunnelManager} */
             const tunnelManager = app.comms.devices.tunnelManager
-            const { exists, url, urlWithToken, enabled, connected } = tunnelManager.getTunnelStatus(result.hashid) || {}
-            filtered.tunnelExists = exists || false
-            filtered.tunnelEnabled = enabled || false
-            filtered.tunnelConnected = connected || false
-            filtered.tunnelUrl = url || null
-            filtered.tunnelUrlWithToken = urlWithToken || null
+            filtered.editor = tunnelManager.getTunnelStatus(result.hashid) || {}
         }
         return filtered
     },

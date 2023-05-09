@@ -5,6 +5,8 @@ module.exports = fp(async function (app, opts, done) {
         app.decorate('billing', await require('./billing').init(app))
     }
     require('./projectComms').init(app)
+    require('./deviceEditor').init(app)
+
     app.decorate('sso', await require('./sso').init(app))
 
     // Set the Team Library Feature Flag

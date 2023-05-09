@@ -47,10 +47,10 @@
                                 <ExternalLinkIcon />
                             </span>
                         </button>
-                        <ff-button :disabled="hasPermission('device:change-mode') !== true" kind="primary" data-action="toggle-mode" @click="showModeChoiceDialog()">
-                            Mode
+                        <ff-button :disabled="hasPermission('device:edit') !== true" :kind="developerMode?'primary':'secondary'" data-action="toggle-mode" @click="showModeChoiceDialog()">
+                            Developer Mode
                             <template #icon-right>
-                                <AdjustmentsIcon />
+                                <BeakerIcon />
                             </template>
                         </ff-button>
                     </div>
@@ -71,7 +71,7 @@
 
 <script>
 
-import { AdjustmentsIcon, ExternalLinkIcon } from '@heroicons/vue/outline'
+import { BeakerIcon, ExternalLinkIcon } from '@heroicons/vue/outline'
 import { ChipIcon, CogIcon, TerminalIcon } from '@heroicons/vue/solid'
 import semver from 'semver'
 import { mapState } from 'vuex'
@@ -92,7 +92,7 @@ import ModeChoiceDialog from './dialogs/ModeChoiceDialog.vue'
 export default {
     name: 'DevicePage',
     components: {
-        AdjustmentsIcon,
+        BeakerIcon,
         ExternalLinkIcon,
         DeviceLastSeenBadge,
         InstanceStatusHeader,
@@ -134,7 +134,7 @@ export default {
             return this.isLicensed && this.device && this.agentSupportsDeviceAccess && this.developerMode && this.device.status === 'running' && this.deviceEditorURL
         },
         deviceEditorURL: function () {
-            return this.device.tunnelUrlWithToken || ''
+            return this.device.editor?.url || ''
         }
     },
     mounted () {
@@ -171,10 +171,11 @@ export default {
                 // set the selected mode
                 const setModeResult = await deviceApi.setMode(this.device.id, newMode)
                 // update the device properties to reflect immediate status
-                this.device.tunnelEnabled = !!disableResult?.tunnelEnabled
-                this.device.tunnelConnected = !!disableResult?.tunnelConnected
-                this.device.tunnelUrl = disableResult?.tunnelUrl
-                this.device.tunnelUrlWithToken = disableResult?.tunnelUrlWithToken
+                this.device.editor = {
+                    enabled: !!disableResult?.editor?.enabled,
+                    connected: !!disableResult?.editor?.connected,
+                    url: disableResult?.editor?.url
+                }
                 this.device.mode = setModeResult?.mode
             } else {
                 throw new Error('Unknown mode')

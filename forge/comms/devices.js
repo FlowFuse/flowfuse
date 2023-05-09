@@ -5,7 +5,6 @@
 
 const { v4: uuidv4 } = require('uuid')
 
-const { DeviceTunnelManager } = require('./DeviceTunnelManager')
 const noop = () => {}
 const DEFAULT_TIMEOUT = 5000
 
@@ -52,7 +51,6 @@ class DeviceCommsHandler {
     constructor (app, client) {
         this.app = app
         this.client = client
-        this.tunnelManager = new DeviceTunnelManager(app)
         this.deviceLogClients = {}
         /** @type {Object.<string, typeof CommandResponseMonitor>} */
         this.inFlightCommands = {}

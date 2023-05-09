@@ -138,7 +138,6 @@ module.exports = async function (app) {
             reply.send({ status: 'okay' })
         } catch (err) {
             app.db.controllers.Project.clearInflightState(request.project)
-
             const resp = { code: 'unexpected_error', error: err.toString() }
             await app.auditLog.Project.project.snapshot.rolledBack(request.session.User, resp, request.project)
             reply.code(500).send(resp)

@@ -50,8 +50,6 @@ module.exports = fp(async function (app, opts, done) {
      * @memberof forge
      */
     async function verifySession (request, reply) {
-        const isRemoteEditorHTTPReq = request.routeConfig?.url === '/api/v1/remote/editor/:deviceId/*'
-        const isRemoteEditorWSReq = request.routeConfig?.url === '/api/v1/remote/editor/inboundWS/:deviceId/:access_token'
         if (request.sid) {
             request.session = await app.db.controllers.Session.getOrExpire(request.sid)
             if (request.session && request.session.User) {
@@ -62,7 +60,7 @@ module.exports = fp(async function (app, opts, done) {
                     return
                 }
             }
-        } else if (request.headers && request.headers.authorization && !isRemoteEditorHTTPReq && !isRemoteEditorWSReq) {
+        } else if (request.headers && request.headers.authorization) {
             const parts = request.headers.authorization.split(' ')
             if (parts.length === 2) {
                 const scheme = parts[0]

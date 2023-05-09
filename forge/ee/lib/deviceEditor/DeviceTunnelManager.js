@@ -24,9 +24,9 @@
 /**
  * @typedef {import('@fastify/websocket')} fastifyWebsocket
  * @typedef {import('@fastify/websocket').SocketStream} SocketStream
- * @typedef {import('../forge').ForgeApplication} ForgeApplication
- * @typedef {import('../forge').FastifyRequest} FastifyRequest
- * @typedef {import('../forge').FastifyReply} FastifyReply
+ * @typedef {import('../../../forge').ForgeApplication} ForgeApplication
+ * @typedef {import('../../../forge').FastifyRequest} FastifyRequest
+ * @typedef {import('../../../forge').FastifyReply} FastifyReply
  * @typedef {(request: FastifyRequest, reply: FastifyReply) => void} httpHandler
  * @typedef {(connection: WebSocket, request: FastifyRequest) => void} wsHandler
  */
@@ -92,11 +92,13 @@ class DeviceTunnelManager {
      */
     getTunnelStatus (deviceId) {
         const exists = this.#tunnels.has(deviceId)
-        const url = this.getTunnelUrl(deviceId, false)
-        const urlWithToken = this.getTunnelUrl(deviceId, true)
+        if (!exists) {
+            return null
+        }
+        const url = this.getTunnelUrl(deviceId, true)
         const enabled = this.isEnabled(deviceId)
         const connected = this.isConnected(deviceId)
-        return { exists, url, urlWithToken, enabled, connected }
+        return { url, enabled, connected }
     }
 
     closeTunnel (deviceId) {
@@ -118,9 +120,9 @@ class DeviceTunnelManager {
         const tunnel = this.#getTunnel(deviceId)
         if (tunnel) {
             if (includeToken) {
-                return `/api/v1/remote/editor/${deviceId}/?access_token=${tunnel.token}`
+                return `/api/v1/devices/${deviceId}/editor/proxy/?access_token=${tunnel.token}`
             }
-            return `/api/v1/remote/editor/${deviceId}/`
+            return `/api/v1/devices/${deviceId}/editor/proxy/`
         }
         return ''
     }
@@ -197,7 +199,7 @@ class DeviceTunnelManager {
                 id,
                 method: request.method,
                 headers: request.headers,
-                url: request.url.substring(`/api/v1/remote/editor/${tunnel.deviceId}`.length)
+                url: request.url.substring(`/api/v1/devices/${tunnel.deviceId}/editor/proxy`.length)
             }))
         }
 
@@ -212,7 +214,7 @@ class DeviceTunnelManager {
                 id: requestId,
                 method: request.method,
                 headers: request.headers,
-                url: request.url.substring(`/api/v1/remote/editor/${tunnel.deviceId}`.length),
+                url: request.url.substring(`/api/v1/devices/${tunnel.deviceId}/editor/proxy`.length),
                 body: request.body ? JSON.stringify(request.body) : undefined
             }))
         }
