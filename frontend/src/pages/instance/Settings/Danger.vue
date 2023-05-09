@@ -16,7 +16,7 @@
                     </div>
                 </div>
                 <div class="min-w-fit flex-shrink-0">
-                    <ff-button :disabled="!instance.projectType" kind="secondary" @click="upgradeStack()">Update Stack</ff-button>
+                    <ff-button data-action="update-stack" :disabled="!instance.projectType" kind="secondary" @click="upgradeStack()">Update Stack</ff-button>
                 </div>
             </div>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
@@ -27,7 +27,7 @@
                     </div>
                 </div>
                 <div class="min-w-fit flex-shrink-0">
-                    <ff-button :disabled="!instance.projectType" kind="secondary" @click="showChangeStackDialog()">Change Stack</ff-button>
+                    <ff-button data-action="change-stack" :disabled="!instance.projectType" kind="secondary" @click="showChangeStackDialog()">Change Stack</ff-button>
                     <ChangeStackDialog ref="changeStackDialog" @confirm="changeStack" />
                 </div>
             </div>
@@ -57,7 +57,7 @@
                     </div>
                 </div>
                 <div class="min-w-fit flex-shrink-0">
-                    <ff-button kind="secondary" @click="showImportInstanceDialog()">Import Instance</ff-button>
+                    <ff-button data-action="import-instance" kind="secondary" @click="showImportInstanceDialog()">Import Instance</ff-button>
                     <ImportInstanceDialog ref="importProjectDialog" @confirm="importProject" />
                 </div>
             </div>
@@ -91,7 +91,7 @@
                     </div>
                 </div>
                 <div class="min-w-fit flex-shrink-0">
-                    <ff-button kind="danger" :disabled="instance?.meta?.state === 'suspended'" @click="$emit('instance-confirm-suspend')">Suspend Instance</ff-button>
+                    <ff-button data-action="suspend-instance" kind="danger" :disabled="instance?.meta?.state === 'suspended'" @click="$emit('instance-confirm-suspend')">Suspend Instance</ff-button>
                 </div>
             </div>
         </template>
