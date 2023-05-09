@@ -33,9 +33,9 @@ export default {
         }
     },
     emits: ['update:modelValue'],
-    computed: {
-        internalOptions () {
-            return this.options
+    data: function () {
+        return {
+            internalOptions: this.options
         }
     },
     watch: {
@@ -57,6 +57,7 @@ export default {
             this.options.forEach((option, i) => {
                 this.internalOptions[i].checked = (option.value === this.modelValue)
                 if (this.internalOptions[i].checked) {
+                    // emit the new checked value v-model bound to this group
                     this.$emit('update:modelValue', option.value)
                 }
             })
