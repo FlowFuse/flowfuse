@@ -1,8 +1,15 @@
 <template>
     <SectionTopMenu hero="DevOps Pipelines" help-header="FlowForge - DevOps Pipelines" info="Configure automated deployments between your Instances">
         <template #helptext>
-            <p>This is a raw feed from the running instance of Node-RED on this domain.</p>
-            <p>Use this to debug issues if your application will not start correctly.</p>
+            <p>
+                DevOps Pipelines are used to link multiple Node-RED instances together in a deployment pipeline.
+            </p>
+            <p>
+                This is normally used to define "Development" instances, where you can test your new flows without fear or breaking "Production" environments.
+            </p>
+            <p>
+                Then, when you're ready, you could run a given stage of the pipeline to promote your instance to "Staging" or "Production".
+            </p>
         </template>
         <template #tools>
             <ff-button :to="{name: 'CreatePipeline', params: {applicationId: $route.params.id}}">
@@ -17,15 +24,35 @@
     <div v-if="pipelines?.length > 0" class="pt-4 space-y-6">
         <Pipeline v-for="p in pipelines" :key="p.id" :pipeline="p" :status-map="instanceStatusMap" @deploy-started="beginPolling" @deploy-complete="loadPipelines" @pipeline-deleted="loadPipelines" />
     </div>
-    <div v-else class="ff-no-data ff-no-data-large">
-        Empty State for Pipelines
-    </div>
+    <EmptyState v-else>
+        <template #header>Add your Application's First DevOps Pipeline</template>
+        <template #message>
+            <p>
+                DevOps Pipelines are used to link multiple Node-RED instances together in a deployment pipeline.
+            </p>
+            <p>
+                This is normally used to define "Development" instances, where you can test your new flows without fear or breaking "Production" environments.
+            </p>
+            <p>
+                Then, when you're ready, you could run a given stage of the pipeline to promote your instance to "Staging" or "Production".
+            </p>
+        </template>
+        <template #actions>
+            <ff-button
+                :to="{name: 'CreatePipeline', params: {applicationId: $route.params.id}}"
+            >
+                <template #icon-left><PlusSmIcon /></template>
+                Add Pipeline
+            </ff-button>
+        </template>
+    </EmptyState>
 </template>
 
 <script>
 import { PlusSmIcon } from '@heroicons/vue/outline'
 
 import ApplicationAPI from '../../api/application.js'
+import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
 import Pipeline from '../../components/pipelines/Pipeline.vue'
@@ -36,7 +63,8 @@ export default {
     components: {
         SectionTopMenu,
         PlusSmIcon,
-        Pipeline
+        Pipeline,
+        EmptyState
     },
     beforeRouteLeave () {
         clearInterval(this.polling)
