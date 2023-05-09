@@ -64,7 +64,7 @@ describe('FlowForge - Devices', () => {
 
             cy.wait('@deleteDevice')
 
-            cy.get('main').contains('Add your First Device')
+            cy.get('main').contains('Connect your First Device')
         })
 
         it('can load multiple pages of devices when the API paginates', function () {
