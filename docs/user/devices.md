@@ -159,7 +159,7 @@ to the registered devices when you're happy with what you've created.
 ## Editing the Node-RED flows directly on a device
 
 You can edit the flows directly on the device. This is useful for debugging 
-and testing. Additionally, once your edits are complete, you can, optionally, make 
+and testing. Additionally, once your edits are complete, you can make 
 a snapshot of the changes and upload it to the platform to be shared with other devices.
 
 1. Go to your teams's **Devices** page.
@@ -178,6 +178,7 @@ a snapshot of the changes and upload it to the platform to be shared with other 
 8. In the **Device Options** panel, click the "Editor Access" **Disable** button to disable the connection to the device.
 
 ### Important Notes
+* The device must first have a snapshot applied before editor access is possible.
 * The device will not be able to receive any updates from the platform while in Developer Mode.
 * Disabling Developer Mode will cause the device to re-connected to the platform and any change to the target snapshot will cause the device to be updated. This will overwrite any changes made in Developer Mode. Therefore, it is recommended to create a snapshot of the changes before disabling Developer Mode.
 * The device must be online and connected to the platform to enable "Editor Access".
