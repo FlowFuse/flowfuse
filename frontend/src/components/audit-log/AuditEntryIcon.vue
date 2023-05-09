@@ -19,12 +19,14 @@
     <ExclamationCircleIcon v-if="icon === 'error'" class="ff-icon text-red-500" />
     <TicketIcon v-if="icon === 'token'" class="ff-icon text-blue-500" />
     <TemplateIcon v-if="icon === 'template'" class="ff-icon text-red-700" />
+    <PipelineIcon v-if="icon === 'pipeline'" class="ff-icon text-indigo-600" />
 </template>
 
 <script>
 
 import ProjectIcon from '../icons/Projects.js'
 import NodeRedIcon from '../icons/NodeRed.js'
+import PipelineIcon from '../icons/Pipelines.js'
 import {
     DesktopComputerIcon, ClockIcon, ColorSwatchIcon,
     UserIcon, UserGroupIcon, LockClosedIcon,
@@ -169,6 +171,12 @@ const iconMap = {
         'team.device.provisioning.created',
         'team.device.provisioning.updated',
         'team.device.provisioning.deleted'
+    ],
+    pipeline: [
+        'application.pipeline.created',
+        'application.pipeline.deleted',
+        'application.pipeline.stage-added',
+        'project.assigned-to-pipeline-stage'
     ]
 }
 
@@ -193,6 +201,7 @@ export default {
         }
     },
     components: {
+        PipelineIcon,
         DesktopComputerIcon,
         LockClosedIcon,
         ProjectIcon,
