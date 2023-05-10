@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="device-mode-dialog" :header="(developerMode?'Disable':'Enable') + ' Developer Mode'">
+    <ff-dialog ref="device-mode-dialog" :header="dialogHeader">
         <template #default>
             <div class="mb-6 space-y-2">
                 <template v-if="unsupportedVersion">
@@ -39,9 +39,13 @@
             </div>
         </template>
         <template #actions>
-            <!-- <ff-button kind="secondary" @click="$refs['device-mode-dialog'].close();doSecondaryAction1()">Secondary 1</ff-button> -->
-            <ff-button kind="secondary" @click="$refs['device-mode-dialog'].close()">Cancel</ff-button>
-            <ff-button kind="danger" @click="applyMode()"><span v-if="developerMode">Disable</span><span v-else>Enable</span></ff-button>
+            <template v-if="unsupportedVersion">
+                <ff-button kind="primary" @click="$refs['device-mode-dialog'].close()">Close</ff-button>
+            </template>
+            <template v-else>
+                <ff-button kind="secondary" @click="$refs['device-mode-dialog'].close()">Cancel</ff-button>
+                <ff-button kind="danger" @click="applyMode()"><span v-if="developerMode">Disable</span><span v-else>Enable</span></ff-button>
+            </template>
         </template>
     </ff-dialog>
 </template>
@@ -64,6 +68,11 @@ export default {
             show () {
                 this.unsupportedVersion = !(this.device?.agentVersion && semver.gte(this.device?.agentVersion, '0.8.0'))
                 this.developerMode = this.device?.mode === 'developer'
+                if (this.unsupportedVersion) {
+                    this.dialogHeader = 'Developer Mode Unavailable'
+                } else {
+                    this.dialogHeader = (this.developerMode ? 'Disable' : 'Enable') + ' Developer Mode'
+                }
                 this.$refs['device-mode-dialog'].show()
             }
         }
@@ -72,7 +81,8 @@ export default {
         return {
             unsupportedVersion: false,
             developerMode: false,
-            busy: false
+            busy: false,
+            dialogHeader: ''
         }
     },
     methods: {
