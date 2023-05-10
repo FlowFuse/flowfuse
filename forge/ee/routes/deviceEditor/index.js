@@ -68,13 +68,16 @@ module.exports = async function (app) {
             if (err) {
                 tunnelStatus.error = err.message
                 tunnelStatus.code = err.code || 'enable_editor_failed'
+                await app.auditLog.Team.team.device.remoteAccessEnabled(request.session.User, tunnelStatus, team, request.device)
                 reply.code(503).send(tunnelStatus) // Service Unavailable
             } else {
+                await app.auditLog.Team.team.device.remoteAccessEnabled(request.session.User, null, team, request.device)
                 reply.send(tunnelStatus)
             }
         } else if (mode === 'disable') {
             await app.comms.devices.disableEditor(teamId, deviceId)
             tunnelManager.closeTunnel(deviceId)
+            await app.auditLog.Team.team.device.remoteAccessDisabled(request.session.User, null, team, request.device)
             reply.send({ enabled: false })
         } else {
             reply.code(400).send({ code: 'invalid_request', error: 'Expected device editor tunnel mode option to be either "enabled" or "disabled"' })
