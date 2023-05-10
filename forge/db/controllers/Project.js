@@ -146,9 +146,7 @@ module.exports = {
                 const currentProjectFlows = await app.db.models.StorageFlow.byProject(project.id)
                 currentProjectFlows.flow = JSON.stringify(!snapshot.flows.flows ? [] : snapshot.flows.flows)
                 if (snapshot.flows.credentials) {
-                    const origCredentials = await app.db.models.StorageCredentials.byProject(project.id)
-                    origCredentials.credentials = JSON.stringify(snapshot.flows.credentials)
-                    await origCredentials.save({ transaction: t })
+                    await app.db.controllers.StorageCredentials.updateOrCreateForProject(project, snapshot.flows.credentials, { transaction: t })
                 }
                 await currentProjectFlows.save({ transaction: t })
             }
