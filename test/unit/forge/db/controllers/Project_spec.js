@@ -368,4 +368,43 @@ describe('Project controller', function () {
             decrypted.should.only.have.keys('foo')
         })
     })
+
+    describe('importProjectSnapshot', function () {
+        it('imports project snapshot that contains flows with credentials/storageflows when the project contains no credentials/storageflows yet', async function () {
+            const project = await app.db.models.Project.create({
+                name: 'testProject-007',
+                type: '',
+                url: ''
+            })
+
+            const snapshot = {
+                flows: {
+                    flows: [
+                        { id: '1', type: 'tab', label: 'Sheet 1', disabled: false, info: '' },
+                        { id: '2', type: 'tab', label: 'Sheet 2', disabled: false, info: '' }
+                    ],
+                    credentials: {
+                        foo: { a: 'b' }
+                    }
+                }
+            }
+
+            await app.db.controllers.Project.importProjectSnapshot(project, snapshot)
+
+            const savedCredentials = await app.db.models.StorageCredentials.byProject(project.id)
+            const savedStorageFlows = await app.db.models.StorageFlow.byProject(project.id)
+
+            const parsedCredentials = JSON.parse(savedCredentials.credentials)
+            const parsedStorageFlows = JSON.parse(savedStorageFlows.flow)
+
+            parsedCredentials.should.have.keys('foo')
+            parsedCredentials.foo.should.have.property('a', 'b')
+
+            parsedStorageFlows.should.have.length(2)
+            parsedStorageFlows.should.containDeepOrdered([
+                { id: '1', type: 'tab', label: 'Sheet 1', disabled: false, info: '' },
+                { id: '2', type: 'tab', label: 'Sheet 2', disabled: false, info: '' }
+            ])
+        })
+    })
 })
