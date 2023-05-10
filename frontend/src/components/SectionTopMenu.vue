@@ -1,14 +1,14 @@
 <template>
-    <div class="ff-section-header flex flex-wrap border-b border-gray-400 mb-4 sm:mb-2 text-gray-500 justify-between h-12">
+    <div class="ff-section-header flex flex-nowrap border-b border-gray-400 mb-4 sm:mb-2 text-gray-500 justify-between h-12">
         <div class="flex">
             <div class="w-full flex items-center md:w-auto mb-2 mr-8 gap-x-2">
                 <slot name="hero">
                     <div class="flex">
-                        <div class="text-gray-800 text-xl font-medium">{{ hero }}</div>
+                        <div class="text-gray-800 text-xl font-medium whitespace-nowrap">{{ hero }}</div>
                     </div>
                 </slot>
                 <InformationCircleIcon v-if="hasInfoDialog" class="min-w-[20px] ff-icon text-gray-800 cursor-pointer hover:text-blue-700" @click="openInfoDialog()" />
-                <span v-if="info" class="text-gray-400">{{ info }}</span>
+                <span v-if="info" class="hidden sm:block text-gray-400">{{ info }}</span>
             </div>
             <ul class="flex" v-if="options.length > 0">
                 <li class="mr-8 pt-1 flex" v-for="item in options" :key="item.name">
@@ -16,7 +16,7 @@
                 </li>
             </ul>
         </div>
-        <ul v-if="hasTools">
+        <ul v-if="hasTools" class="flex-shrink-0">
             <li class="w-full md:w-auto flex-grow mb-2 text-right">
                 <slot name="tools"></slot>
             </li>
