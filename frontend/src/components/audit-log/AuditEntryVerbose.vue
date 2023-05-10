@@ -431,6 +431,10 @@
         <label>{{ AuditEvents[entry.event] }}</label>
         <span>A flow or function has been saved to the Library</span>
     </template>
+    <template v-else-if="entry.event === 'nodes.install'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span>Nodes have been installed via the "Manage Palette" option inside Node-RED</span>
+    </template>
 
     <!-- Catch All -->
     <template v-else>
