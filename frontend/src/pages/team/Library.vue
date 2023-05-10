@@ -31,14 +31,22 @@
         <ff-code-previewer v-else ref="code-preview" :snippet="contents" />
     </div>
     <EmptyState v-else>
+        <template #img>
+            <img src="../../images/empty-states/team-library.png">
+        </template>
         <template #header>Create your own Team Library</template>
         <template #message>
             <p>
-                Node-RED allows you to import and export flows and functions to a shared <a class="ff-link" href="https://flowforge.com/docs/user/shared-library/" target="_blank">Team Library</a>.
+                You can import and export flows and functions to a shared <a class="ff-link" href="https://flowforge.com/docs/user/shared-library/" target="_blank">Team Library</a> from within your Node-RED Instances.
             </p>
             <p>
-                The contents of this Library are then available within all of your Node-RED instances on FlowForge.
+                The contents of your Team Library will show here, and will be available within all of your Node-RED instances on FlowForge.
             </p>
+        </template>
+        <template #actions>
+            <ff-button :to="{name: 'Instances'}">Go To Instances</ff-button>
+        </template>
+        <template #note>
             <p>
                 You can see a video of how to get started with this feature <a class="ff-link" href="https://www.youtube.com/watch?v=B7XK3TUklUU" target="_blank">here</a>.
             </p>

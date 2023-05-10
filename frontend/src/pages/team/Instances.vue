@@ -1,5 +1,5 @@
 <template>
-    <SectionTopMenu hero="Instances" />
+    <SectionTopMenu hero="Instances" info="A list of all Node-RED instances running in FlowForge for this Team." />
     <div class="space-y-6">
         <ff-loading v-if="loading" message="Loading Instances..." />
         <template v-else>
@@ -23,6 +23,9 @@
                 </template>
             </ff-data-table>
             <EmptyState v-else>
+                <template #img>
+                    <img src="../../images/empty-states/team-instances.png">
+                </template>
                 <template #header>Get Started with your First Node-RED Instance</template>
                 <template #message>
                     <p>
@@ -31,10 +34,10 @@
                             :to="{name:'Applications', params: {team_slug: team.slug}}"
                         >
                             Applications
-                        </router-link> .
+                        </router-link>.
                     </p>
                     <p>
-                        You can create your first Instance when creating your first Application.
+                        You can create your first Instance when creating your first Application, or add an Instance to an existing Application if you have one.
                     </p>
                 </template>
                 <template #actions>

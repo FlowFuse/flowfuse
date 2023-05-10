@@ -60,15 +60,13 @@
                 </template>
             </ff-data-table>
             <EmptyState v-else>
+                <template #img>
+                    <img src="../../images/empty-states/application-instances.png">
+                </template>
                 <template #header>Add your Application's First Instance</template>
                 <template #message>
                     <p>
                         Applications in FlowForge are used to manage groups of Node-RED Instances.
-                    </p>
-                    <p>
-                        The FlowForge team also have more planned for Applications, including
-                        <a class="ff-link" href="https://github.com/flowforge/flowforge/issues/1734" target="_blank">
-                            shared settings across Instances</a>.
                     </p>
                 </template>
                 <template #actions>
@@ -78,6 +76,13 @@
                         <template #icon-left><PlusSmIcon /></template>
                         Add Instance
                     </ff-button>
+                </template>
+                <template #note>
+                    <p>
+                        The FlowForge team also have more planned for Applications, including
+                        <a class="ff-link" href="https://github.com/flowforge/flowforge/issues/1734" target="_blank">
+                            shared settings across Instances</a>.
+                    </p>
                 </template>
             </EmptyState>
         </div>
