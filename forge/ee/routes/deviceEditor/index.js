@@ -9,6 +9,9 @@ const { Roles } = require('../../../lib/roles.js')
  * @memberof forge.ee
  */
 module.exports = async function (app) {
+    if (!app.comms) {
+        return
+    }
     registerPermissions({
         'device:editor': { description: 'Access the Device Editor', role: Roles.Member }
     })
