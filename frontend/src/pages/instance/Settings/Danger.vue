@@ -6,97 +6,109 @@
     <ff-loading v-if="loading.suspend" message="Suspending Instance..." />
     <ff-loading v-if="loading.importing" message="Importing Instance..." />
     <form v-if="!isLoading" class="space-y-6">
-        <FormHeading>Change Instance Stack</FormHeading>
-        <div v-if="instance.stack && instance.stack.replacedBy" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-            <div class="flex-grow">
-                <div class="max-w-sm">
-                    There is a new version of the current stack available.
-                    Updating the stack will restart the instance.
+        <template v-if="hasPermission('project:edit')">
+            <FormHeading>Change Instance Stack</FormHeading>
+            <div v-if="instance.stack && instance.stack.replacedBy" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+                <div class="flex-grow">
+                    <div class="max-w-sm">
+                        There is a new version of the current stack available.
+                        Updating the stack will restart the instance.
+                    </div>
+                </div>
+                <div class="min-w-fit flex-shrink-0">
+                    <ff-button data-action="update-stack" :disabled="!instance.projectType" kind="secondary" @click="upgradeStack()">Update Stack</ff-button>
                 </div>
             </div>
-            <div class="min-w-fit flex-shrink-0">
-                <ff-button :disabled="!instance.projectType" kind="secondary" @click="upgradeStack()">Update Stack</ff-button>
-            </div>
-        </div>
-        <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-            <div class="flex-grow">
-                <div class="max-w-sm">
-                    Changing the Instance Stack requires the instance to be restarted.
-                    The flows will not be running while this happens.
+            <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+                <div class="flex-grow">
+                    <div class="max-w-sm">
+                        Changing the Instance Stack requires the instance to be restarted.
+                        The flows will not be running while this happens.
+                    </div>
+                </div>
+                <div class="min-w-fit flex-shrink-0">
+                    <ff-button data-action="change-stack" :disabled="!instance.projectType" kind="secondary" @click="showChangeStackDialog()">Change Stack</ff-button>
+                    <ChangeStackDialog ref="changeStackDialog" @confirm="changeStack" />
                 </div>
             </div>
-            <div class="min-w-fit flex-shrink-0">
-                <ff-button :disabled="!instance.projectType" kind="secondary" @click="showChangeStackDialog()">Change Stack</ff-button>
-                <ChangeStackDialog ref="changeStackDialog" @confirm="changeStack" />
-            </div>
-        </div>
+        </template>
 
-        <FormHeading>Copy Instance</FormHeading>
+        <template v-if="hasPermission('project:create')">
+            <FormHeading>Copy Instance</FormHeading>
 
-        <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-            <div class="flex-grow">
-                <div class="max-w-sm">
-                    Add a new instance to your application, that is a copy of this instance.
+            <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+                <div class="flex-grow">
+                    <div class="max-w-sm">
+                        Add a new instance to your application, that is a copy of this instance.
+                    </div>
+                </div>
+                <div class="min-w-fit flex-shrink-0">
+                    <ff-button kind="secondary" data-nav="copy-project" @click="showDuplicateInstanceDialog()">Duplicate Instance</ff-button>
                 </div>
             </div>
-            <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="secondary" data-nav="copy-project" @click="showDuplicateInstanceDialog()">Duplicate Instance</ff-button>
-            </div>
-        </div>
+        </template>
 
-        <FormHeading>Import Instance</FormHeading>
-        <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-            <div class="flex-grow">
-                <div class="max-w-sm">
-                    Import an existing Node-RED instance.
+        <template v-if="hasPermission('project:edit')">
+            <FormHeading>Import Instance</FormHeading>
+            <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+                <div class="flex-grow">
+                    <div class="max-w-sm">
+                        Import an existing Node-RED instance.
+                    </div>
+                </div>
+                <div class="min-w-fit flex-shrink-0">
+                    <ff-button data-action="import-instance" kind="secondary" @click="showImportInstanceDialog()">Import Instance</ff-button>
+                    <ImportInstanceDialog ref="importProjectDialog" @confirm="importProject" />
                 </div>
             </div>
-            <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="secondary" @click="showImportInstanceDialog()">Import Instance</ff-button>
-                <ImportInstanceDialog ref="importProjectDialog" @confirm="importProject" />
-            </div>
-        </div>
+        </template>
 
-        <FormHeading>Change Instance Type</FormHeading>
-        <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-            <div class="flex-grow">
-                <div class="max-w-sm">
-                    Changing the Instance Type will restart the instance.
-                    The flows will not be running while this happens.
+        <template v-if="hasPermission('project:edit')">
+            <FormHeading>Change Instance Type</FormHeading>
+            <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+                <div class="flex-grow">
+                    <div class="max-w-sm">
+                        Changing the Instance Type will restart the instance.
+                        The flows will not be running while this happens.
+                    </div>
+                </div>
+                <div class="min-w-fit flex-shrink-0">
+                    <ff-button kind="secondary" data-nav="change-instance-settings" @click="showProjectChangeTypePage()">Change Instance Type</ff-button>
                 </div>
             </div>
-            <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="secondary" data-nav="change-instance-settings" @click="showProjectChangeTypePage()">Change Instance Type</ff-button>
-            </div>
-        </div>
+        </template>
 
-        <FormHeading class="text-red-700">Suspend Instance</FormHeading>
-        <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-            <div class="flex-grow">
-                <div v-if="instance?.meta?.state === 'suspended'" class="max-w-sm">
-                    Your instance is already suspended. To restart the instance, select "Start" from the Instance actions.
+        <template v-if="hasPermission('project:change-status')">
+            <FormHeading class="text-red-700">Suspend Instance</FormHeading>
+            <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+                <div class="flex-grow">
+                    <div v-if="instance?.meta?.state === 'suspended'" class="max-w-sm">
+                        Your instance is already suspended. To restart the instance, select "Start" from the Instance actions.
+                    </div>
+                    <div v-else class="max-w-sm">
+                        Once suspended, your instance will not be available until restarted.
+                        While suspended, the instance will consume no <span v-if="features.billing">billable</span> resources.
+                    </div>
                 </div>
-                <div v-else class="max-w-sm">
-                    Once suspended, your instance will not be available until restarted.
-                    While suspended, the instance will consume no <span v-if="features.billing">billable</span> resources.
+                <div class="min-w-fit flex-shrink-0">
+                    <ff-button data-action="suspend-instance" kind="danger" :disabled="instance?.meta?.state === 'suspended'" @click="$emit('instance-confirm-suspend')">Suspend Instance</ff-button>
                 </div>
             </div>
-            <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="danger" :disabled="instance?.meta?.state === 'suspended'" @click="$emit('instance-confirm-suspend')">Suspend Instance</ff-button>
-            </div>
-        </div>
+        </template>
 
-        <FormHeading class="text-red-700">Delete Instance</FormHeading>
-        <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-            <div class="flex-grow">
-                <div class="max-w-sm">
-                    Once deleted, your instance is gone. This cannot be undone.
+        <template v-if="hasPermission('project:delete')">
+            <FormHeading class="text-red-700">Delete Instance</FormHeading>
+            <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+                <div class="flex-grow">
+                    <div class="max-w-sm">
+                        Once deleted, your instance is gone. This cannot be undone.
+                    </div>
+                </div>
+                <div class="min-w-fit flex-shrink-0">
+                    <ff-button data-action="delete-instance" kind="danger" @click="$emit('instance-confirm-delete')">Delete Instance</ff-button>
                 </div>
             </div>
-            <div class="min-w-fit flex-shrink-0">
-                <ff-button data-action="delete-instance" kind="danger" @click="$emit('instance-confirm-delete')">Delete Instance</ff-button>
-            </div>
-        </div>
+        </template>
     </form>
 </template>
 
