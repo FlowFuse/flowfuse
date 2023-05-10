@@ -56,7 +56,8 @@
         "stopped": "Node-RED has stopped",
         "settings.update": "Node-RED Settings Updated",
         "flows.set": "Flow Deployed",
-        "library.set": "Saved to Library"
+        "library.set": "Saved to Library",
+        "nodes.install": "Third-Party Nodes Installed"
     },
     "platform": {
         "platform.license.applied": "License Applied",

@@ -42,7 +42,8 @@ const iconMap = {
         'stopped',
         'settings.update',
         'flows.set',
-        'library.set'
+        'library.set',
+        'nodes.install'
     ],
     template: [
         'application.created',
