@@ -151,7 +151,7 @@
                     <td class="py-2">
                         <ff-button
                             kind="secondary"
-                            class="sm:w-36 w-20"
+                            class="w-28"
                             size="small"
                             @click="showCreateSnapshotDialog"
                         >
