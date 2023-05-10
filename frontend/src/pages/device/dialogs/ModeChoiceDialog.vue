@@ -2,7 +2,13 @@
     <ff-dialog ref="device-mode-dialog" :header="(developerMode?'Disable':'Enable') + ' Developer Mode'">
         <template #default>
             <div class="mb-6 space-y-2">
-                <template v-if="!developerMode">
+                <template v-if="unsupportedVersion">
+                    <p>
+                        Developer Mode requires Device Agent v0.8.0 or later.
+                        Please update your Device Agent to the latest version.
+                    </p>
+                </template>
+                <template v-else-if="!developerMode">
                     <p>
                         When a device is in developer mode its editor can be enabled
                         and accessed remotely.
@@ -42,6 +48,8 @@
 
 <script>
 
+import semver from 'semver'
+
 export default {
     name: 'ModeChoiceDialog',
     props: {
@@ -54,6 +62,7 @@ export default {
     setup () {
         return {
             show () {
+                this.unsupportedVersion = !(this.device?.agentVersion && semver.gt(this.device?.agentVersion, '0.8.0'))
                 this.developerMode = this.device?.mode === 'developer'
                 this.$refs['device-mode-dialog'].show()
             }
@@ -61,6 +70,7 @@ export default {
     },
     data () {
         return {
+            unsupportedVersion: false,
             developerMode: false,
             busy: false
         }

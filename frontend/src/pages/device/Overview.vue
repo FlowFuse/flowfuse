@@ -21,6 +21,12 @@
                         <StatusBadge :status="device.status"/>
                     </td>
                 </tr>
+                <tr class="border-b">
+                    <td class="w-1/4 font-medium">Agent Version</td>
+                    <td class="py-2">
+                        {{ device.agentVersion || 'unknown' }}
+                    </td>
+                </tr>
             </table>
         </div>
         <div class="border rounded p-4">
