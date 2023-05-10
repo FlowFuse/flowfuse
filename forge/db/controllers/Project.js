@@ -143,12 +143,12 @@ module.exports = {
         const t = await app.db.sequelize.transaction() // start a transaction
         try {
             if (snapshot?.flows?.flows) {
-                const currentProjectFlows = await app.db.models.StorageFlow.byProject(project.id)
-                currentProjectFlows.flow = JSON.stringify(!snapshot.flows.flows ? [] : snapshot.flows.flows)
+                const flows = JSON.stringify(!snapshot.flows.flows ? [] : snapshot.flows.flows)
+                await app.db.controllers.StorageFlows.updateOrCreateForProject(project, flows, { transaction: t })
+
                 if (snapshot.flows.credentials) {
                     await app.db.controllers.StorageCredentials.updateOrCreateForProject(project, snapshot.flows.credentials, { transaction: t })
                 }
-                await currentProjectFlows.save({ transaction: t })
             }
             if (snapshot?.settings?.settings || snapshot?.settings?.env) {
                 const snapshotSettings = JSON.parse(JSON.stringify(snapshot.settings.settings || {}))
