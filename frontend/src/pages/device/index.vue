@@ -145,7 +145,7 @@ export default {
     methods: {
         loadDevice: async function () {
             this.device = await deviceApi.getDevice(this.$route.params.id)
-            this.agentSupportsDeviceAccess = this.device.agentVersion && semver.gt(this.device.agentVersion, '0.8.0')
+            this.agentSupportsDeviceAccess = this.device.agentVersion && semver.gte(this.device.agentVersion, '0.8.0')
             this.$store.dispatch('account/setTeam', this.device.team.slug)
         },
         checkFeatures: async function () {

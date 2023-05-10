@@ -62,7 +62,7 @@ export default {
     setup () {
         return {
             show () {
-                this.unsupportedVersion = !(this.device?.agentVersion && semver.gt(this.device?.agentVersion, '0.8.0'))
+                this.unsupportedVersion = !(this.device?.agentVersion && semver.gte(this.device?.agentVersion, '0.8.0'))
                 this.developerMode = this.device?.mode === 'developer'
                 this.$refs['device-mode-dialog'].show()
             }
