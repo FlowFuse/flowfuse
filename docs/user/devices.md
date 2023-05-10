@@ -156,30 +156,46 @@ backup of the Node-RED flows and configuration.
 This model allows you to develop your flows in FlowForge and only push it out
 to the registered devices when you're happy with what you've created.
 
-## Editing the Node-RED flows directly on a device
+## Editing the Node-RED flows on a device
 
-You can edit the flows directly on the device. This is useful for debugging 
-and testing. Additionally, once your edits are complete, you can make 
-a snapshot of the changes and upload it to the platform to be shared with other devices.
+The device agent does not allow local access to the Node-RED editor. This ensures
+the device is running the deployed snapshot without modification.
+
+When running on FlowForge Cloud, or a premium licensed FlowForge instance, a
+device can be placed in Developer Mode that enables remote access to the editor.
+
+This can then be used to develop the flows directly on the device and a new snapshot
+generated from the device that can be deployed to other devices in the application.
+
+Whilst in Developer Mode the device will not receive new updates from the platform
+when new snapshots are deployed.
+
+**Enabling Developer Mode**
 
 1. Go to your teams's **Devices** page.
 2. Select the device you want to edit by clicking its name.
-3. Click the **Mode** button and enable "Developer Mode".
-   1. This will cause the device to run isolated from snapshot changes.
-   1. An additional panel named **Device Options** will be displayed, allowing you to edit the flows directly on the device.
-4. In the **Device Options** panel, click the "Editor Access" **Enable** button to establish a connection to the device.
-   1. This will enable the **Device Editor** button.
-5. Click the **Device Editor** button to open the Node-RED editor in a new browser tab.
-6. Make your changes to the flows and deploy them to the device.
-7. When you're happy with the changes, you can save the changes in a snapshot 
-   1. In the **Device Options** panel, click the **Create Snapshot** button.
-   1. You will be prompted to give the snapshot a name and description.  See [Snapshots](snapshots.md) for more information.
-   1. Click **Create** to save the snapshot.
-8. In the **Device Options** panel, click the "Editor Access" **Disable** button to disable the connection to the device.
+3. Click the "Developer Mode" button to enable developer mode.
+4. Once enabled, a Developer Mode Options panel is shown on the Device overview page.
+
+
+**Accessing the Editor**
+
+1. Once developer mode is enabled, click the **Enable** button next to the 'Editor Access' option
+2. When the editor is available, the Editor button in the header will become active and will take you to the device editor.
+
+**Creating a Device Snapshot**
+
+To create an instance snapshot from the device use the **Create Snapshot** button
+in the Developer Mode options panel.
+
+You will be prompted to give the snapshot a name and description. See [Snapshots](snapshots.md) for more information
+about working with snapshots.
 
 ### Important Notes
+
+* Remote access to the editor required Device Agent v0.8.0 or later.
 * The device must first have a snapshot applied before editor access is possible.
-* The device will not be able to receive any updates from the platform while in Developer Mode.
+* The device will not receive any updates from the platform while in Developer Mode.
 * Disabling Developer Mode will cause the device to re-connected to the platform and any change to the target snapshot will cause the device to be updated. This will overwrite any changes made in Developer Mode. Therefore, it is recommended to create a snapshot of the changes before disabling Developer Mode.
 * The device must be online and connected to the platform to enable "Editor Access".
 * To minimise server and device resources, it is recommended to disable "Editor Access" when not actively developing flows on a device.
