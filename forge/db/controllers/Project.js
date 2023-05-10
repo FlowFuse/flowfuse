@@ -256,16 +256,7 @@ module.exports = {
             if (components.credentials) {
                 const projectSecret = await project.getCredentialSecret()
                 const encryptedCreds = app.db.controllers.Project.exportCredentials(JSON.parse(components.credentials), components.credsSecret, projectSecret)
-                let origCredentials = await app.db.models.StorageCredentials.byProject(project.id)
-                if (origCredentials) {
-                    origCredentials.credentials = JSON.stringify(encryptedCreds)
-                    await origCredentials.save({ transaction })
-                } else {
-                    origCredentials = await app.db.models.StorageCredentials.create({
-                        ProjectId: project.id,
-                        credentials: JSON.stringify(encryptedCreds)
-                    }, { transaction })
-                }
+                await app.db.controllers.StorageCredentials.updateOrCreateForProject(project, encryptedCreds, { transaction })
             }
             await transaction.commit()
         } catch (error) {

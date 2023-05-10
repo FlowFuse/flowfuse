@@ -25,7 +25,8 @@ const modelTypes = [
     'ProjectSnapshot',
     'Device',
     'BrokerClient',
-    'StorageSettings'
+    'StorageSettings',
+    'StorageCredentials'
 ]
 
 async function init (app) {
