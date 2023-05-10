@@ -108,7 +108,7 @@
                 </tr>
             </table>
         </div>
-        <div v-if="developerMode && isLicensed" class="border rounded p-4">
+        <div v-if="developerMode && isDevModeAvailable" class="border rounded p-4">
             <FormHeading>
                 <div class="flex flex-wrap mb-2">
                     <div>
@@ -207,18 +207,18 @@ export default {
         SnapshotCreateDialog
     },
     computed: {
-        ...mapState('account', ['settings']),
+        ...mapState('account', ['settings', 'features']),
         targetSnapshotDeployed: function () {
             return this.device.activeSnapshot?.id === this.device.targetSnapshot?.id
         },
-        isLicensed () {
-            return !!this.settings['platform:licensed']
+        isDevModeAvailable: function () {
+            return !!this.features.deviceEditor
         },
         developerMode: function () {
             return this.device?.mode === 'developer'
         },
         editorAvailable: function () {
-            return this.isLicensed && this.agentSupportsDeviceAccess && this.developerMode && this.device?.status === 'running'
+            return this.isDevModeAvailable && this.agentSupportsDeviceAccess && this.developerMode && this.device?.status === 'running'
         },
         editorEnabled: function () {
             return !!this.device?.editor?.enabled
