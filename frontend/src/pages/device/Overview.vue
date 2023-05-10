@@ -151,7 +151,7 @@
                     <td class="py-2">
                         <ff-button
                             kind="secondary"
-                            class="w-28"
+                            class="w-28 whitespace-nowrap"
                             size="small"
                             @click="showCreateSnapshotDialog"
                         >
@@ -231,7 +231,7 @@ export default {
     },
     mounted () {
         this.refreshDevice()
-        this.agentSupportsDeviceAccess = this.device?.agentVersion && semver.gte(this.device.agentVersion, '0.8.0')
+        this.agentSupportsDeviceAccess = this.device?.agentVersion && semver.gt(this.device.agentVersion, '0.6.1')
     },
     methods: {
         refreshDevice: function () {
