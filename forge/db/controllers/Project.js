@@ -60,7 +60,7 @@ module.exports = {
                 })
             }
         }
-        const projectSettingsRow = project.ProjectSettings.find((projectSetting) => projectSetting.key === KEY_SETTINGS)
+        const projectSettingsRow = project.ProjectSettings?.find((projectSetting) => projectSetting.key === KEY_SETTINGS)
         if (projectSettingsRow) {
             const projectSettings = projectSettingsRow.value
             result = app.db.controllers.ProjectTemplate.mergeSettings(result, projectSettings)
@@ -192,7 +192,7 @@ module.exports = {
      * unencrypted at this point and only needs to be re-encrypted
      */
     exportCredentials: function (app, original, oldKey, newKey) {
-        if (oldKey) {
+        if (oldKey && original.$) {
             const oldHash = crypto.createHash('sha256').update(oldKey).digest()
             original = decryptCreds(oldHash, original)
         }

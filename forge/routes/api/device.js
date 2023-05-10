@@ -1,3 +1,5 @@
+// eslint-disable-next-line no-unused-vars
+const { DeviceTunnelManager } = require('../../ee/lib/deviceEditor/DeviceTunnelManager')
 const { Roles } = require('../../lib/roles')
 const DeviceLive = require('./deviceLive')
 
@@ -357,11 +359,79 @@ module.exports = async function (app) {
         const team = await app.db.models.Team.byId(request.device.TeamId)
         app.comms.devices.streamLogs(team.hashid, request.device.hashid, connection.socket)
     })
-}
-async function assignDeviceToProject (device, project) {
-    await device.setProject(project)
-    // Set the target snapshot to match the project's one
-    const deviceSettings = await project.getSetting('deviceSettings')
-    device.targetSnapshotId = deviceSettings?.targetSnapshot
-    return true
+
+    /**
+     * Set device operating mode
+     * @name /api/v1/devices/:deviceId/mode
+     * @memberof module:forge/routes/api/device
+     */
+    app.put('/:deviceId/mode', {
+        preHandler: app.needsPermission('device:edit')
+    }, async (request, reply) => {
+        // setting device mode is only valid for licensed platforms
+        const isLicensed = app.license.active()
+        if (isLicensed !== true) {
+            reply.code(400).send({ code: 'not_licensed', error: 'Device mode can only be set for licensed platforms' })
+            return
+        }
+        const mode = request.body.mode || 'autonomous'
+        if (mode !== 'autonomous' && mode !== 'developer') {
+            reply.code(400).send({ code: 'invalid_mode', error: 'Expected device mode option to be either "autonomous" or "developer"' })
+            return
+        }
+        request.device.mode = request.body.mode
+        await request.device.save()
+        reply.send({ mode: request.body.mode })
+    })
+
+    /**
+     * Create a snapshot from a device
+     * @name /api/v1/devices/:deviceId/snapshot
+     * @memberof module:forge/routes/api/device
+     */
+    app.post('/:deviceId/snapshot', {
+        preHandler: app.needsPermission('project:snapshot:create')
+    }, async (request, reply) => {
+        const snapshotOptions = {
+            name: request.body.name,
+            description: request.body.description,
+            setAsTarget: request.body.setAsTarget
+        }
+        const snapShot = await app.db.controllers.ProjectSnapshot.createSnapshotFromDevice(
+            request.device.Project,
+            request.device,
+            request.session.User,
+            snapshotOptions
+        )
+        snapShot.User = request.session.User
+        await app.auditLog.Project.project.snapshot.created(request.session.User, null, request.project, snapShot)
+        if (request.body.setAsTarget) {
+            await snapShot.reload()
+            await request.project.updateSetting('deviceSettings', {
+                targetSnapshot: snapShot.id
+            })
+            // Update the targetSnapshot of the devices assigned to this project
+            await app.db.models.Device.update({ targetSnapshotId: snapShot.id }, {
+                where: {
+                    ProjectId: request.project.id
+                }
+            })
+            await app.auditLog.Project.project.snapshot.deviceTargetSet(request.session.User, null, request.project, snapShot)
+            if (app.comms) {
+                app.comms.devices.sendCommandToProjectDevices(request.project.Team.hashid, request.project.id, 'update', {
+                    snapshot: snapShot.hashid
+                })
+            }
+        }
+        reply.send(app.db.views.ProjectSnapshot.snapshot(snapShot))
+    })
+
+    async function assignDeviceToProject (device, project) {
+        await device.setProject(project)
+        // Set the target snapshot to match the project's one
+        const deviceSettings = await project.getSetting('deviceSettings')
+        device.targetSnapshotId = deviceSettings?.targetSnapshot
+        return true
+    }
+    // #endregion
 }

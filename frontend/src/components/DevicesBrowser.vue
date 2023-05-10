@@ -230,7 +230,7 @@ import EmptyState from './EmptyState.vue'
 import DevicesStatusBar from './charts/DeviceStatusBar.vue'
 
 export default {
-    name: 'ProjectOverview',
+    name: 'DevicesBrowser',
     components: {
         ClockIcon,
         DeviceAssignInstanceDialog,

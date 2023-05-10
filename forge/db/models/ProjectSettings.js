@@ -1,5 +1,5 @@
 /**
- * A Project
+ * A Project Settings model
  * @namespace forge.db.models.ProjectSettings
  */
 const { DataTypes } = require('sequelize')
