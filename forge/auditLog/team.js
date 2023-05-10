@@ -77,17 +77,21 @@ module.exports = {
                         await log('team.device.provisioning.deleted', actionedBy, team?.id, generateBody({ error, info }))
                     }
                 },
-                async developerModeEnabled (actionedBy, error, team, device) {
-                    await log('team.device.developer-mode-enabled', actionedBy, team?.id, generateBody({ error, device }))
+                developerMode: {
+                    async enabled (actionedBy, error, team, device) {
+                        await log('team.device.developer-mode.enabled', actionedBy, team?.id, generateBody({ error, device }))
+                    },
+                    async disabled (actionedBy, error, team, device) {
+                        await log('team.device.developer-mode.disabled', actionedBy, team?.id, generateBody({ error, device }))
+                    }
                 },
-                async developerModeDisabled (actionedBy, error, team, device) {
-                    await log('team.device.developer-mode-disabled', actionedBy, team?.id, generateBody({ error, device }))
-                },
-                async remoteAccessEnabled (actionedBy, error, team, device) {
-                    await log('team.device.remote-access-enabled', actionedBy, team?.id, generateBody({ error, device }))
-                },
-                async remoteAccessDisabled (actionedBy, error, team, device) {
-                    await log('team.device.remote-access-disabled', actionedBy, team?.id, generateBody({ error, device }))
+                remoteAccess: {
+                    async enabled (actionedBy, error, team, device) {
+                        await log('team.device.remote-access.enabled', actionedBy, team?.id, generateBody({ error, device }))
+                    },
+                    async disabled (actionedBy, error, team, device) {
+                        await log('team.device.remote-access.disabled', actionedBy, team?.id, generateBody({ error, device }))
+                    }
                 }
             }
         }

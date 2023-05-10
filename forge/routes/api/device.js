@@ -384,9 +384,9 @@ module.exports = async function (app) {
 
         // Audit log the change
         if (request.device.mode === 'developer') {
-            await app.auditLog.Team.team.device.developerModeEnabled(request.session.User, null, request.device.Team, request.device)
+            await app.auditLog.Team.team.device.developerMode.enabled(request.session.User, null, request.device.Team, request.device)
         } else {
-            await app.auditLog.Team.team.device.developerModeDisabled(request.session.User, null, request.device.Team, request.device)
+            await app.auditLog.Team.team.device.developerMode.disabled(request.session.User, null, request.device.Team, request.device)
         }
         reply.send({ mode: request.body.mode })
     })

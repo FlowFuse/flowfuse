@@ -60,28 +60,22 @@
     </template>
 
     <!-- Team Device Developer Mode -->
-    <!-- create entries for:
-        'team.device.developer-mode-enabled',
-        'team.device.developer-mode-disabled',
-        'team.device.remote-access-enabled',
-        'team.device.remote-access-disabled'
-    -->
-    <template v-else-if="entry.event === 'team.device.developer-mode-enabled'">
+    <template v-else-if="entry.event === 'team.device.developer-mode.enabled'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.device">Developer Mode has been enabled for the Device '{{ entry.body.device?.name }}'.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
-    <template v-else-if="entry.event === 'team.device.developer-mode-disabled'">
+    <template v-else-if="entry.event === 'team.device.developer-mode.disabled'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.device">Developer Mode has been disabled for the Device '{{ entry.body.device?.name }}'.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
-    <template v-else-if="entry.event === 'team.device.remote-access-enabled'">
+    <template v-else-if="entry.event === 'team.device.remote-access.enabled'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.device">Remote Access has been enabled for device '{{ entry.body.device?.name }}'.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
-    <template v-else-if="entry.event === 'team.device.remote-access-disabled'">
+    <template v-else-if="entry.event === 'team.device.remote-access.disabled'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.device">Remote Access has been disabled for device '{{ entry.body.device?.name }}'.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>

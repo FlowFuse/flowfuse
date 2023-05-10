@@ -168,10 +168,10 @@ const iconMap = {
         'project.snapshot.deviceTarget' // legacy event
     ],
     beaker: [
-        'team.device.developer-mode-enabled',
-        'team.device.developer-mode-disabled',
-        'team.device.remote-access-enabled',
-        'team.device.remote-access-disabled'
+        'team.device.developer-mode.enabled',
+        'team.device.developer-mode.disabled',
+        'team.device.remote-access.enabled',
+        'team.device.remote-access.disabled'
     ],
     token: [
         'team.device.provisioning.created',
