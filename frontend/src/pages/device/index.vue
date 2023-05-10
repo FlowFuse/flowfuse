@@ -33,7 +33,7 @@
                         </div>
                     </div>
                 </template>
-                <template v-if="isLicensed" #tools>
+                <template v-if="isDevModeAvailable" #tools>
                     <div class="space-x-2 flex align-center">
                         <a v-if="editorAvailable && !isVisitingAdmin" class="ff-btn ff-btn--secondary" :href="deviceEditorURL" :target="`device-editor-${device.id}`" data-action="device-editor">
                             Device Editor
@@ -124,14 +124,14 @@ export default {
             // return true
             return this.teamMembership.role === Roles.Admin
         },
-        isLicensed: function () {
-            return !!this.settings['platform:licensed']
+        isDevModeAvailable: function () {
+            return !!this.features.deviceEditor
         },
         developerMode: function () {
             return this.device && this.agentSupportsDeviceAccess && this.device.mode === 'developer'
         },
         editorAvailable: function () {
-            return this.isLicensed && this.device && this.agentSupportsDeviceAccess && this.developerMode && this.device.status === 'running' && this.deviceEditorURL
+            return this.isDevModeAvailable && this.device && this.agentSupportsDeviceAccess && this.developerMode && this.device.status === 'running' && this.deviceEditorURL
         },
         deviceEditorURL: function () {
             return this.device.editor?.url || ''
