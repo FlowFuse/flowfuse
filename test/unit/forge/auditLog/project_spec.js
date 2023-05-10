@@ -248,6 +248,27 @@ describe('Audit Log > Project', async function () {
 
     // #endregion
 
+    // #region Project Device Snapshot
+
+    it('Provides a logger for creating a snapshot from a project device', async function () {
+        await projectLogger.project.device.snapshot.created(ACTIONED_BY, null, PROJECT, DEVICE, SNAPSHOT)
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'project.device.snapshot.created')
+        logEntry.should.have.property('scope', { id: PROJECT.id, type: 'project' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('project', 'device', 'snapshot')
+        logEntry.body.project.should.only.have.keys('id', 'name')
+        logEntry.body.project.id.should.equal(PROJECT.id)
+        logEntry.body.device.should.only.have.keys('id', 'name')
+        logEntry.body.device.id.should.equal(DEVICE.hashid)
+        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
+    })
+
+    // #endregion
+
     // #region Project Snapshots
 
     it('Provides a logger for creating snapshots of a project', async function () {
