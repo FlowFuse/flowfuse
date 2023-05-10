@@ -239,17 +239,7 @@ module.exports = {
         const transaction = await app.db.sequelize.transaction()
         try {
             if (components.flows) {
-                let currentProjectFlows = await app.db.models.StorageFlow.byProject(project.id)
-                if (currentProjectFlows) {
-                    // Note StorageFlow.flow not .flows
-                    currentProjectFlows.flow = components.flows
-                    await currentProjectFlows.save({ transaction })
-                } else {
-                    currentProjectFlows = await app.db.models.StorageFlow.create({
-                        ProjectId: project.id,
-                        flow: components.flows
-                    }, { transaction })
-                }
+                await app.db.controllers.StorageFlows.updateOrCreateForProject(project, components.flows, { transaction })
             }
             if (components.credentials) {
                 const projectSecret = await project.getCredentialSecret()
