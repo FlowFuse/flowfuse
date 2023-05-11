@@ -1,6 +1,6 @@
 {
     "name": "@flowforge/flowforge",
-    "version": "1.6.0",
+    "version": "1.7.0",
     "description": "An open source low-code development platform",
     "homepage": "https://github.com/flowforge/flowforge#readme",
     "bugs": {
@@ -60,7 +60,7 @@
         "@fastify/static": "^6.5.0",
         "@fastify/websocket": "^7.2.0",
         "@flowforge/forge-ui-components": "^0.6.1",
-        "@flowforge/localfs": "^1.6.0",
+        "@flowforge/localfs": "^1.7.0",
         "@headlessui/vue": "1.7.13",
         "@heroicons/vue": "1.0.6",
         "axios": "^1.1.3",
