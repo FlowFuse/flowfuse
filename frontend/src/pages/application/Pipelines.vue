@@ -70,6 +70,7 @@ export default {
     beforeRouteLeave () {
         clearInterval(this.polling)
     },
+    inheritAttrs: false,
     props: {
         instances: {
             type: Array,
