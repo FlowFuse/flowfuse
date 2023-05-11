@@ -9,9 +9,27 @@ module.exports = {
             type: DataTypes.STRING,
             allowNull: false
         },
-        target: {
+
+        target: { // @TODO: this is the next stage ID in the pipeline, needs relations declaring..
             type: DataTypes.INTEGER,
             allowNull: true
+        }
+    },
+    options: {
+        validate: {
+            async instancesHaveSameApplication () {
+                const instancesPromise = this.getInstance()
+                const pipelinePromise = this.getPipeline()
+
+                const instances = await instancesPromise
+                const pipeline = await pipelinePromise
+
+                instances.forEach((instance) => {
+                    if (instance.applicationId !== pipeline.applicationId) {
+                        throw new Error(`All instances on a pipeline stage, must be a member of the same application as the pipeline. ${instance.name} is not a member of application ${pipeline.applicationId}.`)
+                    }
+                })
+            }
         }
     },
     associations: function (M) {
