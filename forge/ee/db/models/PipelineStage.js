@@ -18,7 +18,7 @@ module.exports = {
     options: {
         validate: {
             async instancesHaveSameApplication () {
-                const instancesPromise = this.getInstance()
+                const instancesPromise = this.getInstances()
                 const pipelinePromise = this.getPipeline()
 
                 const instances = await instancesPromise
