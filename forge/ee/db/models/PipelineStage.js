@@ -16,12 +16,17 @@ module.exports = {
     },
     associations: function (M) {
         this.belongsTo(M.Pipeline)
-        this.hasMany(M.Project)
+        this.belongsToMany(M.Project, { through: M.PipelineStageInstance, as: 'Instances', otherKey: 'InstanceId' })
     },
     finders: function (M) {
         const self = this
         return {
-            instance: { },
+            instance: {
+                async addInstanceId (instanceId) {
+                    const instance = await M.Project.byId(instanceId)
+                    await this.addInstance(instance)
+                }
+            },
             static: {
                 byId: async function (idOrHash) {
                     let id = idOrHash
@@ -32,7 +37,7 @@ module.exports = {
                         where: { id },
                         include: [
                             {
-                                model: M.Project,
+                                association: 'Instances',
                                 attributes: ['hashid', 'id', 'name', 'url', 'updatedAt']
                             }
                         ]
@@ -48,7 +53,7 @@ module.exports = {
                         },
                         include: [
                             {
-                                model: M.Project,
+                                association: 'Instances',
                                 attributes: ['hashid', 'id', 'name', 'url', 'updatedAt']
                             }
                         ]

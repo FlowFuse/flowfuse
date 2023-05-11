@@ -6,9 +6,8 @@ module.exports = {
             name: result.name
         }
 
-        if (stage.Projects && stage.Projects.length > 0) {
-            const project = stage.Projects[0]
-            filtered.instance = await app.db.views.Project.project(project, { includeSettings: false })
+        if (stage.Instances?.length > 0) {
+            filtered.instances = await app.db.views.Project.instancesList(stage.Instances)
         }
 
         if (stage.target) {
@@ -19,10 +18,6 @@ module.exports = {
         return filtered
     },
     async stageList (app, stages) {
-        const list = await Promise.all(stages.map(async (stage) => {
-            const s = app.db.views.PipelineStage.stage(stage)
-            return s
-        }))
-        return list
+        return await Promise.all(stages.map(app.db.views.PipelineStage.stage))
     }
 }

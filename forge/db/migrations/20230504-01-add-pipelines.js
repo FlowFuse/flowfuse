@@ -44,6 +44,22 @@ module.exports = {
             createdAt: { type: DataTypes.DATE },
             updatedAt: { type: DataTypes.DATE }
         })
+
+        await context.createTable('PipelineStageInstances', {
+            InstanceId: {
+                type: DataTypes.UUID,
+                allowNull: false,
+                references: { model: 'Projects', key: 'id' },
+                onDelete: 'cascade',
+                onUpdate: 'cascade'
+            },
+            PipelineStageId: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                references: { model: 'PipelineStages', key: 'id' },
+                onDelete: 'cascade',
+                onUpdate: 'cascade'
+            }
         })
     },
     down: async (context) => {

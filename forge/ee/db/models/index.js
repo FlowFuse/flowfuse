@@ -8,7 +8,8 @@ const modelTypes = [
     'StorageSharedLibrary',
     'UserBillingCode',
     'Pipeline',
-    'PipelineStage'
+    'PipelineStage',
+    'PipelineStageInstance'
 ]
 
 async function init (app) {

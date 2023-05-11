@@ -10,10 +10,7 @@ module.exports = {
             delete options.source
         }
         const stage = await app.db.models.PipelineStage.create(options)
-
-        const project = await app.db.models.Project.byId(options.instance)
-        project.PipelineStageId = stage.id
-        await project.save()
+        stage.addInstanceId(options.instance)
 
         if (source) {
             const sourceStage = await app.db.models.PipelineStage.byId(source)
