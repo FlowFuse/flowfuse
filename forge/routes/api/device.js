@@ -414,18 +414,18 @@ module.exports = async function (app) {
         await app.auditLog.Project.project.device.snapshot.created(request.session.User, null, request.device.Project, request.device, snapShot)
         if (request.body.setAsTarget) {
             await snapShot.reload()
-            await request.project.updateSetting('deviceSettings', {
+            await request.device.Project.updateSetting('deviceSettings', {
                 targetSnapshot: snapShot.id
             })
             // Update the targetSnapshot of the devices assigned to this project
             await app.db.models.Device.update({ targetSnapshotId: snapShot.id }, {
                 where: {
-                    ProjectId: request.project.id
+                    ProjectId: request.device.Project.id
                 }
             })
-            await app.auditLog.Project.project.snapshot.deviceTargetSet(request.session.User, null, request.project, snapShot)
+            await app.auditLog.Project.project.snapshot.deviceTargetSet(request.session.User, null, request.device.Project, snapShot)
             if (app.comms) {
-                app.comms.devices.sendCommandToProjectDevices(request.project.Team.hashid, request.project.id, 'update', {
+                app.comms.devices.sendCommandToProjectDevices(request.device.Team.hashid, request.device.Project.id, 'update', {
                     snapshot: snapShot.hashid
                 })
             }
