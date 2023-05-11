@@ -90,7 +90,6 @@ export default {
     mounted () {
         if (this.features['devops-pipelines']) {
             this.loadPipelines()
-            this.loadInstanceStatus()
         } else {
             this.$router.push({
                 name: 'Application',
