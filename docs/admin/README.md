@@ -13,7 +13,7 @@ navTitle: Administering FlowForge
  - [FlowForge Concepts](../user/concepts.md)
  - [Usage Telemetry](/docs/admin/telemetry.md)
  - [Single-Sign On](/docs/admin/sso/README.md)
- - [Licensing](/docs/admin/sso/licensing.md)
+ - [Licensing](/docs/admin/licensing.md)
  - [User management](/docs/admin/user_management.md)
 
 ## Administering FlowForge
