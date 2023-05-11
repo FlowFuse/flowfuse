@@ -1,3 +1,62 @@
+#### 1.7.0: Release
+
+ - Add licensing info (#1848) @Steve-Mcl
+ - Update aws.md (#2059) @hardillb
+ - Adds verbose detailing for the nodes.install event in our Audit Log (#2112) @joepavitt
+ - Clean the flex wrapping of the SectionTopMenu component (#2114) @joepavitt
+ - Do not enable device editor if comms are unavailable (#2121) @knolleary
+ - Fix snapshot rollback without credentials or storage flows (#2122) @Pezmc
+ - Bump ui-components to v0.6.1 (#2111) @joepavitt
+ - Add audit log entries for developer mode, remote editor access and device snapshot (#2119) @Steve-Mcl
+ - Remove license check for feature flag check on device editor (#2120) @knolleary
+ - Add deviceEditor feature flag in place of license check (#2118) @knolleary
+ - Improve dialog content for unsupported dev mode (#2117) @knolleary
+ - Fix semver check on dev agent version (#2116) @knolleary
+ - Remote device access, editing and snapshotting with Auth enabled (#2042) @Steve-Mcl
+ - Add Empty State Images (#2104) @joepavitt
+ - Add suspended project count to telemetry ping (#2086) @knolleary
+ - Bump vitest from 0.30.1 to 0.31.0 (#2099) @app/dependabot
+ - Bump jsdom from 21.1.2 to 22.0.0 (#2100) @app/dependabot
+ - Display of Instance Settings actions now a function of user permissions (#2105) @joepavitt
+ - Set wantAssertionsSigned to false to maintain existing behaviour (#2106) @knolleary
+ - Updated the favicon (#2096) @Yndira-FlowForge
+ - Ensure device-agent 0.7.0 messages are displayed (#2079) @hardillb
+ - Update DevOps pipeline pages to account for applications / instances (#2091) @Pezmc
+ - Ensure instance logs refresh after unsuspending an instance (#2085) @knolleary
+ - Add Azure SSO set up (#2087) @robmarcer
+ - Update Docker upgrade instructions (#2088) @hardillb
+ - Fix deleting instance with missing subscription (#2081) @knolleary
+ - Add "Last Seen" chart for filtering Devices (#2058) @joepavitt
+ - Add access token support to stats endpoint (#2053) @knolleary
+ - Lock semver to minor changes (#2078) @Steve-Mcl
+ - Bump lru-cache from 8.0.5 to 9.1.1 (#2040) @app/dependabot
+ - Add instructions to run agent as a service on a Pi (#2072) @robmarcer
+ - Bump @headlessui/vue from 1.7.12 to 1.7.13 (#2014) @app/dependabot
+ - Bump @flowforge/forge-ui-components from 0.5.5 to 0.6.0 (#2062) @app/dependabot
+ - "Add Instance" button on /instances (#2054) @joepavitt
+ - Fix: Stripe out of sync when removing project (#2057) @Pezmc
+ - Create 08-art_request.yml (#2056) @MarianRaphael
+ - Issue template update effort estimation (#2046) @MarianRaphael
+ - Fix: Elapsed time between two dates (#2048) @Pezmc
+ - First pass at AWS K8s install clean up (#1753) @hardillb
+ - Guard against users without team edit accessing billing (#2045) @Pezmc
+ - Update some production dependencies to pickup security fixes (#2041) @knolleary
+ - restore rollbackSnapshot (#2030) @Steve-Mcl
+ - Use application list to determine if team is empty (#2035) @knolleary
+ - doc: Update security for instance (#2033) @ZJvandeWeg
+ - Remove unneeded step for upgrading (#2024) @ZJvandeWeg
+ - Add missing dot (#2027) @ZJvandeWeg
+ - Refactor more tests to minimise forge app initialisation (#2025) @knolleary
+ - Rework more tests to minimise app reinitialisation (#2023) @knolleary
+ - Reduce forge app reinitialisation in model tests (#2013) @knolleary
+ - Rework tests to minimise app reinitialisation (#2019) @knolleary
+ - Ensure postoffice heartbeat interval is stopped on shutdown (#2018) @knolleary
+ - Update device/project api tests to minimise app reinitialisation (#2015) @knolleary
+ - Rework app/db/controller tests to minimise app recreation (#2012) @knolleary
+ - Use audit events to improve management of node module list (#2011) @knolleary
+ - docs: More explicit content of Snapshots (#2009) @ZJvandeWeg
+ - docs: Update template documentation (#2001) @ZJvandeWeg
+
 #### 1.6.0: Release
 
  - Redirect /project/xyz/* to /instance/xyz/* (#1996) @knolleary
