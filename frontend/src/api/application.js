@@ -97,9 +97,20 @@ const getApplicationInstancesStatuses = async (applicationId, cursor, limit) => 
  */
 const getPipelines = async (applicationId) => {
     const result = await client.get(`/api/v1/applications/${applicationId}/pipelines`)
-    const instances = result.data.pipelines
+    const pipelines = result.data.pipelines
 
-    return instances
+    return pipelines.map((pipeline) => {
+        pipeline.stages = pipeline.stages.map((stage) => {
+            // For now, in the UI, a pipeline stage can only have one instance/
+            // In the backend, multiple instances per pipeline are supported
+            // @see getPipelineStage in frontend Pipeline API
+            stage.instance = stage.instances?.[0]
+
+            return stage
+        })
+
+        return pipeline
+    })
 }
 
 /**
