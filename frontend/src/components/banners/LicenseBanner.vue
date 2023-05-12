@@ -10,9 +10,7 @@
             <span v-else-if="license.expired">Your FlowForge license has expired.</span>
         </span>
 
-        <template>
-            <ChevronRightIcon class="ff-icon align-self-right" />
-        </template>
+        <ChevronRightIcon class="ff-icon align-self-right" />
     </div>
 </template>
 

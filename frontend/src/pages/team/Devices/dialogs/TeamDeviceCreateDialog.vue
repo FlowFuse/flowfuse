@@ -132,6 +132,7 @@ export default {
                         // TODO: should the create allow a device to be created
                         //       in the project directly? Currently done as a two
                         //       step process
+                        // eslint-disable-next-line promise/no-nesting
                         return devicesApi.updateDevice(response.id, { project: this.instance.id }).then((response) => {
                             // Reattach the credentials from the create request
                             // so they can be displayed to the user

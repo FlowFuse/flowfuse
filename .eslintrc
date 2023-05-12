@@ -12,10 +12,10 @@
     "parserOptions": {
         "ecmaVersion": 2022
     },
-    "ignorePatterns": ["frontend/dist/", "var/"],
+    "ignorePatterns": ["frontend/dist/", "var/", "*.svg", "*.xml"],
     "plugins": ["promise"],
     "settings": {
-        "import/core-modules": [ "lottie-web-vue", "@heroicons/vue" ],
+        "import/core-modules": [ "lottie-web-vue", "@heroicons/vue" ]
         "node": {
             "allowModules": [
                 "flowforge-test-utils", // exists at test/node_modules/flowforge-test-utils
@@ -123,23 +123,6 @@
         //////////
         {
             "rules": {
-                "comma-dangle": "off"
-            },
-            "files": [
-                "config/babel.config.js",
-                "config/postcss.config.js"
-            ]
-        },
-        {
-            "rules": {
-                "comma-spacing": "off"
-            },
-            "files": [
-                "config/postcss.config.js"
-            ]
-        },
-        {
-            "rules": {
                 "cypress/require-data-selectors": "off"
             },
             "files": [
@@ -159,14 +142,6 @@
                 "test/e2e/frontend/cypress/tests/team/audit-log.spec.js",
                 "test/e2e/frontend/cypress/tests/team/team-membership.spec.js",
                 "test/e2e/frontend/cypress/tests/terms-and-conditions.spec.js"
-            ]
-        },
-        {
-            "rules": {
-                "eol-last": "off"
-            },
-            "files": [
-                "frontend/src/components/icons/projects-solid.svg"
             ]
         },
         {
@@ -358,47 +333,6 @@
         },
         {
             "rules": {
-                "indent": "off"
-            },
-            "files": [
-                "config/babel.config.js"
-            ]
-        },
-        {
-            "rules": {
-                "n/no-process-exit": "off"
-            },
-            "files": [
-                "forge/app.js",
-                "test/e2e/frontend/test_environment.js"
-            ]
-        },
-        {
-            "rules": {
-                "n/shebang": "off"
-            },
-            "files": [
-                "test/e2e/frontend/test_environment.js"
-            ]
-        },
-        {
-            "rules": {
-                "no-mixed-spaces-and-tabs": "off"
-            },
-            "files": [
-                "frontend/src/components/icons/nodered-hex.svg"
-            ]
-        },
-        {
-            "rules": {
-                "no-tabs": "off"
-            },
-            "files": [
-                "frontend/src/components/icons/nodered-hex.svg"
-            ]
-        },
-        {
-            "rules": {
                 "promise/always-return": "off"
             },
             "files": [
@@ -430,32 +364,6 @@
                 "frontend/src/pages/team/create.vue",
                 "frontend/src/pages/team/Overview.vue",
                 "frontend/src/store/account.js"
-            ]
-        },
-        {
-            "rules": {
-                "promise/no-nesting": "off"
-            },
-            "files": [
-                "frontend/src/pages/team/Devices/dialogs/TeamDeviceCreateDialog.vue"
-            ]
-        },
-        {
-            "rules": {
-                "quotes": "off"
-            },
-            "files": [
-                "config/babel.config.js",
-                "config/postcss.config.js"
-            ]
-        },
-        {
-            "rules": {
-                "semi": "off"
-            },
-            "files": [
-                "config/babel.config.js",
-                "config/postcss.config.js"
             ]
         },
         {
@@ -556,12 +464,7 @@
                 "vue/comment-directive": "off"
             },
             "files": [
-                "docs/contribute/images/ff-arch1.drawio.xml",
-                "docs/contribute/images/ff-project-arch.drawio.xml",
                 "frontend/dist-setup/setup.html",
-                "frontend/src/components/icons/nodered-hex.svg",
-                "frontend/src/components/icons/projects-solid.svg",
-                "frontend/src/images/ff-flow-bg-white.svg",
                 "frontend/src/index.html",
                 "frontend/src/setup.html"
             ]
@@ -603,7 +506,6 @@
             },
             "files": [
                 "frontend/src/components/FormRow.vue",
-                "frontend/src/components/icons/nodered-hex.svg",
                 "frontend/src/components/PageHeader.vue",
                 "frontend/src/components/SideNavigationTeamOptions.vue",
                 "frontend/src/layouts/Box.vue",
@@ -626,8 +528,6 @@
                 "frontend/src/components/audit-log/AuditEntryVerbose.vue",
                 "frontend/src/components/banners/TeamTrial.vue",
                 "frontend/src/components/DropdownMenu.vue",
-                "frontend/src/components/icons/nodered-hex.svg",
-                "frontend/src/components/icons/projects-solid.svg",
                 "frontend/src/components/Loading.vue",
                 "frontend/src/components/Logo.vue",
                 "frontend/src/components/NavItem.vue",
@@ -637,7 +537,6 @@
                 "frontend/src/components/tables/cells/TeamCell.vue",
                 "frontend/src/components/tables/cells/UserCell.vue",
                 "frontend/src/components/TeamSelection.vue",
-                "frontend/src/images/ff-flow-bg-white.svg",
                 "frontend/src/layouts/Platform.vue",
                 "frontend/src/pages/account/AccessRequest.vue",
                 "frontend/src/pages/account/AccessRequestEditor.vue",
@@ -668,15 +567,6 @@
                 "frontend/src/pages/team/Settings/Danger.vue",
                 "frontend/src/pages/team/Settings/Devices.vue",
                 "frontend/src/pages/team/Settings/General.vue"
-            ]
-        },
-        {
-            "rules": {
-                "vue/html-quotes": "off"
-            },
-            "files": [
-                "frontend/src/components/tables/cells/TeamCell.vue",
-                "frontend/src/pages/admin/InstanceTypes/components/InstanceTypeDescriptionCell.vue"
             ]
         },
         {
@@ -806,14 +696,6 @@
         },
         {
             "rules": {
-                "vue/no-lone-template": "off"
-            },
-            "files": [
-                "frontend/src/components/banners/LicenseBanner.vue"
-            ]
-        },
-        {
-            "rules": {
                 "vue/no-multi-spaces": "off"
             },
             "files": [
@@ -823,14 +705,6 @@
                 "frontend/src/pages/admin/Template/sections/Environment.vue",
                 "frontend/src/pages/admin/Template/sections/PaletteModules.vue",
                 "frontend/src/pages/admin/Users/dialogs/AdminUserEditDialog.vue"
-            ]
-        },
-        {
-            "rules": {
-                "vue/no-template-shadow": "off"
-            },
-            "files": [
-                "frontend/src/components/audit-log/AuditLog.vue"
             ]
         },
         {
