@@ -40,7 +40,6 @@ running the agent.
 #### Linux
 
 ```bash
-```bash
 sudo mkdir /opt/flowforge-device
 sudo chown -R $USER /opt/flowforge-device
 ```
