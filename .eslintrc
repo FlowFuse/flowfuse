@@ -14,9 +14,9 @@
         "ecmaVersion": 2022
     },
     "ignorePatterns": ["frontend/dist/", "var/", "*.svg", "*.xml"],
-    "plugins": ["promise"],
+    "plugins": ["promise", "no-only-tests"],
     "settings": {
-        "import/core-modules": [ "lottie-web-vue", "@heroicons/vue" ]
+        "import/core-modules": [ "lottie-web-vue", "@heroicons/vue" ],
         "node": {
             "allowModules": [
                 "flowforge-test-utils", // exists at test/node_modules/flowforge-test-utils
@@ -54,6 +54,9 @@
         "n/file-extension-in-import": "error",
         "n/no-missing-import": "error",
         "n/no-missing-require": "error",
+
+        // plugin:no-only-tests
+        "no-only-tests/no-only-tests": "error",
 
         // plugin:promise
         "promise/catch-or-return": ["error", { "allowFinally": true }]
