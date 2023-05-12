@@ -1,8 +1,8 @@
 ---
-navTitle: Shared Team Library
+navTitle: Team Library
 ---
 
-# Shared Team Library
+# Team Library
 
 Node-RED allows you to import and export **flows** and **functions** to a local library. This is helpful
 for saving pieces of flow that you want to reuse.
