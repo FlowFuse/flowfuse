@@ -25,7 +25,7 @@ if (flowforgeHome) {
 fs.mkdirSync(p, { recursive: true })
 
 log(`installing stack node-red@${vers}`)
-const npmCmd = `npm install --prefix ${p} node-red@${vers}`
+const npmCmd = `npm install --prefix "${p}" node-red@${vers}`
 
 exec(npmCmd, (err, stdout, stderr) => {
     if (err) {
