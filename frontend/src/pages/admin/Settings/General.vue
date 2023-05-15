@@ -246,7 +246,9 @@ export default {
         })
 
         this.platformStatsTokenEnabled = this.input['platform:stats:token']
-        this.platformStatsToken = ''
+        if (!this.platformStatsTokenEnabled) {
+            this.platformStatsToken = ''
+        }
     },
     watch: {
         platformStatsTokenEnabled: function (newValue) {
@@ -356,6 +358,7 @@ export default {
         disableStatsToken () {
             this.$refs.disablePlatformStatsToken.close()
             this.platformStatsToken = ''
+            this.platformStatsTokenEnabled = false
             adminApi.deleteStatsAccessToken().then(result => {})
         }
     },
