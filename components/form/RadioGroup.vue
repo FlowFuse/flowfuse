@@ -55,6 +55,9 @@ export default {
         },
         checkOptions () {
             this.options.forEach((option, i) => {
+                this.internalOptions[i].label = option.label
+                this.internalOptions[i].description = option.description
+                this.internalOptions[i].disabled = option.disabled
                 this.internalOptions[i].checked = (option.value === this.modelValue)
                 if (this.internalOptions[i].checked) {
                     // emit the new checked value v-model bound to this group
