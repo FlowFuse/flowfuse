@@ -127,8 +127,8 @@ documentation of your chosen deployment model:
 
 ### Managing Templates
 
-The Templates page can be used to create and edit the template on the platform.
-With templates administrators can apply Node-RED configuration options as default.
+With [templates](../user/concepts/#template) administrators
+can apply Node-RED configuration options as default.
 For these options, the administrator can lock the selected value so users cannot change
 them, or keep them editable by end-users.
 
