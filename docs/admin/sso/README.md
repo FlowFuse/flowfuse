@@ -110,6 +110,8 @@ FlowForge Setting | Azure Setting
 `Identity Provider Issuer ID / URL` | `Entity ID`
 `X.509 Certificate Public Key` | `Certificate (Base64)`
 
+Within the `SAML Signing Certificate` configuration, the `Signing Option` must be set to `Sign SAML response and assertion`.
+
 ### Google Workspace
 
 Google provide a guide for creating a custom SAML Application [here](https://support.google.com/a/answer/6087519?hl=en).
@@ -125,6 +127,7 @@ FlowForge Setting | Google Workspace Setting
 `Identity Provider Issuer ID / URL` | `Entity ID`
 `X.509 Certificate Public Key` | `Certificate`
 
+Within the `Service provider details` configuration, the `Signed response` option must be enabled.
 
 ### OneLogin
 
