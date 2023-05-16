@@ -1,3 +1,12 @@
+#### 1.7.1: Release
+
+ - Docs: Add additional SSO config notes on signed responses (backport #2149) (#2151) @github-actions
+ - Update install-stack.js (backport #2139) (#2148) @github-actions
+ - Bump ui-components to 0.6.2 (backport #2146) (#2147) @github-actions
+ - Only Generate admin stats token when asked (backport #2141) (#2145) @github-actions
+ - Handle non-string log message payloads (backport #2130) (#2131) @github-actions
+ - Remove double backticks (backport #2134) (#2135) @github-actions
+
 #### 1.7.0: Release
 
  - Add licensing info (#1848) @Steve-Mcl
