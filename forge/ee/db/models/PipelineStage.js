@@ -9,19 +9,42 @@ module.exports = {
             type: DataTypes.STRING,
             allowNull: false
         },
-        target: {
+
+        target: { // @TODO: this is the next stage ID in the pipeline, needs relations declaring..
             type: DataTypes.INTEGER,
             allowNull: true
         }
     },
+    options: {
+        validate: {
+            async instancesHaveSameApplication () {
+                const instancesPromise = this.getInstances()
+                const pipelinePromise = this.getPipeline()
+
+                const instances = await instancesPromise
+                const pipeline = await pipelinePromise
+
+                instances.forEach((instance) => {
+                    if (instance.applicationId !== pipeline.applicationId) {
+                        throw new Error(`All instances on a pipeline stage, must be a member of the same application as the pipeline. ${instance.name} is not a member of application ${pipeline.applicationId}.`)
+                    }
+                })
+            }
+        }
+    },
     associations: function (M) {
         this.belongsTo(M.Pipeline)
-        this.hasMany(M.Project)
+        this.belongsToMany(M.Project, { through: M.PipelineStageInstance, as: 'Instances', otherKey: 'InstanceId' })
     },
     finders: function (M) {
         const self = this
         return {
-            instance: { },
+            instance: {
+                async addInstanceId (instanceId) {
+                    const instance = await M.Project.byId(instanceId)
+                    await this.addInstance(instance)
+                }
+            },
             static: {
                 byId: async function (idOrHash) {
                     let id = idOrHash
@@ -32,7 +55,7 @@ module.exports = {
                         where: { id },
                         include: [
                             {
-                                model: M.Project,
+                                association: 'Instances',
                                 attributes: ['hashid', 'id', 'name', 'url', 'updatedAt']
                             }
                         ]
@@ -48,7 +71,7 @@ module.exports = {
                         },
                         include: [
                             {
-                                model: M.Project,
+                                association: 'Instances',
                                 attributes: ['hashid', 'id', 'name', 'url', 'updatedAt']
                             }
                         ]
