@@ -12,10 +12,16 @@ module.exports = async (app) => {
         }
         return 'CE'
     }
+
+    const projectStateCounts = await app.db.models.Project.count({ attributes: ['state'], group: 'state' })
+    const projectStates = {}
+    projectStateCounts.forEach(state => { projectStates[state.state] = state.count })
+
     return {
         'platform.counts.users': await app.db.models.User.count(),
         'platform.counts.teams': await app.db.models.Team.count(),
         'platform.counts.projects': await app.db.models.Project.count(),
+        'platform.counts.projectsByState.suspended': projectStates.suspended || 0,
         'platform.counts.devices': await app.db.models.Device.count(),
         'platform.counts.projectSnapshots': await app.db.models.ProjectSnapshot.count(),
         'platform.counts.projectTemplates': await app.db.models.ProjectStack.count(),

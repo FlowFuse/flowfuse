@@ -72,11 +72,13 @@ module.exports = function (app) {
                 // Receive status events from project launchers
                 // - ff/v1/+/l/+/status
                 { topic: /^ff\/v1\/[^/]+\/l\/[^/]+\/status$/ },
-                // Receive status events from devices
+                // Receive status events, logs and command responses from devices
                 // - ff/v1/+/d/+/status
                 { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/status$/ },
                 // - ff/v1/+/d/+/logs
-                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/logs$/ }
+                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/logs$/ },
+                // - ff/v1/+/d/+/logs
+                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/response$/ }
             ],
             pub: [
                 // Send commands to project launchers
@@ -112,11 +114,13 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/command$/, verify: 'checkDeviceAssignedToProject' }
             ],
             pub: [
-                // Send status to the platform
+                // Send status, logs and command responses to the platform
                 // - ff/v1/<team>/d/<device>/status
                 { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/status$/, verify: 'checkTeamAndObjectIds' },
                 // - ff/v1/<team>/d/<device/logs
-                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/logs$/, verify: 'checkTeamAndObjectIds' }
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/logs$/, verify: 'checkTeamAndObjectIds' },
+                // - ff/v1/<team>/d/<device>/response
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/response$/, verify: 'checkTeamAndObjectIds' }
             ]
         }
     }

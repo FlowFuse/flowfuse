@@ -7,16 +7,27 @@
     background-color: white;
     border: 1px solid $ff-grey-200;
     border-radius: 3px;
+    >div {
+        max-width: 400px;
+        margin: auto;
+    }
+    img {
+        margin: auto;
+    }
     h1 {
-        font-size: 1.25rem;
-        line-height: 1.25rem;
+        font-size: 1.5rem;
+        line-height: 1.75rem;
+        margin: auto;
+        margin-top: 1.5rem;
         margin-bottom: 1rem;
+        font-weight: 500;
     }
     &--message {
         max-width: 450px;
         font-size: 1.1rem;
         margin: auto;
-        margin-bottom: 1.2rem;
+        margin-top: 1.25rem;
+        margin-bottom: 1.25rem;
         p {
             margin-bottom: 0.75rem;
             line-height: 1.5rem;
@@ -26,5 +37,11 @@
     &--actions {
         display: flex;
         justify-content: center;
+    }
+    &--note {
+        display: flex;
+        justify-content: center;
+        margin-top: 1.75rem;
+        color: $ff-grey-400;
     }
 }

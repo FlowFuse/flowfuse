@@ -70,17 +70,15 @@
         </div>
         <div v-else>
             <EmptyState>
+                <template #img>
+                    <img src="../../images/empty-states/team-applications.png">
+                </template>
                 <template #header>Get Started with your First Application</template>
                 <template #message>
                     <p>Applications in FlowForge are used to manage groups of Node-RED Instances</p>
                     <p>
                         Instances within Applications can be connected as
                         <a class="ff-link" href="https://flowforge.com/docs/user/staged-deployments" target="_blank">Staged Deployments.</a>
-                    </p>
-                    <p>
-                        The FlowForge team also have more planned for Applications, including
-                        <a class="ff-link" href="https://github.com/flowforge/flowforge/issues/1734" target="_blank">
-                            shared settings across Instances</a>.
                     </p>
                 </template>
                 <template #actions>
@@ -95,6 +93,13 @@
                         </template>
                         Create Application
                     </ff-button>
+                </template>
+                <template #note>
+                    <p>
+                        The FlowForge team also have more planned for Applications, including
+                        <a class="ff-link" href="https://github.com/flowforge/flowforge/issues/1734" target="_blank">
+                            shared settings across Instances</a>.
+                    </p>
                 </template>
             </EmptyState>
         </div>

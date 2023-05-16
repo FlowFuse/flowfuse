@@ -43,6 +43,11 @@ module.exports = {
                 },
                 async assigned (actionedBy, error, project, device) {
                     await log('project.device.assigned', actionedBy, project?.id, generateBody({ error, project, device }))
+                },
+                snapshot: {
+                    async created (actionedBy, error, project, device, snapshot) {
+                        await log('project.device.snapshot.created', actionedBy, project?.id, generateBody({ error, project, device, snapshot }))
+                    }
                 }
             },
             type: {

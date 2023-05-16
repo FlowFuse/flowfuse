@@ -104,10 +104,69 @@ describe('Project/Device API', async function () {
             cookies: { sid: token }
         })
     }
-
+    async function addDeviceToProject (device, project, userToken) {
+        const response = await app.inject({
+            method: 'PUT',
+            url: `/api/v1/devices/${device.id}`,
+            body: {
+                project: project.id
+            },
+            cookies: { sid: userToken }
+        })
+        return response.json()
+    }
     describe('Get list of devices assigned to a project', async function () {
-        // GET /api/v1/project/:projectId/devices
+        // GET /api/v1/projects/:projectId/devices
         // - Admin/Owner/Member
+        let projectA, projectB
+        before(async function () {
+            const device1 = await createDevice({ name: 'test-device-1', type: 'test-type', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const device2 = await createDevice({ name: 'test-device-2', type: 'test-type', team: TestObjects.BTeam.hashid, as: TestObjects.tokens.bob })
+            projectA = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
+            projectB = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
+            projectA.setTeam(TestObjects.ATeam)
+            projectB.setTeam(TestObjects.BTeam)
+            await addDeviceToProject(device1, projectA, TestObjects.tokens.alice)
+            await addDeviceToProject(device2, projectB, TestObjects.tokens.bob)
+        })
+
+        after(async function () {
+            await app.db.models.Device.destroy({ where: { name: 'test-device-1' } })
+            await app.db.models.Device.destroy({ where: { name: 'test-device-2' } })
+            projectA.destroy()
+            projectB.destroy()
+        })
+
+        it('fails for unknown project', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/projects/ABC-123-UNKNOWN-XYZ-456/devices',
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(404)
+        })
+        it('fails for project not in team', async function () {
+            const deviceProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${deviceProject.id}/devices`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(404)
+        })
+        it('returns a list of devices for team owner', async function () {
+            // Get list of devices
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${projectB.id}/devices`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.devices.should.have.length(1)
+            result.devices[0].should.have.property('name', 'test-device-2')
+            result.devices[0].should.have.property('type', 'test-type')
+        })
     })
 
     describe('Get project device settings', async function () {

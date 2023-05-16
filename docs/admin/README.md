@@ -13,6 +13,7 @@ navTitle: Administering FlowForge
  - [FlowForge Concepts](../user/concepts.md)
  - [Usage Telemetry](/docs/admin/telemetry.md)
  - [Single-Sign On](/docs/admin/sso/README.md)
+ - [Licensing](/docs/admin/licensing.md)
  - [User management](/docs/admin/user_management.md)
  - [Platform Monitoring](/docs/admin/monitoring.md)
 
@@ -126,8 +127,8 @@ documentation of your chosen deployment model:
 
 ### Managing Templates
 
-The Templates page can be used to create and edit the template on the platform.
-With templates administrators can apply Node-RED configuration options as default.
+With [templates](../user/concepts/#template) administrators
+can apply Node-RED configuration options as default.
 For these options, the administrator can lock the selected value so users cannot change
 them, or keep them editable by end-users.
 

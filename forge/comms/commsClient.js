@@ -15,6 +15,7 @@ class CommsClient extends EventEmitter {
         // To aid testing, we use a url of `:test:` to allow us to configure
         // the platform with comms enabled, but no active MQTT connection
         if (this.app.config.broker.url !== ':test:') {
+            /** @type {MQTT.IClientOptions} */
             const brokerConfig = {
                 clientId: 'forge_platform',
                 username: 'forge_platform',
@@ -27,6 +28,11 @@ class CommsClient extends EventEmitter {
             })
             this.client.on('reconnect', () => {
                 this.app.log.info('Reconnecting to comms broker')
+            })
+            this.client.on('disconnect', (disconnectPacket) => {
+                const rc = disconnectPacket?.reasonCode || 'unknown reason code'
+                const reason = disconnectPacket?.properties?.reasonString || 'no reason given'
+                this.app.log.info(`Broker disconnected: reason code '${rc}'. ${reason}.`)
             })
             this.client.on('error', (err) => {
                 this.app.log.info(`Connection error to comms broker: ${err.toString()}`)
@@ -52,6 +58,12 @@ class CommsClient extends EventEmitter {
                             id: ownerId,
                             logs: message.toString()
                         })
+                    } else if (messageType === 'response') {
+                        const response = {
+                            id: ownerId,
+                            message: message.toString()
+                        }
+                        this.emit('response/device', response)
                     }
                 }
             })
@@ -61,14 +73,32 @@ class CommsClient extends EventEmitter {
                 // Device status
                 'ff/v1/+/d/+/status',
                 // Device logs
-                'ff/v1/+/d/+/logs'
+                'ff/v1/+/d/+/logs',
+                // Device response
+                'ff/v1/+/d/+/response'
             ])
         }
     }
 
-    publish (topic, payload) {
+    /**
+     * Publish to a topic
+     * @param {string} topic Topic to publish to
+     * @param {*} payload the payload to publish
+     * @param {mqtt.IClientPublishOptions} [options] publish options (optional)
+     * @param {mqtt.PacketCallback} [callback] callback to call when the publish is complete (optional)
+     * @returns {void}
+     */
+    publish (topic, payload, options, callback) {
+        if (typeof options === 'function') {
+            callback = options
+            options = {}
+        }
         if (this.client) {
-            this.client.publish(topic, payload)
+            this.client.publish(topic, payload, options, (error, packet) => {
+                if (callback) {
+                    callback(error, packet)
+                }
+            })
         }
     }
 

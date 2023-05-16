@@ -59,6 +59,28 @@
         <span v-else-if="!error">Updates not found in audit entry.</span>
     </template>
 
+    <!-- Team Device Developer Mode -->
+    <template v-else-if="entry.event === 'team.device.developer-mode.enabled'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.device">Developer Mode has been enabled for the Device '{{ entry.body.device?.name }}'.</span>
+        <span v-else-if="!error">Device data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'team.device.developer-mode.disabled'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.device">Developer Mode has been disabled for the Device '{{ entry.body.device?.name }}'.</span>
+        <span v-else-if="!error">Device data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'team.device.remote-access.enabled'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.device">Remote Access has been enabled for device '{{ entry.body.device?.name }}'.</span>
+        <span v-else-if="!error">Device data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'team.device.remote-access.disabled'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.device">Remote Access has been disabled for device '{{ entry.body.device?.name }}'.</span>
+        <span v-else-if="!error">Device data not found in audit entry.</span>
+    </template>
+
     <!-- Team Device Events -->
     <template v-else-if="entry.event === 'team.device.created'">
         <label>{{ AuditEvents[entry.event] }}</label>
@@ -387,6 +409,11 @@
         <span v-if="!error && entry.body?.project && entry.body.snapshot">A new Snapshot '{{ entry.body.snapshot?.name }}' has been created for Instance '{{ entry.body.project?.name }}'.</span>
         <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'project.device.snapshot.created'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.project && entry.body.snapshot">A new Snapshot '{{ entry.body.snapshot?.name }}' has been created from Device '{{ entry.body.device?.name }}' for Instance '{{ entry.body.project?.name }}'.</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
+    </template>
     <template v-else-if="entry.event === 'project.snapshot.rolled-back' || entry.event === 'project.snapshot.rollback'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.project && entry.body.snapshot">Instance '{{ entry.body.project?.name }}' has been rolled back to the Snapshot '{{ entry.body.snapshot?.name }}'.</span>
@@ -423,6 +450,10 @@
     <template v-else-if="entry.event === 'library.set'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span>A flow or function has been saved to the Library</span>
+    </template>
+    <template v-else-if="entry.event === 'nodes.install'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span>Nodes have been installed via the "Manage Palette" option inside Node-RED</span>
     </template>
 
     <!-- Catch All -->

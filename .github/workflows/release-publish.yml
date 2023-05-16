@@ -10,6 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
+          token: ${{ secrets.MAINTENANCE_SYNC_TOKEN }}
           fetch-depth: 0
       - uses: actions/setup-node@v3
         with:

@@ -214,6 +214,62 @@ describe('Audit Log > Team', async function () {
 
     // #endregion
 
+    // #region Team - Devices - Developer Mode
+
+    it('Provides a logger for when developer mode is enabled for a device in a team', async function () {
+        await teamLogger.team.device.developerMode.enabled(ACTIONED_BY, null, TEAM, DEVICE)
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'team.device.developer-mode.enabled')
+        logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('device')
+        logEntry.body.device.should.only.have.keys('id', 'name')
+        logEntry.body.device.id.should.equal(DEVICE.hashid)
+    })
+
+    it('Provides a logger for when developer mode is disabled for a device in a team', async function () {
+        await teamLogger.team.device.developerMode.disabled(ACTIONED_BY, null, TEAM, DEVICE)
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'team.device.developer-mode.disabled')
+        logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('device')
+        logEntry.body.device.should.only.have.keys('id', 'name')
+        logEntry.body.device.id.should.equal(DEVICE.hashid)
+    })
+
+    it('Provides a logger for when remote access is enabled for a device in a team', async function () {
+        await teamLogger.team.device.remoteAccess.enabled(ACTIONED_BY, null, TEAM, DEVICE)
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'team.device.remote-access.enabled')
+        logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('device')
+        logEntry.body.device.should.only.have.keys('id', 'name')
+        logEntry.body.device.id.should.equal(DEVICE.hashid)
+    })
+
+    it('Provides a logger for when remote access is disabled for a device in a team', async function () {
+        await teamLogger.team.device.remoteAccess.disabled(ACTIONED_BY, null, TEAM, DEVICE)
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'team.device.remote-access.disabled')
+        logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('device')
+        logEntry.body.device.should.only.have.keys('id', 'name')
+        logEntry.body.device.id.should.equal(DEVICE.hashid)
+    })
+
+    // #endregion
+
     // #region Team - Devices
 
     it('Provides a logger for creating a device in a team', async function () {

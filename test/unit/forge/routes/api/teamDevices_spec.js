@@ -19,6 +19,8 @@ describe('Team Devices API', function () {
         TestObjects.alice = await app.db.models.User.byUsername('alice')
         TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
         TestObjects.chris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', email_verified: true, password: 'ccPassword' })
+        // non admin, not in any team
+        TestObjects.dave = await app.db.models.User.create({ username: 'dave', name: 'Dave Vader', email: 'dave@example.com', password: 'ddPassword', email_verified: true, password_expired: false })
 
         TestObjects.ATeam = app.team
         TestObjects.Project1 = app.project
@@ -31,6 +33,14 @@ describe('Team Devices API', function () {
         await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
         // set chris as a member of ATeam
         await TestObjects.ATeam.addUser(TestObjects.chris, { through: { role: Roles.Member } })
+
+        // create 1 device for ATeam
+        TestObjects.Device1 = await app.db.models.Device.create({
+            name: 'device 1',
+            type: 'test device',
+            credentialSecret: ''
+        })
+        await TestObjects.ATeam.addDevice(TestObjects.Device1)
 
         TestObjects.tokens = {}
         await login('alice', 'aaPassword')
@@ -55,23 +65,23 @@ describe('Team Devices API', function () {
         }
     })
     describe('Team Devices', function () {
-        it('Get a list of devices owned by this team', async function () {
-            // GET /api/v1/team/:teamId/devices
-            // needsPermission('team:device:list')
+        // GET /api/v1/team/:teamId/devices
+        // needsPermission('team:device:list')
 
-            // first ensure we have 0 devices
+        it('Get a list of devices owned by this team', async function () {
+            // first ensure we have 1 device (added in beforeEach)
             const currentDeviceCount = await app.db.models.Device.count()
-            should(currentDeviceCount).equal(0)
+            should(currentDeviceCount).equal(1)
 
             // add 2 devices
             const device1 = await app.db.models.Device.create({
-                name: 'device 1',
+                name: 'device 2',
                 type: 'test device',
                 credentialSecret: ''
             })
             await TestObjects.ATeam.addDevice(device1)
             const device2 = await app.db.models.Device.create({
-                name: 'device 2',
+                name: 'device 3',
                 type: 'test device',
                 credentialSecret: ''
             })
@@ -86,7 +96,17 @@ describe('Team Devices API', function () {
             response.statusCode.should.equal(200)
             const result = response.json()
             result.should.have.property('devices').and.be.an.Array()
-            result.devices.should.have.a.property('length', 2)
+            result.devices.should.have.a.property('length', 3)
+        })
+        it('Non member does not get a list of devices', async function () {
+            // GET /api/v1/team/:teamId/devices
+            await login('dave', 'ddPassword')
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices`,
+                cookies: { sid: TestObjects.tokens.dave }
+            })
+            response.statusCode.should.equal(404) // not found
         })
     })
     describe('Provisioning Tokens', function () {

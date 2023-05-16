@@ -3,12 +3,12 @@
     <div v-if="hasNoEntries && !loading" class="ff-no-data ff-no-data-large">
         No Activity Found
     </div>
-    <ff-accordion v-for="(entries, date, $index) in logEntriesByDate" :key="date" :label="date" :set-open="$index < 3" data-el="accordion" :disabled="disableAccordion">
+    <ff-accordion v-for="(logEntries, date, $index) in logEntriesByDate" :key="date" :label="date" :set-open="$index < 3" data-el="accordion" :disabled="disableAccordion">
         <template v-slot:meta>
-            <span>{{ entries.length }} Event{{ entries.length === 1 ? '' : 's' }}</span>
+            <span>{{ logEntries.length }} Event{{ logEntries.length === 1 ? '' : 's' }}</span>
         </template>
         <template v-slot:content>
-            <div v-for="entry in entries" :key="entry.id">
+            <div v-for="entry in logEntries" :key="entry.id">
                 <AuditEntry :entry="entry"></AuditEntry>
             </div>
         </template>

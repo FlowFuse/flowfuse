@@ -1,5 +1,5 @@
 <template>
-    <div class="list-disc " v-html='renderedDescription'></div>
+    <div class="list-disc " v-html="renderedDescription"></div>
 </template>
 <script>
 

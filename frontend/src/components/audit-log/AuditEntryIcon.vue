@@ -4,6 +4,7 @@
     <ProjectIcon v-if="icon === 'project'" class="ff-icon text-red-700" />
     <NodeRedIcon v-if="icon === 'nodered'" class="ff-icon text-red-700" />
     <ClockIcon v-if="icon === 'clock'" class="ff-icon text-purple-700" />
+    <BeakerIcon v-if="icon === 'beaker'" class="ff-icon text-yellow-600" />
     <DesktopComputerIcon v-if="icon === 'stacks'" class="ff-icon text-red-700" />
     <ColorSwatchIcon v-if="icon === 'project-types'" class="ff-icon text-red-700" />
     <ChipIcon v-if="icon === 'device'" class="ff-icon text-blue-700" />
@@ -28,7 +29,7 @@ import ProjectIcon from '../icons/Projects.js'
 import NodeRedIcon from '../icons/NodeRed.js'
 import PipelineIcon from '../icons/Pipelines.js'
 import {
-    DesktopComputerIcon, ClockIcon, ColorSwatchIcon,
+    BeakerIcon, DesktopComputerIcon, ClockIcon, ColorSwatchIcon,
     UserIcon, UserGroupIcon, LockClosedIcon,
     MailIcon, LoginIcon, LogoutIcon, KeyIcon,
     CurrencyDollarIcon, CogIcon, ExclamationCircleIcon,
@@ -44,7 +45,8 @@ const iconMap = {
         'stopped',
         'settings.update',
         'flows.set',
-        'library.set'
+        'library.set',
+        'nodes.install'
     ],
     template: [
         'application.created',
@@ -150,6 +152,7 @@ const iconMap = {
     ],
     clock: [
         'project.snapshot.created',
+        'project.device.snapshot.created',
         'project.snapshot.deleted',
         'project.snapshot.rollback',
         'project.snapshot.rolled-back'
@@ -166,6 +169,12 @@ const iconMap = {
         'team.device.credentials-generated',
         'team.device.credentialsGenerated', // legacy event
         'project.snapshot.deviceTarget' // legacy event
+    ],
+    beaker: [
+        'team.device.developer-mode.enabled',
+        'team.device.developer-mode.disabled',
+        'team.device.remote-access.enabled',
+        'team.device.remote-access.disabled'
     ],
     token: [
         'team.device.provisioning.created',
@@ -202,6 +211,7 @@ export default {
     },
     components: {
         PipelineIcon,
+        BeakerIcon,
         DesktopComputerIcon,
         LockClosedIcon,
         ProjectIcon,

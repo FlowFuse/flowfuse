@@ -60,7 +60,7 @@ module.exports = {
                 })
             }
         }
-        const projectSettingsRow = project.ProjectSettings.find((projectSetting) => projectSetting.key === KEY_SETTINGS)
+        const projectSettingsRow = project.ProjectSettings?.find((projectSetting) => projectSetting.key === KEY_SETTINGS)
         if (projectSettingsRow) {
             const projectSettings = projectSettingsRow.value
             result = app.db.controllers.ProjectTemplate.mergeSettings(result, projectSettings)
@@ -143,14 +143,12 @@ module.exports = {
         const t = await app.db.sequelize.transaction() // start a transaction
         try {
             if (snapshot?.flows?.flows) {
-                const currentProjectFlows = await app.db.models.StorageFlow.byProject(project.id)
-                currentProjectFlows.flow = JSON.stringify(!snapshot.flows.flows ? [] : snapshot.flows.flows)
+                const flows = JSON.stringify(!snapshot.flows.flows ? [] : snapshot.flows.flows)
+                await app.db.controllers.StorageFlows.updateOrCreateForProject(project, flows, { transaction: t })
+
                 if (snapshot.flows.credentials) {
-                    const origCredentials = await app.db.models.StorageCredentials.byProject(project.id)
-                    origCredentials.credentials = JSON.stringify(snapshot.flows.credentials)
-                    await origCredentials.save({ transaction: t })
+                    await app.db.controllers.StorageCredentials.updateOrCreateForProject(project, snapshot.flows.credentials, { transaction: t })
                 }
-                await currentProjectFlows.save({ transaction: t })
             }
             if (snapshot?.settings?.settings || snapshot?.settings?.env) {
                 const snapshotSettings = JSON.parse(JSON.stringify(snapshot.settings.settings || {}))
@@ -192,7 +190,7 @@ module.exports = {
      * unencrypted at this point and only needs to be re-encrypted
      */
     exportCredentials: function (app, original, oldKey, newKey) {
-        if (oldKey) {
+        if (oldKey && original.$) {
             const oldHash = crypto.createHash('sha256').update(oldKey).digest()
             original = decryptCreds(oldHash, original)
         }
@@ -241,31 +239,12 @@ module.exports = {
         const transaction = await app.db.sequelize.transaction()
         try {
             if (components.flows) {
-                let currentProjectFlows = await app.db.models.StorageFlow.byProject(project.id)
-                if (currentProjectFlows) {
-                    // Note StorageFlow.flow not .flows
-                    currentProjectFlows.flow = components.flows
-                    await currentProjectFlows.save({ transaction })
-                } else {
-                    currentProjectFlows = await app.db.models.StorageFlow.create({
-                        ProjectId: project.id,
-                        flow: components.flows
-                    }, { transaction })
-                }
+                await app.db.controllers.StorageFlows.updateOrCreateForProject(project, components.flows, { transaction })
             }
             if (components.credentials) {
                 const projectSecret = await project.getCredentialSecret()
                 const encryptedCreds = app.db.controllers.Project.exportCredentials(JSON.parse(components.credentials), components.credsSecret, projectSecret)
-                let origCredentials = await app.db.models.StorageCredentials.byProject(project.id)
-                if (origCredentials) {
-                    origCredentials.credentials = JSON.stringify(encryptedCreds)
-                    await origCredentials.save({ transaction })
-                } else {
-                    origCredentials = await app.db.models.StorageCredentials.create({
-                        ProjectId: project.id,
-                        credentials: JSON.stringify(encryptedCreds)
-                    }, { transaction })
-                }
+                await app.db.controllers.StorageCredentials.updateOrCreateForProject(project, encryptedCreds, { transaction })
             }
             await transaction.commit()
         } catch (error) {

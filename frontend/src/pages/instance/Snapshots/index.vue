@@ -25,6 +25,9 @@
         </template>
         <template v-else-if="!loading">
             <EmptyState>
+                <template #img>
+                    <img src="../../../images/empty-states/instance-snapshots.png">
+                </template>
                 <template #header>Create your First Snapshot</template>
                 <template #message>
                     <p>

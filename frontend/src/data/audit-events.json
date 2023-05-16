@@ -20,6 +20,10 @@
         "team.device.provisioning.created": "Device Provisioning Token Generated",
         "team.device.provisioning.updated": "Device Provisioning Token Updated",
         "team.device.provisioning.deleted": "Device Provisioning Token Deleted",
+        "team.device.developer-mode.enabled": "Developer Mode Enabled",
+        "team.device.developer-mode.disabled": "Developer Mode Disabled",
+        "team.device.remote-access.enabled": "Remote Access Enabled",
+        "team.device.remote-access.disabled": "Remote Access Disabled",
         "application.created": "Application Created",
         "application.updated": "Application Modified",
         "application.deleted": "Application Deleted",
@@ -49,6 +53,7 @@
         "project.stack.changed": "Instance Stack Changed",
         "project.settings.updated": "Instance Settings Updated",
         "project.snapshot.created": "Instance Snapshot Created",
+        "project.device.snapshot.created": "Device Snapshot Created",
         "project.snapshot.rolled-back": "Instance Rolled Back",
         "project.snapshot.rollback": "Instance Rolled Back",
         "project.snapshot.deleted": "Instance Snapshot Deleted",
@@ -60,7 +65,8 @@
         "stopped": "Node-RED has stopped",
         "settings.update": "Node-RED Settings Updated",
         "flows.set": "Flow Deployed",
-        "library.set": "Saved to Library"
+        "library.set": "Saved to Library",
+        "nodes.install": "Third-Party Nodes Installed"
     },
     "platform": {
         "platform.license.applied": "License Applied",
