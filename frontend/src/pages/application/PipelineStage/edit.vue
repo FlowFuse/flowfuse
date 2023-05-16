@@ -107,14 +107,14 @@ export default {
             loading: false,
             instances: [],
             input: {
-                name,
+                name: null,
                 instance: null
             }
         }
     },
     computed: {
-        submitEnabled: () => {
-            return true
+        submitEnabled () {
+            return this.input.instance && this.input.name
         }
     },
     async mounted () {
