@@ -114,6 +114,17 @@ const getPipelines = async (applicationId) => {
 }
 
 /**
+ * Return information about a single pipeline
+ * API only implements collecting all pipelines, so we have to filter
+ * @param {string} applicationId
+ * @param {string} pipelineId
+ */
+const getPipeline = async (applicationId, pipelineId) => {
+    const pipelines = await getPipelines(applicationId)
+    return pipelines.find(pipeline => pipeline.id === pipelineId)
+}
+
+/**
  * @param {string} applicationId
  * @param {string} name
  */
@@ -159,6 +170,7 @@ export default {
     getApplication,
     getApplicationInstances,
     getApplicationInstancesStatuses,
+    getPipeline,
     getPipelines,
     createPipeline,
     deletePipeline
