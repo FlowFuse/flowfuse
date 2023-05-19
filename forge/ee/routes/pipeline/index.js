@@ -55,7 +55,7 @@ module.exports = async function (app) {
         try {
             const options = {
                 name,
-                instance: instanceId
+                instanceId: instanceId
             }
             if (request.body.source) {
                 options.source = request.body.source
