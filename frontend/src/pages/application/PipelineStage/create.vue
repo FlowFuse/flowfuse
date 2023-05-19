@@ -47,8 +47,10 @@
             <!-- Instance -->
             <FormRow
                 v-model="input.instance"
-                :options="instances"
+                :options="instanceOptions"
                 data-form="stage-instance"
+                :placeholder="instanceDropdownPlaceholder"
+                :disabled="instanceDropdownDisabled"
             >
                 <template #default>
                     Choose Instance
@@ -96,7 +98,14 @@ export default {
         FormRow
     },
     props: {
-
+        application: {
+            type: Object,
+            required: true
+        },
+        pipeline: {
+            type: Object,
+            required: true
+        }
     },
     data () {
         return {
@@ -107,19 +116,53 @@ export default {
             loading: false,
             instances: [],
             input: {
-                name,
+                name: null,
                 instance: null
             }
         }
     },
     computed: {
-        submitEnabled: () => {
-            return true
+        submitEnabled () {
+            return this.input.instance && this.input.name
+        },
+        instancesNotInUse () {
+            const instanceIdsInUse = this.pipeline.stages.reduce((acc, stage) => {
+                stage.instances.forEach((instance) => {
+                    acc.add(instance.id)
+                })
+
+                return acc
+            }, new Set())
+
+            return this.instances.filter((instance) => {
+                return !instanceIdsInUse.has(instance.id)
+            })
+        },
+        instanceOptions () {
+            return this.instancesNotInUse.map((instance) => {
+                return {
+                    label: instance.name,
+                    value: instance.id
+                }
+            })
+        },
+        instanceDropdownDisabled () {
+            return this.instancesNotInUse.length === 0
+        },
+        instanceDropdownPlaceholder () {
+            if (this.instancesNotInUse.length === 0) {
+                return 'No instances available'
+            }
+
+            return 'Choose Instance'
         }
+    },
+    watch: {
+        'application.id': 'loadInstances'
     },
     async mounted () {
         this.mounted = true
-        this.loadInstances()
+        this.load()
     },
     methods: {
         async create () {
@@ -137,19 +180,19 @@ export default {
             this.$router.push({
                 name: 'ApplicationPipelines',
                 params: {
-                    id: this.$route.params.applicationId
+                    id: this.application.id
                 }
             })
         },
-        async loadInstances () {
-            const application = this.$route.params.applicationId
-            const instances = await ApplicationAPI.getApplicationInstances(application)
-            this.instances = instances.map((instance) => {
-                return {
-                    label: instance.name,
-                    value: instance.id
-                }
-            })
+        load () {
+            this.loadInstances()
+        },
+        async loadInstances  () {
+            if (!this.application.id) {
+                return
+            }
+
+            this.instances = await ApplicationAPI.getApplicationInstances(this.application.id)
         }
     }
 }
