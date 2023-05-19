@@ -7,7 +7,8 @@ module.exports = async function (app) {
         'pipeline:edit': { description: 'Edit a pipeline', role: Roles.Owner },
         'application:pipelines:create': { description: 'Create a pipeline within an application', role: Roles.Owner },
         'application:pipelines:list': { description: 'List pipelines within an application', role: Roles.Member },
-        'application:pipelines:delete': { description: 'Delete a pipeline from an application', role: Roles.Owner }
+        'application:pipelines:delete': { description: 'Delete a pipeline from an application', role: Roles.Owner },
+        'application:pipelines:update': { description: 'Update a pipeline within an application', role: Roles.Owner }
     })
 
     app.addHook('preHandler', async (request, reply) => {
@@ -55,7 +56,7 @@ module.exports = async function (app) {
         try {
             const options = {
                 name,
-                instanceId: instanceId
+                instanceId
             }
             if (request.body.source) {
                 options.source = request.body.source
@@ -157,5 +158,38 @@ module.exports = async function (app) {
         await app.auditLog.Team.application.pipeline.deleted(request.session.User, null, team, request.application, pipeline)
 
         reply.send({ status: 'okay' })
+    })
+
+    /**
+     * Update a Pipeline within an Application
+     * @name /api/v1/application/:id/pipelines
+     * @memberof forge.routes.api.application
+     */
+    app.put('/applications/:applicationId/pipelines/:pipelineId', {
+        preHandler: app.needsPermission('application:pipelines:update')
+    }, async (request, reply) => {
+        const updates = new app.auditLog.formatters.UpdatesCollection()
+        const pipelineId = request.params.pipelineId
+        const pipeline = await app.db.models.Pipeline.byId(pipelineId)
+
+        try {
+            const reqName = request.body.pipeline.name?.trim()
+            updates.push('name', pipeline.name, reqName)
+            pipeline.name = reqName
+
+            await pipeline.save()
+        } catch (error) {
+            app.log.error('Error while updating pipeline:')
+            app.log.error(error)
+
+            return reply.code(500).send({ code: 'unexpected_error', error: error.toString() })
+        }
+
+        const team = request.application.Team
+        if (team) {
+            await app.auditLog.Team.application.pipeline.updated(request.session.User, null, team, request.application, pipeline, updates)
+        }
+
+        reply.send(pipeline)
     })
 }

@@ -147,7 +147,7 @@ const createPipeline = async (applicationId, name) => {
 
 /**
  * @param {string} applicationId
- * @param {string} name
+ * @param {string} pipelineId
  */
 const deletePipeline = async (applicationId, pipelineId) => {
     return client.delete(`/api/v1/applications/${applicationId}/pipelines/${pipelineId}`)
@@ -163,6 +163,22 @@ const deletePipeline = async (applicationId, pipelineId) => {
         })
 }
 
+/**
+ * @param {string} applicationId
+ * @param {object} pipeline
+ */
+const updatePipeline = async (applicationId, pipeline) => {
+    const body = {
+        pipeline: {
+            name: pipeline.name
+        }
+    }
+    return client.put(`/api/v1/applications/${applicationId}/pipelines/${pipeline.id}`, body)
+        .then(res => {
+            return res.data
+        })
+}
+
 export default {
     createApplication,
     updateApplication,
@@ -173,5 +189,6 @@ export default {
     getPipeline,
     getPipelines,
     createPipeline,
-    deletePipeline
+    deletePipeline,
+    updatePipeline
 }

@@ -1,14 +1,15 @@
 <template>
     <div class="ff-pipeline">
         <div class="ff-pipeline-banner">
-            <label>
+            <ff-text-input v-if="editing" v-model="scopedPipeline.name" />
+            <label v-else>
                 {{ pipeline.name }}
             </label>
             <div class="flex gap-2">
                 <CogIcon v-if="!editing" class="ff-icon ff-clickable" @click="edit" />
                 <template v-else>
                     <ff-button kind="danger" @click="deletePipeline">Delete</ff-button>
-                    <ff-button kind="secondary" @click="cancel">Save</ff-button>
+                    <ff-button kind="secondary" @click="save">Save</ff-button>
                 </template>
             </div>
         </div>
@@ -65,9 +66,11 @@ export default {
         'pipeline-deleted'
     ],
     data () {
+        const pipeline = this.pipeline
         return {
             editing: false,
-            deploying: null
+            deploying: null,
+            scopedPipeline: pipeline
         }
     },
     methods: {
@@ -91,6 +94,11 @@ export default {
         },
         cancel () {
             this.editing = false
+        },
+        async save () {
+            await ApplicationAPI.updatePipeline(this.$route.params.id, this.pipeline)
+            this.editing = false
+            Alerts.emit('Pipeline successfully updated.', 'confirmation')
         },
         stageStarted (stageIndex) {
             this.deploying = stageIndex
