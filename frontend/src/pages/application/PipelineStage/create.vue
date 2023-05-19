@@ -49,6 +49,8 @@
                 v-model="input.instance"
                 :options="instanceOptions"
                 data-form="stage-instance"
+                :placeholder="instanceDropdownPlaceholder"
+                :disabled="instanceDropdownDisabled"
             >
                 <template #default>
                     Choose Instance
@@ -143,6 +145,16 @@ export default {
                     value: instance.id
                 }
             })
+        },
+        instanceDropdownDisabled () {
+            return this.instancesNotInUse.length === 0
+        },
+        instanceDropdownPlaceholder () {
+            if (this.instancesNotInUse.length === 0) {
+                return 'No instances available'
+            }
+
+            return 'Choose Instance'
         }
     },
     watch: {
@@ -168,7 +180,7 @@ export default {
             this.$router.push({
                 name: 'ApplicationPipelines',
                 params: {
-                    id: this.$route.params.applicationId
+                    id: this.application.id
                 }
             })
         },
