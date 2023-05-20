@@ -82,8 +82,12 @@ export default {
         NavItem,
         FormRow
     },
+    inheritAttrs: false,
     props: {
-
+        application: {
+            type: Object,
+            required: true
+        }
     },
     data () {
         return {
@@ -108,13 +112,13 @@ export default {
     methods: {
         async create () {
             this.loading = true
-            await ApplicationsAPI.createPipeline(this.$route.params.applicationId, this.input.name)
+            await ApplicationsAPI.createPipeline(this.application.id, this.input.name)
             Alerts.emit('Pipeline successfully created.', 'confirmation')
             this.loading = false
             this.$router.push({
                 name: 'ApplicationPipelines',
                 params: {
-                    id: this.$route.params.applicationId
+                    id: this.application.id
                 }
             })
         }

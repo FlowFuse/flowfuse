@@ -15,11 +15,28 @@
         </div>
         <div v-if="pipeline.stages.length" class="ff-pipeline-stages">
             <template v-for="(stage, $index) in pipeline.stages" :key="stage.id">
-                <PipelineStage :pipeline-id="pipeline.id" :stage="stage" :status="stageState(stage)" :play-enabled="($index < pipeline.stages.length - 1)" :deploying="nextStageStarting($index)" @stage-started="stageStarted($index)" @stage-complete="stageComplete($index)" />
+                <PipelineStage
+                    :application="application"
+                    :pipeline="pipeline"
+                    :stage="stage"
+                    :status="stageState(stage)"
+                    :playEnabled="$index < pipeline.stages.length - 1"
+                    :editEnabled="editing"
+                    :deploying="nextStageStarting($index)"
+                    @stage-started="stageStarted($index)"
+                    @stage-complete="stageComplete($index)"
+                />
                 <Transition name="fade">
                     <ChevronRightIcon
-                        v-if="($index < pipeline.stages.length - 1) || ($index === pipeline.stages.length -1 && editing)"
-                        class="ff-icon mt-4 flex-shrink-0" :class="{'animate-deploying': (deploying === $index) || nextStageStarting($index)}"
+                        v-if="
+                            $index < pipeline.stages.length - 1 ||
+                                ($index === pipeline.stages.length - 1 && editing)
+                        "
+                        class="ff-icon mt-4 flex-shrink-0"
+                        :class="{
+                            'animate-deploying':
+                                deploying === $index || nextStageStarting($index),
+                        }"
                     />
                 </Transition>
             </template>
@@ -34,7 +51,6 @@
 </template>
 
 <script>
-
 import { ChevronRightIcon, CogIcon } from '@heroicons/vue/outline'
 
 import ApplicationAPI from '../../api/application.js'
@@ -51,6 +67,10 @@ export default {
         PipelineStage
     },
     props: {
+        application: {
+            required: true,
+            type: Object
+        },
         pipeline: {
             required: true,
             type: Object
@@ -60,11 +80,7 @@ export default {
             type: Map
         }
     },
-    emits: [
-        'deploy-started',
-        'deploy-complete',
-        'pipeline-deleted'
-    ],
+    emits: ['deploy-started', 'deploy-complete', 'pipeline-deleted'],
     data () {
         const pipeline = this.pipeline
         return {
@@ -109,12 +125,15 @@ export default {
             this.$emit('deploy-complete')
         },
         /**
-         *
-         * @param {*} index - the index of a stage in the pipeline, returns tru if the _next_ stage is starting
-         */
+     *
+     * @param {*} index - the index of a stage in the pipeline, returns tru if the _next_ stage is starting
+     */
         nextStageStarting (index) {
             if (this.pipeline.stages[index + 1]) {
-                return this.stageState(this.pipeline.stages[index + 1]) === 'importing' || this.stageState(this.pipeline.stages[index + 1]) === 'starting'
+                return (
+                    this.stageState(this.pipeline.stages[index + 1]) === 'importing' ||
+          this.stageState(this.pipeline.stages[index + 1]) === 'starting'
+                )
             } else {
                 return false
             }
@@ -130,7 +149,10 @@ export default {
                 html: `<p>Are you sure you want to delete the pipeline "${this.pipeline.name}"?</p>`
             }
             Dialog.show(msg, async () => {
-                await ApplicationAPI.deletePipeline(this.$route.params.id, this.pipeline.id)
+                await ApplicationAPI.deletePipeline(
+                    this.$route.params.id,
+                    this.pipeline.id
+                )
 
                 this.deploying = false
                 this.$emit('pipeline-deleted')
