@@ -77,6 +77,10 @@ export default {
         this.$watch(
             () => this.$route.params.stageId,
             async () => {
+                if (this.$route.params.stageId) {
+                    return
+                }
+
                 await this.loadStage()
             }
         )
