@@ -26,7 +26,7 @@ const getPipelineStage = async (pipelineId, stageId) => {
 const addPipelineStage = async (pipelineId, stage) => {
     const options = {
         name: stage.name,
-        instanceId: stage.instance
+        instanceId: stage.instanceId
     }
     if (stage.source) {
         options.source = stage.source
@@ -39,7 +39,7 @@ const addPipelineStage = async (pipelineId, stage) => {
                 'created-at': res.data.createdAt
             }
             product.capture('$ff-pipeline-stage-added', props, {
-                instance: stage.instance
+                instance: stage.instanceId
             })
             return res.data
         })
@@ -56,8 +56,19 @@ const updatePipelineStage = async (pipelineId, stageId, options) => {
     })
 }
 
+/**
+ * @param {string} pipelineId
+ * @param {string} stageId
+ */
+const deletePipelineStage = async (pipelineId, stageId, options) => {
+    return client.delete(`/api/v1/pipelines/${pipelineId}/stages/${stageId}`, options).then(res => {
+        return res.data
+    })
+}
+
 export default {
     getPipelineStage,
     addPipelineStage,
-    updatePipelineStage
+    updatePipelineStage,
+    deletePipelineStage
 }

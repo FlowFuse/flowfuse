@@ -25,6 +25,7 @@
                     :deploying="nextStageStarting($index)"
                     @stage-started="stageStarted($index)"
                     @stage-complete="stageComplete($index)"
+                    @stage-deleted="stageDeleted($index)"
                 />
                 <Transition name="fade">
                     <ChevronRightIcon
@@ -80,7 +81,7 @@ export default {
             type: Map
         }
     },
-    emits: ['deploy-started', 'deploy-complete', 'pipeline-deleted'],
+    emits: ['deploy-started', 'deploy-complete', 'pipeline-deleted', 'stage-deleted'],
     data () {
         const pipeline = this.pipeline
         return {
@@ -94,7 +95,7 @@ export default {
             const route = {
                 name: 'CreatePipelineStage',
                 params: {
-                    applicationId: this.$route.params.id,
+                    id: this.application.id,
                     pipelineId: this.pipeline.id
                 }
             }
@@ -123,6 +124,9 @@ export default {
         stageComplete (stageIndex) {
             this.deploying = null
             this.$emit('deploy-complete')
+        },
+        stageDeleted (stageIndex) {
+            this.$emit('stage-deleted', stageIndex)
         },
         /**
          *

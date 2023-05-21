@@ -8,6 +8,11 @@
                     class="ff-icon ff-clickable"
                     @click="edit"
                 />
+                <TrashIcon
+                    v-if="editEnabled && application?.id && !deploying"
+                    class="ff-icon ff-clickable"
+                    @click="deleteStage"
+                />
                 <PlayIcon
                     v-if="playEnabled && pipeline?.id && !deploying"
                     class="ff-icon ff-clickable"
@@ -47,7 +52,7 @@
 </template>
 
 <script>
-import { PencilAltIcon, PlayIcon, PlusCircleIcon } from '@heroicons/vue/outline'
+import { PencilAltIcon, PlayIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/outline'
 
 import InstancesAPI from '../../api/instances.js'
 import PipelineAPI from '../../api/pipeline.js'
@@ -64,7 +69,8 @@ export default {
         PencilAltIcon,
         PlayIcon,
         PlusCircleIcon,
-        SpinnerIcon
+        SpinnerIcon,
+        TrashIcon
     },
     props: {
         application: {
@@ -96,7 +102,7 @@ export default {
             type: Boolean
         }
     },
-    emits: ['stage-started', 'stage-complete'],
+    emits: ['stage-started', 'stage-complete', 'stage-deleted'],
     computed: {
         lastDeployed: function () {
             return elapsedTime(this.stage.instance.updatedAt, new Date())
@@ -157,11 +163,26 @@ export default {
                     // url params
                     id: this.application.id,
                     pipelineId: this.pipeline.id,
-                    stageId: this.stage.id,
-
-                    // additional props
-                    stage: this.stage
+                    stageId: this.stage.id
                 }
+            })
+        },
+
+        deleteStage () {
+            const msg = {
+                header: 'Delete Pipeline Stage',
+                kind: 'danger',
+                confirmLabel: 'Delete',
+                html: `<p>Are you sure you want to delete the pipeline stage "${this.stage.name}"?</p>`
+            }
+            Dialog.show(msg, async () => {
+                await PipelineAPI.deletePipelineStage(
+                    this.pipeline.id,
+                    this.stage.id
+                )
+
+                Alerts.emit('Pipeline stage successfully deleted', 'confirmation')
+                this.$emit('stage-deleted')
             })
         }
     }

@@ -44,6 +44,7 @@
             @deploy-started="beginPolling"
             @deploy-complete="loadPipelines"
             @pipeline-deleted="loadPipelines"
+            @stage-deleted="(stageIndex) => stageDeleted(pipeline, stageIndex)"
         />
     </div>
     <EmptyState v-else>
@@ -112,7 +113,7 @@ export default {
     data () {
         return {
             pipelines: [],
-            instanceStatusMap: null,
+            instanceStatusMap: new Map(),
             polling: null
         }
     },
@@ -134,6 +135,9 @@ export default {
     methods: {
         beginPolling () {
             this.polling = setInterval(this.loadInstanceStatus, 5000)
+        },
+        stageDeleted (pipeline, stageIndex) {
+            pipeline.stages.splice(stageIndex, 1)
         },
         async loadPipelines () {
             this.loadInstanceStatus()

@@ -72,12 +72,12 @@ export default {
         async create (input) {
             const options = {
                 name: input.name,
-                instance: input.instance
+                instanceId: input.instanceId
             }
             if (this.$route.query.sourceStage) {
                 options.source = this.$route.query.sourceStage
             }
-            await PipelinesAPI.addPipelineStage(this.$route.params.pipelineId, options)
+            await PipelinesAPI.addPipelineStage(this.pipeline.id, options)
             Alerts.emit('Pipeline stage successfully added.', 'confirmation')
 
             this.$router.push({

@@ -1,8 +1,8 @@
 
 module.exports = {
     addPipelineStage: async function (app, pipeline, options) {
-        if (!options.instance) {
-            throw new Error('instance id is required')
+        if (!options.instanceId) {
+            throw new Error('Instance id is required')
         }
 
         let source
@@ -14,7 +14,7 @@ module.exports = {
             delete options.source
         }
         const stage = await app.db.models.PipelineStage.create(options)
-        stage.addInstanceId(options.instance)
+        stage.addInstanceId(options.instanceId)
 
         if (source) {
             const sourceStage = await app.db.models.PipelineStage.byId(source)
