@@ -23,7 +23,7 @@
             :instances="instances"
             :pipeline="pipeline"
             :stage="stage"
-            @submit="create"
+            @submit="update"
         />
     </main>
 </template>
@@ -35,6 +35,8 @@ import PipelinesAPI from '../../../api/pipeline.js'
 
 import NavItem from '../../../components/NavItem.vue'
 import SideNavigation from '../../../components/SideNavigation.vue'
+
+import Alerts from '../../../services/alerts.js'
 
 import PipelineStageForm from './form.vue'
 
@@ -80,8 +82,21 @@ export default {
         )
     },
     methods: {
-        async update () {
-            console.log('Update logic to be implemented')
+        async update (input) {
+            const options = {
+                name: input.name,
+                instance: input.instance
+            }
+
+            await PipelinesAPI.updatePipelineStage(this.pipeline.id, this.stage.id, options)
+            Alerts.emit('Pipeline stage successfully updated.', 'confirmation')
+
+            this.$router.push({
+                name: 'ApplicationPipelines',
+                params: {
+                    id: this.application.id
+                }
+            })
         },
         async loadStage () {
             if (!this.pipeline.id) {

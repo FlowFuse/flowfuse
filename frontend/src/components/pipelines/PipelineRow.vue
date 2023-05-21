@@ -125,15 +125,13 @@ export default {
             this.$emit('deploy-complete')
         },
         /**
-     *
-     * @param {*} index - the index of a stage in the pipeline, returns tru if the _next_ stage is starting
-     */
+         *
+         * @param {*} index - the index of a stage in the pipeline, returns tru if the _next_ stage is starting
+         */
         nextStageStarting (index) {
             if (this.pipeline.stages[index + 1]) {
-                return (
-                    this.stageState(this.pipeline.stages[index + 1]) === 'importing' ||
-          this.stageState(this.pipeline.stages[index + 1]) === 'starting'
-                )
+                const state = this.stageState(this.pipeline.stages[index + 1])
+                return state === 'importing' || state === 'starting'
             } else {
                 return false
             }

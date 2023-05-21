@@ -33,7 +33,7 @@
 
         <!-- Instance -->
         <FormRow
-            v-model="input.instance"
+            v-model="input.instanceId"
             :options="instanceOptions"
             data-form="stage-instance"
             :placeholder="instanceDropdownPlaceholder"
@@ -70,8 +70,6 @@
 
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
-
-import ApplicationAPI from '../../../api/application.js'
 
 import FormRow from '../../../components/FormRow.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
@@ -110,10 +108,9 @@ export default {
                 create: false,
                 update: false
             },
-            instances: [],
             input: {
                 name: stage?.name,
-                instance: stage?.instances?.[0]
+                instanceId: stage.instances?.[0].id
             }
         }
     },
@@ -121,8 +118,11 @@ export default {
         isEdit () {
             return !!this.stage.id
         },
+        formDirty () {
+            return this.input.name !== this.stage.name || this.input.instanceId !== this.stage.instances?.[0].id
+        },
         submitEnabled () {
-            return this.input.instance && this.input.name
+            return this.formDirty && this.input.instanceId && this.input.name
         },
         instancesNotInUse () {
             const instanceIdsInUse = this.pipeline.stages.reduce((acc, stage) => {
@@ -134,7 +134,7 @@ export default {
             }, new Set())
 
             return this.instances.filter((instance) => {
-                return !instanceIdsInUse.has(instance.id) || instance.id === this.input.instance?.id
+                return !instanceIdsInUse.has(instance.id) || instance.id === this.input.instanceId
             })
         },
         instanceOptions () {
