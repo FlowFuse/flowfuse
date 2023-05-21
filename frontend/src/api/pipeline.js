@@ -45,7 +45,19 @@ const addPipelineStage = async (pipelineId, stage) => {
         })
 }
 
+/**
+ * @param {string} pipelineId
+ * @param {string} stageId
+ * @param {object} options New values
+ */
+const updatePipelineStage = async (pipelineId, stageId, options) => {
+    return client.put(`/api/v1/pipelines/${pipelineId}/stages/${stageId}`, options).then(res => {
+        return res.data
+    })
+}
+
 export default {
     getPipelineStage,
-    addPipelineStage
+    addPipelineStage,
+    updatePipelineStage
 }

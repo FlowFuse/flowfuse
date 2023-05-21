@@ -5,6 +5,7 @@ module.exports = async function (app) {
     registerPermissions({
         'pipeline:view': { description: 'View a pipeline', role: Roles.Member },
         'pipeline:edit': { description: 'Edit a pipeline', role: Roles.Owner },
+        'pipeline:delete': { description: 'Delete a pipeline stage', role: Roles.Owner },
         'application:pipelines:create': { description: 'Create a pipeline within an application', role: Roles.Owner },
         'application:pipelines:list': { description: 'List pipelines within an application', role: Roles.Member },
         'application:pipelines:delete': { description: 'Delete a pipeline from an application', role: Roles.Owner },
@@ -86,6 +87,61 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const stage = await app.db.models.PipelineStage.byId(request.params.stageId)
         reply.send(await app.db.views.PipelineStage.stage(stage))
+    })
+
+    /**
+     * Update details of a single stage within a pipeline
+     * @name /api/v1/pipelines/:pipelineId/stages/:stageId
+     * @memberof forge.routes.api.pipeline
+     */
+    app.put('/pipelines/:pipelineId/stages/:stageId', {
+        preHandler: app.needsPermission('pipeline:edit')
+    }, async (request, reply) => {
+        try {
+            const stage = await app.db.models.PipelineStage.byId(request.params.stageId)
+
+            if (request.body.name) {
+                stage.name = request.body.name
+            }
+
+            if (request.body.instanceId) {
+                // Currently only one instance per stage is supported
+                const instances = await stage.getInstances()
+                for (const instance of instances) {
+                    await stage.removeInstance(instance)
+                }
+
+                stage.addInstanceId(request.body.instanceId)
+            }
+
+            stage.save()
+
+            // TODO - Audit log entry?
+
+            reply.send(await app.db.views.PipelineStage.stage(stage))
+        } catch (err) {
+            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
+        }
+    })
+
+    /**
+     * Delete a pipeline stage
+     * @name /api/v1/pipelines/:pipelineId/stages/:stageId
+     * @memberof forge.routes.api.pipeline
+     */
+    app.delete('/pipelines/:pipelineId/stages/:stageId', {
+        preHandler: app.needsPermission('pipeline:delete')
+    }, async (request, reply) => {
+        try {
+            const stage = await app.db.models.PipelineStage.byId(request.params.stageId)
+            await stage.destroy()
+
+            // TODO - Audit log entry?
+
+            reply.send({ status: 'okay' })
+        } catch (err) {
+            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
+        }
     })
 
     /**
