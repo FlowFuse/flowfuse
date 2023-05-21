@@ -5,6 +5,7 @@
     <div v-else class="flex flex-col sm:flex-row">
         <router-view
             :application="application"
+            :instances="instances"
             :pipeline="pipeline"
         />
     </div>
@@ -18,6 +19,10 @@ export default {
     inheritAttrs: false,
     props: {
         application: {
+            type: Object,
+            required: true
+        },
+        instances: {
             type: Object,
             required: true
         }

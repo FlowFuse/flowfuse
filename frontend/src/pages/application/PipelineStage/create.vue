@@ -16,7 +16,7 @@
     </Teleport>
     <main>
         <PipelineStageForm
-            :application="application"
+            :instances="instances"
             :pipeline="pipeline"
             :stage="{}"
             @submit="create"
@@ -46,6 +46,10 @@ export default {
     props: {
         application: {
             type: Object,
+            required: true
+        },
+        instances: {
+            type: Array,
             required: true
         },
         pipeline: {

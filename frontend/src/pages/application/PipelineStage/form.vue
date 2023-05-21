@@ -83,8 +83,8 @@ export default {
         FormRow
     },
     props: {
-        application: {
-            type: Object,
+        instances: {
+            type: Array,
             required: true
         },
         pipeline: {
@@ -156,25 +156,12 @@ export default {
             return 'Choose Instance'
         }
     },
-    watch: {
-        'application.id': 'loadInstances'
-    },
-    async mounted () {
-        this.loadInstances()
-    },
     methods: {
         async submit () {
             this.loading.creating = !this.isEdit
             this.loading.updating = this.isEdit
 
             this.$emit('submit', this.input)
-        },
-        async loadInstances  () {
-            if (!this.application.id) {
-                return
-            }
-
-            this.instances = await ApplicationAPI.getApplicationInstances(this.application.id)
         }
     }
 }
