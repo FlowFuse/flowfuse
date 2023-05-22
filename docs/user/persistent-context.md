@@ -14,4 +14,6 @@ In your Node-RED, you will now have the option to store values in 2 context stor
 * **Memory**: This is for ephemeral context where you do not want it to be persisted.
 * **Persistent**: This is for persistent context where you want values to persist restarts and upgrades.
 
+FlowForge provides 1MB of context storage per Node-RED instance.
+
 For more information on Context, head over to the [Node-RED Working with context](https://nodered.org/docs/user-guide/context) guide.
