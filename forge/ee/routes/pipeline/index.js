@@ -5,6 +5,7 @@ module.exports = async function (app) {
     registerPermissions({
         'pipeline:view': { description: 'View a pipeline', role: Roles.Member },
         'pipeline:edit': { description: 'Edit a pipeline', role: Roles.Owner },
+        'pipeline:delete': { description: 'Delete a pipeline stage', role: Roles.Owner },
         'application:pipelines:create': { description: 'Create a pipeline within an application', role: Roles.Owner },
         'application:pipelines:list': { description: 'List pipelines within an application', role: Roles.Member },
         'application:pipelines:delete': { description: 'Delete a pipeline from an application', role: Roles.Owner },
@@ -50,7 +51,7 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const team = await request.teamMembership.getTeam()
         const name = request.body.name?.trim() // name of the stage
-        const instanceId = request.body.instance // instance id
+        const instanceId = request.body.instanceId // instance id
 
         let stage
         try {
@@ -73,7 +74,10 @@ module.exports = async function (app) {
         await app.auditLog.Team.application.pipeline.stageAdded(request.session.User, null, team, request.application, request.pipeline, stage)
         await app.auditLog.Project.project.assignedToPipelineStage(request.session.User, null, instance, request.pipeline, stage)
 
-        reply.send(app.db.views.PipelineStage.stage(stage))
+        // ById includes related models
+        const hydratedStage = await app.db.models.PipelineStage.byId(stage.id)
+
+        reply.send(await app.db.views.PipelineStage.stage(hydratedStage))
     })
 
     /**
@@ -86,6 +90,80 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const stage = await app.db.models.PipelineStage.byId(request.params.stageId)
         reply.send(await app.db.views.PipelineStage.stage(stage))
+    })
+
+    /**
+     * Update details of a single stage within a pipeline
+     * @name /api/v1/pipelines/:pipelineId/stages/:stageId
+     * @memberof forge.routes.api.pipeline
+     */
+    app.put('/pipelines/:pipelineId/stages/:stageId', {
+        preHandler: app.needsPermission('pipeline:edit')
+    }, async (request, reply) => {
+        try {
+            const stage = await app.db.models.PipelineStage.byId(request.params.stageId)
+
+            if (request.body.name) {
+                stage.name = request.body.name
+            }
+
+            if (request.body.instanceId) {
+                // Currently only one instance per stage is supported
+                const instances = await stage.getInstances()
+                for (const instance of instances) {
+                    await stage.removeInstance(instance)
+                }
+
+                await stage.addInstanceId(request.body.instanceId)
+            }
+
+            await stage.save()
+
+            // ById includes related models
+            const hydratedStage = await app.db.models.PipelineStage.byId(stage.id)
+
+            // TODO - Audit log entry?
+
+            reply.send(await app.db.views.PipelineStage.stage(hydratedStage))
+        } catch (err) {
+            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
+        }
+    })
+
+    /**
+     * Delete a pipeline stage
+     * @name /api/v1/pipelines/:pipelineId/stages/:stageId
+     * @memberof forge.routes.api.pipeline
+     */
+    app.delete('/pipelines/:pipelineId/stages/:stageId', {
+        preHandler: app.needsPermission('pipeline:delete')
+    }, async (request, reply) => {
+        try {
+            const stageId = request.params.stageId
+
+            const stage = await app.db.models.PipelineStage.byId(stageId)
+
+            // Update the previous stage to point to the next stage when this model is deleted
+            // e.g. A -> B -> C to A -> C when B is deleted
+            const previousStage = await app.db.models.PipelineStage.byTarget(stageId)
+            if (previousStage) {
+                if (stage.target) {
+                    previousStage.target = stage.target
+                } else {
+                    previousStage.target = null
+                }
+
+                await previousStage.save()
+            }
+
+            await stage.destroy()
+
+            // TODO - Audit log entry?
+
+            reply.send({ status: 'okay' })
+        } catch (err) {
+            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
+        }
     })
 
     /**
@@ -117,6 +195,8 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const team = await request.teamMembership.getTeam()
         const name = request.body.name?.trim()
+
+        // Security issue here, should check application is same team...
 
         let pipeline
         try {

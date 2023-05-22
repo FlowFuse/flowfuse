@@ -1,18 +1,31 @@
 <template>
-    <SectionTopMenu hero="DevOps Pipelines" help-header="FlowForge - DevOps Pipelines" info="Configure automated deployments between your Instances">
+    <SectionTopMenu
+        hero="DevOps Pipelines"
+        help-header="FlowForge - DevOps Pipelines"
+        info="Configure automated deployments between your Instances"
+    >
         <template #helptext>
             <p>
-                DevOps Pipelines are used to link multiple Node-RED instances together in a deployment pipeline.
+                DevOps Pipelines are used to link multiple Node-RED instances together
+                in a deployment pipeline.
             </p>
             <p>
-                This is normally used to define "Development" instances, where you can test your new flows without fear or breaking "Production" environments.
+                This is normally used to define "Development" instances, where you can
+                test your new flows without fear or breaking "Production" environments.
             </p>
             <p>
-                Then, when you're ready, you could run a given stage of the pipeline to promote your instance to "Staging" or "Production".
+                Then, when you're ready, you could run a given stage of the pipeline to
+                promote your instance to "Staging" or "Production".
             </p>
         </template>
         <template #tools>
-            <ff-button data-action="pipeline-add" :to="{name: 'CreatePipeline', params: {applicationId: $route.params.id}}">
+            <ff-button
+                data-action="pipeline-add"
+                :to="{
+                    name: 'CreatePipeline',
+                    params: { applicationId: application.id },
+                }"
+            >
                 <template #icon-left>
                     <PlusSmIcon />
                 </template>
@@ -22,24 +35,40 @@
     </SectionTopMenu>
 
     <div v-if="pipelines?.length > 0" class="pt-4 space-y-6">
-        <Pipeline v-for="p in pipelines" :key="p.id" :pipeline="p" :status-map="instanceStatusMap" @deploy-started="beginPolling" @deploy-complete="loadPipelines" @pipeline-deleted="loadPipelines" />
+        <PipelineRow
+            v-for="pipeline in pipelines"
+            :key="pipeline.id"
+            :application="application"
+            :pipeline="pipeline"
+            :status-map="instanceStatusMap"
+            @deploy-started="beginPolling"
+            @deploy-complete="loadPipelines"
+            @pipeline-deleted="loadPipelines"
+            @stage-deleted="(stageIndex) => stageDeleted(pipeline, stageIndex)"
+        />
     </div>
     <EmptyState v-else>
         <template #header>Add your Application's First DevOps Pipeline</template>
         <template #message>
             <p>
-                DevOps Pipelines are used to link multiple Node-RED instances together in a deployment pipeline.
+                DevOps Pipelines are used to link multiple Node-RED instances together
+                in a deployment pipeline.
             </p>
             <p>
-                This is normally used to define "Development" instances, where you can test your new flows without fear or breaking "Production" environments.
+                This is normally used to define "Development" instances, where you can
+                test your new flows without fear or breaking "Production" environments.
             </p>
             <p>
-                Then, when you're ready, you could run a given stage of the pipeline to promote your instance to "Staging" or "Production".
+                Then, when you're ready, you could run a given stage of the pipeline to
+                promote your instance to "Staging" or "Production".
             </p>
         </template>
         <template #actions>
             <ff-button
-                :to="{name: 'CreatePipeline', params: {applicationId: $route.params.id}}"
+                :to="{
+                    name: 'CreatePipeline',
+                    params: { applicationId: application.id },
+                }"
             >
                 <template #icon-left><PlusSmIcon /></template>
                 Add Pipeline
@@ -56,7 +85,7 @@ import ApplicationAPI from '../../api/application.js'
 import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
-import Pipeline from '../../components/pipelines/Pipeline.vue'
+import PipelineRow from '../../components/pipelines/PipelineRow.vue'
 import Alerts from '../../services/alerts.js'
 
 export default {
@@ -64,7 +93,7 @@ export default {
     components: {
         SectionTopMenu,
         PlusSmIcon,
-        Pipeline,
+        PipelineRow,
         EmptyState
     },
     beforeRouteLeave () {
@@ -75,12 +104,16 @@ export default {
         instances: {
             type: Array,
             required: true
+        },
+        application: {
+            type: Object,
+            required: true
         }
     },
     data () {
         return {
             pipelines: [],
-            instanceStatusMap: null,
+            instanceStatusMap: new Map(),
             polling: null
         }
     },
@@ -94,7 +127,7 @@ export default {
             this.$router.push({
                 name: 'Application',
                 params: {
-                    id: this.$route.params.id
+                    id: this.application.id
                 }
             })
         }
@@ -103,9 +136,12 @@ export default {
         beginPolling () {
             this.polling = setInterval(this.loadInstanceStatus, 5000)
         },
+        stageDeleted (pipeline, stageIndex) {
+            pipeline.stages.splice(stageIndex, 1)
+        },
         async loadPipelines () {
             this.loadInstanceStatus()
-            ApplicationAPI.getPipelines(this.$route.params.id)
+            ApplicationAPI.getPipelines(this.application.id)
                 .then((pipelines) => {
                     this.pipelines = pipelines
                 })
@@ -114,7 +150,7 @@ export default {
                 })
         },
         async loadInstanceStatus () {
-            ApplicationAPI.getApplicationInstancesStatuses(this.$route.params.id)
+            ApplicationAPI.getApplicationInstancesStatuses(this.application.id)
                 .then((instances) => {
                     if (this.polling) {
                         let allRunning = true
@@ -129,7 +165,9 @@ export default {
                             Alerts.emit('Deployment of stage successful.', 'confirmation')
                         }
                     }
-                    this.instanceStatusMap = new Map(instances.map((obj) => [obj.id, obj.meta]))
+                    this.instanceStatusMap = new Map(
+                        instances.map((obj) => [obj.id, obj.meta])
+                    )
                 })
                 .catch((err) => {
                     console.error(err)

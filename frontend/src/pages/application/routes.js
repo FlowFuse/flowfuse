@@ -10,6 +10,7 @@ import ApplicationOverview from './Overview.vue'
 import ApplicationPipelineCreate from './Pipeline/create.vue'
 import ApplicationPipelineIndex from './Pipeline/index.vue'
 import ApplicationPipelineStageCreate from './PipelineStage/create.vue'
+import ApplicationPipelineStageEdit from './PipelineStage/edit.vue'
 import ApplicationPipelines from './Pipelines.vue'
 import ApplicationSettings from './Settings.vue'
 import ApplicationCreateInstance from './createInstance.vue'
@@ -103,6 +104,14 @@ export default [
                         component: ApplicationPipelineStageCreate,
                         meta: {
                             title: 'Pipeline Stage - Create'
+                        }
+                    },
+                    {
+                        path: 'stages/:stageId/edit',
+                        name: 'EditPipelineStage',
+                        component: ApplicationPipelineStageEdit,
+                        meta: {
+                            title: 'Pipeline Stage - Edit'
                         }
                     }
                 ]

@@ -10,7 +10,7 @@ module.exports = {
             allowNull: false
         },
 
-        target: { // @TODO: this is the next stage ID in the pipeline, needs relations declaring..
+        target: {
             type: DataTypes.INTEGER,
             allowNull: true
         }
@@ -25,8 +25,8 @@ module.exports = {
                 const pipeline = await pipelinePromise
 
                 instances.forEach((instance) => {
-                    if (instance.applicationId !== pipeline.applicationId) {
-                        throw new Error(`All instances on a pipeline stage, must be a member of the same application as the pipeline. ${instance.name} is not a member of application ${pipeline.applicationId}.`)
+                    if (instance.ApplicationId !== pipeline.ApplicationId) {
+                        throw new Error(`All instances on a pipeline stage, must be a member of the same application as the pipeline. ${instance.name} is not a member of application ${pipeline.ApplicationId}.`)
                     }
                 })
             }
@@ -35,6 +35,7 @@ module.exports = {
     associations: function (M) {
         this.belongsTo(M.Pipeline)
         this.belongsToMany(M.Project, { through: M.PipelineStageInstance, as: 'Instances', otherKey: 'InstanceId' })
+        this.hasOne(M.PipelineStage, { as: 'NextStage', foreignKey: 'target', allowNull: true })
     },
     finders: function (M) {
         const self = this
@@ -42,6 +43,10 @@ module.exports = {
             instance: {
                 async addInstanceId (instanceId) {
                     const instance = await M.Project.byId(instanceId)
+                    if (!instance) {
+                        throw new Error('instanceId not found')
+                    }
+
                     await this.addInstance(instance)
                 }
             },
@@ -75,6 +80,15 @@ module.exports = {
                                 attributes: ['hashid', 'id', 'name', 'url', 'updatedAt']
                             }
                         ]
+                    })
+                },
+                byTarget: async function (idOrHash) {
+                    let id = idOrHash
+                    if (typeof idOrHash === 'string') {
+                        id = M.PipelineStage.decodeHashid(idOrHash)
+                    }
+                    return this.findOne({
+                        where: { target: id }
                     })
                 }
             }

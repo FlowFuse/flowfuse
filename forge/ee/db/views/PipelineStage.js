@@ -12,7 +12,9 @@ module.exports = {
 
         if (stage.target) {
             const target = await app.db.models.PipelineStage.byId(result.target)
-            filtered.targetStage = target.hashid
+            if (target) {
+                filtered.targetStage = target.hashid
+            }
         }
 
         return filtered

@@ -3,7 +3,21 @@
         <div class="ff-pipeline-stage-banner">
             <label>{{ stage.name }}</label>
             <div class="ff-pipeline-actions">
-                <PlayIcon v-if="playEnabled && !deploying" class="ff-icon ff-clickable" @click="runStage" />
+                <PencilAltIcon
+                    v-if="editEnabled && application?.id && !deploying"
+                    class="ff-icon ff-clickable"
+                    @click="edit"
+                />
+                <TrashIcon
+                    v-if="editEnabled && application?.id && !deploying"
+                    class="ff-icon ff-clickable"
+                    @click="deleteStage"
+                />
+                <PlayIcon
+                    v-if="playEnabled && pipeline?.id && !deploying"
+                    class="ff-icon ff-clickable"
+                    @click="runStage"
+                />
                 <SpinnerIcon v-if="deploying" class="ff-icon" />
             </div>
         </div>
@@ -14,7 +28,11 @@
             </div>
             <div class="ff-pipeline-stage-row">
                 <label>URL:</label>
-                <a class="ff-link" :href="stage.instance.url" :target="stage.instance.name">{{ stage.instance.url }}</a>
+                <a
+                    class="ff-link"
+                    :href="stage.instance.url"
+                    :target="stage.instance.name"
+                >{{ stage.instance.url }}</a>
             </div>
             <div class="ff-pipeline-stage-row">
                 <label>Last Deployed:</label>
@@ -25,9 +43,7 @@
                 <InstanceStatusBadge :status="status" />
             </div>
         </div>
-        <div v-else class="flex justify-center py-6">
-            No Instances Bound
-        </div>
+        <div v-else class="flex justify-center py-6">No Instances Bound</div>
     </div>
     <div v-else class="ff-pipeline-stage ff-pipeline-stage-ghost">
         <PlusCircleIcon class="ff-icon ff-icon-lg" />
@@ -36,7 +52,7 @@
 </template>
 
 <script>
-import { PlayIcon, PlusCircleIcon } from '@heroicons/vue/outline'
+import { PencilAltIcon, PlayIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/outline'
 
 import InstancesAPI from '../../api/instances.js'
 import PipelineAPI from '../../api/pipeline.js'
@@ -49,15 +65,21 @@ import SpinnerIcon from '../icons/Spinner.js'
 export default {
     name: 'PipelineStage',
     components: {
-        SpinnerIcon,
+        InstanceStatusBadge,
+        PencilAltIcon,
         PlayIcon,
         PlusCircleIcon,
-        InstanceStatusBadge
+        SpinnerIcon,
+        TrashIcon
     },
     props: {
-        pipelineId: {
+        application: {
             default: null,
-            type: String
+            type: Object
+        },
+        pipeline: {
+            default: null,
+            type: Object
         },
         stage: {
             default: null,
@@ -72,14 +94,15 @@ export default {
             type: String
         },
         playEnabled: {
-            default: true,
+            default: false,
+            type: Boolean
+        },
+        editEnabled: {
+            default: false,
             type: Boolean
         }
     },
-    emits: [
-        'stage-started',
-        'stage-complete'
-    ],
+    emits: ['stage-started', 'stage-complete', 'stage-deleted'],
     computed: {
         lastDeployed: function () {
             return elapsedTime(this.stage.instance.updatedAt, new Date())
@@ -88,9 +111,15 @@ export default {
     methods: {
         runStage: async function () {
             // get target stage
-            const target = await PipelineAPI.getPipelineStage(this.pipelineId, this.stage.targetStage)
+            const target = await PipelineAPI.getPipelineStage(
+                this.pipeline.id,
+                this.stage.targetStage
+            )
             if (!target) {
-                Alerts.emit(`Unable to find configured target for stage "${this.stage.name}".`, 'error')
+                Alerts.emit(
+                    `Unable to find configured target for stage "${this.stage.name}".`,
+                    'error'
+                )
             }
 
             const msg = {
@@ -116,10 +145,44 @@ export default {
                     options: { ...this.parts }
                 }
 
-                await InstancesAPI.updateInstance(target.instance.id, { sourceProject: source })
+                await InstancesAPI.updateInstance(target.instance.id, {
+                    sourceProject: source
+                })
 
                 this.$emit('stage-complete')
-                Alerts.emit(`Deployment from "${this.stage.name}" to "${target.name}" has started.`, 'confirmation')
+                Alerts.emit(
+                    `Deployment from "${this.stage.name}" to "${target.name}" has started.`,
+                    'confirmation'
+                )
+            })
+        },
+        edit () {
+            this.$router.push({
+                name: 'EditPipelineStage',
+                params: {
+                    // url params
+                    id: this.application.id,
+                    pipelineId: this.pipeline.id,
+                    stageId: this.stage.id
+                }
+            })
+        },
+
+        deleteStage () {
+            const msg = {
+                header: 'Delete Pipeline Stage',
+                kind: 'danger',
+                confirmLabel: 'Delete',
+                html: `<p>Are you sure you want to delete the pipeline stage "${this.stage.name}"?</p>`
+            }
+            Dialog.show(msg, async () => {
+                await PipelineAPI.deletePipelineStage(
+                    this.pipeline.id,
+                    this.stage.id
+                )
+
+                Alerts.emit('Pipeline stage successfully deleted', 'confirmation')
+                this.$emit('stage-deleted')
             })
         }
     }

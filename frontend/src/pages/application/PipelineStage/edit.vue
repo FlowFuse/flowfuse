@@ -15,11 +15,15 @@
         </SideNavigation>
     </Teleport>
     <main>
+        <ff-loading
+            v-if="!stage?.id"
+        />
         <PipelineStageForm
+            v-else
             :instances="instances"
             :pipeline="pipeline"
-            :stage="{}"
-            @submit="create"
+            :stage="stage"
+            @submit="update"
         />
     </main>
 </template>
@@ -31,18 +35,18 @@ import PipelinesAPI from '../../../api/pipeline.js'
 
 import NavItem from '../../../components/NavItem.vue'
 import SideNavigation from '../../../components/SideNavigation.vue'
+
 import Alerts from '../../../services/alerts.js'
 
 import PipelineStageForm from './form.vue'
 
 export default {
-    name: 'CreatePipelineStage',
+    name: 'EditPipelineStage',
     components: {
         SideNavigation,
         NavItem,
         PipelineStageForm
     },
-    inheritAttrs: false,
     props: {
         application: {
             type: Object,
@@ -62,23 +66,34 @@ export default {
             icons: {
                 chevronLeft: ChevronLeftIcon
             },
-            mounted: false
+            mounted: false,
+            stage: null
         }
     },
     async mounted () {
         this.mounted = true
+        this.loadStage()
+
+        this.$watch(
+            () => this.$route.params.stageId,
+            async () => {
+                if (this.$route.params.stageId) {
+                    return
+                }
+
+                await this.loadStage()
+            }
+        )
     },
     methods: {
-        async create (input) {
+        async update (input) {
             const options = {
                 name: input.name,
-                instanceId: input.instanceId
+                instance: input.instance
             }
-            if (this.$route.query.sourceStage) {
-                options.source = this.$route.query.sourceStage
-            }
-            await PipelinesAPI.addPipelineStage(this.pipeline.id, options)
-            Alerts.emit('Pipeline stage successfully added.', 'confirmation')
+
+            await PipelinesAPI.updatePipelineStage(this.pipeline.id, this.stage.id, options)
+            Alerts.emit('Pipeline stage successfully updated.', 'confirmation')
 
             this.$router.push({
                 name: 'ApplicationPipelines',
@@ -86,6 +101,13 @@ export default {
                     id: this.application.id
                 }
             })
+        },
+        async loadStage () {
+            if (!this.pipeline.id) {
+                return
+            }
+
+            this.stage = await PipelinesAPI.getPipelineStage(this.pipeline.id, this.$route.params.stageId)
         }
     }
 }
