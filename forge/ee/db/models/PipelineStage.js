@@ -10,7 +10,7 @@ module.exports = {
             allowNull: false
         },
 
-        target: { // @TODO: this is the next stage ID in the pipeline, needs relations declaring..
+        target: {
             type: DataTypes.INTEGER,
             allowNull: true
         }
@@ -35,6 +35,7 @@ module.exports = {
     associations: function (M) {
         this.belongsTo(M.Pipeline)
         this.belongsToMany(M.Project, { through: M.PipelineStageInstance, as: 'Instances', otherKey: 'InstanceId' })
+        this.hasOne(M.PipelineStage, { as: 'NextStage', foreignKey: 'target', allowNull: true })
     },
     finders: function (M) {
         const self = this
@@ -75,6 +76,15 @@ module.exports = {
                                 attributes: ['hashid', 'id', 'name', 'url', 'updatedAt']
                             }
                         ]
+                    })
+                },
+                byTarget: async function (idOrHash) {
+                    let id = idOrHash
+                    if (typeof idOrHash === 'string') {
+                        id = M.PipelineStage.decodeHashid(idOrHash)
+                    }
+                    return this.findOne({
+                        where: { target: id }
                     })
                 }
             }

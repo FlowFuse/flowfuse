@@ -133,7 +133,24 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('pipeline:delete')
     }, async (request, reply) => {
         try {
-            const stage = await app.db.models.PipelineStage.byId(request.params.stageId)
+            const stageId = request.params.stageId
+
+            const stage = await app.db.models.PipelineStage.byId(stageId)
+
+            // Update the previous stage to point to the next stage when this model is deleted
+            // e.g. A -> B -> C to A -> C when B is deleted
+            const previousStage = await app.db.models.PipelineStage.byTarget(stageId)
+            if (previousStage) {
+                let nextStage
+                if ((nextStage = await stage.getNextStage())) {
+                    previousStage.target = nextStage.id
+                } else {
+                    previousStage.target = null
+                }
+
+                await previousStage.save()
+            }
+
             await stage.destroy()
 
             // TODO - Audit log entry?
