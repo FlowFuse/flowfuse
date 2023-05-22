@@ -6,13 +6,7 @@ import Vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
     plugins: [
-        Vue({
-            template: {
-                compilerOptions: {
-                    isCustomElement: (tag) => tag.startsWith("ff-"),
-                },
-            },
-        }),
+        Vue(),
     ],
     test: {
         globals: true,
