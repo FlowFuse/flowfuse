@@ -1,6 +1,6 @@
-const Hashids = require('hashids/cjs')
 const should = require('should')
 const sinon = require('sinon')
+const { v4: uuidv4 } = require('uuid')
 
 const TestModelFactory = require('../../../../../lib/TestModelFactory.js')
 
@@ -241,7 +241,7 @@ describe('Pipelines API', function () {
                 const pipelineId = TestObjects.pipeline.hashid
                 const stageId = TestObjects.stageOne.hashid
 
-                const fakeUUID = (new Hashids('Instance')).encode('123')
+                const fakeUUID = uuidv4()
 
                 const response = await app.inject({
                     method: 'PUT',
