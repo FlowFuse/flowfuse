@@ -1,3 +1,4 @@
+const Hashids = require('hashids/cjs')
 const should = require('should')
 const sinon = require('sinon')
 
@@ -240,11 +241,13 @@ describe('Pipelines API', function () {
                 const pipelineId = TestObjects.pipeline.hashid
                 const stageId = TestObjects.stageOne.hashid
 
+                const fakeUUID = (new Hashids('Instance')).encode('123')
+
                 const response = await app.inject({
                     method: 'PUT',
                     url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
                     payload: {
-                        instanceId: 'not-a-real-instance-id'
+                        instanceId: fakeUUID
                     },
                     cookies: { sid: TestObjects.tokens.alice }
 
