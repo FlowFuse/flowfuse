@@ -25,8 +25,8 @@ module.exports = {
                 const pipeline = await pipelinePromise
 
                 instances.forEach((instance) => {
-                    if (instance.applicationId !== pipeline.applicationId) {
-                        throw new Error(`All instances on a pipeline stage, must be a member of the same application as the pipeline. ${instance.name} is not a member of application ${pipeline.applicationId}.`)
+                    if (instance.ApplicationId !== pipeline.ApplicationId) {
+                        throw new Error(`All instances on a pipeline stage, must be a member of the same application as the pipeline. ${instance.name} is not a member of application ${pipeline.ApplicationId}.`)
                     }
                 })
             }
@@ -43,6 +43,10 @@ module.exports = {
             instance: {
                 async addInstanceId (instanceId) {
                     const instance = await M.Project.byId(instanceId)
+                    if (!instance) {
+                        throw new Error('instanceId not found')
+                    }
+
                     await this.addInstance(instance)
                 }
             },

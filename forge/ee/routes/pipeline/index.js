@@ -74,7 +74,10 @@ module.exports = async function (app) {
         await app.auditLog.Team.application.pipeline.stageAdded(request.session.User, null, team, request.application, request.pipeline, stage)
         await app.auditLog.Project.project.assignedToPipelineStage(request.session.User, null, instance, request.pipeline, stage)
 
-        reply.send(app.db.views.PipelineStage.stage(stage))
+        // ById includes related models
+        const hydratedStage = await app.db.models.PipelineStage.byId(stage.id)
+
+        reply.send(await app.db.views.PipelineStage.stage(hydratedStage))
     })
 
     /**
@@ -111,14 +114,17 @@ module.exports = async function (app) {
                     await stage.removeInstance(instance)
                 }
 
-                stage.addInstanceId(request.body.instanceId)
+                await stage.addInstanceId(request.body.instanceId)
             }
 
-            stage.save()
+            await stage.save()
+
+            // ById includes related models
+            const hydratedStage = await app.db.models.PipelineStage.byId(stage.id)
 
             // TODO - Audit log entry?
 
-            reply.send(await app.db.views.PipelineStage.stage(stage))
+            reply.send(await app.db.views.PipelineStage.stage(hydratedStage))
         } catch (err) {
             reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
@@ -141,9 +147,8 @@ module.exports = async function (app) {
             // e.g. A -> B -> C to A -> C when B is deleted
             const previousStage = await app.db.models.PipelineStage.byTarget(stageId)
             if (previousStage) {
-                let nextStage
-                if ((nextStage = await stage.getNextStage())) {
-                    previousStage.target = nextStage.id
+                if (stage.target) {
+                    previousStage.target = stage.target
                 } else {
                     previousStage.target = null
                 }
@@ -190,6 +195,8 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const team = await request.teamMembership.getTeam()
         const name = request.body.name?.trim()
+
+        // Security issue here, should check application is same team...
 
         let pipeline
         try {

@@ -2,7 +2,7 @@
 module.exports = {
     addPipelineStage: async function (app, pipeline, options) {
         if (!options.instanceId) {
-            throw new Error('Instance id is required')
+            throw new Error('Param instanceId is required when creating a new pipeline stage')
         }
 
         let source
@@ -14,7 +14,7 @@ module.exports = {
             delete options.source
         }
         const stage = await app.db.models.PipelineStage.create(options)
-        stage.addInstanceId(options.instanceId)
+        await stage.addInstanceId(options.instanceId)
 
         if (source) {
             const sourceStage = await app.db.models.PipelineStage.byId(source)
