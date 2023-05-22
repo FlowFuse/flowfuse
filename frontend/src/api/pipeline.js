@@ -60,8 +60,8 @@ const updatePipelineStage = async (pipelineId, stageId, options) => {
  * @param {string} pipelineId
  * @param {string} stageId
  */
-const deletePipelineStage = async (pipelineId, stageId, options) => {
-    return client.delete(`/api/v1/pipelines/${pipelineId}/stages/${stageId}`, options).then(res => {
+const deletePipelineStage = async (pipelineId, stageId) => {
+    return client.delete(`/api/v1/pipelines/${pipelineId}/stages/${stageId}`).then(res => {
         return res.data
     })
 }

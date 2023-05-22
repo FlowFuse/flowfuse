@@ -50,12 +50,12 @@ describe('Pipelines API', async () => {
         const pipelineId = '1234'
         const stage = {
             name: 'My Stage',
-            instance: 'instance-id',
+            instanceId: 'instance-id',
             unused: 'property'
         }
         const options = {
             name: 'My Stage',
-            instance: 'instance-id'
+            instanceId: 'instance-id'
         }
         PipelinesAPI.default.addPipelineStage(pipelineId, stage)
 
@@ -67,12 +67,33 @@ describe('Pipelines API', async () => {
         const pipelineId = '1234'
         const stage = {
             name: 'My Stage',
-            instance: 'instance-id',
+            instanceId: 'instance-id',
             source: 'stage1234'
         }
         PipelinesAPI.default.addPipelineStage(pipelineId, stage)
         expect(mockPost).toHaveBeenCalledOnce()
         expect(mockPost).toHaveBeenCalledWith(`/api/v1/pipelines/${pipelineId}/stages`, stage)
+    })
+
+    test('updatePipelineStage makes a PUT request to update a pipeline stage', () => {
+        const pipelineId = '1234'
+        const stageId = '4321'
+        const stage = {
+            name: 'My Stage',
+            instanceId: 'instance-id'
+        }
+
+        PipelinesAPI.default.updatePipelineStage(pipelineId, stageId, stage)
+        expect(mockPut).toHaveBeenCalledOnce()
+        expect(mockPut).toHaveBeenCalledWith(`/api/v1/pipelines/${pipelineId}/stages/4321`, stage)
+    })
+
+    test('deletePipelineStage makes a DELETE request to delete a pipeline stage', () => {
+        const pipelineId = '1234'
+        const stageId = '4321'
+
+        PipelinesAPI.default.deletePipelineStage(pipelineId, stageId)
+        expect(mockDelete).toHaveBeenCalledWith(`/api/v1/pipelines/${pipelineId}/stages/4321`)
     })
 })
 
