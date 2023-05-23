@@ -2,7 +2,7 @@
     <form class="space-y-6">
         <TemplateSettingsEnvironment :readOnly="!hasPermission('device:edit-env')" v-model="editable" :editTemplate="false" />
         <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
-            <ff-button size="small" :disabled="!unsavedChanges" @click="saveSettings()">Save Settings</ff-button>
+            <ff-button size="small" :disabled="!unsavedChanges || hasError" @click="saveSettings()">Save Settings</ff-button>
         </div>
     </form>
 </template>
@@ -44,12 +44,8 @@ export default {
                     changed = true
                 }
 
-                // if we have an error in one of the keys/values, forbid saving
-                if (error) {
-                    this.unsavedChanges = false
-                } else {
-                    this.unsavedChanges = changed
-                }
+                this.hasError = error
+                this.unsavedChanges = changed
             }
         }
     },
@@ -59,6 +55,7 @@ export default {
     data () {
         return {
             unsavedChanges: false,
+            hasError: false,
             editable: {
                 name: '',
                 settings: { env: [] },
