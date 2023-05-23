@@ -4,12 +4,12 @@
         <label>Error: </label>
     </template>
     <!-- Team Scoped Events -->
-    <template v-if="entry.event === 'team.created'">
+    <template v-if="entry.event === 'team.created' || entry.event === 'platform.team.created'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.team">Team '{{ entry.body.team?.name }}' has been created.</span>
         <span v-else-if="!error">Team data not found in audit entry.</span>
     </template>
-    <template v-else-if="entry.event === 'team.deleted'">
+    <template v-else-if="entry.event === 'team.deleted' || entry.event === 'platform.team.deleted'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.team">Team '{{ entry.body.team?.name }}' has been deleted.</span>
         <span v-else-if="!error">Team data not found in audit entry.</span>

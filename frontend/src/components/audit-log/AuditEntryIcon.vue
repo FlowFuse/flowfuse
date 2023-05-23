@@ -125,6 +125,8 @@ const iconMap = {
     users: [
         'team.created',
         'team.deleted',
+        'platform.team.created',
+        'platform.team.deleted',
         'users.auto-created-team'
     ],
     mail: [

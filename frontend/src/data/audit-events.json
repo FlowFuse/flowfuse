@@ -103,6 +103,9 @@
         "user.deleted": "User Deleted Account",
         "users.deleted-user": "User Deleted",
         "users.updated-user": "User Updated",
-        "users.auto-created-team": "Team Created"
+        "users.auto-created-team": "Team Created",
+        "platform.team.created": "New Team Created",
+        "platform.team.deleted": "Team Deleted"
+
     }
 }
