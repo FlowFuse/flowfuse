@@ -13,6 +13,7 @@ import { mapState } from 'vuex'
 import InstanceApi from '../../../api/instances.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import alerts from '../../../services/alerts.js'
+import dialog from '../../../services/dialog.js'
 import TemplateSettingsEnvironment from '../../admin/Template/sections/Environment.vue'
 import {
     prepareTemplateForEdit
@@ -24,6 +25,24 @@ export default {
         TemplateSettingsEnvironment
     },
     mixins: [permissionsMixin],
+    beforeRouteLeave: async function (_to, _from, next) {
+        if (this.unsavedChanges) {
+            const dialogOpts = {
+                header: 'Unsaved changes',
+                kind: 'danger',
+                html: '<p>You have unsaved changes. Are you sure you want to leave?</p>',
+                confirmLabel: 'Yes, lose changes'
+            }
+            const answer = await dialog.showAsync(dialogOpts)
+            if (answer === 'confirm') {
+                next()
+            } else {
+                next(false)
+            }
+        } else {
+            next()
+        }
+    },
     inheritAttrs: false,
     props: {
         project: {
@@ -77,8 +96,6 @@ export default {
                                 } else if (original.name !== field.name) {
                                     changed = true
                                 } else if (original.value !== field.value) {
-                                    changed = true
-                                } else if (original.policy !== field.policy) {
                                     changed = true
                                 }
                             } else {
