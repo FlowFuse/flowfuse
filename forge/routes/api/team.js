@@ -277,6 +277,7 @@ module.exports = async function (app) {
                 slug: request.body.slug,
                 TeamTypeId: teamType.id
             }, request.session.User)
+            await app.auditLog.Platform.platform.team.created(request.session.User, null, team)
             await app.auditLog.Team.team.created(request.session.User, null, team)
             await app.auditLog.Team.team.user.added(request.session.User, null, team, request.session.User)
 
@@ -290,18 +291,22 @@ module.exports = async function (app) {
 
             reply.send(teamView)
         } catch (err) {
-            if (team !== undefined) {
-                // safe to destory because it will have only 1 owner and no projects
-                await team.destroy()
-            }
-
-            let responseMessage
+            // prepare response
+            const resp = { code: 'unexpected_error', error: err.toString() }
+            // update resp.error is the error has an errors array
             if (err.errors) {
-                responseMessage = err.errors.map(err => err.message).join(',')
-            } else {
-                responseMessage = err.toString()
+                resp.error = err.errors.map(err => err.message).join(',')
             }
-            reply.code(400).send({ code: 'unexpected_error', error: responseMessage })
+            // audit log to platform & team
+            await app.auditLog.Platform.platform.team.created(request.session.User, resp, team)
+            await app.auditLog.Team.team.created(request.session.User, resp, team)
+            // destroy team if it was created
+            if (team !== undefined) {
+                // safe to destroy because it will have only 1 owner and no projects
+                await team.destroy()
+                await app.auditLog.Platform.platform.team.deleted(0, null, team)
+            }
+            reply.code(400).send(resp)
         }
     })
 
@@ -325,10 +330,12 @@ module.exports = async function (app) {
                 }
             }
             await request.team.destroy()
+            await app.auditLog.Platform.platform.team.deleted(request.session.User, null, request.team)
             await app.auditLog.Team.team.deleted(request.session.User, null, request.team)
             reply.send({ status: 'okay' })
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
+            await app.auditLog.Platform.platform.team.deleted(request.session.User, resp, request.team)
             await app.auditLog.Team.team.deleted(request.session.User, resp, request.team)
             reply.code(400).send(resp)
         }
