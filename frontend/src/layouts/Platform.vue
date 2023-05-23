@@ -15,7 +15,7 @@
                                        :countdown="a.countdown || 3000" @close="clear($index)"></ff-notification-toast>
             </TransitionGroup>
             <interview-popup v-if="interview?.enabled" :flag="interview.flag" :payload="interview.payload"></interview-popup>
-            <ff-dialog ref="dialog" data-el="platform-dialog" :header="dialog.header" :kind="dialog.kind" :disable-primary="dialog.disablePrimary" :confirm-label="dialog.confirmLabel" @cancel="clearDialog" @confirm="dialog.onConfirm">
+            <ff-dialog ref="dialog" data-el="platform-dialog" :header="dialog.header" :kind="dialog.kind" :disable-primary="dialog.disablePrimary" :confirm-label="dialog.confirmLabel" @cancel="clearDialog(true)" @confirm="dialog.onConfirm">
                 <p v-if="dialog.text">{{ dialog.text }}</p>
                 <div class="space-y-2" v-html="dialog.html"></div>
             </ff-dialog>
@@ -48,7 +48,8 @@ export default {
                 html: null,
                 confirmLabel: null,
                 kind: null,
-                onConfirm: null
+                onConfirm: null,
+                onCancel: null
             }
         }
     },
@@ -90,7 +91,7 @@ export default {
                 timestamp: Date.now()
             })
         },
-        showDialogHandler (msg, onConfirm) {
+        showDialogHandler (msg, onConfirm, onCancel) {
             if (typeof (msg) === 'string') {
                 this.dialog.content = msg
             } else {
@@ -103,15 +104,20 @@ export default {
                 this.dialog.disablePrimary = msg.disablePrimary
             }
             this.dialog.onConfirm = onConfirm
+            this.dialog.onCancel = onCancel
         },
-        clearDialog () {
+        clearDialog (cancelled) {
+            if (cancelled && this.dialog.onCancel) {
+                this.dialog.onCancel()
+            }
             this.dialog = {
                 header: null,
                 text: null,
                 html: null,
                 confirmLabel: null,
                 kind: null,
-                onConfirm: null
+                onConfirm: null,
+                onCancel: null
             }
         },
         clear (i) {
