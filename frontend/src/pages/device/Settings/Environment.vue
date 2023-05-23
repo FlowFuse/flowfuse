@@ -13,6 +13,7 @@ import { mapState } from 'vuex'
 import deviceApi from '../../../api/devices.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import TemplateSettingsEnvironment from '../../admin/Template/sections/Environment.vue'
+import alerts from '../../../services/alerts.js'
 import dialog from '../../../services/dialog.js'
 
 export default {
@@ -126,6 +127,7 @@ export default {
             })
             deviceApi.updateSettings(this.device.id, settings)
             this.$emit('device-updated')
+            alerts.emit('Device settings successfully updated. NOTE: changes will be applied once the device restarts.', 'confirmation', 6000)
         }
     }
 }
