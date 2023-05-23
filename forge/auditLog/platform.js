@@ -57,6 +57,14 @@ module.exports = {
                     const info = { resource, count, limit }
                     await log('platform.license.overage', actionedBy, generateBody({ error, info }))
                 }
+            },
+            team: {
+                async created (actionedBy, error, team) {
+                    await log('platform.team.created', actionedBy, generateBody({ error, team }))
+                },
+                async deleted (actionedBy, error, team) {
+                    await log('platform.team.deleted', actionedBy, generateBody({ error, team }))
+                }
             }
         }
 
