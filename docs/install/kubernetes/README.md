@@ -66,7 +66,7 @@ Some features require the ability to send email to users. This can be currently 
 ### Download
 
 ```bash
-helm repo add flowforge https://flowforge.github.io/helm`
+helm repo add flowforge https://flowforge.github.io/helm
 helm repo update
 ```
 
