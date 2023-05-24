@@ -1,5 +1,23 @@
 <template>
-    <SectionTopMenu hero="Instances" info="A list of all Node-RED instances running in FlowForge for this Team." />
+    <SectionTopMenu hero="Instances" info="A list of all Node-RED instances belonging to this Team.">
+        <template #pictogram>
+            <img src="../../images/pictograms/cloud_teal.png">
+        </template>
+        <template #helptext>
+            <p>
+                This is a list of all Node-RED instances belonging to this team running
+                in this FlowForge.
+            </p>
+            <p>
+                Each Instance is a customised version of Node-RED that includes various
+                FlowForge plugins to integrate it with the platform.
+            </p>
+            <p>
+                A number of the standard Node-RED settings are exposed for customisation,
+                and they can be preset by applying a Template upon creation of an Instance.
+            </p>
+        </template>
+    </SectionTopMenu>
     <div class="space-y-6">
         <ff-loading v-if="loading" message="Loading Instances..." />
         <template v-else>

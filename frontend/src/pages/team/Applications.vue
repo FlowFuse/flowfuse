@@ -1,5 +1,14 @@
 <template>
-    <SectionTopMenu hero="Applications">
+    <SectionTopMenu hero="Applications" help-header="Node-RED Applications" info="A list of applications belonging to this Team.">
+        <template #pictogram>
+            <img src="../../images/pictograms/cloud_teal.png">
+        </template>
+        <template #helptext>
+            <p>This is a list of all Applications hosted on the same domain as FlowForge.</p>
+            <p>Each Application can host multiple Node-RED instances.</p>
+            <p>Click an application header to go to the overview of that application.</p>
+            <p>Click an instance within an application to go to the Instances overview.</p>
+        </template>
         <template #tools>
             <ff-button
                 v-if="hasPermission('project:create')"
