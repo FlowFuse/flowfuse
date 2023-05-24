@@ -6,6 +6,7 @@ module.exports = fp(async function (app, opts, done) {
     }
     require('./projectComms').init(app)
     require('./deviceEditor').init(app)
+    require('./ha').init(app)
 
     app.decorate('sso', await require('./sso').init(app))
 
