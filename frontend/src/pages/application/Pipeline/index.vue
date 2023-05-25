@@ -41,9 +41,11 @@ export default {
         this.$watch(
             () => this.$route.params.pipelineId,
             () => {
-                if (this.$route.params.pipelineId) {
-                    this.loadPipeline()
+                if (!this.$route.params.pipelineId) {
+                    return
                 }
+
+                this.loadPipeline()
             }
         )
     },
