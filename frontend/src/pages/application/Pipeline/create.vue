@@ -30,7 +30,7 @@
 
             <!-- Form Description -->
             <div class="mb-8 text-sm text-gray-500">
-                Create a DevOps Piepline for linking Node-RED Instances together.
+                Create a DevOps Pipeline for linking Node-RED Instances together.
             </div>
 
             <!-- Pipeline Options -->
@@ -97,13 +97,13 @@ export default {
             mounted: false,
             loading: false,
             input: {
-                name
+                name: null
             }
         }
     },
     computed: {
-        submitEnabled: () => {
-            return true
+        submitEnabled () {
+            return this.input.name?.length > 0
         }
     },
     async mounted () {
