@@ -107,8 +107,8 @@ export default {
             this.dialog.onCancel = onCancel
         },
         clearDialog (cancelled) {
-            if (cancelled && this.dialog.onCancel) {
-                this.dialog.onCancel()
+            if (cancelled) {
+                this.dialog.onCancel?.()
             }
             this.dialog = {
                 header: null,
