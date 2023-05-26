@@ -113,7 +113,7 @@ describe('Pipelines API', function () {
                 const stageOne = await TestObjects.stageOne.reload()
                 const stageTwo = await app.db.models.PipelineStage.byId(body.id)
 
-                stageOne.target.should.equal(stageTwo.id)
+                stageOne.NextStageId.should.equal(stageTwo.id)
 
                 response.statusCode.should.equal(200)
             })
@@ -390,8 +390,8 @@ describe('Pipelines API', function () {
                 TestObjects.stageThree = await TestObjects.factory.createPipelineStage({ name: 'stage-three', instanceId: instanceThree.id, source: TestObjects.stageTwo.hashid }, TestObjects.pipeline)
                 await TestObjects.stageTwo.reload()
 
-                should(TestObjects.stageOne.target).equal(TestObjects.stageTwo.id)
-                should(TestObjects.stageTwo.target).equal(TestObjects.stageThree.id)
+                should(TestObjects.stageOne.NextStageId).equal(TestObjects.stageTwo.id)
+                should(TestObjects.stageTwo.NextStageId).equal(TestObjects.stageThree.id)
 
                 const response = await app.inject({
                     method: 'DELETE',
@@ -407,7 +407,7 @@ describe('Pipelines API', function () {
 
                 const stageOne = await TestObjects.stageOne.reload()
 
-                should(stageOne.target).equal(TestObjects.stageThree.id)
+                should(stageOne.NextStageId).equal(TestObjects.stageThree.id)
             })
         })
 
@@ -419,7 +419,7 @@ describe('Pipelines API', function () {
                 TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
                 await TestObjects.stageOne.reload()
 
-                should(TestObjects.stageOne.target).equal(TestObjects.stageTwo.id)
+                should(TestObjects.stageOne.NextStageId).equal(TestObjects.stageTwo.id)
 
                 const response = await app.inject({
                     method: 'DELETE',
@@ -433,7 +433,7 @@ describe('Pipelines API', function () {
 
                 const stageOne = await TestObjects.stageOne.reload()
 
-                should(stageOne.target).equal(null)
+                should(stageOne.NextStageId).equal(null)
             })
         })
     })

@@ -31,7 +31,14 @@ module.exports = {
                 autoIncrement: true
             },
             name: { type: DataTypes.STRING, allowNull: false },
-            target: { type: DataTypes.INTEGER, allowNull: true }, // @TODO: this is the next stage ID in the pipeline, needs relations declaring...
+
+            NextStageId: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
+                references: { model: 'PipelineStages', key: 'id' },
+                onDelete: 'SET NULL ',
+                onUpdate: 'SET NULL '
+            },
 
             PipelineId: {
                 type: DataTypes.INTEGER,

@@ -10,7 +10,7 @@ module.exports = {
             allowNull: false
         },
 
-        target: {
+        NextStageId: {
             type: DataTypes.INTEGER,
             allowNull: true
         }
@@ -35,7 +35,7 @@ module.exports = {
     associations: function (M) {
         this.belongsTo(M.Pipeline)
         this.belongsToMany(M.Project, { through: M.PipelineStageInstance, as: 'Instances', otherKey: 'InstanceId' })
-        this.hasOne(M.PipelineStage, { as: 'NextStage', foreignKey: 'target', allowNull: true })
+        this.hasOne(M.PipelineStage, { as: 'NextStage', foreignKey: 'NextStageId', allowNull: true })
     },
     finders: function (M) {
         const self = this
@@ -82,13 +82,13 @@ module.exports = {
                         ]
                     })
                 },
-                byTarget: async function (idOrHash) {
+                byNextStage: async function (idOrHash) {
                     let id = idOrHash
                     if (typeof idOrHash === 'string') {
                         id = M.PipelineStage.decodeHashid(idOrHash)
                     }
                     return this.findOne({
-                        where: { target: id }
+                        where: { NextStageId: id }
                     })
                 }
             }
