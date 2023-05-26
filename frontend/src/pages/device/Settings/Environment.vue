@@ -2,7 +2,7 @@
     <form class="space-y-6">
         <TemplateSettingsEnvironment :readOnly="!hasPermission('device:edit-env')" v-model="editable" :editTemplate="false" />
         <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
-            <ff-button size="small" :disabled="!unsavedChanges" @click="saveSettings()">Save Settings</ff-button>
+            <ff-button size="small" :disabled="!unsavedChanges || hasError" @click="saveSettings()">Save Settings</ff-button>
         </div>
     </form>
 </template>
@@ -13,12 +13,32 @@ import { mapState } from 'vuex'
 import deviceApi from '../../../api/devices.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import TemplateSettingsEnvironment from '../../admin/Template/sections/Environment.vue'
+import alerts from '../../../services/alerts.js'
+import dialog from '../../../services/dialog.js'
 
 export default {
     name: 'DeviceSettingsEnvironment',
     props: ['device'],
     emits: ['device-updated'],
     mixins: [permissionsMixin],
+    beforeRouteLeave: async function (_to, _from, next) {
+        if (this.unsavedChanges) {
+            const dialogOpts = {
+                header: 'Unsaved changes',
+                kind: 'danger',
+                html: '<p>You have unsaved changes. Are you sure you want to leave?</p>',
+                confirmLabel: 'Yes, lose changes'
+            }
+            const answer = await dialog.showAsync(dialogOpts)
+            if (answer === 'confirm') {
+                next()
+            } else {
+                next(false)
+            }
+        } else {
+            next()
+        }
+    },
     watch: {
         device: 'getSettings',
         'editable.settings.env': {
@@ -44,12 +64,8 @@ export default {
                     changed = true
                 }
 
-                // if we have an error in one of the keys/values, forbid saving
-                if (error) {
-                    this.unsavedChanges = false
-                } else {
-                    this.unsavedChanges = changed
-                }
+                this.hasError = error
+                this.unsavedChanges = changed
             }
         }
     },
@@ -59,6 +75,7 @@ export default {
     data () {
         return {
             unsavedChanges: false,
+            hasError: false,
             editable: {
                 name: '',
                 settings: { env: [] },
@@ -110,6 +127,7 @@ export default {
             })
             deviceApi.updateSettings(this.device.id, settings)
             this.$emit('device-updated')
+            alerts.emit('Device settings successfully updated. NOTE: changes will be applied once the device restarts.', 'confirmation', 6000)
         }
     }
 }
