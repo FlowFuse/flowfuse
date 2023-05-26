@@ -10,10 +10,11 @@ module.exports = {
             filtered.instances = await app.db.views.Project.instancesList(stage.Instances)
         }
 
-        if (stage.target) {
-            const target = await app.db.models.PipelineStage.byId(result.target)
-            if (target) {
-                filtered.targetStage = target.hashid
+        if (stage.NextStageId) {
+            // Check stage actually exists before including it in response
+            const nextStage = await app.db.models.PipelineStage.byId(stage.NextStageId)
+            if (nextStage) {
+                filtered.NextStageId = nextStage.hashid
             }
         }
 

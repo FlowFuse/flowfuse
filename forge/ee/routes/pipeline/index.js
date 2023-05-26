@@ -149,12 +149,12 @@ module.exports = async function (app) {
 
             // Update the previous stage to point to the next stage when this model is deleted
             // e.g. A -> B -> C to A -> C when B is deleted
-            const previousStage = await app.db.models.PipelineStage.byTarget(stageId)
+            const previousStage = await app.db.models.PipelineStage.byNextStage(stageId)
             if (previousStage) {
-                if (stage.target) {
-                    previousStage.target = stage.target
+                if (stage.NextStageId) {
+                    previousStage.NextStageId = stage.NextStageId
                 } else {
-                    previousStage.target = null
+                    previousStage.NextStageId = null
                 }
 
                 await previousStage.save()

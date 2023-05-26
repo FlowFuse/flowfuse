@@ -18,7 +18,7 @@ module.exports = {
 
         if (source) {
             const sourceStage = await app.db.models.PipelineStage.byId(source)
-            sourceStage.target = stage.id
+            sourceStage.NextStageId = stage.id
             await sourceStage.save()
         }
 

@@ -113,7 +113,7 @@ export default {
             // get target stage
             const target = await PipelineAPI.getPipelineStage(
                 this.pipeline.id,
-                this.stage.targetStage
+                this.stage.NextStageId
             )
             if (!target) {
                 Alerts.emit(
