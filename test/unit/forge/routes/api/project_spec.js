@@ -28,10 +28,12 @@ describe('Project API', function () {
     const generateProjectName = () => 'test-project' + (projectInstanceCount++)
     const TestObjects = {}
 
-    before(async function () {
-        // Allow individual tests to provide custom settings via 'setup' property
-        // set on the test case itself
-        app = await setup({ domain: 'flowforge.dev' })
+    async function setupApp (license) {
+        const setupConfig = { domain: 'flowforge.dev' }
+        if (license) {
+            setupConfig.license = license
+        }
+        app = await setup(setupConfig)
 
         TestObjects.project1 = app.project
 
@@ -74,6 +76,10 @@ describe('Project API', function () {
         TestObjects.projectType1 = app.projectType
         TestObjects.template1 = app.template
         TestObjects.stack1 = app.stack
+    }
+
+    before(async function () {
+        await setupApp()
     })
 
     after(async function () {
@@ -776,6 +782,74 @@ describe('Project API', function () {
                     cookies: { sid: TestObjects.tokens.alice }
                 })
                 response.statusCode.should.equal(400)
+            })
+        })
+
+        describe('HA Options', function () {
+            before(async function () {
+                const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
+                await app.close()
+                await setupApp(license)
+            })
+            after(async function () {
+                // After this set of tests, close the app and recreate (ie remove the license)
+                await app.close()
+                await setupApp()
+            })
+            it('Fails for invalid ha settings', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/projects',
+                    payload: {
+                        name: generateProjectName(),
+                        applicationId: TestObjects.ApplicationA.hashid,
+                        projectType: TestObjects.projectType1.hashid,
+                        template: TestObjects.template1.hashid,
+                        stack: TestObjects.stack1.hashid,
+                        ha: { replicas: 0 }
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(400)
+                const result = response.json()
+                result.should.have.property('code', 'invalid_ha')
+
+                const response2 = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/projects',
+                    payload: {
+                        name: generateProjectName(),
+                        applicationId: TestObjects.ApplicationA.hashid,
+                        projectType: TestObjects.projectType1.hashid,
+                        template: TestObjects.template1.hashid,
+                        stack: TestObjects.stack1.hashid,
+                        ha: { replicas: 3 }
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response2.statusCode.should.equal(400)
+                const result2 = response2.json()
+                result2.should.have.property('code', 'invalid_ha')
+            })
+
+            it('Creates project with ha settings applied', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/projects',
+                    payload: {
+                        name: generateProjectName(),
+                        applicationId: TestObjects.ApplicationA.hashid,
+                        projectType: TestObjects.projectType1.hashid,
+                        template: TestObjects.template1.hashid,
+                        stack: TestObjects.stack1.hashid,
+                        ha: { replicas: 2 }
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('ha')
+                result.ha.should.have.property('replicas', 2)
             })
         })
     })

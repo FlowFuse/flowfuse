@@ -14,7 +14,7 @@
 const { DataTypes, Op } = require('sequelize')
 const Controllers = require('../controllers')
 
-const { KEY_HOSTNAME, KEY_SETTINGS } = require('./ProjectSettings')
+const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HA } = require('./ProjectSettings')
 
 /** @type {FFModel} */
 module.exports = {
@@ -335,7 +335,8 @@ module.exports = {
                                 where: {
                                     [Op.or]: [
                                         { key: KEY_SETTINGS },
-                                        { key: KEY_HOSTNAME }
+                                        { key: KEY_HOSTNAME },
+                                        { key: KEY_HA }
                                     ]
                                 },
                                 required: false
