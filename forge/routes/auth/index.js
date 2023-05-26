@@ -418,6 +418,7 @@ module.exports = fp(async function (app, opts, done) {
                     TeamTypeId: (await app.db.models.TeamType.byName('starter')).id
                 }
                 const team = await app.db.controllers.Team.createTeamForUser(teamProperties, verifiedUser)
+                await app.auditLog.Platform.platform.team.created(request.session?.User || verifiedUser, null, team)
                 await app.auditLog.User.account.verify.autoCreateTeam(request.session?.User || verifiedUser, null, team)
 
                 if (app.license.active() && app.billing && app.settings.get('user:team:trial-mode')) {
