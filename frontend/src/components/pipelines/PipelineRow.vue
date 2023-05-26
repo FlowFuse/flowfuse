@@ -9,7 +9,7 @@
                 <CogIcon v-if="!editing" class="ff-icon ff-clickable" @click="edit" />
                 <template v-else>
                     <ff-button kind="danger" @click="deletePipeline">Delete</ff-button>
-                    <ff-button kind="secondary" @click="save">Save</ff-button>
+                    <ff-button kind="secondary" :disabled="!saveRowEnabled" @click="save">Save</ff-button>
                 </template>
             </div>
         </div>
@@ -88,6 +88,11 @@ export default {
             editing: false,
             deploying: null,
             scopedPipeline: pipeline
+        }
+    },
+    computed: {
+        saveRowEnabled () {
+            return this.scopedPipeline.name?.length > 0
         }
     },
     methods: {

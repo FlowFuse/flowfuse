@@ -13,7 +13,7 @@ const getPipelineStage = async (pipelineId, stageId) => {
             // For now, in the UI, a pipeline stage can only have one instance/
             // In the backend, multiple instances per pipeline are supported
             // @see getPipelines in frontend Application API
-            res.instance = res.instances?.[0]
+            res.data.instance = res.data.instances?.[0]
 
             return res.data
         })

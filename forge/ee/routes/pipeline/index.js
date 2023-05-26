@@ -89,6 +89,10 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('pipeline:view')
     }, async (request, reply) => {
         const stage = await app.db.models.PipelineStage.byId(request.params.stageId)
+        if (!stage) {
+            return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+
         reply.send(await app.db.views.PipelineStage.stage(stage))
     })
 

@@ -82,10 +82,12 @@ import { PlusSmIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
 import ApplicationAPI from '../../api/application.js'
+import PipelineAPI from '../../api/pipeline.js'
+
 import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
-
 import PipelineRow from '../../components/pipelines/PipelineRow.vue'
+
 import Alerts from '../../services/alerts.js'
 
 export default {
@@ -136,8 +138,16 @@ export default {
         beginPolling () {
             this.polling = setInterval(this.loadInstanceStatus, 5000)
         },
-        stageDeleted (pipeline, stageIndex) {
+        async stageDeleted (pipeline, stageIndex) {
             pipeline.stages.splice(stageIndex, 1)
+
+            if (pipeline.stages[stageIndex - 1]) {
+                const stage = pipeline.stages[stageIndex - 1]
+
+                const reloadedStage = await PipelineAPI.getPipelineStage(pipeline.id, stage.id)
+
+                Object.assign(stage, reloadedStage)
+            }
         },
         async loadPipelines () {
             this.loadInstanceStatus()
