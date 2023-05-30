@@ -1,4 +1,3 @@
-
 module.exports = {
     async updateOrCreateForProject (app, project, newFlows = {}, { transaction } = {}) {
         let currentProjectFlows = await app.db.models.StorageFlow.byProject(project.id)

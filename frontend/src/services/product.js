@@ -1,4 +1,3 @@
-
 /**
  *
  * @param {String} userId - the unique identifier for the user
