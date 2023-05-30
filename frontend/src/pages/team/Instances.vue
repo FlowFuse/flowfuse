@@ -1,7 +1,7 @@
 <template>
     <SectionTopMenu hero="Instances" info="A list of all Node-RED instances belonging to this Team.">
         <template #pictogram>
-            <img src="../../images/pictograms/cloud_teal.png">
+            <img src="../../images/pictograms/instance_red.png">
         </template>
         <template #helptext>
             <p>

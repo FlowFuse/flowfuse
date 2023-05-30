@@ -1,7 +1,7 @@
 <template>
     <SectionTopMenu hero="Applications" help-header="Node-RED Applications" info="A list of applications belonging to this Team.">
         <template #pictogram>
-            <img src="../../images/pictograms/cloud_teal.png">
+            <img src="../../images/pictograms/application_red.png">
         </template>
         <template #helptext>
             <p>This is a list of all Applications hosted on the same domain as FlowForge.</p>
