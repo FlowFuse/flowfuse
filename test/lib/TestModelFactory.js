@@ -170,4 +170,31 @@ module.exports = class TestModelFactory {
             ...snapshotDetails
         })
     }
+
+    async createPipeline (pipelineDetails, application) {
+        const defaultPipelineDetails = {
+            name: 'unnamed-pipeline',
+            ApplicationId: application.id
+        }
+
+        return await this.forge.db.models.Pipeline.create({
+            ...defaultPipelineDetails,
+            ...pipelineDetails
+        })
+    }
+
+    async createPipelineStage (pipelineStageDetails, pipeline) {
+        const defaultPipelineStageDetails = {
+            name: 'unnamed-pipeline-stage',
+            instanceId: null
+        }
+
+        return await this.forge.db.controllers.Pipeline.addPipelineStage(
+            pipeline,
+            {
+                ...defaultPipelineStageDetails,
+                ...pipelineStageDetails
+            }
+        )
+    }
 }

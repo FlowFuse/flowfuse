@@ -91,11 +91,103 @@ const getApplicationInstancesStatuses = async (applicationId, cursor, limit) => 
     return instances
 }
 
+/**
+ * @param {string} applicationId
+ */
+const getPipelines = async (applicationId) => {
+    const result = await client.get(`/api/v1/applications/${applicationId}/pipelines`)
+    const pipelines = result.data.pipelines
+
+    return pipelines.map((pipeline) => {
+        pipeline.stages = pipeline.stages.map((stage) => {
+            // For now, in the UI, a pipeline stage can only have one instance/
+            // In the backend, multiple instances per pipeline are supported
+            // @see getPipelineStage in frontend Pipeline API
+            stage.instance = stage.instances?.[0]
+
+            return stage
+        })
+
+        return pipeline
+    })
+}
+
+/**
+ * Return information about a single pipeline
+ * API only implements collecting all pipelines, so we have to filter
+ * @param {string} applicationId
+ * @param {string} pipelineId
+ */
+const getPipeline = async (applicationId, pipelineId) => {
+    const pipelines = await getPipelines(applicationId)
+    return pipelines.find(pipeline => pipeline.id === pipelineId)
+}
+
+/**
+ * @param {string} applicationId
+ * @param {string} name
+ */
+const createPipeline = async (applicationId, name) => {
+    const options = {
+        name
+    }
+    return client.post(`/api/v1/applications/${applicationId}/pipelines`, options)
+        .then(res => {
+            const props = {
+                'pipeline-id': res.data.id,
+                'created-at': res.data.createdAt
+            }
+            product.capture('$ff-pipeline-created', props, {
+                application: applicationId
+            })
+            return res.data
+        })
+}
+
+/**
+ * @param {string} applicationId
+ * @param {string} pipelineId
+ */
+const deletePipeline = async (applicationId, pipelineId) => {
+    return client.delete(`/api/v1/applications/${applicationId}/pipelines/${pipelineId}`)
+        .then(res => {
+            const props = {
+                'pipeline-id': pipelineId,
+                'created-at': res.data.createdAt
+            }
+            product.capture('$ff-pipeline-deleted', props, {
+                application: applicationId
+            })
+            return res.data
+        })
+}
+
+/**
+ * @param {string} applicationId
+ * @param {object} pipeline
+ */
+const updatePipeline = async (applicationId, pipeline) => {
+    const body = {
+        pipeline: {
+            name: pipeline.name
+        }
+    }
+    return client.put(`/api/v1/applications/${applicationId}/pipelines/${pipeline.id}`, body)
+        .then(res => {
+            return res.data
+        })
+}
+
 export default {
     createApplication,
     updateApplication,
     deleteApplication,
     getApplication,
     getApplicationInstances,
-    getApplicationInstancesStatuses
+    getApplicationInstancesStatuses,
+    getPipeline,
+    getPipelines,
+    createPipeline,
+    deletePipeline,
+    updatePipeline
 }

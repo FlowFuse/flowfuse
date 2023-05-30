@@ -16,7 +16,7 @@
                 </div>
                 <div v-if="hasAppend" :class="(appendClass ? appendClass : 'inline ml-2')"><slot name="append"></slot></div>
             </div>
-            <div v-if="error" data-el="form-row-error" class="inline-block ml-8 text-red-400 inline text-xs">{{error}}</div>
+            <div v-if="error" data-el="form-row-error" class="ml-8 text-red-400 inline text-xs">{{error}}</div>
             <div v-if="hasDescription" data-el="form-row-description" class="ff-description pl-8 mt-1"><slot name="description"></slot></div>
         </template>
         <!-- Single Line File Selection -->
