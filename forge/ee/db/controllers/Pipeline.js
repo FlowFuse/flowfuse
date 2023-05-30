@@ -1,4 +1,3 @@
-
 module.exports = {
     addPipelineStage: async function (app, pipeline, options) {
         if (!options.instanceId) {

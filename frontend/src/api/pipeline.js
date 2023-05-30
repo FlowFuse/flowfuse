@@ -1,4 +1,3 @@
-
 import product from '../services/product.js'
 
 import client from './client.js'
