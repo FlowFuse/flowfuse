@@ -147,7 +147,6 @@ module.exports = async function (app) {
         if (!requestObject) {
             return badRequest(reply, 'invalid_request', 'Invalid request')
         }
-
         if (request.sid) {
             request.session = await app.db.controllers.Session.getOrExpire(request.sid)
             if (request.session) {
@@ -304,6 +303,7 @@ module.exports = async function (app) {
                     null,
                     [
                         'user:read',
+                        'user:team:list',
                         'team:read',
                         'team:projects:list',
                         'project:read',
