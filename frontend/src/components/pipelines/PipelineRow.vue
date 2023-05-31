@@ -56,7 +56,7 @@
 </template>
 
 <script>
-import { ChevronRightIcon, CogIcon, PencilAltIcon, TrashIcon } from '@heroicons/vue/outline'
+import { ChevronRightIcon, PencilAltIcon, TrashIcon } from '@heroicons/vue/outline'
 
 import ApplicationAPI from '../../api/application.js'
 import Alerts from '../../services/alerts.js'
@@ -68,7 +68,6 @@ export default {
     name: 'PipelineRow',
     components: {
         ChevronRightIcon,
-        CogIcon,
         PencilAltIcon,
         TrashIcon,
         PipelineStage
