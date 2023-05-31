@@ -1,7 +1,7 @@
 <template>
     <div class="ff-pipeline">
         <div class="ff-pipeline-banner">
-            <ff-text-input v-if="editingName" v-model="pipelineName" />
+            <ff-text-input v-if="editingName" v-model="input.pipelineName" />
             <div v-else class="flex items-center">
                 <label>
                     {{ pipeline.name }}
@@ -91,7 +91,9 @@ export default {
         const pipeline = this.pipeline
         return {
             editingName: false,
-            pipelineName: pipeline.name,
+            input: {
+                pipelineName: pipeline.name
+            },
             deploying: null,
             scopedPipeline: pipeline
         }
@@ -122,10 +124,10 @@ export default {
         },
         cancel () {
             this.editingName = false
-            this.pipelineName = this.pipeline.name
+            this.input.pipelineName = this.pipeline.name
         },
         async save () {
-            this.scopedPipeline.name = this.pipelineName
+            this.scopedPipeline.name = this.input.pipelineName
             await ApplicationAPI.updatePipeline(this.$route.params.id, this.scopedPipeline)
             this.editingName = false
             Alerts.emit('Pipeline successfully updated.', 'confirmation')
