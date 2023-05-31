@@ -1,4 +1,3 @@
-
 module.exports = {
     createSubscription: async function (app, team, subscription, customer) {
         // Check to see if there is an existing subscription for this team.
