@@ -70,7 +70,7 @@ async function setup (config = {}) {
     forge.template = template
     forge.projectType = projectType
     forge.application = application
-    forge.project = instance
+    forge.project = forge.instance = instance
 
     return forge
 }
