@@ -207,7 +207,7 @@ module.exports = {
                     if (key === 'settings' && value && Array.isArray(value.env)) {
                         value.env = Controllers.Project.removePlatformSpecificEnvVars(value.env) // remove platform specific values
                     }
-                    return await M.ProjectSettings.upsert({ ProjectId: this.id, key, value }, options)
+                    return M.ProjectSettings.upsert({ ProjectId: this.id, key, value }, options)
                 },
                 async getSetting (key) {
                     const result = await M.ProjectSettings.findOne({ where: { ProjectId: this.id, key } })
@@ -220,7 +220,9 @@ module.exports = {
                     }
                     return undefined
                 },
-
+                async removeSetting (key, options) {
+                    return M.ProjectSettings.destroy({ where: { ProjectId: this.id, key } }, options)
+                },
                 async getCredentialSecret () {
                     // If this project was created at 0.6+ but then started with a <0.6 launcher
                     // (for example, in k8s with an old stack) then the project will have both
@@ -372,7 +374,12 @@ module.exports = {
 
                         include.push({
                             model: M.ProjectSettings,
-                            where: { key: KEY_SETTINGS },
+                            where: {
+                                [Op.or]: [
+                                    { key: KEY_SETTINGS },
+                                    { key: KEY_HA }
+                                ]
+                            },
                             required: false
                         })
                     }

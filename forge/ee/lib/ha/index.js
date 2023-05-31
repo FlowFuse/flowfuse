@@ -24,8 +24,11 @@ module.exports.init = function (app) {
             return this.getSetting(KEY_HA)
         }
         app.db.models.Project.prototype.updateHASettings = async function (haConfig) {
+            if (!haConfig) {
+                return this.removeSetting(KEY_HA)
+            }
             if (haConfig?.replicas > 0 && haConfig?.replicas < 3) {
-                await this.updateSetting(KEY_HA, {
+                return this.updateSetting(KEY_HA, {
                     replicas: haConfig.replicas
                 })
             }

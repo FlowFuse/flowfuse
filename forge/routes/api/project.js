@@ -927,4 +927,10 @@ module.exports = async function (app) {
     function generateCredentialSecret () {
         return crypto.randomBytes(32).toString('hex')
     }
+
+    // app.get('/:projectId/ha', {
+    //     preHandler: app.needsPermission('project:read')
+    // }, async (request, reply) => {
+    //     reply.send(await request.project.getHASettings())
+    // })
 }

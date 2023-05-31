@@ -2,9 +2,9 @@
  * An application definition
  * @namespace forge.db.models.Application
  */
-const { DataTypes } = require('sequelize')
+const { DataTypes, Op } = require('sequelize')
 
-const { KEY_SETTINGS } = require('./ProjectSettings')
+const { KEY_SETTINGS, KEY_HA } = require('./ProjectSettings')
 
 module.exports = {
     name: 'Application',
@@ -60,7 +60,12 @@ module.exports = {
                                     attributes: ['hashid', 'id', 'name', 'links', 'settings', 'policy']
                                 }, {
                                     model: M.ProjectSettings,
-                                    where: { key: KEY_SETTINGS },
+                                    where: {
+                                        [Op.or]: [
+                                            { key: KEY_SETTINGS },
+                                            { key: KEY_HA }
+                                        ]
+                                    },
                                     required: false
                                 }
                             ]
