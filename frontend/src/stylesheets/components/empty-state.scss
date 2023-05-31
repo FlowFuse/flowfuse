@@ -8,7 +8,6 @@
     border: 1px solid $ff-grey-200;
     border-radius: 3px;
     >div {
-        max-width: 400px;
         margin: auto;
     }
     img {
@@ -21,9 +20,10 @@
         margin-top: 1.5rem;
         margin-bottom: 1rem;
         font-weight: 500;
+        max-width: 450px;
     }
     &--message {
-        max-width: 450px;
+        max-width: 500px;
         font-size: 1.1rem;
         margin: auto;
         margin-top: 1.25rem;
