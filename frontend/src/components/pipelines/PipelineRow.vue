@@ -1,15 +1,22 @@
 <template>
     <div class="ff-pipeline">
         <div class="ff-pipeline-banner">
-            <ff-text-input v-if="editing" v-model="scopedPipeline.name" />
-            <label v-else>
-                {{ pipeline.name }}
-            </label>
+            <ff-text-input v-if="editingName" v-model="pipelineName" />
+            <div v-else class="flex items-center">
+                <label>
+                    {{ pipeline.name }}
+                </label>
+                <div v-ff-tooltip:right="'Edit Pipeline Name'">
+                    <PencilAltIcon v-if="!editingName" class="ml-4 ff-icon ff-clickable" @click="edit" />
+                </div>
+            </div>
             <div class="flex gap-2">
-                <CogIcon v-if="!editing" class="ff-icon ff-clickable" @click="edit" />
+                <div v-if="!editingName" v-ff-tooltip:left="'Delete Pipeline'">
+                    <TrashIcon class="ff-icon ff-clickable" @click="deletePipeline" />
+                </div>
                 <template v-else>
-                    <ff-button kind="danger" @click="deletePipeline">Delete</ff-button>
-                    <ff-button kind="secondary" :disabled="!saveRowEnabled" @click="save">Save</ff-button>
+                    <ff-button kind="secondary" @click="cancel">Cancel</ff-button>
+                    <ff-button kind="primary" :disabled="!saveRowEnabled" @click="save">Save</ff-button>
                 </template>
             </div>
         </div>
@@ -29,10 +36,7 @@
                 />
                 <Transition name="fade">
                     <ChevronRightIcon
-                        v-if="
-                            $index < pipeline.stages.length - 1 ||
-                                ($index === pipeline.stages.length - 1 && editing)
-                        "
+                        v-if="$index <= pipeline.stages.length - 1"
                         class="ff-icon mt-4 flex-shrink-0"
                         :class="{
                             'animate-deploying':
@@ -42,7 +46,7 @@
                 </Transition>
             </template>
             <Transition name="fade">
-                <PipelineStage v-if="editing" @click="addStage" />
+                <PipelineStage @click="addStage" />
             </Transition>
         </div>
         <div v-else class="ff-pipeline-stages">
@@ -52,7 +56,7 @@
 </template>
 
 <script>
-import { ChevronRightIcon, CogIcon } from '@heroicons/vue/outline'
+import { ChevronRightIcon, CogIcon, PencilAltIcon, TrashIcon } from '@heroicons/vue/outline'
 
 import ApplicationAPI from '../../api/application.js'
 import Alerts from '../../services/alerts.js'
@@ -65,6 +69,8 @@ export default {
     components: {
         ChevronRightIcon,
         CogIcon,
+        PencilAltIcon,
+        TrashIcon,
         PipelineStage
     },
     props: {
@@ -85,7 +91,8 @@ export default {
     data () {
         const pipeline = this.pipeline
         return {
-            editing: false,
+            editingName: false,
+            pipelineName: pipeline.name,
             deploying: null,
             scopedPipeline: pipeline
         }
@@ -112,14 +119,16 @@ export default {
             this.$router.push(route)
         },
         edit () {
-            this.editing = true
+            this.editingName = true
         },
         cancel () {
-            this.editing = false
+            this.editingName = false
+            this.pipelineName = this.pipeline.name
         },
         async save () {
-            await ApplicationAPI.updatePipeline(this.$route.params.id, this.pipeline)
-            this.editing = false
+            this.scopedPipeline.name = this.pipelineName
+            await ApplicationAPI.updatePipeline(this.$route.params.id, this.scopedPipeline)
+            this.editingName = false
             Alerts.emit('Pipeline successfully updated.', 'confirmation')
         },
         stageStarted (stageIndex) {
