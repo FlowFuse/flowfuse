@@ -13,6 +13,8 @@ module.exports = async function (app) {
     await app.register(require('./pipeline'), { prefix: '/api/v1', logLevel: app.config.logging.http })
     await app.register(require('./deviceEditor'), { prefix: '/api/v1/devices/:deviceId/editor', logLevel: app.config.logging.http })
 
+    await app.register(require('./ha'), { prefix: '/api/v1/projects/:projectId/ha', logLevel: app.config.logging.http })
+
     // Important: keep SSO last to avoid its error handling polluting other routes.
     await app.register(require('./sso'), { logLevel: app.config.logging.http })
 }
