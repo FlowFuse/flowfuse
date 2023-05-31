@@ -1,3 +1,10 @@
+#### 1.7.2: Release
+
+ - Fix permissions for nr-tools-plugin accessing user team list (backport #2196) (#2197) @app/github-actions
+ - Update link to mosquitto-go-auth (backport #2187) (#2188) @app/github-actions
+ - misc: Remove extra backtick (backport #2178) (#2179) @app/github-actions
+ - docs: Link to template concept (backport #2144) (#2150) @app/github-actions
+
 #### 1.7.1: Release
 
  - Docs: Add additional SSO config notes on signed responses (backport #2149) (#2151) @github-actions
