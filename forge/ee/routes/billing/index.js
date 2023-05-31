@@ -282,34 +282,40 @@ module.exports = async function (app) {
             return response.code(404).send({ code: 'not_found', error: 'Team does not have a subscription' })
         }
 
-        const stripeSubscriptionPromise = stripe.subscriptions.retrieve(
-            sub.subscription,
-            {
-                expand: ['items.data.price.product']
-            }
-        )
-        const stripeCustomerPromise = stripe.customers.retrieve(sub.customer)
+        try {
+            const stripeSubscriptionPromise = stripe.subscriptions.retrieve(
+                sub.subscription,
+                {
+                    expand: ['items.data.price.product']
+                }
+            )
+            const stripeCustomerPromise = stripe.customers.retrieve(sub.customer)
 
-        const stripeSubscription = await stripeSubscriptionPromise
-        const stripeCustomer = await stripeCustomerPromise
+            const stripeSubscription = await stripeSubscriptionPromise
+            const stripeCustomer = await stripeCustomerPromise
 
-        const information = {
-            next_billing_date: stripeSubscription.current_period_end,
-            items: [],
-            customer: {
-                name: stripeCustomer.name,
-                balance: stripeCustomer.balance
+            const information = {
+                next_billing_date: stripeSubscription.current_period_end,
+                items: [],
+                customer: {
+                    name: stripeCustomer.name,
+                    balance: stripeCustomer.balance
+                }
             }
-        }
-        stripeSubscription.items.data.forEach(item => {
-            information.items.push({
-                name: item.price.product.name,
-                price: item.price.unit_amount,
-                quantity: item.quantity
+            stripeSubscription.items.data.forEach(item => {
+                information.items.push({
+                    name: item.price.product.name,
+                    price: item.price.unit_amount,
+                    quantity: item.quantity
+                })
             })
-        })
-
-        response.status(200).send(information)
+            response.status(200).send(information)
+        } catch (err) {
+            if (err.code === 'resource_missing') {
+                return response.code(404).send({ code: 'not_found', error: 'Team does not have a subscription' })
+            }
+            throw err
+        }
     })
 
     /**
