@@ -1,17 +1,17 @@
 <template>
     <div class="ff-pipeline">
         <div class="ff-pipeline-banner">
-            <ff-text-input v-if="editingName" v-model="input.pipelineName" />
+            <ff-text-input v-if="editing.name" ref="pipelineName" v-model="input.pipelineName" />
             <div v-else class="flex items-center">
                 <label>
                     {{ pipeline.name }}
                 </label>
                 <div v-ff-tooltip:right="'Edit Pipeline Name'">
-                    <PencilAltIcon v-if="!editingName" class="ml-4 ff-icon ff-clickable" @click="edit" />
+                    <PencilAltIcon v-if="!editing.name" class="ml-4 ff-icon ff-clickable" @click="edit" />
                 </div>
             </div>
             <div class="flex gap-2">
-                <div v-if="!editingName" v-ff-tooltip:left="'Delete Pipeline'">
+                <div v-if="!editing.name" v-ff-tooltip:left="'Delete Pipeline'">
                     <TrashIcon class="ff-icon ff-clickable" @click="deletePipeline" />
                 </div>
                 <template v-else>
@@ -28,7 +28,7 @@
                     :stage="stage"
                     :status="stageState(stage)"
                     :playEnabled="$index < pipeline.stages.length - 1"
-                    :editEnabled="editing"
+                    :editEnabled="true"
                     :deploying="nextStageStarting($index)"
                     @stage-started="stageStarted($index)"
                     @stage-complete="stageComplete($index)"
@@ -90,7 +90,9 @@ export default {
     data () {
         const pipeline = this.pipeline
         return {
-            editingName: false,
+            editing: {
+                name: false
+            },
             input: {
                 pipelineName: pipeline.name
             },
@@ -120,16 +122,20 @@ export default {
             this.$router.push(route)
         },
         edit () {
-            this.editingName = true
+            this.editing.name = true
+            this.$nextTick(() => {
+                // focus the edit name field
+                this.$refs.pipelineName.focus()
+            })
         },
         cancel () {
-            this.editingName = false
+            this.editing.name = false
             this.input.pipelineName = this.pipeline.name
         },
         async save () {
             this.scopedPipeline.name = this.input.pipelineName
             await ApplicationAPI.updatePipeline(this.$route.params.id, this.scopedPipeline)
-            this.editingName = false
+            this.editing.name = false
             Alerts.emit('Pipeline successfully updated.', 'confirmation')
         },
         stageStarted (stageIndex) {
