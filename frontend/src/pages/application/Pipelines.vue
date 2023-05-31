@@ -49,6 +49,9 @@
     </div>
     <EmptyState v-else>
         <template #header>Add your Application's First DevOps Pipeline</template>
+        <template #img>
+            <img src="../../images/empty-states/application-pipelines.png">
+        </template>
         <template #message>
             <p>
                 DevOps Pipelines are used to link multiple Node-RED instances together
