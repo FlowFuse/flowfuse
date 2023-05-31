@@ -101,6 +101,7 @@ export default {
         return {
             loading: false,
             subscription: null,
+            missingSubscription: false,
             columns: [{
                 name: 'label',
                 key: 'name',
@@ -129,7 +130,7 @@ export default {
     },
     computed: {
         billingSetUp () {
-            return this.team.billing?.active
+            return !this.missingSubscription && this.team.billing?.active
         },
         subscriptionExpired () {
             return this.team.billing?.canceled
@@ -153,22 +154,27 @@ export default {
         }
 
         this.loading = true
-        const billingSubscription = await billingApi.getSubscriptionInfo(this.team.id)
-        billingSubscription.next_billing_date = billingSubscription.next_billing_date * 1000 // API returns Seconds, JS expects miliseconds
-        this.subscription = billingSubscription
-        this.subscription.items.map((item) => {
-            item.total_price = item.price * item.quantity
-            return item
-        })
-        if (this.trialMode) {
-            if (this.hasTrialProject) {
-                this.subscription.items.push({
-                    name: 'Trial Project',
-                    quantity: 1,
-                    price: 0,
-                    total_price: 0
-                })
+        try {
+            const billingSubscription = await billingApi.getSubscriptionInfo(this.team.id)
+            billingSubscription.next_billing_date = billingSubscription.next_billing_date * 1000 // API returns Seconds, JS expects miliseconds
+            this.subscription = billingSubscription
+            this.subscription.items.map((item) => {
+                item.total_price = item.price * item.quantity
+                return item
+            })
+            if (this.trialMode) {
+                if (this.hasTrialProject) {
+                    this.subscription.items.push({
+                        name: 'Trial Project',
+                        quantity: 1,
+                        price: 0,
+                        total_price: 0
+                    })
+                }
             }
+        } catch (err) {
+            // Missing subscription
+            this.missingSubscription = true
         }
         this.loading = false
     },

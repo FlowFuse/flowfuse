@@ -13,5 +13,8 @@ module.exports = fp(async function (app, opts, done) {
     // Set the Team Library Feature Flag
     app.config.features.register('shared-library', true, true)
 
+    // Set the DevOps Pipelines
+    app.config.features.register('devops-pipelines', true, true)
+
     done()
 })

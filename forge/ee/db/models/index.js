@@ -6,7 +6,10 @@ const modelTypes = [
     'Subscription',
     'SAMLProvider',
     'StorageSharedLibrary',
-    'UserBillingCode'
+    'UserBillingCode',
+    'Pipeline',
+    'PipelineStage',
+    'PipelineStageInstance'
 ]
 
 async function init (app) {
@@ -51,7 +54,7 @@ async function init (app) {
         if (!m.model) {
             m.model = class model extends Model {}
         }
-        if (!m.schema.slug && (!m.meta || m.meta.slug !== false)) {
+        if (!m.schema?.slug && (!m.meta || m.meta.slug !== false)) {
             m.schema.slug = {
                 type: DataTypes.VIRTUAL,
                 get () {
@@ -78,7 +81,7 @@ async function init (app) {
             }
         }
 
-        if (!m.schema.links && (!m.meta || m.meta.links !== false)) {
+        if (!m.schema?.links && (!m.meta || m.meta.links !== false)) {
             m.schema.links = {
                 type: DataTypes.VIRTUAL,
                 get () {

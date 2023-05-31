@@ -1,5 +1,8 @@
 <template>
     <SectionTopMenu hero="Devices" help-header="FlowForge - Devices" info="A list of all edge devices registered in your team. Assign them to application instances in order to deploy Node-RED remotely.">
+        <template #pictogram>
+            <img src="../../../images/pictograms/devices_red.png">
+        </template>
         <template #helptext>
             <p>FlowForge can be used to manage instances of Node-RED running on remote devices.</p>
             <p>Each device must run the <a href="https://flowforge.com/docs/user/devices/" target="_blank">FlowForge Device Agent</a>, which connects back to the platform to receive updates.</p>

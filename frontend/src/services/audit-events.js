@@ -1,4 +1,3 @@
-
 import AuditEventsGrouped from '../data/audit-events.json'
 
 /*

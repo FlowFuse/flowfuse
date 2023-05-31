@@ -1,6 +1,7 @@
 const modelTypes = [
     'Subscription',
-    'UserBillingCode'
+    'UserBillingCode',
+    'Pipeline'
 ]
 
 async function init (app) {

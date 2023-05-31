@@ -121,6 +121,7 @@ module.exports = async function (app) {
                     slug: request.body.username,
                     TeamTypeId: (await app.db.models.TeamType.byName('starter')).id
                 }, newUser)
+                await app.auditLog.Platform.platform.team.created(request.session.User, null, team)
                 await app.auditLog.User.users.teamAutoCreated(request.session.User, null, team, logUserInfo)
             }
             reply.send(await app.db.views.User.userProfile(newUser))

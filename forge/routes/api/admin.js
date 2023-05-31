@@ -1,4 +1,3 @@
-
 module.exports = async function (app) {
     async function getStats () {
         const userCount = await app.db.models.User.count({ attributes: ['admin'], group: 'admin' })

@@ -4,12 +4,12 @@
         <label>Error: </label>
     </template>
     <!-- Team Scoped Events -->
-    <template v-if="entry.event === 'team.created'">
+    <template v-if="entry.event === 'team.created' || entry.event === 'platform.team.created'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.team">Team '{{ entry.body.team?.name }}' has been created.</span>
         <span v-else-if="!error">Team data not found in audit entry.</span>
     </template>
-    <template v-else-if="entry.event === 'team.deleted'">
+    <template v-else-if="entry.event === 'team.deleted' || entry.event === 'platform.team.deleted'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.team">Team '{{ entry.body.team?.name }}' has been deleted.</span>
         <span v-else-if="!error">Team data not found in audit entry.</span>
@@ -302,6 +302,21 @@
         <span v-if="!error && entry.body?.application">Application {{ entry.body.application?.name }} was deleted {{ entry.body.team ? `in Team '${entry.body.team.name}'` : '' }}</span>
         <span v-else-if="!error">Application data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'application.pipeline.created'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.pipeline">DevOps Pipeline '{{ entry.body.pipeline?.name }}' has been created {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }}</span>
+        <span v-else-if="!error">Pipeline data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'application.pipeline.deleted'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.pipeline">DevOps Pipeline '{{ entry.body.pipeline?.name }}' was deleted {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }}</span>
+        <span v-else-if="!error">Pipeline data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'application.pipeline.stage-added'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.pipeline && entry.body?.pipelineStage">Pipeline Stage '{{ entry.body.pipelineStage?.name }}' was added to the DevOps Pipeline '{{ entry.body.pipeline?.name }}' {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }}</span>
+        <span v-else-if="!error">Pipeline data not found in audit entry.</span>
+    </template>
 
     <!-- Instance Events -->
     <template v-else-if="entry.event === 'project.created'">
@@ -352,6 +367,11 @@
     <template v-else-if="entry.event === 'project.imported'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.project && entry.body?.sourceProject">Instance '{{ entry.body.sourceProject.name }}' was copied to '{{ entry.body.project.name }}'</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'project.assigned-to-pipeline-stage'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.project">Instance '{{ entry.body.project.name }}' was assigned to the '{{ entry.body.pipelineStage.name }}' Stage in the '{{ entry.body.pipeline.name }}' Pipeline</span>
         <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.device.assigned'">

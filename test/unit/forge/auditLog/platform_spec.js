@@ -202,4 +202,42 @@ describe('Audit Log > Platform', async function () {
         logEntry.should.have.property('body').and.be.an.Object()
         logEntry.body.should.have.property('info', overage)
     })
+
+    // #region Team Tests
+    it('Provides a logger for a platform team created', async function () {
+        // platform - team - created
+        const defaultTeamType = await app.db.models.TeamType.findOne()
+        const TEAM = await app.db.models.Team.create({ name: 'temp-team1', active: true, TeamTypeId: defaultTeamType.id })
+        await platformLogger.platform.team.created(ACTIONED_BY, null, TEAM)
+
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'platform.team.created')
+        logEntry.should.have.property('scope', { id: null, type: 'platform' })
+        logEntry.should.have.property('trigger')
+        logEntry.trigger.should.have.property('id', ACTIONED_BY.hashid)
+        logEntry.trigger.should.have.property('type', 'user')
+        logEntry.trigger.should.have.property('name', ACTIONED_BY.username)
+        logEntry.should.have.property('body')
+        logEntry.body.should.have.property('team')
+        logEntry.body.team.should.have.property('id', TEAM.hashid)
+        logEntry.body.team.should.have.property('name', TEAM.name)
+    })
+    it('Provides a logger for a platform team deleted', async function () {
+        // platform - team - deleted
+        const defaultTeamType = await app.db.models.TeamType.findOne()
+        const TEAM = await app.db.models.Team.create({ name: 'temp-team2', active: true, TeamTypeId: defaultTeamType.id })
+        await platformLogger.platform.team.deleted(ACTIONED_BY, null, TEAM)
+
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'platform.team.deleted')
+        logEntry.should.have.property('scope', { id: null, type: 'platform' })
+        logEntry.should.have.property('trigger')
+        logEntry.trigger.should.have.property('id', ACTIONED_BY.hashid)
+        logEntry.trigger.should.have.property('type', 'user')
+        logEntry.trigger.should.have.property('name', ACTIONED_BY.username)
+        logEntry.should.have.property('body')
+        logEntry.body.should.have.property('team')
+        logEntry.body.team.should.have.property('id', TEAM.hashid)
+        logEntry.body.team.should.have.property('name', TEAM.name)
+    })
 })
