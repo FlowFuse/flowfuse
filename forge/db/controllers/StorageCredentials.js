@@ -1,4 +1,3 @@
-
 module.exports = {
     async updateOrCreateForProject (app, project, newCredentials = {}, { transaction } = {}) {
         let origCredentials = await app.db.models.StorageCredentials.byProject(project.id)
