@@ -134,7 +134,7 @@ export default {
             return !this.isHA && this.instanceRunning
         },
         isHA () {
-            return this.instance?.ha.replicas !== undefined
+            return this.instance?.ha?.replicas !== undefined
         }
     },
     watch: {

@@ -67,7 +67,7 @@ export default {
     },
     computed: {
         isHA () {
-            return this.instance?.ha.replicas !== undefined
+            return this.instance?.ha?.replicas !== undefined
         }
     },
     methods: {

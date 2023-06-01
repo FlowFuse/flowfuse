@@ -136,7 +136,7 @@ export default {
             return this.instance?.meta?.state === 'running'
         },
         isHA () {
-            return this.instance?.ha.replicas !== undefined
+            return this.instance?.ha?.replicas !== undefined
         },
         editorAvailable () {
             return !this.isHA && this.instanceRunning
