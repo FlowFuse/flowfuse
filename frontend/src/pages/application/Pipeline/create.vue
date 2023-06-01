@@ -14,22 +14,22 @@
             </template>
         </SideNavigation>
     </Teleport>
-    <main>
-        <ff-loading
-            v-if="loading"
-            message="Loading Devices..."
+    <ff-loading
+        v-if="loading"
+        message="Loading Devices..."
+    />
+    <form
+        v-else
+        class="space-y-6"
+        @submit.prevent="create"
+    >
+        <SectionTopMenu
+            :hero="'Create DevOps Pipeline'"
         />
-        <form
-            v-else
-            class="space-y-6"
-            @submit.prevent="create"
-        >
-            <SectionTopMenu
-                :hero="'Create DevOps Pipeline'"
-            />
 
+        <div class="px-4 space-y-6">
             <!-- Form Description -->
-            <div class="mb-8 text-sm text-gray-500">
+            <div class="mb-6 text-sm text-gray-500">
                 Create a DevOps Pipeline for linking Node-RED Instances together.
             </div>
 
@@ -44,7 +44,7 @@
                 </template>
             </FormRow>
 
-            <div class="flex flex-wrap gap-1 items-center">
+            <div class="flex flex-wrap gap-3 items-center">
                 <ff-button
                     class="ff-btn--secondary"
                     @click="$router.back()"
@@ -60,8 +60,8 @@
                     Create Pipeline
                 </ff-button>
             </div>
-        </form>
-    </main>
+        </div>
+    </form>
 </template>
 
 <script>
