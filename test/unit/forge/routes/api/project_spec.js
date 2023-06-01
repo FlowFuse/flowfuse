@@ -854,7 +854,7 @@ describe('Project API', function () {
 
             it('Check Project Settings have ha key', async function () {
                 const project = await createInstance()
-                project.updateHASettings({
+                await project.updateHASettings({
                     replicas: 2
                 })
                 const newAccessToken = (await project.refreshAuthTokens()).token
