@@ -228,6 +228,7 @@ module.exports = async function (app) {
 
         await app.auditLog.Team.application.pipeline.created(request.session.User, null, team, request.application, pipeline)
 
+        reply.send(await app.db.views.Pipeline.pipeline(pipeline))
     })
 
     /**
