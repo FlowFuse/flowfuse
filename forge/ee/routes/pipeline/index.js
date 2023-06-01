@@ -242,8 +242,12 @@ module.exports = async function (app) {
         const team = await request.teamMembership.getTeam()
         const pipelineId = request.params.pipelineId
         const pipeline = await app.db.models.Pipeline.byId(pipelineId)
-        const stages = await pipeline.stages()
 
+        if (!pipeline) {
+            return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+
+        const stages = await pipeline.stages()
         if (stages.length > 0) {
             // delete stages too
             for (let i = 0; i < stages.length; i++) {
