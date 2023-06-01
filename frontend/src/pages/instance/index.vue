@@ -22,7 +22,9 @@
                             {{ instance.name }}
                         </div>
                         <InstanceStatusBadge :status="instance.meta?.state" :optimisticStateChange="instance.optimisticStateChange" :pendingStateChange="instance.pendingStateChange" />
-                        <StatusBadge v-if="instance.ha?.replicas !== undefined" class="ml-1" status="high-availability" />
+                        <router-link v-if="instance.ha?.replicas !== undefined" :to="{name: 'InstanceSettingsHA', params: { id: instance.id }}" @click.stop>
+                            <StatusBadge class="ml-2 text-gray-400 hover:text-blue-600" status="high-availability" />
+                        </router-link>
                         <div class="w-full text-sm mt-1">
                             Application:
                             <router-link :to="{name: 'Application', params: {id: instance.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ instance.application.name }}</router-link>
