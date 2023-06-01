@@ -280,6 +280,14 @@ module.exports = async function (app) {
 
             await pipeline.save()
         } catch (error) {
+            if (error instanceof ValidationError) {
+                if (error.errors[0]) {
+                    return reply.status(400).type('application/json').send({ code: `invalid_${error.errors[0].path}`, error: error.errors[0].message })
+                }
+
+                return reply.status(400).type('application/json').send({ code: 'invalid_input', error: error.message })
+            }
+
             app.log.error('Error while updating pipeline:')
             app.log.error(error)
 
