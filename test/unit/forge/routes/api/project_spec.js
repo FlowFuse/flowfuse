@@ -851,6 +851,24 @@ describe('Project API', function () {
                 result.should.have.property('ha')
                 result.ha.should.have.property('replicas', 2)
             })
+
+            it('Check Project Settings have ha key', async function () {
+                const project = await createInstance()
+                await project.updateHASettings({
+                    replicas: 2
+                })
+                const newAccessToken = (await project.refreshAuthTokens()).token
+
+                const runtimeSettings = (await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/projects/${project.id}/settings`,
+                    headers: {
+                        authorization: `Bearer ${newAccessToken}`
+                    }
+                })).json()
+                runtimeSettings.should.have.property('ha')
+                runtimeSettings.ha.should.have.property('replicas', 2)
+            })
         })
     })
 

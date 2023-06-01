@@ -798,6 +798,14 @@ module.exports = async function (app) {
             settings.env = Object.assign({}, settings.settings.env, settings.env)
             delete settings.settings.env
         }
+
+        if (app.config.features.enabled('ha')) {
+            const ha = await request.project.getHASettings()
+            if (ha && ha.replicas > 1) {
+                settings.ha = ha
+            }
+        }
+
         reply.send(settings)
     })
 
