@@ -22,6 +22,7 @@
                             {{ instance.name }}
                         </div>
                         <InstanceStatusBadge :status="instance.meta?.state" :optimisticStateChange="instance.optimisticStateChange" :pendingStateChange="instance.pendingStateChange" />
+                        <StatusBadge v-if="instance.ha?.replicas !== undefined" class="ml-1" status="high-availability" />
                         <div class="w-full text-sm mt-1">
                             Application:
                             <router-link :to="{name: 'Application', params: {id: instance.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ instance.application.name }}</router-link>
@@ -74,6 +75,7 @@ import InstanceStatusHeader from '../../components/InstanceStatusHeader.vue'
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import NavItem from '../../components/NavItem.vue'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
+import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 
@@ -98,6 +100,7 @@ export default {
         InstanceStatusBadge,
         InstanceStatusHeader,
         SideNavigationTeamOptions,
+        StatusBadge,
         SubscriptionExpiredBanner,
         TeamTrialBanner,
         InstanceEditorLink
@@ -130,8 +133,11 @@ export default {
         instanceRunning () {
             return this.instance?.meta?.state === 'running'
         },
+        isHA () {
+            return this.instance?.ha.replicas !== undefined
+        },
         editorAvailable () {
-            return this.instanceRunning
+            return !this.isHA && this.instanceRunning
         },
         actionsDropdownOptions () {
             const flowActionsDisabled = !(this.instance.meta && this.instance.meta.state !== 'suspended')

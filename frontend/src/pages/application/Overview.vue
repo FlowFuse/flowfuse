@@ -141,8 +141,8 @@ export default {
             return this.instances.map((instance) => {
                 instance.running = instance.meta?.state === 'running'
                 instance.notSuspended = instance.meta?.state !== 'suspended'
-
-                instance.disabled = !instance.running || this.isVisitingAdmin
+                instance.isHA = instance.ha?.replicas !== undefined
+                instance.disabled = !instance.running || this.isVisitingAdmin || instance.isHA
 
                 return instance
             })

@@ -44,7 +44,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership'])
+        ...mapState('account', ['team', 'teamMembership', 'features'])
     },
     watch: {
         teamMembership: 'checkAccess'
@@ -60,6 +60,9 @@ export default {
             ]
             if (this.hasPermission('project:edit')) {
                 this.sideNavigation.push({ name: 'DevOps', path: './devops' })
+                if (this.features.ha) {
+                    this.sideNavigation.push({ name: 'High Availability', path: './ha' })
+                }
                 this.sideNavigation.push({ name: 'Editor', path: './editor' })
                 this.sideNavigation.push({ name: 'Security', path: './security' })
                 this.sideNavigation.push({ name: 'Palette', path: './palette' })

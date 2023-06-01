@@ -35,9 +35,9 @@ module.exports = {
             const settingsHostnameRow = proj.ProjectSettings?.find((projectSettingsRow) => projectSettingsRow.key === KEY_HOSTNAME)
             result.hostname = settingsHostnameRow?.value || ''
         }
-        const settingsHARow = proj.ProjectSettings?.find(row => row.key === KEY_HA)
-        if (settingsHARow) {
-            result.ha = settingsHARow.value
+        if (app.config.features.enabled('ha')) {
+            const settingsHARow = proj.ProjectSettings?.find(row => row.key === KEY_HA)
+            result.ha = settingsHARow?.value || { disabled: true }
         }
 
         if (proj.Application) {
