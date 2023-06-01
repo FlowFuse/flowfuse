@@ -31,8 +31,10 @@ module.exports = async function (app) {
             if (request.pipeline && request.pipeline.ApplicationId !== request.application.id) {
                 return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             }
-        } else {
+        } else if (request.pipeline) {
             request.application = await app.db.models.Application.byId(request.pipeline.ApplicationId)
+        } else {
+            return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
 
         if (request.session.User) {
@@ -40,6 +42,8 @@ module.exports = async function (app) {
             if (!request.teamMembership && !request.session.User.admin) {
                 return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             }
+        } else {
+            return reply.code(401).send({ code: 'unauthorized', error: 'Unauthorized' })
         }
     })
 

@@ -8,6 +8,7 @@ module.exports = {
                 name: result.name,
                 stages: await app.db.views.PipelineStage.stageList(stages)
             }
+
             return filtered
         } else {
             return null
