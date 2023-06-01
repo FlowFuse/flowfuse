@@ -438,17 +438,167 @@ describe('Pipelines API', function () {
         })
     })
 
-    describe('Create Pipeline', function () {
+    describe.only('Create Pipeline', function () {
         describe('With a name and application ID', function () {
-            it('Should create a new pipeline within the passed application')
+            it('Should create a new pipeline within the passed application', async function () {
+                const pipelineName = 'new-pipeline'
+                const applicationId = TestObjects.application.hashid
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/applications/${applicationId}/pipelines`,
+                    payload: {
+                        name: pipelineName
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                const body = await response.json()
+
+                body.should.have.property('id')
+                body.should.have.property('name', pipelineName)
+                body.should.have.property('stages', [])
+
+                response.statusCode.should.equal(200)
+            })
         })
 
         describe('With no name', function () {
-            it('Should fail validation')
+            it('Should fail validation', async function () {
+                const applicationId = TestObjects.application.hashid
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/applications/${applicationId}/pipelines`,
+                    payload: {},
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                const body = await response.json()
+
+                body.should.have.property('code', 'invalid_name')
+                body.should.have.property('error').match(/Name is required/)
+
+                response.statusCode.should.equal(400)
+            })
+
+            it('Should fail validation when blank', async function () {
+                const applicationId = TestObjects.application.hashid
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/applications/${applicationId}/pipelines`,
+                    payload: {
+                        name: ' '
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                const body = await response.json()
+
+                body.should.have.property('code', 'invalid_name')
+                body.should.have.property('error').match(/Name must not be blank/)
+
+                response.statusCode.should.equal(400)
+            })
         })
 
-        describe('With no application ID', function () {
-            it('Should fail validation')
+        describe('With out an application', function () {
+            it('Should fail validation without application ID', async function () {
+                const pipelineName = 'new-pipeline'
+                const applicationId = ''
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/applications/${applicationId}/pipelines`,
+                    payload: {
+                        name: pipelineName
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                const body = await response.json()
+
+                body.should.have.property('code', 'not_found')
+
+                response.statusCode.should.equal(404)
+            })
+
+            it('Should fail validation when application is not found', async function () {
+                const pipelineName = 'new-pipeline'
+                const applicationId = 'application-that-does-not-exist'
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/applications/${applicationId}/pipelines`,
+                    payload: {
+                        name: pipelineName
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                const body = await response.json()
+
+                body.should.have.property('code', 'not_found')
+
+                response.statusCode.should.equal(404)
+            })
+        })
+
+        describe('For an application owned by another team', function () {
+            it('Should fail validation', async function () {
+                const userPez = await TestObjects.factory.createUser({
+                    admin: false,
+                    username: 'pez',
+                    name: 'Pez Cuckow',
+                    email: 'pez@example.com',
+                    password: 'ppPassword'
+                })
+
+                const team1 = await TestObjects.factory.createTeam({ name: 'PTeam' })
+                await team1.addUser(userPez, { through: { role: Roles.Owner } })
+
+                await login('pez', 'ppPassword')
+
+                const pipelineName = 'new-pipeline'
+                const applicationId = TestObjects.application.hashid // we are logged in as pez, but this is owned by alice
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/applications/${applicationId}/pipelines`,
+                    payload: {
+                        name: pipelineName
+                    },
+                    cookies: { sid: TestObjects.tokens.pez }
+                })
+
+                const body = await response.json()
+
+                body.should.have.property('code', 'not_found')
+
+                response.statusCode.should.equal(404)
+            })
+        })
+
+        describe('When not logged in', function () {
+            it('Should prevent creation entirely', async function () {
+                const pipelineName = 'new-pipeline'
+                const applicationId = TestObjects.application.hashid // this is owned by alice
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/applications/${applicationId}/pipelines`,
+                    payload: {
+                        name: pipelineName
+                    }
+                })
+
+                const body = await response.json()
+
+                body.should.have.property('code', 'unauthorized')
+
+                response.statusCode.should.equal(401)
+            })
         })
     })
 
