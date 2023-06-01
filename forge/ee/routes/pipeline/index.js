@@ -1,3 +1,5 @@
+const { ValidationError } = require('sequelize')
+
 const { registerPermissions } = require('../../../lib/permissions')
 const { Roles } = require('../../../lib/roles.js')
 
@@ -209,13 +211,19 @@ module.exports = async function (app) {
                 ApplicationId: request.application.id
             })
         } catch (err) {
-            console.error(err)
+            if (err instanceof ValidationError) {
+                if (err.errors[0]) {
+                    return reply.status(400).type('application/json').send({ code: `invalid_${err.errors[0].path}`, error: err.errors[0].message })
+                }
+
+                return reply.status(400).type('application/json').send({ code: 'invalid_input', error: err.message })
+            }
+
             return reply.status(500).send({ code: 'unexpected_error', error: err.toString() })
         }
 
         await app.auditLog.Team.application.pipeline.created(request.session.User, null, team, request.application, pipeline)
 
-        reply.send(app.db.views.Pipeline.pipeline(pipeline))
     })
 
     /**

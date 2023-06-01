@@ -7,7 +7,15 @@ module.exports = {
     schema: {
         name: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: false,
+            validate: {
+                notNull: {
+                    msg: 'Name is required'
+                },
+                notEmpty: {
+                    msg: 'Name must not be blank'
+                }
+            }
         }
     },
     associations: function (M) {
