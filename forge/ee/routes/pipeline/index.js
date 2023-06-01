@@ -1,3 +1,5 @@
+const { ValidationError } = require('sequelize')
+
 const { registerPermissions } = require('../../../lib/permissions')
 const { Roles } = require('../../../lib/roles.js')
 
@@ -29,8 +31,10 @@ module.exports = async function (app) {
             if (request.pipeline && request.pipeline.ApplicationId !== request.application.id) {
                 return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             }
-        } else {
+        } else if (request.pipeline) {
             request.application = await app.db.models.Application.byId(request.pipeline.ApplicationId)
+        } else {
+            return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
 
         if (request.session.User) {
@@ -38,6 +42,8 @@ module.exports = async function (app) {
             if (!request.teamMembership && !request.session.User.admin) {
                 return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             }
+        } else {
+            return reply.code(401).send({ code: 'unauthorized', error: 'Unauthorized' })
         }
     })
 
@@ -209,13 +215,20 @@ module.exports = async function (app) {
                 ApplicationId: request.application.id
             })
         } catch (err) {
-            console.error(err)
+            if (err instanceof ValidationError) {
+                if (err.errors[0]) {
+                    return reply.status(400).type('application/json').send({ code: `invalid_${err.errors[0].path}`, error: err.errors[0].message })
+                }
+
+                return reply.status(400).type('application/json').send({ code: 'invalid_input', error: err.message })
+            }
+
             return reply.status(500).send({ code: 'unexpected_error', error: err.toString() })
         }
 
         await app.auditLog.Team.application.pipeline.created(request.session.User, null, team, request.application, pipeline)
 
-        reply.send(app.db.views.Pipeline.pipeline(pipeline))
+        reply.send(await app.db.views.Pipeline.pipeline(pipeline))
     })
 
     /**
@@ -229,8 +242,12 @@ module.exports = async function (app) {
         const team = await request.teamMembership.getTeam()
         const pipelineId = request.params.pipelineId
         const pipeline = await app.db.models.Pipeline.byId(pipelineId)
-        const stages = await pipeline.stages()
 
+        if (!pipeline) {
+            return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+
+        const stages = await pipeline.stages()
         if (stages.length > 0) {
             // delete stages too
             for (let i = 0; i < stages.length; i++) {
@@ -263,6 +280,14 @@ module.exports = async function (app) {
 
             await pipeline.save()
         } catch (error) {
+            if (error instanceof ValidationError) {
+                if (error.errors[0]) {
+                    return reply.status(400).type('application/json').send({ code: `invalid_${error.errors[0].path}`, error: error.errors[0].message })
+                }
+
+                return reply.status(400).type('application/json').send({ code: 'invalid_input', error: error.message })
+            }
+
             app.log.error('Error while updating pipeline:')
             app.log.error(error)
 
