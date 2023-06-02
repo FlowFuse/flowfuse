@@ -35,8 +35,9 @@
                     <div class="space-x-2 flex align-center">
                         <InstanceEditorLink
                             :url="instance.url"
-                            :editorDisabled="instance.settings.disableEditor"
+                            :editorDisabled="instance.settings.disableEditor || isHA"
                             :disabled="!editorAvailable"
+                            :disabled-reason="disabledReason"
                         />
                         <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
                     </div>
@@ -162,6 +163,16 @@ export default {
             }
 
             return result
+        },
+        disabledReason () {
+            if (this.isHA) {
+                return 'Cannot access the editor on a HA Instance'
+            } else if (this.instance.settings.disableEditor) {
+                return 'Access to the editor has been disabled in Settings > Editor'
+            } else if (!this.instanceRunning) {
+                return 'Instance is not running'
+            }
+            return null
         }
     },
     watch: {
