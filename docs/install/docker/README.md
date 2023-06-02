@@ -217,7 +217,7 @@ fileStore:
    ```bash
    docker-compose -p flowforge down
    ```
-- [Download](https://github.com/flowforge/docker-compose/releases/latest/download/) the latest tar
+- Download the latest Source code tar.gz [here](https://github.com/flowforge/docker-compose/releases/latest/)
 - Uncompress the tar file to a new directory
 - Pull the latest version of the containers from Docker hub
      - `docker pull flowforge/forge-docker`
