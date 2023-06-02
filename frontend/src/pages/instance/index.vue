@@ -22,6 +22,9 @@
                             {{ instance.name }}
                         </div>
                         <InstanceStatusBadge :status="instance.meta?.state" :optimisticStateChange="instance.optimisticStateChange" :pendingStateChange="instance.pendingStateChange" />
+                        <router-link v-if="instance.ha?.replicas !== undefined" :to="{name: 'InstanceSettingsHA', params: { id: instance.id }}" @click.stop>
+                            <StatusBadge class="ml-2 text-gray-400 hover:text-blue-600" status="high-availability" />
+                        </router-link>
                         <div class="w-full text-sm mt-1">
                             Application:
                             <router-link :to="{name: 'Application', params: {id: instance.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ instance.application.name }}</router-link>
@@ -32,8 +35,9 @@
                     <div class="space-x-2 flex align-center">
                         <InstanceEditorLink
                             :url="instance.url"
-                            :editorDisabled="instance.settings.disableEditor"
+                            :editorDisabled="instance.settings.disableEditor || isHA"
                             :disabled="!editorAvailable"
+                            :disabled-reason="disabledReason"
                         />
                         <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
                     </div>
@@ -74,6 +78,7 @@ import InstanceStatusHeader from '../../components/InstanceStatusHeader.vue'
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import NavItem from '../../components/NavItem.vue'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
+import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 
@@ -98,6 +103,7 @@ export default {
         InstanceStatusBadge,
         InstanceStatusHeader,
         SideNavigationTeamOptions,
+        StatusBadge,
         SubscriptionExpiredBanner,
         TeamTrialBanner,
         InstanceEditorLink
@@ -130,8 +136,11 @@ export default {
         instanceRunning () {
             return this.instance?.meta?.state === 'running'
         },
+        isHA () {
+            return this.instance?.ha?.replicas !== undefined
+        },
         editorAvailable () {
-            return this.instanceRunning
+            return !this.isHA && this.instanceRunning
         },
         actionsDropdownOptions () {
             const flowActionsDisabled = !(this.instance.meta && this.instance.meta.state !== 'suspended')
@@ -154,6 +163,16 @@ export default {
             }
 
             return result
+        },
+        disabledReason () {
+            if (this.isHA) {
+                return 'Cannot access the editor on a HA Instance'
+            } else if (this.instance.settings.disableEditor) {
+                return 'Access to the editor has been disabled in Settings > Editor'
+            } else if (!this.instanceRunning) {
+                return 'Instance is not running'
+            }
+            return null
         }
     },
     watch: {

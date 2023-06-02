@@ -13,6 +13,14 @@
             Instance Type
         </FormRow>
 
+        <FormRow v-if="features.ha && input.haConfig" v-model="input.haConfig" type="uneditable">
+            <template #default>High Availability</template>
+            <template #input>
+                <div class="w-full uneditable undefined text-gray-800">
+                    {{ input.haConfig.replicas }} x instances
+                </div>
+            </template>
+        </FormRow>
         <FormRow v-model="input.stackDescription" type="uneditable">
             Stack
         </FormRow>
@@ -20,7 +28,7 @@
             Template
         </FormRow>
         <DangerSettings
-            :instance="project"
+            :instance="instance"
             @instance-confirm-delete="$emit('instance-confirm-delete')"
             @instance-confirm-suspend="$emit('instance-confirm-suspend')"
         />
@@ -28,6 +36,8 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 
@@ -42,7 +52,7 @@ export default {
     },
     inheritAttrs: false,
     props: {
-        project: {
+        instance: {
             type: Object,
             required: true
         }
@@ -58,11 +68,18 @@ export default {
                 projectName: '',
                 projectTypeName: '',
                 stackDescription: '',
-                templateName: ''
+                templateName: '',
+                haConfig: {}
             },
             original: {
                 projectName: ''
             }
+        }
+    },
+    computed: {
+        ...mapState('account', ['features']),
+        isHA () {
+            return !!this.instance?.ha
         }
     },
     watch: {
@@ -73,25 +90,30 @@ export default {
     },
     methods: {
         fetchData () {
-            this.input.projectId = this.project.id
-            if (this.project.stack) {
-                this.input.stackDescription = this.project.stack.label || this.project.stack.name
+            this.input.projectId = this.instance.id
+            if (this.instance.stack) {
+                this.input.stackDescription = this.instance.stack.label || this.instance.stack.name
             } else {
                 this.input.stackDescription = 'none'
             }
-            if (this.project.projectType) {
-                this.input.projectTypeName = this.project.projectType.name
+            if (this.instance.projectType) {
+                this.input.projectTypeName = this.instance.projectType.name
             } else {
                 this.input.projectTypeName = 'none'
             }
 
-            if (this.project.template) {
-                this.input.templateName = this.project.template.name
+            if (this.instance.template) {
+                this.input.templateName = this.instance.template.name
             } else {
                 this.input.templateName = 'none'
             }
 
-            this.input.projectName = this.project.name
+            this.input.projectName = this.instance.name
+            if (this.instance.ha?.replicas !== undefined) {
+                this.input.haConfig = this.instance.ha
+            } else {
+                this.input.haConfig = undefined
+            }
         }
     }
 }

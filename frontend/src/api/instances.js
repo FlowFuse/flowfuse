@@ -136,6 +136,15 @@ const rollbackInstance = async (instanceId, snapshotId) => {
     }
     return client.post(`/api/v1/projects/${instanceId}/actions/rollback`, data).then(res => res.data)
 }
+
+const enableHAMode = async (instanceId) => {
+    const haConfig = { replicas: 2 }
+    return client.put(`/api/v1/projects/${instanceId}/ha`, haConfig)
+}
+const disableHAMode = async (instanceId) => {
+    return client.delete(`/api/v1/projects/${instanceId}/ha`)
+}
+
 export default {
     create,
     getInstance,
@@ -151,5 +160,7 @@ export default {
     getInstanceDevices,
     getInstanceDeviceSettings,
     updateInstanceDeviceSettings,
-    rollbackInstance
+    rollbackInstance,
+    enableHAMode,
+    disableHAMode
 }
