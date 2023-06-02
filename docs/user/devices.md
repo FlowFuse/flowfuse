@@ -303,3 +303,11 @@ You can check the current status with the command:
 You can stop your with the command:
 
 ```sudo systemctl stop flowforge-device-agent```
+
+## Troubleshooting
+
+If you have problems with the device agent the first thing to do is to enable the verbose logging mode.
+
+To do this add a `-v` to the command line. This will present a lot more information about what the agent is doing.
+It will show that is has connected to the FlowForge instance and every time it checks in, it will also log all the 
+local HTTP requests made when accessing the Node-RED Editor via the FlowForge application.
