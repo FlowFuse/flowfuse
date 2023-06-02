@@ -223,7 +223,7 @@ fileStore:
      - `docker pull flowforge/forge-docker`
      - `docker pull flowforge/node-red`
      - `docker pull flowforge/file-server`
-- Copy the `db` directory from the old version directory to the new (this will probably require root due to file ownership)
+- Copy the `db` (and the `certs` & `acme` if using HTTPS certs) directory from the old version directory to the new (this will probably require root due to file ownership)
     ```bash
     sudo cp -r docker-compose-x.x.x/db docker-compose-y.y.y/db
     ```
