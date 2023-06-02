@@ -12,6 +12,7 @@ const SettingTypes = {
 const KEY_SETTINGS = 'settings'
 const KEY_HOSTNAME = 'hostname'
 const KEY_BILLING_STATE = 'billingState'
+const KEY_HA = 'ha'
 
 const BILLING_STATES = {
     UNKNOWN: undefined,
@@ -25,6 +26,7 @@ module.exports = {
     KEY_SETTINGS,
     KEY_HOSTNAME,
     KEY_BILLING_STATE,
+    KEY_HA,
     name: 'ProjectSettings',
     schema: {
         ProjectId: { type: DataTypes.UUID, unique: 'pk_settings' },

@@ -54,14 +54,13 @@
                                     flows never deployed
                                 </span>
                             </div>
-                            <div class="flex justify-end">
-                                <InstanceEditorLink
-                                    :url="instance.url"
-                                    :editorDisabled="instance.settings.disableEditor"
-                                    :disabled="instance.meta?.state !== 'running'"
-                                />
-                            </div>
-
+                            <InstanceEditorLinkCell
+                                :id="instance.id"
+                                :url="instance.url"
+                                :editorDisabled="instance.settings.disableEditor"
+                                :disabled="instance.meta?.state !== 'running'"
+                                :isHA="instance.ha?.replicas !== undefined"
+                            />
                             <InstanceStatusPolling :instance="instance" @instance-updated="instanceUpdated" />
                         </li>
                     </ul>
@@ -125,14 +124,13 @@ import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import ProjectIcon from '../../components/icons/Projects.js'
 import permissionsMixin from '../../mixins/Permissions.js'
-import InstanceEditorLink from '../instance/components/InstanceEditorLink.vue'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
-
+import InstanceEditorLinkCell from '../instance/components/cells/InstanceEditorLink.vue'
 export default {
     name: 'TeamApplications',
     components: {
         EmptyState,
-        InstanceEditorLink,
+        InstanceEditorLinkCell,
         InstanceStatusBadge,
         InstanceStatusPolling,
         PlusSmIcon,

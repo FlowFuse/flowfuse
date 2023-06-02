@@ -1,4 +1,4 @@
-const { KEY_HOSTNAME, KEY_SETTINGS } = require('../models/ProjectSettings')
+const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HA } = require('../models/ProjectSettings')
 
 module.exports = {
     project: async function (app, project, { includeSettings = true } = {}) {
@@ -34,6 +34,10 @@ module.exports = {
 
             const settingsHostnameRow = proj.ProjectSettings?.find((projectSettingsRow) => projectSettingsRow.key === KEY_HOSTNAME)
             result.hostname = settingsHostnameRow?.value || ''
+        }
+        if (app.config.features.enabled('ha')) {
+            const settingsHARow = proj.ProjectSettings?.find(row => row.key === KEY_HA)
+            result.ha = settingsHARow?.value || { disabled: true }
         }
 
         if (proj.Application) {

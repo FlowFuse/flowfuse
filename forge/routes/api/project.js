@@ -193,6 +193,13 @@ module.exports = async function (app) {
             return
         }
 
+        if (app.license.active() && app.ha) {
+            if (request.body.ha && !await app.ha.isHAAllowed(team, projectType, request.body.ha)) {
+                reply.code(400).send({ code: 'invalid_ha', error: 'Invalid HA configuration' })
+                return
+            }
+        }
+
         let project
         try {
             project = await app.db.models.Project.create({
@@ -212,15 +219,20 @@ module.exports = async function (app) {
         await project.setProjectStack(stack)
         await project.setProjectTemplate(template)
         await project.setProjectType(projectType)
+
+        if (app.license.active() && app.ha && request.body.ha) {
+            await project.updateHASettings(request.body.ha)
+        }
+
         await project.reload({
             include: [
                 { model: app.db.models.Team },
                 { model: app.db.models.ProjectType },
                 { model: app.db.models.ProjectStack },
-                { model: app.db.models.ProjectTemplate }
+                { model: app.db.models.ProjectTemplate },
+                { model: app.db.models.ProjectSettings }
             ]
         })
-
         if (app.license.active() && app.billing) {
             await app.billing.initialiseProjectBillingState(team, project)
         }
@@ -786,6 +798,14 @@ module.exports = async function (app) {
             settings.env = Object.assign({}, settings.settings.env, settings.env)
             delete settings.settings.env
         }
+
+        if (app.config.features.enabled('ha')) {
+            const ha = await request.project.getHASettings()
+            if (ha && ha.replicas > 1) {
+                settings.ha = ha
+            }
+        }
+
         reply.send(settings)
     })
 
@@ -915,4 +935,10 @@ module.exports = async function (app) {
     function generateCredentialSecret () {
         return crypto.randomBytes(32).toString('hex')
     }
+
+    // app.get('/:projectId/ha', {
+    //     preHandler: app.needsPermission('project:read')
+    // }, async (request, reply) => {
+    //     reply.send(await request.project.getHASettings())
+    // })
 }

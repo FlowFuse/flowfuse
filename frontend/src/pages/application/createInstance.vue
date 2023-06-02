@@ -134,6 +134,10 @@ export default {
                     options: { ...copyParts }
                 }
             }
+            if (this.features.ha && createPayload.isHA) {
+                createPayload.ha = { replicas: 2 }
+            }
+            delete createPayload.isHA
 
             return instanceApi.create(createPayload)
         }

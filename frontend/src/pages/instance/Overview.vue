@@ -17,7 +17,14 @@
                                     <ExternalLinkIcon class="w-4 ml-3" />
                                 </a>
                             </div>
-                            <div v-else class="my-2">Unavailable</div>
+                            <div v-else class="my-2">
+                                <router-link v-if="isHA" :to="{name: 'InstanceSettingsHA', params: { id: instance.id }}" @click.stop>
+                                    <StatusBadge class="text-gray-400 hover:text-blue-600" status="high-availability" />
+                                </router-link>
+                                <template v-else>
+                                    Unavailable
+                                </template>
+                            </div>
                         </td>
                     </tr>
                     <tr class="border-b">
@@ -84,6 +91,7 @@ import { mapState } from 'vuex'
 
 import InstanceApi from '../../api/instances.js'
 import FormHeading from '../../components/FormHeading.vue'
+import StatusBadge from '../../components/StatusBadge.vue'
 import AuditLog from '../../components/audit-log/AuditLog.vue'
 import permissionsMixin from '../../mixins/Permissions.js'
 
@@ -96,6 +104,7 @@ export default {
         ExternalLinkIcon,
         FormHeading,
         InstanceStatusBadge,
+        StatusBadge,
         TemplateIcon,
         TrendingUpIcon
     },
@@ -122,7 +131,10 @@ export default {
             return this.instance?.meta?.state === 'running'
         },
         editorAvailable () {
-            return this.instanceRunning
+            return !this.isHA && this.instanceRunning
+        },
+        isHA () {
+            return this.instance?.ha?.replicas !== undefined
         }
     },
     watch: {

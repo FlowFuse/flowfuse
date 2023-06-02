@@ -34,7 +34,7 @@ import {
 } from '@heroicons/vue/outline'
 
 export default {
-    name: 'InstanceStatusBadge',
+    name: 'StatusBadge',
     components: {
         CloudDownloadIcon,
         CloudUploadIcon,
