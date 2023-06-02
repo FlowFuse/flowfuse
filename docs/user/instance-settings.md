@@ -39,7 +39,8 @@ This stops the instance entirely.
 ### Delete Instance
 
 If you're really sure you don't want the instance any more, this allows you to delete
-it. You cannot undo deleting an instance.
+it. You cannot undo deleting an instance. Devices assigned to the instance will be
+unassigned from the instance and available to reassign to a new instance.
 
 ## Environment
 
