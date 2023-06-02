@@ -16,7 +16,7 @@
     </Teleport>
     <ff-loading
         v-if="loading"
-        message="Loading Devices..."
+        message="Creating Pipeline..."
     />
     <form
         v-else
@@ -112,15 +112,21 @@ export default {
     methods: {
         async create () {
             this.loading = true
-            await ApplicationsAPI.createPipeline(this.application.id, this.input.name)
-            Alerts.emit('Pipeline successfully created.', 'confirmation')
+            try {
+                await ApplicationsAPI.createPipeline(this.application.id, this.input.name)
+                Alerts.emit('Pipeline successfully created.', 'confirmation')
+
+                this.$router.push({
+                    name: 'ApplicationPipelines',
+                    params: {
+                        id: this.application.id
+                    }
+                })
+            } catch (error) {
+                Alerts.emit('Failed to create Pipeline.', 'warning')
+            }
+
             this.loading = false
-            this.$router.push({
-                name: 'ApplicationPipelines',
-                params: {
-                    id: this.application.id
-                }
-            })
         }
     }
 }
