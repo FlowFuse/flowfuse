@@ -87,7 +87,6 @@ Repeat these steps for each device you want to connect to the platform.
 
 
 ### Generating "Provisioning Credentials" 
-
 _for automatic registration of one or more devices_
 
 1. Go to your teams's **Settings** page.
@@ -104,10 +103,21 @@ the configuration file locally.
 
 ## Connect the device
 
-### Using Device Credentials
-Copy the **Device Credentials** information into a file called `device.yml` in
-the devices [Working Directory](#working-directory) (or whatever is set
-with the `-d` option).
+### Install the credentials
+
+Before you can connect a device to the platform, the device must have
+a **Device Credentials** file or a **Device Provisioning Credentials** 
+file present in its working directory. There are two ways to do this:
+1. Copy the credentials file into the device's 
+[Working Directory](#working-directory).
+2. Download the credentials file to the device using its built in Web UI.
+NOTE: The Device Agent must be running and the command line flag for the Web UI must be enabled.
+See [Command Line Options](#Device-Agent-Command-Line-Options) for more information.
+
+### Copy method
+
+Place the **Device Credentials** or **Device Provisioning Credentials** file on the device
+in the [Working Directory](#working-directory)
 
 The agent can then be started with the command: [^global-install]
 
@@ -118,22 +128,66 @@ flowforge-device-agent
 You will see the device start and perform a 'call-home' where it connects back
 to the platform to check what it should be running.
 
-### Using Provisioning Credentials
-Copy the **Device Provisioning Credentials** information into a file called `device.yml` in
-the devices [Working Directory](#working-directory) (or whatever is set
-with the `-d` option).
+### Download method
 
-The agent can then be started with the command: [^global-install]
+If the Device Agent is running with the Web UI enabled, you can download the
+credentials file to the device using the Web UI. This is useful if you don't
+have direct access to the device's file system. Once the credentials file is
+downloaded, the device agent will automatically restart and load the credentials.
 
-```bash
-flowforge-device-agent
-```
+#### Additional Information
 
-You will see the device start and perform a 'call-home' where it connects back
+If you copy or download a **Device Provisioning Credentials** file to the device,
+you will see the device start and perform a 'call-home' where it connects back
 to the platform to auto register itself in the team devices.  If successful,
 the real **Device Credentials** are generated and downloaded to the device. 
 The original **Provisioning Credentials** will be overwritten meaning subsequent 
 runs will not need to perform the auto registration again.
+
+## Device Agent Command Line Options
+
+The following command line options are available:
+
+```
+Options
+
+  -c, --config file     Device configuration file. Default: device.yml
+  -d, --dir dir         Where the agent should store its state. Default: /opt/flowforge-device 
+  -i, --interval secs
+  -p, --port number
+  -m, --moduleCache     Use local npm module cache rather than install
+
+Web UI Options
+
+  -w, --ui            Start the Web UI Server (optional, does not run by default)       
+  --ui-host string    Web UI server host. Default: (0.0.0.0) (listen on all interfaces) 
+  --ui-port number    Web UI server port. Default: 1879
+  --ui-user string    Web UI username. Required if --ui is specified
+  --ui-pass string    Web UI password. Required if --ui is specified
+  --ui-runtime mins   Time the Web UI server is permitted to run. Default: 10
+
+Global Options
+
+  -h, --help       print out helpful usage information 
+  --version        print out version information       
+  -v, --verbose    turn on debugging output
+```
+
+### Command Line Examples
+
+_Start the agent with a different port number_
+
+```bash
+flowforge-device-agent -p 8080
+```
+
+
+_Start the agent with a different working directory and the Web UI enabled_
+
+```bash
+flowforge-device-agent -d /path/to/working/directory -w -ui-user admin -ui-pass password --ui-port 8081
+```
+
 
 ## Assign the device to a Node-RED instance
 
@@ -192,7 +246,8 @@ about working with snapshots.
 
 ### Important Notes
 
-* Remote access to the editor required Device Agent v0.8.0 or later.
+* Remote access to the editor requires Device Agent v0.8.0 or later.
+* The Web UI requires Device Agent v0.9.0 or later.
 * The device must first have a snapshot applied before editor access is possible.
 * The device will not receive any updates from the platform while in Developer Mode.
 * Disabling Developer Mode will cause the device to re-connected to the platform and any change to the target snapshot will cause the device to be updated. This will overwrite any changes made in Developer Mode. Therefore, it is recommended to create a snapshot of the changes before disabling Developer Mode.
