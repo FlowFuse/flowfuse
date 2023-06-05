@@ -46,6 +46,20 @@ describe('Team API', function () {
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
+    async function createDevice (options) {
+        const response = await app.inject({
+            method: 'POST',
+            url: '/api/v1/devices',
+            body: {
+                name: options.name,
+                type: options.type,
+                team: options.team
+            },
+            cookies: { sid: options.as }
+        })
+        return response.json()
+    }
+
     afterEach(async function () {
         if (app) {
             await app.close()
@@ -272,7 +286,50 @@ describe('Team API', function () {
 
         describe('Get list of a teams projects', async function () {
             // GET /api/v1/teams/:teamId/projects
-            // - Admin/Owner/Member
+            // - Admin/Owner/Member/project-token/device-token
+
+            it('Device can get a list of team projects', async function () {
+                // GET /api/v1/team/:teamId/devices
+                // This test is for the case where a device requests a list of projects (i.e. the project-link nodes "target" dropdown)
+                const device = await createDevice({ name: 'New device in A-Team', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/projects`,
+                    headers: {
+                        authorization: `Bearer ${device.credentials.token}`
+                    }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('projects').and.be.an.Array()
+                result.projects.should.have.a.property('length', 1)
+            })
+
+            it('Device can not get a list of team projects without a valid token', async function () {
+                // GET /api/v1/team/:teamId/devices
+                const device = await createDevice({ name: 'New device in A-Team', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/projects`,
+                    headers: {
+                        authorization: `Bearer ${device.credentials.token + 'invalid'}`
+                    }
+                })
+                response.statusCode.should.equal(401)
+            })
+
+            it('Device can not get a list of team projects for a different team', async function () {
+                // GET /api/v1/team/:teamId/devices
+                const device = await createDevice({ name: 'New device in A-Team', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.BTeam.hashid}/projects`,
+                    headers: {
+                        authorization: `Bearer ${device.credentials.token}`
+                    }
+                })
+                response.statusCode.should.equal(404)
+            })
         })
 
         describe('Create team', async function () {
