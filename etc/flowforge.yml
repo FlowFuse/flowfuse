@@ -31,7 +31,7 @@ db:
 
 driver:
   ## The type of backend driver to use
-  ##  Can be: localfs/docker/stub/k8s
+  ##  Can be: localfs/docker/stub/kubernetes
   type: localfs
 
   options:
