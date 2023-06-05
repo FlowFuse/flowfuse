@@ -580,6 +580,10 @@ describe('Broker Auth API', async function () {
                         username: 'project:abc:xyz',
                         topic: 'ff/v1/abc/p/another-project/res/foo/bar'
                     })
+                    await allowWrite({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/another-project/res-random/foo/bar'
+                    })
                 })
             })
         })
