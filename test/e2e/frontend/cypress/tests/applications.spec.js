@@ -8,50 +8,93 @@ describe('FlowForge - Applications', () => {
         cy.wait('@getInstanceTypes')
     })
 
-    it('can be created', () => {
-        const APPLICATION_NAME = `new-application-${Math.random().toString(36).substring(2, 7)}`
-        const INSTANCE_NAME = `new-instance-${Math.random().toString(36).substring(2, 7)}`
+    describe('can be created', () => {
+        it('without error', () => {
+            const APPLICATION_NAME = `new-application-${Math.random().toString(36).substring(2, 7)}`
+            const INSTANCE_NAME = `new-instance-${Math.random().toString(36).substring(2, 7)}`
 
-        cy.request('GET', 'api/v1/teams').then((response) => {
-            const team = response.body.teams[0]
+            cy.request('GET', 'api/v1/teams').then((response) => {
+                const team = response.body.teams[0]
 
-            cy.visit(`/team/${team.slug}/applications/create`)
+                cy.visit(`/team/${team.slug}/applications/create`)
 
-            cy.intercept('POST', '/api/*/applications').as('createApplication')
-            cy.intercept('POST', '/api/*/projects').as('createInstance')
+                cy.intercept('POST', '/api/*/applications').as('createApplication')
+                cy.intercept('POST', '/api/*/projects').as('createInstance')
 
-            cy.get('[data-action="create-project"]').should('be.disabled')
+                cy.get('[data-action="create-project"]').should('be.disabled')
 
-            cy.get('[data-form="application-name"] input').clear()
-            cy.get('[data-form="application-name"] input').type(APPLICATION_NAME)
+                cy.get('[data-form="application-name"] input').clear()
+                cy.get('[data-form="application-name"] input').type(APPLICATION_NAME)
 
-            // Pre-fills name
-            cy.get('[data-form="project-name"] input').should(($input) => {
-                const projectName = $input.val()
-                expect(projectName.length).to.be.above(0)
+                // Pre-fills name
+                cy.get('[data-form="project-name"] input').should(($input) => {
+                    const projectName = $input.val()
+                    expect(projectName.length).to.be.above(0)
+                })
+
+                cy.get('[data-form="project-name"] input').clear()
+                cy.get('[data-form="project-name"] input').type(INSTANCE_NAME)
+                cy.get('[data-action="create-project"]').should('be.disabled')
+
+                cy.get('[data-form="project-type"]').contains('type1').click()
+                cy.get('[data-action="create-project"]').should('not.be.disabled') // stack is auto selected
+
+                cy.get('[data-form="instance-stack"]').contains('stack1').click() // de-select
+                cy.get('[data-action="create-project"]').should('be.disabled')
+
+                cy.get('[data-form="instance-stack"]').contains('stack1').click() // re-select
+
+                cy.get('[data-form="project-template"]').should('exist') // template section visible for create
+
+                cy.get('[data-action="create-project"]').should('not.be.disabled').click()
+
+                cy.wait('@createApplication')
+                cy.wait('@createInstance')
+
+                cy.contains(APPLICATION_NAME)
+                cy.contains(INSTANCE_NAME)
             })
+        })
 
-            cy.get('[data-form="project-name"] input').clear()
-            cy.get('[data-form="project-name"] input').type(INSTANCE_NAME)
-            cy.get('[data-action="create-project"]').should('be.disabled')
+        it('handles instance creation failing gracefully', () => {
+            const APPLICATION_NAME = `new-application-${Math.random().toString(36).substring(2, 7)}`
+            const IN_USE_INSTANCE_NAME = 'instance-1-1'
+            const INSTANCE_NAME = `new-instance-${Math.random().toString(36).substring(2, 7)}`
 
-            cy.get('[data-form="project-type"]').contains('type1').click()
-            cy.get('[data-action="create-project"]').should('not.be.disabled') // stack is auto selected
+            cy.request('GET', 'api/v1/teams').then((response) => {
+                const team = response.body.teams[0]
 
-            cy.get('[data-form="instance-stack"]').contains('stack1').click() // de-select
-            cy.get('[data-action="create-project"]').should('be.disabled')
+                cy.visit(`/team/${team.slug}/applications/create`)
 
-            cy.get('[data-form="instance-stack"]').contains('stack1').click() // re-select
+                cy.intercept('POST', '/api/*/applications').as('createApplication')
+                cy.intercept('POST', '/api/*/projects').as('createInstance')
 
-            cy.get('[data-form="project-template"]').should('exist') // template section visible for create
+                cy.get('[data-action="create-project"]').should('be.disabled')
 
-            cy.get('[data-action="create-project"]').should('not.be.disabled').click()
+                cy.get('[data-form="application-name"] input').clear()
+                cy.get('[data-form="application-name"] input').type(APPLICATION_NAME)
 
-            cy.wait('@createApplication')
-            cy.wait('@createInstance')
+                cy.get('[data-form="project-name"] input').clear()
+                cy.get('[data-form="project-name"] input').type(IN_USE_INSTANCE_NAME)
 
-            cy.contains(APPLICATION_NAME)
-            cy.contains(INSTANCE_NAME)
+                cy.get('[data-form="project-type"]').contains('type1').click()
+                cy.get('[data-action="create-project"]').click()
+
+                cy.wait('@createApplication')
+                cy.wait('@createInstance')
+
+                cy.get('[data-form="project-name"]').contains('name in use')
+
+                cy.get('[data-form="project-name"] input').clear()
+                cy.get('[data-form="project-name"] input').type(INSTANCE_NAME)
+
+                cy.get('[data-action="create-project"]').click()
+
+                cy.wait('@createInstance')
+
+                cy.contains(APPLICATION_NAME)
+                cy.contains(INSTANCE_NAME)
+            })
         })
     })
 
