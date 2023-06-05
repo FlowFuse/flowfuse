@@ -654,12 +654,7 @@ describe('Pipelines API', function () {
 
                 should(foundPipeline).equal(null)
 
-                const foundPipelineStages = await app.db.models.PipelineStage.byPipeline({
-                    where: {
-                        id: pipeline.id
-                    }
-                })
-
+                const foundPipelineStages = await app.db.models.PipelineStage.byPipeline(pipeline.id)
                 foundPipelineStages.length.should.equal(0)
             })
         })
