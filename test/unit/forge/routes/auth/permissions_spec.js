@@ -66,7 +66,6 @@ describe('Permissions API', async () => {
         }
         try {
             await func({ ...request, ...options }, reply)
-            return
         } catch (err) {
             return response
         }

@@ -16,7 +16,7 @@ module.exports = async function (app) {
                     request.snapshot = await app.db.models.ProjectSnapshot.byId(request.params.snapshotId)
                     if (!request.snapshot) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                        return
+                        return // eslint-disable-line no-useless-return
                     }
                 } catch (err) {
                     reply.code(404).send({ code: 'not_found', error: 'Not Found' })

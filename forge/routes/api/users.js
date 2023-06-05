@@ -17,7 +17,7 @@ module.exports = async function (app) {
                     request.user = await app.db.models.User.byId(request.params.userId)
                     if (!request.user) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                        return
+                        return // eslint-disable-line no-useless-return
                     }
                 } catch (err) {
                     reply.code(404).send({ code: 'not_found', error: 'Not Found' })
