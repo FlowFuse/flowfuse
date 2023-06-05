@@ -18,12 +18,12 @@ module.exports = async function (app) {
                         request.teamMembership = await request.session.User.getTeamMembership(request.project.Team.id)
                         if (!request.teamMembership && !request.session.User.admin) {
                             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                            return
+                            return // eslint-disable-line no-useless-return
                         }
                     } else if (request.session.ownerId !== request.params.projectId) {
                         // AccesToken being used - but not owned by this project
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                        return
+                        return // eslint-disable-line no-useless-return
                     }
                 } catch (err) {
                     reply.code(404).send({ code: 'not_found', error: 'Not Found' })
