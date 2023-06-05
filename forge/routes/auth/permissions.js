@@ -5,7 +5,9 @@ const { Roles } = require('../../lib/roles.js')
 // This will allow us to add scopes to existing tokens without having to update
 // them (as that requires reprovisioning of devices and restaging of projects)
 const IMPLICIT_TOKEN_SCOPES = {
-    device: [],
+    device: [
+        'team:projects:list' // permit a device being edited via a tunnel in developer mode to list projects
+    ],
     project: [
         'user:read',
         'project:flows:view',

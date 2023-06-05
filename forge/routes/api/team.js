@@ -41,6 +41,21 @@ module.exports = async function (app) {
                             if (project && project.Team.hashid === request.params.teamId) {
                                 return
                             }
+                        } else if (request.session.ownerType === 'device') {
+                            // Want this to be as small a query as possible. Sequelize
+                            // doesn't make it easy to just get `TeamId` without doing
+                            // a join on Team table.
+                            const device = await app.db.models.Device.findOne({
+                                where: { id: request.session.ownerId },
+                                include: {
+                                    model: app.db.models.Team,
+                                    attributes: ['hashid', 'id']
+                                }
+                            })
+                            // Ensure the device is in the team being accessed
+                            if (device && device.Team.hashid === request.params.teamId) {
+                                return
+                            }
                         }
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return
@@ -205,6 +220,9 @@ module.exports = async function (app) {
 
     /**
      * @deprecated Use /:teamId/applications, or /:applicationId/instances
+     * For now, the project link nodes depend on this endpoint. Once the
+     * project link nodes are updated to be application aware, this endpoint
+     * may be removed (assuming no other clients are using it)
      */
     app.get('/:teamId/projects', {
         preHandler: app.needsPermission('team:projects:list')
