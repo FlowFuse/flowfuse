@@ -278,7 +278,7 @@ export default {
         },
         // do we want to show a selection of Applications?
         applications: {
-            default: null,
+            default: () => [],
             type: Array
         },
         applicationSelection: {
