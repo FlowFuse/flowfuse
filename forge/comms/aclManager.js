@@ -66,6 +66,8 @@ module.exports = function (app) {
         }
     }
 
+    const SHARED_SUB = /^\$share\/([^/]+)\/(.*)$/
+
     const ACLS = {
         forge_platform: {
             sub: [
@@ -144,17 +146,39 @@ module.exports = function (app) {
                 aclList = ACLS.project[aclType]
             } else if (/^device:/.test(username)) {
                 aclList = ACLS.device[aclType]
+            } else {
+                return false
             }
             const l = aclList.length
-            for (let i = 0; i < l; i++) {
-                const m = aclList[i].topic.exec(topic)
-                if (m) {
-                    if (aclList[i].verify && verifyFunctions[aclList[i].verify]) {
-                        allowed = await verifyFunctions[aclList[i].verify](m, username.split(':'))
-                    } else {
-                        allowed = true
+            if (l > 0) {
+                const usernameParts = username.split(':')
+                let isSharedSub = false
+                if (aclType === 'sub') {
+                    // Check for a shared subscription
+                    const sharedSubParts = SHARED_SUB.exec(topic)
+                    if (sharedSubParts) {
+                        isSharedSub = true
+                        // This is a shared sub - validate the share group name
+                        const shareGroup = sharedSubParts[1]
+                        if (shareGroup !== usernameParts[2]) {
+                            return false
+                        }
+                        topic = sharedSubParts[2]
                     }
-                    break
+                }
+                for (let i = 0; i < l; i++) {
+                    const m = aclList[i].topic.exec(topic)
+                    if (m) {
+                        if (isSharedSub && !aclList[i].shared) {
+                            // This isn't allowed to be a sharedSub
+                            break
+                        } else if (aclList[i].verify && verifyFunctions[aclList[i].verify]) {
+                            allowed = await verifyFunctions[aclList[i].verify](m, usernameParts)
+                        } else {
+                            allowed = true
+                        }
+                        break
+                    }
                 }
             }
             return allowed
