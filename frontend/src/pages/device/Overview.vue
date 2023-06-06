@@ -129,7 +129,7 @@
                         <div class="space-x-2 flex align-center">
                             <ff-button
                                 v-if="editorEnabled"
-                                :disabled="closingTunnel || !editorEnabled"
+                                :disabled="!editorCanBeEnabled || closingTunnel || !editorEnabled"
                                 kind="primary"
                                 size="small"
                                 @click="closeTunnel"
@@ -139,7 +139,7 @@
                             </ff-button>
                             <ff-button
                                 v-if="!editorEnabled"
-                                :disabled="openingTunnel || editorEnabled"
+                                :disabled="!editorCanBeEnabled || openingTunnel || editorEnabled"
                                 kind="danger"
                                 size="small"
                                 @click="openTunnel"
@@ -225,6 +225,9 @@ export default {
         },
         editorEnabled: function () {
             return !!this.device?.editor?.enabled
+        },
+        editorCanBeEnabled: function () {
+            return this.developerMode && this.device.status === 'running'
         }
     },
     data () {
@@ -275,16 +278,20 @@ export default {
             this.busy = false
         },
         async openTunnel () {
-            this.openingTunnel = true
-            try {
-                // * Enable Device Editor (Step 1) - (browser->frontendApi) User clicks button to "Enable Editor"
-                const result = await deviceApi.enableEditorTunnel(this.device.id)
-                this.updateTunnelStatus(result)
-                setTimeout(() => {
-                    this.$emit('device-updated')
-                }, 500)
-            } finally {
-                this.openingTunnel = false
+            if (this.device.status === 'running') {
+                this.openingTunnel = true
+                try {
+                    // * Enable Device Editor (Step 1) - (browser->frontendApi) User clicks button to "Enable Editor"
+                    const result = await deviceApi.enableEditorTunnel(this.device.id)
+                    this.updateTunnelStatus(result)
+                    setTimeout(() => {
+                        this.$emit('device-updated')
+                    }, 500)
+                } finally {
+                    this.openingTunnel = false
+                }
+            } else {
+                alerts.emit('The device must be in "running" state to access the editor', 'warning', 7500)
             }
         },
         async closeTunnel () {
