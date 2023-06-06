@@ -17,6 +17,7 @@
             <interview-popup v-if="interview?.enabled" :flag="interview.flag" :payload="interview.payload"></interview-popup>
             <ff-dialog ref="dialog" data-el="platform-dialog" :header="dialog.header" :kind="dialog.kind" :disable-primary="dialog.disablePrimary" :confirm-label="dialog.confirmLabel" @cancel="clearDialog(true)" @confirm="dialog.onConfirm">
                 <p v-if="dialog.text">{{ dialog.text }}</p>
+                <!-- eslint-disable-next-line vue/no-v-html -->
                 <div class="space-y-2" v-html="dialog.html"></div>
             </ff-dialog>
         </div>

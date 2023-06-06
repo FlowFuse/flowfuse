@@ -1,3 +1,5 @@
+<!-- eslint-disable vue/no-v-html -->
+
 <template>
     <ff-layout-box class="ff-signup">
         <template v-slot:splash-content v-if="splash">

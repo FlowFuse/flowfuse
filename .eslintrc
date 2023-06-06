@@ -470,17 +470,6 @@
         },
         {
             "rules": {
-                "vue/no-v-html": "off"
-            },
-            "files": [
-                "frontend/src/layouts/Platform.vue",
-                "frontend/src/pages/account/Create.vue",
-                "frontend/src/pages/admin/InstanceTypes/components/InstanceTypeDescriptionCell.vue",
-                "frontend/src/pages/team/components/ProjectTypeSummary.vue"
-            ]
-        },
-        {
-            "rules": {
                 "vue/order-in-components": "off"
             },
             "files": [
