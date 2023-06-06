@@ -56,9 +56,6 @@ export default {
             device: null
         }
     },
-    // mounted () {
-    //     this.clipboardSupported = !!navigator.clipboard
-    // },
     methods: {
         downloadCredentials () {
             const element = document.createElement('a')
