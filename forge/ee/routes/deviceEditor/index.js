@@ -60,7 +60,10 @@ module.exports = async function (app) {
             let err = null
             try {
                 // * Enable Device Editor (Step 4) - (forge) Enable Editor Request. This call resolves after steps 5 ~ 10
-                await app.comms.devices.enableEditor(teamId, request.device.hashid, accessToken)
+                const cmdResponse = await app.comms.devices.enableEditor(teamId, request.device.hashid, accessToken)
+                if (cmdResponse.error) {
+                    throw new Error('No Node-RED running on Device')
+                }
             } catch (error) {
                 // ensure any attempt to enable the editor is cleaned up if an error occurs
                 tunnelManager.closeTunnel(deviceId)
