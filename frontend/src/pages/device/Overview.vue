@@ -272,16 +272,20 @@ export default {
             this.busy = false
         },
         async openTunnel () {
-            this.openingTunnel = true
-            try {
-                // * Enable Device Editor (Step 1) - (browser->frontendApi) User clicks button to "Enable Editor"
-                const result = await deviceApi.enableEditorTunnel(this.device.id)
-                this.updateTunnelStatus(result)
-                setTimeout(() => {
-                    this.$emit('device-updated')
-                }, 500)
-            } finally {
-                this.openingTunnel = false
+            if (this.device.status === 'running') {
+                this.openingTunnel = true
+                try {
+                    // * Enable Device Editor (Step 1) - (browser->frontendApi) User clicks button to "Enable Editor"
+                    const result = await deviceApi.enableEditorTunnel(this.device.id)
+                    this.updateTunnelStatus(result)
+                    setTimeout(() => {
+                        this.$emit('device-updated')
+                    }, 500)
+                } finally {
+                    this.openingTunnel = false
+                }
+            } else {
+                alerts.emit('The device must be in "running" state to access the editor', 'warning', 7500)
             }
         },
         async closeTunnel () {
