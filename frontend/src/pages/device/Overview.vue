@@ -129,7 +129,7 @@
                         <div class="space-x-2 flex align-center">
                             <ff-button
                                 v-if="editorEnabled"
-                                :disabled="closingTunnel || !editorEnabled"
+                                :disabled="!editorCanBeEnabled || closingTunnel || !editorEnabled"
                                 kind="primary"
                                 size="small"
                                 @click="closeTunnel"
@@ -139,7 +139,7 @@
                             </ff-button>
                             <ff-button
                                 v-if="!editorEnabled"
-                                :disabled="openingTunnel || editorEnabled"
+                                :disabled="!editorCanBeEnabled || openingTunnel || editorEnabled"
                                 kind="danger"
                                 size="small"
                                 @click="openTunnel"
@@ -222,6 +222,9 @@ export default {
         },
         editorEnabled: function () {
             return !!this.device?.editor?.enabled
+        },
+        editorCanBeEnabled: function () {
+            return this.developerMode && this.device.status === 'running'
         }
     },
     data () {
