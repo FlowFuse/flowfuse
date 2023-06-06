@@ -150,16 +150,6 @@
         },
         {
             "rules": {
-                "promise/always-return": "off"
-            },
-            "files": [
-                "forge/comms/index.js",
-                "forge/routes/api/project.js",
-                "forge/routes/api/projectActions.js"
-            ]
-        },
-        {
-            "rules": {
                 "promise/catch-or-return": "off"
             },
             "files": [
