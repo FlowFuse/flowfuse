@@ -359,6 +359,23 @@ module.exports = fp(async function (app, opts, done) {
                 await app.billing.setUserBillingCode(newUser, request.body.code)
             }
             await app.auditLog.User.account.register(userInfo, null, userInfo)
+
+            if (userProperties.sso_enabled) {
+                const pendingInvitations = await app.db.models.Invitation.forExternalEmail(newUser.email)
+                for (let i = 0; i < pendingInvitations.length; i++) {
+                    const invite = pendingInvitations[i]
+                    // For now we'll auto-accept any invites for this user
+                    // See https://github.com/flowforge/flowforge/issues/275#issuecomment-1040113991
+                    await app.db.controllers.Invitation.acceptInvitation(invite, newUser)
+                    // // If we go back to having the user be able to accept invites
+                    // // as a secondary step, the following code will convert the external
+                    // // invite into an internal one.
+                    // invite.external = false
+                    // invite.inviteeId = verifiedUser.id
+                    // await invite.save()
+                }
+            }
+
             reply.send(await app.db.views.User.userProfile(newUser))
         } catch (err) {
             let responseMessage

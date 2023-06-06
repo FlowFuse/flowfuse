@@ -1,6 +1,8 @@
 const should = require('should') // eslint-disable-line
 const setup = require('../../setup')
 const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localTransport.js')
+const FF_UTIL = require('flowforge-test-utils')
+const { Roles } = FF_UTIL.require('forge/lib/roles')
 
 describe('SSO Provider APIs', function () {
     let app
@@ -24,7 +26,8 @@ describe('SSO Provider APIs', function () {
             email: {
                 enabled: true,
                 transport: inbox
-            }
+            },
+            billing: undefined
         })
         TestObjects.alice = await app.db.models.User.byUsername('alice')
         TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
@@ -39,6 +42,7 @@ describe('SSO Provider APIs', function () {
         await app.close()
     })
     afterEach(async function () {
+        inbox.empty()
         await app.db.models.SAMLProvider.destroy({ where: {} })
         await addDefaultProviders()
     })
@@ -205,6 +209,7 @@ d
     describe('User registration', async function () {
         beforeEach(function () {
             app.settings.set('user:signup', true)
+            app.settings.set('team:user:invite:external', true)
         })
         it('sso user can register but no verification email sent', async function () {
             inbox.count().should.equal(0)
@@ -225,6 +230,44 @@ d
             // Not verified until they login the first time
             result.should.have.property('email_verified', false)
             inbox.count().should.equal(0)
+        })
+
+        it('sso user auto-accepts invites on registration', async function () {
+            inbox.count().should.equal(0)
+            const inviteResponse = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${app.team.hashid}/invitations`,
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    user: 'u2@example.com',
+                    role: Roles.Viewer
+                }
+            })
+            const inviteResult = inviteResponse.json()
+            inviteResult.should.have.property('status', 'okay')
+            inbox.count().should.equal(1)
+
+            const invites = await app.db.models.Invitation.findAll()
+            invites.should.have.lengthOf(1)
+            invites[0].should.have.property('role', Roles.Viewer)
+
+            const response = await app.inject({
+                method: 'POST',
+                url: '/account/register',
+                payload: {
+                    username: 'u2',
+                    password: 'p123123123121',
+                    name: 'u2',
+                    email: 'u2@example.com'
+                }
+            })
+            response.statusCode.should.equal(200)
+            const invites2 = await app.db.models.Invitation.findAll()
+            invites2.should.have.lengthOf(0)
+
+            const user = await app.db.models.User.byUsername('u2')
+            const teams = await app.db.models.Team.forUser(user)
+            teams.should.have.length(1)
         })
 
         it('rejects user registration if email contains +', async function () {
