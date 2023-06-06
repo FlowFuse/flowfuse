@@ -4,6 +4,8 @@ const { URL } = require('url')
 
 const { LRUCache } = require('lru-cache') // https://www.npmjs.com/package/lru-cache
 
+const { base64URLEncode, sha256, URLEncode } = require('../../db/utils')
+
 const requestCache = new LRUCache({
     ttl: 1000 * 60 * 10, // 10 minutes,
     max: 100
@@ -25,16 +27,6 @@ function redirectInvalidRequest (reply, redirectURI, error, errorDescription, st
     }
     responseUrl.search = querystring.stringify(response)
     reply.redirect(responseUrl.toString())
-}
-
-function base64URLEncode (str) {
-    return str.toString('base64')
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=/g, '')
-}
-function sha256 (buffer) {
-    return crypto.createHash('sha256').update(buffer).digest()
 }
 
 module.exports = async function (app) {
@@ -259,7 +251,7 @@ module.exports = async function (app) {
                 badRequest(reply, 'invalid_request', 'Invalid redirect_uri', requestObject.state)
                 return
             }
-            if (requestObject.code_challenge !== base64URLEncode(sha256(code_verifier))) {
+            if (requestObject.code_challenge !== URLEncode(sha256(code_verifier))) {
                 redirectInvalidRequest(reply, 'invalid_request', 'Invalid code_verifier', requestObject.state)
                 return
             }
