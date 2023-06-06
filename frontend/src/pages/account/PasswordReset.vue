@@ -18,11 +18,12 @@
 
 <script>
 import { mapState } from 'vuex'
-import alerts from '../../services/alerts.js'
-import FormRow from '../../components/FormRow.vue'
+
 import userApi from '../../api/user.js'
+import FormRow from '../../components/FormRow.vue'
 
 import FFLayoutBox from '../../layouts/Box.vue'
+import alerts from '../../services/alerts.js'
 
 export default {
     name: 'PasswordRequest',

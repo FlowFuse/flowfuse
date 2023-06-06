@@ -1,9 +1,11 @@
-import client from './client.js'
+import { RoleNames, Roles } from '../../../forge/lib/roles.js'
 import product from '../services/product.js'
+
 import daysSince from '../utils/daysSince.js'
 import elapsedTime from '../utils/elapsedTime.js'
 import paginateUrl from '../utils/paginateUrl.js'
-import { RoleNames, Roles } from '../../../forge/lib/roles.js'
+
+import client from './client.js'
 
 const getTeams = () => {
     return client.get('/api/v1/user/teams').then(res => {

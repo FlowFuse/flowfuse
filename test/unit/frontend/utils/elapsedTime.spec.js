@@ -1,4 +1,5 @@
 import { expect } from 'vitest'
+
 import elapsedTime from '../../../../frontend/src/utils/elapsedTime.js'
 
 describe('elapsedTime', () => {

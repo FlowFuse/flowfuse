@@ -1,8 +1,11 @@
-const FF_UTIL = require('flowforge-test-utils')
+const sleep = require('util').promisify(setTimeout)
+
 const should = require('should')
 const sinon = require('sinon')
-const sleep = require('util').promisify(setTimeout)
+
 const setup = require('../../setup')
+
+const FF_UTIL = require('flowforge-test-utils')
 
 const { START_DELAY, STOP_DELAY } = FF_UTIL.require('forge/containers/stub/index.js')
 const { KEY_BILLING_STATE } = FF_UTIL.require('forge/db/models/ProjectSettings')

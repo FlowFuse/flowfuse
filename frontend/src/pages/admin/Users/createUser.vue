@@ -32,14 +32,15 @@
 </template>
 
 <script>
-import usersApi from '../../../api/users.js'
-import FormRow from '../../../components/FormRow.vue'
-import FormHeading from '../../../components/FormHeading.vue'
+import { ChevronLeftIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
+
+import usersApi from '../../../api/users.js'
+import FormHeading from '../../../components/FormHeading.vue'
+import FormRow from '../../../components/FormRow.vue'
 
 import NavItem from '../../../components/NavItem.vue'
 import SideNavigation from '../../../components/SideNavigation.vue'
-import { ChevronLeftIcon } from '@heroicons/vue/solid'
 
 export default {
     name: 'AdminCreateUser',

@@ -1,7 +1,8 @@
-import client from './client.js'
 import daysSince from '../utils/daysSince.js'
 import elapsedTime from '../utils/elapsedTime.js'
 import paginateUrl from '../utils/paginateUrl.js'
+
+import client from './client.js'
 
 const getStats = async (options) => {
     return client.get('/api/v1/admin/stats', options).then(res => {

@@ -27,11 +27,11 @@
 </template>
 
 <script>
+import { ChevronLeftIcon, CollectionIcon, CogIcon, UsersIcon, UserGroupIcon, DesktopComputerIcon, TemplateIcon, ColorSwatchIcon, DatabaseIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
+
 import NavItem from '../../components/NavItem.vue'
 import SideNavigation from '../../components/SideNavigation.vue'
-
-import { ChevronLeftIcon, CollectionIcon, CogIcon, UsersIcon, UserGroupIcon, DesktopComputerIcon, TemplateIcon, ColorSwatchIcon, DatabaseIcon } from '@heroicons/vue/solid'
 
 const navigation = [
     { name: 'Overview', path: '/admin/overview', tag: 'admin-overview', icon: CollectionIcon },

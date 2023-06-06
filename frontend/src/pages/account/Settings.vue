@@ -40,9 +40,9 @@
 <script>
 import userApi from '../../api/user.js'
 
-import alerts from '../../services/alerts.js'
 import FormHeading from '../../components/FormHeading.vue'
 import FormRow from '../../components/FormRow.vue'
+import alerts from '../../services/alerts.js'
 import dialog from '../../services/dialog.js'
 
 export default {

@@ -1,5 +1,5 @@
-const { Model, DataTypes } = require('sequelize')
 const Hashids = require('hashids/cjs')
+const { Model, DataTypes } = require('sequelize')
 const hashids = {}
 
 const modelTypes = [

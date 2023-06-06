@@ -14,8 +14,8 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
 import { TemplateIcon, ArrowSmRightIcon } from '@heroicons/vue/solid'
+import { mapState } from 'vuex'
 
 export default {
     name: 'AccessRequest',

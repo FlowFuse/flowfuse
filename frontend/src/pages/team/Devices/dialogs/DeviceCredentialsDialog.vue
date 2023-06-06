@@ -37,10 +37,11 @@
 <script>
 // import devicesApi from '../../../../api/devices'
 
+import { DocumentDownloadIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
+
 import deviceApi from '../../../../api/devices.js'
 
-import { DocumentDownloadIcon } from '@heroicons/vue/outline'
 export default {
     name: 'DeviceCredentialsDialog',
     components: {

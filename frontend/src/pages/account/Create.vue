@@ -46,11 +46,10 @@
 </template>
 
 <script>
+import { useRoute } from 'vue-router'
 import { mapState } from 'vuex'
 
 import userApi from '../../api/user.js'
-
-import { useRoute } from 'vue-router'
 
 import FFLayoutBox from '../../layouts/Box.vue'
 

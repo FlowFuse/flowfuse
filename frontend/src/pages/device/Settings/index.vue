@@ -8,10 +8,11 @@
 </template>
 
 <script>
+import { useRouter } from 'vue-router'
+import { mapState } from 'vuex'
+
 import SectionSideMenu from '../../../components/SectionSideMenu.vue'
 
-import { mapState } from 'vuex'
-import { useRouter } from 'vue-router'
 import permissionsMixin from '../../../mixins/Permissions.js'
 
 export default {

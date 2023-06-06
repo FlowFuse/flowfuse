@@ -1,7 +1,8 @@
 const fp = require('fastify-plugin')
+
+const ACLManager = require('./aclManager')
 const { CommsClient } = require('./commsClient')
 const { DeviceCommsHandler } = require('./devices')
-const ACLManager = require('./aclManager')
 
 /**
  * This module represents the real-time comms component of the platform.

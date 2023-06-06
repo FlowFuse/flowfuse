@@ -134,10 +134,11 @@
 
 <script>
 
-import FormRow from '../../../../components/FormRow.vue'
-import FormHeading from '../../../../components/FormHeading.vue'
-import ChangeIndicator from '../components/ChangeIndicator.vue'
 import { TrashIcon, PlusSmIcon, LockClosedIcon, PencilIcon, XIcon, CheckIcon } from '@heroicons/vue/outline'
+
+import FormHeading from '../../../../components/FormHeading.vue'
+import FormRow from '../../../../components/FormRow.vue'
+import ChangeIndicator from '../components/ChangeIndicator.vue'
 
 export default {
     name: 'TemplatePaletteModulesEditor',

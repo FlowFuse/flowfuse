@@ -13,8 +13,9 @@
 </template>
 
 <script>
-import SectionSideMenu from '../../../components/SectionSideMenu.vue'
 import { mapState, mapGetters } from 'vuex'
+
+import SectionSideMenu from '../../../components/SectionSideMenu.vue'
 
 export default {
     name: 'AccountTeams',

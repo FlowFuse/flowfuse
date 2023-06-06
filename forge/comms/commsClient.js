@@ -1,5 +1,6 @@
-const mqtt = require('mqtt')
 const EventEmitter = require('events')
+
+const mqtt = require('mqtt')
 
 /**
  * MQTT Client wrapper. This connects to the platform broker and subscribes

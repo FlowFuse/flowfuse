@@ -73,11 +73,12 @@
 </template>
 
 <script>
-import usersApi from '../../../../api/users.js'
 import { LockClosedIcon } from '@heroicons/vue/outline'
-import Alerts from '../../../../services/alerts.js'
+
+import usersApi from '../../../../api/users.js'
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
+import Alerts from '../../../../services/alerts.js'
 
 export default {
     name: 'AdminUserEditDialog',

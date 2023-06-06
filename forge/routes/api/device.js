@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-unused-vars
 const { DeviceTunnelManager } = require('../../ee/lib/deviceEditor/DeviceTunnelManager')
 const { Roles } = require('../../lib/roles')
+
 const DeviceLive = require('./deviceLive')
 
 /**

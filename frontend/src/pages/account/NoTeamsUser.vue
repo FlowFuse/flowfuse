@@ -17,9 +17,10 @@
 
 <script>
 
-import userApi from '../../api/user.js'
-import { mapState } from 'vuex'
 import { InboxInIcon, UserGroupIcon } from '@heroicons/vue/outline'
+import { mapState } from 'vuex'
+
+import userApi from '../../api/user.js'
 
 export default {
     name: 'NoTeamsUser',

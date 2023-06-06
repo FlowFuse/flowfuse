@@ -97,11 +97,12 @@
 
 <script>
 
-import FormRow from '../../../../components/FormRow.vue'
-import FormHeading from '../../../../components/FormHeading.vue'
-import LockSetting from '../components/LockSetting.vue'
-import ChangeIndicator from '../components/ChangeIndicator.vue'
 import { TrashIcon, PlusSmIcon, LockClosedIcon, ExclamationIcon } from '@heroicons/vue/outline'
+
+import FormHeading from '../../../../components/FormHeading.vue'
+import FormRow from '../../../../components/FormRow.vue'
+import ChangeIndicator from '../components/ChangeIndicator.vue'
+import LockSetting from '../components/LockSetting.vue'
 
 export default {
     name: 'TemplateEnvironmentEditor',

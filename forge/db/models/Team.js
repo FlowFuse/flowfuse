@@ -4,8 +4,9 @@
  */
 
 const { DataTypes, literal } = require('sequelize')
-const { slugify, generateTeamAvatar, buildPaginationSearchClause } = require('../utils')
+
 const { Roles } = require('../../lib/roles')
+const { slugify, generateTeamAvatar, buildPaginationSearchClause } = require('../utils')
 
 module.exports = {
     name: 'Team',

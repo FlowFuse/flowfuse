@@ -40,22 +40,20 @@
 </template>
 
 <script>
-import stacksApi from '../../../api/stacks.js'
-import instanceTypesApi from '../../../api/instanceTypes.js'
+import { PlusSmIcon, DesktopComputerIcon } from '@heroicons/vue/outline'
+import { markRaw } from 'vue'
 
+import { mapState } from 'vuex'
+
+import instanceTypesApi from '../../../api/instanceTypes.js'
+import stacksApi from '../../../api/stacks.js'
+
+import FormHeading from '../../../components/FormHeading.vue'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
-import FormHeading from '../../../components/FormHeading.vue'
-
-import { markRaw } from 'vue'
-import { mapState } from 'vuex'
-
-import AdminStackEditDialog from './dialogs/AdminStackEditDialog.vue'
-
 import StackPropertiesCell from './components/StackPropertiesCell.vue'
-
-import { PlusSmIcon, DesktopComputerIcon } from '@heroicons/vue/outline'
+import AdminStackEditDialog from './dialogs/AdminStackEditDialog.vue'
 
 const StackName = {
     template: `<div class="flex items-center">

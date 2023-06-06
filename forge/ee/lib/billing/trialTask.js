@@ -1,4 +1,5 @@
 const { Op } = require('sequelize')
+
 const { KEY_BILLING_STATE } = require('../../../db/models/ProjectSettings')
 
 const ONE_DAY = 86400000

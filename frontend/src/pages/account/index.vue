@@ -34,11 +34,11 @@
 </template>
 
 <script>
-import { mapState, mapGetters } from 'vuex'
-import SideNavigation from '../../components/SideNavigation.vue'
-import NavItem from '../../components/NavItem.vue'
-
 import { ChevronLeftIcon, CogIcon, UserGroupIcon, LockClosedIcon } from '@heroicons/vue/solid'
+import { mapState, mapGetters } from 'vuex'
+
+import NavItem from '../../components/NavItem.vue'
+import SideNavigation from '../../components/SideNavigation.vue'
 
 export default {
     name: 'UserSettings',

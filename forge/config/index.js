@@ -16,6 +16,7 @@
 
 const fs = require('fs')
 const path = require('path')
+
 const fp = require('fastify-plugin')
 const YAML = require('yaml')
 

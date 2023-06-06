@@ -21,8 +21,9 @@
 
 <script>
 
-import FormRow from '../../../components/FormRow.vue'
 import FormHeading from '../../../components/FormHeading.vue'
+import FormRow from '../../../components/FormRow.vue'
+
 import ChangeIndicator from './components/ChangeIndicator.vue'
 import TemplateSettingsEditor from './sections/Editor.vue'
 

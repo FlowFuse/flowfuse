@@ -1,6 +1,6 @@
+const jwt = require('jsonwebtoken')
 const should = require('should') // eslint-disable-line
 const setup = require('../setup')
-const jwt = require('jsonwebtoken')
 // create jsdoc typedef for userController
 /**
  * @typedef {import('../../../../../forge/db/controllers/User')} userController

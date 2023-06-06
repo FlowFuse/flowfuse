@@ -6,8 +6,8 @@
  * @namespace setup
  * @memberof forge.routes
  */
+const fs = require('fs/promises')
 const path = require('path')
-const fs = require('fs').promises
 
 const setupApp = path.join(__dirname, '../../../frontend/dist-setup/setup.html')
 

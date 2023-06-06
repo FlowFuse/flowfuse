@@ -47,13 +47,13 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 import instanceTypesApi from '../../../../api/instanceTypes.js'
 import stacksApi from '../../../../api/stacks.js'
 
-import FormRow from '../../../../components/FormRow.vue'
 import FormHeading from '../../../../components/FormHeading.vue'
-
-import { mapState } from 'vuex'
+import FormRow from '../../../../components/FormRow.vue'
 
 export default {
     name: 'AdminInstanceTypeCreateDialog',

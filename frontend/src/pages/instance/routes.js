@@ -3,9 +3,9 @@
  * For all code under src/pages/instance project and instance are synonymous, but instance should be used going forward.
  */
 import InstanceAuditLog from './AuditLog.vue'
+import InstanceRemoteInstances from './Devices.vue'
 import InstanceLogs from './Logs.vue'
 import InstanceOverview from './Overview.vue'
-import InstanceRemoteInstances from './Devices.vue'
 import InstanceSettings from './Settings/index.vue'
 import InstanceSettingsRoutes from './Settings/routes.js'
 import InstanceSnapshots from './Snapshots/index.vue'

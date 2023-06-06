@@ -155,14 +155,15 @@
 </template>
 
 <script>
-import adminApi from '../../../api/admin.js'
-import settingsApi from '../../../api/settings.js'
-import instanceTypesApi from '../../../api/instanceTypes.js'
-import Dialog from '../../../services/dialog.js'
-import Alerts from '../../../services/alerts.js'
-import FormRow from '../../../components/FormRow.vue'
-import FormHeading from '../../../components/FormHeading.vue'
 import { mapState } from 'vuex'
+
+import adminApi from '../../../api/admin.js'
+import instanceTypesApi from '../../../api/instanceTypes.js'
+import settingsApi from '../../../api/settings.js'
+import FormHeading from '../../../components/FormHeading.vue'
+import FormRow from '../../../components/FormRow.vue'
+import Alerts from '../../../services/alerts.js'
+import Dialog from '../../../services/dialog.js'
 
 const validSettings = [
     'user:signup',

@@ -16,13 +16,15 @@
 // If there is a mismatch, it means the models have been changed
 // but there is no migration file provided to handle it.
 
+const fs = require('fs/promises')
+const path = require('path')
+
+const { Sequelize } = require('sequelize')
 const should = require('should') // eslint-disable-line
 const FF_UTIL = require('flowforge-test-utils')
+
 // const Forge = FF_UTIL.require('forge/forge.js')
 // const { sha256 } = FF_UTIL.require('forge/db/utils')
-const { Sequelize } = require('sequelize')
-const path = require('path')
-const fs = require('fs').promises
 
 const MIGRATIONS_DIR = FF_UTIL.resolve('forge/db/migrations')
 

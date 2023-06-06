@@ -41,11 +41,12 @@
 </template>
 
 <script>
-import stacksApi from '../../../../api/stacks.js'
+import { mapState } from 'vuex'
+
 import instanceTypesApi from '../../../../api/instanceTypes.js'
+import stacksApi from '../../../../api/stacks.js'
 
 import FormRow from '../../../../components/FormRow.vue'
-import { mapState } from 'vuex'
 
 export default {
     name: 'AdminStackCreateDialog',

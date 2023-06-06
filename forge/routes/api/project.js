@@ -1,11 +1,13 @@
 const crypto = require('crypto')
+
+const { KEY_HOSTNAME, KEY_SETTINGS } = require('../../db/models/ProjectSettings')
 const { Roles } = require('../../lib/roles')
+
+const { isFQDN } = require('../../lib/validate')
+
 const ProjectActions = require('./projectActions')
 const ProjectDevices = require('./projectDevices')
 const ProjectSnapshots = require('./projectSnapshots')
-
-const { KEY_HOSTNAME, KEY_SETTINGS } = require('../../db/models/ProjectSettings')
-const { isFQDN } = require('../../lib/validate')
 
 /**
  * Instance api routes

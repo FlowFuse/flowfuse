@@ -22,8 +22,9 @@
 <script>
 /* eslint-disable no-template-curly-in-string */
 
-import AuditEntry from './AuditEntry.vue'
 import FFAccordion from '../Accordion.vue'
+
+import AuditEntry from './AuditEntry.vue'
 
 export default {
     name: 'AuditLog',

@@ -43,9 +43,9 @@
  * This component is deprecated and should not be used
  * ff-dropdown from forge-ui-components is the intended replacement
  */
-import { ref } from 'vue'
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 import { ChevronDownIcon } from '@heroicons/vue/solid'
+import { ref } from 'vue'
 
 export default {
     name: 'DropdownMenu',

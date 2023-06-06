@@ -12,6 +12,7 @@
  */
 
 const { DataTypes, Op } = require('sequelize')
+
 const Controllers = require('../controllers')
 
 const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HA } = require('./ProjectSettings')

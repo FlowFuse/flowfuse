@@ -29,10 +29,13 @@
 </template>
 
 <script>
-import Dialog from '../../../services/dialog.js'
+import { ChevronRightIcon } from '@heroicons/vue/solid'
 
 import templateApi from '../../../api/templates.js'
 import SectionSideMenu from '../../../components/SectionSideMenu.vue'
+import alerts from '../../../services/alerts.js'
+import Dialog from '../../../services/dialog.js'
+
 import {
     setTemplateValue,
     setObjectValue,
@@ -40,8 +43,6 @@ import {
     prepareTemplateForEdit,
     templateValidators
 } from './utils.js'
-import alerts from '../../../services/alerts.js'
-import { ChevronRightIcon } from '@heroicons/vue/solid'
 
 const sideNavigation = [
     { name: 'Settings', path: './settings' },

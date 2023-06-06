@@ -36,16 +36,18 @@
 </template>
 
 <script>
+import { PlusSmIcon } from '@heroicons/vue/outline'
+import { markRaw } from 'vue'
+
+import { mapState } from 'vuex'
+
 import instanceTypesApi from '../../../api/instanceTypes.js'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
-import { markRaw } from 'vue'
-import { mapState } from 'vuex'
 
 import Dialog from '../../../services/dialog.js'
 
-import InstanceTypeEditDialog from './dialogs/InstanceTypeEditDialog.vue'
 import InstanceTypeDescriptionCell from './components/InstanceTypeDescriptionCell.vue'
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import InstanceTypeEditDialog from './dialogs/InstanceTypeEditDialog.vue'
 
 const marked = require('marked')
 

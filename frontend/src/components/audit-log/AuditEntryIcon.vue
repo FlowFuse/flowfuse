@@ -25,9 +25,6 @@
 
 <script>
 
-import ProjectIcon from '../icons/Projects.js'
-import NodeRedIcon from '../icons/NodeRed.js'
-import PipelineIcon from '../icons/Pipelines.js'
 import {
     BeakerIcon, DesktopComputerIcon, ClockIcon, ColorSwatchIcon,
     UserIcon, UserGroupIcon, LockClosedIcon,
@@ -35,6 +32,10 @@ import {
     CurrencyDollarIcon, CogIcon, ExclamationCircleIcon,
     ChipIcon, IdentificationIcon, TicketIcon, TemplateIcon
 } from '@heroicons/vue/outline'
+
+import NodeRedIcon from '../icons/NodeRed.js'
+import PipelineIcon from '../icons/Pipelines.js'
+import ProjectIcon from '../icons/Projects.js'
 
 const iconMap = {
     error: [

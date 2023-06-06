@@ -15,9 +15,8 @@
 
 import teamApi from '../../../../api/team.js'
 
-import alerts from '../../../../services/alerts.js'
-
 import FormRow from '../../../../components/FormRow.vue'
+import alerts from '../../../../services/alerts.js'
 
 export default {
     name: 'CreateProvisioningTokenDialog',

@@ -1,5 +1,6 @@
-import client from './client.js'
 import paginateUrl from '../utils/paginateUrl.js'
+
+import client from './client.js'
 
 const getStacks = async (cursor, limit, filter, projectType) => {
     let url = paginateUrl('/api/v1/stacks', cursor, limit)

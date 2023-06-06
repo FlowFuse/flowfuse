@@ -2,8 +2,10 @@
  * A Device
  * @namespace forge.db.models.Device
  */
-const { DataTypes } = require('sequelize')
 const crypto = require('crypto')
+
+const { DataTypes } = require('sequelize')
+
 const Controllers = require('../controllers')
 const { buildPaginationSearchClause } = require('../utils')
 

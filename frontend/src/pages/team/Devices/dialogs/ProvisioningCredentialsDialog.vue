@@ -19,9 +19,9 @@
 
 <script>
 
+import { DocumentDownloadIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
-import { DocumentDownloadIcon } from '@heroicons/vue/outline'
 export default {
     name: 'ProvisioningCredentialsDialog',
     components: {

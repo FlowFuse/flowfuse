@@ -1,8 +1,10 @@
 const { readFileSync, readdirSync, statSync, existsSync } = require('fs')
-const { marked } = require('marked')
-const htmlLinkExtractor = require('html-link-extractor')
-const axios = require('axios')
+
 const path = require('path')
+
+const axios = require('axios')
+const htmlLinkExtractor = require('html-link-extractor')
+const { marked } = require('marked')
 
 marked.setOptions({
     mangle: false // don't escape autolinked email address with HTML character references.

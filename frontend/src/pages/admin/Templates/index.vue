@@ -28,17 +28,17 @@
 </template>
 
 <script>
-import templatesApi from '../../../api/templates.js'
+import { PlusSmIcon } from '@heroicons/vue/outline'
+import { markRaw } from 'vue'
 
-import Dialog from '../../../services/dialog.js'
+import { mapState } from 'vuex'
+
+import templatesApi from '../../../api/templates.js'
 
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 
-import { markRaw } from 'vue'
-import { mapState } from 'vuex'
 import UserCell from '../../../components/tables/cells/UserCell.vue'
-
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import Dialog from '../../../services/dialog.js'
 
 export default {
     name: 'AdminTemplates',

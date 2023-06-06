@@ -1,5 +1,6 @@
-const { generateToken, sha256 } = require('../utils')
 const { Op } = require('sequelize')
+
+const { generateToken, sha256 } = require('../utils')
 
 const DEFAULT_TOKEN_SESSION_EXPIRY = 1000 * 60 * 30 // 30 mins session - with refresh token support
 

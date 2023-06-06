@@ -1,8 +1,9 @@
-import settingsApi from '../api/settings.js'
-import userApi from '../api/user.js'
-import teamApi from '../api/team.js'
-import router from '../routes.js'
 import { nextTick } from 'vue'
+
+import settingsApi from '../api/settings.js'
+import teamApi from '../api/team.js'
+import userApi from '../api/user.js'
+import router from '../routes.js'
 
 // initial state
 const state = () => ({

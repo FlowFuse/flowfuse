@@ -175,21 +175,24 @@
 <script>
 
 // utilities
+import { BeakerIcon, CheckCircleIcon, ExclamationIcon, TemplateIcon, WifiIcon } from '@heroicons/vue/outline'
 import semver from 'semver'
 
 // api
+import { mapState } from 'vuex'
+
 import deviceApi from '../../api/devices.js'
 
 // components
 import FormHeading from '../../components/FormHeading.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
-import SnapshotCreateDialog from './dialogs/SnapshotCreateDialog.vue'
-import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
+
 import alerts from '../../services/alerts.js'
-import { mapState } from 'vuex'
+
+import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
+import SnapshotCreateDialog from './dialogs/SnapshotCreateDialog.vue'
 
 // icons
-import { BeakerIcon, CheckCircleIcon, ExclamationIcon, TemplateIcon, WifiIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'DeviceOverview',
