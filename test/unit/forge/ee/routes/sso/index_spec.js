@@ -42,6 +42,7 @@ describe('SSO Provider APIs', function () {
         await app.close()
     })
     afterEach(async function () {
+        inbox.empty()
         await app.db.models.SAMLProvider.destroy({ where: {} })
         await addDefaultProviders()
     })
