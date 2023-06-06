@@ -27,7 +27,7 @@
                 <ff-button kind="danger" class="ml-4" @click="regenerateCredentials()">Regenerate credentials</ff-button>
             </template>
             <template v-else>
-                <ff-button v-if="!!clipboardSupported" kind="secondary" @click="copyToClipboard()">Copy to Clipboard</ff-button>
+                <ff-button v-if="clipboardSupported" kind="secondary" @click="copy()">Copy to Clipboard</ff-button>
                 <ff-button kind="secondary" @click="downloadCredentials()"><template v-slot:icon-left><DocumentDownloadIcon /></template>Download device-{{ this.device.id }}.yml</ff-button>
                 <ff-button class="ml-4" @click="close()">Done</ff-button>
             </template>
@@ -41,6 +41,7 @@
 import { mapState } from 'vuex'
 import deviceApi from '../../../../api/devices.js'
 import Alerts from '../../../../services/alerts.js'
+import clipboardMixin from '../../../../mixins/Clipboard.js'
 
 import { DocumentDownloadIcon } from '@heroicons/vue/outline'
 export default {
@@ -48,16 +49,16 @@ export default {
     components: {
         DocumentDownloadIcon
     },
+    mixins: [clipboardMixin],
     props: ['team'],
     data () {
         return {
-            device: null,
-            clipboardSupported: false
+            device: null
         }
     },
-    mounted () {
-        this.clipboardSupported = !!navigator.clipboard
-    },
+    // mounted () {
+    //     this.clipboardSupported = !!navigator.clipboard
+    // },
     methods: {
         downloadCredentials () {
             const element = document.createElement('a')
@@ -76,16 +77,11 @@ export default {
             this.$refs.dialog.close()
             this.device.credentials = undefined
         },
-        copyToClipboard () {
-            navigator.permissions.query({ name: 'clipboard-write' }).then((result) => {
-                if (result.state === 'granted' || result.state === 'prompt') {
-                    /* write to the clipboard now */
-                    navigator.clipboard.writeText(this.credentials)
-                    Alerts.emit('Copied to Clipboard.', 'confirmation')
-                }
+        copy () {
+            this.copyToClipboard(this.credentials).then(() => {
+                Alerts.emit('Copied to Clipboard.', 'confirmation')
             }).catch((err) => {
-                // eslint-disable-next-line no-console
-                console.log('Clipboard write permission denied: ', err)
+                console.warn('Clipboard write permission denied: ', err)
                 Alerts.emit('Clipboard write permission denied.', 'warning')
             })
         }
