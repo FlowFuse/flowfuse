@@ -245,16 +245,6 @@
         },
         {
             "rules": {
-                "vue/comment-directive": "off"
-            },
-            "files": [
-                "frontend/dist-setup/setup.html",
-                "frontend/src/index.html",
-                "frontend/src/setup.html"
-            ]
-        },
-        {
-            "rules": {
                 "vue/component-definition-name-casing": "off"
             },
             "files": [
