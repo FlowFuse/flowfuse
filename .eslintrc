@@ -687,20 +687,6 @@
         },
         {
             "rules": {
-                "vue/this-in-template": "off"
-            },
-            "files": [
-                "frontend/src/layouts/Box.vue",
-                "frontend/src/pages/admin/InstanceTypes/dialogs/InstanceTypeEditDialog.vue",
-                "frontend/src/pages/admin/Stacks/dialogs/AdminStackEditDialog.vue",
-                "frontend/src/pages/team/components/ProjectTypeSummary.vue",
-                "frontend/src/pages/team/Devices/dialogs/DeviceCredentialsDialog.vue",
-                "frontend/src/pages/team/Devices/dialogs/ProvisioningCredentialsDialog.vue",
-                "frontend/src/pages/team/Settings/Devices.vue"
-            ]
-        },
-        {
-            "rules": {
                 "vue/v-on-event-hyphenation": "off"
             },
             "files": [

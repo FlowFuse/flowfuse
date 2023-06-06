@@ -12,7 +12,7 @@
                     Default Stack
                     <template #description><div v-if="stacks.length === 0">There are no stacks defined for this Instance Type yet.</div></template>
                 </FormRow>
-                <template v-if="this.features.billing">
+                <template v-if="features.billing">
                     <FormHeading>Billing</FormHeading>
                     <FormRow v-model="input.properties.billingProductId" :type="editDisabled?'uneditable':''">
                         Stripe Product Id

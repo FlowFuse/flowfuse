@@ -3,7 +3,7 @@
         <template v-slot:default>
             <ff-loading v-if="loading" message="Creating Stack..."/>
             <form v-else class="space-y-6" @submit.prevent>
-                <div v-if="this.input.replaces">
+                <div v-if="input.replaces">
                     This will create a new stack to replace '{{input.replaces.name}}'.
                     The existing stack will be marked inactive and will not be
                     available for use by new instances.
@@ -17,7 +17,7 @@
                     <template v-slot:description>This is how the stack is shown to users.</template>
                 </FormRow>
                 <FormRow v-model="input.active" type="checkbox">Active</FormRow>
-                <template v-if="!this.editDisabled">
+                <template v-if="!editDisabled">
                     <FormRow :options="instanceTypes" :disabled="editTypeDisabled" :error="errors.projectType" v-model="input.projectType" id="projectType">Instance Type
                         <template v-slot:description>
                             <div v-if="editTypeDisabled">Stacks cannot be moved to a different instance type</div>

@@ -4,7 +4,7 @@
             <slot name="header"></slot>
             <div class="text-lg font-bold text-center">{{ projectType.name }}</div>
             <div class="flex-grow text-center text-sm p-4"><div class="text-left" v-html="projectType.htmlDescription"></div></div>
-            <div v-if="this.features.billing && projectType.properties.billingDescription" class="text-lg font-bold text-center m-2 mt-4">
+            <div v-if="features.billing && projectType.properties.billingDescription" class="text-lg font-bold text-center m-2 mt-4">
                 {{ projectType.properties.billingDescription }}
             </div>
         </label>

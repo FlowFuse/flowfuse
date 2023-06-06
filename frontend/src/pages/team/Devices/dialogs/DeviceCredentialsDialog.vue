@@ -17,7 +17,7 @@
                         credentials. Make a note of them as this is the only
                         time you will see them.
                     </p>
-                    <pre class="overflow-auto text-sm p-4 border rounded bg-gray-800 text-gray-200">{{ this.credentials }}</pre>
+                    <pre class="overflow-auto text-sm p-4 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
                 </template>
             </form>
         </template>
@@ -27,7 +27,7 @@
                 <ff-button kind="danger" class="ml-4" @click="regenerateCredentials()">Regenerate credentials</ff-button>
             </template>
             <template v-else>
-                <ff-button kind="secondary" @click="downloadCredentials()"><template v-slot:icon-left><DocumentDownloadIcon /></template>Download device-{{ this.device.id }}.yml</ff-button>
+                <ff-button kind="secondary" @click="downloadCredentials()"><template v-slot:icon-left><DocumentDownloadIcon /></template>Download device-{{ device.id }}.yml</ff-button>
                 <ff-button class="ml-4" @click="close()">Done</ff-button>
             </template>
         </template>
