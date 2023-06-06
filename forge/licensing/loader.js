@@ -1,6 +1,8 @@
 const fs = require('fs')
-const jwt = require('jsonwebtoken')
+
 const path = require('path')
+
+const jwt = require('jsonwebtoken')
 
 const LICENSE_ISSUER = 'FlowForge Inc.'
 

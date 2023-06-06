@@ -6,8 +6,9 @@
 </template>
 
 <script>
-import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import { mapState } from 'vuex'
+
+import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 
 export default {
     name: 'AdminSettings',

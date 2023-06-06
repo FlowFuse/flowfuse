@@ -1,7 +1,8 @@
 const fp = require('fastify-plugin')
+
+const ACLManager = require('./aclManager')
 const { CommsClient } = require('./commsClient')
 const { DeviceCommsHandler } = require('./devices')
-const ACLManager = require('./aclManager')
 
 /**
  * This module represents the real-time comms component of the platform.
@@ -43,7 +44,7 @@ module.exports = fp(async function (app, _opts, next) {
 
         app.ready().then(async () => {
             // Once the whole platform is ready, tell the client to connect
-            await client.init()
+            return await client.init()
         })
         app.addHook('onClose', async (_) => {
             app.log.info('Comms shutdown')

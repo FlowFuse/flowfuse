@@ -65,19 +65,18 @@
 </template>
 
 <script>
+import { ChevronLeftIcon, ExternalLinkIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
 import teamApi from '../../api/team.js'
 import teamTypesApi from '../../api/teamTypes.js'
 import teamsApi from '../../api/teams.js'
-import slugify from '../../utils/slugify.js'
-import FormRow from '../../components/FormRow.vue'
 import FormHeading from '../../components/FormHeading.vue'
+import FormRow from '../../components/FormRow.vue'
 
 import NavItem from '../../components/NavItem.vue'
 import SideNavigation from '../../components/SideNavigation.vue'
-
-import { ChevronLeftIcon, ExternalLinkIcon } from '@heroicons/vue/solid'
+import slugify from '../../utils/slugify.js'
 
 export default {
     name: 'CreateTeam',

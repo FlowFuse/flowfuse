@@ -3,6 +3,7 @@
  * @namespace forge.db.models.ProjectTemplate
  */
 const { DataTypes, literal } = require('sequelize')
+
 const { buildPaginationSearchClause } = require('../utils')
 
 module.exports = {

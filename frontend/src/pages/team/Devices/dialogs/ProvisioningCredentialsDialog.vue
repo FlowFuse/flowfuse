@@ -7,7 +7,7 @@
                     credentials. Make a note of them as this is the only
                     time you will see them.
                 </p>
-                <pre class="overflow-auto text-sm p-4 border rounded bg-gray-800 text-gray-200">{{ this.credentials }}</pre>
+                <pre class="overflow-auto text-sm p-4 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
             </form>
         </template>
         <template v-slot:actions>
@@ -20,10 +20,11 @@
 
 <script>
 
-import { mapState } from 'vuex'
 import { DocumentDownloadIcon } from '@heroicons/vue/outline'
-import Alerts from '../../../../services/alerts.js'
+import { mapState } from 'vuex'
+
 import clipboardMixin from '../../../../mixins/Clipboard.js'
+import Alerts from '../../../../services/alerts.js'
 
 export default {
     name: 'ProvisioningCredentialsDialog',

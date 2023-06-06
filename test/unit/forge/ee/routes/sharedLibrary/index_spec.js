@@ -1,4 +1,5 @@
 const should = require('should')
+
 const setup = require('../../setup')
 
 describe('Library Storage API', function () {

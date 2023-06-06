@@ -1,5 +1,7 @@
-import client from './client.js'
 import paginateUrl from '../utils/paginateUrl.js'
+
+import client from './client.js'
+
 const marked = require('marked')
 
 const getTeamTypes = async (cursor, limit, filter) => {

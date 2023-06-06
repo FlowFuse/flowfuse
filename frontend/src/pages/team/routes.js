@@ -1,25 +1,25 @@
-import Team from './index.vue'
+import ensurePermission from '../../utils/ensurePermission.js'
+
 import TeamApplications from './Applications.vue'
-import TeamInstances from './Instances.vue'
+import TeamAuditLog from './AuditLog.vue'
+import TeamBilling from './Billing.vue'
 import TeamDevices from './Devices/index.vue'
+import TeamInstances from './Instances.vue'
 import TeamLibrary from './Library.vue'
-import TeamMembers from './Members/index.vue'
 import TeamMembersMembers from './Members/General.vue'
 import TeamMembersInvitations from './Members/Invitations.vue'
-import TeamAuditLog from './AuditLog.vue'
-import TeamSettings from './Settings/index.vue'
-import TeamSettingsGeneral from './Settings/General.vue'
+import TeamMembers from './Members/index.vue'
 import TeamSettingsDanger from './Settings/Danger.vue'
 import TeamSettingsDevices from './Settings/Devices.vue'
+import TeamSettingsGeneral from './Settings/General.vue'
+import TeamSettings from './Settings/index.vue'
 // import TeamSettingsPermissions from './Settings/Permissions.vue'
 import CreateTeam from './create.vue'
 import CreateApplication from './createApplication.vue'
 import CreateInstance from './createInstance.vue'
 
 // EE Only
-import TeamBilling from './Billing.vue'
-
-import ensurePermission from '../../utils/ensurePermission.js'
+import Team from './index.vue'
 
 export default [
     {

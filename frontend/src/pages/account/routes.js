@@ -1,21 +1,23 @@
-import Account from './index.vue'
-import AccountSettings from './Settings.vue'
-import AccountSecurity from './Security.vue'
-import AccountSecurityChangePassword from './Security/ChangePassword.vue'
-// import AccountSecuritySessions from "@/pages/account/Security/Sessions.vue"
-import AccountTeams from './Teams/index.vue'
-import AccountTeamTeams from './Teams/Teams.vue'
-import AccountTeamInvitations from './Teams/Invitations.vue'
+import { CogIcon } from '@heroicons/vue/outline'
+
+import store from '../../store/index.js'
+
 import AccessRequest from './AccessRequest.vue'
 import AccessRequestEditor from './AccessRequestEditor.vue'
 import AccountCreate from './Create.vue'
-import VerifyEmail from './VerifyEmail.vue'
-import VerifyPendingEmailChange from './VerifyPendingEmailChange.vue'
 import ForgotPassword from './ForgotPassword.vue'
 import PasswordReset from './PasswordReset.vue'
+import AccountSecurityChangePassword from './Security/ChangePassword.vue'
+import AccountSecurity from './Security.vue'
+import AccountSettings from './Settings.vue'
+// import AccountSecuritySessions from "@/pages/account/Security/Sessions.vue"
+import AccountTeamInvitations from './Teams/Invitations.vue'
+import AccountTeamTeams from './Teams/Teams.vue'
+import AccountTeams from './Teams/index.vue'
+import VerifyEmail from './VerifyEmail.vue'
+import VerifyPendingEmailChange from './VerifyPendingEmailChange.vue'
 
-import { CogIcon } from '@heroicons/vue/outline'
-import store from '../../store/index.js'
+import Account from './index.vue'
 
 export default [
     {

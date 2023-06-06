@@ -1,10 +1,12 @@
 const should = require('should') // eslint-disable-line
-const FF_UTIL = require('flowforge-test-utils')
-const { Roles } = FF_UTIL.require('forge/lib/roles')
+
 const crypto = require('crypto')
 const sleep = require('util').promisify(setTimeout)
+
 const setup = require('../setup')
 
+const FF_UTIL = require('flowforge-test-utils')
+const { Roles } = FF_UTIL.require('forge/lib/roles')
 const { KEY_HOSTNAME } = FF_UTIL.require('forge/db/models/ProjectSettings')
 const { START_DELAY, STOP_DELAY } = FF_UTIL.require('forge/containers/stub/index.js')
 

@@ -10,16 +10,15 @@
 
 <script>
 
+import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 
 import TeamCell from '../../../components/tables/cells/TeamCell.vue'
-import CreateTeamButton from '../components/CreateTeamButton.vue'
 import alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
-
-import { markRaw } from 'vue'
+import CreateTeamButton from '../components/CreateTeamButton.vue'
 
 export default {
     name: 'AccountTeams',

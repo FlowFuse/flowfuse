@@ -1,5 +1,6 @@
-const bcrypt = require('bcrypt')
 const crypto = require('crypto')
+
+const bcrypt = require('bcrypt')
 const Hashids = require('hashids/cjs')
 const { Op, fn, col, where } = require('sequelize')
 

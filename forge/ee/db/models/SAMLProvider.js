@@ -1,5 +1,6 @@
-const { buildPaginationSearchClause } = require('../../../db/utils')
 const { DataTypes } = require('sequelize')
+
+const { buildPaginationSearchClause } = require('../../../db/utils')
 
 module.exports = {
     name: 'SAMLProvider',

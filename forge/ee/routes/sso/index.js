@@ -1,6 +1,7 @@
 const fp = require('fastify-plugin')
-const { Roles } = require('../../../lib/roles.js')
+
 const { registerPermissions } = require('../../../lib/permissions')
+const { Roles } = require('../../../lib/roles.js')
 
 module.exports = fp(async function (app, opts, done) {
     registerPermissions({

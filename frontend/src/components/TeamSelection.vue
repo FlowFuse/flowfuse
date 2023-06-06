@@ -23,9 +23,9 @@
 </template>
 
 <script>
+import { PlusIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
-import { PlusIcon } from '@heroicons/vue/solid'
 import NavItem from './NavItem.vue'
 
 export default {

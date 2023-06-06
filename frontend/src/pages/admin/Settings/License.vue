@@ -52,9 +52,9 @@
 </template>
 
 <script>
-import FormRow from '../../../components/FormRow.vue'
-import FormHeading from '../../../components/FormHeading.vue'
 import adminApi from '../../../api/admin.js'
+import FormHeading from '../../../components/FormHeading.vue'
+import FormRow from '../../../components/FormRow.vue'
 
 export default {
     name: 'AdminSettingsLicense',

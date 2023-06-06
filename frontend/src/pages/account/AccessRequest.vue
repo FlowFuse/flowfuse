@@ -23,8 +23,8 @@
 </template>
 
 <script>
+import { ArrowSmLeftIcon, ArrowSmRightIcon, KeyIcon, TemplateIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
-import { TemplateIcon, KeyIcon, ArrowSmLeftIcon, ArrowSmRightIcon } from '@heroicons/vue/solid'
 
 export default {
     name: 'AccessRequest',

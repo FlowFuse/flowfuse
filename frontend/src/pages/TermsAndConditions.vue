@@ -18,10 +18,10 @@
 
 <script>
 import { mapState } from 'vuex'
-import userApi from '../api/user.js'
-import store from '../store/index.js'
 
+import userApi from '../api/user.js'
 import FFLayoutBox from '../layouts/Box.vue'
+import store from '../store/index.js'
 
 export default {
     name: 'TermsAndConditions',

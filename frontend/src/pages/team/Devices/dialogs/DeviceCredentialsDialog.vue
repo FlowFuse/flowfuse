@@ -17,7 +17,7 @@
                         credentials. Make a note of them as this is the only
                         time you will see them.
                     </p>
-                    <pre class="overflow-auto text-sm p-4 border rounded bg-gray-800 text-gray-200">{{ this.credentials }}</pre>
+                    <pre class="overflow-auto text-sm p-4 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
                 </template>
             </form>
         </template>
@@ -28,7 +28,7 @@
             </template>
             <template v-else>
                 <ff-button v-if="clipboardSupported" kind="secondary" @click="copy()">Copy to Clipboard</ff-button>
-                <ff-button kind="secondary" @click="downloadCredentials()"><template v-slot:icon-left><DocumentDownloadIcon /></template>Download device-{{ this.device.id }}.yml</ff-button>
+                <ff-button kind="secondary" @click="downloadCredentials()"><template v-slot:icon-left><DocumentDownloadIcon /></template>Download device-{{ device.id }}.yml</ff-button>
                 <ff-button class="ml-4" @click="close()">Done</ff-button>
             </template>
         </template>
@@ -38,12 +38,13 @@
 <script>
 // import devicesApi from '../../../../api/devices'
 
-import { mapState } from 'vuex'
-import deviceApi from '../../../../api/devices.js'
-import Alerts from '../../../../services/alerts.js'
-import clipboardMixin from '../../../../mixins/Clipboard.js'
-
 import { DocumentDownloadIcon } from '@heroicons/vue/outline'
+import { mapState } from 'vuex'
+
+import deviceApi from '../../../../api/devices.js'
+import clipboardMixin from '../../../../mixins/Clipboard.js'
+import Alerts from '../../../../services/alerts.js'
+
 export default {
     name: 'DeviceCredentialsDialog',
     components: {

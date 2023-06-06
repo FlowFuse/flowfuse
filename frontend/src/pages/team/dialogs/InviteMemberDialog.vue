@@ -25,9 +25,10 @@
 
 <script>
 import { mapState } from 'vuex'
-import FormRow from '../../../components/FormRow.vue'
-import teamApi from '../../../api/team.js'
+
 import { Roles } from '../../../../../forge/lib/roles.js'
+import teamApi from '../../../api/team.js'
+import FormRow from '../../../components/FormRow.vue'
 
 import alerts from '../../../services/alerts.js'
 

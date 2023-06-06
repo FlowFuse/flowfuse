@@ -1,4 +1,5 @@
 import { expect } from 'vitest'
+
 import DateTime from '../../../../frontend/src/mixins/DateTime.js'
 
 describe('DateTime', () => {

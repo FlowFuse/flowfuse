@@ -32,14 +32,16 @@
 
 <script>
 
-import usersApi from '../../../api/users.js'
 import { UserAddIcon } from '@heroicons/vue/outline'
-import UserCell from '../../../components/tables/cells/UserCell.vue'
+
 import { markRaw } from 'vue'
 
-import AdminUserEditDialog from './dialogs/AdminUserEditDialog.vue'
-
 import { mapState } from 'vuex'
+
+import usersApi from '../../../api/users.js'
+import UserCell from '../../../components/tables/cells/UserCell.vue'
+
+import AdminUserEditDialog from './dialogs/AdminUserEditDialog.vue'
 
 export default {
     name: 'AdminUsers',

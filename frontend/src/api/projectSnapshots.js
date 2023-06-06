@@ -1,7 +1,8 @@
-import client from './client.js'
 import product from '../services/product.js'
 import daysSince from '../utils/daysSince.js'
 import paginateUrl from '../utils/paginateUrl.js'
+
+import client from './client.js'
 import instanceApi from './instances.js'
 
 /**

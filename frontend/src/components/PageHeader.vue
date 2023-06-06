@@ -30,7 +30,7 @@
                       @click="mobileTeamSelectionOpen = false; $router.push({name: 'CreateTeam'})"></nav-item>
         </div>
         <div class="hidden lg:flex">
-            <ff-team-selection  data-action="team-selection" />
+            <ff-team-selection data-action="team-selection" />
             <!-- Desktop: User Options -->
             <ff-dropdown v-if="user" class="ff-navigation ff-user-options" options-align="right" data-action="user-options" data-cy="user-options">
                 <template v-slot:placeholder>
@@ -50,11 +50,11 @@
     </div>
 </template>
 <script>
+import { AdjustmentsIcon, CogIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon } from '@heroicons/vue/solid'
 import { ref } from 'vue'
-import { mapState, mapGetters } from 'vuex'
-import router from '../routes.js'
+import { mapGetters, mapState } from 'vuex'
 
-import { MenuIcon, PlusIcon, QuestionMarkCircleIcon, AdjustmentsIcon, CogIcon, LogoutIcon } from '@heroicons/vue/solid'
+import router from '../routes.js'
 
 import NavItem from './NavItem.vue'
 import TeamSelection from './TeamSelection.vue'

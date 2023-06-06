@@ -1,9 +1,8 @@
+import { CogIcon } from '@heroicons/vue/solid'
 import { mount } from '@vue/test-utils'
 import { expect } from 'vitest'
 
 import NavItem from '../../../../frontend/src/components/NavItem.vue'
-
-import { CogIcon } from '@heroicons/vue/solid'
 
 describe('NavItem', () => {
     test('mounts correctly', async () => {

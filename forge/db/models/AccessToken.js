@@ -1,4 +1,5 @@
 const { DataTypes } = require('sequelize')
+
 const { uppercaseFirst, sha256 } = require('../utils')
 
 module.exports = {

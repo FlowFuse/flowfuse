@@ -5,18 +5,18 @@
  * @namespace api
  * @memberof forge.routes
  */
-const User = require('./user.js')
-const Users = require('./users.js')
-const Team = require('./team.js')
-const TeamType = require('./teamType.js')
-const Application = require('./application.js')
-const Project = require('./project.js')
 const Admin = require('./admin.js')
+const Application = require('./application.js')
+const Device = require('./device.js')
+const Project = require('./project.js')
+const ProjectType = require('./projectType.js')
 const Settings = require('./settings.js')
 const Stack = require('./stack.js')
+const Team = require('./team.js')
+const TeamType = require('./teamType.js')
 const Template = require('./template.js')
-const Device = require('./device.js')
-const ProjectType = require('./projectType.js')
+const User = require('./user.js')
+const Users = require('./users.js')
 
 module.exports = async function (app) {
     app.addHook('preHandler', app.verifySession)

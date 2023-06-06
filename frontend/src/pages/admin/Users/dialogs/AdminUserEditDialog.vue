@@ -44,7 +44,7 @@
                 <FormRow :error="errors.expirePassword" wrapperClass="block">
                     <template #input>
                         <div class="flex justify-between items-center">
-                            <ff-button :disabled="expirePassLocked"  :kind="expirePassLocked?'secondary':'danger'" @click="expirePassword">Expire password</ff-button>
+                            <ff-button :disabled="expirePassLocked" :kind="expirePassLocked?'secondary':'danger'" @click="expirePassword">Expire password</ff-button>
                             <ff-button v-if="expirePassLocked" kind="danger" size="small" @click="unlockExpirePassword()">
                                 Unlock
                                 <template v-slot:icon>
@@ -73,11 +73,12 @@
 </template>
 
 <script>
-import usersApi from '../../../../api/users.js'
 import { LockClosedIcon } from '@heroicons/vue/outline'
-import Alerts from '../../../../services/alerts.js'
+
+import usersApi from '../../../../api/users.js'
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
+import Alerts from '../../../../services/alerts.js'
 
 export default {
     name: 'AdminUserEditDialog',

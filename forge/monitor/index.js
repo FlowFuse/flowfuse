@@ -1,8 +1,9 @@
-const fp = require('fastify-plugin')
-const cronosjs = require('cronosjs')
-const fs = require('fs').promises
+const fs = require('fs/promises')
 const path = require('path')
+
 const axios = require('axios')
+const cronosjs = require('cronosjs')
+const fp = require('fastify-plugin')
 
 module.exports = fp(async function (app, _opts, next) {
     const PING_ENDPOINT = app.config.telemetry.url || 'https://ping.flowforge.com/ping'

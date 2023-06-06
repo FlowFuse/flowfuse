@@ -16,7 +16,7 @@
                 </tr>
             </thead>
             <tbody class="bg-white">
-                <tr v-for="(item, itemIdx) in editable.settings.env"  :key="item.index">
+                <tr v-for="(item, itemIdx) in editable.settings.env" :key="item.index">
                     <td class="px-4 py-4 border w-auto align-top">
                         <FormRow
                             class="font-mono"
@@ -97,11 +97,12 @@
 
 <script>
 
-import FormRow from '../../../../components/FormRow.vue'
+import { ExclamationIcon, LockClosedIcon, PlusSmIcon, TrashIcon } from '@heroicons/vue/outline'
+
 import FormHeading from '../../../../components/FormHeading.vue'
-import LockSetting from '../components/LockSetting.vue'
+import FormRow from '../../../../components/FormRow.vue'
 import ChangeIndicator from '../components/ChangeIndicator.vue'
-import { TrashIcon, PlusSmIcon, LockClosedIcon, ExclamationIcon } from '@heroicons/vue/outline'
+import LockSetting from '../components/LockSetting.vue'
 
 export default {
     name: 'TemplateEnvironmentEditor',

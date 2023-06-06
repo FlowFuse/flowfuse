@@ -35,10 +35,10 @@
 </template>
 
 <script>
-import FormRow from '../../../../components/FormRow.vue'
 import FormHeading from '../../../../components/FormHeading.vue'
-import LockSetting from '../components/LockSetting.vue'
+import FormRow from '../../../../components/FormRow.vue'
 import ChangeIndicator from '../components/ChangeIndicator.vue'
+import LockSetting from '../components/LockSetting.vue'
 export default {
     name: 'TemplateSettingsSecurity',
     props: ['editTemplate', 'modelValue'],

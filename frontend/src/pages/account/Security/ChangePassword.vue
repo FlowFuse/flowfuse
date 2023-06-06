@@ -15,8 +15,8 @@
 
 <script>
 import userApi from '../../../api/user.js'
-import FormRow from '../../../components/FormRow.vue'
 import FormHeading from '../../../components/FormHeading.vue'
+import FormRow from '../../../components/FormRow.vue'
 
 export default {
     name: 'AccountSecurityChangePassword',

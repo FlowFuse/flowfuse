@@ -1,5 +1,6 @@
 const should = require('should') // eslint-disable-line
 const setup = require('../setup')
+
 const FF_UTIL = require('flowforge-test-utils')
 
 describe('Invitation controller', function () {

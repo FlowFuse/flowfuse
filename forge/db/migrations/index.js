@@ -1,6 +1,6 @@
-const { DataTypes, Model } = require('sequelize')
+const fs = require('fs/promises')
 
-const fs = require('fs').promises
+const { DataTypes, Model } = require('sequelize')
 
 const MIGRATIONS_DIR = __dirname
 

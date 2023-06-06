@@ -10,8 +10,9 @@
 </template>
 
 <script>
-import userApi from '../../../api/user.js'
 import { markRaw } from 'vue'
+
+import userApi from '../../../api/user.js'
 import InviteUserCell from '../../../components/tables/cells/InviteUserCell.vue'
 import TeamCell from '../../../components/tables/cells/TeamCell.vue'
 

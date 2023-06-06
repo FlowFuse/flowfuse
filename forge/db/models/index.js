@@ -46,6 +46,7 @@
  * @typedef {{name: string, schema: ModelAttributes, model: Model, indexes?: ModelIndexesOptions[], scopes?: ModelScopeOptions, options?: InitOptions}} FFModel
  */
 const { Model, DataTypes } = require('sequelize')
+
 const { getHashId } = require('../utils')
 
 // The models that should be loaded

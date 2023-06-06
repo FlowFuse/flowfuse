@@ -4,7 +4,7 @@
         </FormHeading>
         <ff-loading v-if="loadingActive" message="Loading Stacks..." />
         <ff-data-table v-if="!loadingActive" data-el="active-stacks" :columns="activeColumns" :rows="activeStacks"
-                       :show-search="true" search-placeholder="Search by Stack Name..."  no-data-message="No Active Stacks Found">
+                       :show-search="true" search-placeholder="Search by Stack Name..." no-data-message="No Active Stacks Found">
             <template v-slot:actions>
                 <ff-button @click="showCreateStackDialog">
                     <template v-slot:icon-right>
@@ -40,22 +40,20 @@
 </template>
 
 <script>
-import stacksApi from '../../../api/stacks.js'
-import instanceTypesApi from '../../../api/instanceTypes.js'
+import { DesktopComputerIcon, PlusSmIcon } from '@heroicons/vue/outline'
+import { markRaw } from 'vue'
 
+import { mapState } from 'vuex'
+
+import instanceTypesApi from '../../../api/instanceTypes.js'
+import stacksApi from '../../../api/stacks.js'
+
+import FormHeading from '../../../components/FormHeading.vue'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
-import FormHeading from '../../../components/FormHeading.vue'
-
-import { markRaw } from 'vue'
-import { mapState } from 'vuex'
-
-import AdminStackEditDialog from './dialogs/AdminStackEditDialog.vue'
-
 import StackPropertiesCell from './components/StackPropertiesCell.vue'
-
-import { PlusSmIcon, DesktopComputerIcon } from '@heroicons/vue/outline'
+import AdminStackEditDialog from './dialogs/AdminStackEditDialog.vue'
 
 const StackName = {
     template: `<div class="flex items-center">

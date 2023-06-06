@@ -1,10 +1,10 @@
+const { DataTypes } = require('sequelize')
+
 const { sha256 } = require('../utils')
 /**
  * An active login session
  * @namespace forge.db.models.Session
  */
-
-const { DataTypes } = require('sequelize')
 
 module.exports = {
     name: 'Session',

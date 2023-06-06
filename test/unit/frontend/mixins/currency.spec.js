@@ -1,4 +1,5 @@
 import { expect } from 'vitest'
+
 import Currency from '../../../../frontend/src/mixins/Currency.js'
 
 // import FF_UTIL from 'flowforge-test-utils'

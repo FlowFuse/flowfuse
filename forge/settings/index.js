@@ -1,7 +1,8 @@
-const { v4: uuidv4 } = require('uuid')
-const fp = require('fastify-plugin')
-const path = require('path')
 const fs = require('fs')
+const path = require('path')
+
+const fp = require('fastify-plugin')
+const { v4: uuidv4 } = require('uuid')
 
 const defaultSettings = require('./defaults')
 
