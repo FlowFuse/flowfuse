@@ -27,7 +27,7 @@ export default {
         },
         notifications: {
             type: Number,
-            required: true
+            default: () => 0
         }
     }
 }
