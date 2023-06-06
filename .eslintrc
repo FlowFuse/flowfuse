@@ -603,15 +603,6 @@
         },
         {
             "rules": {
-                "vue/require-default-prop": "off"
-            },
-            "files": [
-                "frontend/src/components/NavItem.vue",
-                "frontend/src/pages/team/components/LibraryEntryTypeIcon.vue"
-            ]
-        },
-        {
-            "rules": {
                 "vue/require-explicit-emits": "off"
             },
             "files": [

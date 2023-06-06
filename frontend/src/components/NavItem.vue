@@ -14,16 +14,20 @@ export default {
     name: 'NavItem',
     props: {
         icon: {
-            type: Function
+            type: Function,
+            default: () => null
         },
         avatar: {
-            type: String
+            type: String,
+            default: () => null
         },
         label: {
-            type: String
+            type: String,
+            required: true
         },
         notifications: {
-            type: Number
+            type: Number,
+            required: true
         }
     }
 }
