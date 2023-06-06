@@ -26,8 +26,10 @@
             <InstanceForm
                 v-else
                 :instance="projectDetails"
+                :applications="applications"
+                :applicationSelection="applicationCreated"
                 :team="team"
-                :applicationFieldsLocked="!!application?.id"
+                :applicationFieldsLocked="applicationCreated"
                 :applicationFieldsVisible="true"
                 :billing-enabled="!!features.billing"
                 :submit-errors="errors"
@@ -73,7 +75,23 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'team'])
+        ...mapState('account', ['features', 'team']),
+
+        applicationCreated () {
+            return !!this.application?.id
+        },
+
+        // Used when application has already been created to select it from dropdown
+        applications () {
+            if (!this.applicationCreated) {
+                return []
+            }
+
+            return [{
+                label: this.application.name,
+                value: this.application.id
+            }]
+        }
     },
     async mounted () {
         this.mounted = true
@@ -86,7 +104,7 @@ export default {
             const applicationFields = { name: applicationName }
 
             try {
-                if (!this.application?.id) {
+                if (!this.applicationCreated) {
                     this.application = await this.createApplication(applicationFields)
                 }
             } catch (err) {

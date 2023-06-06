@@ -11,6 +11,7 @@
             </form>
         </template>
         <template v-slot:actions>
+            <ff-button v-if="!!clipboardSupported" kind="secondary" @click="copy()">Copy to Clipboard</ff-button>
             <ff-button kind="secondary" @click="downloadCredentials()"><template v-slot:icon-left><DocumentDownloadIcon /></template>Download device.yml</ff-button>
             <ff-button class="ml-4" @click="close()">Done</ff-button>
         </template>
@@ -22,11 +23,15 @@
 import { DocumentDownloadIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
+import Alerts from '../../../../services/alerts.js'
+import clipboardMixin from '../../../../mixins/Clipboard.js'
+
 export default {
     name: 'ProvisioningCredentialsDialog',
     components: {
         DocumentDownloadIcon
     },
+    mixins: [clipboardMixin],
     props: ['team'],
     data () {
         return {
@@ -46,6 +51,14 @@ export default {
         close () {
             this.$refs.dialog.close()
             this.token = undefined
+        },
+        copy () {
+            this.copyToClipboard(this.credentials).then(() => {
+                Alerts.emit('Copied to Clipboard.', 'confirmation')
+            }).catch((err) => {
+                console.warn('Clipboard write permission denied: ', err)
+                Alerts.emit('Clipboard write permission denied.', 'warning')
+            })
         }
     },
     computed: {

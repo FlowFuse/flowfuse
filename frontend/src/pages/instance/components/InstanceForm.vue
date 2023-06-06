@@ -28,6 +28,7 @@
                 v-model="input.applicationId"
                 :options="applications"
                 :error="errors.applicationId || submitErrors?.applicationId"
+                :disabled="applicationFieldsLocked"
                 data-form="application-id"
             >
                 <template #default>
@@ -277,7 +278,7 @@ export default {
         },
         // do we want to show a selection of Applications?
         applications: {
-            default: null,
+            default: () => [],
             type: Array
         },
         applicationSelection: {
@@ -298,6 +299,14 @@ export default {
     data () {
         const instance = this.instance || this.sourceInstance
 
+        // Dropdown is locked, default to first if only one option
+        let applicationName = ''
+        let applicationId = ''
+        if (this.applicationFieldsLocked && this.applications.length === 1) {
+            applicationName = this.applications[0].label
+            applicationId = this.applications[0].value
+        }
+
         return {
             stacks: [],
             templates: [],
@@ -306,8 +315,8 @@ export default {
             input: {
                 billingConfirmation: false,
 
-                applicationName: '',
-                applicationId: '',
+                applicationName,
+                applicationId,
 
                 // Only read name from existing project, never source
                 name: this.instance?.name || NameGenerator(),
