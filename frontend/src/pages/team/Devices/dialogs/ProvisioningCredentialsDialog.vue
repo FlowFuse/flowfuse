@@ -23,8 +23,8 @@
 import { DocumentDownloadIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
-import Alerts from '../../../../services/alerts.js'
 import clipboardMixin from '../../../../mixins/Clipboard.js'
+import Alerts from '../../../../services/alerts.js'
 
 export default {
     name: 'ProvisioningCredentialsDialog',

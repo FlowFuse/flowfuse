@@ -42,8 +42,8 @@ import { DocumentDownloadIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
 import deviceApi from '../../../../api/devices.js'
-import Alerts from '../../../../services/alerts.js'
 import clipboardMixin from '../../../../mixins/Clipboard.js'
+import Alerts from '../../../../services/alerts.js'
 
 export default {
     name: 'DeviceCredentialsDialog',

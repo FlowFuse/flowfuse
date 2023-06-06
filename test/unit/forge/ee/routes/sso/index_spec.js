@@ -1,8 +1,8 @@
 const should = require('should') // eslint-disable-line
 const setup = require('../../setup')
 
-const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localTransport.js')
 const FF_UTIL = require('flowforge-test-utils')
+const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localTransport.js')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 
 describe('SSO Provider APIs', function () {
