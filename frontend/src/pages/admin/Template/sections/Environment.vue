@@ -97,7 +97,7 @@
 
 <script>
 
-import { TrashIcon, PlusSmIcon, LockClosedIcon, ExclamationIcon } from '@heroicons/vue/outline'
+import { ExclamationIcon, LockClosedIcon, PlusSmIcon, TrashIcon } from '@heroicons/vue/outline'
 
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'

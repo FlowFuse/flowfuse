@@ -175,29 +175,6 @@
         },
         {
             "rules": {
-                "sort-imports": "off"
-            },
-            "files": [
-                "frontend/src/components/audit-log/AuditEntryIcon.vue",
-                "frontend/src/components/audit-log/AuditEntryVerbose.vue",
-                "frontend/src/components/DropdownMenu.vue",
-                "frontend/src/components/PageHeader.vue",
-                "frontend/src/components/SideNavigationTeamOptions.vue",
-                "frontend/src/pages/account/AccessRequest.vue",
-                "frontend/src/pages/account/AccessRequestEditor.vue",
-                "frontend/src/pages/account/index.vue",
-                "frontend/src/pages/account/Teams/index.vue",
-                "frontend/src/pages/admin/index.vue",
-                "frontend/src/pages/admin/Stacks/index.vue",
-                "frontend/src/pages/admin/Template/index.vue",
-                "frontend/src/pages/admin/Template/sections/Environment.vue",
-                "frontend/src/pages/admin/Template/sections/PaletteModules.vue",
-                "frontend/src/pages/team/components/LibraryEntryTypeIcon.vue",
-                "frontend/src/pages/team/components/ProjectSummaryList.vue"
-            ]
-        },
-        {
-            "rules": {
                 "vue/attributes-order": "off"
             },
             "files": [

@@ -40,7 +40,7 @@
 </template>
 
 <script>
-import { PlusSmIcon, DesktopComputerIcon } from '@heroicons/vue/outline'
+import { DesktopComputerIcon, PlusSmIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 
 import { mapState } from 'vuex'

@@ -13,7 +13,7 @@
 </template>
 
 <script>
-import { mapState, mapGetters } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import SectionSideMenu from '../../../components/SectionSideMenu.vue'
 

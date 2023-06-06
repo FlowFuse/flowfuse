@@ -14,7 +14,7 @@
 </template>
 
 <script>
-import { TemplateIcon, ArrowSmRightIcon } from '@heroicons/vue/solid'
+import { ArrowSmRightIcon, TemplateIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
 export default {

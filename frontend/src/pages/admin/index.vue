@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import { ChevronLeftIcon, CollectionIcon, CogIcon, UsersIcon, UserGroupIcon, DesktopComputerIcon, TemplateIcon, ColorSwatchIcon, DatabaseIcon } from '@heroicons/vue/solid'
+import { ChevronLeftIcon, CogIcon, CollectionIcon, ColorSwatchIcon, DatabaseIcon, DesktopComputerIcon, TemplateIcon, UserGroupIcon, UsersIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
 import NavItem from '../../components/NavItem.vue'

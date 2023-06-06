@@ -32,7 +32,7 @@
 </template>
 
 <script>
-import { ChipIcon, UsersIcon, DatabaseIcon, TemplateIcon, CurrencyDollarIcon, CogIcon, FolderIcon } from '@heroicons/vue/solid'
+import { ChipIcon, CogIcon, CurrencyDollarIcon, DatabaseIcon, FolderIcon, TemplateIcon, UsersIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
 import permissionsMixin from '../mixins/Permissions.js'

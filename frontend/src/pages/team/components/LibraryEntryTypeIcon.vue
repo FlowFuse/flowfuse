@@ -6,7 +6,7 @@
 
 <script>
 
-import { FolderIcon, CodeIcon } from '@heroicons/vue/solid'
+import { CodeIcon, FolderIcon } from '@heroicons/vue/solid'
 
 import ProjectIcon from '../../../components/icons/Projects.js'
 

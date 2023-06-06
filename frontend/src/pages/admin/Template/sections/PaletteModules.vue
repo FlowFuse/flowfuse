@@ -134,7 +134,7 @@
 
 <script>
 
-import { TrashIcon, PlusSmIcon, LockClosedIcon, PencilIcon, XIcon, CheckIcon } from '@heroicons/vue/outline'
+import { CheckIcon, LockClosedIcon, PencilIcon, PlusSmIcon, TrashIcon, XIcon } from '@heroicons/vue/outline'
 
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'

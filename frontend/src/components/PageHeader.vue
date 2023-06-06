@@ -50,9 +50,9 @@
     </div>
 </template>
 <script>
-import { MenuIcon, PlusIcon, QuestionMarkCircleIcon, AdjustmentsIcon, CogIcon, LogoutIcon } from '@heroicons/vue/solid'
+import { AdjustmentsIcon, CogIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon } from '@heroicons/vue/solid'
 import { ref } from 'vue'
-import { mapState, mapGetters } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import router from '../routes.js'
 

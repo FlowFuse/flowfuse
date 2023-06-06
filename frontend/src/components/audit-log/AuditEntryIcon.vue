@@ -26,11 +26,11 @@
 <script>
 
 import {
-    BeakerIcon, DesktopComputerIcon, ClockIcon, ColorSwatchIcon,
-    UserIcon, UserGroupIcon, LockClosedIcon,
-    MailIcon, LoginIcon, LogoutIcon, KeyIcon,
-    CurrencyDollarIcon, CogIcon, ExclamationCircleIcon,
-    ChipIcon, IdentificationIcon, TicketIcon, TemplateIcon
+    BeakerIcon, ChipIcon, ClockIcon, CogIcon,
+    ColorSwatchIcon, CurrencyDollarIcon, DesktopComputerIcon,
+    ExclamationCircleIcon, IdentificationIcon, KeyIcon, LockClosedIcon,
+    LoginIcon, LogoutIcon, MailIcon,
+    TemplateIcon, TicketIcon, UserGroupIcon, UserIcon
 } from '@heroicons/vue/outline'
 
 import NodeRedIcon from '../icons/NodeRed.js'

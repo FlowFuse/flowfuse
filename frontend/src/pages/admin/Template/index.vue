@@ -37,10 +37,10 @@ import alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
 import {
-    setTemplateValue,
-    setObjectValue,
-    templateFields,
     prepareTemplateForEdit,
+    setObjectValue,
+    setTemplateValue,
+    templateFields,
     templateValidators
 } from './utils.js'
 

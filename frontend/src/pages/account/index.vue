@@ -34,8 +34,8 @@
 </template>
 
 <script>
-import { ChevronLeftIcon, CogIcon, UserGroupIcon, LockClosedIcon } from '@heroicons/vue/solid'
-import { mapState, mapGetters } from 'vuex'
+import { ChevronLeftIcon, CogIcon, LockClosedIcon, UserGroupIcon } from '@heroicons/vue/solid'
+import { mapGetters, mapState } from 'vuex'
 
 import NavItem from '../../components/NavItem.vue'
 import SideNavigation from '../../components/SideNavigation.vue'
