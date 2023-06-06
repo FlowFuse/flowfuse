@@ -30,7 +30,7 @@
                       @click="mobileTeamSelectionOpen = false; $router.push({name: 'CreateTeam'})"></nav-item>
         </div>
         <div class="hidden lg:flex">
-            <ff-team-selection  data-action="team-selection" />
+            <ff-team-selection data-action="team-selection" />
             <!-- Desktop: User Options -->
             <ff-dropdown v-if="user" class="ff-navigation ff-user-options" options-align="right" data-action="user-options" data-cy="user-options">
                 <template v-slot:placeholder>

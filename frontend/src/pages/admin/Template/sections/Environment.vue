@@ -16,7 +16,7 @@
                 </tr>
             </thead>
             <tbody class="bg-white">
-                <tr v-for="(item, itemIdx) in editable.settings.env"  :key="item.index">
+                <tr v-for="(item, itemIdx) in editable.settings.env" :key="item.index">
                     <td class="px-4 py-4 border w-auto align-top">
                         <FormRow
                             class="font-mono"

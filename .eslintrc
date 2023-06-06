@@ -470,19 +470,6 @@
         },
         {
             "rules": {
-                "vue/no-multi-spaces": "off"
-            },
-            "files": [
-                "frontend/src/components/PageHeader.vue",
-                "frontend/src/pages/account/NoTeamsUser.vue",
-                "frontend/src/pages/admin/Stacks/index.vue",
-                "frontend/src/pages/admin/Template/sections/Environment.vue",
-                "frontend/src/pages/admin/Template/sections/PaletteModules.vue",
-                "frontend/src/pages/admin/Users/dialogs/AdminUserEditDialog.vue"
-            ]
-        },
-        {
-            "rules": {
                 "vue/no-v-html": "off"
             },
             "files": [

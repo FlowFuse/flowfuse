@@ -30,7 +30,7 @@
                 </tr>
             </thead>
             <tbody class="bg-white">
-                <tr v-for="(item, itemIdx) in editable.settings.palette_modules"  :key="item.index">
+                <tr v-for="(item, itemIdx) in editable.settings.palette_modules" :key="item.index">
                     <td class="px-2 py-2 border align-top">
                         <FormRow
                             class="font-mono"
