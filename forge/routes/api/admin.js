@@ -89,7 +89,7 @@ module.exports = async function (app) {
     app.get('/stats', { preHandler: app.needsPermission('platform:stats') }, async (request, reply) => {
         const stats = await getStats()
 
-        if (request.headers.accept.includes('application/openmetrics-text')) {
+        if (request.headers.accept?.includes('application/openmetrics-text')) {
             reply.send(convertToOpenMetrics(stats))
         } else {
             reply.send(stats)
