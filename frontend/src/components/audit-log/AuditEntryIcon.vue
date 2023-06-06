@@ -25,16 +25,17 @@
 
 <script>
 
-import ProjectIcon from '../icons/Projects.js'
+import {
+    BeakerIcon, ChipIcon, ClockIcon, CogIcon,
+    ColorSwatchIcon, CurrencyDollarIcon, DesktopComputerIcon,
+    ExclamationCircleIcon, IdentificationIcon, KeyIcon, LockClosedIcon,
+    LoginIcon, LogoutIcon, MailIcon,
+    TemplateIcon, TicketIcon, UserGroupIcon, UserIcon
+} from '@heroicons/vue/outline'
+
 import NodeRedIcon from '../icons/NodeRed.js'
 import PipelineIcon from '../icons/Pipelines.js'
-import {
-    BeakerIcon, DesktopComputerIcon, ClockIcon, ColorSwatchIcon,
-    UserIcon, UserGroupIcon, LockClosedIcon,
-    MailIcon, LoginIcon, LogoutIcon, KeyIcon,
-    CurrencyDollarIcon, CogIcon, ExclamationCircleIcon,
-    ChipIcon, IdentificationIcon, TicketIcon, TemplateIcon
-} from '@heroicons/vue/outline'
+import ProjectIcon from '../icons/Projects.js'
 
 const iconMap = {
     error: [

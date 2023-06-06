@@ -24,10 +24,12 @@
 </template>
 
 <script>
-import FormHeading from '../../../../components/FormHeading.vue'
-import { mapState } from 'vuex'
-import ssoApi from '../../../../api/sso.js'
 import { PlusSmIcon } from '@heroicons/vue/outline'
+import { mapState } from 'vuex'
+
+import ssoApi from '../../../../api/sso.js'
+import FormHeading from '../../../../components/FormHeading.vue'
+
 import Alerts from '../../../../services/alerts.js'
 import Dialog from '../../../../services/dialog.js'
 

@@ -1,10 +1,10 @@
-const user = require('./user')
+const fp = require('fastify-plugin')
+
+const formatters = require('./formatters')
+const platform = require('./platform')
 const project = require('./project')
 const team = require('./team')
-const platform = require('./platform')
-const formatters = require('./formatters')
-
-const fp = require('fastify-plugin')
+const user = require('./user')
 
 module.exports = fp(async function (app, _opts, next) {
     const loggers = {

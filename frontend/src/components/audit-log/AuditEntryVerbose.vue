@@ -477,10 +477,11 @@
 </template>
 
 <script>
-import { ChevronRightIcon, ChevronDownIcon } from '@heroicons/vue/solid'
-import AuditEntryUpdates from './AuditEntryUpdates.vue'
+import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/vue/solid'
 
 import AuditEventsService from '../../services/audit-events.js'
+
+import AuditEntryUpdates from './AuditEntryUpdates.vue'
 
 export default {
     name: 'AuditEntryVerbose',

@@ -7,10 +7,11 @@
                     credentials. Make a note of them as this is the only
                     time you will see them.
                 </p>
-                <pre class="overflow-auto text-sm p-4 border rounded bg-gray-800 text-gray-200">{{ this.credentials }}</pre>
+                <pre class="overflow-auto text-sm p-4 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
             </form>
         </template>
         <template v-slot:actions>
+            <ff-button v-if="!!clipboardSupported" kind="secondary" @click="copy()">Copy to Clipboard</ff-button>
             <ff-button kind="secondary" @click="downloadCredentials()"><template v-slot:icon-left><DocumentDownloadIcon /></template>Download device.yml</ff-button>
             <ff-button class="ml-4" @click="close()">Done</ff-button>
         </template>
@@ -19,14 +20,18 @@
 
 <script>
 
+import { DocumentDownloadIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
-import { DocumentDownloadIcon } from '@heroicons/vue/outline'
+import clipboardMixin from '../../../../mixins/Clipboard.js'
+import Alerts from '../../../../services/alerts.js'
+
 export default {
     name: 'ProvisioningCredentialsDialog',
     components: {
         DocumentDownloadIcon
     },
+    mixins: [clipboardMixin],
     props: ['team'],
     data () {
         return {
@@ -46,6 +51,14 @@ export default {
         close () {
             this.$refs.dialog.close()
             this.token = undefined
+        },
+        copy () {
+            this.copyToClipboard(this.credentials).then(() => {
+                Alerts.emit('Copied to Clipboard.', 'confirmation')
+            }).catch((err) => {
+                console.warn('Clipboard write permission denied: ', err)
+                Alerts.emit('Clipboard write permission denied.', 'warning')
+            })
         }
     },
     computed: {

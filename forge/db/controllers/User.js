@@ -1,6 +1,7 @@
-const { compareHash, sha256 } = require('../utils')
 const jwt = require('jsonwebtoken')
 const { fn, col, where } = require('sequelize')
+
+const { compareHash, sha256 } = require('../utils')
 
 module.exports = {
     /**

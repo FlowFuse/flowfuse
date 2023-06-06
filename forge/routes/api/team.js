@@ -1,7 +1,8 @@
-const TeamMembers = require('./teamMembers.js')
-const TeamInvitations = require('./teamInvitations.js')
-const TeamDevices = require('./teamDevices.js')
 const { Roles } = require('../../lib/roles')
+
+const TeamDevices = require('./teamDevices.js')
+const TeamInvitations = require('./teamInvitations.js')
+const TeamMembers = require('./teamMembers.js')
 
 /**
  * Team api routes

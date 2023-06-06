@@ -1,5 +1,6 @@
-import client from './client.js'
 import paginateUrl from '../utils/paginateUrl.js'
+
+import client from './client.js'
 
 const create = async (options) => {
     return client.post('/api/v1/users', options).then(res => {

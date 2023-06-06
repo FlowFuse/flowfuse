@@ -1,6 +1,6 @@
+const fastify = require('fastify')
 const should = require('should') // eslint-disable-line
 const setup = require('../../setup')
-const fastify = require('fastify')
 
 describe('SSO Providers', function () {
     let app

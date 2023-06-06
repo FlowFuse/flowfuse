@@ -8,6 +8,7 @@
 
 <script>
 import { mapState } from 'vuex'
+
 import UpdateExpiredPassword from '../components/auth/UpdateExpiredPassword.vue'
 
 import FFLayoutBox from '../layouts/Box.vue'

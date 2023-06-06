@@ -1,6 +1,7 @@
+const crypto = require('crypto')
+
 const should = require('should') // eslint-disable-line
 const setup = require('../setup')
-const crypto = require('crypto')
 // const FF_UTIL = require('flowforge-test-utils')
 // const { Roles } = FF_UTIL.require('forge/lib/roles')
 

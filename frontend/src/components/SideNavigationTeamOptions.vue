@@ -32,13 +32,13 @@
 </template>
 
 <script>
+import { ChipIcon, CogIcon, CurrencyDollarIcon, DatabaseIcon, FolderIcon, TemplateIcon, UsersIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
 import permissionsMixin from '../mixins/Permissions.js'
 
-import ProjectsIcon from './icons/Projects.js'
-import { ChipIcon, UsersIcon, DatabaseIcon, TemplateIcon, CurrencyDollarIcon, CogIcon, FolderIcon } from '@heroicons/vue/solid'
 import NavItem from './NavItem.vue'
+import ProjectsIcon from './icons/Projects.js'
 
 export default {
     name: 'FFSideNavigationTeamOptions',

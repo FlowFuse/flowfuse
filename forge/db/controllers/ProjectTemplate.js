@@ -1,5 +1,5 @@
-const { hash } = require('../utils')
 const { templateFields, defaultTemplateValues, defaultTemplatePolicy } = require('../../lib/templates')
+const { hash } = require('../utils')
 
 function getTemplateValue (template, path) {
     const parts = path.split('_')

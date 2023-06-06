@@ -29,6 +29,7 @@
 
 <script>
 import { mapState } from 'vuex'
+
 import Logo from '../components/Logo.vue'
 
 import FFLayoutBox from '../layouts/Box.vue'

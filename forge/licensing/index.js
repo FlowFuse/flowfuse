@@ -1,5 +1,6 @@
-const loader = require('./loader')
 const fp = require('fastify-plugin')
+
+const loader = require('./loader')
 
 module.exports = fp(async function (app, opts, next) {
     // Dev License:

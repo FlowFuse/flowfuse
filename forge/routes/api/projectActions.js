@@ -29,6 +29,7 @@ module.exports = async function (app) {
                 startResult.started.then(async () => {
                     await app.auditLog.Project.project.started(request.session.User, null, request.project)
                     app.db.controllers.Project.clearInflightState(request.project)
+                    return true
                 })
             } else {
                 app.db.controllers.Project.setInflightState(request.project, 'starting')
@@ -161,6 +162,7 @@ module.exports = async function (app) {
             startResult.started.then(async () => {
                 await app.auditLog.Project.project.started(request.session.User, null, request.project)
                 app.db.controllers.Project.clearInflightState(request.project)
+                return true
             })
 
             reply.send()

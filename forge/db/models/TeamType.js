@@ -4,6 +4,7 @@
  */
 
 const { DataTypes, literal } = require('sequelize')
+
 const { buildPaginationSearchClause } = require('../utils')
 
 module.exports = {

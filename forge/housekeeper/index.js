@@ -1,5 +1,5 @@
-const fp = require('fastify-plugin')
 const { scheduleTask } = require('cronosjs')
+const fp = require('fastify-plugin')
 
 /**
  * House-keeper component

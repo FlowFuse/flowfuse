@@ -30,7 +30,7 @@
                 </tr>
             </thead>
             <tbody class="bg-white">
-                <tr v-for="(item, itemIdx) in editable.settings.palette_modules"  :key="item.index">
+                <tr v-for="(item, itemIdx) in editable.settings.palette_modules" :key="item.index">
                     <td class="px-2 py-2 border align-top">
                         <FormRow
                             class="font-mono"
@@ -134,10 +134,11 @@
 
 <script>
 
-import FormRow from '../../../../components/FormRow.vue'
+import { CheckIcon, LockClosedIcon, PencilIcon, PlusSmIcon, TrashIcon, XIcon } from '@heroicons/vue/outline'
+
 import FormHeading from '../../../../components/FormHeading.vue'
+import FormRow from '../../../../components/FormRow.vue'
 import ChangeIndicator from '../components/ChangeIndicator.vue'
-import { TrashIcon, PlusSmIcon, LockClosedIcon, PencilIcon, XIcon, CheckIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'TemplatePaletteModulesEditor',

@@ -6,22 +6,16 @@
 
 <script>
 
-import { FolderIcon, CodeIcon } from '@heroicons/vue/solid'
+import { CodeIcon, FolderIcon } from '@heroicons/vue/solid'
+
 import ProjectIcon from '../../../components/icons/Projects.js'
 
 export default {
     name: 'LibraryEntryTypeIcon',
+    inheritAttrs: false,
     props: {
         type: {
             required: true,
-            type: String
-        },
-        name: {
-            // not used, but passed in data row
-            type: String
-        },
-        path: {
-            // not used, but passed in data row
             type: String
         }
     },

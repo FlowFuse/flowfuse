@@ -1,4 +1,5 @@
 const fp = require('fastify-plugin')
+
 const { Permissions } = require('../../lib/permissions')
 const { Roles } = require('../../lib/roles.js')
 // For device/project tokens, list the scopes they implicitly have.

@@ -34,7 +34,7 @@
 </template>
 
 <script>
-import { PlusSmIcon, ChevronRightIcon, TemplateIcon } from '@heroicons/vue/outline'
+import { ChevronRightIcon, PlusSmIcon, TemplateIcon } from '@heroicons/vue/outline'
 
 export default {
     name: 'MemberProjectSummaryList',

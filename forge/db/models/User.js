@@ -3,6 +3,7 @@
  * @namespace forge.db.models.User
  */
 const { DataTypes, Op, fn, col, where } = require('sequelize')
+
 const { hash, generateUserAvatar, buildPaginationSearchClause } = require('../utils')
 
 module.exports = {

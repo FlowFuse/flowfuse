@@ -1,19 +1,21 @@
-const fastify = require('fastify')
-const db = require('./db')
-const routes = require('./routes')
-const config = require('./config') // eslint-disable-line n/no-unpublished-require
-const settings = require('./settings')
-const license = require('./licensing')
-const auditLog = require('./auditLog')
-const containers = require('./containers')
-const comms = require('./comms')
+const accepts = require('@fastify/accepts')
 const cookie = require('@fastify/cookie')
 const csrf = require('@fastify/csrf-protection')
 const helmet = require('@fastify/helmet')
-const postoffice = require('./postoffice')
-const monitor = require('./monitor')
-const housekeeper = require('./housekeeper')
+const fastify = require('fastify')
+
+const auditLog = require('./auditLog')
+const comms = require('./comms')
+const config = require('./config') // eslint-disable-line n/no-unpublished-require
+const containers = require('./containers')
+const db = require('./db')
 const ee = require('./ee')
+const housekeeper = require('./housekeeper')
+const license = require('./licensing')
+const monitor = require('./monitor')
+const postoffice = require('./postoffice')
+const routes = require('./routes')
+const settings = require('./settings')
 
 // type defs for JSDoc and VSCode Intellisense
 

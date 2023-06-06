@@ -116,11 +116,11 @@
 </template>
 
 <script>
-import FormRow from '../../../../components/FormRow.vue'
 import FormHeading from '../../../../components/FormHeading.vue'
-import LockSetting from '../components/LockSetting.vue'
-import ChangeIndicator from '../components/ChangeIndicator.vue'
+import FormRow from '../../../../components/FormRow.vue'
 import timezonesData from '../../../../data/timezones.json'
+import ChangeIndicator from '../components/ChangeIndicator.vue'
+import LockSetting from '../components/LockSetting.vue'
 export default {
     name: 'TemplateSettingsEditor',
     props: ['editTemplate', 'modelValue'],

@@ -32,6 +32,7 @@
  */
 
 const fp = require('fastify-plugin')
+
 const wrapper = require('./wrapper.js')
 
 module.exports = fp(async function (app, _opts, next) {

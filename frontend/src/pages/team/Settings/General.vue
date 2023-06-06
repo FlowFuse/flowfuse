@@ -44,11 +44,11 @@
 </template>
 
 <script>
-import alerts from '../../../services/alerts.js'
 
 import teamApi from '../../../api/team.js'
 import teamsApi from '../../../api/teams.js'
 import FormRow from '../../../components/FormRow.vue'
+import alerts from '../../../services/alerts.js'
 
 export default {
     name: 'TeamSettingsGeneral',

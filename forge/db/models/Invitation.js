@@ -1,3 +1,5 @@
+const { DataTypes } = require('sequelize')
+
 const { generateToken } = require('../utils')
 
 /**
@@ -10,7 +12,6 @@ const { generateToken } = require('../utils')
  * @namespace forge.db.models.Invitation
  */
 
-const { DataTypes } = require('sequelize')
 const DEFAULT_INVITATION_EXPIRY = 7000 * 60 * 60 * 24 // Seven days
 
 module.exports = {

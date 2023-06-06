@@ -57,8 +57,8 @@
 
 <script>
 import adminApi from '../../api/admin.js'
-import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import Settings from '../../api/settings.js'
+import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
 export default {
     name: 'AdminSettingsGeneral',

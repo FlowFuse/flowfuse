@@ -1,8 +1,10 @@
-const FF_UTIL = require('flowforge-test-utils')
-const { Roles } = FF_UTIL.require('forge/lib/roles')
 const sinon = require('sinon')
 
 const TestModelFactory = require('../../../lib/TestModelFactory')
+
+const FF_UTIL = require('flowforge-test-utils')
+
+const { Roles } = FF_UTIL.require('forge/lib/roles')
 
 async function setup (config = {}) {
     config = {

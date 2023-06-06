@@ -1,3 +1,5 @@
+<!-- eslint-disable vue/no-v-html -->
+
 <template>
     <ff-layout-box class="ff-signup">
         <template v-slot:splash-content v-if="splash">
@@ -46,11 +48,10 @@
 </template>
 
 <script>
+import { useRoute } from 'vue-router'
 import { mapState } from 'vuex'
 
 import userApi from '../../api/user.js'
-
-import { useRoute } from 'vue-router'
 
 import FFLayoutBox from '../../layouts/Box.vue'
 

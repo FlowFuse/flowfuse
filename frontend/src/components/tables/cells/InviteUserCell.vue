@@ -10,8 +10,9 @@
     </template>
 </template>
 <script>
-import UserCell from './UserCell.vue'
 import { UserCircleIcon } from '@heroicons/vue/solid'
+
+import UserCell from './UserCell.vue'
 
 export default {
     name: 'InviteUserCell',

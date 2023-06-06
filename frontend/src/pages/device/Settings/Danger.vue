@@ -14,13 +14,13 @@
     </div>
 </template>
 <script>
-import { mapState } from 'vuex'
 import { useRouter } from 'vue-router'
+import { mapState } from 'vuex'
 
 import deviceApi from '../../../api/devices.js'
+import FormHeading from '../../../components/FormHeading.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
 
-import FormHeading from '../../../components/FormHeading.vue'
 import ConfirmDeviceDeleteDialog from './dialogs/ConfirmDeviceDeleteDialog.vue'
 
 export default {

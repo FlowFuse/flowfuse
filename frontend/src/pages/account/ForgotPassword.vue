@@ -14,8 +14,9 @@
 
 <script>
 import { mapState } from 'vuex'
-import FormRow from '../../components/FormRow.vue'
+
 import userApi from '../../api/user.js'
+import FormRow from '../../components/FormRow.vue'
 
 import FFLayoutBox from '../../layouts/Box.vue'
 

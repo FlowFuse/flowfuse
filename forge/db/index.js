@@ -12,14 +12,16 @@
  * @memberof forge
  */
 
+const path = require('path')
+
+const fp = require('fastify-plugin')
 const { Sequelize } = require('sequelize')
+
+const controllers = require('./controllers')
 const migrations = require('./migrations')
 const models = require('./models')
-const views = require('./views')
-const controllers = require('./controllers')
 const utils = require('./utils')
-const path = require('path')
-const fp = require('fastify-plugin')
+const views = require('./views')
 
 module.exports = fp(async function (app, _opts, next) {
     utils.init(app)

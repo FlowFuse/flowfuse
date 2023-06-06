@@ -1,4 +1,5 @@
 const { DataTypes } = require('sequelize')
+
 const { hash } = require('../utils')
 
 module.exports = {

@@ -4,8 +4,9 @@
  * This is the association model between User and Team
  * @namespace forge.db.models.TeamMember
  */
-const { Roles, TeamRoles } = require('../../lib/roles')
 const { DataTypes } = require('sequelize')
+
+const { Roles, TeamRoles } = require('../../lib/roles')
 
 module.exports = {
     name: 'TeamMember',
