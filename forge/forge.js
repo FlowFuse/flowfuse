@@ -53,7 +53,6 @@ module.exports = async (options = {}) => {
             level: loggerLevel
         }
     })
-    server.register(accepts)
     server.addHook('onError', async (request, reply, error) => {
         // Useful for debugging when a route goes wrong
         // console.error(error.stack)
