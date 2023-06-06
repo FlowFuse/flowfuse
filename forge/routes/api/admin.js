@@ -88,11 +88,8 @@ module.exports = async function (app) {
 
     app.get('/stats', { preHandler: app.needsPermission('platform:stats') }, async (request, reply) => {
         const stats = await getStats()
-        const acceptTypes = request.accepts().types()
-        // request.accepts().type(...) can be used to check if it accepts a given type
-        // A default browser request includes '*/*' which matches everything, but
-        // we don't want that to match openmetrics. So we check the list of types ourselves
-        if (acceptTypes.includes('application/openmetrics-text')) {
+
+        if (request.headers.accept.includes('application/openmetrics-text')) {
             reply.send(convertToOpenMetrics(stats))
         } else {
             reply.send(stats)
