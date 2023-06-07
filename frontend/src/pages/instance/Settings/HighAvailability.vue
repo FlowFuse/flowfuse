@@ -23,7 +23,7 @@
                     <li>Any internal state of the flows is not shared between the HA copies.</li>
                 </ul>
                 <p>
-                    Check the documentation for more information about the <a class="underline" href="#">High Availability preview feature</a>.
+                    Check the documentation for more information about the <a class="underline" href="https://flowforge.com/docs/user/high-availability/">High Availability preview feature</a>.
                 </p>
             </template>
             <template #input>&nbsp;</template>

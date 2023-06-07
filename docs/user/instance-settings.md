@@ -10,6 +10,7 @@ Instance Settings are split into a number of sections:
 
  - [General](#general)
  - [Environment](#environment)
+ - [High Availability](#high-availability)
  - [Editor](#editor)
  - [Security](#security)
  - [Palette](#palette)
@@ -46,6 +47,11 @@ unassigned from the instance and available to reassign to a new instance.
 
 This allows you to manage the environment variables. More information
 on working with environment variables is available [here](./envvar.md).
+
+## High Availability
+
+This allows you to manage the HA settings of the instance. High Availability
+is a Preview Feature. More information is available [here](./high-availability.md).
 
 ## Editor
 
