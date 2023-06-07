@@ -47,7 +47,7 @@
                                 <ExternalLinkIcon />
                             </span>
                         </button>
-                        <ff-button :disabled="hasPermission('device:edit') !== true" :kind="developerMode?'primary':'secondary'" data-action="toggle-mode" @click="showModeChoiceDialog()">
+                        <ff-button :disabled="hasPermission('device:edit') !== true || !device?.project" :kind="developerMode?'primary':'secondary'" data-action="toggle-mode" @click="showModeChoiceDialog()">
                             Developer Mode
                             <template #icon-right>
                                 <BeakerIcon />
