@@ -1,4 +1,3 @@
-const accepts = require('@fastify/accepts')
 const cookie = require('@fastify/cookie')
 const csrf = require('@fastify/csrf-protection')
 const helmet = require('@fastify/helmet')
@@ -55,7 +54,6 @@ module.exports = async (options = {}) => {
             level: loggerLevel
         }
     })
-    server.register(accepts)
     server.addHook('onError', async (request, reply, error) => {
         // Useful for debugging when a route goes wrong
         // console.error(error.stack)
