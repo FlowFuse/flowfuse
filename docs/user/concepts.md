@@ -9,6 +9,7 @@ are a few concepts the platform introduces to help organise things.
 
  - [Team](#team)
  - [Application](#application)
+   - [DevOps Pipeline](#devops-pipeline)
  - [Instance](#instance)
    - [Type](#instance-type)
    - [Stack](#stack)
@@ -29,7 +30,7 @@ In FlowForge Cloud, each team has its own billing plan, managed via Stripe.
 
 ### Application
 
-**This is a new concept introduced in FlowForge 1.5**
+**Introduced in FlowForge 1.5**
 
 To organise your Node-RED instances, they are grouped with Applications.
 
@@ -37,9 +38,13 @@ With the 1.5 release, each Application has a single Node-RED instance. But later
 releases will introduce the ability to have multiple Node-RED instances within
 the application.
 
-In the future, this will enable you to create dev-ops pipelines between those
-instances; making it easy to have separate development and production instances
-within the application.
+#### DevOps Pipeline
+
+**Introduced in FlowForge 1.8**
+
+DevOps Pipelines allow you to manage staged development environments. Pushing
+from your Development instances to Production once you have stable, and well tested,
+flows. You can find out how to implemnt DevOps Pipelines [here](./devops-pipelines.md)
 
 ### Instance
 
