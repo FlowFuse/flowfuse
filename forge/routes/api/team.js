@@ -220,9 +220,7 @@ module.exports = async function (app) {
 
     /**
      * @deprecated Use /:teamId/applications, or /:applicationId/instances
-     * For now, the project link nodes depend on this endpoint. Once the
-     * project link nodes are updated to be application aware, this endpoint
-     * may be removed (assuming no other clients are using it)
+     * This end-point is still used by the project nodes and nr-tools plugin.
      */
     app.get('/:teamId/projects', {
         preHandler: app.needsPermission('team:projects:list')
