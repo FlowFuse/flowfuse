@@ -6,7 +6,8 @@ const { Op, fn, col, where } = require('sequelize')
 
 const hashids = {}
 
-const base64URLEncode = str => str.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
+const URLEncode = str => str.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
+const base64URLEncode = str => URLEncode(str.toString('base64'))
 
 const md5 = str => crypto.createHash('md5').update(str).digest('hex')
 const sha256 = value => crypto.createHash('sha256').update(value).digest().toString('base64')
@@ -71,6 +72,8 @@ module.exports = {
     compareHash: (plain, hashed) => bcrypt.compareSync(plain, hashed),
     md5,
     sha256,
+    URLEncode,
+    base64URLEncode,
     generateUserAvatar: key => {
         const keyHash = Buffer.from(key).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
         return `/avatar/${keyHash}`

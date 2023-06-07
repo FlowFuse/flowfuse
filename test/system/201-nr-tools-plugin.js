@@ -1,12 +1,13 @@
 const crypto = require('node:crypto')
 
-const base64url = require('base64url')
 const should = require('should') // eslint-disable-line no-unused-vars
 
+const { base64URLEncode } = require('../../forge/db/utils')
 const TestModelFactory = require('../lib/TestModelFactory')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localTransport.js')
+
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 
 describe('Node-RED Tools Plugin', function () {
@@ -159,8 +160,8 @@ describe('Node-RED Tools Plugin', function () {
     }
 
     it('can login via oauth flow', async function () {
-        const state = base64url(crypto.randomBytes(16))
-        const verifier = base64url(crypto.randomBytes(32))
+        const state = base64URLEncode(crypto.randomBytes(16))
+        const verifier = base64URLEncode(crypto.randomBytes(32))
         const scope = 'ff-plugin'
         const redirectCallback = 'http://example.com/flowforge-nr-tools/auth/callback'
         const params = {}
@@ -168,7 +169,7 @@ describe('Node-RED Tools Plugin', function () {
         params.scope = scope
         params.response_type = 'code'
         params.state = state
-        params.code_challenge = base64url(crypto.createHash('sha256').update(verifier).digest())
+        params.code_challenge = base64URLEncode(crypto.createHash('sha256').update(verifier).digest())
         params.code_challenge_method = 'S256'
         params.redirect_uri = redirectCallback
         const response = await app.inject({
