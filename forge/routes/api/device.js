@@ -260,6 +260,10 @@ module.exports = async function (app) {
                     await device.setTargetSnapshot(null)
                     sendDeviceUpdate = true
 
+                    // disable developer mode
+                    device.mode = 'autonomous'
+                    await device.save()
+
                     await app.auditLog.Team.team.device.unassigned(request.session.User, null, request.device?.Team, oldProject, request.device)
                     await app.auditLog.Project.project.device.unassigned(request.session.User, null, oldProject, request.device)
                 } else {
