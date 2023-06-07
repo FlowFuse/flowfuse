@@ -113,7 +113,7 @@ pull in work - for example, when using MQTT.
 MQTT includes a feature called [Shared Subscriptions](https://www.hivemq.com/blog/mqtt5-essentials-part7-shared-subscriptions/)
 that allows a broker to distribute messages between a group of subscribers. This
 provides the load balancing needed for an HA instance - but the flow must be configured
-to use the appropriate shared subscription topics.
+to use the appropriate shared subscription topics, as well as to not set a ClientID on the connection to avoid conflicts between the connections.
 
 The [Project Nodes](./projectnodes.md) have been updated to support shared subscriptions
 automatically when running in HA mode.
