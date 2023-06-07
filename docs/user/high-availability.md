@@ -14,16 +14,15 @@ that is available with:
  - FlowForge Cloud
 
 Within FlowForge Cloud it is currently free to use for all teams, but will
-become a chargable feature in a future release.
+become a chargeable feature in a future release.
 
 ## Restrictions
 
-As a Preview Feature, there are a number of restrictions that apply to HA mode.
 
  - Enabling or disabling HA mode requires a restart of the Instance.
  - When in HA mode, two copies of the flows are run.
  - Flows cannot be directly modified in an HA Instance; the editor is disabled.
-   A DevOps Pipeline should be created to deploy new flows to the instance.
+   A [DevOps Pipeline](./devops-pipelines.md) should be created to deploy new flows to the instance.
  - Any internal state of the flows is not shared between the HA copies.
  - The [FlowForge Persistent Context](./persistent-context.md) is not synchronised
    between the HA copies
