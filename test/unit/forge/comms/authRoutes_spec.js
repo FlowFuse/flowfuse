@@ -382,6 +382,12 @@ describe('Broker Auth API', async function () {
                 after(async function () {
                     await app.close()
                 })
+                it('prevents project using incorrect shared subscription group', async function () {
+                    await denyRead({
+                        username: 'project:abc:xyz',
+                        topic: '$share/wrong-project/ff/v1/abc/p/another-project/out/foo/bar'
+                    })
+                })
                 // Inter-project comms
                 it('allows project to publish to own broadcast topic', async function () {
                     await denyWrite({
@@ -425,6 +431,10 @@ describe('Broker Auth API', async function () {
                     await allowRead({
                         username: 'project:abc:xyz',
                         topic: 'ff/v1/abc/p/another-project/out/foo/bar'
+                    })
+                    await allowRead({
+                        username: 'project:abc:xyz',
+                        topic: '$share/xyz/ff/v1/abc/p/another-project/out/foo/bar'
                     })
                 })
                 it('prevents project from publishing to other broadcast topic', async function () {
@@ -470,6 +480,10 @@ describe('Broker Auth API', async function () {
                         username: 'project:abc:xyz',
                         topic: 'ff/v1/abc/p/xyz/in/#'
                     })
+                    await allowRead({
+                        username: 'project:abc:xyz',
+                        topic: '$share/xyz/ff/v1/abc/p/xyz/in/foo/bar'
+                    })
                 })
                 it('prevents project from subscribing to another projects inbox', async function () {
                     await denyRead({
@@ -491,6 +505,10 @@ describe('Broker Auth API', async function () {
                     await denyRead({
                         username: 'project:abc:xyz',
                         topic: 'ff/v1/abc/p/another-project/in/#'
+                    })
+                    await denyRead({
+                        username: 'project:abc:xyz',
+                        topic: '$share/xyz/ff/v1/abc/p/another-project/in/#'
                     })
                 })
                 it('allows project to publish to another projects inbox', async function () {
@@ -536,6 +554,10 @@ describe('Broker Auth API', async function () {
                         username: 'project:abc:xyz',
                         topic: 'ff/v1/abc/p/xyz/res/#'
                     })
+                    await allowRead({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/xyz/res-random/#'
+                    })
                 })
                 it('allows project to publish to another projects response topic', async function () {
                     await denyWrite({
@@ -557,6 +579,10 @@ describe('Broker Auth API', async function () {
                     await allowWrite({
                         username: 'project:abc:xyz',
                         topic: 'ff/v1/abc/p/another-project/res/foo/bar'
+                    })
+                    await allowWrite({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/another-project/res-random/foo/bar'
                     })
                 })
             })
