@@ -19,7 +19,7 @@ commonly used for having an unstable/experimental "Development" instance, and a 
 The pipeline then allows you to move your full flow and configuration along from "Development"
 to "Production" once it's ready.
 
-In order to configure this in FlowForge, you can do this in your Application. Note you will need to have created
+You can configure this in FlowForge from the Application screen. Note you will need to have created
 any Instances you wish to include in the Pipeline before being able to add them to a Pipeline.
 
 ## Creating a Pipeline
@@ -43,8 +43,8 @@ _Note: You cannot currently insert a Stage into the middle of a Pipeline, only a
 Each stage currently is deployed manually. To do so, click the "play" icon on the source stage. In the example above,
 it will push from the "Development" stage to the "Production" stage.
 
-**Environment Variables** - When pushing to a next stage, only your environment variable keys
-will be copied over. Values must be set on the next Stage's Instance explicitly.
+**Environment Variables** - When pushing to a next stage, _**only your environment variable keys
+will be copied over**_. Values must be set on the next Stage's Instance explicitly.
 
 **Instance Settings** - None of your Instance Settings will be copied over (e.g. Editor, Palette or Security Settings).
 
