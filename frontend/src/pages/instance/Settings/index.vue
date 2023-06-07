@@ -59,7 +59,6 @@ export default {
                 { name: 'Environment', path: './environment' }
             ]
             if (this.hasPermission('project:edit')) {
-                this.sideNavigation.push({ name: 'DevOps', path: './devops' })
                 if (this.features.ha) {
                     this.sideNavigation.push({ name: 'High Availability', path: './ha' })
                 }
