@@ -20,6 +20,10 @@ them when _snapshots_ are created of the instance.
 
 For more details on these and other core concepts, you can learn about them [here](concepts.md).
 
+## Working with Applications
+
+ - [DevOps Pipelines](devops-pipelines.md) - How to create DevOps pipelines to easily deploy between Node-RED instances
+
 ## Working with Instances
 
  - [Snapshots](snapshots.md) - Create point-in-time backups of your Node-RED instances.
@@ -27,7 +31,6 @@ For more details on these and other core concepts, you can learn about them [her
  - [Change Project Stack](changestack.md) - How to change an instance stack, for example to upgrade Node-RED.
  - [Logs](logs.md) - The Logs available in the FlowForge application.
  - [Project Link Nodes](projectnodes.md) - Custom nodes for sending messages between Node-RED instances and devices.
- - [Staged Deployments](staged-deployments.md) - How to create DevOps pipelines between Node-RED instances
  - [Instance Settings](instance-settings.md) - Settings available for Node-RED instances.
  - [Shared Team Library](shared-library.md) - Share flows easily between different Node-RED instances in your team.
  - [Node-RED Tools Plugin](node-red-tools.md) - A plugin for Node-RED that lets you work with your flows outside of FlowForge.
