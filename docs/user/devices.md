@@ -66,7 +66,7 @@ To connect a device to the platform, it needs a set of credentials.
 
 There are two types of credentials to choose from:
 
-* **- Credentials**: for connecting a single device to the platform
+* **Device Credentials**: for connecting a single device to the platform
 * **Provisioning Credentials**: for setting up one or more devices to automatically register themselves on the platform
 
 ### Generating "Device Credentials" 
