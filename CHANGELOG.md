@@ -1,3 +1,63 @@
+#### 1.8.0: Release
+
+ - Disable "Dev Mode" button (#2256) @hardillb
+ - Docs: Pipelines - Make recommended changes (#2254) @joepavitt
+ - Add HA docs (#2253) @knolleary
+ - Docs: DevOps Pipelines (#2252) @joepavitt
+ - Remove /settings/devops at Instance level (#2249) @joepavitt
+ - Bump ui-components to v0.6.3 (#2250) @joepavitt
+ - Updated the logo to the newest version (#2235) @Yndira-FlowForge
+ - Remove dependencies: Remove base64url (#2242) @Pezmc
+ - Support project listing for a device being accessed over a tunnel (#2230) @Steve-Mcl
+ - Add shared subscriptions to broker ACL for project nodes (#2225) @knolleary
+ - Remove @fastify/accepts dependency (#2241) @Pezmc
+ - Show error if trying to start the editor on device (#2234) @hardillb
+ - update device.md for new Web UI (#2222) @Steve-Mcl
+ - ESLint: Some cleanup (#2237) @Pezmc
+ - Minor upgrades to all fastify nodules (#2238) @Pezmc
+ - Auto-accept pending invites when sso-user registers (#2236) @knolleary
+ - Add copy to clipboard for credentials dialogs (#2231) @Steve-Mcl
+ - Bump @headlessui/vue from 1.7.13 to 1.7.14 (#2229) @app/dependabot
+ - Allow instance creation after first failure (#2227) @Pezmc
+ - Fix Build Error: byPipeline takes an ID not an object (#2226) @Pezmc
+ - Fix test for kubernetes driver (#2220) @hardillb
+ - Disable useless-return-rule (#2224) @Pezmc
+ - HA: multiple instance replica support (#2180) @knolleary
+ - docs: What happens with devices after instance removal (#2218) @ZJvandeWeg
+ - Device agent trouble shooting (#2215) @hardillb
+ - Include copying certs and acme directories (#2214) @hardillb
+ - Pipelines: Catch Creation Failure (#2211) @Pezmc
+ - Fix link to latest release (#2212) @hardillb
+ - Pipelines: Test coverage of Pipelines API endpoint (#2209) @Pezmc
+ - Improve Create/Edit Pipelines Padding/Positioning (#2204) @joepavitt
+ - Upgrade all dev dependencies to latest minor (#2194) @Pezmc
+ - Update the Pipeline UX for editing/deleting (#2205) @joepavitt
+ - Handle missing stripe subscription when viewing billing (#2198) @knolleary
+ - Add Empty State Image for Pipelines (#2203) @joepavitt
+ - Fix permissions for nr-tools-plugin accessing user team list (#2196) @knolleary
+ - Add subtitles, popup and info around Applications/Instances (#2177) @Steve-Mcl
+ - Re-run lint:fix (#2195) @Pezmc
+ - Application Pipelines (#2094) @joepavitt
+ - Bump eslint-plugin-n from 15.7.0 to 16.0.0 (#2192) @app/dependabot
+ - Improve env variable editing uxp (#2175) @Steve-Mcl
+ - Update link to mosquitto-go-auth (#2187) @hardillb
+ - 1586 audit log team create delete (#2173) @Steve-Mcl
+ - Bump @fastify/websocket from 7.2.0 to 8.1.0 (#2169) @app/dependabot
+ - misc: Remove extra backtick (#2178) @ZJvandeWeg
+ - Bump node-sass from 8.0.0 to 9.0.0 (#2170) @app/dependabot
+ - Add context storage size (#2168) @robmarcer
+ - Bump semver from 7.3.8 to 7.4.0 (#2152) @app/dependabot
+ - Docs: Add additional SSO config notes on signed responses (#2149) @knolleary
+ - docs: Link to template concept (#2144) @ZJvandeWeg
+ - Update install-stack.js (#2139) @hardillb
+ - Bump ui-components to 0.6.2 (#2146) @joepavitt
+ - Only Generate admin stats token when asked (#2141) @hardillb
+ - Use gh token for release process (#2137) @knolleary
+ - Remove double backticks (#2134) @ZJvandeWeg
+ - ESLint: Explicitly enable no-only and set root flag (#2132) @Pezmc
+ - ESLint: Quick clean up (#1990) @Pezmc
+ - Handle non-string log message payloads (#2130) @knolleary
+
 #### 1.7.0: Release
 
  - Add licensing info (#1848) @Steve-Mcl
