@@ -112,7 +112,7 @@ file present in its working directory. There are two ways to do this:
 [Working Directory](#working-directory).
 2. Download the credentials file to the device using its built in Web UI.
 NOTE: The Device Agent must be running and the command line flag for the Web UI must be enabled.
-See [Command Line Options](#Device-Agent-Command-Line-Options) for more information.
+See [Command Line Options](#device-agent-command-line-options) for more information.
 
 ### Copy method
 
