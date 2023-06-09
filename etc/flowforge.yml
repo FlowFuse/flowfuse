@@ -61,7 +61,7 @@ driver:
 #################################################
 
 # broker:
-  ## Internal url used by the platform to connect to the broker
+  ## Internal url used by the platform to connect to the broker
   # url: mqtt://localhost:4880
   ## External url used by devices to connect to the broker, if different
   # public_url: ws://localhost:4881
