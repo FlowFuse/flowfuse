@@ -33,11 +33,11 @@ This allows you to create a copy of the instance in your team.
 This allows you to take existing Node-RED flow and credential files and import them
 into your instance.
 
-### Suspend Instance
+### Suspend Instance
 
 This stops the instance entirely.
 
-### Delete Instance
+### Delete Instance
 
 If you're really sure you don't want the instance any more, this allows you to delete
 it. You cannot undo deleting an instance. Devices assigned to the instance will be
