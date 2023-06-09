@@ -90,16 +90,16 @@ likely want to begin.
 ├── docs
 ├── etc                  - FlowForge platform configuration files
 ├── forge                - Platform core code
-│   ├── config
-│   ├── containers
-│   ├── db
-│   ├── ee
-│   ├── lib
-│   ├── licensing
-│   ├── monitor
-│   ├── postoffice
-│   ├── routes
-│   └── settings
+│   ├── config
+│   ├── containers
+│   ├── db
+│   ├── ee
+│   ├── lib
+│   ├── licensing
+│   ├── monitor
+│   ├── postoffice
+│   ├── routes
+│   └── settings
 ├── frontend             - Frontend code
 │   ├── dist             - build output - created by `npm run build`
 │   ├── public           - static assets
