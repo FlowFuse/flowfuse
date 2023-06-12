@@ -132,7 +132,7 @@
         "sinon": "^15.1.0",
         "style-loader": "^3.3.3",
         "tailwindcss": "^2.2.19",
-        "vitest": "^0.31.1",
+        "vitest": "^0.32.0",
         "vue-loader": "^17.1.2",
         "vue-template-compiler": "^2.7.14",
         "webpack": "^5.84.1",
