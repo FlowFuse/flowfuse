@@ -130,10 +130,10 @@ You will need to setup the version(s) of Node-RED you want to use in your stacks
 From the `flowforge` directory run
 
 ```bash
-npm run install-stack --vers=2.2.2
+npm run install-stack --vers=3.0.2
 ```
 
-Where `2.2.2` is the version of Node-RED you want to use in the stack.
+Where `3.0.2` is the version of Node-RED you want to use in the stack.
 
 ### Running FlowForge
 
