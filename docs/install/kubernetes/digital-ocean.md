@@ -46,6 +46,7 @@ helm --kubeconfig=./k8s-flowforge-kubeconfig.yaml install nginx-ingress \
   --create-namespace \
   --set controller.publishService.enabled=true \
   --set controller.ingressClassResource.default=true \
+  --set controller.config.proxy-body-size="0" \
   --wait
 
 ```
