@@ -106,6 +106,8 @@ controller:
     configNameSpace: $(POD_NAMESPACE)/tcp-services
   udp:
     configNameSpace: $(POD_NAMESPACE)/udp-services
+  config:
+    proxy-body-size: "0"
   service:
     # AWS Annotations for LoadBalaner with Certificate ARN
     annotations:
