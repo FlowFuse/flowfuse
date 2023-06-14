@@ -4,14 +4,21 @@
             <component v-if="icon" :is="icon" class="transition-fade--color"/>
             <img v-if="avatar" :src="avatar" class="ff-avatar"/>
             <label class="transition-fade--color">{{ label }}</label>
+            <SparklesIcon v-if="featureUnavailable" class="transition-fade--color hollow" style="stroke-width: 1;" />
         </div>
         <ff-notification-pill v-if="notifications > 0" :count="notifications" />
     </li>
 </template>
 
 <script>
+
+import { SparklesIcon } from '@heroicons/vue/outline'
+
 export default {
     name: 'NavItem',
+    components: {
+        SparklesIcon
+    },
     props: {
         icon: {
             type: Function,
@@ -24,6 +31,10 @@ export default {
         label: {
             type: String,
             required: true
+        },
+        featureUnavailable: {
+            type: Boolean,
+            default: false
         },
         notifications: {
             type: Number,
