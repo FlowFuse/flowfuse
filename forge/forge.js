@@ -53,7 +53,7 @@ module.exports = async (options = {}) => {
             },
             level: loggerLevel,
             serializers: {
-                res( reply ) {
+                res (reply) {
                     return {
                         statusCode: reply.statusCode,
                         request: {
