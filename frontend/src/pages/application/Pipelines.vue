@@ -42,7 +42,7 @@
             :pipeline="pipeline"
             :instance-status-map="instanceStatusMap"
             @stage-deploy-starting="stageDeployStarting"
-            @stage-deploy-started="stageDeployStarted"
+            @stage-deploy-started="startPollingForDeployStatus"
             @pipeline-deleted="loadPipelines"
             @stage-deleted="(stageIndex) => stageDeleted(pipeline, stageIndex)"
         />
@@ -142,7 +142,7 @@ export default {
             // Optimistic flagging of deployment in progress for the single instance inside the target stage
             this.instanceStatusMap.get(nextStage.instance.id).isDeploying = true
         },
-        stageDeployStarted (stage) {
+        startPollingForDeployStatus (stage) {
             clearInterval(this.polling)
             this.polling = setInterval(this.loadInstanceStatus, 5000)
         },
@@ -176,14 +176,19 @@ export default {
         async loadInstanceStatus () {
             ApplicationAPI.getApplicationInstancesStatuses(this.application.id)
                 .then((instances) => {
-                    if (this.polling) {
-                        const deployingInstances = instances.some((instance) => {
-                            return instance.meta.isDeploying
-                        })
+                    const deployingInstances = instances.some((instance) => {
+                        return instance.meta.isDeploying
+                    })
 
+                    if (this.polling) {
                         // We were polling for status (triggered by deploy start) and all instances have finished deploying
-                        if (this.polling && !deployingInstances) {
+                        if (!deployingInstances) {
                             this.stageDeployCompleted()
+                        }
+                    } else {
+                        // Some instances are deploying, so we need to start polling for status
+                        if (deployingInstances) {
+                            this.startPollingForDeployStatus()
                         }
                     }
 
