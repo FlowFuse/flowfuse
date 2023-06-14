@@ -250,6 +250,7 @@ module.exports = {
                 async liveState () {
                     const storageFlow = await M.StorageFlow.byProject(this.id)
                     const inflightState = Controllers.Project.getInflightState(this)
+                    const isDeploying = Controllers.Project.isDeploying(this)
 
                     const result = {
                         flowLastUpdatedAt: storageFlow?.updatedAt // prop not set if storageFlow not found
@@ -266,6 +267,8 @@ module.exports = {
                     } else {
                         result.meta = await app.containers.details(this) || { state: 'unknown' }
                     }
+
+                    result.meta.isDeploying = isDeploying
 
                     return result
                 }

@@ -104,7 +104,6 @@ export default {
             return elapsedTime(this.stage.instance.updatedAt, new Date())
         },
         deploying () {
-            console.log('isStage deploying', this.stage)
             return this.stage.isDeploying
         }
     },

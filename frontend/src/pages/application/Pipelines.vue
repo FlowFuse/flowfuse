@@ -138,32 +138,17 @@ export default {
         }
     },
     methods: {
-        stageDeployStarting (stage) {
-            console.log('Starting to deploy', stage.id)
-
-            // Track which instances are being deployed to, for now, each stage has only one instance
-            this.instanceStatusMap.get(stage.instance.id).isDeploying = true
-            this.instanceStatusMap.forEach((value, key) => {
-                value.originalState = value.state
-            })
+        stageDeployStarting (stage, nextStage) {
+            // Optimistic flagging of deployment in progress for the single instance inside the target stage
+            this.instanceStatusMap.get(nextStage.instance.id).isDeploying = true
         },
         stageDeployStarted (stage) {
-            console.log('Deploy request complete starting polling', stage.id)
-
             clearInterval(this.polling)
             this.polling = setInterval(this.loadInstanceStatus, 5000)
         },
         stageDeployCompleted () {
-            console.log('Deploy completed')
-
             clearInterval(this.polling)
             this.polling = null
-
-            // Clear isDeploying flag
-            this.instanceStatusMap.forEach((value, key) => {
-                value.originalState = value.state
-                value.isDeploying = false
-            })
 
             Alerts.emit('Deployment of stage successful.', 'confirmation')
         },
@@ -189,18 +174,15 @@ export default {
                 })
         },
         async loadInstanceStatus () {
-            console.log('statuses', this.instanceStatusMap)
-
             ApplicationAPI.getApplicationInstancesStatuses(this.application.id)
                 .then((instances) => {
                     if (this.polling) {
-                        const instancesInPendingState = instances.some((instance) => {
-                            const originalState = this.instanceStatusMap.get(instance.id)?.state
-                            return originalState && instance.meta.state !== originalState
+                        const deployingInstances = instances.some((instance) => {
+                            return instance.meta.isDeploying
                         })
 
-                        // We were polling for status (triggered by deploy start) and all stages have returned to original state
-                        if (this.polling && !instancesInPendingState) {
+                        // We were polling for status (triggered by deploy start) and all instances have finished deploying
+                        if (this.polling && !deployingInstances) {
                             this.stageDeployCompleted()
                         }
                     }

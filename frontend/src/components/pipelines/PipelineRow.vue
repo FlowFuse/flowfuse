@@ -37,7 +37,7 @@
                         v-if="$index <= pipeline.stages.length - 1"
                         class="ff-icon mt-4 flex-shrink-0"
                         :class="{
-                            'animate-deploying': stage.isDeploying
+                            'animate-deploying': nextStageDeploying($index),
                         }"
                     />
                 </Transition>
@@ -148,15 +148,21 @@ export default {
             Alerts.emit('Pipeline successfully updated.', 'confirmation')
         },
         stageDeployStarting (stage) {
-            this.$emit('stage-deploy-starting', stage)
-            console.log('Starting deploy', stage)
+            const nextStage = this.pipeline.stages.find((s) => s.id === stage.NextStageId)
+            this.$emit('stage-deploy-starting', stage, nextStage)
         },
         stageDeployStarted (stage) {
             this.$emit('stage-deploy-started', stage)
-            console.log('Started deploy', stage)
         },
         stageDeleted (stageIndex) {
             this.$emit('stage-deleted', stageIndex)
+        },
+        nextStageDeploying (index) {
+            if (this.pipeline.stages[index + 1]) {
+                return this.pipeline.stages[index + 1].isDeploying
+            }
+
+            return false
         },
         deletePipeline () {
             const msg = {
