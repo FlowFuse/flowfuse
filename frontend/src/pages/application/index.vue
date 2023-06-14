@@ -4,7 +4,7 @@
             <template #nested-menu>
                 <div class="ff-nested-title">Application</div>
                 <router-link v-for="route in navigation" :key="route.label" :to="route.path">
-                    <nav-item :icon="route.icon" :label="route.label" :data-nav="route.tag" />
+                    <nav-item :icon="route.icon" :label="route.label" :data-nav="route.tag" :unavailable="route.unavailable" />
                 </router-link>
             </template>
         </SideNavigationTeamOptions>
@@ -120,18 +120,18 @@ export default {
         navigation () {
             const routes = [
                 { label: 'Node-RED Instances', path: `/application/${this.application.id}/instances`, tag: 'application-overview', icon: ProjectsIcon },
+                {
+                    label: 'DevOps Pipelines',
+                    path: `/application/${this.application.id}/pipelines`,
+                    tag: 'application-pipelines',
+                    icon: PipelinesIcon,
+                    featureUnavailable: !this.features?.['devops-pipelines']
+                },
                 { label: 'Node-RED Logs', path: `/application/${this.application.id}/logs`, tag: 'application-logs', icon: TerminalIcon },
                 { label: 'Audit Log', path: `/application/${this.application.id}/activity`, tag: 'application-activity', icon: ViewListIcon },
                 { label: 'Settings', path: `/application/${this.application.id}/settings`, tag: 'application-settings', icon: CogIcon }
             ]
-            if (this.features && this.features['devops-pipelines']) {
-                routes.splice(1, 0, {
-                    label: 'DevOps Pipelines',
-                    path: `/application/${this.application.id}/pipelines`,
-                    tag: 'application-pipelines',
-                    icon: PipelinesIcon
-                })
-            }
+
             return routes
         },
         instancesArray () {

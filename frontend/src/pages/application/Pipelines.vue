@@ -1,4 +1,5 @@
 <template>
+    <FeatureUnavailable v-if="!featureEnabled" />
     <SectionTopMenu
         hero="DevOps Pipelines"
         help-header="FlowForge - DevOps Pipelines"
@@ -25,6 +26,7 @@
                     name: 'CreatePipeline',
                     params: { applicationId: application.id },
                 }"
+                :disabled="!featureEnabled"
             >
                 <template #icon-left>
                     <PlusSmIcon />
@@ -72,6 +74,7 @@
                     name: 'CreatePipeline',
                     params: { applicationId: application.id },
                 }"
+                :disabled="!featureEnabled"
             >
                 <template #icon-left><PlusSmIcon /></template>
                 Add Pipeline
@@ -89,6 +92,7 @@ import PipelineAPI from '../../api/pipeline.js'
 
 import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
+import FeatureUnavailable from '../../components/banners/FeatureUnavailable.vue'
 import PipelineRow from '../../components/pipelines/PipelineRow.vue'
 
 import Alerts from '../../services/alerts.js'
@@ -99,7 +103,8 @@ export default {
         SectionTopMenu,
         PlusSmIcon,
         PipelineRow,
-        EmptyState
+        EmptyState,
+        FeatureUnavailable
     },
     beforeRouteLeave () {
         clearInterval(this.polling)
@@ -123,18 +128,14 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features'])
+        ...mapState('account', ['features']),
+        featureEnabled () {
+            return this.features['devops-pipelines']
+        }
     },
     mounted () {
-        if (this.features['devops-pipelines']) {
+        if (this.featureEnabled) {
             this.loadPipelines()
-        } else {
-            this.$router.push({
-                name: 'Application',
-                params: {
-                    id: this.application.id
-                }
-            })
         }
     },
     methods: {
