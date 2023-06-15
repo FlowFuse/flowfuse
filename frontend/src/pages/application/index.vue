@@ -4,7 +4,7 @@
             <template #nested-menu>
                 <div class="ff-nested-title">Application</div>
                 <router-link v-for="route in navigation" :key="route.label" :to="route.path">
-                    <nav-item :icon="route.icon" :label="route.label" :data-nav="route.tag" :unavailable="route.unavailable" />
+                    <nav-item :icon="route.icon" :label="route.label" :data-nav="route.tag" :featureUnavailable="route.featureUnavailable" />
                 </router-link>
             </template>
         </SideNavigationTeamOptions>

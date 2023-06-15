@@ -3,14 +3,16 @@
         <div class="ff-side-navigation--primary">
             <!-- Team Options: General -->
             <ul class="ff-side-navigation--options">
-                <div v-for="route in routes.general" :key="route.label">
-                    <router-link v-if="route.label"
-                                 :class="{'router-link-active': atNestedRoute(route)}"
-                                 :to="'/team/' + team.slug + route.to" @click="$emit('option-selected')"
-                                 :data-nav="route.tag">
-                        <nav-item :label="route.label" :icon="route.icon"></nav-item>
+                <div v-for="route in navigation.general" :key="route.label">
+                    <router-link
+                        v-if="route.label"
+                        :class="{'router-link-active': atNestedRoute(route)}"
+                        :to="'/team/' + team.slug + route.to" :data-nav="route.tag"
+                        @click="$emit('option-selected')"
+                    >
+                        <nav-item :label="route.label" :icon="route.icon" :featureUnavailable="route.featureUnavailable" />
                     </router-link>
-                    <div v-else class="ff-side-navigation-divider"></div>
+                    <div v-else class="ff-side-navigation-divider" />
                 </div>
             </ul>
             <span v-if="hasPermission('team:edit')" class="ff-navigation-divider">
@@ -18,15 +20,17 @@
             </span>
             <!-- Team Options: Admin -->
             <ul v-if="hasPermission('team:edit')" class="ff-side-navigation--admin">
-                <router-link v-for="route in routes.admin" :key="route.label"
-                             :to="'/team/' + team.slug + route.to"
-                             :data-nav="route.tag">
-                    <nav-item :icon="route.icon" :label="route.label"></nav-item>
+                <router-link
+                    v-for="route in navigation.admin" :key="route.label"
+                    :to="'/team/' + team.slug + route.to"
+                    :data-nav="route.tag"
+                >
+                    <nav-item :icon="route.icon" :label="route.label" :featureUnavailable="route.featureUnavailable" />
                 </router-link>
             </ul>
         </div>
         <div class="ff-side-navigation--nested">
-            <slot name="nested-menu"></slot>
+            <slot name="nested-menu" />
         </div>
     </div>
 </template>
@@ -42,58 +46,71 @@ import ProjectsIcon from './icons/Projects.js'
 
 export default {
     name: 'FFSideNavigationTeamOptions',
-    props: ['mobile-menu-open'],
-    emits: ['option-selected'],
-    mixins: [permissionsMixin],
     components: {
         NavItem
+    },
+    mixins: [permissionsMixin],
+    props: {
+        'mobile-menu-open': {
+            type: Boolean,
+            default: false
+        }
+    },
+    emits: ['option-selected'],
+    data () {
+        return {
+            closeNested: false,
+            loaded: false
+        }
     },
     computed: {
         ...mapState('account', ['user', 'team', 'teamMembership', 'features', 'notifications']),
         nested: function () {
             return (this.$slots['nested-menu'] && this.loaded) || this.closeNested
-        }
-    },
-    data () {
-        const routes = {
-            general: [{
-                label: 'Applications',
-                to: '/applications',
-                tag: 'team-applications',
-                icon: TemplateIcon
-            }, {}, {
-                label: 'Instances',
-                to: '/instances',
-                tag: 'team-instances',
-                icon: ProjectsIcon
-            }, {
-                label: 'Devices',
-                to: '/devices',
-                tag: 'team-devices',
-                icon: ChipIcon
-            }, {}, {
-                label: 'Members',
-                to: '/members',
-                tag: 'team-members',
-                icon: UsersIcon
-            }],
-            admin: [{
-                label: 'Audit Log',
-                to: '/audit-log',
-                tag: 'team-audit',
-                icon: DatabaseIcon
-            }, {
-                label: 'Team Settings',
-                to: '/settings',
-                tag: 'team-settings',
-                icon: CogIcon
-            }]
-        }
-
-        return {
-            closeNested: false,
-            loaded: false,
-            routes
+        },
+        navigation () {
+            return {
+                general: [{
+                    label: 'Applications',
+                    to: '/applications',
+                    tag: 'team-applications',
+                    icon: TemplateIcon
+                }, {}, {
+                    label: 'Instances',
+                    to: '/instances',
+                    tag: 'team-instances',
+                    icon: ProjectsIcon
+                }, {
+                    label: 'Devices',
+                    to: '/devices',
+                    tag: 'team-devices',
+                    icon: ChipIcon
+                }, {}, {
+                    label: 'Members',
+                    to: '/members',
+                    tag: 'team-members',
+                    icon: UsersIcon
+                }],
+                admin: [{
+                    label: 'Audit Log',
+                    to: '/audit-log',
+                    tag: 'team-audit',
+                    icon: DatabaseIcon
+                },
+                {
+                    label: 'Library',
+                    to: '/library',
+                    tag: 'shared-library',
+                    icon: FolderIcon,
+                    featureUnavailable: !this.features?.['shared-library']
+                },
+                {
+                    label: 'Team Settings',
+                    to: '/settings',
+                    tag: 'team-settings',
+                    icon: CogIcon
+                }]
+            }
         }
     },
     mounted () {
@@ -143,15 +160,6 @@ export default {
             }
         },
         checkFeatures () {
-            if (this.features['shared-library']) {
-                // insert billing in second slot of admin
-                this.routes.general.splice(5, 0, {
-                    label: 'Library',
-                    to: '/library',
-                    tag: 'shared-library',
-                    icon: FolderIcon
-                })
-            }
             if (this.features.billing) {
                 // insert billing in second slot of admin
                 this.routes.admin.splice(1, 0, {
