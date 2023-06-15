@@ -554,6 +554,9 @@ $nav_height: 60px;
                 width: calc(100% - 54px);
                 flex-grow: 1;
             }
+            svg.hollow {
+                display: none
+            }
         }
     }
     .ff-side-navigation--options {
@@ -572,6 +575,10 @@ $nav_height: 60px;
                 }
                 svg {
                     fill: $ff-teal-300;
+                    &.hollow {
+                        fill: none;
+                        stroke: $ff-teal-300;
+                    }
                 }
             }
         }
