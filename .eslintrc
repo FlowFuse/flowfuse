@@ -166,8 +166,7 @@
                 "frontend/src/pages/instance/Settings/ChangeInstanceType.vue",
                 "frontend/src/pages/instance/Settings/Danger.vue",
                 "frontend/src/pages/team/create.vue",
-                "frontend/src/pages/team/Overview.vue",
-                "frontend/src/store/account.js"
+                "frontend/src/pages/team/Overview.vue"
             ]
         },
         {
