@@ -75,17 +75,29 @@ export default {
                     to: '/applications',
                     tag: 'team-applications',
                     icon: TemplateIcon
-                }, {}, {
+                },
+                {},
+                {
                     label: 'Instances',
                     to: '/instances',
                     tag: 'team-instances',
                     icon: ProjectsIcon
-                }, {
+                },
+                {
                     label: 'Devices',
                     to: '/devices',
                     tag: 'team-devices',
                     icon: ChipIcon
-                }, {}, {
+                },
+                {},
+                {
+                    label: 'Library',
+                    to: '/library',
+                    tag: 'shared-library',
+                    icon: FolderIcon,
+                    featureUnavailable: !this.features?.['shared-library']
+                },
+                {
                     label: 'Members',
                     to: '/members',
                     tag: 'team-members',
@@ -96,13 +108,6 @@ export default {
                     to: '/audit-log',
                     tag: 'team-audit',
                     icon: DatabaseIcon
-                },
-                {
-                    label: 'Library',
-                    to: '/library',
-                    tag: 'shared-library',
-                    icon: FolderIcon,
-                    featureUnavailable: !this.features?.['shared-library']
                 },
                 {
                     label: 'Team Settings',
