@@ -2,7 +2,8 @@
     <form class="space-y-4" @submit.prevent>
         <FormHeading>
             <div class="flex">
-                <div class="mr-4">Installed Modules</div>
+                <div v-if="editTemplate" class="mr-4">Default Modules</div>
+                <div v-else class="mr-4">Installed Modules</div>
                 <div class="flex justify-center"><ChangeIndicator :value="editable.changed.palette_modules"></ChangeIndicator></div>
             </div>
         </FormHeading>
@@ -13,8 +14,21 @@
                 <ff-button size="small" to="./settings/danger">Update</ff-button>
             </div>
         </div>
-        <div class="text-gray-400 space-y-1">
+
+        <!-- text to display when editing a template -->
+        <div v-if="editTemplate" class="text-gray-400 space-y-1">
+            <p>A list of modules that will be included in new instances</p>
+            <!-- additional text to display when palette_allowInstall is true -->
+            <div class="space-y-1">
+                <p>Changes to this list will not affect existing instances, they are</p>
+                <p>only copied to an instances settings when it is first created.</p>
+            </div>
+        </div>
+
+        <!-- text to display when editing an instance -->
+        <div v-else class="text-gray-400 space-y-1">
             <p>This is the list of modules that will be installed into the instance.</p>
+            <!-- additional text to display when palette_allowInstall is true -->
             <div v-if="editable.settings.palette_allowInstall" class="space-y-1">
                 <p>Any changes to this list will require restarting the instance to apply.</p>
                 <p>You can also install modules using the palette manager in the editor.</p>
@@ -142,7 +156,25 @@ import ChangeIndicator from '../components/ChangeIndicator.vue'
 
 export default {
     name: 'TemplatePaletteModulesEditor',
-    props: ['editTemplate', 'modelValue', 'readOnly', 'project'],
+    props: {
+        editTemplate: {
+            type: Boolean,
+            default: false
+        },
+        modelValue: {
+            type: Object,
+            required: true
+        },
+        readOnly: {
+            type: Boolean,
+            default: false
+        },
+        project: {
+            type: Object,
+            required: false,
+            default: null
+        }
+    },
     emits: ['update:modelValue'],
     data () {
         return {
@@ -161,6 +193,10 @@ export default {
             set (localValue) { this.$emit('update:modelValue', localValue) }
         },
         projectLauncherCompatible () {
+            if (this.editTemplate) {
+                // when editing a template, we don't have a project
+                return true
+            }
             const launcherVersion = this.project?.meta?.versions?.launcher
             if (!launcherVersion) {
                 // We won't have this for a suspended project - so err on the side

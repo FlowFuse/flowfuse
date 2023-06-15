@@ -37,6 +37,7 @@ import alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
 import {
+    comparePaletteModules,
     prepareTemplateForEdit,
     setObjectValue,
     setTemplateValue,
@@ -86,6 +87,8 @@ export default {
                 policy: {}
             },
             unsavedChanges: false,
+            modulesChanged: false,
+            needsRestart: false,
             hasErrors: false,
             icons: {
                 breadcrumbSeparator: ChevronRightIcon
@@ -99,6 +102,8 @@ export default {
                 // Only check for changes in existing templates
                 if (this.template.name) {
                     let changed = false
+                    let modulesChanged = false
+                    let needsRestart = false
                     let errors = false
                     this.editable.changed.name = this.editable.name !== this.original.name
                     changed = changed || this.editable.changed.name
@@ -108,14 +113,17 @@ export default {
 
                     this.editable.changed.description = this.editable.description !== this.original.description
                     changed = changed || this.editable.changed.description
-
                     templateFields.forEach(field => {
                         if (field === 'palette_modules') {
-                            // Don't check `palette_modules` for changes.
-                            // They are part of the template but are not edited here in admin/settings
-                            return
+                            const pmChanges = comparePaletteModules(this.editable.settings.palette_modules, this.original.settings.palette_modules)
+                            this.editable.changed.palette_modules = this.editable.changed.palette_modules || pmChanges.changed
+                            modulesChanged = modulesChanged || pmChanges.changed
+                            changed = changed || pmChanges.changed
+                            errors = errors || pmChanges.errors
+                        } else {
+                            this.editable.changed.settings[field] = this.editable.settings[field] !== this.original.settings[field]
+                            needsRestart = needsRestart || this.editable.changed.settings[field]
                         }
-                        this.editable.changed.settings[field] = this.editable.settings[field] !== this.original.settings[field]
                         this.editable.changed.policy[field] = this.editable.policy[field] !== this.original.policy[field]
                         changed = changed || this.editable.changed.settings[field] || this.editable.changed.policy[field]
                         if (templateValidators[field]) {
@@ -157,6 +165,8 @@ export default {
                     }
                     this.editable.changed.env = envChanged
                     changed = changed || envChanged
+                    this.modulesChanged = modulesChanged
+                    this.needsRestart = needsRestart
                     this.unsavedChanges = changed
                     this.hasErrors = errors
                 }
@@ -226,9 +236,16 @@ export default {
             this.editable.errors = {}
         },
         showSaveTemplateDialog () {
+            let html = '<p>Are you sure you want to save this template?</p>'
+            if (this.needsRestart) {
+                html += '<p>Application instances using this template will need to be manually restarted to pick up the changes.</p>'
+            }
+            if (this.modulesChanged) {
+                html += '<p>NOTE: Exiting instances will not inherit the modules in this list.  They must be added manually in the instance settings.</p>'
+            }
             Dialog.show({
                 header: 'Update Template',
-                html: '<p>Are you sure you want to save this template?</p><p>Any application instances using this template will need to be manually restarted to pick up any changes.</p>',
+                html,
                 confirmLabel: 'Save Template'
             }, this.saveTemplate)
         },
