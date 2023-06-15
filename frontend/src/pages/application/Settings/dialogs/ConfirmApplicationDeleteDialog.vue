@@ -14,8 +14,8 @@
                     <p>
                         Are you sure you want to delete this application? Once deleted, there is no going back.
                     </p>
-                    <p>
-                        Enter the application name <code>{{ application?.name }}</code> to continue.
+                    <p class="flex">
+                        Enter the application name <code class="block">{{ application?.name }}</code> to continue.
                     </p>
                 </div>
                 <FormRow id="projectName" v-model="input.projectName" data-form="application-name">Name</FormRow>
