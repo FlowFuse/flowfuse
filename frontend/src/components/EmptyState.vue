@@ -1,5 +1,9 @@
 <template>
-    <div class="ff-empty-state">
+    <FeatureUnavailable v-if="featureUnavailable" />
+
+    <div
+        class="ff-empty-state" :class="{'ff-empty-state-feature-unavailable': featureUnavailable}"
+    >
         <div>
             <slot name="img" />
             <h1>
@@ -19,8 +23,19 @@
 </template>
 
 <script>
+import FeatureUnavailable from './banners/FeatureUnavailable.vue'
+
 export default {
-    name: 'EmptyState'
+    name: 'EmptyState',
+    components: {
+        FeatureUnavailable
+    },
+    props: {
+        featureUnavailable: {
+            type: Boolean,
+            default: false
+        }
+    }
 }
 </script>
 

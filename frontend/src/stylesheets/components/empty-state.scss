@@ -44,4 +44,9 @@
         margin-top: 1.75rem;
         color: $ff-grey-400;
     }
+
+    &.ff-empty-state-feature-unavailable {
+        background-color: inherit;
+        border: none; 
+    }
 }

@@ -1,5 +1,4 @@
 <template>
-    <FeatureUnavailable v-if="!featureEnabled" />
     <SectionTopMenu
         hero="DevOps Pipelines"
         help-header="FlowForge - DevOps Pipelines"
@@ -49,7 +48,7 @@
             @stage-deleted="(stageIndex) => stageDeleted(pipeline, stageIndex)"
         />
     </div>
-    <EmptyState v-else>
+    <EmptyState v-else :featureUnavailable="!featureEnabled">
         <template #header>Add your Application's First DevOps Pipeline</template>
         <template #img>
             <img src="../../images/empty-states/application-pipelines.png">

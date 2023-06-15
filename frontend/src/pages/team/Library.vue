@@ -1,5 +1,4 @@
 <template>
-    <FeatureUnavailable v-if="!featureEnabled" />
     <SectionTopMenu hero="Team Library" help-header="FlowForge - Team Library" info="Shared repository to store common flows and nodes.">
         <template #pictogram>
             <img src="../../images/pictograms/library_red.png">
@@ -34,7 +33,7 @@
         </ff-data-table>
         <ff-code-previewer v-else ref="code-preview" :snippet="contents" />
     </div>
-    <EmptyState v-else>
+    <EmptyState v-else :featureUnavailable="!featureEnabled">
         <template #img>
             <img src="../../images/empty-states/team-library.png">
         </template>
