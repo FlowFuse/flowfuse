@@ -153,9 +153,6 @@
                 "promise/catch-or-return": "off"
             },
             "files": [
-                "forge/comms/index.js",
-                "forge/routes/api/project.js",
-                "forge/routes/api/projectActions.js",
                 "frontend/src/pages/account/Security/ChangePassword.vue",
                 "frontend/src/pages/account/Settings.vue",
                 "frontend/src/pages/admin/InstanceTypes/dialogs/InstanceTypeEditDialog.vue",
@@ -169,8 +166,7 @@
                 "frontend/src/pages/instance/Settings/ChangeInstanceType.vue",
                 "frontend/src/pages/instance/Settings/Danger.vue",
                 "frontend/src/pages/team/create.vue",
-                "frontend/src/pages/team/Overview.vue",
-                "frontend/src/store/account.js"
+                "frontend/src/pages/team/Overview.vue"
             ]
         },
         {

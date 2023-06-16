@@ -30,6 +30,9 @@ module.exports = async function (app) {
                     await app.auditLog.Project.project.started(request.session.User, null, request.project)
                     app.db.controllers.Project.clearInflightState(request.project)
                     return true
+                }).catch(err => {
+                    app.log.info(`failed to start project ${request.project.id}`)
+                    throw err
                 })
             } else {
                 app.db.controllers.Project.setInflightState(request.project, 'starting')
@@ -163,6 +166,9 @@ module.exports = async function (app) {
                 await app.auditLog.Project.project.started(request.session.User, null, request.project)
                 app.db.controllers.Project.clearInflightState(request.project)
                 return true
+            }).catch(err => {
+                app.log.info(`failed to restartStack for ${request.project.id}`)
+                throw err
             })
 
             reply.send()

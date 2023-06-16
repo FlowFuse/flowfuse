@@ -106,6 +106,8 @@ controller:
     configNameSpace: $(POD_NAMESPACE)/tcp-services
   udp:
     configNameSpace: $(POD_NAMESPACE)/udp-services
+  config:
+    proxy-body-size: "0"
   service:
     # AWS Annotations for LoadBalaner with Certificate ARN
     annotations:
@@ -119,6 +121,9 @@ controller:
       https: http
 
 ```
+
+The `proxy-body-size: "0"` removes the `1m` nginx default limit, you can set this to a 
+different vale e.g. "5m" which will match the Node-RED default.
 
 Add the ingress-nginx helm repo
 
