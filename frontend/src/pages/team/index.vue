@@ -1,18 +1,33 @@
 <template>
-    <Teleport v-if="mounted" to="#platform-sidenav">
+    <Teleport v-if="canAccessTeam && mounted" to="#platform-sidenav">
         <SideNavigationTeamOptions />
     </Teleport>
     <main>
         <template v-if="pendingTeamChange">
             <Loading />
         </template>
-        <div v-else-if="team">
+        <div v-else-if="canAccessTeam && team">
             <Teleport v-if="mounted" to="#platform-banner">
                 <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-team-as-admin">You are viewing this team as an Administrator</div>
                 <SubscriptionExpiredBanner :team="team" />
                 <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
             </Teleport>
             <router-view :team="team" :teamMembership="teamMembership" />
+        </div>
+        <div v-else-if="!canAccessTeam">
+            <EmptyState>
+                <template #img>
+                    <img src="../../images/empty-states/team-library.png">
+                </template>
+                <template #header>No Access</template>
+                <template #message>
+                    <p>You have a dashboard-only role in this team.</p>
+                    <p>
+                        This means you can access the pages created by the Node-RED instances in this team, but
+                        you cannot access their FlowForge settings.
+                    </p>
+                </template>
+            </EmptyState>
         </div>
     </main>
 </template>
@@ -23,6 +38,7 @@ import { mapState } from 'vuex'
 
 import { Roles } from '../../../../forge/lib/roles.js'
 
+import EmptyState from '../../components/EmptyState.vue'
 import Loading from '../../components/Loading.vue'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
@@ -31,6 +47,7 @@ import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 export default {
     name: 'TeamPage',
     components: {
+        EmptyState,
         Loading,
         SideNavigationTeamOptions,
         SubscriptionExpiredBanner,
@@ -59,6 +76,9 @@ export default {
                 return trialEndDate < Date.now()
             }
             return true
+        },
+        canAccessTeam: function () {
+            return this.teamMembership?.role >= Roles.Viewer
         }
     },
     mounted () {

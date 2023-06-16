@@ -110,15 +110,19 @@ export default {
             roleOptions: [{
                 label: 'Owner',
                 value: Roles.Owner,
-                description: 'Owners can add and remove members to the team and create projects'
+                description: 'Owners can add and remove members to the team and create applications and instances'
             }, {
                 label: 'Member',
                 value: Roles.Member,
-                description: 'Members can access the team projects'
+                description: 'Members can access the team instances'
             }, {
                 label: 'Viewer',
                 value: Roles.Viewer,
-                description: 'Viewers can access the team projects, but not make any changes'
+                description: 'Viewers can access the team instances, but not make any changes'
+            }, {
+                label: 'Dashboard Only',
+                value: Roles.Dashboard,
+                description: 'Dashboard users can only access the dashboards or HTTP endpoints created by the Node-RED instances when FlowForge authentication is enabled'
             }],
             show () {
                 this.$refs.dialog.show()

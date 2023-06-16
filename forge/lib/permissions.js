@@ -9,7 +9,7 @@ const Permissions = {
     'user:team:list': { description: 'List a Users teams', role: Roles.Admin, self: true },
     // Team Scoped Actions
     'team:create': { description: 'Create Team' },
-    'team:read': { description: 'View a Team', role: Roles.Viewer },
+    'team:read': { description: 'View a Team', role: Roles.Dashboard },
     'team:edit': { description: 'Edit Team', role: Roles.Owner },
     'team:delete': { description: 'Delete Team', role: Roles.Owner },
     'team:audit-log': { description: 'Access Team Audit Log', role: Roles.Owner },
@@ -38,6 +38,7 @@ const Permissions = {
     // Project Editor
     'project:flows:view': { description: 'View Project Flows', role: Roles.Viewer },
     'project:flows:edit': { description: 'Edit Project Flows', role: Roles.Member },
+    'project:flows:http': { description: 'Access http endpoints of an Instance', role: Roles.Dashboard },
     // Snapshots
     'project:snapshot:create': { description: 'Create Project Snapshot', role: Roles.Member },
     'project:snapshot:list': { description: 'List Project Snapshots', role: Roles.Viewer },
