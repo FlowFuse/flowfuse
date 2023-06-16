@@ -14,7 +14,7 @@
                     <p>
                         Are you sure you want to delete this instance and the application that contains it? Once deleted, there is no going back.
                     </p>
-                    <p>
+                    <p class="flex">
                         Enter the instance name <code>{{ instance?.name }}</code> to continue.
                     </p>
                 </div>
