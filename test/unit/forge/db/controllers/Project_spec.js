@@ -160,7 +160,7 @@ describe('Project controller', function () {
                 policy: {}
             })
             const project = await app.db.models.Project.create({
-                name: 'testProject-002',
+                name: 'testProject-001a',
                 type: '',
                 url: ''
             })
