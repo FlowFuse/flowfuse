@@ -359,6 +359,54 @@ You can stop your with the command:
 
 ```sudo systemctl stop flowforge-device-agent```
 
+## Node-RED Settings
+
+Most Node-RED settings are managed by the platform as part of deploying an instance
+to the device. However some settings can be overridden locally on the device.
+
+### HTTPS configuration
+
+*Available in Device Agent 0.10+*
+
+The `https` configuration option in `device.yml` can be used to enable HTTPS within Node-RED. The values
+are passed through to the [Node-RED `https` setting](https://nodered.org/docs/user-guide/runtime/configuration).
+
+The `ca`, `key` and `cert` properties can be used to provide custom certificates and keys.
+The values should be set to the contents of the certificate/key.
+
+Alternatively, the properties `caPath`, `keyPath` and `certPath` can be used instead
+to provide absolute paths to files containing the certificates/keys.
+
+```yml
+https:
+   keyPath: /opt/flowforge-device/certs/key.pem
+   certPath: /opt/flowforge-device/certs/cert.pem
+   caPath: /opt/flowforge-device/certs/ca.pem
+```
+
+### `httpStatic` configuration
+
+*Available in Device Agent 0.10+*
+
+This option can be used to serve content from a local directory.
+
+If set to a path, the files in that directory will be served relative to `/`.
+
+```yml
+httpStatic: /opt/flowforge-device/static-content
+```
+
+It is also possible to configure it with a list of directories and the corresponding
+path they should be served from.
+
+```yml
+httpStatic:
+  - path: /opt/flowforge-device/static-content/images
+    root: /images
+  - path: /opt/flowforge-device/static-content/js
+    root: /js
+```
+
 ## Troubleshooting
 
 If you have problems with the device agent the first thing to do is to enable the verbose logging mode.
