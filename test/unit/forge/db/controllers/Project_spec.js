@@ -145,6 +145,46 @@ describe('Project controller', function () {
             result.env.should.not.have.property('FF_DEVICE_VAR_TEST')
             result.env.should.not.have.property('FF_RANDOM_XXX_123')
         })
+        it('does not merge template palette modules into runtime settings', async function () {
+            const template = await app.db.models.ProjectTemplate.create({
+                name: 'defaultTemplate-002',
+                active: true,
+                settings: {
+                    palette: {
+                        modules: [
+                            { name: 'node-red-node-random', version: '1.2.2', local: true },
+                            { name: 'node-red-node-badwords', version: '0.1.0', local: true }
+                        ]
+                    }
+                },
+                policy: {}
+            })
+            const project = await app.db.models.Project.create({
+                name: 'testProject-002',
+                type: '',
+                url: ''
+            })
+            await project.setProjectTemplate(template)
+
+            const newProjectSettings = {
+                palette: {
+                    modules: [
+                        { name: 'node-red-node-random', version: '1.2.3', local: true }, // upgrade
+                        { name: 'node-red-node-ping', version: '0.3.3', local: true } // new/add
+                    ]
+                }
+            }
+            await project.updateSetting('settings', newProjectSettings)
+
+            const reloadedProject = await app.db.models.Project.byId(project.id)
+            const result = await app.db.controllers.Project.getRuntimeSettings(reloadedProject)
+
+            result.should.have.property('palette')
+            result.palette.should.have.property('modules')
+            result.palette.modules.should.have.property('node-red-node-random', '1.2.3') // unchanged (still has project value)
+            result.palette.modules.should.have.property('node-red-node-ping', '0.3.3') // unchanged (still has project value)
+            result.palette.modules.should.not.have.property('node-red-node-badwords') // template item NOT merged into project settings
+        })
     })
 
     describe('addProjectModule', function () {
