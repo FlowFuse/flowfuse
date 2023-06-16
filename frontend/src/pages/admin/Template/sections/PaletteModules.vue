@@ -4,11 +4,11 @@
             <div class="flex">
                 <div v-if="editTemplate" class="mr-4">Default Modules</div>
                 <div v-else class="mr-4">Installed Modules</div>
-                <div class="flex justify-center"><ChangeIndicator :value="editable.changed.palette_modules"></ChangeIndicator></div>
+                <div class="flex justify-center"><ChangeIndicator :value="editable.changed.palette_modules" /></div>
             </div>
         </FormHeading>
 
-        <div class="text-red-400 space-y-1" v-if="!projectLauncherCompatible">
+        <div v-if="!projectLauncherCompatible" class="text-red-400 space-y-1">
             <p>You will need to update your Project Stack to use this feature.</p>
             <div v-if="project.stack.replacedBy">
                 <ff-button size="small" to="./settings/danger">Update</ff-button>
@@ -40,38 +40,39 @@
                 <tr class="font-medium">
                     <td class="border bg-gray-100 p-2 w-auto">Module</td>
                     <td class="border bg-gray-100 p-2 w-48">Version</td>
-                    <td class="border bg-gray-100 p-2 w-24"></td>
+                    <td class="border bg-gray-100 p-2 w-24" />
                 </tr>
             </thead>
             <tbody class="bg-white">
                 <tr v-for="(item, itemIdx) in editable.settings.palette_modules" :key="item.index">
                     <td class="px-2 py-2 border align-top">
                         <FormRow
-                            class="font-mono"
                             v-model="item.name"
+                            class="font-mono"
                             :error="item.error"
-                            type="uneditable">
-                        </FormRow>
+                            type="uneditable"
+                        />
                         <!-- <ff-text-input  v-model="item.name" :disabled="item.encrypted"  /> -->
                     </td>
                     <td class="px-2 py-2 border align-top">
                         <div style="width: calc(100% - 40px);">
                             <FormRow
-                                class="font-mono"
                                 v-model="item.version"
+                                class="font-mono"
                                 :type="(!readOnly && item.local && item.editing)?'text':'uneditable'"
-                                :error="item.errorVersion">
+                                :error="item.errorVersion"
+                            >
                                 <template #append>
                                     <div v-if="!readOnly && item.local && !item.editing" class="flex items-center">
-                                        <ff-button kind="tertiary" @click="editModule(itemIdx)" size="small">
-                                            <template v-slot:icon>
+                                        <ff-button kind="tertiary" size="small" @click="editModule(itemIdx)">
+                                            <template #icon>
                                                 <PencilIcon />
                                             </template>
                                         </ff-button>
                                     </div>
                                     <div v-if="!readOnly && item.local && item.editing" class="flex items-center pt-1">
-                                        <ff-button kind="tertiary" @click="cancelEditModule(itemIdx)" size="small">
-                                            <template v-slot:icon>
+                                        <ff-button kind="tertiary" size="small" @click="cancelEditModule(itemIdx)">
+                                            <template #icon>
                                                 <XIcon />
                                             </template>
                                         </ff-button>
@@ -82,8 +83,8 @@
                     </td>
                     <td class="border align-middle px-2">
                         <div v-if="!readOnly && item.local" class="flex justify-center">
-                            <ff-button kind="tertiary" @click="removeModule(itemIdx)" size="small">
-                                <template v-slot:icon>
+                            <ff-button kind="tertiary" size="small" @click="removeModule(itemIdx)">
+                                <template #icon>
                                     <TrashIcon />
                                 </template>
                             </ff-button>
@@ -100,13 +101,13 @@
                 </tr>
                 <!-- Empty row to differentiate between the existing env vars, and the iput form row-->
                 <tr v-if="!readOnly">
-                    <td colspan="3" class="p-1 bg-gray-50"></td>
+                    <td colspan="3" class="p-1 bg-gray-50" />
                 </tr>
                 <tr v-if="!readOnly && !showAddRow" class="">
                     <td colspan="3" class="p-1 bg-gray-50">
-                        <ff-button kind="primary" @click="showAddModule()" size="small">
+                        <ff-button kind="primary" size="small" @click="showAddModule()">
                             Add module
-                            <template v-slot:icon>
+                            <template #icon>
                                 <PlusSmIcon />
                             </template>
                         </ff-button>
@@ -114,36 +115,35 @@
                 </tr>
                 <tr v-if="!readOnly && showAddRow" class="">
                     <td class="px-4 pt-4 border w-auto align-top">
-                        <FormRow class="font-mono" v-model="input.name" :error="input.error" placeholder="@example/module">
+                        <FormRow v-model="input.name" class="font-mono" :error="input.error" placeholder="@example/module">
                             <template #description>npm module name</template>
                         </FormRow>
                     </td>
                     <td class="px-4 pt-4 pb-3 border w-auto align-top space-y-3">
-                        <FormRow class="font-mono" v-model="input.version" :error="input.errorVersion" placeholder="*">
+                        <FormRow v-model="input.version" class="font-mono" :error="input.errorVersion" placeholder="*">
                             <template #description>*, 1.2.3, ^2.3.2, ...</template>
                         </FormRow>
                         <!-- <FormRow id="encrypt-env-var" v-model="input.encrypt" type="checkbox"> <span class="text-gray-500"><LockClosedIcon class="inline w-4" /> encrypt</span></FormRow> -->
                     </td>
                     <td class="border w-16">
                         <div class="flex align-center justify-center space-x-2">
-                            <ff-button kind="primary" @click="addModule()" :disabled="!addEnabled" size="small">
-                                <template v-slot:icon>
+                            <ff-button kind="primary" :disabled="!addEnabled" size="small" @click="addModule()">
+                                <template #icon>
                                     <CheckIcon />
                                 </template>
                             </ff-button>
-                            <ff-button kind="secondary" @click="cancelAddModule()" size="small">
-                                <template v-slot:icon>
+                            <ff-button kind="secondary" size="small" @click="cancelAddModule()">
+                                <template #icon>
                                     <XIcon />
                                 </template>
                             </ff-button>
                         </div>
                     </td>
-                    <td class="p-2" v-if="editTemplate"></td>
+                    <td v-if="editTemplate" class="p-2" />
                 </tr>
             </tbody>
         </table>
     </form>
-
 </template>
 
 <script>
@@ -156,6 +156,17 @@ import ChangeIndicator from '../components/ChangeIndicator.vue'
 
 export default {
     name: 'TemplatePaletteModulesEditor',
+    components: {
+        FormRow,
+        FormHeading,
+        ChangeIndicator,
+        TrashIcon,
+        PencilIcon,
+        PlusSmIcon,
+        LockClosedIcon,
+        XIcon,
+        CheckIcon
+    },
     props: {
         editTemplate: {
             type: Boolean,
@@ -305,17 +316,6 @@ export default {
             this.editable.settings.palette_modules.push(field)
             this.showAddRow = false
         }
-    },
-    components: {
-        FormRow,
-        FormHeading,
-        ChangeIndicator,
-        TrashIcon,
-        PencilIcon,
-        PlusSmIcon,
-        LockClosedIcon,
-        XIcon,
-        CheckIcon
     }
 }
 </script>

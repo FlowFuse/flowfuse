@@ -9,9 +9,9 @@
                 <span v-if="isNew">Create a new template</span>
             </div>
         </div>
-        <div class="text-right space-x-4 flex h-8" >
+        <div class="text-right space-x-4 flex h-8">
             <template v-if="!isNew">
-                <ff-button kind="secondary" v-if="unsavedChanges" class="ml-4" @click="cancelEdit">Discard changes</ff-button>
+                <ff-button v-if="unsavedChanges" kind="secondary" class="ml-4" @click="cancelEdit">Discard changes</ff-button>
                 <ff-button class="ml-4" :disabled="hasErrors || !unsavedChanges" @click="showSaveTemplateDialog">Save changes</ff-button>
             </template>
             <template v-else-if="isNew">
@@ -23,7 +23,7 @@
     <div class="flex flex-col sm:flex-row">
         <SectionSideMenu :options="sideNavigation" />
         <div class="flex-grow">
-            <router-view v-model="editable" :editTemplate="true"></router-view>
+            <router-view v-model="editable" :editTemplate="true" />
         </div>
     </div>
 </template>
@@ -54,6 +54,10 @@ const sideNavigation = [
 
 export default {
     name: 'AdminTemplate',
+    components: {
+        SectionSideMenu,
+        ChevronRightIcon
+    },
     setup () {
         return {
             sideNavigation
@@ -330,10 +334,6 @@ export default {
                 console.error(err)
             }
         }
-    },
-    components: {
-        SectionSideMenu,
-        ChevronRightIcon
     }
 }
 </script>
