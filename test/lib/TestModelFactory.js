@@ -138,7 +138,8 @@ module.exports = class TestModelFactory {
             ]
         })
         if (start) {
-            await this.forge.containers.start(instance) // ensure project is initialized
+            const result = await this.forge.containers.start(instance) // ensure project is initialized
+            await result.started
         }
         return instance
     }
