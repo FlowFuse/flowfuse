@@ -171,6 +171,7 @@ describe('Node-RED Editor Login', function () {
         const result = JSON.parse(response.body)
         result.should.have.property('username', 'alice')
     })
+
     it('editor login via oauth flow - read-only access', async function () {
         const tokens = await doEditorLogin(TestObjects.tokens.bob, 'editor-0.18', false)
         tokens.should.have.property('scope', 'read')
@@ -203,6 +204,7 @@ describe('Node-RED Editor Login', function () {
         const result = JSON.parse(response.body)
         result.should.have.property('username', 'alice')
     })
+
     it('httpAuth login via oauth flow - read-only access', async function () {
         const tokens = await doEditorLogin(TestObjects.tokens.bob, 'httpAuth-0.18', false)
         const response = await app.inject({
