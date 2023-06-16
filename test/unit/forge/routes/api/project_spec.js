@@ -1877,6 +1877,23 @@ describe('Project API', function () {
 
             response.statusCode.should.equal(200)
         })
+
+        it('Handles trying to delete an already deleted container without error', async function () {
+            const aTeamInstance = await createInstance({ start: true })
+
+            sinon.stub(app.containers, 'remove').throws({ statusCode: 404, message: 'container not found' })
+
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/projects/${aTeamInstance.id}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            const result = response.json()
+            result.should.have.property('status', 'okay')
+
+            response.statusCode.should.equal(200)
+        })
     })
 
     describe('Project Settings', function () {
