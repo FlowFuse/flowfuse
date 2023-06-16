@@ -335,7 +335,7 @@ module.exports = async function (app) {
             } catch (err) {
                 // Swallow no such container error code (as it may have been removed from wrapper already)
                 // https://github.com/apocas/dockerode/blob/edf29ccb2c2c7bfcdd1cf3cacbe861bd0f4bc87a/lib/network.js#L67
-                if (err.statusCode !== 404) {
+                if (err?.statusCode !== 404) {
                     throw err
                 }
             }
