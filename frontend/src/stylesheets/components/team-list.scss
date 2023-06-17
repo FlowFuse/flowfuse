@@ -1,0 +1,17 @@
+.ff-dropdown-option-list {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+.ff-dropdown-option-list::-webkit-scrollbar {
+  width: 8px;
+  background-color: #292929;
+}
+
+.ff-dropdown-option-list::-webkit-scrollbar-thumb {
+  background-color: #888888;
+}
+
+.ff-dropdown-option-list::-webkit-scrollbar-thumb:hover {
+  background-color: #555555;
+}
