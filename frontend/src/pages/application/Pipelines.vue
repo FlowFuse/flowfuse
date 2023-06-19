@@ -139,6 +139,10 @@ export default {
     },
     methods: {
         stageDeployStarting (stage, nextStage) {
+            if (!nextStage.instance?.id) {
+                return console.warn('Deployment starting to stage without an instance.')
+            }
+
             // Optimistic flagging of deployment in progress for the single instance inside the target stage
             this.instanceStatusMap.get(nextStage.instance.id).isDeploying = true
         },
