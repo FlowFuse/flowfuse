@@ -105,6 +105,13 @@ export default {
             return this.pipeline.stages.map((stage) => {
                 // For now, each stage contains only one instance, so read state from that instance
                 const stageInstance = this.instanceStatusMap.get(stage.instance?.id)
+
+                // Instance statuses might not have finished loading yet
+                if (!stageInstance) {
+                    return stage
+                }
+
+                // Relay stage instances state to the stage
                 stage.state = stageInstance.state
 
                 // If any instances inside the stage are deploying, this stage is deploying
