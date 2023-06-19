@@ -153,20 +153,11 @@
                 "promise/catch-or-return": "off"
             },
             "files": [
-                "frontend/src/pages/account/Security/ChangePassword.vue",
-                "frontend/src/pages/account/Settings.vue",
                 "frontend/src/pages/admin/InstanceTypes/dialogs/InstanceTypeEditDialog.vue",
                 "frontend/src/pages/admin/Settings/General.vue",
                 "frontend/src/pages/admin/Settings/SSO/createEditProvider.vue",
-                "frontend/src/pages/admin/Stacks/dialogs/AdminStackEditDialog.vue",
                 "frontend/src/pages/admin/Users/UserDetails.vue",
-                "frontend/src/pages/device/Settings/Danger.vue",
-                "frontend/src/pages/instance/index.vue",
-                "frontend/src/pages/instance/Overview.vue",
-                "frontend/src/pages/instance/Settings/ChangeInstanceType.vue",
-                "frontend/src/pages/instance/Settings/Danger.vue",
-                "frontend/src/pages/team/create.vue",
-                "frontend/src/pages/team/Overview.vue"
+                "frontend/src/pages/instance/Overview.vue"
             ]
         },
         {
@@ -174,14 +165,8 @@
                 "vue/attributes-order": "off"
             },
             "files": [
-                "frontend/src/components/audit-log/AuditLog.vue",
                 "frontend/src/components/auth/UpdateExpiredPassword.vue",
-                "frontend/src/components/DropdownMenu.vue",
                 "frontend/src/components/FormRow.vue",
-                "frontend/src/components/NavItem.vue",
-                "frontend/src/components/PageHeader.vue",
-                "frontend/src/components/SectionTopMenu.vue",
-                "frontend/src/components/SideNavigationTeamOptions.vue",
                 "frontend/src/components/TeamSelection.vue",
                 "frontend/src/pages/account/Create.vue",
                 "frontend/src/pages/account/ForgotPassword.vue",
@@ -258,7 +243,6 @@
             },
             "files": [
                 "frontend/src/components/FormRow.vue",
-                "frontend/src/components/PageHeader.vue",
                 "frontend/src/components/SideNavigationTeamOptions.vue",
                 "frontend/src/layouts/Box.vue",
                 "frontend/src/layouts/Platform.vue",

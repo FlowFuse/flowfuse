@@ -14,8 +14,8 @@
         </template>
     </ff-accordion>
     <div v-if="!hasNoEntries && showLoadMore !== false && nextCursor" class="px-8 py-4">
-        <a v-if="!loading" @click.stop="loadMore" class="forge-button-inline">Load more...</a>
-        <div class="text-gray-500" v-else>Loading...</div>
+        <a v-if="!loading" class="forge-button-inline" @click.stop="loadMore">Load more...</a>
+        <div v-else class="text-gray-500">Loading...</div>
     </div>
 </template>
 

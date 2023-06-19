@@ -6,8 +6,8 @@
                 <div v-for="route in routes.general" :key="route.label">
                     <router-link v-if="route.label"
                                  :class="{'router-link-active': atNestedRoute(route)}"
-                                 :to="'/team/' + team.slug + route.to" @click="$emit('option-selected')"
-                                 :data-nav="route.tag">
+                                 :to="'/team/' + team.slug + route.to" :data-nav="route.tag"
+                                 @click="$emit('option-selected')">
                         <nav-item :label="route.label" :icon="route.icon"></nav-item>
                     </router-link>
                     <div v-else class="ff-side-navigation-divider"></div>
