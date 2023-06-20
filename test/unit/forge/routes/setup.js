@@ -24,7 +24,13 @@ module.exports = async function (config = {}) {
         name: 'template1',
         settings: {
             httpAdminRoot: '',
-            codeEditor: ''
+            codeEditor: '',
+            palette: {
+                modules: [
+                    { name: 'node-red-dashboard', version: '3.0.0' },
+                    { name: 'node-red-contrib-ping', version: '0.3.0' }
+                ]
+            }
         },
         policy: {
             httpAdminRoot: true,

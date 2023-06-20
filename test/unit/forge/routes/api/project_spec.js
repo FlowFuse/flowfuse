@@ -390,6 +390,14 @@ describe('Project API', function () {
             runtimeSettings.should.have.property('settings')
             runtimeSettings.settings.should.have.property('header')
             runtimeSettings.settings.header.should.have.property('title', projectName)
+
+            // should get a copy of the templates palette modules
+            runtimeSettings.settings.should.have.property('palette')
+            runtimeSettings.settings.palette.should.have.property('modules')
+            runtimeSettings.settings.palette.modules.should.only.have.keys('node-red-dashboard', 'node-red-contrib-ping')
+            runtimeSettings.settings.palette.modules.should.have.property('node-red-dashboard', '3.0.0')
+            runtimeSettings.settings.palette.modules.should.have.property('node-red-contrib-ping', '0.3.0')
+
             runtimeSettings.should.have.property('env').which.have.property('FF_PROJECT_ID', result.id) // depreciated in favour of FF_INSTANCE_ID as of V1.6.0
             runtimeSettings.should.have.property('env').which.have.property('FF_PROJECT_NAME', projectName) // depreciated in favour of FF_INSTANCE_NAME as of V1.6.0
             runtimeSettings.should.have.property('env').which.have.property('FF_INSTANCE_ID', result.id)
@@ -435,6 +443,68 @@ describe('Project API', function () {
             runtimeSettings.should.have.property('settings')
             runtimeSettings.settings.should.have.property('header')
             runtimeSettings.settings.header.should.have.property('title', projectName)
+        })
+        it('Should not merge template modules into existing instance runtime settings', async function () {
+            const projectName = generateProjectName()
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/projects',
+                payload: {
+                    name: projectName,
+                    applicationId: TestObjects.ApplicationA.hashid,
+                    projectType: TestObjects.projectType1.hashid,
+                    template: TestObjects.template1.hashid,
+                    stack: TestObjects.stack1.hashid
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+
+            const newProject = await app.db.models.Project.byId(result.id)
+            const newAccessToken = (await newProject.refreshAuthTokens()).token
+            const runtimeSettings = (await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${newProject.id}/settings`,
+                headers: {
+                    authorization: `Bearer ${newAccessToken}`
+                }
+            })).json()
+
+            // should get a copy of the templates palette modules
+            runtimeSettings.settings.should.have.property('palette')
+            runtimeSettings.settings.palette.should.have.property('modules')
+            runtimeSettings.settings.palette.modules.should.only.have.keys('node-red-dashboard', 'node-red-contrib-ping')
+            runtimeSettings.settings.palette.modules.should.have.property('node-red-dashboard', '3.0.0')
+            runtimeSettings.settings.palette.modules.should.have.property('node-red-contrib-ping', '0.3.0')
+
+            // now we update the templates palette modules
+            // via put `/api/v1/templates/${templateId}`
+            const templateSettings = TestObjects.template1.settings
+            templateSettings.palette.modules.find(e => e.name === 'node-red-dashboard').version = '3.0.1' // **upgraded**
+            templateSettings.palette.modules.find(e => e.name === 'node-red-contrib-ping').version = '0.2.9' // **downgraded**
+            templateSettings.palette.modules.push({ name: 'node-red-node-random', version: '0.3.0' }) // **new**
+            const template = await app.db.models.ProjectTemplate.byId(TestObjects.template1.id)
+            template.settings = templateSettings
+            await template.save()
+
+            // check the template now has 3 modules
+            const templateReloaded = await app.db.models.ProjectTemplate.byId(TestObjects.template1.id)
+            templateReloaded.settings.palette.modules.should.have.length(3)
+
+            // get the projects runtime settings once more - the palette modules should not have changed (should not be merged)
+            const runtimeSettings2 = (await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${newProject.id}/settings`,
+                headers: {
+                    authorization: `Bearer ${newAccessToken}`
+                }
+            })).json()
+            runtimeSettings2.settings.should.have.property('palette')
+            runtimeSettings2.settings.palette.should.have.property('modules')
+            runtimeSettings2.settings.palette.modules.should.only.have.keys('node-red-dashboard', 'node-red-contrib-ping')
+            runtimeSettings2.settings.palette.modules.should.have.property('node-red-dashboard', '3.0.0') // same as were added to the project upon creation from template1
+            runtimeSettings2.settings.palette.modules.should.have.property('node-red-contrib-ping', '0.3.0') // same as were added to the project upon creation from template1
         })
 
         describe('Copy project', function () {

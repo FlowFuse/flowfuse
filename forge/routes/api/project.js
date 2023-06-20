@@ -305,6 +305,12 @@ module.exports = async function (app) {
             await project.updateSetting(KEY_SETTINGS, newProjectSettings)
         } else {
             const newProjectSettings = { header: { title: name } }
+            // Copy the palette modules from the template (if any)
+            // This is an instance creation time only operation to avoid the complexities of
+            // merging the palette modules from the template with the instance palette modules.
+            if (template.settings.palette?.modules?.length > 0) {
+                newProjectSettings.palette = { modules: [...template.settings.palette.modules] }
+            }
             await project.updateSetting(KEY_SETTINGS, newProjectSettings)
             await project.updateSetting('credentialSecret', generateCredentialSecret())
         }

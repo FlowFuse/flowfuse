@@ -59,6 +59,12 @@ module.exports = {
                     env[envVar.name] = envVar.value
                 })
             }
+            // special case for palette.modules - we don't want to inherit
+            // the template's list of modules. We want to use the list that
+            // is stored in the project's own settings.
+            if (result.palette?.modules) {
+                delete result.palette.modules
+            }
         }
         const projectSettingsRow = project.ProjectSettings?.find((projectSetting) => projectSetting.key === KEY_SETTINGS)
         if (projectSettingsRow) {

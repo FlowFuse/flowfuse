@@ -21,6 +21,7 @@ import TemplateSettingsPalette from '../../admin/Template/sections/Palette.vue'
 import TemplatePaletteModulesEditor from '../../admin/Template/sections/PaletteModules.vue'
 
 import {
+    comparePaletteModules,
     getTemplateValue,
     prepareTemplateForEdit,
     setTemplateValue,
@@ -46,6 +47,7 @@ export default {
         return {
             unsavedChanges: false,
             modulesChanged: false,
+            mounted: false,
             editable: {
                 name: '',
                 settings: {},
@@ -89,41 +91,19 @@ export default {
         'editable.settings.palette_modules': {
             deep: true,
             handler (v) {
-                let changed = false
-                let errors = false
-
-                let originalCount = 0
-                this.editable.settings.palette_modules.forEach(field => {
-                    errors = errors || field.error
-                    if (/^add/.test(field.index)) {
-                        changed = true
-                    } else {
-                        originalCount++
-                        if (this.original.settings.palette_modulesMap[field.name]) {
-                            const original = this.original.settings.palette_modulesMap[field.name]
-                            if (original.index !== field.index) {
-                                changed = true
-                            } else if (original.name !== field.name) {
-                                changed = true
-                            } else if (original.version !== field.version) {
-                                changed = true
-                            }
-                        } else {
-                            changed = true
-                        }
-                    }
-                })
-                if (originalCount !== this.original.settings.palette_modules.length) {
-                    changed = true
+                if (!this.mounted || !this.project) {
+                    return // not yet mounted or no project
                 }
-                this.modulesChanged = changed
-                this.hasErrors = errors
+                const result = comparePaletteModules(v, this.original.settings.palette_modulesMap || {})
+                this.modulesChanged = result.changed
+                this.hasErrors = result.errors
             }
         }
     },
     mounted () {
         this.checkAccess()
         this.getSettings()
+        this.mounted = true
     },
     methods: {
         checkAccess: function () {
