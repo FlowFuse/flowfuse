@@ -1,11 +1,8 @@
 <template>
     <ff-loading v-if="loading" message="Loading Logs..." />
-    <!-- <div v-if="showOfflineBanner" class="flex text-red-500 justify-center italic mb-2 p-0">
-        Launcher is offline
-    </div> -->
     <div v-if="showOfflineBanner" class="ff-banner ff-banner-info my-2 rounded p-2 font-mono">
         <span>
-            <span>The Node-RED Launcher for this instance is currently offline. Please wait.</span>
+            <span>The Node-RED instance cannot be reached at this time. Please wait...</span>
         </span>
     </div>
     <div v-if="!instance.meta || instance.meta.state === 'suspended'" class="flex text-gray-500 justify-center italic mb-4 p-8">
@@ -131,7 +128,7 @@ export default {
                         return // only show the alert once
                     }
                     this.showOfflineBanner = true // show the "offline" banner
-                    Alerts.emit('The Node-RED Launcher cannot be reached at this time', 'warning', (POLL_TIME - 500))
+                    Alerts.emit('The Node-RED instance cannot be reached at this time', 'warning', (POLL_TIME - 500))
                 } else if (error.response?.status !== 500 && error.response?.data?.code !== 'project_suspended') {
                     // display an alert. Ensure it is visible for less time than
                     // the polling interval to avoid multiple visible alerts
@@ -146,6 +143,12 @@ export default {
 
 <style scoped>
 .forge-log-offline-background {
-    background: repeating-linear-gradient( 45deg, #322e2e, #353131 10px, #804141 10px, #703f3f 20px );
+    background: repeating-linear-gradient(
+        -45deg,
+        #363848,
+        #363848 10px,
+        rgba(31, 41, 55, var(--tw-bg-opacity)) 10px,
+        rgba(31, 41, 55, var(--tw-bg-opacity)) 20px
+    );
 }
 </style>
