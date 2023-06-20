@@ -17,7 +17,7 @@
         <div v-else-if="!canAccessTeam">
             <EmptyState>
                 <template #img>
-                    <img src="../../images/empty-states/team-library.png">
+                    <img src="../../images/empty-states/no-access_dashboard-only.png">
                 </template>
                 <template #header>No Access</template>
                 <template #message>
