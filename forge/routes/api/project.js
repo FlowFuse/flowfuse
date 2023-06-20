@@ -820,7 +820,9 @@ module.exports = async function (app) {
      *  - returns most recent 30 entries
      *  - ?cursor= can be used to set the 'most recent log entry' to query from
      *  - ?limit= can be used to modify how many entries to return
+     * @name /api/v1/projects/:id/logs // << Added an 's'
      * @name /api/v1/projects/:id/log
+     * @name /api/v1/projects/:id/logs // << Added an 's'
      * @memberof forge.routes.api.project
      */
     app.get('/:projectId/logs', {
@@ -830,46 +832,70 @@ module.exports = async function (app) {
             reply.code(400).send({ code: 'project_suspended', error: 'Project suspended' })
             return
         }
-        const paginationOptions = app.getPaginationOptions(request, { limit: 30 })
-
-        let logs = await app.containers.logs(request.project)
-        const firstLogCursor = logs.length > 0 ? logs[0].ts : null
-        const fullLogLength = logs.length
-        if (!paginationOptions.cursor) {
-            logs = logs.slice(-paginationOptions.limit)
-        } else {
-            let cursor = paginationOptions.cursor
-            let cursorDirection = true // 'next'
-            if (cursor[0] === '-') {
-                cursorDirection = false
-                cursor = cursor.substring(1)
-            }
-            let i = 0
-            for (;i < fullLogLength; i++) {
-                if (logs[i].ts === cursor) {
-                    break
+        try {
+            const paginationOptions = app.getPaginationOptions(request, { limit: 30 })
+            let logs = await app.containers?.logs(request.project)
+            const firstLogCursor = logs.length > 0 ? logs[0].ts : null
+            const fullLogLength = logs.length
+            if (!paginationOptions.cursor) {
+                logs = logs.slice(-paginationOptions.limit)
+            } else {
+                let cursor = paginationOptions.cursor
+                let cursorDirection = true // 'next'
+                if (cursor[0] === '-') {
+                    cursorDirection = false
+                    cursor = cursor.substring(1)
+                }
+                let i = 0
+                for (;i < fullLogLength; i++) {
+                    if (logs[i].ts === cursor) {
+                        break
+                    } else if (logs[i].ts > cursor) {
+                        if (i) { i-- }
+                        break
+                    }
+                }
+                if (i === fullLogLength) {
+                    // cursor not found
+                    logs = []
+                } else if (cursorDirection) {
+                    // logs *after* cursor
+                    logs = logs.slice(i + 1, i + 1 + paginationOptions.limit)
+                } else {
+                    // logs *before* cursor
+                    logs = logs.slice(Math.max(0, i - 1 - paginationOptions.limit), i)
                 }
             }
-            if (i === fullLogLength) {
-                // cursor not found
-                logs = []
-            } else if (cursorDirection) {
-                // logs *after* cursor
-                logs = logs.slice(i + 1, i + 1 + paginationOptions.limit)
-            } else {
-                // logs *before* cursor
-                logs = logs.slice(Math.max(0, i - 1 - paginationOptions.limit), i)
+            const result = {
+                meta: {
+                    // next_cursor - are there more recent logs to get?
+                    next_cursor: logs.length > 0 ? logs[logs.length - 1].ts : undefined,
+                    previous_cursor: logs.length > 0 && logs[0].ts !== firstLogCursor ? ('-' + logs[0].ts) : undefined
+                },
+                log: logs
             }
+            reply.send(result)
+        } catch (error) {
+            let responseCode = error.response?.status || 500 // default to 500
+            error.errorCode = 'unknown_error'
+            error.errorMessage = error.message || 'Unknown error'
+            if (error.code === 'ECONNREFUSED') {
+                responseCode = 503 // service unavailable
+                error.errorCode = 'connection_refused'
+                error.errorMessage = 'Connection refused'
+            } else if (error.code === 'ECONNRESET') {
+                responseCode = 503 // service unavailable
+                error.errorCode = 'connection_reset'
+                error.errorMessage = 'Connection reset'
+            } else if (error.code === 'ENOTFOUND') {
+                responseCode = 503 // service unavailable
+                error.errorCode = 'not_found'
+                error.errorMessage = 'Not found'
+            }
+            const info = `Instance: ${request.project.id} (${request.project.name}), Error: ${error.errorMessage} (${responseCode})`
+            app.log.warn(`Unable to get Node-RED instance logs from its Launcher. ${info}`)
+            reply.code(responseCode).send({ code: error.errorCode, error: error.errorMessage })
         }
-        const result = {
-            meta: {
-                // next_cursor - are there more recent logs to get?
-                next_cursor: logs.length > 0 ? logs[logs.length - 1].ts : undefined,
-                previous_cursor: logs.length > 0 && logs[0].ts !== firstLogCursor ? ('-' + logs[0].ts) : undefined
-            },
-            log: logs
-        }
-        reply.send(result)
     })
 
     /**
