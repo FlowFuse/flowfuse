@@ -171,6 +171,9 @@ module.exports = fp(async function (app, opts, done) {
      */
     app.post('/account/login', {
         schema: {
+            summary: 'Log in to the platform',
+            description: 'Log in to the platform. If SSO is enabled for this user, the response will prompt the user to retry via the SSO login mechanism.',
+            tags: ['Authentication'],
             body: {
                 type: 'object',
                 required: ['username'],
@@ -222,7 +225,11 @@ module.exports = fp(async function (app, opts, done) {
      * @static
      * @memberof forge.routes.session
      */
-    app.post('/account/logout', async (request, reply) => {
+    app.post('/account/logout', {
+        schema: {
+            tags: ['Authentication']
+        }
+    }, async (request, reply) => {
         let userInfo = null
         if (request.sid) {
             // logout:nodered(step-1)
@@ -266,6 +273,7 @@ module.exports = fp(async function (app, opts, done) {
      */
     app.post('/account/register', {
         schema: {
+            tags: ['Authentication'],
             body: {
                 type: 'object',
                 required: ['username', 'password', 'name', 'email'],
@@ -273,7 +281,8 @@ module.exports = fp(async function (app, opts, done) {
                     username: { type: 'string' },
                     password: { type: 'string' },
                     name: { type: 'string' },
-                    email: { type: 'string' }
+                    email: { type: 'string' },
+                    code: { type: 'string' }
                 }
             }
         },
@@ -400,7 +409,11 @@ module.exports = fp(async function (app, opts, done) {
     /**
      * Perform email verification
      */
-    app.post('/account/verify/:token', async (request, reply) => {
+    app.post('/account/verify/:token', {
+        schema: {
+            tags: ['Authentication']
+        }
+    }, async (request, reply) => {
         try {
             if (app.settings.get('user:team:auto-create')) {
                 const teamLimit = app.license.get('teams')
@@ -469,7 +482,13 @@ module.exports = fp(async function (app, opts, done) {
     /**
      * Generate verification email
      */
-    app.post('/account/verify', { preHandler: app.verifySession, config: { allowUnverifiedEmail: true } }, async (request, reply) => {
+    app.post('/account/verify', {
+        preHandler: app.verifySession,
+        config: { allowUnverifiedEmail: true },
+        schema: {
+            tags: ['Authentication']
+        }
+    }, async (request, reply) => {
         /** @type {UserController} */
         const userController = app.db.controllers.User
         if (!app.postoffice.enabled()) {
@@ -499,7 +518,12 @@ module.exports = fp(async function (app, opts, done) {
     /**
      * Perform pending email change
      */
-    app.post('/account/email_change/:token', async (request, reply) => {
+    app.post('/account/email_change/:token', {
+        schema: {
+
+            tags: ['Authentication']
+        }
+    }, async (request, reply) => {
         try {
             /** @type {UserController} */
             const userController = app.db.controllers.User
@@ -540,6 +564,7 @@ module.exports = fp(async function (app, opts, done) {
 
     app.post('/account/forgot_password', {
         schema: {
+            tags: ['Authentication'],
             body: {
                 type: 'object',
                 required: ['email'],
@@ -583,6 +608,7 @@ module.exports = fp(async function (app, opts, done) {
 
     app.post('/account/reset_password/:token', {
         schema: {
+            tags: ['Authentication'],
             body: {
                 type: 'object',
                 required: ['password'],
