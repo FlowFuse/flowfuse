@@ -36,7 +36,7 @@ See the [Billing](./billing.md) page for more detailed answers about billing.
 
 ## Support
 
-Premium customers can get support by [filing a ticket](./support). We offer
+Premium customers can get support by [filing a ticket](/support). We offer
 support for the FlowForge application and your account, any issues relating to
 Node-RED such as your flows or a 3rd party node should be raised in the
 [community forum](https://community.flowforge.com).
