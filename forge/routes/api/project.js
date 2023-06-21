@@ -820,9 +820,7 @@ module.exports = async function (app) {
      *  - returns most recent 30 entries
      *  - ?cursor= can be used to set the 'most recent log entry' to query from
      *  - ?limit= can be used to modify how many entries to return
-     * @name /api/v1/projects/:id/logs // << Added an 's'
-     * @name /api/v1/projects/:id/log
-     * @name /api/v1/projects/:id/logs // << Added an 's'
+     * @name /api/v1/projects/:id/logs
      * @memberof forge.routes.api.project
      */
     app.get('/:projectId/logs', {
