@@ -1,11 +1,18 @@
 module.exports = {
     createDefaultProjectType: async function (app) {
-        return await app.db.models.ProjectType.create({
-            name: 'Default',
-            active: true,
-            order: 1,
-            description: '',
-            properties: {}
+        const [projectType] = await app.db.models.ProjectType.findOrCreate({
+            where: {
+                name: 'Default',
+                active: true
+            },
+            defaults: {
+                active: true,
+                order: 1,
+                description: '',
+                properties: {}
+            }
         })
+
+        return projectType
     }
 }

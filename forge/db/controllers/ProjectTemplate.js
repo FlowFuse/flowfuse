@@ -226,11 +226,16 @@ module.exports = {
             setTemplateValue(settings, name, defaultTemplateValues[name])
             setTemplateValue(policy, name, defaultTemplatePolicy[name])
         })
-        const template = await app.db.models.ProjectTemplate.create({
-            name: 'Default',
-            active: true,
-            settings,
-            policy
+        const [template] = await app.db.models.ProjectTemplate.findOrCreate({
+            where: {
+                name: 'Default',
+                active: true,
+                ownerId: user.id
+            },
+            defaults: {
+                settings,
+                policy
+            }
         })
         await template.setOwner(user)
         return template
