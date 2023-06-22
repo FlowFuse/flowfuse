@@ -205,7 +205,7 @@ flowforge-device-agent -p 8080
 _Start the agent with a different working directory and the Web UI enabled_
 
 ```bash
-flowforge-device-agent -d /path/to/working/directory -w -ui-user admin -ui-pass password --ui-port 8081
+flowforge-device-agent -d /path/to/working/directory -w --ui-user admin --ui-pass password --ui-port 8081
 ```
 
 
