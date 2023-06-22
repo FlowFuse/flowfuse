@@ -33,7 +33,7 @@
                     </div>
                 </div>
                 <div class="min-w-fit flex-shrink-0">
-                    <ff-button data-action="delete-application" kind="danger" :disabled="options.instances.length > 0" @click="$emit('application-delete')">
+                    <ff-button data-action="delete-application" kind="danger" :disabled="options.instances > 0" @click="$emit('application-delete')">
                         Delete Application
                     </ff-button>
                 </div>
@@ -84,10 +84,8 @@ export default {
             editing: false,
             options: {
                 instances: []
-            },
-            loading: {
-                instances: false
             }
+
         }
     },
     computed: {
@@ -95,7 +93,7 @@ export default {
             return this.input.projectName
         },
         getDeleteApplicationText () {
-            if (this.options.instances.length === 0) {
+            if (this.options.instances === 0) {
                 return 'Once deleted, your application  permanently deleted. This cannot be undone.'
             } else {
                 return 'Once you delete all your instances of this application, you can delete this application.'
@@ -107,11 +105,9 @@ export default {
     },
     methods: {
         loadInstances (applicationId) {
-            this.loading.instances = true
             ApplicationAPI.getApplicationInstances(applicationId)
                 .then((instances) => {
-                    this.options.instances = instances || []
-                    this.loading.instances = false
+                    this.options.instances = instances?.length || 0
                 })
                 .catch((error) => {
                     console.error(error)
