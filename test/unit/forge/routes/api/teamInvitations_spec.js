@@ -160,6 +160,21 @@ describe('Team Invitations API', function () {
             app.config.email.transport.getMessageQueue().should.have.lengthOf(1)
         })
 
+        it('no more than 5 invites at a time', async () => {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/invitations`,
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    user: 'alice, bob, chris, dave, eric, fred'
+                }
+            })
+            response.statusCode.should.equal(429)
+            const result = response.json()
+            result.should.have.property('code', 'too_many_invites')
+            result.should.have.property('error')
+        })
+
         describe('external users', async function () {
             it('team owner cannot invite external user if disabled', async () => {
                 // Alice cannot invite dave@example.com to ATeam
