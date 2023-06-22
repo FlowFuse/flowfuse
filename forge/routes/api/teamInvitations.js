@@ -33,8 +33,8 @@ module.exports = async function (app) {
     app.post('/', async (request, reply) => {
         const userDetails = request.body.user.split(',').map(u => u.trim()).filter(Boolean)
         if (userDetails.length > 5) {
-            reply.code(429).send({ code: 'too_many_invites', error: 'maximum 5 invites at a time'})
-            return;
+            reply.code(429).send({ code: 'too_many_invites', error: 'maximum 5 invites at a time' })
+            return
         }
         const role = request.body.role || Roles.Member
         if (!TeamRoles.includes(role)) {
