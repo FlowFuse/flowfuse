@@ -24,7 +24,22 @@ Or you can chose to run the Docker container. When you do, you'll need to mount
 the `device.yaml` obtained when [Registering the device](#register-the-device):
 
 ```bash
-docker run --mount /path/to/device.yml:/opt/flowforge/device.yml -p 1880:1880 flowforge/device-agent:latest
+docker run --mount /path/to/device.yml:/opt/flowforge-device/device.yml -p 1880:1880 flowforge/device-agent:latest
+```
+
+Or you can chose to run the Docker-Compose via a docker-compose.yml file. When you do, you'll need to mount
+the `device.yaml` as in Docker obtained when [Registering the device](#register-the-device):
+
+```yaml
+version: '3.9'
+
+services:
+  device:
+    image: flowforge/device-agent:latest
+    ports:
+      - "1880:1880"
+    volumes:
+      - /path/to/device.yml:/opt/flowforge-device/device.yml
 ```
 
 ## Configuration
