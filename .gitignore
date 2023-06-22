@@ -9,7 +9,6 @@ frontend/dist-setup
 
 *.env
 *.env.local
-package-lock.json
 coverage
 test/e2e/frontend/cypress/downloads
 test/e2e/frontend/cypress/videos
