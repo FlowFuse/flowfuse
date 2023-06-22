@@ -7,7 +7,7 @@ module.exports = defineConfig({
     e2e: {
         ...shared.e2e,
         ...{
-            baseUrl: 'http://localhost:3001',
+            baseUrl: 'http://localhost:3002',
             specPattern: 'test/e2e/frontend/cypress/tests-ee'
         }
     }
