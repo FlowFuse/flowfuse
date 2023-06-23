@@ -230,6 +230,16 @@ describe('FlowForge - Applications', () => {
     })
 })
 
+it(' check if application has instances then delete application button should be disabled and if application has not instances button should be enabled', () => {
+    cy.visit('/application/VJ9LW62EgX/settings')
+    // application has instances
+    cy.get('[data-action="delete-application"]').should('be.disabled')
+
+    cy.visit('/application/4Ax289Lryp/settings')
+    // application has not instances
+    cy.get('[data-action="delete-application"]').should('not.be.disabled')
+})
+
 describe('FlowForge - Applications - With Billing', () => {
     beforeEach(() => {
         cy.enableBilling()
