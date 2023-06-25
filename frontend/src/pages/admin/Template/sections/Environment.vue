@@ -165,16 +165,23 @@ export default {
     },
     methods: {
         addEnv () {
-            const env = { name: this.input.name, value: this.input.value }
-            this.editable.settings.env.push(env)
+            const field = {
+                index: 'add-' + this.addedCount++,
+                name: this.input.name,
+                value: this.input.value,
+                encrypted: this.input.encrypt,
+                policy: this.editTemplate ? false : undefined
+            }
+            this.envVarNames[field.name] = this.editable.settings.env.length
+            this.editable.settings.env.push(field)
             this.input.name = ''
+            this.input.encrypt = false
             this.input.value = ''
-            this.addedCount += 1
-            this.$emit('change', `added environment variable "${env.name}"`)
         },
-        removeEnv (idx) {
-            const env = this.editable.settings.env.splice(idx, 1)[0]
-            this.$emit('change', `removed environment variable "${env.name}"`)
+        removeEnv (index) {
+            const field = this.editable.settings.env[index]
+            delete this.envVarNames[field.name]
+            this.editable.settings.env.splice(index, 1)
         }
     },
     components: {
