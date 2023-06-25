@@ -80,6 +80,12 @@
                 <p>Administrators can always create teams.</p>
             </template>
         </FormRow>
+        <FormRow v-model="input['team:environment-variable-view']" type="checkbox" >
+            Allow users to see environment variable
+            <template #description>
+                User can see environment variable of the team
+            </template>
+        </FormRow>
         <FormRow v-model="input['team:user:invite:external']" type="checkbox" :disabled="errors.requiresEmail" :error="errors.requiresEmail">
             Allow users to invite external users to teams
             <template #description>
@@ -173,6 +179,7 @@ const validSettings = [
     'user:tcs-url',
     'user:tcs-date',
     'team:create',
+    'team:environment-variable-view',
     'team:user:invite:external',
     'telemetry:enabled',
     'user:team:trial-mode',

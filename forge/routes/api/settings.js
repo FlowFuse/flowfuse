@@ -18,6 +18,7 @@ module.exports = async function (app) {
                 'team:user:invite:external': app.settings.get('team:user:invite:external') && app.postoffice.enabled(),
                 'team:create': app.settings.get('team:create'),
                 'user:tcs-required': app.settings.get('user:tcs-required'),
+                'team:environment-variable-view': app.settings.get('team:environment-variable-view'),
                 'user:tcs-url': app.settings.get('user:tcs-url'),
                 'user:tcs-date': app.settings.get('user:tcs-date'),
                 'user:team:trial-mode:projectType': app.settings.get('user:team:trial-mode:projectType'),

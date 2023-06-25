@@ -25,22 +25,23 @@
                             :error="item.error"
                             :disabled="item.encrypted"
                             value-empty-text=""
-                            :type="(!readOnly && (editTemplate || item.policy === undefined))?'text':'uneditable'"></FormRow>
-                        <!-- <ff-text-input  v-model="item.name" :disabled="item.encrypted"  /> -->
+                            :type="(!readOnly && (editTemplate || item.policy === undefined)) ? 'text' : 'uneditable'"
+                        ></FormRow>
                     </td>
-                    <td class="px-4 py-4 border w-auto align-top" :class="{'align-middle':item.encrypted}">
-                        <div class="w-full" v-if="!item.encrypted">
+                    <td class="px-4 py-4 border w-auto align-top" :class="{'align-middle': item.encrypted}">
+                        <div class="w-full" v-if="settings['team:environment-variable-view'] || user.admin">
                             <FormRow
                                 class="font-mono"
                                 :inputClass="item.deprecated ? 'text-yellow-700 italic' : ''"
                                 v-model="item.value"
                                 value-empty-text=""
-                                :type="(!readOnly && (editTemplate || item.policy === undefined || item.policy))?'text':'uneditable'"></FormRow>
+                                :type="(!readOnly && (editTemplate || item.policy === undefined || item.policy)) ? 'text' : 'uneditable'"
+                            ></FormRow>
                         </div>
-                        <div v-else class="pt-1 text-gray-400"><LockClosedIcon class="inline w-4" /> encrypted</div>
+                        <div v-else class="pt-1 text-gray-400">Hidden</div>
                     </td>
                     <td class="border w-16 align-middle">
-                        <div v-if="(!readOnly && (editTemplate|| item.policy === undefined))" class="flex justify-center ">
+                        <div v-if="(!readOnly && (editTemplate || item.policy === undefined))" class="flex justify-center ">
                             <ff-button kind="tertiary" @click="removeEnv(itemIdx)" size="small">
                                 <template v-slot:icon>
                                     <TrashIcon />
@@ -50,7 +51,8 @@
                         <div
                             v-else-if="(item.deprecated === true)"
                             class="flex justify-center "
-                            v-ff-tooltip:left="'This setting has been deprecated'">
+                            v-ff-tooltip:left="'This setting has been deprecated'"
+                        >
                             <ExclamationIcon class="inline text-yellow-700 w-4" />
                         </div>
                         <div v-else-if="(item.platform === true)" class="flex justify-center ">
@@ -66,9 +68,8 @@
                         No Environment Variables Defined
                     </td>
                 </tr>
-                <!-- Empty row to differentiate between the existing env vars, and the input form row-->
                 <tr v-if="!readOnly">
-                    <td :colspan="editTemplate?4:3" class="p-4 bg-gray-50"></td>
+                    <td :colspan="editTemplate ? 4 : 3" class="p-4 bg-gray-50"></td>
                 </tr>
                 <tr v-if="!readOnly" class="">
                     <td class="px-4 pt-4 border w-auto align-top">
@@ -92,12 +93,11 @@
             </tbody>
         </table>
     </form>
-
 </template>
 
 <script>
-
 import { ExclamationIcon, LockClosedIcon, PlusSmIcon, TrashIcon } from '@heroicons/vue/outline'
+import { mapState } from 'vuex'
 
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
@@ -116,6 +116,8 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['team', 'settings']),
+        ...mapState('account', ['user', 'team', 'teams']),
         editable: {
             get () { return this.modelValue },
             set (localValue) { this.$emit('update:modelValue', localValue) }
@@ -138,7 +140,7 @@ export default {
         },
         'editable' () {
             if (this.editable) {
-                this.editable.settings.env.forEach(field => {
+                this.editable.settings.env.forEach((field) => {
                     this.envVarNames[field.name] = field
                 })
             }
@@ -155,11 +157,7 @@ export default {
                         field.policy = false
                     }
                     if (field.policy === undefined && this.envVarNames[field.name] !== i) {
-                        field.error = 'Field has duplicate name'
-                    } else if (/ /.test(field.name)) {
-                        field.error = 'Invalid name'
-                    } else {
-                        field.error = ''
+                        field.policy = true
                     }
                 })
             }
@@ -167,29 +165,17 @@ export default {
     },
     methods: {
         addEnv () {
-            const field = {
-                index: 'add-' + this.addedCount++,
-                name: this.input.name,
-                value: this.input.value,
-                encrypted: this.input.encrypt,
-                policy: this.editTemplate ? false : undefined
-            }
-            this.envVarNames[field.name] = this.editable.settings.env.length
-            this.editable.settings.env.push(field)
+            const env = { name: this.input.name, value: this.input.value }
+            this.editable.settings.env.push(env)
             this.input.name = ''
-            this.input.encrypt = false
             this.input.value = ''
+            this.addedCount += 1
+            this.$emit('change', `added environment variable "${env.name}"`)
         },
-        removeEnv (index) {
-            const field = this.editable.settings.env[index]
-            delete this.envVarNames[field.name]
-            this.editable.settings.env.splice(index, 1)
+        removeEnv (idx) {
+            const env = this.editable.settings.env.splice(idx, 1)[0]
+            this.$emit('change', `removed environment variable "${env.name}"`)
         }
-    },
-    mounted () {
-        this.editable.settings.env.forEach(field => {
-            this.envVarNames[field.name] = field
-        })
     },
     components: {
         FormRow,

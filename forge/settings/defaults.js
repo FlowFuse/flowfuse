@@ -38,6 +38,9 @@ module.exports = {
     // Should we auto-create a team for a user when they register
     'user:team:auto-create': false,
 
+    //  can user's see environment variable
+    'team:environment-variable-view': false,
+
     // Can external users be invited to join teams
     'team:user:invite:external': false,
 
