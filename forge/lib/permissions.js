@@ -9,6 +9,7 @@ const Permissions = {
     'user:team:list': { description: 'List a Users teams', role: Roles.Admin, self: true },
     // Team Scoped Actions
     'team:create': { description: 'Create Team' },
+    'team:list': { description: 'List Teams', role: Roles.Admin },
     'team:read': { description: 'View a Team', role: Roles.Dashboard },
     'team:edit': { description: 'Edit Team', role: Roles.Owner },
     'team:delete': { description: 'Delete Team', role: Roles.Owner },

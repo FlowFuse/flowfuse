@@ -20,8 +20,21 @@ const TeamMembers = require('./teamMembers.js')
  */
 module.exports = async function (app) {
     app.addHook('preHandler', async (request, reply) => {
-        if (request.params.teamId !== undefined) {
-            if (request.params.teamId) {
+        if (request.params.teamId !== undefined || request.params.teamSlug !== undefined) {
+            // The route may provide either :teamId or :teamSlug
+            if (request.params.teamId || request.params.teamSlug) {
+                let teamId = request.params.teamId
+                if (request.params.teamSlug) {
+                    // If :teamSlug is provided, need to lookup the team to get
+                    // its id for subsequent checks
+                    request.team = await app.db.models.Team.bySlug(request.params.teamSlug)
+                    if (!request.team) {
+                        reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                        return
+                    }
+                    teamId = request.team.hashid
+                }
+
                 try {
                     if (!request.session.User) {
                         // If request.session.User is not defined, this request is being
@@ -39,7 +52,7 @@ module.exports = async function (app) {
                                 }
                             })
                             // Ensure the token's project is in the team being accessed
-                            if (project && project.Team.hashid === request.params.teamId) {
+                            if (project && project.Team.hashid === teamId) {
                                 return
                             }
                         } else if (request.session.ownerType === 'device') {
@@ -54,21 +67,24 @@ module.exports = async function (app) {
                                 }
                             })
                             // Ensure the device is in the team being accessed
-                            if (device && device.Team.hashid === request.params.teamId) {
+                            if (device && device.Team.hashid === teamId) {
                                 return
                             }
                         }
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return
                     }
-                    request.teamMembership = await request.session.User.getTeamMembership(request.params.teamId)
+                    request.teamMembership = await request.session.User.getTeamMembership(teamId)
                     if (!request.teamMembership && !request.session.User?.admin) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return
                     }
-                    request.team = await app.db.models.Team.byId(request.params.teamId)
                     if (!request.team) {
-                        reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                        // For a :teamId route, we can now lookup the full team object
+                        request.team = await app.db.models.Team.byId(request.params.teamId)
+                        if (!request.team) {
+                            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                        }
                     }
                 } catch (err) {
                     reply.code(404).send({ code: 'not_found', error: 'Not Found' })
@@ -143,37 +159,29 @@ module.exports = async function (app) {
     })
 
     /**
-     * Return all teams (admin-only) or details of a specific team if 'slug' query
-     * parameter is set
+     * Get the details of a team via its slug
      *
-     * @name /api/v1/teams
+     * @name /api/v1/teams/slug/:teamSlug
      * @static
      * @memberof forge.routes.api.team
      */
-    app.get('/', async (request, reply) => {
-        // This isn't the most pleasant overloading of an api end-point.
-        // We can probably do better.
-        if (request.query.slug) {
-            const team = await app.db.models.Team.bySlug(request.query.slug)
-            if (team) {
-                const teamMembership = await request.session.User.getTeamMembership(team.id)
-                if (!teamMembership && !request.session.User?.admin) {
-                    reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                    return
-                }
-                await getTeamDetails(request, reply, team)
-            } else {
-                reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-            }
-        } else if (!request.session.User || !request.session.User.admin) {
-            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
-        } else {
-            // Admin request for all teams
-            const paginationOptions = app.getPaginationOptions(request)
-            const teams = await app.db.models.Team.getAll(paginationOptions)
-            teams.teams = teams.teams.map(t => app.db.views.Team.team(t))
-            reply.send(teams)
-        }
+    app.get('/slug/:teamSlug', {
+        preHandler: app.needsPermission('team:read')
+    }, async (request, reply) => {
+        await getTeamDetails(request, reply, request.team)
+    })
+
+    /**
+     * Get a list of all teams (admin-only)
+     */
+    app.get('/', {
+        preHandler: app.needsPermission('team:list')
+    }, async (request, reply) => {
+        // Admin request for all teams
+        const paginationOptions = app.getPaginationOptions(request)
+        const teams = await app.db.models.Team.getAll(paginationOptions)
+        teams.teams = teams.teams.map(t => app.db.views.Team.team(t))
+        reply.send(teams)
     })
 
     /**
