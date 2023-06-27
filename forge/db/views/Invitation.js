@@ -1,5 +1,39 @@
-module.exports = {
-    invitationList: function (app, invitations) {
+module.exports = function (app) {
+    app.addSchema({
+        $id: 'Invitation',
+        type: 'object',
+        allOf: [{ $ref: 'UserSummary' }],
+        properties: {
+            id: { type: 'string' },
+            role: { type: 'number' },
+            createdAt: { type: 'string' },
+            expiresAt: { type: 'string' },
+            sentAt: { type: 'string' },
+            team: { $ref: 'TeamSummary' },
+            invitor: { $ref: 'UserSummary' },
+            invitee: {
+                allOf: [
+                    { $ref: 'UserSummary' },
+                    {
+                        properties: {
+                            external: { type: 'boolean' },
+                            email: { type: 'string' }
+                        }
+                    }
+                ]
+            }
+        }
+    })
+
+    app.addSchema({
+        $id: 'InvitationList',
+        type: 'array',
+        items: {
+            $ref: 'Invitation'
+        }
+    })
+
+    function invitationList (invitations) {
         return invitations.map((t) => {
             const d = t.get({ plain: true })
             const result = {
@@ -21,5 +55,9 @@ module.exports = {
             }
             return result
         })
+    }
+
+    return {
+        invitationList
     }
 }
