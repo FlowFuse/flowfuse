@@ -129,7 +129,7 @@
                         <template #img>
                             <img src="../images/empty-states/instance-devices.png">
                         </template>
-                        <template #header>Connect your First Device</template>
+                        <template #header>Connect your First Device (Empty Message)</template>
                         <template #message>
                             <p>
                                 Here, you will see a list of Devices connected to this Node-RED Instance.
