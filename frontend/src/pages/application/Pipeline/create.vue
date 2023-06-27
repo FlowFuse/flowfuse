@@ -1,19 +1,4 @@
 <template>
-    <Teleport
-        v-if="mounted"
-        to="#platform-sidenav"
-    >
-        <SideNavigation>
-            <template #options>
-                <a @click="$router.back()">
-                    <nav-item
-                        :icon="icons.chevronLeft"
-                        label="Back"
-                    />
-                </a>
-            </template>
-        </SideNavigation>
-    </Teleport>
     <ff-loading
         v-if="loading"
         message="Creating Pipeline..."
@@ -21,6 +6,7 @@
     <form
         v-else
         class="space-y-6"
+        data-form="pipeline-form"
         @submit.prevent="create"
     >
         <SectionTopMenu
