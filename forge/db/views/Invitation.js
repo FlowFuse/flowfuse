@@ -9,7 +9,7 @@ module.exports = {
                 expiresAt: d.expiresAt,
                 sentAt: d.sentAt,
                 team: app.db.views.Team.teamSummary(t.team),
-                invitor: app.db.views.User.publicUserProfile(d.invitor)
+                invitor: app.db.views.User.userSummary(d.invitor)
             }
             if (d.external) {
                 result.invitee = {
@@ -17,7 +17,7 @@ module.exports = {
                     email: d.email
                 }
             } else {
-                result.invitee = app.db.views.User.publicUserProfile(d.invitee)
+                result.invitee = app.db.views.User.userSummary(d.invitee)
             }
             return result
         })

@@ -1,5 +1,5 @@
-module.exports = {
-    application: function (app, application) {
+module.exports = function (app) {
+    function application (application) {
         if (application) {
             const raw = application.toJSON()
             const filtered = {
@@ -18,8 +18,19 @@ module.exports = {
         } else {
             return null
         }
-    },
-    applicationSummary: function (app, application) {
+    }
+
+    app.addSchema({
+        $id: 'ApplicationSummary',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            links: { $ref: 'LinksMeta' }
+        },
+        additionalProperties: true
+    })
+    function applicationSummary (application) {
         // application could already be a vanilla object,
         // or a database model object.
         if (Object.hasOwn(application, 'get')) {
@@ -31,8 +42,21 @@ module.exports = {
             name: application.name,
             links: application.links
         }
-    },
-    async teamApplicationList (app, applications, { includeInstances = false } = {}) {
+    }
+
+    app.addSchema({
+        $id: 'TeamApplicationList',
+        type: 'array',
+        items: {
+            type: 'object',
+            allOf: [{ $ref: 'ApplicationSummary' }],
+            properties: {
+                instances: { type: 'array', items: { type: 'object', additionalProperties: true } }
+            },
+            additionalProperties: true
+        }
+    })
+    async function teamApplicationList (applications, { includeInstances = false } = {}) {
         return await Promise.all(applications.map(async (application) => {
             const summary = app.db.views.Application.applicationSummary(application)
             if (includeInstances) {
@@ -41,11 +65,54 @@ module.exports = {
 
             return summary
         }))
-    },
-    async instanceStatuses (app, instancesArray) {
+    }
+
+    app.addSchema({
+        $id: 'InstanceStatusList',
+        type: 'array',
+        items: {
+            type: 'object',
+            properties: {
+                id: { type: 'string' },
+                state: { type: 'object', additionalProperties: true }
+            },
+            additionalProperties: true
+        }
+    })
+    async function instanceStatusList (instancesArray) {
         return await Promise.all(instancesArray.map(async (instance) => {
             const state = await instance.liveState()
             return { id: instance.id, ...state }
         }))
+    }
+
+    app.addSchema({
+        $id: 'ApplicationInstanceStatusList',
+        type: 'array',
+        items: {
+            type: 'object',
+            allOf: [{ $ref: 'ApplicationSummary' }],
+            properties: {
+                id: { type: 'string' },
+                instances: { $ref: 'InstanceStatusList' }
+            },
+            additionalProperties: true
+        }
+    })
+    async function applicationInstanceStatusList (applicationsArray) {
+        return Promise.all(applicationsArray.map(async (application) => {
+            return {
+                id: application.hashid,
+                instances: await instanceStatusList(application.Instances)
+            }
+        }))
+    }
+
+    return {
+        application,
+        applicationInstanceStatusList,
+        instanceStatusList,
+        teamApplicationList,
+        applicationSummary
     }
 }

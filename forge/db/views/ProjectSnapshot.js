@@ -10,7 +10,7 @@ module.exports = {
                 updatedAt: result.updatedAt
             }
             if (snapshot.User) {
-                filtered.user = app.db.views.User.shortProfile(snapshot.User)
+                filtered.user = app.db.views.User.userSummary(snapshot.User)
             }
             if (snapshot.settings?.modules) {
                 filtered.modules = snapshot.settings.modules

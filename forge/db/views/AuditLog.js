@@ -5,8 +5,36 @@ const sanitiseObjectIds = (obj) => {
     }
     return obj
 }
-module.exports = {
-    auditLog: function (app, logEntries) {
+module.exports = function (app) {
+    app.addSchema({
+        $id: 'AuditLogEntry',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            createdAt: { type: 'string' },
+            username: { type: 'string' },
+            event: { type: 'string' },
+            scope: { type: 'object', additionalProperties: true },
+            trigger: { type: 'object', additionalProperties: true },
+            body: { type: 'object', additionalProperties: true }
+        }
+    })
+    app.addSchema({
+        $id: 'AuditLogEntryList',
+        type: 'array',
+        items: {
+            $ref: 'AuditLogEntry'
+        }
+    })
+    app.addSchema({
+        $id: 'AuditLogQueryParams',
+        type: 'object',
+        properties: {
+            event: { type: 'string' },
+            username: { type: 'string' }
+        }
+    })
+    function auditLog (logEntries) {
         logEntries.log = logEntries.log.map(e => {
             e = app.auditLog.formatters.formatLogEntry(e)
             const scope = e.scope
@@ -27,5 +55,9 @@ module.exports = {
             }
         })
         return logEntries
+    }
+
+    return {
+        auditLog
     }
 }

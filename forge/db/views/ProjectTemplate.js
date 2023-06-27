@@ -15,7 +15,7 @@ module.exports = {
                 links: result.links
             }
             if (template.owner) {
-                filtered.owner = app.db.views.User.publicUserProfile(template.owner)
+                filtered.owner = app.db.views.User.userSummary(template.owner)
             }
             if (filtered.settings.httpNodeAuth) {
                 // Only return whether a password is set or not
@@ -41,7 +41,7 @@ module.exports = {
                 links: result.links
             }
             if (template.owner) {
-                filtered.owner = app.db.views.User.shortProfile(template.owner)
+                filtered.owner = app.db.views.User.userSummary(template.owner)
             }
             return filtered
         } else {
