@@ -85,6 +85,7 @@ export default {
             this.loadItems(this.instance.id, this.nextCursor)
         },
         loadItems: async function (instanceId, cursor) {
+            console.log('isHA', this.instance.settings)
             try {
                 const entries = await InstanceApi.getInstanceLogs(instanceId, cursor, null, { showAlert: false })
                 this.showOfflineBanner = false
