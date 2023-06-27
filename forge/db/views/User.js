@@ -8,8 +8,9 @@ module.exports = function (app) {
             defaultTeam: { type: 'string' },
             sso_enabled: { type: 'boolean' },
             free_trial_available: { type: 'boolean' },
-            tcs_accepted: { type: 'boolean' },
-            password_expired: { type: 'boolean' }
+            tcs_accepted: { type: 'string' },
+            password_expired: { type: 'boolean' },
+            pendingEmailChange: { type: 'boolean' }
         }
     })
     function userProfile (user) {
@@ -73,7 +74,7 @@ module.exports = function (app) {
         const result = users.map(u => {
             const user = userSummary(u)
             user.role = u.Teams[0].TeamMember.role
-            return users
+            return user
         })
         return result
     }
