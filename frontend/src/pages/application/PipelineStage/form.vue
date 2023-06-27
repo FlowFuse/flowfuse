@@ -54,7 +54,7 @@
 
             <ff-button
                 :disabled="!submitEnabled"
-                :data-action="'create-pipeline'"
+                data-action="add-stage"
                 type="submit"
             >
                 <span v-if="isEdit">

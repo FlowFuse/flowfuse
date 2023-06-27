@@ -34,7 +34,7 @@
         </template>
     </SectionTopMenu>
 
-    <div v-if="pipelines?.length > 0" class="pt-4 space-y-6">
+    <div v-if="pipelines?.length > 0" class="pt-4 space-y-6" data-el="pipelines-list">
         <PipelineRow
             v-for="pipeline in pipelines"
             :key="pipeline.id"
