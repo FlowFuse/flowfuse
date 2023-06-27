@@ -71,9 +71,7 @@ module.exports = function (app) {
         type: 'array',
         items: {
             allOf: [{ $ref: 'Team' }],
-            properties: {
-                role: { type: 'number' }
-            }
+            properties: { role: { type: 'number' } }
         }
     })
 
