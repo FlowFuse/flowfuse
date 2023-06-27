@@ -33,7 +33,7 @@
         </ff-data-table>
         <ff-code-previewer v-else ref="code-preview" :snippet="contents" />
     </div>
-    <EmptyState v-else>
+    <EmptyState v-else :featureUnavailable="!featureEnabled">
         <template #img>
             <img src="../../images/empty-states/team-library.png">
         </template>
@@ -47,7 +47,11 @@
             </p>
         </template>
         <template #actions>
-            <ff-button :to="{name: 'Instances'}">Go To Instances</ff-button>
+            <ff-button v-if="featureEnabled" :to="{name: 'Instances'}">Go To Instances</ff-button>
+            <ff-button v-else :to="{name: 'Instances'}" :disabled="true">
+                Add To Library
+                <template #icon-right><PlusIcon /></template>
+            </ff-button>
         </template>
         <template #note>
             <p>
@@ -59,13 +63,17 @@
 
 <script>
 
-import { ChevronRightIcon } from '@heroicons/vue/solid'
+import { ChevronRightIcon, PlusIcon } from '@heroicons/vue/solid'
+import { mapState } from 'vuex'
 
 import teamApi from '../../api/team.js'
+
 import CodePreviewer from '../../components/CodePreviewer.vue'
 import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
+
 import formatDateMixin from '../../mixins/DateTime.js'
+
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 
@@ -74,11 +82,12 @@ import TypeIcon from './components/LibraryEntryTypeIcon.vue'
 export default {
     name: 'SharedLibrary',
     components: {
-        SectionTopMenu,
-        ChevronRightIcon,
         'ff-code-previewer': CodePreviewer,
+        ChevronRightIcon,
+        EmptyState,
+        SectionTopMenu,
         TypeIcon,
-        EmptyState
+        PlusIcon
     },
     mixins: [formatDateMixin],
     props: {
@@ -107,6 +116,12 @@ export default {
             viewingFile: false
         }
     },
+    computed: {
+        ...mapState('account', ['features']),
+        featureEnabled () {
+            return this.features['shared-library']
+        }
+    },
     created () {
         this.$watch(
             () => this.$route.params,
@@ -122,6 +137,10 @@ export default {
             this.loadEntry(pathArray.filter((entry) => entry))
         },
         async loadEntry (entryPathArray) {
+            if (!this.featureEnabled) {
+                return
+            }
+
             const entryPath = entryPathArray.join('/')
             const entryIsFile = /\.\w+/.test(entryPath)
 

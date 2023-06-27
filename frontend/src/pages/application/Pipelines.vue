@@ -25,6 +25,7 @@
                     name: 'CreatePipeline',
                     params: { applicationId: application.id },
                 }"
+                :disabled="!featureEnabled"
             >
                 <template #icon-left>
                     <PlusSmIcon />
@@ -47,7 +48,7 @@
             @stage-deleted="(stageIndex) => stageDeleted(pipeline, stageIndex)"
         />
     </div>
-    <EmptyState v-else>
+    <EmptyState v-else :featureUnavailable="!featureEnabled">
         <template #header>Add your Application's First DevOps Pipeline</template>
         <template #img>
             <img src="../../images/empty-states/application-pipelines.png">
@@ -72,6 +73,7 @@
                     name: 'CreatePipeline',
                     params: { applicationId: application.id },
                 }"
+                :disabled="!featureEnabled"
             >
                 <template #icon-left><PlusSmIcon /></template>
                 Add Pipeline
@@ -123,18 +125,14 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features'])
+        ...mapState('account', ['features']),
+        featureEnabled () {
+            return this.features['devops-pipelines']
+        }
     },
     mounted () {
-        if (this.features['devops-pipelines']) {
+        if (this.featureEnabled) {
             this.loadPipelines()
-        } else {
-            this.$router.push({
-                name: 'Application',
-                params: {
-                    id: this.application.id
-                }
-            })
         }
     },
     methods: {
