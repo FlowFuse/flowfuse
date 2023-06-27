@@ -4,8 +4,13 @@
 const app = require('./environments/standard')
 
 ;(async function () {
-    const flowforge = await app()
     const PORT = 3001
+
+    const flowforge = await app({}, {
+        host: 'localhost',
+        port: PORT
+    })
+
     flowforge.listen(PORT, function (err, address) {
         console.info(`OS Environment running at http://localhost:${PORT}`)
         if (err) {
