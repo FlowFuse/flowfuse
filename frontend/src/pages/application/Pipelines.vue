@@ -91,7 +91,6 @@ import PipelineAPI from '../../api/pipeline.js'
 
 import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
-import FeatureUnavailable from '../../components/banners/FeatureUnavailable.vue'
 import PipelineRow from '../../components/pipelines/PipelineRow.vue'
 
 import Alerts from '../../services/alerts.js'
@@ -102,8 +101,7 @@ export default {
         SectionTopMenu,
         PlusSmIcon,
         PipelineRow,
-        EmptyState,
-        FeatureUnavailable
+        EmptyState
     },
     beforeRouteLeave () {
         clearInterval(this.polling)

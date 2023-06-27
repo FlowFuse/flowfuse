@@ -71,7 +71,6 @@ import teamApi from '../../api/team.js'
 import CodePreviewer from '../../components/CodePreviewer.vue'
 import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
-import FeatureUnavailable from '../../components/banners/FeatureUnavailable.vue'
 
 import formatDateMixin from '../../mixins/DateTime.js'
 
@@ -86,7 +85,6 @@ export default {
         'ff-code-previewer': CodePreviewer,
         ChevronRightIcon,
         EmptyState,
-        FeatureUnavailable,
         SectionTopMenu,
         TypeIcon,
         PlusIcon
