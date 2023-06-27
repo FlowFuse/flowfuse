@@ -55,17 +55,13 @@ import { ChevronLeftIcon } from '@heroicons/vue/solid'
 
 import ApplicationsAPI from '../../../api/application.js'
 import FormRow from '../../../components/FormRow.vue'
-import NavItem from '../../../components/NavItem.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
-import SideNavigation from '../../../components/SideNavigation.vue'
 import Alerts from '../../../services/alerts.js'
 
 export default {
     name: 'CreatePipeline',
     components: {
-        SideNavigation,
         SectionTopMenu,
-        NavItem,
         FormRow
     },
     inheritAttrs: false,
