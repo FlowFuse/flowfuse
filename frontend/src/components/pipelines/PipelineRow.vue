@@ -21,17 +21,15 @@
             </div>
         </div>
         <div v-if="pipeline.stages.length" class="ff-pipeline-stages">
-            <template v-for="(stage, $index) in pipeline.stages" :key="stage.id">
+            <template v-for="(stage, $index) in stagesWithStates" :key="stage.id">
                 <PipelineStage
                     :application="application"
                     :pipeline="pipeline"
                     :stage="stage"
-                    :status="stageState(stage)"
                     :playEnabled="$index < pipeline.stages.length - 1"
                     :editEnabled="true"
-                    :deploying="nextStageStarting($index)"
-                    @stage-started="stageStarted($index)"
-                    @stage-complete="stageComplete($index)"
+                    @stage-deploy-starting="stageDeployStarting(stage)"
+                    @stage-deploy-started="stageDeployStarted(stage)"
                     @stage-deleted="stageDeleted($index)"
                 />
                 <Transition name="fade">
@@ -39,8 +37,7 @@
                         v-if="$index <= pipeline.stages.length - 1"
                         class="ff-icon mt-4 flex-shrink-0"
                         :class="{
-                            'animate-deploying':
-                                deploying === $index || nextStageStarting($index),
+                            'animate-deploying': nextStageDeploying($index),
                         }"
                     />
                 </Transition>
@@ -81,12 +78,12 @@ export default {
             required: true,
             type: Object
         },
-        statusMap: {
+        instanceStatusMap: {
             required: true,
             type: Map
         }
     },
-    emits: ['deploy-started', 'deploy-complete', 'pipeline-deleted', 'stage-deleted'],
+    emits: ['pipeline-deleted', 'stage-deleted', 'deploy-starting', 'deploy-started', 'stage-deploy-starting', 'stage-deploy-started'],
     data () {
         const pipeline = this.pipeline
         return {
@@ -103,6 +100,25 @@ export default {
     computed: {
         saveRowEnabled () {
             return this.scopedPipeline.name?.length > 0
+        },
+        stagesWithStates () {
+            return this.pipeline.stages.map((stage) => {
+                // For now, each stage contains only one instance, so read state from that instance
+                const stageInstance = this.instanceStatusMap.get(stage.instance?.id)
+
+                // Instance statuses might not have finished loading yet
+                if (!stageInstance) {
+                    return stage
+                }
+
+                // Relay stage instances state to the stage
+                stage.state = stageInstance.state
+
+                // If any instances inside the stage are deploying, this stage is deploying
+                stage.isDeploying = !!stageInstance?.isDeploying
+
+                return stage
+            })
         }
     },
     methods: {
@@ -138,31 +154,22 @@ export default {
             this.editing.name = false
             Alerts.emit('Pipeline successfully updated.', 'confirmation')
         },
-        stageStarted (stageIndex) {
-            this.deploying = stageIndex
-            this.$emit('deploy-started')
+        stageDeployStarting (stage) {
+            const nextStage = this.pipeline.stages.find((s) => s.id === stage.NextStageId)
+            this.$emit('stage-deploy-starting', stage, nextStage)
         },
-        stageComplete (stageIndex) {
-            this.deploying = null
-            this.$emit('deploy-complete')
+        stageDeployStarted (stage) {
+            this.$emit('stage-deploy-started', stage)
         },
         stageDeleted (stageIndex) {
             this.$emit('stage-deleted', stageIndex)
         },
-        /**
-         *
-         * @param {*} index - the index of a stage in the pipeline, returns tru if the _next_ stage is starting
-         */
-        nextStageStarting (index) {
+        nextStageDeploying (index) {
             if (this.pipeline.stages[index + 1]) {
-                const state = this.stageState(this.pipeline.stages[index + 1])
-                return state === 'importing' || state === 'starting'
-            } else {
-                return false
+                return this.pipeline.stages[index + 1].isDeploying
             }
-        },
-        stageState (stage) {
-            return this.statusMap.get(stage.instance.id)?.state
+
+            return false
         },
         deletePipeline () {
             const msg = {

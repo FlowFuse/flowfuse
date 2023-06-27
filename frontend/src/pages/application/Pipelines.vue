@@ -40,9 +40,9 @@
             :key="pipeline.id"
             :application="application"
             :pipeline="pipeline"
-            :status-map="instanceStatusMap"
-            @deploy-started="beginPolling"
-            @deploy-complete="loadPipelines"
+            :instance-status-map="instanceStatusMap"
+            @stage-deploy-starting="stageDeployStarting"
+            @stage-deploy-started="startPollingForDeployStatus"
             @pipeline-deleted="loadPipelines"
             @stage-deleted="(stageIndex) => stageDeleted(pipeline, stageIndex)"
         />
@@ -138,8 +138,23 @@ export default {
         }
     },
     methods: {
-        beginPolling () {
+        stageDeployStarting (stage, nextStage) {
+            if (!nextStage.instance?.id) {
+                return console.warn('Deployment starting to stage without an instance.')
+            }
+
+            // Optimistic flagging of deployment in progress for the single instance inside the target stage
+            this.instanceStatusMap.get(nextStage.instance.id).isDeploying = true
+        },
+        startPollingForDeployStatus (stage) {
+            clearInterval(this.polling)
             this.polling = setInterval(this.loadInstanceStatus, 5000)
+        },
+        stageDeployCompleted () {
+            clearInterval(this.polling)
+            this.polling = null
+
+            Alerts.emit('Deployment of stage successful.', 'confirmation')
         },
         async stageDeleted (pipeline, stageIndex) {
             pipeline.stages.splice(stageIndex, 1)
@@ -165,21 +180,27 @@ export default {
         async loadInstanceStatus () {
             ApplicationAPI.getApplicationInstancesStatuses(this.application.id)
                 .then((instances) => {
+                    const deployingInstances = instances.some((instance) => {
+                        return instance.meta.isDeploying
+                    })
+
                     if (this.polling) {
-                        let allRunning = true
-                        for (const instance of instances) {
-                            if (instance.meta.state !== 'running') {
-                                allRunning = false
-                            }
+                        // We were polling for status (triggered by deploy start) and all instances have finished deploying
+                        if (!deployingInstances) {
+                            this.stageDeployCompleted()
                         }
-                        // we were polling for status (triggered by deploy) but now everything is "running"
-                        if (this.polling && allRunning) {
-                            clearInterval(this.polling)
-                            Alerts.emit('Deployment of stage successful.', 'confirmation')
+                    } else {
+                        // Some instances are deploying, so we need to start polling for status
+                        if (deployingInstances) {
+                            this.startPollingForDeployStatus()
                         }
                     }
+
                     this.instanceStatusMap = new Map(
-                        instances.map((obj) => [obj.id, obj.meta])
+                        instances.map((obj) => {
+                            const previousStatus = this.instanceStatusMap.get(obj.id)
+                            return [obj.id, { ...previousStatus, ...obj.meta }]
+                        })
                     )
                 })
                 .catch((err) => {
