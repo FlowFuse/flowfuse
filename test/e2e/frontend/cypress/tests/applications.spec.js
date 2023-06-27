@@ -228,17 +228,30 @@ describe('FlowForge - Applications', () => {
                 cy.url().should('include', `/team/${team.slug}/applications`)
             })
     })
+    
+     it('check if application has instances, then delete application button should be disabled, and if application has no instances, the button should be enabled', () => {
+        // Check if the application has instances
+        cy.visit('/team/ateam/applications')
+
+        cy.get('[data-action="view-application"]').first().click()
+        cy.url().then(url => {
+            const applicationId = url.split('/')
+            cy.visit(`/application/${applicationId[4]}/settings`)
+            cy.get('[data-action="delete-application"]').should('be.disabled')
+        })
+
+        // Check if the application has 0 instances
+        cy.visit('/team/ateam/applications')
+        cy.get('[data-action="view-application"]').eq(1).click()
+        cy.url().then(url => {
+            const applicationId = url.split('/')
+            cy.visit(`/application/${applicationId[4]}/settings`)
+            cy.get('[data-action="delete-application"]').should('not.be.disabled')
+        })
+    })
 })
 
-it(' check if application has instances then delete application button should be disabled and if application has not instances button should be enabled', () => {
-    cy.visit('/application/VJ9LW62EgX/settings')
-    // application has instances
-    cy.get('[data-action="delete-application"]').should('be.disabled')
 
-    cy.visit('/application/4Ax289Lryp/settings')
-    // application has not instances
-    cy.get('[data-action="delete-application"]').should('not.be.disabled')
-})
 
 describe('FlowForge - Applications - With Billing', () => {
     beforeEach(() => {
