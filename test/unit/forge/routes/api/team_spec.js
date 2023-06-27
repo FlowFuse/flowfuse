@@ -69,13 +69,65 @@ describe('Team API', function () {
 
     describe('Team API', function async () {
         describe('Get team details', async function () {
-            // GET /api/v1/teams/:teamId
-            // - Must be admin or team owner/member
+            it('admin can access any team', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.BTeam.hashid}`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('id', TestObjects.BTeam.hashid)
+            })
+            it('member can access team', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.BTeam.hashid}`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('id', TestObjects.BTeam.hashid)
+            })
+            it('non-member cannot access team', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.BTeam.hashid}`,
+                    cookies: { sid: TestObjects.tokens.chris }
+                })
+                response.statusCode.should.equal(404)
+            })
         })
 
         describe('Get team details by slug', async function () {
-            // GET /api/v1/teams/:teamId?slug=<teamSlug>
-            // - Must be admin or team owner/member
+            it('admin can access any team', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/slug/${TestObjects.BTeam.slug}`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('id', TestObjects.BTeam.hashid)
+            })
+            it('member can access team', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/slug/${TestObjects.BTeam.slug}`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('id', TestObjects.BTeam.hashid)
+            })
+            it('non-member cannot access team', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/slug/${TestObjects.BTeam.slug}`,
+                    cookies: { sid: TestObjects.tokens.chris }
+                })
+                response.statusCode.should.equal(404)
+            })
         })
 
         describe('Get list of teams', async function () {

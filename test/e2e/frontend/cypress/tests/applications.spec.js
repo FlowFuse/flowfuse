@@ -281,6 +281,7 @@ describe('FlowForge - Applications - With Billing', () => {
 
             cy.visit(`/team/${team.slug}/applications/create`)
 
+            cy.wait('@getTeamBySlug')
             cy.wait('@getTeamBilling')
 
             cy.get('[data-el="charges-table"]').should('not.exist')
