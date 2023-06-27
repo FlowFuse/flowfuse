@@ -9,6 +9,8 @@ const { KEY_SETTINGS } = require('../models/ProjectSettings')
  */
 const inflightProjectState = { }
 
+const inflightDeploys = new Set()
+
 module.exports = {
     /**
      * Get the in-flight state of a project
@@ -29,6 +31,25 @@ module.exports = {
     setInflightState: function (app, project, state) {
         inflightProjectState[project.id] = state
     },
+
+    /**
+     * Check whether an instance is currently flagged as deploying
+     * @param {*} app
+     * @param {*} instance
+     */
+    isDeploying: function (app, instance) {
+        return inflightDeploys.has(instance.id)
+    },
+
+    /**
+     * Mark an instance as currently being deployed
+     * @param {*} app
+     * @param {*} instance
+     */
+    setInDeploy: function (app, instance) {
+        inflightDeploys.add(instance.id)
+    },
+
     /**
      * Set the in-flight state of a project
      * @param {*} app
@@ -36,7 +57,9 @@ module.exports = {
      */
     clearInflightState: function (app, project) {
         delete inflightProjectState[project.id]
+        inflightDeploys.delete(project.id)
     },
+
     /**
      * Get the settings object that should be passed to nr-launcher so it can
      * start Node-RED with the proper project configuration.
@@ -58,6 +81,12 @@ module.exports = {
                 result.env.forEach(envVar => {
                     env[envVar.name] = envVar.value
                 })
+            }
+            // special case for palette.modules - we don't want to inherit
+            // the template's list of modules. We want to use the list that
+            // is stored in the project's own settings.
+            if (result.palette?.modules) {
+                delete result.palette.modules
             }
         }
         const projectSettingsRow = project.ProjectSettings?.find((projectSetting) => projectSetting.key === KEY_SETTINGS)

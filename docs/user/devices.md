@@ -24,7 +24,22 @@ Or you can chose to run the Docker container. When you do, you'll need to mount
 the `device.yaml` obtained when [Registering the device](#register-the-device):
 
 ```bash
-docker run --mount /path/to/device.yml:/opt/flowforge/device.yml -p 1880:1880 flowforge/device-agent:latest
+docker run --mount /path/to/device.yml:/opt/flowforge-device/device.yml -p 1880:1880 flowforge/device-agent:latest
+```
+
+Or you can chose to run the Docker-Compose via a docker-compose.yml file. When you do, you'll need to mount
+the `device.yaml` as in Docker obtained when [Registering the device](#register-the-device):
+
+```yaml
+version: '3.9'
+
+services:
+  device:
+    image: flowforge/device-agent:latest
+    ports:
+      - "1880:1880"
+    volumes:
+      - /path/to/device.yml:/opt/flowforge-device/device.yml
 ```
 
 ## Configuration
@@ -358,6 +373,54 @@ You can check the current status with the command:
 You can stop your with the command:
 
 ```sudo systemctl stop flowforge-device-agent```
+
+## Node-RED Settings
+
+Most Node-RED settings are managed by the platform as part of deploying an instance
+to the device. However some settings can be overridden locally on the device.
+
+### HTTPS configuration
+
+*Available in Device Agent 0.10+*
+
+The `https` configuration option in `device.yml` can be used to enable HTTPS within Node-RED. The values
+are passed through to the [Node-RED `https` setting](https://nodered.org/docs/user-guide/runtime/configuration).
+
+The `ca`, `key` and `cert` properties can be used to provide custom certificates and keys.
+The values should be set to the contents of the certificate/key.
+
+Alternatively, the properties `caPath`, `keyPath` and `certPath` can be used instead
+to provide absolute paths to files containing the certificates/keys.
+
+```yml
+https:
+   keyPath: /opt/flowforge-device/certs/key.pem
+   certPath: /opt/flowforge-device/certs/cert.pem
+   caPath: /opt/flowforge-device/certs/ca.pem
+```
+
+### `httpStatic` configuration
+
+*Available in Device Agent 0.10+*
+
+This option can be used to serve content from a local directory.
+
+If set to a path, the files in that directory will be served relative to `/`.
+
+```yml
+httpStatic: /opt/flowforge-device/static-content
+```
+
+It is also possible to configure it with a list of directories and the corresponding
+path they should be served from.
+
+```yml
+httpStatic:
+  - path: /opt/flowforge-device/static-content/images
+    root: /images
+  - path: /opt/flowforge-device/static-content/js
+    root: /js
+```
 
 ## Troubleshooting
 

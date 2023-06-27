@@ -9,9 +9,9 @@
                 <span v-if="isNew">Create a new template</span>
             </div>
         </div>
-        <div class="text-right space-x-4 flex h-8" >
+        <div class="text-right space-x-4 flex h-8">
             <template v-if="!isNew">
-                <ff-button kind="secondary" v-if="unsavedChanges" class="ml-4" @click="cancelEdit">Discard changes</ff-button>
+                <ff-button v-if="unsavedChanges" kind="secondary" class="ml-4" @click="cancelEdit">Discard changes</ff-button>
                 <ff-button class="ml-4" :disabled="hasErrors || !unsavedChanges" @click="showSaveTemplateDialog">Save changes</ff-button>
             </template>
             <template v-else-if="isNew">
@@ -23,7 +23,7 @@
     <div class="flex flex-col sm:flex-row">
         <SectionSideMenu :options="sideNavigation" />
         <div class="flex-grow">
-            <router-view v-model="editable" :editTemplate="true"></router-view>
+            <router-view v-model="editable" :editTemplate="true" />
         </div>
     </div>
 </template>
@@ -37,6 +37,7 @@ import alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
 import {
+    comparePaletteModules,
     prepareTemplateForEdit,
     setObjectValue,
     setTemplateValue,
@@ -53,6 +54,10 @@ const sideNavigation = [
 
 export default {
     name: 'AdminTemplate',
+    components: {
+        SectionSideMenu,
+        ChevronRightIcon
+    },
     setup () {
         return {
             sideNavigation
@@ -86,6 +91,8 @@ export default {
                 policy: {}
             },
             unsavedChanges: false,
+            modulesChanged: false,
+            needsRestart: false,
             hasErrors: false,
             icons: {
                 breadcrumbSeparator: ChevronRightIcon
@@ -99,6 +106,8 @@ export default {
                 // Only check for changes in existing templates
                 if (this.template.name) {
                     let changed = false
+                    let modulesChanged = false
+                    let needsRestart = false
                     let errors = false
                     this.editable.changed.name = this.editable.name !== this.original.name
                     changed = changed || this.editable.changed.name
@@ -108,14 +117,17 @@ export default {
 
                     this.editable.changed.description = this.editable.description !== this.original.description
                     changed = changed || this.editable.changed.description
-
                     templateFields.forEach(field => {
                         if (field === 'palette_modules') {
-                            // Don't check `palette_modules` for changes.
-                            // They are part of the template but are not edited here in admin/settings
-                            return
+                            const pmChanges = comparePaletteModules(this.editable.settings.palette_modules, this.original.settings.palette_modules)
+                            this.editable.changed.palette_modules = this.editable.changed.palette_modules || pmChanges.changed
+                            modulesChanged = modulesChanged || pmChanges.changed
+                            changed = changed || pmChanges.changed
+                            errors = errors || pmChanges.errors
+                        } else {
+                            this.editable.changed.settings[field] = this.editable.settings[field] !== this.original.settings[field]
+                            needsRestart = needsRestart || this.editable.changed.settings[field]
                         }
-                        this.editable.changed.settings[field] = this.editable.settings[field] !== this.original.settings[field]
                         this.editable.changed.policy[field] = this.editable.policy[field] !== this.original.policy[field]
                         changed = changed || this.editable.changed.settings[field] || this.editable.changed.policy[field]
                         if (templateValidators[field]) {
@@ -157,6 +169,8 @@ export default {
                     }
                     this.editable.changed.env = envChanged
                     changed = changed || envChanged
+                    this.modulesChanged = modulesChanged
+                    this.needsRestart = needsRestart
                     this.unsavedChanges = changed
                     this.hasErrors = errors
                 }
@@ -226,9 +240,16 @@ export default {
             this.editable.errors = {}
         },
         showSaveTemplateDialog () {
+            let html = '<p>Are you sure you want to save this template?</p>'
+            if (this.needsRestart) {
+                html += '<p>Application instances using this template will need to be manually restarted to pick up the changes.</p>'
+            }
+            if (this.modulesChanged) {
+                html += '<p>NOTE: Exiting instances will not inherit the modules in this list.  They must be added manually in the instance settings.</p>'
+            }
             Dialog.show({
                 header: 'Update Template',
-                html: '<p>Are you sure you want to save this template?</p><p>Any application instances using this template will need to be manually restarted to pick up any changes.</p>',
+                html,
                 confirmLabel: 'Save Template'
             }, this.saveTemplate)
         },
@@ -313,10 +334,6 @@ export default {
                 console.error(err)
             }
         }
-    },
-    components: {
-        SectionSideMenu,
-        ChevronRightIcon
     }
 }
 </script>

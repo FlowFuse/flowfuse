@@ -167,7 +167,7 @@ export default {
         checkFeatures () {
             if (this.features.billing) {
                 // insert billing in second slot of admin
-                this.routes.admin.splice(1, 0, {
+                this.navigation.admin.splice(1, 0, {
                     label: 'Billing',
                     to: '/billing',
                     tag: 'team-billing',

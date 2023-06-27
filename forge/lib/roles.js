@@ -1,5 +1,6 @@
 const Roles = {
     None: 0,
+    Dashboard: 5,
     Viewer: 10,
     Member: 30,
     Owner: 50,
@@ -7,6 +8,7 @@ const Roles = {
 }
 const RoleNames = {
     [Roles.None]: 'none',
+    [Roles.Dashboard]: 'dashboard',
     [Roles.Viewer]: 'viewer',
     [Roles.Member]: 'member',
     [Roles.Owner]: 'owner',
@@ -14,6 +16,7 @@ const RoleNames = {
 }
 
 const TeamRoles = [
+    Roles.Dashboard,
     Roles.Viewer,
     Roles.Member,
     Roles.Owner

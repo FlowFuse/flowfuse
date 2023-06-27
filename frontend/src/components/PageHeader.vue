@@ -7,7 +7,7 @@
         <!-- FlowForge Logo -->
         <img class="ff-logo" src="../images/ff-logo--wordmark-caps--dark.png" @click="home()"/>
         <!-- Mobile: Toggle(User Options) -->
-        <div class="flex" v-if="team">
+        <div v-if="team" class="flex">
             <i class="ff-header--mobile-usertoggle" :class="{'active': mobileTeamSelectionOpen}">
                 <img :src="team.avatar" class="ff-avatar" @click="mobileTeamSelectionOpen = !mobileTeamSelectionOpen" />
             </i>
@@ -17,17 +17,20 @@
         </div>
         <!-- Mobile: User Options -->
         <div class="ff-navigation ff-navigation-right" :class="{'open': mobileUserOptionsOpen}" data-action="user-options">
-            <nav-item v-for="option in options" :key="option.label"
-                      :label="option.label" :icon="option.icon" :notifications="option.notifications"
-                      @click="mobileUserOptionsOpen = false; option.onclick(option.onclickparams)"></nav-item>
+            <nav-item
+                v-for="option in options" :key="option.label"
+                :label="option.label" :icon="option.icon" :notifications="option.notifications"
+                @click="mobileUserOptionsOpen = false; option.onclick(option.onclickparams)"></nav-item>
         </div>
         <!-- Mobile: Team Selection -->
         <div class="ff-navigation ff-navigation-right" :class="{'open': mobileTeamSelectionOpen}" data-action="team-selection">
-            <nav-item v-for="team in teams" :key="team.name"
-                      :label="team.name" :avatar="team.avatar"
-                      @click="mobileTeamSelectionOpen = false; $router.push({name: 'Team', params: {team_slug: team.slug}})"></nav-item>
-            <nav-item label="Create New Team" :icon="plusIcon"
-                      @click="mobileTeamSelectionOpen = false; $router.push({name: 'CreateTeam'})"></nav-item>
+            <nav-item
+                v-for="team in teams" :key="team.name"
+                :label="team.name" :avatar="team.avatar"
+                @click="mobileTeamSelectionOpen = false; $router.push({name: 'Team', params: {team_slug: team.slug}})"></nav-item>
+            <nav-item
+                label="Create New Team" :icon="plusIcon"
+                @click="mobileTeamSelectionOpen = false; $router.push({name: 'CreateTeam'})"></nav-item>
         </div>
         <div class="hidden lg:flex">
             <ff-team-selection data-action="team-selection" />

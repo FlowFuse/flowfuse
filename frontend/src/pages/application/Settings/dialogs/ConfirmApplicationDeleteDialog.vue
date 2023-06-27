@@ -14,7 +14,7 @@
                     <p>
                         Are you sure you want to delete this application? Once deleted, there is no going back.
                     </p>
-                    <p>
+                    <p class="flex">
                         Enter the application name <code>{{ application?.name }}</code> to continue.
                     </p>
                 </div>

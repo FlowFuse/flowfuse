@@ -44,7 +44,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
       - name: Build the forge
         run: npm run build
       - name: Test the forge (with PostgreSQL)
@@ -55,4 +55,5 @@ jobs:
           FF_TEST_DB_POSTGRES_USER: postgres
           FF_TEST_DB_POSTGRES_PASSWORD: secret
           FF_TEST_DB_POSTGRES_DATABASE: flowforge
+          NODE_OPTIONS: "--max_old_space_size=4096"
         run: npm run test

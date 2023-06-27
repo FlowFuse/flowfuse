@@ -68,7 +68,7 @@ describe('Project Snapshots API', function () {
 
     // This is copy/paste from project_spec.js - consider moving out to utils
     async function addFlowsToProject (id, token, flows, creds, key, settings) {
-        await app.inject({
+        const flowsAddResponse = await app.inject({
             method: 'POST',
             url: `/storage/${id}/flows`,
             payload: flows,
@@ -77,7 +77,7 @@ describe('Project Snapshots API', function () {
             }
         })
         const hashKey = crypto.createHash('sha256').update(key).digest()
-        await app.inject({
+        const credentialsCreateResponse = await app.inject({
             method: 'POST',
             url: `/storage/${id}/credentials`,
             payload: encryptCredentials(hashKey, creds),
@@ -85,7 +85,7 @@ describe('Project Snapshots API', function () {
                 authorization: `Bearer ${token}`
             }
         })
-        await app.inject({
+        const storageSettingsResponse = await app.inject({
             method: 'POST',
             url: `/storage/${id}/settings`,
             payload: { _credentialSecret: key },
@@ -93,7 +93,7 @@ describe('Project Snapshots API', function () {
                 authorization: `Bearer ${token}`
             }
         })
-        await app.inject({
+        const updateProjectSettingsResponse = await app.inject({
             method: 'PUT',
             url: `/api/v1/projects/${id}`,
             payload: {
@@ -101,6 +101,12 @@ describe('Project Snapshots API', function () {
             },
             cookies: { sid: TestObjects.tokens.alice }
         })
+        return {
+            flowsAddResponse,
+            credentialsCreateResponse,
+            storageSettingsResponse,
+            updateProjectSettingsResponse
+        }
     }
 
     async function createSnapshot (projectId, name, token) {
@@ -256,7 +262,7 @@ describe('Project Snapshots API', function () {
     describe('Rollback a snapshot', function () {
         it('Rolls back to a different snapshot', async function () {
             // Setup an initial configuration
-            await addFlowsToProject(TestObjects.project1.id,
+            const setupResult = await addFlowsToProject(TestObjects.project1.id,
                 TestObjects.tokens.project,
                 [{ id: 'node1' }],
                 { testCreds: 'abc' },
@@ -266,7 +272,7 @@ describe('Project Snapshots API', function () {
                     dashboardUI: '/test-dash',
                     palette: {
                         modules: [
-                            { name: 'module1', version: 'v1' }
+                            { name: 'module1', version: '1.0.0' }
                         ]
                     },
                     env: [
@@ -275,13 +281,19 @@ describe('Project Snapshots API', function () {
                     ]
                 }
             )
+            // ensure setup was successful before generating a snapshot & performing rollback
+            setupResult.flowsAddResponse.statusCode.should.equal(200)
+            setupResult.credentialsCreateResponse.statusCode.should.equal(200)
+            setupResult.storageSettingsResponse.statusCode.should.equal(200)
+            setupResult.updateProjectSettingsResponse.statusCode.should.equal(200)
+
             // Generate a snapshot
             const response = await createSnapshot(TestObjects.project1.id, 'test-project-snapshot-01', TestObjects.tokens.alice)
             response.statusCode.should.equal(200)
             const snapshot1 = response.json()
 
             // Change lots of things
-            await addFlowsToProject(TestObjects.project1.id,
+            const changeResult = await addFlowsToProject(TestObjects.project1.id,
                 TestObjects.tokens.project,
                 [{ id: 'node2' }],
                 { testCreds: 'def' },
@@ -291,7 +303,7 @@ describe('Project Snapshots API', function () {
                     dashboardUI: '/test-dash-2',
                     palette: {
                         modules: [
-                            { name: 'module2', version: 'v2' }
+                            { name: 'module2', version: '2.0.0' }
                         ]
                     },
                     env: [
@@ -300,6 +312,25 @@ describe('Project Snapshots API', function () {
                     ]
                 }
             )
+            changeResult.updateProjectSettingsResponse.statusCode.should.equal(200)
+
+            // verify the changes were successful before performing rollback
+            const settingsURL = `/api/v1/projects/${app.project.id}/settings`
+            const changedSettingsResponse = await app.inject({
+                method: 'GET',
+                url: settingsURL,
+                headers: {
+                    authorization: `Bearer ${TestObjects.tokens.project}`
+                }
+            })
+            const changedSettings = changedSettingsResponse.json()
+
+            changedSettings.settings.httpAdminRoot.should.equal('/test-red-2') // was changed
+            changedSettings.settings.dashboardUI.should.equal('/test-dash-2') // was changed
+            changedSettings.settings.palette.modules.should.not.have.property('module1') // was removed (modules array are replaced not merged)
+            changedSettings.settings.palette.modules.should.have.property('module2', '2.0.0') // was added
+            changedSettings.env.should.have.property('one', 'a2') // was changed
+            changedSettings.env.should.have.property('two', 'b2') // was changed
 
             // Rollback to the original snapshot
             const rollbackResponse = await app.inject({
@@ -313,7 +344,6 @@ describe('Project Snapshots API', function () {
             rollbackResponse.statusCode.should.equal(200)
 
             // Get the new settings after rollback
-            const settingsURL = `/api/v1/projects/${app.project.id}/settings`
             const rolledBackSettingsResponse = await app.inject({
                 method: 'GET',
                 url: settingsURL,
@@ -323,11 +353,13 @@ describe('Project Snapshots API', function () {
             })
             const rolledBackSettings = rolledBackSettingsResponse.json()
 
-            // Validate the new settings are correct
-            rolledBackSettings.settings.palette.modules.should.have.property('module1', 'v1')
-            rolledBackSettings.settings.palette.modules.should.not.have.property('module2', 'v2')
+            // Validate the settings are correctly rolled back
             rolledBackSettings.settings.httpAdminRoot.should.equal('/test-red')
+            rolledBackSettings.settings.dashboardUI.should.equal('/test-dash')
+            rolledBackSettings.settings.palette.modules.should.have.property('module1', '1.0.0')
+            rolledBackSettings.settings.palette.modules.should.not.have.property('module2', '2.0.0')
             rolledBackSettings.env.should.have.property('one', 'a')
+            rolledBackSettings.env.should.have.property('two', 'b')
         })
     })
 

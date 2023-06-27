@@ -10,8 +10,8 @@
                 <InformationCircleIcon v-if="hasInfoDialog" class="min-w-[20px] ff-icon text-gray-800 cursor-pointer hover:text-blue-700" @click="openInfoDialog()" />
                 <span v-if="info" class="hidden sm:block text-gray-400">{{ info }}</span>
             </div>
-            <ul class="flex" v-if="options.length > 0">
-                <li class="mr-8 pt-1 flex" v-for="item in options" :key="item.name">
+            <ul v-if="options.length > 0" class="flex">
+                <li v-for="item in options" :key="item.name" class="mr-8 pt-1 flex">
                     <router-link :to="item.path" class="forge-nav-item" active-class="forge-nav-item-active" :data-nav="`section-${item.name.toLowerCase()}`">{{ item.name }}</router-link>
                 </li>
             </ul>
