@@ -294,6 +294,61 @@ function prepareTemplateForEdit (template) {
 function isPasswordField (path) {
     return passwordTypes.includes(path)
 }
+
+/**
+ * @typedef {Object} PaletteModule A palette module object
+ * @property {string} name The name of the module (e.g. node-red-contrib-foo)
+ * @property {string} version The version of the module (e.g. 1.2.3). Can include semver operators (e.g. >=1.2.3)
+ * @property {boolean} [local] Whether the module is local to the project (true) or not (false)
+ * @property {string|Number} [index] The index of the module in the original array (e.g. 0, 1, 2, etc)
+ *
+ * @typedef {Object.<string, PaletteModule>} PaletteModulesMap A map of module names to PaletteModule objects
+ */
+
+/**
+ * Compare the editable palette modules with the original palette modules to see if there are any changes or errors
+ * @param {PaletteModule[]} editableModules The array of modules from the template or instance being edited
+ * @param {PaletteModule[] | PaletteModulesMap} originalModules The original modules array or map
+ * @returns { changed: boolean, errors: boolean }
+ */
+function comparePaletteModules (editableModules, originalModules) {
+    /** @type {PaletteModulesMap} */
+    let originalModulesMap = originalModules
+    if (Array.isArray(originalModules)) {
+        originalModulesMap = {}
+        // generate a map/lookup table
+        originalModules.forEach(field => {
+            originalModulesMap[field.name] = field
+        })
+    }
+    let changed = false
+    let errors = false
+    let originalCount = 0
+    editableModules.forEach(field => {
+        errors = errors || !!field.error
+        if (field.index && /^add/.test(field.index + '')) {
+            changed = true
+        } else {
+            originalCount++
+            if (originalModulesMap[field.name]) {
+                const original = originalModulesMap[field.name]
+                if (original.index !== field.index) {
+                    changed = true
+                } else if (original.name !== field.name) {
+                    changed = true
+                } else if (original.version !== field.version) {
+                    changed = true
+                }
+            } else {
+                changed = true
+            }
+        }
+    })
+    if (changed || originalCount !== Object.keys(originalModulesMap).length) {
+        changed = true
+    }
+    return { changed, errors }
+}
 export {
     isPasswordField,
     getObjectValue,
@@ -303,5 +358,6 @@ export {
     defaultTemplateValues,
     templateFields,
     templateValidators,
-    prepareTemplateForEdit
+    prepareTemplateForEdit,
+    comparePaletteModules
 }

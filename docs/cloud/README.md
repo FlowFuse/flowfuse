@@ -36,7 +36,10 @@ See the [Billing](./billing.md) page for more detailed answers about billing.
 
 ## Support
 
-Customers can get support by emailing support@flowforge.com, we presently only offer support for the flowforge application and your account, any issues relating to Node-RED such as your flows or a 3rd party node should be raised in the appropriate community forum, for example https://discourse.nodered.org/ or the GitHub project of the third party node.
+Premium customers can get support by [filing a ticket](/support). We offer
+support for the FlowForge application and your account, any issues relating to
+Node-RED such as your flows or a 3rd party node should be raised in the
+[community forum](https://community.flowforge.com).
 
 ### Requesting a new verification email
 

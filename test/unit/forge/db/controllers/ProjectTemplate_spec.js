@@ -192,6 +192,56 @@ describe('Project Template controller', function () {
                 }).throw()
             })
         })
+        describe('palette.modules', function () {
+            it('accepts valid values', async function () {
+                should(() => {
+                    app.db.controllers.ProjectTemplate.validateSettings({
+                        palette: {
+                            modules: [
+                                { name: 'foo', version: '1.0.0' },
+                                { name: 'bar', version: '2.0.0' }
+                            ]
+                        }
+                    })
+                }).not.throw()
+            })
+            it('rejects invalid name', async function () {
+                should(() => {
+                    app.db.controllers.ProjectTemplate.validateSettings({
+                        palette: {
+                            modules: [
+                                { name: 'foo', version: '1.0.0' },
+                                { name: 'bar * bar', version: '2.0.0' }
+                            ]
+                        }
+                    })
+                }).throw()
+            })
+            it('rejects invalid version', async function () {
+                should(() => {
+                    app.db.controllers.ProjectTemplate.validateSettings({
+                        palette: {
+                            modules: [
+                                { name: 'foo', version: '1.0.0' },
+                                { name: 'bar', version: 'a.b.c' }
+                            ]
+                        }
+                    })
+                }).throw()
+            })
+            it('rejects duplicate name', async function () {
+                should(() => {
+                    app.db.controllers.ProjectTemplate.validateSettings({
+                        palette: {
+                            modules: [
+                                { name: 'foo', version: '1.0.0' },
+                                { name: 'foo', version: '2.0.0' }
+                            ]
+                        }
+                    })
+                }).throw()
+            })
+        })
     })
 
     describe('mergeSettings', function () {

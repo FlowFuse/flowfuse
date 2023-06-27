@@ -68,6 +68,38 @@ module.exports = {
                 }
             })
         }
+        // Validate palette modules:
+        // * No duplicates
+        // * No invalid names
+        // * No invalid versions
+        if (settings.palette?.modules) {
+            // ensure names and version are valid
+            // NOTE: `validateModuleName` and `validateModuleVersion` have frontend counterparts
+            // in `/frontend/src/pages/admin/Template/sections/PaletteModules.vue` and should be kept in sync
+            const BUILT_IN_MODULES = [
+                '@flowforge/nr-project-nodes'
+            ]
+            const validateModuleName = (name) => !BUILT_IN_MODULES.includes(name) && /^(@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/.test(name)
+            const validateModuleVersion = (version) => /^\*$|x|(?:[\^~]?(0|[1-9]\d*)\.(x$|0|[1-9]\d*)(?:\.(x$|0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)?)$/.test(version)
+            const moduleMap = {}
+            for (let i = 0; i < settings.palette.modules.length; i++) {
+                const module = settings.palette.modules[i]
+
+                // ensure there are no duplicates
+                if (moduleMap[module.name]) {
+                    throw new Error(`Duplicate module: ${module.name}`)
+                }
+                moduleMap[module.name] = true
+
+                // ensure names and version are valid
+                if (!validateModuleName(module.name)) {
+                    throw new Error(`Invalid module name: ${module.name}`)
+                }
+                if (!validateModuleVersion(module.version)) {
+                    throw new Error(`Invalid module version: ${module.version}`)
+                }
+            }
+        }
 
         // Validate individual settings
         if (result.httpAdminRoot !== undefined) {

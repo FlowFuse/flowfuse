@@ -1,4 +1,4 @@
-import LottieAnimation from 'lottie-web-vue'
+import { LottieAnimation } from 'lottie-web-vue'
 
 import ForgeUIComponents from '@flowforge/forge-ui-components'
 import { AxiosError } from 'axios'

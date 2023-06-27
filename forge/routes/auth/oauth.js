@@ -71,7 +71,7 @@ module.exports = async function (app) {
             if (!authClient) {
                 return badRequest(reply, 'invalid_request', 'Invalid client_id')
             }
-            if (!/^editor($|-)/.test(scope)) {
+            if (!/^(editor($|-))|httpAuth-/.test(scope)) {
                 return redirectInvalidRequest(reply, redirect_uri, 'invalid_request', "Invalid scope '" + scope + "'. Only 'editor[-version]' is supported", state)
             }
         } else {
@@ -110,8 +110,8 @@ module.exports = async function (app) {
         const requestId = base64URLEncode(crypto.randomBytes(32))
         requestCache.set(requestId, requestObject)
 
-        const isEditor = /^editor($|-)/.test(scope)
-        if (isEditor) {
+        const isNodeRED = /^(editor($|-))|httpAuth-/.test(scope)
+        if (isNodeRED) {
             if (request.sid) {
                 // This is the editor auth flow. If logged-in, redirect straight
                 // to the complete route. Otherwise prompt to login
@@ -154,18 +154,32 @@ module.exports = async function (app) {
                     if (!teamMembership) {
                         return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
                     }
-                    const canReadFlows = app.hasPermission(teamMembership, 'project:flows:view')
-                    const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit')
-                    if (!canReadFlows && !canWriteFlows) {
-                        return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
-                    }
-                    if (!canWriteFlows && requestObject.scope === 'editor') {
-                        // Older versions of nr-auth do not know how to apply read-only
-                        // access. We know it is an older version because it set scope to `editor`.
-                        // Versions that support viewer will have a scope of `editor-<version>`.
-                        // This should be sent as plain text as the user will see it in the browser window.
-                        reply.code(400).send('Please ask the team owner to update this project to the latest stack to support viewer access')
-                        return
+                    const isEditor = /^editor($|-)/.test(requestObject.scope)
+                    if (isEditor) {
+                        const canReadFlows = app.hasPermission(teamMembership, 'project:flows:view')
+                        const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit')
+                        const canReadHTTP = app.hasPermission(teamMembership, 'project:flows:http')
+                        if (!canReadFlows && !canWriteFlows) {
+                            if (!canReadHTTP) {
+                                return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
+                            } else {
+                                // We have to avoid Node-RED autoLogin redirect loops - so bail out with this
+                                // rather ugly error message.
+                                reply.code(400).send('Access Denied: you do not have access to the editor')
+                                return
+                            }
+                        }
+                        if (!canWriteFlows && requestObject.scope === 'editor') {
+                            // Older versions of nr-auth do not know how to apply read-only
+                            // access. We know it is an older version because it set scope to `editor`.
+                            // Versions that support viewer will have a scope of `editor-<version>`.
+                            // This should be sent as plain text as the user will see it in the browser window.
+                            reply.code(400).send('Please ask the team owner to update this project to the latest stack to support viewer access')
+                            return
+                        }
+                    } else {
+                        // This is the httpNode middleware checking access. All
+                        // team members are allowed to access the httpNode routes
                     }
                 }
                 requestObject.userId = request.session.User.id
@@ -262,25 +276,32 @@ module.exports = async function (app) {
                     return badRequest(reply, 'invalid_request', 'Invalid client_id')
                 }
 
-                const accessToken = await app.db.controllers.AccessToken.createTokenForUser(requestObject.userId,
-                    null,
-                    ['user:read', 'project:flows:view', 'project:flows:edit'],
-                    true
-                )
-
                 const project = await app.db.models.Project.byId(authClient.ownerId)
                 const teamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: project.TeamId, UserId: requestObject.userId } })
                 const canReadFlows = app.hasPermission(teamMembership, 'project:flows:view')
                 const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit')
+                const canReadHTTP = app.hasPermission(teamMembership, 'project:flows:http')
+                const isEditor = /^editor($|-)/.test(requestObject.scope)
 
-                if (!canReadFlows && !canWriteFlows) {
-                    app.db.controllers.AccessToken.destroyToken(accessToken.token)
+                if (isEditor && !canReadFlows && !canWriteFlows) {
                     return badRequest(reply, 'access_denied', 'Access Denied')
                 }
+                if (!isEditor && !canReadHTTP) {
+                    return badRequest(reply, 'access_denied', 'Access Denied')
+                }
+                const accessToken = await app.db.controllers.AccessToken.createTokenForUser(requestObject.userId,
+                    null,
+                    isEditor
+                        ? ['user:read', 'project:flows:view', 'project:flows:edit', 'project:flows:http']
+                        : ['user:read', 'project:flows:http'],
+                    true
+                )
 
                 let scope = '*'
-                if (!canWriteFlows) {
+                if (!canWriteFlows && canReadFlows) {
                     scope = 'read'
+                } else if (!canWriteFlows && !canReadFlows && canReadHTTP) {
+                    scope = 'http'
                 }
                 const response = {
                     access_token: accessToken.token,

@@ -5,10 +5,10 @@
             <div class="space-y-4 w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.palette_allowInstall" type="checkbox" :disabled="!editTemplate && !editable.policy.palette_allowInstall">
                     Allow user to install new nodes
-                    <template #append><ChangeIndicator :value="editable.changed.settings.palette_allowInstall"></ChangeIndicator></template>
+                    <template #append><ChangeIndicator :value="editable.changed.settings.palette_allowInstall" /></template>
                 </FormRow>
             </div>
-            <LockSetting :editTemplate="editTemplate" v-model="editable.policy.palette_allowInstall" :changed="editable.changed.policy.palette_allowInstall"></LockSetting>
+            <LockSetting v-model="editable.policy.palette_allowInstall" :editTemplate="editTemplate" :changed="editable.changed.policy.palette_allowInstall" />
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
@@ -18,23 +18,22 @@
                         This can be used to disable any of the default Node-RED nodes. Provide a comma-separated list of the corresponding
                         node filename.
                     </template>
-                    <template #append><ChangeIndicator :value="editable.changed.settings.palette_nodesExcludes"></ChangeIndicator></template>
+                    <template #append><ChangeIndicator :value="editable.changed.settings.palette_nodesExcludes" /></template>
                 </FormRow>
             </div>
-            <LockSetting :editTemplate="editTemplate" v-model="editable.policy.palette_nodesExcludes" :changed="editable.changed.policy.palette_nodesExcludes"></LockSetting>
+            <LockSetting v-model="editable.policy.palette_nodesExcludes" :editTemplate="editTemplate" :changed="editable.changed.policy.palette_nodesExcludes" />
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
-                <FormRow :disabled="!editable.settings.palette_allowInstall" v-model="editable.settings.palette_denyList" :error="editable.errors.palette_denyList" :type="(editTemplate||editable.policy.palette_denyList)?'text':'uneditable'">
+                <FormRow v-model="editable.settings.palette_denyList" :disabled="!editable.settings.palette_allowInstall" :error="editable.errors.palette_denyList" :type="(editTemplate||editable.policy.palette_denyList)?'text':'uneditable'">
                     Prevent Install of External nodes
                     <template #description>
                         This can be used to prevent the installation of nodes from the Palette Manager. A comma-separated list of the form e.g. <pre>'package-name@semVer, foo@^0.1.0, @scope/*'</pre>
                     </template>
-                    <template #append><ChangeIndicator :value="editable.changed.settings.palette_denyList"></ChangeIndicator></template>
+                    <template #append><ChangeIndicator :value="editable.changed.settings.palette_denyList" /></template>
                 </FormRow>
             </div>
-            <LockSetting :editTemplate="editTemplate" v-model="editable.policy.palette_denyList" :changed="editable.changed.policy.palette_denyList"></LockSetting>
-
+            <LockSetting v-model="editable.policy.palette_denyList" :editTemplate="editTemplate" :changed="editable.changed.policy.palette_denyList" />
         </div>
     </form>
 </template>
@@ -48,7 +47,23 @@ import LockSetting from '../components/LockSetting.vue'
 
 export default {
     name: 'AdminTemplatePalette',
-    props: ['editTemplate', 'modelValue'],
+    components: {
+        FormRow,
+        FormHeading,
+        LockSetting,
+        ChangeIndicator
+    },
+    props: {
+        editTemplate: {
+            type: Boolean,
+            default: false
+        },
+        modelValue: {
+            type: Object,
+            required: true
+        }
+    },
+    emits: ['update:modelValue'],
     data () {
         return {
         }
@@ -58,12 +73,6 @@ export default {
             get () { return this.modelValue },
             set (localValue) { this.$emit('update:modelValue', localValue) }
         }
-    },
-    components: {
-        FormRow,
-        FormHeading,
-        LockSetting,
-        ChangeIndicator
     }
 }
 </script>
