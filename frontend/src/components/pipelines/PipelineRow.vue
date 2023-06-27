@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-pipeline">
+    <div class="ff-pipeline" data-el="pipeline-row">
         <div class="ff-pipeline-banner">
             <ff-text-input v-if="editing.name" ref="pipelineName" v-model="input.pipelineName" />
             <div v-else class="flex items-center">
@@ -11,7 +11,7 @@
                 </div>
             </div>
             <div class="flex gap-2">
-                <div v-if="!editing.name" v-ff-tooltip:left="'Delete Pipeline'">
+                <div v-if="!editing.name" v-ff-tooltip:left="'Delete Pipeline'" data-action="delete-pipeline">
                     <TrashIcon class="ff-icon ff-clickable" @click="deletePipeline" />
                 </div>
                 <template v-else>

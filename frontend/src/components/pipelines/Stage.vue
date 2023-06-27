@@ -3,21 +3,33 @@
         <div class="ff-pipeline-stage-banner">
             <label>{{ stage.name }}</label>
             <div class="ff-pipeline-actions">
-                <PencilAltIcon
-                    v-if="editEnabled && application?.id && !deploying"
-                    class="ff-icon ff-clickable"
+                <span
+                    data-action="stage-edit"
                     @click="edit"
-                />
-                <TrashIcon
-                    v-if="editEnabled && application?.id && !deploying"
-                    class="ff-icon ff-clickable"
+                >
+                    <PencilAltIcon
+                        v-if="editEnabled && application?.id && !deploying"
+                        class="ff-icon ff-clickable"
+                    />
+                </span>
+                <span
+                    data-action="stage-delete"
                     @click="deleteStage"
-                />
-                <PlayIcon
-                    v-if="playEnabled && pipeline?.id && !deploying"
-                    class="ff-icon ff-clickable"
+                >
+                    <TrashIcon
+                        v-if="editEnabled && application?.id && !deploying"
+                        class="ff-icon ff-clickable"
+                    />
+                </span>
+                <span
+                    data-action="stage-run"
                     @click="runStage"
-                />
+                >
+                    <PlayIcon
+                        v-if="playEnabled && pipeline?.id && !deploying"
+                        class="ff-icon ff-clickable"
+                    />
+                </span>
                 <SpinnerIcon v-if="deploying" class="ff-icon" />
             </div>
         </div>
@@ -49,7 +61,7 @@
         </div>
         <div v-else class="flex justify-center py-6">No Instances Bound</div>
     </div>
-    <div v-else class="ff-pipeline-stage ff-pipeline-stage-ghost">
+    <div v-else class="ff-pipeline-stage ff-pipeline-stage-ghost" data-action="add-stage">
         <PlusCircleIcon class="ff-icon ff-icon-lg" />
         <label>Add Stage</label>
     </div>

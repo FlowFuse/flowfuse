@@ -1,19 +1,4 @@
 <template>
-    <Teleport
-        v-if="mounted"
-        to="#platform-sidenav"
-    >
-        <SideNavigation>
-            <template #options>
-                <a @click="$router.back()">
-                    <nav-item
-                        :icon="icons.chevronLeft"
-                        label="Back"
-                    />
-                </a>
-            </template>
-        </SideNavigation>
-    </Teleport>
     <main>
         <PipelineStageForm
             :instances="instances"
@@ -29,8 +14,6 @@ import { ChevronLeftIcon } from '@heroicons/vue/solid'
 
 import PipelinesAPI from '../../../api/pipeline.js'
 
-import NavItem from '../../../components/NavItem.vue'
-import SideNavigation from '../../../components/SideNavigation.vue'
 import Alerts from '../../../services/alerts.js'
 
 import PipelineStageForm from './form.vue'
@@ -38,8 +21,6 @@ import PipelineStageForm from './form.vue'
 export default {
     name: 'CreatePipelineStage',
     components: {
-        SideNavigation,
-        NavItem,
         PipelineStageForm
     },
     inheritAttrs: false,
