@@ -58,7 +58,7 @@
                 </div>
                 <div class="min-w-fit flex-shrink-0">
                     <ff-button data-action="import-instance" kind="secondary" @click="showImportInstanceDialog()">Import Instance</ff-button>
-                    <ImportInstanceDialog ref="importInstanceDialog" @confirm="importInstance" />
+                    <ImportInstanceDialog ref="importInstanceDialog" data-el="dialog-import-instance" @confirm="importInstance" />
                 </div>
             </div>
         </template>
