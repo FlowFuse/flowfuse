@@ -43,9 +43,11 @@ export default {
         }
     },
     computed: {
-        filteredLogEntries: () => {
+        filteredLogEntries: function () {
+            console.log(this.filter)
             if (this.filter && this.filter !== 'all') {
-                return logEntries.filter( l => l.src === this.filter)
+                const filteredList = logEntries.filter( l => l.src === this.filter)
+                return filteredList
             } else {
                 return this.logEntries
             }
