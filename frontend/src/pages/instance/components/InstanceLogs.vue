@@ -12,7 +12,7 @@
         <div v-if="prevCursor" class="flex">
             <a class=" text-center w-full hover:text-blue-400 cursor-pointer pb-1" @click="loadPrevious">Load earlier...</a>
         </div>
-        <div v-for="(item, itemIdx) in logEntries" :key="itemIdx" class="flex" :class="'forge-log-entry-level-' + item.level">
+        <div v-for="(item, itemIdx) in filteredLogEntries" :key="itemIdx" class="flex" :class="'forge-log-entry-level-' + item.level">
             <div v-if="this.instance.ha?.replicas !== undefined"  class="w-10 flex-shrink-0">{{ item.src }}</div>
             <div class="w-40 flex-shrink-0">{{ item.date }}</div>
             <div class="w-20 flex-shrink-0 align-right">[{{ item.level }}]</div>
