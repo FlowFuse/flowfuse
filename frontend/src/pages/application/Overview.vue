@@ -11,6 +11,7 @@
             </template>
             <template #tools>
                 <ff-button
+                    data-action="create-instance"
                     :to="{ name: 'ApplicationCreateInstance' }"
                 >
                     <template #icon-left><PlusSmIcon /></template>
