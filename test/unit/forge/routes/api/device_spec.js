@@ -122,7 +122,9 @@ describe('Device API', async function () {
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(400)
-            response.body.should.match(/body must have required property 'team'/)
+            // This is *temporary* until we standardise how schema validation errors
+            // are returned
+            response.body.should.match(/FST_ERR_VALIDATION/)
         })
         it('rejects if user not the team owner', async function () {
             // Chris (member) cannot create device in BTeam
@@ -332,6 +334,49 @@ describe('Device API', async function () {
             })
         })
     })
+    describe('Generate Device credentials', function () {
+        it('regenerates a devices credentials', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/devices',
+                body: {
+                    name: 'my device',
+                    type: 'test device',
+                    team: TestObjects.ATeam.hashid
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            const device = response.json()
+            device.credentials.should.have.property('token')
+            device.credentials.should.have.property('credentialSecret')
+            device.credentials.should.have.property('broker')
+            device.credentials.broker.should.have.property('url', ':test:')
+            device.credentials.broker.should.have.property('username')
+            device.credentials.broker.should.have.property('password')
+
+            const response2 = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.id}/generate_credentials`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            response2.statusCode.should.equal(200)
+            const newCreds = response2.json()
+            newCreds.should.have.property('token')
+            newCreds.should.have.property('credentialSecret')
+            newCreds.should.have.property('broker')
+            newCreds.broker.should.have.property('url', ':test:')
+            newCreds.broker.should.have.property('username')
+            newCreds.broker.should.have.property('password')
+
+            newCreds.token.should.not.equal(device.credentials.token)
+            newCreds.credentialSecret.should.not.equal(device.credentials.credentialSecret)
+            newCreds.broker.url.should.equal(device.credentials.broker.url)
+            newCreds.broker.username.should.equal(device.credentials.broker.username)
+            newCreds.broker.password.should.not.equal(device.credentials.broker.password)
+        })
+    })
+
     describe('Get device details', async function () {
         it('provides device details including project and team', async function () {
             TestObjects.deviceOne = await app.db.models.Device.create({ name: 'deviceOne', type: 'something', credentialSecret: 'deviceKey' })
@@ -549,8 +594,7 @@ describe('Device API', async function () {
                     method: 'PUT',
                     url: `/api/v1/devices/${device.id}/settings`,
                     body: {
-                        env: [{ name: 'a', value: 'foo' }],
-                        invalid: 'do-not-set'
+                        env: [{ name: 'a', value: 'foo' }]
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -577,8 +621,7 @@ describe('Device API', async function () {
                     method: 'PUT',
                     url: `/api/v1/devices/${device.id}/settings`,
                     body: {
-                        env: [{ name: 'a', value: 'foo' }],
-                        invalid: 'do-not-set'
+                        env: [{ name: 'a', value: 'foo' }]
                     },
                     cookies: { sid: TestObjects.tokens.chris }
                 })
