@@ -80,7 +80,7 @@ module.exports = {
         return result
     },
     instancesList: async function (app, instancesArray) {
-        return await Promise.all(instancesArray.map(async (instance) => {
+        return Promise.all(instancesArray.map(async (instance) => {
             // Full settings are not
             const result = await app.db.views.Project.project(instance, { includeSettings: true })
 
@@ -91,14 +91,37 @@ module.exports = {
             return result
         }))
     },
+    instancesSummaryList: function (app, instancesArray) {
+        return instancesArray.map((instance) => {
+            const result = app.db.views.Project.projectSummary(instance)
+            if (!result.url) {
+                delete result.url
+            }
+            return result
+        })
+    },
     projectSummary: function (app, project) {
-        return {
+        const result = {
             id: project.id,
             name: project.name,
+            url: project.url,
             createdAt: project.createdAt,
             updatedAt: project.updatedAt,
             links: project.links
         }
+        const settingsSettingsRow = project.ProjectSettings?.find((projectSettingsRow) => projectSettingsRow.key === KEY_SETTINGS)
+        if (settingsSettingsRow) {
+            if (Object.hasOwn(settingsSettingsRow?.value, 'disableEditor')) {
+                result.settings = {
+                    disableEditor: settingsSettingsRow.value.disableEditor
+                }
+            }
+        }
+        if (app.config.features.enabled('ha')) {
+            const settingsHARow = project.ProjectSettings?.find(row => row.key === KEY_HA)
+            result.ha = settingsHARow?.value || { disabled: true }
+        }
+        return result
     },
     userProjectList: function (app, projectList) {
         return projectList.map((t) => {
