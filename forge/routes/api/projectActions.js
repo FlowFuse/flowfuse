@@ -3,7 +3,7 @@
  *
  * request.project will be defined for any route defined in here
  *
- * - /api/v1/projects/:projectId/actions/
+ * - /api/v1/projects/:instanceId/actions/
  *
  * @namespace project
  * @memberof forge.routes.api

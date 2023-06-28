@@ -1,9 +1,9 @@
 /**
  * Project Devices api routes
  *
- * - /api/v1/projects/:projectId/devices
+ * - /api/v1/projects/:instanceId/devices
  *
- * By the time these handlers are invoked, :projectId will have been validated
+ * By the time these handlers are invoked, :instanceId will have been validated
  * and 404'd if it doesn't exist. `request.project` will contain the project object
  *
  * @namespace projectDevices
@@ -12,7 +12,7 @@
 module.exports = async function (app) {
     /**
      * Get a list of projects assigned to this team
-     * @name /api/v1/projects/:projectId/devices
+     * @name /api/v1/projects/:instanceId/devices
      * @static
      * @memberof forge.routes.api.project
      */

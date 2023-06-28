@@ -3,7 +3,7 @@
  *
  * request.project will be defined for any route defined in here
  *
- * - /api/v1/projects/:projectId/snapshots/
+ * - /api/v1/projects/:instanceId/snapshots/
  *
  * @namespace project
  * @memberof forge.routes.api
@@ -79,7 +79,7 @@ module.exports = async function (app) {
 
     /**
      * Create a snapshot
-     * @name /api/v1/projects/:projectId/snapshots
+     * @name /api/v1/projects/:instanceId/snapshots
      */
     app.post('/', {
         preHandler: app.needsPermission('project:snapshot:create')
