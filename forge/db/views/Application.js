@@ -1,4 +1,16 @@
 module.exports = function (app) {
+    app.addSchema({
+        $id: 'Application',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            createdAt: { type: 'string' },
+            updatedAt: { type: 'string' },
+            links: { $ref: 'LinksMeta' },
+            team: { $ref: 'TeamSummary' }
+        }
+    })
     function application (application) {
         if (application) {
             const raw = application.toJSON()
@@ -57,7 +69,7 @@ module.exports = function (app) {
         }
     })
     async function teamApplicationList (applications, { includeInstances = false } = {}) {
-        return applications.map(async (application) => {
+        return applications.map((application) => {
             const summary = applicationSummary(application)
             if (includeInstances) {
                 summary.instances = app.db.views.Project.instancesSummaryList(application.Instances)

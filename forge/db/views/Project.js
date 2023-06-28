@@ -1,7 +1,7 @@
 const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HA } = require('../models/ProjectSettings')
 
-module.exports = {
-    project: async function (app, project, { includeSettings = true } = {}) {
+module.exports = function (app) {
+    async function project (project, { includeSettings = true } = {}) {
         const proj = project.toJSON()
         const result = {
             id: proj.id,
@@ -78,8 +78,9 @@ module.exports = {
         }
         result.links = proj.links
         return result
-    },
-    instancesList: async function (app, instancesArray) {
+    }
+
+    async function instancesList (instancesArray) {
         return Promise.all(instancesArray.map(async (instance) => {
             // Full settings are not
             const result = await app.db.views.Project.project(instance, { includeSettings: true })
@@ -90,17 +91,29 @@ module.exports = {
 
             return result
         }))
-    },
-    instancesSummaryList: function (app, instancesArray) {
-        return instancesArray.map((instance) => {
-            const result = app.db.views.Project.projectSummary(instance)
-            if (!result.url) {
-                delete result.url
+    }
+
+    app.addSchema({
+        $id: 'InstanceSummary',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            url: { type: 'string' },
+            createdAt: { type: 'string' },
+            updatedAt: { type: 'string' },
+            links: { $ref: 'LinksMeta' },
+            settings: {
+                type: 'object',
+                additionalProperties: true
+            },
+            ha: {
+                type: 'object',
+                additionalProperties: true
             }
-            return result
-        })
-    },
-    projectSummary: function (app, project) {
+        }
+    })
+    function projectSummary (project) {
         const result = {
             id: project.id,
             name: project.name,
@@ -122,8 +135,26 @@ module.exports = {
             result.ha = settingsHARow?.value || { disabled: true }
         }
         return result
-    },
-    userProjectList: function (app, projectList) {
+    }
+
+    app.addSchema({
+        $id: 'InstanceSummaryList',
+        type: 'array',
+        items: {
+            $ref: 'InstanceSummary'
+        }
+    })
+    function instancesSummaryList (instancesArray) {
+        return instancesArray.map((instance) => {
+            const result = projectSummary(instance)
+            if (!result.url) {
+                delete result.url
+            }
+            return result
+        })
+    }
+
+    function userProjectList (projectList) {
         return projectList.map((t) => {
             return {
                 id: t.id,
@@ -136,5 +167,13 @@ module.exports = {
                 team: app.db.views.Team.team(t.Team)
             }
         })
+    }
+
+    return {
+        project,
+        instancesList,
+        instancesSummaryList,
+        projectSummary,
+        userProjectList
     }
 }

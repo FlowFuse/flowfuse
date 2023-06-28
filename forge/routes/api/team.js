@@ -97,7 +97,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('team:create'),
         schema: {
             summary: 'Check a team slug is available',
-            tags: ['Team'],
+            tags: ['Teams'],
             body: {
                 type: 'object',
                 required: ['slug'],
@@ -165,7 +165,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('team:read'),
         schema: {
             summary: 'Get details of a team',
-            tags: ['Team'],
+            tags: ['Teams'],
             params: {
                 type: 'object',
                 properties: {
@@ -194,7 +194,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('team:read'),
         schema: {
             summary: 'Get details of a team using its slug',
-            tags: ['Team'],
+            tags: ['Teams'],
             params: {
                 type: 'object',
                 properties: {
@@ -221,7 +221,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('team:list'),
         schema: {
             summary: 'Get a list of all teams - admin-only',
-            tags: ['Team'],
+            tags: ['Teams'],
             query: { $ref: 'PaginationParams' },
             response: {
                 200: {
@@ -253,7 +253,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('team:projects:list'), // TODO Using project level permissions
         schema: {
             summary: 'Get a list of the teams applications',
-            tags: ['Team'],
+            tags: ['Teams'],
             params: {
                 type: 'object',
                 properties: {
@@ -294,7 +294,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('team:projects:list'), // TODO Using project level permissions
         schema: {
             summary: 'Get a list of the teams applications statuses',
-            tags: ['Team'],
+            tags: ['Teams'],
             params: {
                 type: 'object',
                 properties: {
@@ -362,7 +362,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('team:create'),
         schema: {
             summary: 'Create a new team',
-            tags: ['Team'],
+            tags: ['Teams'],
             body: {
                 type: 'object',
                 required: ['name'],
@@ -452,7 +452,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('team:delete'),
         schema: {
             summary: 'Delete a team',
-            tags: ['Team'],
+            tags: ['Teams'],
             params: {
                 type: 'object',
                 properties: {
@@ -501,7 +501,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('team:edit'),
         schema: {
             summary: 'Update a team',
-            tags: ['Team'],
+            tags: ['Teams'],
             params: {
                 type: 'object',
                 properties: {
@@ -562,7 +562,7 @@ module.exports = async function (app) {
     app.get('/:teamId/user', {
         schema: {
             summary: 'Get the current users team membership',
-            tags: ['Team'],
+            tags: ['Teams'],
             params: {
                 type: 'object',
                 properties: {
@@ -605,7 +605,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('team:audit-log'),
         schema: {
             summary: 'Get team audit event entries',
-            tags: ['Team'],
+            tags: ['Teams'],
             query: {
                 allOf: [
                     { $ref: 'PaginationParams' },

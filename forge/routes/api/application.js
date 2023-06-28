@@ -42,12 +42,26 @@ module.exports = async function (app) {
             app.needsPermission('project:create') // TODO Using project level permissions
         ],
         schema: {
+            summary: 'Create an application',
+            tags: ['Applications'],
             body: {
                 type: 'object',
                 required: ['name', 'teamId'],
                 properties: {
                     name: { type: 'string' },
-                    teamId: { anyOf: [{ type: 'string' }, { type: 'number' }] }
+                    teamId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    $ref: 'Application'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
                 }
             }
         }
@@ -83,7 +97,26 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.application
      */
     app.get('/:applicationId', {
-        preHandler: app.needsPermission('project:read') // TODO For now using project level permissions
+        preHandler: app.needsPermission('project:read'), // TODO For now using project level permissions
+        schema: {
+            summary: 'Get the details of an application',
+            tags: ['Applications'],
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    $ref: 'Application'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         reply.send(app.db.views.Application.application(request.application))
     })
@@ -94,7 +127,34 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.application
      */
     app.put('/:applicationId', {
-        preHandler: app.needsPermission('project:edit') // TODO For now sharing project permissions
+        preHandler: app.needsPermission('project:edit'), // TODO For now sharing project permissions
+        schema: {
+            summary: 'Update an application',
+            tags: ['Applications'],
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'Application'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const updates = new app.auditLog.formatters.UpdatesCollection()
 
@@ -125,7 +185,28 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.application
      */
     app.delete('/:applicationId', {
-        preHandler: app.needsPermission('project:delete') // TODO For now sharing project permissions
+        preHandler: app.needsPermission('project:delete'), // TODO For now sharing project permissions
+        schema: {
+            summary: 'Delete an application',
+            tags: ['Applications'],
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         try {
             // TODO need to stop all project containers and delete the projects
@@ -150,7 +231,30 @@ module.exports = async function (app) {
      */
     app.get('/:applicationId/instances', {
         // TODO: tidy up permissions
-        preHandler: app.needsPermission('team:projects:list')
+        preHandler: app.needsPermission('team:projects:list'),
+        schema: {
+            summary: 'Get a list of an applications instances',
+            tags: ['Applications'],
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        // meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        instances: { $ref: 'InstanceSummaryList' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         // Settings needed to be able to include the project URL in the response
         const instances = await app.db.models.Project.byApplication(request.application.hashid, { includeSettings: true })
@@ -179,7 +283,30 @@ module.exports = async function (app) {
      */
     app.get('/:applicationId/instances/status', {
         // TODO: tidy up permissions
-        preHandler: app.needsPermission('team:projects:list')
+        preHandler: app.needsPermission('team:projects:list'),
+        schema: {
+            summary: 'Get a list of an applications instances status',
+            tags: ['Applications'],
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        // meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        instances: { $ref: 'InstanceStatusList' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const instances = await app.db.models.Project.byApplication(request.application.hashid)
         if (instances) {
