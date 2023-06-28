@@ -21,7 +21,6 @@
         </template>
         <!-- Single Line File Selection -->
         <template v-else-if="type==='file'">
-            <label v-if="hasTitle" :for="inputId" class="text-sm font-medium text-gray-800"><slot></slot></label>
             <label data-el="form-row-title" v-if="hasTitle" :for="inputId" class="text-sm font-medium text-gray-800"><slot></slot></label>
             <div class="flex" :class="(wrapperClass ? wrapperClass : 'items-center')">
                 <div class="ff-input ff-text-input">
