@@ -51,7 +51,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('user:edit'),
         config: { allowExpiredPassword: true },
         schema: {
-            summary: 'Change a users password',
+            summary: 'Change the current users password',
             tags: ['User'],
             body: {
                 type: 'object',
@@ -90,7 +90,7 @@ module.exports = async function (app) {
     app.get('/teams', {
         preHandler: app.needsPermission('user:team:list'),
         schema: {
-            summary: 'Get a list of the users teams',
+            summary: 'Get a list of the current users teams',
             tags: ['User'],
             response: {
                 200: {
@@ -123,7 +123,7 @@ module.exports = async function (app) {
     app.put('/', {
         preHandler: app.needsPermission('user:edit'),
         schema: {
-            summary: 'Update a users settings',
+            summary: 'Update the current users settings',
             tags: ['User'],
             body: {
                 type: 'object',
@@ -132,10 +132,6 @@ module.exports = async function (app) {
                     username: { type: 'string' },
                     email: { type: 'string' },
                     tcs_accepted: { type: 'boolean' },
-                    email_verified: { type: 'boolean' },
-                    admin: { type: 'boolean' },
-                    password_expired: { type: 'boolean' },
-                    suspended: { type: 'boolean' },
                     defaultTeam: { type: 'string' }
                 }
             },
@@ -160,7 +156,7 @@ module.exports = async function (app) {
     app.delete('/', {
         preHandler: app.needsPermission('user:delete'),
         schema: {
-            summary: 'Delete a user',
+            summary: 'Delete the current user',
             tags: ['User'],
             response: {
                 200: {

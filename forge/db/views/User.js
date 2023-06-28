@@ -79,6 +79,14 @@ module.exports = function (app) {
         return result
     }
 
+    app.addSchema({
+        $id: 'UserList',
+        type: 'array',
+        items: {
+            $ref: 'User'
+        }
+    })
+
     return {
         userSummary,
         userProfile,
