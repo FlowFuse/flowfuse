@@ -79,25 +79,6 @@ module.exports = function (app) {
     }
 
     app.addSchema({
-        $id: 'InstanceStatusList',
-        type: 'array',
-        items: {
-            type: 'object',
-            properties: {
-                id: { type: 'string' },
-                state: { type: 'object', additionalProperties: true }
-            },
-            additionalProperties: true
-        }
-    })
-    async function instanceStatusList (instancesArray) {
-        return await Promise.all(instancesArray.map(async (instance) => {
-            const state = await instance.liveState()
-            return { id: instance.id, ...state }
-        }))
-    }
-
-    app.addSchema({
         $id: 'ApplicationInstanceStatusList',
         type: 'array',
         items: {
@@ -114,7 +95,7 @@ module.exports = function (app) {
         return Promise.all(applicationsArray.map(async (application) => {
             return {
                 id: application.hashid,
-                instances: await instanceStatusList(application.Instances)
+                instances: await app.db.views.Project.instanceStatusList(application.Instances)
             }
         }))
     }
@@ -122,7 +103,6 @@ module.exports = function (app) {
     return {
         application,
         applicationInstanceStatusList,
-        instanceStatusList,
         teamApplicationList,
         applicationSummary
     }

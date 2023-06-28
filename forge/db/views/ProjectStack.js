@@ -1,5 +1,22 @@
-module.exports = {
-    stack: function (app, stack, includeCount) {
+module.exports = function (app) {
+    app.addSchema({
+        $id: 'Stack',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            label: { type: 'string' },
+            active: { type: 'boolean' },
+            projectType: { type: 'string' },
+            properties: { type: 'object', additionalProperties: true },
+            replacedBy: { type: 'string' },
+            createdAt: { type: 'string' },
+            projectCount: { type: 'number' },
+            links: { $ref: 'LinksMeta' }
+        }
+    })
+
+    function stack (stack, includeCount) {
         if (stack) {
             const result = stack.toJSON()
             const filtered = {
@@ -10,7 +27,8 @@ module.exports = {
                 projectType: app.db.models.ProjectType.encodeHashid(result.ProjectTypeId) || undefined,
                 properties: result.properties || {},
                 replacedBy: app.db.models.ProjectStack.encodeHashid(result.replacedBy) || undefined,
-                createdAt: result.createdAt
+                createdAt: result.createdAt,
+                links: stack.links
             }
             if (includeCount) {
                 filtered.projectCount = parseInt(result.projectCount) || 0
@@ -19,5 +37,35 @@ module.exports = {
         } else {
             return null
         }
+    }
+
+    app.addSchema({
+        $id: 'StackSummary',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            label: { type: 'string' },
+            properties: { type: 'object', additionalProperties: true },
+            replacedBy: { type: 'string' },
+            links: { $ref: 'LinksMeta' }
+        }
+    })
+    function stackSummary (stack) {
+        if (stack.toJSON) {
+            stack = stack.toJSON()
+        }
+        return {
+            id: stack.hashid,
+            name: stack.name,
+            label: stack.label,
+            properties: stack.properties || {},
+            replacedBy: app.db.models.ProjectStack.encodeHashid(stack.replacedBy) || undefined,
+            links: stack.links
+        }
+    }
+    return {
+        stack,
+        stackSummary
     }
 }

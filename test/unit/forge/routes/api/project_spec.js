@@ -974,8 +974,8 @@ describe('Project API', function () {
                     method: 'PUT',
                     url: `/api/v1/projects/${project.id}`,
                     payload: {
-                        projectType: projectType.id,
-                        stack: stack.id
+                        projectType: projectType.hashid,
+                        stack: stack.hashid
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -1041,8 +1041,8 @@ describe('Project API', function () {
                     method: 'PUT',
                     url: `/api/v1/projects/${project.id}`,
                     payload: {
-                        projectType: projectType.id,
-                        stack: stack.id
+                        projectType: projectType.hashid,
+                        stack: stack.hashid
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -1093,7 +1093,7 @@ describe('Project API', function () {
                     method: 'PUT',
                     url: `/api/v1/projects/${TestObjects.project1.id}`,
                     payload: {
-                        projectType: TestObjects.projectType1.id
+                        projectType: TestObjects.projectType1.hashid
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -1107,8 +1107,8 @@ describe('Project API', function () {
                     method: 'PUT',
                     url: `/api/v1/projects/${TestObjects.project1.id}`,
                     payload: {
-                        projectType: 123,
-                        stack: 123
+                        projectType: '123',
+                        stack: '123'
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -1120,8 +1120,8 @@ describe('Project API', function () {
                     method: 'PUT',
                     url: `/api/v1/projects/${TestObjects.project1.id}`,
                     payload: {
-                        projectType: TestObjects.projectType1.id,
-                        stack: 123
+                        projectType: TestObjects.projectType1.hashid,
+                        stack: '123'
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -1237,7 +1237,7 @@ describe('Project API', function () {
                     method: 'PUT',
                     url: `/api/v1/projects/${newProject.id}`,
                     payload: {
-                        stack: stack2.id
+                        stack: stack2.hashid
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -1304,7 +1304,7 @@ describe('Project API', function () {
                         method: 'PUT',
                         url: `/api/v1/projects/${newProject.id}`,
                         payload: {
-                            stack: stack2.id
+                            stack: stack2.hashid
                         },
                         cookies: { sid: TestObjects.tokens.alice }
                     })

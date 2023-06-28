@@ -94,7 +94,10 @@ module.exports = async function (app) {
             },
             response: {
                 200: {
-                    $ref: 'Team'
+                    allOf: [
+                        { $ref: 'Instance' },
+                        { $ref: 'InstanceStatus' }
+                    ]
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -132,12 +135,14 @@ module.exports = async function (app) {
             app.needsPermission('project:create')
         ],
         schema: {
+            summary: 'Create of an instance',
+            tags: ['Instances'],
             body: {
                 type: 'object',
                 required: ['name', 'projectType', 'stack', 'template', 'applicationId'],
                 properties: {
                     name: { type: 'string' },
-                    applicationId: { anyOf: [{ type: 'string' }, { type: 'number' }] },
+                    applicationId: { type: 'string' },
                     projectType: { type: 'string' },
                     stack: { type: 'string' },
                     template: { type: 'string' },
@@ -148,6 +153,17 @@ module.exports = async function (app) {
                             options: { type: 'object' }
                         }
                     }
+                }
+            },
+            response: {
+                200: {
+                    allOf: [
+                        { $ref: 'Instance' },
+                        { $ref: 'InstanceStatus' }
+                    ]
+                },
+                '4xx': {
+                    $ref: 'APIError'
                 }
             }
         }
@@ -352,7 +368,30 @@ module.exports = async function (app) {
      * @name /api/v1/projects/:id
      * @memberof forge.routes.api.project
      */
-    app.delete('/:instanceId', { preHandler: app.needsPermission('project:delete') }, async (request, reply) => {
+    app.delete('/:instanceId', {
+        preHandler: app.needsPermission('project:delete'),
+        schema: {
+            summary: 'Delete an instance',
+            tags: ['Instances'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         try {
             await app.containers.remove(request.project)
 
@@ -390,6 +429,47 @@ module.exports = async function (app) {
                     request.allSettingsEdit = true
                     return res
                 })
+            }
+        },
+        schema: {
+            summary: 'Update an instance',
+            tags: ['Instances'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' },
+                    hostname: { type: 'string' },
+                    settings: { type: 'object' },
+                    projectType: { type: 'string' },
+                    stack: { type: 'string' },
+                    sourceProject: {
+                        type: 'object',
+                        properties: {
+                            id: { type: 'string' },
+                            options: { type: 'object' }
+                        }
+                    }
+                }
+            },
+            response: {
+                200: {
+                    allOf: [
+                        { $ref: 'Instance' },
+                        { $ref: 'InstanceStatus' }
+                    ]
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
             }
         }
     }, async (request, reply) => {
@@ -809,6 +889,25 @@ module.exports = async function (app) {
             } else {
                 done()
             }
+        },
+        schema: {
+            summary: 'Get an instance runtime settings (instance tokens only)',
+            tags: ['Instances'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    additionalProperties: true
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
         }
     }, async (request, reply) => {
         if (request.project.state === 'suspended') {
@@ -850,7 +949,35 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.project
      */
     app.get('/:instanceId/logs', {
-        preHandler: app.needsPermission('project:log')
+        preHandler: app.needsPermission('project:log'),
+        schema: {
+            summary: 'Get instance logs',
+            tags: ['Instances'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            query: {
+                $ref: 'PaginationParams'
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        log: { type: 'array', items: { type: 'object', additionalProperties: true } }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         if (request.project.state === 'suspended') {
             reply.code(400).send({ code: 'project_suspended', error: 'Project suspended' })
@@ -927,7 +1054,38 @@ module.exports = async function (app) {
      * @name /api/v1/projects/:id/audit-log
      * @memberof forge.routes.api.project
      */
-    app.get('/:instanceId/audit-log', { preHandler: app.needsPermission('project:audit-log') }, async (request, reply) => {
+    app.get('/:instanceId/audit-log', {
+        preHandler: app.needsPermission('project:audit-log'),
+        schema: {
+            summary: 'Get instance audit event entries',
+            tags: ['Instances'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            query: {
+                allOf: [
+                    { $ref: 'PaginationParams' },
+                    { $ref: 'AuditLogQueryParams' }
+                ]
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        log: { $ref: 'AuditLogEntryList' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const logEntries = await app.db.models.AuditLog.forProject(request.project.id, paginationOptions)
         const result = app.db.views.AuditLog.auditLog(logEntries)
@@ -942,6 +1100,14 @@ module.exports = async function (app) {
     app.post('/:instanceId/import', {
         preHandler: app.needsPermission('project:edit'),
         schema: {
+            summary: 'Import flows to the instance',
+            tags: ['Instances'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
             body: {
                 type: 'object',
                 properties: {
@@ -949,16 +1115,27 @@ module.exports = async function (app) {
                     credentials: { type: 'string' },
                     credsSecret: { type: 'string' }
                 }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
             }
         }
     }, async (request, reply) => {
         try {
-            const projectImport = await app.db.controllers.Project.importProject(request.project, request.body)
+            await app.db.controllers.Project.importProject(request.project, request.body)
             await app.auditLog.Project.project.flowImported(request.session.User, null, request.project)
-            reply.send(projectImport)
+            reply.send({ status: 'okay' })
         } catch (err) {
             if (err.name === 'SyntaxError') {
-                reply.code(403).send({ code: 'credentials_bad_secret', error: 'incorrect credential secret' })
+                reply.code(403).send({ code: 'invalid_credentials_secret', error: 'incorrect credential secret' })
             } else {
                 reply.code(500).send({ code: 'unknown_error', error: 'unknown error' })
             }
