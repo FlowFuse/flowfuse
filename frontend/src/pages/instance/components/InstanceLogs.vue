@@ -40,7 +40,7 @@ export default {
     },
     computed: {
         filteredLogEntries: () => {
-            
+
         }    
     },
     data () {
@@ -91,7 +91,6 @@ export default {
             this.loadItems(this.instance.id, this.nextCursor)
         },
         loadItems: async function (instanceId, cursor) {
-            this.$emit('ha-instance-detected', 'foo')
             try {
                 const entries = await InstanceApi.getInstanceLogs(instanceId, cursor, null, { showAlert: false })
                 this.showOfflineBanner = false
@@ -112,6 +111,9 @@ export default {
                             this.logEntries.push(l)
                         } else {
                             toPrepend.push(l)
+                        }
+                        if (l.msg.src) {
+                            this.$emit('ha-instance-detected', l.msg.src)
                         }
                     })
                     if (toPrepend.length > 0) {
