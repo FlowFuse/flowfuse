@@ -11,7 +11,7 @@
             </template>
         </SectionTopMenu>
     </div>
-    <LogsShared :instance="instance" @ha-instance-detected="newHAId" />
+    <LogsShared :instance="instance" @ha-instance-detected="newHAId" :filter="selectedHAId"/>
 </template>
 
 <script>

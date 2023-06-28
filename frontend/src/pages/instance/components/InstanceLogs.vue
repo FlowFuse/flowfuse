@@ -36,11 +36,19 @@ export default {
         instance: {
             type: Object,
             required: true
+        },
+        filter: {
+            type: String,
+            required: false
         }
     },
     computed: {
         filteredLogEntries: () => {
-
+            if (this.filter && this.filter !== 'all') {
+                return logEntries.filter( l => l.src === this.filter)
+            } else {
+                return this.logEntries
+            }
         }    
     },
     data () {
