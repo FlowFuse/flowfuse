@@ -112,8 +112,8 @@ export default {
                         } else {
                             toPrepend.push(l)
                         }
-                        if (l.msg.src) {
-                            this.$emit('ha-instance-detected', l.msg.src)
+                        if (l.src) {
+                            this.$emit('ha-instance-detected', l.src)
                         }
                     })
                     if (toPrepend.length > 0) {
