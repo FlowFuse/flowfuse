@@ -31,11 +31,17 @@ export default {
     name: 'LogsShared',
     mixins: [VueTimersMixin],
     inheritAttrs: false,
+    emits: [ 'ha-instance-detected' ],
     props: {
         instance: {
             type: Object,
             required: true
         }
+    },
+    computed: {
+        filteredLogEntries: () => {
+            
+        }    
     },
     data () {
         return {
@@ -85,6 +91,7 @@ export default {
             this.loadItems(this.instance.id, this.nextCursor)
         },
         loadItems: async function (instanceId, cursor) {
+            this.$emit('ha-instance-detected', 'foo')
             try {
                 const entries = await InstanceApi.getInstanceLogs(instanceId, cursor, null, { showAlert: false })
                 this.showOfflineBanner = false
