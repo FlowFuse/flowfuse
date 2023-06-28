@@ -13,7 +13,26 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.teamTypes
      */
-    app.get('/', async (request, reply) => {
+    app.get('/', {
+        schema: {
+            summary: 'Get a list of the team types',
+            tags: ['Team Types'],
+            query: { $ref: 'PaginationParams' },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        types: { $ref: 'TeamTypeList' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const teamTypes = await app.db.models.TeamType.getAll(paginationOptions, { enabled: true })
         teamTypes.types = teamTypes.types.map(pt => app.db.views.TeamType.teamType(pt))
