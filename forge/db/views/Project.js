@@ -93,7 +93,6 @@ module.exports = {
     },
     instancesSummaryList: function (app, instancesArray) {
         return instancesArray.map((instance) => {
-            // Full settings are not
             const result = app.db.views.Project.projectSummary(instance)
             if (!result.url) {
                 delete result.url
