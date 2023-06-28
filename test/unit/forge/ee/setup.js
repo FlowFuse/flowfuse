@@ -1,5 +1,3 @@
-const sinon = require('sinon')
-
 const TestModelFactory = require('../../../lib/TestModelFactory')
 const StripeMock = require('../../../lib/stripeMock')
 
