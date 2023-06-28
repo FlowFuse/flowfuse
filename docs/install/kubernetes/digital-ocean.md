@@ -46,9 +46,14 @@ helm --kubeconfig=./k8s-flowforge-kubeconfig.yaml install nginx-ingress \
   --create-namespace \
   --set controller.publishService.enabled=true \
   --set controller.ingressClassResource.default=true \
+  --set controller.config.proxy-body-size="0" \
   --wait
 
 ```
+
+The `controller.config.proxy-body-size="0"` removes the `1m` default payload limit 
+from the nginx ingress proxy. You can change this to say `5m` which will match the 
+Node-RED default value.
 
 ### Setup DNS
 
