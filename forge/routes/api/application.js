@@ -155,7 +155,7 @@ module.exports = async function (app) {
         // Settings needed to be able to include the project URL in the response
         const instances = await app.db.models.Project.byApplication(request.application.hashid, { includeSettings: true })
         if (instances) {
-            let result = await app.db.views.Project.instancesList(instances)
+            let result = await app.db.views.Project.instancesSummaryList(instances)
             if (request.session.ownerType === 'project') {
                 // This request is from a project token. Filter the list to return
                 // the minimal information needed

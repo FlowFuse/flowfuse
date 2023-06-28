@@ -71,7 +71,7 @@ describe('Team API', async () => {
         const teamslug = 'teamslug'
         TeamAPI.default.getTeam({ slug: teamslug })
         expect(mockGet).toHaveBeenCalledOnce()
-        expect(mockGet).toHaveBeenCalledWith('/api/v1/teams/?slug=' + teamslug)
+        expect(mockGet).toHaveBeenCalledWith('/api/v1/teams/slug/' + teamslug)
     })
 
     test('getTeam calls the correct API endpoint when provided a string', () => {

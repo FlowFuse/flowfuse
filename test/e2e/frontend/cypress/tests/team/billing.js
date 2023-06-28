@@ -11,7 +11,7 @@ describe('FlowForge - Team Billing', () => {
             cy.request('GET', 'api/v1/teams').then((response) => {
                 const team = response.body.teams[0]
 
-                cy.visit(`/team/${team.slug}/biling`)
+                cy.visit(`/team/${team.slug}/billing`)
 
                 cy.get('[data-el="credit-balance-banner"]').should('not.exist')
             })
@@ -26,6 +26,8 @@ describe('FlowForge - Team Billing', () => {
                 const team = response.body.teams[0]
 
                 cy.visit(`/team/${team.slug}/billing`)
+                cy.wait('@getTeamBySlug')
+                cy.wait('@getTeamBilling')
 
                 cy.get('[data-el="credit-balance-banner"]').should('exist').contains('$43.21')
             })
