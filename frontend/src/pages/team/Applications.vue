@@ -57,7 +57,7 @@
                             <InstanceEditorLinkCell
                                 :id="instance.id"
                                 :url="instance.url"
-                                :editorDisabled="instance.settings.disableEditor"
+                                :editorDisabled="!!(instance.settings?.disableEditor)"
                                 :disabled="instance.meta?.state !== 'running'"
                                 :isHA="instance.ha?.replicas !== undefined"
                             />

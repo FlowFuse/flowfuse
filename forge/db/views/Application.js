@@ -57,14 +57,13 @@ module.exports = function (app) {
         }
     })
     async function teamApplicationList (applications, { includeInstances = false } = {}) {
-        return await Promise.all(applications.map(async (application) => {
-            const summary = app.db.views.Application.applicationSummary(application)
+        return applications.map(async (application) => {
+            const summary = applicationSummary(application)
             if (includeInstances) {
-                summary.instances = await app.db.views.Project.instancesList(application.Instances)
+                summary.instances = app.db.views.Project.instancesSummaryList(application.Instances)
             }
-
             return summary
-        }))
+        })
     }
 
     app.addSchema({
