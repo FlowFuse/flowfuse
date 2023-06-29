@@ -29,6 +29,7 @@
         </FormRow>
         <DangerSettings
             :instance="instance"
+            @instance-updated="$emit('instance-updated')"
             @instance-confirm-delete="$emit('instance-confirm-delete')"
             @instance-confirm-suspend="$emit('instance-confirm-suspend')"
         />
@@ -57,7 +58,7 @@ export default {
             required: true
         }
     },
-    emits: ['instance-confirm-delete', 'instance-confirm-suspend'],
+    emits: ['instance-updated', 'instance-confirm-delete', 'instance-confirm-suspend'],
     data () {
         return {
             editing: {
