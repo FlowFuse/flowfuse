@@ -44,7 +44,25 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.devices
      */
     app.get('/', {
-        preHandler: app.needsPermission('device:list')
+        preHandler: app.needsPermission('device:list'),
+        schema: {
+            summary: 'Get a list of all devices - admin-only',
+            tags: ['Devices'],
+            query: { $ref: 'PaginationParams' },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        devices: { type: 'array', items: { $ref: 'Device' } }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const devices = await app.db.models.Device.getAll(paginationOptions)
@@ -59,7 +77,25 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.devices
      */
     app.get('/:deviceId', {
-        preHandler: app.needsPermission('device:read')
+        preHandler: app.needsPermission('device:read'),
+        schema: {
+            summary: 'Get details of a device',
+            tags: ['Devices'],
+            params: {
+                type: 'object',
+                properties: {
+                    deviceId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'Device'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         reply.send(app.db.views.Device.device(request.device))
     })
@@ -105,6 +141,8 @@ module.exports = async function (app) {
             }
         ],
         schema: {
+            summary: 'Create a device',
+            tags: ['Devices'],
             body: {
                 type: 'object',
                 required: ['name', 'team'],
@@ -112,6 +150,18 @@ module.exports = async function (app) {
                     name: { type: 'string' },
                     type: { type: 'string' },
                     team: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    allOf: [{ $ref: 'Device' }],
+                    properties: {
+                        credentials: { type: 'object', additionalProperties: true }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
                 }
             }
         }
@@ -214,7 +264,25 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.devices
      */
     app.delete('/:deviceId', {
-        preHandler: app.needsPermission('device:delete')
+        preHandler: app.needsPermission('device:delete'),
+        schema: {
+            summary: 'Delete a device',
+            tags: ['Devices'],
+            params: {
+                type: 'object',
+                properties: {
+                    deviceId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         try {
             const team = request.device.get('Team')
@@ -241,7 +309,33 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.devices
      */
     app.put('/:deviceId', {
-        preHandler: app.needsPermission('device:edit')
+        preHandler: app.needsPermission('device:edit'),
+        schema: {
+            summary: 'Update a device',
+            tags: ['Devices'],
+            params: {
+                type: 'object',
+                properties: {
+                    deviceId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' },
+                    type: { type: 'string' },
+                    project: { type: 'string', nullable: true }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'Device'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         let sendDeviceUpdate = false
         const device = request.device
@@ -322,7 +416,26 @@ module.exports = async function (app) {
     })
 
     app.post('/:deviceId/generate_credentials', {
-        preHandler: app.needsPermission('device:edit')
+        preHandler: app.needsPermission('device:edit'),
+        schema: {
+            summary: 'Regenerate device credentials',
+            tags: ['Devices'],
+            params: {
+                type: 'object',
+                properties: {
+                    deviceId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    additionalProperties: true
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const credentials = await request.device.refreshAuthTokens()
         app.auditLog.Team.team.device.credentialsGenerated(request.session.User, null, request.device?.Team, request.device)
@@ -330,7 +443,31 @@ module.exports = async function (app) {
     })
 
     app.put('/:deviceId/settings', {
-        preHandler: app.needsPermission('device:edit-env')
+        preHandler: app.needsPermission('device:edit-env'),
+        schema: {
+            summary: 'Update a devices settings',
+            tags: ['Devices'],
+            params: {
+                type: 'object',
+                properties: {
+                    deviceId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    env: { type: 'array', items: { type: 'object', additionalProperties: true } }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         if (request.teamMembership?.role === Roles.Owner) {
             await request.device.updateSettings(request.body)
@@ -345,7 +482,28 @@ module.exports = async function (app) {
     })
 
     app.get('/:deviceId/settings', {
-        preHandler: app.needsPermission('device:read')
+        preHandler: app.needsPermission('device:read'),
+        schema: {
+            summary: 'Get a devices settings',
+            tags: ['Devices'],
+            params: {
+                type: 'object',
+                properties: {
+                    deviceId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        env: { type: 'array', items: { type: 'object', additionalProperties: true } }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const settings = await request.device.getAllSettings()
         if (request.teamMembership?.role === Roles.Owner) {
@@ -357,6 +515,7 @@ module.exports = async function (app) {
         }
     })
 
+    // Websocket end point
     app.get('/:deviceId/logs', {
         websocket: true,
         preHandler: app.needsPermission('device:read')
@@ -371,7 +530,34 @@ module.exports = async function (app) {
      * @memberof module:forge/routes/api/device
      */
     app.put('/:deviceId/mode', {
-        preHandler: app.needsPermission('device:edit')
+        preHandler: app.needsPermission('device:edit'),
+        schema: {
+            summary: 'Set device mode',
+            tags: ['Devices'],
+            params: {
+                type: 'object',
+                properties: {
+                    deviceId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    mode: { type: 'string', nullable: true }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        mode: { type: 'string' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         // setting device mode is only valid for licensed platforms
         const isLicensed = app.license.active()
@@ -402,7 +588,33 @@ module.exports = async function (app) {
      * @memberof module:forge/routes/api/device
      */
     app.post('/:deviceId/snapshot', {
-        preHandler: app.needsPermission('project:snapshot:create')
+        preHandler: app.needsPermission('project:snapshot:create'),
+        schema: {
+            summary: 'Create a snapshot from a device',
+            tags: ['Devices'],
+            params: {
+                type: 'object',
+                properties: {
+                    deviceId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' },
+                    description: { type: 'string' },
+                    setAsTarget: { type: 'boolean' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'Snapshot'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const snapshotOptions = {
             name: request.body.name,

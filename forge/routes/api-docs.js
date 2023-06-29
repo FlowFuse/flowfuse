@@ -4,7 +4,7 @@ const path = require('path')
 const fp = require('fastify-plugin')
 module.exports = fp(async function (app, opts, done) {
     await app.register(require('@fastify/swagger'), {
-        swagger: {
+        openapi: {
             info: {
                 title: 'FlowForge Platform API',
                 description: 'API documentation for interacting with the FlowForge platform',

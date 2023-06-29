@@ -3,7 +3,7 @@
  *
  * request.project will be defined for any route defined in here
  *
- * - /api/v1/projects/:projectId/snapshots/
+ * - /api/v1/projects/:instanceId/snapshots/
  *
  * @namespace project
  * @memberof forge.routes.api
@@ -32,7 +32,30 @@ module.exports = async function (app) {
      * Get list of all project snapshots
      */
     app.get('/', {
-        preHandler: app.needsPermission('project:snapshot:list')
+        preHandler: app.needsPermission('project:snapshot:list'),
+        schema: {
+            summary: 'Get a list of instance snapshots',
+            tags: ['Snapshots'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        snapshots: { type: 'array', items: { $ref: 'Snapshot' } }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const snapshots = await app.db.models.ProjectSnapshot.forProject(request.project.id, paginationOptions)
@@ -44,7 +67,26 @@ module.exports = async function (app) {
      * Get details of a snapshot - metadata only
      */
     app.get('/:snapshotId', {
-        preHandler: app.needsPermission('project:snapshot:read')
+        preHandler: app.needsPermission('project:snapshot:read'),
+        schema: {
+            summary: 'Get details of a snapshot',
+            tags: ['Snapshots'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' },
+                    snapshotId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'Snapshot'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         reply.send(app.db.views.ProjectSnapshot.snapshot(request.snapshot))
     })
@@ -53,7 +95,26 @@ module.exports = async function (app) {
      * Delete a snapshot
      */
     app.delete('/:snapshotId', {
-        preHandler: app.needsPermission('project:snapshot:delete')
+        preHandler: app.needsPermission('project:snapshot:delete'),
+        schema: {
+            summary: 'Delete a snapshot',
+            tags: ['Teams'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' },
+                    snapshotId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const project = await request.snapshot.getProject()
         const deviceSettings = await project.getSetting('deviceSettings') || {
@@ -79,10 +140,45 @@ module.exports = async function (app) {
 
     /**
      * Create a snapshot
-     * @name /api/v1/projects/:projectId/snapshots
+     * @name /api/v1/projects/:instanceId/snapshots
      */
     app.post('/', {
-        preHandler: app.needsPermission('project:snapshot:create')
+        preHandler: app.needsPermission('project:snapshot:create'),
+        schema: {
+            summary: 'Create a snapshot from an instance',
+            tags: ['Snapshots'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' },
+                    description: { type: 'string' },
+                    flows: { type: 'array' },
+                    credentials: { type: 'object' },
+                    credentialSecret: { type: 'string' },
+                    settings: {
+                        type: 'object',
+                        properties: {
+                            modules: { type: 'object', additionalProperties: true }
+                        }
+                    },
+                    setAsTarget: { type: 'boolean' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'Snapshot'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const snapShot = await app.db.controllers.ProjectSnapshot.createSnapshot(
             request.project,

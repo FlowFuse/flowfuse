@@ -41,7 +41,31 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.team
      */
     app.get('/', {
-        preHandler: app.needsPermission('team:device:list')
+        preHandler: app.needsPermission('team:device:list'),
+        schema: {
+            summary: 'Get a list of all devices in a team',
+            tags: ['Team Devices'],
+            query: { $ref: 'PaginationParams' },
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        devices: { type: 'array', items: { $ref: 'Device' } }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const where = {
@@ -59,7 +83,31 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.team
      */
     app.get('/provisioning', {
-        preHandler: app.needsPermission('team:device:provisioning-token:list')
+        preHandler: app.needsPermission('team:device:provisioning-token:list'),
+        schema: {
+            summary: 'Get a list of device provisioning tokens in a team',
+            tags: ['Team Devices'],
+            query: { $ref: 'PaginationParams' },
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        tokens: { type: 'array', items: { $ref: 'ProvisioningTokenSummary' } }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const result = await app.db.models.AccessToken.getProvisioningTokens(paginationOptions, request.team)
@@ -78,6 +126,14 @@ module.exports = async function (app) {
     app.post('/provisioning', {
         preHandler: app.needsPermission('team:device:provisioning-token:create'),
         schema: {
+            summary: 'Create a new provisioning token in a team',
+            tags: ['Team Devices'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
             body: {
                 type: 'object',
                 required: ['name'],
@@ -90,6 +146,14 @@ module.exports = async function (app) {
                             { type: 'object' }
                         ]
                     }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'ProvisioningToken'
+                },
+                '4xx': {
+                    $ref: 'APIError'
                 }
             }
         }
@@ -133,16 +197,28 @@ module.exports = async function (app) {
     app.put('/provisioning/:tokenId', {
         preHandler: app.needsPermission('team:device:provisioning-token:edit'),
         schema: {
+            summary: 'Update a provisioning token in a team',
+            tags: ['Team Devices'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' },
+                    tokenId: { type: 'string' }
+                }
+            },
             body: {
                 type: 'object',
                 properties: {
                     project: { type: 'string' },
-                    expiresAt: {
-                        oneOf: [
-                            { type: 'string' },
-                            { type: 'object' }
-                        ]
-                    }
+                    expiresAt: { nullable: true, type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'ProvisioningTokenSummary'
+                },
+                '4xx': {
+                    $ref: 'APIError'
                 }
             }
         }
@@ -195,7 +271,27 @@ module.exports = async function (app) {
          * @memberof forge.routes.api.team
          */
     app.delete('/provisioning/:tokenId', {
-        preHandler: app.needsPermission('team:device:provisioning-token:delete')
+        preHandler: app.needsPermission('team:device:provisioning-token:delete'),
+        schema: {
+            summary: 'Delete a provisioning token',
+            tags: ['Team Devices'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' },
+                    tokenId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+
     }, async (request, reply) => {
         let tokenName = 'unknown'
         const tokenId = request.params.tokenId
@@ -207,7 +303,7 @@ module.exports = async function (app) {
                 await accessToken.destroy()
                 await app.auditLog.Team.team.device.provisioning.deleted(request.session.User, null, tokenId, tokenName, request.team)
             }
-            reply.send({})
+            reply.send({ status: 'okay' })
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
             await app.auditLog.Team.team.device.provisioning.deleted(request.session.User, resp, tokenId, tokenName, request.team)

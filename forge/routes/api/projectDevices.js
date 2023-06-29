@@ -1,9 +1,9 @@
 /**
  * Project Devices api routes
  *
- * - /api/v1/projects/:projectId/devices
+ * - /api/v1/projects/:instanceId/devices
  *
- * By the time these handlers are invoked, :projectId will have been validated
+ * By the time these handlers are invoked, :instanceId will have been validated
  * and 404'd if it doesn't exist. `request.project` will contain the project object
  *
  * @namespace projectDevices
@@ -11,12 +11,37 @@
  */
 module.exports = async function (app) {
     /**
-     * Get a list of projects assigned to this team
-     * @name /api/v1/projects/:projectId/devices
+     * Get a list of devices assigned to this team
+     * @name /api/v1/projects/:instanceId/devices
      * @static
      * @memberof forge.routes.api.project
      */
-    app.get('/', { preHandler: app.needsPermission('project:read') }, async (request, reply) => {
+    app.get('/', {
+        preHandler: app.needsPermission('project:read'),
+        schema: {
+            summary: 'Get a list of devices assigned to an instance',
+            tags: ['Instances'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        devices: { type: 'array', items: { $ref: 'Device' } }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const where = {
             ProjectId: request.project.id
@@ -26,7 +51,30 @@ module.exports = async function (app) {
         reply.send(devices)
     })
 
-    app.get('/settings', { preHandler: app.needsPermission('project:read') }, async (request, reply) => {
+    app.get('/settings', {
+        preHandler: app.needsPermission('project:read'),
+        schema: {
+            summary: 'Get instance device settings',
+            tags: ['Instances'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        targetSnapshot: { type: 'string' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         const deviceSettings = await request.project.getSetting('deviceSettings') || {
             targetSnapshot: null
         }
@@ -36,7 +84,33 @@ module.exports = async function (app) {
         reply.send(deviceSettings)
     })
 
-    app.post('/settings', { preHandler: app.needsPermission('project:snapshot:set-target') }, async (request, reply) => {
+    app.post('/settings', {
+        preHandler: app.needsPermission('project:snapshot:set-target'),
+        schema: {
+            summary: 'Update instance device settings',
+            tags: ['Instances'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    targetSnapshot: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         if (request.body.targetSnapshot) {
             // We currently only have `targetSnapshot` under deviceSettings.
             // For now, only care about that - when we add other device settings, this
