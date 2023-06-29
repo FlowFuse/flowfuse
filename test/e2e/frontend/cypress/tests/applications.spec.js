@@ -228,6 +228,27 @@ describe('FlowForge - Applications', () => {
                 cy.url().should('include', `/team/${team.slug}/applications`)
             })
     })
+
+    it('check if application has instances, then delete application button should be disabled, and if application has no instances, the button should be enabled', () => {
+        // Check if the application has instances
+        cy.visit('/team/ateam/applications')
+
+        cy.get('[data-action="view-application"]').first().click()
+        cy.url().then(url => {
+            const applicationId = url.split('/')
+            cy.visit(`/application/${applicationId[4]}/settings`)
+            cy.get('[data-action="delete-application"]').should('be.disabled')
+        })
+
+        // Check if the application has no instances
+        cy.visit('/team/ateam/applications')
+        cy.get('[data-action="view-application"]').eq(1).click()
+        cy.url().then(url => {
+            const applicationId = url.split('/')
+            cy.visit(`/application/${applicationId[4]}/settings`)
+            cy.get('[data-action="delete-application"]').should('not.be.disabled')
+        })
+    })
 })
 
 describe('FlowForge - Applications - With Billing', () => {

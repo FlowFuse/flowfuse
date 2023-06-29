@@ -29,11 +29,13 @@
             <div class="flex flex-col space-y-4 max-w-2xl">
                 <div class="flex-grow">
                     <div class="max-w-sm">
-                        Once deleted, your application and all it's instances are permanently deleted. This cannot be undone.
+                        {{ getDeleteApplicationText }}
                     </div>
                 </div>
                 <div class="min-w-fit flex-shrink-0">
-                    <ff-button data-action="delete-application" kind="danger" @click="$emit('application-delete')">Delete Application</ff-button>
+                    <ff-button data-action="delete-application" kind="danger" :disabled="options.instances > 0" @click="$emit('application-delete')">
+                        Delete Application
+                    </ff-button>
                 </div>
             </div>
         </div>
@@ -41,7 +43,6 @@
 </template>
 
 <script>
-
 import ApplicationAPI from '../../api/application.js'
 
 import FormHeading from '../../components/FormHeading.vue'
@@ -71,26 +72,47 @@ export default {
     emits: ['application-delete', 'application-updated'],
     data () {
         return {
-            sideNavigation: [{ name: 'General', path: './settings' }],
+            sideNavigation: [{
+                name: 'General',
+                path: './settings'
+            }],
             input: {
                 projectName: this.application.name,
-                projectId: this.application.id
+                projectId: this.application.id,
+                application: this.application
             },
-            editing: false
+            editing: false,
+            options: {
+                instances: []
+            }
+
         }
     },
     computed: {
         formValid () {
             return this.input.projectName
+        },
+        getDeleteApplicationText () {
+            if (this.options.instances === 0) {
+                return 'Once deleted, your application  permanently deleted. This cannot be undone.'
+            } else {
+                return 'Once you delete all your instances of this application, you can delete this application.'
+            }
         }
     },
-    watch: {
-        project () {
-            this.input.projectName = this.application.name
-            this.input.projectId = this.application.id
-        }
+    mounted () {
+        this.loadInstances(this.application.id)
     },
     methods: {
+        loadInstances (applicationId) {
+            ApplicationAPI.getApplicationInstances(applicationId)
+                .then((instances) => {
+                    this.options.instances = instances?.length || 0
+                })
+                .catch((error) => {
+                    console.error(error)
+                })
+        },
         editName () {
             this.editing = true
             this.$refs.appName.focus()
@@ -101,7 +123,10 @@ export default {
             this.input.projectName = this.application.name
         },
         saveApplication () {
-            ApplicationAPI.updateApplication(this.application.id, this.input.projectName)
+            ApplicationAPI.updateApplication(
+                this.application.id,
+                this.input.projectName
+            )
                 .then(() => {
                     this.$emit('application-updated')
                     Alerts.emit('Application updated.', 'confirmation')
