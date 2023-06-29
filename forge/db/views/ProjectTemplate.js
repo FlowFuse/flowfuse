@@ -1,14 +1,22 @@
-module.exports = {
-    template: function (app, template) {
+module.exports = function (app) {
+    app.addSchema({
+        $id: 'Template',
+        type: 'object',
+        allOf: [{ $ref: 'TemplateSummary' }],
+        properties: {
+            settings: { type: 'object', additionalProperties: true },
+            policy: { type: 'object', additionalProperties: true }
+        }
+    })
+    function template (template) {
         if (template) {
             const result = template.toJSON()
             const filtered = {
                 id: result.hashid,
-                // template: result.templateId,
-                // revision: result.revision,
                 name: result.name,
                 description: result.description,
                 active: result.active,
+                projectCount: result.projectCount,
                 settings: result.settings || {},
                 policy: result.policy || {},
                 createdAt: result.createdAt,
@@ -25,14 +33,26 @@ module.exports = {
         } else {
             return null
         }
-    },
-    templateSummary: function (app, template) {
+    }
+    app.addSchema({
+        $id: 'TemplateSummary',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            description: { type: 'string' },
+            active: { type: 'boolean' },
+            projectCount: { type: 'number' },
+            createdAt: { type: 'string' },
+            links: { $ref: 'LinksMeta' },
+            owner: { $ref: 'UserSummary' }
+        }
+    })
+    function templateSummary (template) {
         if (template) {
             const result = template.toJSON()
             const filtered = {
                 id: result.hashid,
-                // template: result.templateId,
-                // revision: result.revision,
                 name: result.name,
                 description: result.description,
                 active: result.active,
@@ -47,5 +67,9 @@ module.exports = {
         } else {
             return null
         }
+    }
+    return {
+        template,
+        templateSummary
     }
 }
