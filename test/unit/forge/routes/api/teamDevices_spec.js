@@ -1,3 +1,4 @@
+const { Op } = require('sequelize')
 const should = require('should') // eslint-disable-line
 const { Roles } = require('../../../../../forge/lib/roles')
 const setup = require('../setup')
@@ -7,11 +8,8 @@ describe('Team Devices API', function () {
     /** @type {import('../../../../../forge/db/controllers/AccessToken') */
     let AccessTokenController
     const TestObjects = {}
-    beforeEach(async function () {
+    before(async function () {
         const opts = {}
-        if (this.currentTest.license) {
-            opts.license = this.currentTest.license
-        }
         app = await setup(opts)
         AccessTokenController = app.db.controllers.AccessToken
 
@@ -24,10 +22,6 @@ describe('Team Devices API', function () {
 
         TestObjects.ATeam = app.team
         TestObjects.Project1 = app.project
-        TestObjects.provisioningTokens = {
-            token1: await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 1', TestObjects.ATeam),
-            token2: await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 2', TestObjects.ATeam, TestObjects.Project1)
-        }
 
         // set bob as an owner of ATeam
         await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
@@ -58,7 +52,21 @@ describe('Team Devices API', function () {
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
+    beforeEach(async function () {
+        TestObjects.provisioningTokens = {
+            token1: await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 1', TestObjects.ATeam),
+            token2: await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 2', TestObjects.ATeam, TestObjects.Project1)
+        }
+    })
     afterEach(async function () {
+        await app.db.models.AccessToken.destroy({
+            where: {
+                ownerType: 'team',
+                scope: { [Op.substring]: 'device:provision' }
+            }
+        })
+    })
+    after(async function () {
         if (app) {
             await app.close()
             app = null
@@ -261,7 +269,7 @@ describe('Team Devices API', function () {
             })
             response.statusCode.should.equal(200)
             const result = response.json()
-            result.should.eql({})
+            result.should.have.property('status', 'okay')
         })
         it('Non Team Owner cannot delete a provisioning token', async function () {
             // DELETE /api/v1/team/:teamId/devices/provisioning/:tokenId

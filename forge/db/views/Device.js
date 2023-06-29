@@ -8,8 +8,8 @@ module.exports = function (app) {
             type: { type: 'string' },
             createdAt: { type: 'string' },
             updatedAt: { type: 'string' },
-            lastSeenAt: { type: 'string' },
-            lastSeenMs: { type: 'number' },
+            lastSeenAt: { nullable: true, type: 'string' },
+            lastSeenMs: { nullable: true, type: 'number' },
             activeSnapshot: {
                 nullable: true,
                 allOf: [{ $ref: 'SnapshotSummary' }]

@@ -13,7 +13,37 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.stacks
      */
-    app.get('/', { preHandler: app.needsPermission('stack:list') }, async (request, reply) => {
+    app.get('/', {
+        preHandler: app.needsPermission('stack:list'),
+        schema: {
+            summary: 'Get a list of all stacks',
+            tags: ['Stacks'],
+            query: {
+                allOf: [
+                    { $ref: 'PaginationParams' },
+                    {
+                        type: 'object',
+                        properties: {
+                            filter: { type: 'string' }
+                        }
+                    }
+                ]
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        stacks: { type: 'array', items: { $ref: 'Stack' } }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         let filter = { active: true }
         if (request.query.filter === 'all') {
@@ -44,7 +74,27 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.stacks
      */
-    app.get('/:stackId', { preHandler: app.needsPermission('stack:read') }, async (request, reply) => {
+    app.get('/:stackId', {
+        preHandler: app.needsPermission('stack:read'),
+        schema: {
+            summary: 'Get details of a stacks',
+            tags: ['Stacks'],
+            params: {
+                type: 'object',
+                properties: {
+                    stackId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'Stack'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         const stack = await app.db.models.ProjectStack.byId(request.params.stackId)
         if (stack) {
             reply.send(app.db.views.ProjectStack.stack(stack, request.session.User.admin))
@@ -62,6 +112,8 @@ module.exports = async function (app) {
     app.post('/', {
         preHandler: app.needsPermission('stack:create'),
         schema: {
+            summary: 'Create a stack - admin-only',
+            tags: ['Stacks'],
             body: {
                 type: 'object',
                 required: ['name'],
@@ -72,6 +124,14 @@ module.exports = async function (app) {
                     projectType: { type: 'string' },
                     properties: { type: 'object' },
                     replaces: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'Stack'
+                },
+                '4xx': {
+                    $ref: 'APIError'
                 }
             }
         }
@@ -146,7 +206,25 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.stacks
      */
     app.delete('/:stackId', {
-        preHandler: app.needsPermission('stack:delete')
+        preHandler: app.needsPermission('stack:delete'),
+        schema: {
+            summary: 'Delete a stack - admin-only',
+            tags: ['Stacks'],
+            params: {
+                type: 'object',
+                properties: {
+                    stackId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const stack = await app.db.models.ProjectStack.byId(request.params.stackId)
         // The `beforeDestroy` hook of the ProjectStack model ensures
@@ -173,7 +251,35 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.stacks
      */
     app.put('/:stackId', {
-        preHandler: app.needsPermission('stack:edit')
+        preHandler: app.needsPermission('stack:edit'),
+        schema: {
+            summary: 'Update details of a stack - admin-only',
+            tags: ['Stacks'],
+            params: {
+                type: 'object',
+                properties: {
+                    stackId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' },
+                    label: { type: 'string' },
+                    active: { type: 'boolean' },
+                    projectType: { type: 'string' },
+                    properties: { type: 'object' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'Stack'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const stack = await app.db.models.ProjectStack.byId(request.params.stackId)
         if (request.body.name !== undefined || request.body.properties !== undefined) {

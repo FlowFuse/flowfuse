@@ -6,7 +6,8 @@ describe('Settings API', function () {
     let app
     const settingsURL = '/api/v1/settings'
     const TestObjects = {}
-    beforeEach(async function () {
+
+    async function setupApp () {
         app = await setup()
         TestObjects.alice = await app.db.models.User.byUsername('alice')
         TestObjects.tokens = {}
@@ -20,13 +21,17 @@ describe('Settings API', function () {
             password: 'bbPassword'
         })
         await login('bob', 'bbPassword')
-    })
+    }
 
+    before(async function () {
+        return setupApp()
+    })
     afterEach(async function () {
-        await app.close()
         mockDate.reset()
     })
-
+    after(async function () {
+        await app.close()
+    })
     async function login (username, password) {
         const response = await app.inject({
             method: 'POST',
@@ -150,7 +155,74 @@ describe('Settings API', function () {
             const settings = response.json()
             settings.should.not.have.property('license')
         })
+        describe('CE', function () {
+            before(async function () {
+                await app.close()
+                return setupApp()
+            })
+            it('Returns correct license status for logged in user', async function () {
+                const midnightTonight = new Date()
+                midnightTonight.setHours(0, 0, 0, 0)
+                const midnight1YearLater = new Date()
+                midnight1YearLater.setHours(0, 0, 0, 0)
+                midnight1YearLater.setDate(midnightTonight.getDate() + 365)
+                mockDate.set(midnightTonight)
+                await login('alice', 'aaPassword')
+
+                const response = await app.inject({
+                    method: 'GET',
+                    url: settingsURL,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                const settings = response.json()
+                settings.should.have.property('license')
+
+                settings.license.should.only.have.keys('type', 'expiresAt', 'expiring', 'expired', 'daysRemaining', 'PRE_EXPIRE_WARNING_DAYS')
+                settings.license.should.have.property('type', 'CE')
+                settings.license.should.have.property('expiresAt', midnight1YearLater.toISOString())
+                settings.license.should.have.property('expired', false)
+                settings.license.should.have.property('daysRemaining', 365)
+            })
+            it('Returns unexpired license status in 2100', async function () {
+                mockDate.set('2100-02-06')
+                await login('alice', 'aaPassword')
+                const response = await app.inject({
+                    method: 'GET',
+                    url: settingsURL,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                const settings = response.json()
+                settings.should.have.property('license')
+
+                settings.license.should.only.have.keys('type', 'expiresAt', 'expiring', 'expired', 'daysRemaining', 'PRE_EXPIRE_WARNING_DAYS')
+                settings.license.should.have.property('type', 'CE')
+                settings.license.should.have.property('expiresAt', '2101-02-06T00:00:00.000Z')
+                settings.license.should.have.property('expired', false)
+                settings.license.should.have.property('daysRemaining', 365)
+            })
+            it('Returns unexpired license status in 2500', async function () {
+                mockDate.set('2500-02-06')
+                await login('alice', 'aaPassword')
+                const response = await app.inject({
+                    method: 'GET',
+                    url: settingsURL,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                const settings = response.json()
+                settings.should.have.property('license')
+
+                settings.license.should.only.have.keys('type', 'expiresAt', 'expiring', 'expired', 'daysRemaining', 'PRE_EXPIRE_WARNING_DAYS')
+                settings.license.should.have.property('type', 'CE')
+                settings.license.should.have.property('expiresAt', '2501-02-06T00:00:00.000Z')
+                settings.license.should.have.property('expired', false)
+                settings.license.should.have.property('daysRemaining', 365)
+            })
+        })
         describe('EE', function () {
+            before(async function () {
+                await app.close()
+                return setupApp()
+            })
             /**
              * Example license object:
              * ```js
@@ -222,65 +294,6 @@ describe('Settings API', function () {
                 settings.license.should.have.property('expiring', false)
                 settings.license.should.have.property('expired', true)
                 settings.license.should.have.property('daysRemaining', 0)
-            })
-        })
-        describe('CE', function () {
-            it('Returns correct license status for logged in user', async function () {
-                const midnightTonight = new Date()
-                midnightTonight.setHours(0, 0, 0, 0)
-                const midnight1YearLater = new Date()
-                midnight1YearLater.setHours(0, 0, 0, 0)
-                midnight1YearLater.setDate(midnightTonight.getDate() + 365)
-                mockDate.set(midnightTonight)
-                await login('alice', 'aaPassword')
-
-                const response = await app.inject({
-                    method: 'GET',
-                    url: settingsURL,
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                const settings = response.json()
-                settings.should.have.property('license')
-
-                settings.license.should.only.have.keys('type', 'expiresAt', 'expiring', 'expired', 'daysRemaining', 'PRE_EXPIRE_WARNING_DAYS')
-                settings.license.should.have.property('type', 'CE')
-                settings.license.should.have.property('expiresAt', midnight1YearLater.toISOString())
-                settings.license.should.have.property('expired', false)
-                settings.license.should.have.property('daysRemaining', 365)
-            })
-            it('Returns unexpired license status in 2100', async function () {
-                mockDate.set('2100-02-06')
-                await login('alice', 'aaPassword')
-                const response = await app.inject({
-                    method: 'GET',
-                    url: settingsURL,
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                const settings = response.json()
-                settings.should.have.property('license')
-
-                settings.license.should.only.have.keys('type', 'expiresAt', 'expiring', 'expired', 'daysRemaining', 'PRE_EXPIRE_WARNING_DAYS')
-                settings.license.should.have.property('type', 'CE')
-                settings.license.should.have.property('expiresAt', '2101-02-06T00:00:00.000Z')
-                settings.license.should.have.property('expired', false)
-                settings.license.should.have.property('daysRemaining', 365)
-            })
-            it('Returns unexpired license status in 2500', async function () {
-                mockDate.set('2500-02-06')
-                await login('alice', 'aaPassword')
-                const response = await app.inject({
-                    method: 'GET',
-                    url: settingsURL,
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                const settings = response.json()
-                settings.should.have.property('license')
-
-                settings.license.should.only.have.keys('type', 'expiresAt', 'expiring', 'expired', 'daysRemaining', 'PRE_EXPIRE_WARNING_DAYS')
-                settings.license.should.have.property('type', 'CE')
-                settings.license.should.have.property('expiresAt', '2501-02-06T00:00:00.000Z')
-                settings.license.should.have.property('expired', false)
-                settings.license.should.have.property('daysRemaining', 365)
             })
         })
     })

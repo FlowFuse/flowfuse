@@ -11,7 +11,25 @@
 module.exports = async function (app) {
     app.addHook('preHandler', app.needsPermission('user:edit'))
 
-    app.get('/', async (request, reply) => {
+    app.get('/', {
+        schema: {
+            summary: 'Get a list of the current users invitations',
+            tags: ['User'],
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        invitations: { $ref: 'InvitationList' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         const invitations = await app.db.models.Invitation.forUser(request.session.User)
         const result = app.db.views.Invitation.invitationList(invitations)
         reply.send({
@@ -25,7 +43,26 @@ module.exports = async function (app) {
      * Accept an invitation
      * PATCH [/api/v1/user/invitations]/:invitationId
      */
-    app.patch('/:invitationId', async (request, reply) => {
+    app.patch('/:invitationId', {
+        schema: {
+            summary: 'Accept an invitation',
+            tags: ['User'],
+            params: {
+                type: 'object',
+                properties: {
+                    invitationId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         const invitation = await app.db.models.Invitation.byId(request.params.invitationId, request.session.User)
         if (invitation) {
             await app.db.controllers.Invitation.acceptInvitation(invitation, request.session.User)
@@ -42,7 +79,26 @@ module.exports = async function (app) {
      * Reject an invitation
      * DELETE [/api/v1/user/invitations]/:invitationId
      */
-    app.delete('/:invitationId', async (request, reply) => {
+    app.delete('/:invitationId', {
+        schema: {
+            summary: 'Reject an invitation',
+            tags: ['User'],
+            params: {
+                type: 'object',
+                properties: {
+                    invitationId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         const invitation = await app.db.models.Invitation.byId(request.params.invitationId, request.session.User)
         if (invitation) {
             await app.db.controllers.Invitation.rejectInvitation(invitation, request.session.User)
