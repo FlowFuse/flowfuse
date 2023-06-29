@@ -1,6 +1,6 @@
 module.exports = function (app) {
     app.addSchema({
-        $id: 'ProjectTypeSummary',
+        $id: 'InstanceTypeSummary',
         type: 'object',
         properties: {
             id: { type: 'string' },
@@ -16,6 +16,23 @@ module.exports = function (app) {
             name: projectType.name
         }
     }
+    app.addSchema({
+        $id: 'InstanceType',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            active: { type: 'boolean' },
+            description: { type: 'string' },
+            order: { type: 'number' },
+            properties: { type: 'object', additionalProperties: true },
+            createdAt: { type: 'string' },
+            defaultStack: { type: 'string', nullable: true },
+            projectCount: { type: 'number' },
+            stackCount: { type: 'number' }
+
+        }
+    })
     function projectType (projectType, includeCount) {
         if (projectType) {
             const result = projectType.toJSON()
