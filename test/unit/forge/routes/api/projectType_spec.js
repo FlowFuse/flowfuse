@@ -1,10 +1,14 @@
+const { Op } = require('sequelize')
 const should = require('should') // eslint-disable-line
 const setup = require('../setup')
 
 describe('Project Type API', function () {
+    let instanceCount = 0
+    const generateName = () => 'test-instance-type-' + (instanceCount++)
+
     let app
     const TestObjects = {}
-    beforeEach(async function () {
+    before(async function () {
         app = await setup()
 
         // Alice create in setup()
@@ -28,7 +32,7 @@ describe('Project Type API', function () {
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
-    afterEach(async function () {
+    after(async function () {
         await app.close()
     })
 
@@ -36,12 +40,13 @@ describe('Project Type API', function () {
         // POST /api/v1/project-types
         // - Must be admin or team owner/member
         it('Create a simple project type', async function () {
+            const name = generateName()
             const response = await app.inject({
                 method: 'POST',
                 url: '/api/v1/project-types',
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
-                    name: 'project-type-2',
+                    name,
                     description: 'another-project-type',
                     active: true,
                     order: 2,
@@ -52,7 +57,7 @@ describe('Project Type API', function () {
             })
             const result = response.json()
             result.should.have.property('id')
-            result.should.have.property('name', 'project-type-2')
+            result.should.have.property('name', name)
             result.should.have.property('active', true)
             result.should.have.property('description', 'another-project-type')
             result.should.have.property('projectCount', 0)
@@ -104,17 +109,22 @@ describe('Project Type API', function () {
         })
         it('Allows partial update of in-use types', async function () {
             const result = await allowUpdate(TestObjects.projectType1.hashid, {
-                name: 'project-type-updated',
+                name: 'project-type-updated-2',
                 description: 'updated',
                 active: false,
                 order: 7
             })
-            result.should.have.property('name', 'project-type-updated')
+            result.should.have.property('name', 'project-type-updated-2')
             result.should.have.property('description', 'updated')
             result.should.have.property('active', false)
             result.should.have.property('order', 7)
             result.should.have.property('properties')
             result.properties.should.have.property('foo', 'bar')
+
+            await allowUpdate(TestObjects.projectType1.hashid, {
+                name: 'projectType1',
+                active: true
+            })
         })
 
         it('Allows updates of project-type for unused types', async function () {
@@ -165,7 +175,7 @@ describe('Project Type API', function () {
                 url: '/api/v1/project-types',
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
-                    name: 'project-type-2',
+                    name: generateName(),
                     description: 'another-project-type',
                     active: true,
                     order: 2,
@@ -219,6 +229,7 @@ describe('Project Type API', function () {
 
     describe('List project-types', async function () {
         beforeEach(async function () {
+            await app.db.models.ProjectType.destroy({ where: { id: { [Op.not]: TestObjects.projectType1.id } } })
             await app.inject({
                 method: 'POST',
                 url: '/api/v1/project-types',
