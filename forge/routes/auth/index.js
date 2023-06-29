@@ -173,7 +173,7 @@ module.exports = fp(async function (app, opts, done) {
         schema: {
             summary: 'Log in to the platform',
             description: 'Log in to the platform. If SSO is enabled for this user, the response will prompt the user to retry via the SSO login mechanism.',
-            tags: ['Authentication'],
+            tags: ['Authentication', 'X-HIDDEN'],
             body: {
                 type: 'object',
                 required: ['username'],
@@ -227,7 +227,7 @@ module.exports = fp(async function (app, opts, done) {
      */
     app.post('/account/logout', {
         schema: {
-            tags: ['Authentication']
+            tags: ['Authentication', 'X-HIDDEN']
         }
     }, async (request, reply) => {
         let userInfo = null
@@ -273,7 +273,7 @@ module.exports = fp(async function (app, opts, done) {
      */
     app.post('/account/register', {
         schema: {
-            tags: ['Authentication'],
+            tags: ['Authentication', 'X-HIDDEN'],
             body: {
                 type: 'object',
                 required: ['username', 'password', 'name', 'email'],
@@ -411,7 +411,7 @@ module.exports = fp(async function (app, opts, done) {
      */
     app.post('/account/verify/:token', {
         schema: {
-            tags: ['Authentication']
+            tags: ['Authentication', 'X-HIDDEN']
         }
     }, async (request, reply) => {
         try {
@@ -486,7 +486,7 @@ module.exports = fp(async function (app, opts, done) {
         preHandler: app.verifySession,
         config: { allowUnverifiedEmail: true },
         schema: {
-            tags: ['Authentication']
+            tags: ['Authentication', 'X-HIDDEN']
         }
     }, async (request, reply) => {
         /** @type {UserController} */
@@ -521,7 +521,7 @@ module.exports = fp(async function (app, opts, done) {
     app.post('/account/email_change/:token', {
         schema: {
 
-            tags: ['Authentication']
+            tags: ['Authentication', 'X-HIDDEN']
         }
     }, async (request, reply) => {
         try {
@@ -564,7 +564,7 @@ module.exports = fp(async function (app, opts, done) {
 
     app.post('/account/forgot_password', {
         schema: {
-            tags: ['Authentication'],
+            tags: ['Authentication', 'X-HIDDEN'],
             body: {
                 type: 'object',
                 required: ['email'],
@@ -608,7 +608,7 @@ module.exports = fp(async function (app, opts, done) {
 
     app.post('/account/reset_password/:token', {
         schema: {
-            tags: ['Authentication'],
+            tags: ['Authentication', 'X-HIDDEN'],
             body: {
                 type: 'object',
                 required: ['password'],

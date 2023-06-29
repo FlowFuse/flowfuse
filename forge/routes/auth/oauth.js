@@ -42,7 +42,7 @@ module.exports = async function (app) {
 
     app.get('/account/authorize', {
         schema: {
-            tags: ['Authentication'],
+            tags: ['Authentication', 'X-HIDDEN'],
             querystring: {
                 type: 'object',
                 properties: {
@@ -140,7 +140,7 @@ module.exports = async function (app) {
 
     app.get('/account/complete/:code', {
         schema: {
-            tags: ['Authentication']
+            tags: ['Authentication', 'X-HIDDEN']
         }
     }, async function (request, reply) {
         const requestId = request.params.code
@@ -210,7 +210,7 @@ module.exports = async function (app) {
     })
     app.get('/account/reject/:code', {
         schema: {
-            tags: ['Authentication']
+            tags: ['Authentication', 'X-HIDDEN']
         }
     }, async function (request, reply) {
         const requestId = request.params.code
@@ -224,7 +224,7 @@ module.exports = async function (app) {
 
     app.post('/account/token', {
         schema: {
-            tags: ['Authentication'],
+            tags: ['Authentication', 'X-HIDDEN'],
             body: {
                 type: 'object',
                 properties: {
@@ -404,7 +404,7 @@ module.exports = async function (app) {
         // mounted at the point this route is being registered
         preHandler: (request, reply) => app.verifySession(request, reply),
         schema: {
-            tags: ['Authentication']
+            tags: ['Authentication', 'X-HIDDEN']
         }
     }, async (request, reply) => {
         if (request.params.ownerType === request.session.ownerType && request.params.ownerId === request.session.ownerId) {

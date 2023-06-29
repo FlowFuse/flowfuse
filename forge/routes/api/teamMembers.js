@@ -119,7 +119,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('team:user:change-role'),
         schema: {
             summary: 'Change a members role',
-            tags: ['Team'],
+            tags: ['Team Members'],
             params: {
                 type: 'object',
                 properties: {

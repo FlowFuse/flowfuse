@@ -15,9 +15,44 @@ module.exports = fp(async function (app, opts, done) {
                 description: 'Find more info here'
             },
             tags: [
-                { name: 'Authentication', description: 'Getting access to the platform' },
-                { name: 'User', description: 'User routes' }
+                { name: 'User', description: '' },
+                { name: 'Teams', description: '' },
+                { name: 'Team Types', description: '' },
+                { name: 'Team Members', description: '' },
+                { name: 'Team Invitations', description: '' },
+                { name: 'Team Devices', description: '' },
+                { name: 'Applications', description: '' },
+                { name: 'Instances', description: '' },
+                { name: 'Instance Types', description: '' },
+                { name: 'Instance Actions', description: '' },
+                { name: 'Devices', description: '' },
+                { name: 'Snapshots', description: '' },
+                { name: 'Stacks', description: '' },
+                { name: 'Templates', description: '' },
+                { name: 'Platform', description: '' },
+                { name: 'Users', description: '' }
             ]
+            // components: {
+            //     securitySchemes: {
+            //         BearerAuth: {
+            //             type: 'http',
+            //             scheme: 'bearer'
+            //         },
+            //         Cookie: {
+            //             type: 'apiKey',
+            //             in: 'cookie',
+            //             name: 'sid'
+            //         }
+            //     }
+            // },
+            // security: [
+            //     {
+            //         BearerAuth: []
+            //     },
+            //     {
+            //         Cookie: []
+            //     }
+            // ]
         },
         hideUntagged: true
     })
@@ -40,7 +75,18 @@ module.exports = fp(async function (app, opts, done) {
                 }
             ]
         },
-        hideUntagged: true
+        hideUntagged: true,
+        uiConfig: {
+            defaultModelsExpandDepth: -1,
+            operationsSorter: 'alpha',
+            // tagsSorter: 'alpha',
+            syntaxHighlight: {
+                activate: true,
+                theme: 'arta'
+            },
+            tryItOutEnabled: false,
+            supportedSubmitMethods: ['']
+        }
     })
 
     app.addSchema({
