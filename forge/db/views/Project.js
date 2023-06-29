@@ -15,7 +15,7 @@ module.exports = function (app) {
             hostname: { type: 'string' },
             application: { $ref: 'ApplicationSummary' },
             team: { $ref: 'TeamSummary' },
-            projectType: { $ref: 'ProjectTypeSummary' },
+            projectType: { $ref: 'InstanceTypeSummary' },
             settings: {
                 type: 'object',
                 additionalProperties: true

@@ -1,5 +1,20 @@
 module.exports = async function (app) {
-    app.get('/', { config: { allowAnonymous: true, allowUnverifiedEmail: true } }, async (request, reply) => {
+    app.get('/', {
+        config: { allowAnonymous: true, allowUnverifiedEmail: true },
+        schema: {
+            summary: 'Get platform settings',
+            tags: ['Platform'],
+            response: {
+                200: {
+                    type: 'object',
+                    additionalProperties: true
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         // This isn't as clean as I'd like, but it works for now.
         //
         // We return different things depending on the user session.
@@ -93,7 +108,22 @@ module.exports = async function (app) {
         }
     })
 
-    app.put('/', { preHandler: app.needsPermission('settings:edit') }, async (request, reply) => {
+    app.put('/', {
+        preHandler: app.needsPermission('settings:edit'),
+        schema: {
+            summary: 'Get platform settings',
+            tags: ['Platform'],
+            body: { type: 'object' },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         if (request.body) {
             const updates = new app.auditLog.formatters.UpdatesCollection()
             for (let [key, value] of Object.entries(request.body)) {
