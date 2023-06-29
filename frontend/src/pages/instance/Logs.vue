@@ -1,12 +1,13 @@
 <template>
     <div class="mb-3">
         <SectionTopMenu hero="Node-RED Logs" info="">
-            <template #tools v-if="this.instance.ha?.replicas != undefined">
+            <template v-if="instance.ha?.replicas != undefined" #tools>
                 <div style="display: flex;align-items: center;">
                     <div class="mr-2"><strong>Replica:</strong></div>
                     <ff-dropdown ref="dropdown" v-model="selectedHAId">
                         <ff-dropdown-option label="All" value="all" />
-                        <ff-dropdown-option v-for="id in haIds" :key="id"
+                        <ff-dropdown-option
+                            v-for="id in haIds" :key="id"
                             :label="id" :value="id"
                         />
                     </ff-dropdown>
@@ -14,7 +15,7 @@
             </template>
         </SectionTopMenu>
     </div>
-    <LogsShared :instance="instance" @ha-instance-detected="newHAId" :filter="selectedHAId"/>
+    <LogsShared :instance="instance" :filter="selectedHAId" @ha-instance-detected="newHAId" />
 </template>
 
 <script>
@@ -35,14 +36,14 @@ export default {
             required: true
         }
     },
-    data() {
+    data () {
         return {
             haIds: [],
             selectedHAId: 'all'
         }
     },
     methods: {
-        newHAId(id) {
+        newHAId (id) {
             if (!this.haIds.includes(id)) {
                 this.haIds.push(id)
             }
