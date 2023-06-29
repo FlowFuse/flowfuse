@@ -2,13 +2,15 @@
     <div class="mb-3">
         <SectionTopMenu hero="Node-RED Logs" info="">
             <template #tools v-if="this.instance.ha?.replicas != undefined">
-                <div class="mr-2"><strong>Replica:</strong></div>
-                <ff-dropdown ref="dropdown" v-model="selectedHAId">
-                    <ff-dropdown-option label="All" value="all" />
-                    <ff-dropdown-option v-for="id in haIds" :key="id"
-                        :label="id" :value="id"
-                    />
-                </ff-dropdown>
+                <div style="display: flex;align-items: center;">
+                    <div class="mr-2"><strong>Replica:</strong></div>
+                    <ff-dropdown ref="dropdown" v-model="selectedHAId">
+                        <ff-dropdown-option label="All" value="all" />
+                        <ff-dropdown-option v-for="id in haIds" :key="id"
+                            :label="id" :value="id"
+                        />
+                    </ff-dropdown>
+                </div>
             </template>
         </SectionTopMenu>
     </div>
