@@ -47,8 +47,9 @@ export default {
             console.log(this.filter)
             try {
                 if (this.filter && this.filter !== 'all') {
+                    console.log('filtering to', this.filter)
                     const filteredList = this.logEntries.filter( l => l.src === this.filter)
-                    console.log(filteredList)
+                    console.log('filtered list',filteredList)
                     return filteredList
                 } else {
                     return this.logEntries
