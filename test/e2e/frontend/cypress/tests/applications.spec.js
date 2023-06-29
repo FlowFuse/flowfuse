@@ -98,6 +98,68 @@ describe('FlowForge - Applications', () => {
         })
     })
 
+    it('Verify visibility of environment variable values based on user permissions', () => {
+        // allow user to see environment variable values and before allowing check admin is able to see environment variable values when permission is disabled
+        cy.home()
+        cy.get(':nth-child(1) > .ff-applications-list-instances > :nth-child(2)').click()
+        cy.url().then(url => {
+            const urlSplitedArray = url.split('/')
+            cy.visit(`/instance/${urlSplitedArray[4]}/settings/general`)
+        })
+        cy.get('[data-nav="environment"]').click()
+        cy.get(':nth-child(1) > :nth-child(2) > :nth-child(1) > .max-w-sm > .flex > .w-full').should('not.contain', '  encrypted')
+        cy.home()
+        cy.visit('/admin/settings/general')
+        cy.get('#formRow-instance-6 > .checkbox').click()
+        cy.get('[data-action="save-settings"]').click()
+        cy.home()
+
+        cy.logout()
+
+        // login as user and check environment variable values are visible
+
+        cy.login('bob', 'bbPassword')
+        cy.home()
+        cy.get(':nth-child(1) > .ff-applications-list-instances > :nth-child(2)').click()
+        cy.url().then(url => {
+            const urlSplitedArray = url.split('/')
+            cy.visit(`/instance/${urlSplitedArray[4]}/settings/general`)
+        })
+        cy.get('[data-nav="environment"]').click()
+        cy.get(':nth-child(1) > :nth-child(2) > .pt-1').should('not.contain', '  encrypted')
+
+        cy.logout()
+
+        // check admin can see environment variable values or not and disable environment variable value visiblity for user
+
+        cy.login('alice', 'aaPassword')
+        cy.home()
+        cy.get(':nth-child(1) > .ff-applications-list-instances > :nth-child(2)').click()
+        cy.url().then(url => {
+            const urlSplitedArray = url.split('/')
+            cy.visit(`/instance/${urlSplitedArray[4]}/settings/general`)
+        })
+        cy.get('[data-nav="environment"]').click()
+        cy.get(':nth-child(1) > :nth-child(2) > :nth-child(1) > .max-w-sm > .flex > .w-full').should('not.contain', '  encrypted')
+        cy.home()
+        cy.visit('/admin/settings/general')
+        cy.get('#formRow-instance-6 > .checkbox').click()
+        cy.get('[data-action="save-settings"]').click()
+
+        cy.logout()
+
+        // check user cannot see environment variable values when permission is disabled
+        cy.login('bob', 'bbPassword')
+        cy.home()
+        cy.get(':nth-child(1) > .ff-applications-list-instances > :nth-child(2)').click()
+        cy.url().then(url => {
+            const urlSplitedArray = url.split('/')
+            cy.visit(`/instance/${urlSplitedArray[4]}/settings/general`)
+        })
+        cy.get('[data-nav="environment"]').click()
+        cy.get(':nth-child(1) > :nth-child(2) > .pt-1').contains(' encrypted')
+    })
+
     it('can be viewed', () => {
         cy.intercept('GET', '/api/*/applications/*').as('getApplication')
 
