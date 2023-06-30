@@ -68,6 +68,7 @@ module.exports = {
         result.push(makeVar('FF_DEVICE_ID', device.hashid || ''))
         result.push(makeVar('FF_DEVICE_NAME', device.name || ''))
         result.push(makeVar('FF_DEVICE_TYPE', device.type || ''))
+        result.push(makeVar('FF_SNAPSHOT_ID', device.targetSnapshot?.hashid || ''))
         result.push(...app.db.controllers.Device.removePlatformSpecificEnvVars(envVars))
         return result
     },
