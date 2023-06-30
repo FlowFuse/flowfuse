@@ -509,7 +509,7 @@
                     </div>
                     <div class="example">
                         <h5>Example 2: Grid &amp; Label</h5>
-                        <ff-radio-group v-model="models.radio1" label="We can also provide a label here" :options="[{label: 'Option 1', value: 1, checked: false}, {label: 'Option 2', value: 2}, {label: 'Option 3', value: 3}, {label: 'Option 4', value: 4}]" orientation="grid"></ff-radio-group>
+                        <ff-radio-group v-model="models.radio1" label="We can also provide a label here" :options="[{label: 'Option 1', value: 1, checked: false}, {label: 'Option 2', value: 2}, {label: 'Option 3', value: 3}, {label: 'Option 4', value: 4}]" orientation="grid" :columns="3"></ff-radio-group>
                         {{ models.radio1 }}
                         <code>{{ cGroups['input'].components[3].examples[1].code }}</code>
                     </div>
