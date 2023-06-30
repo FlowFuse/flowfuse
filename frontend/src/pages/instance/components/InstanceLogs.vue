@@ -12,7 +12,12 @@
         <div v-if="prevCursor" class="flex">
             <a class=" text-center w-full hover:text-blue-400 cursor-pointer pb-1" @click="loadPrevious">Load earlier...</a>
         </div>
-        <div v-for="(item, itemIdx) in logEntries" :key="itemIdx" class="flex" :class="'forge-log-entry-level-' + item.level">
+        <div
+            v-for="(item, itemIdx) in filteredLogEntries" :key="itemIdx"
+            data-el="instance-log-row"
+            class="flex" :class="'forge-log-entry-level-' + item.level"
+        >
+            <div v-if="instance.ha?.replicas !== undefined" class="w-14 flex-shrink-0">[{{ item.src }}]</div>
             <div class="w-40 flex-shrink-0">{{ item.date }}</div>
             <div class="w-20 flex-shrink-0 align-right">[{{ item.level }}]</div>
             <div class="flex-grow break-all whitespace-pre-wrap">{{ item.msg }}</div>
@@ -34,8 +39,14 @@ export default {
         instance: {
             type: Object,
             required: true
+        },
+        filter: {
+            default: null,
+            type: String,
+            required: false
         }
     },
+    emits: ['ha-instance-detected'],
     data () {
         return {
             doneInitialLoad: false,
@@ -45,6 +56,16 @@ export default {
             nextCursor: null,
             checkInterval: null,
             showOfflineBanner: false
+        }
+    },
+    computed: {
+        filteredLogEntries: function () {
+            if (this.filter && this.filter !== 'all') {
+                const filteredList = this.logEntries.filter(l => l.src === this.filter)
+                return filteredList
+            } else {
+                return this.logEntries
+            }
         }
     },
     timers: {
@@ -104,6 +125,9 @@ export default {
                             this.logEntries.push(l)
                         } else {
                             toPrepend.push(l)
+                        }
+                        if (l.src) {
+                            this.$emit('ha-instance-detected', l.src)
                         }
                     })
                     if (toPrepend.length > 0) {
