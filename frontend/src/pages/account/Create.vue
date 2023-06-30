@@ -23,6 +23,10 @@
                 <ff-text-input ref="signup-password" label="password" :error="errors.password" v-model="input.password" type="password"/>
                 <span class="ff-error-inline">{{ errors.password }}</span>
             </div>
+            <div class="pt-3">
+                <ff-radio-group label="What brings you to FlowForge?" v-model="input.join_reason" orientation="grid"
+                                :options="[{label: 'Business Needs', value: 'business'}, {label: 'Personal Use', value: 'personal'}, {label: 'Learning Node-RED', value: 'learning'}, {label: 'Other', value: 'other'}]" />
+            </div>
             <div v-if="settings['user:tcs-required']">
                 <ff-checkbox v-model="input.tcs_accepted">
                     I accept the <a target="_blank" :href="settings['user:tcs-url']">FlowForge Terms &amp; Conditions.</a>
@@ -70,6 +74,7 @@ export default {
                 username: '',
                 email: '',
                 password: '',
+                join_reason: null,
                 tcs_accepted: false,
                 code: ''
             },
@@ -91,6 +96,7 @@ export default {
             return (this.input.email && !this.errors.email) &&
                    (this.input.username && !this.errors.username) &&
                    this.input.password.length >= 8 &&
+                   (this.input.join_reason) &&
                    (this.settings['user:tcs-required'] ? this.input.tcs_accepted : true) &&
                    (!this.errors.name)
         }
