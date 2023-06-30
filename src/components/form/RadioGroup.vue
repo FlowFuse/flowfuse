@@ -1,6 +1,6 @@
 <template>
     <div class="ff-radio-group">
-        <p v-if="label" class="ff-radio-group-label">{{ label }}</p>
+        <label v-if="label" class="ff-radio-group-label">{{ label }}</label>
         <div class="ff-radio-group-options" :class="'ff-radio-group--' + orientation" :style="orientation === 'grid' ? {'grid-template-columns': `repeat(${columns}, 1fr)`} : ''">
             <ff-radio-button v-for="option in internalOptions" :key="option.label" ref="inputs"
                 :value="option.value" :label="option.label" :checked="option.checked"
